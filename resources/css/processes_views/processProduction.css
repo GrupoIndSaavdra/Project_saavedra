@@ -1,37 +1,38 @@
-/* Estilos del div buscador */
-.wrapper {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    max-width: 1000px;
-    width: 90%;
+* {
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
-    padding: 1.2em;
-    background: #ffffff;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 5px 10px 30px #000000b0;
+    font-family: "Poppins", sans-serif;
 }
-.lg-saavedra {
-    width: 20em;
-    margin: 1em 0;
+
+body {
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
 }
-h1 {
-    margin: 0.7em;
-    font-size: 1.8em;
-    font-weight: 100;
-    color: #404040;
+.container-meta {
+    display: flex;
+    justify-content: space-between;
 }
-p {
-    font-size: 1.2em;
-    color: #404040;
-    margin: 0.5em 0;
+/* Estilos del div buscador */
+.principal-data {
+    width: 25%;
+    padding: 1em;
+    box-sizing: border-box;
+}
+.form-pricipal-data {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr); /* 2 columnas iguales */
     gap: 1em; /* Espacio entre columnas y filas */
+}
+.form-grid-one {
+    grid-template-columns: repeat(1, 1fr); /* 1 columna */
 }
 .form-group {
     display: flex;
@@ -41,20 +42,190 @@ p {
 .form-control {
     width: 100%;
     border-radius: 5px;
-    padding: 0.8em 1em;
+    padding: 0.8em 0.2em;
     border: 1px solid #00000033;
     text-align: center;
-    font-size: 1.3em;
-    margin: 0.5em;
+    font-size: 1em;
     letter-spacing: 1px;
     background: #033966;
+    border: 5px solid #033966d4;
     color: #ffffff;
-}
-.form-control:hover {
-    border: 1px solid #033966;
 }
 .form-label {
     font-size: 1.3rem;
     font-weight: 700;
     color: #033966;
+}
+.full-width {
+    grid-column: 1 / -1;
+}
+.normal-width {
+    grid-column: 1 / 2;
+}
+.normal-input {
+    border: 5px solid #033966d4;
+    border-radius: 5px;
+    padding: 0.5em 0;
+    letter-spacing: 1px;
+    text-align: center;
+    font-weight: 900;
+    background: #fff;
+    color: #000;
+    cursor: auto;
+}
+.form-group select {
+    font-size: 1em;
+}
+.btn-submit {
+    opacity: 0;
+    width: 100%;
+    background: #033966;
+    color: #ffffff;
+    padding: 0.8em;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 1em;
+}
+.btn-submit:hover {
+    transform: scale(1.1);
+    transition: 0.3s ease;
+}
+.btn-cancel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #9C0300;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 0.8em;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin: 1em;
+}
+.btn-cancel:hover {
+    transform: scale(1.1);
+    transition: 0.3s ease;
+}
+p {
+    margin: 2em;
+    color: #f00;
+    font-size: 1.3em;
+    font-weight: 700;
+    font-style: oblique;
+    text-transform: uppercase;
+}
+
+/** Tabla de metas */
+.div-table-meta {
+    position: relative;
+    width: 50%;
+    box-sizing: border-box;
+}
+.form-verified-password {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5em 10em;
+}
+.img-edit {
+    position: absolute;
+    top: 1em;
+    left: 0;
+    width: 3em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.img-edit:hover {
+    transform: scale(1.1);
+    transition: 0.2s ease;
+}
+.input-password {
+    font-size: 1.2em;
+    padding: 0.2em;
+    width: inherit;
+    cursor: text;
+    margin-right: 1em;
+}
+.btn-submit-password {
+    background: #033966;
+    color: #ffffff;
+    box-sizing: border-box;
+    padding: 0.5em 1em;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.3em;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.btn-submit-password:hover {
+    transform: scale(1.1);
+    transition: 0.3s ease;
+}
+
+.form-group-password {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    box-sizing: border-box;
+}
+
+.table-meta {
+    width: 100%;
+    border: #033966d4 solid 5px;
+    font-size: 1.5em;
+    border-radius: 10px;
+    margin-top: 2em;
+}
+
+.table-meta th {
+    background: #033966d4;
+    color: #ffffff;
+    padding: 0.5em;
+    text-align: center;
+}
+.table-meta input {
+    width: 100%;
+    border: none;
+    font-size: 1.2em;
+    padding: 0.5em;
+    text-align: center;
+    font-weight: 900;
+    color: #000000;
+    cursor: auto;
+}
+
+/* Tabla de codigos de version */
+.div-table-code {
+    width: 25%;
+    box-sizing: border-box;
+    padding: 1em 5em;
+}
+.operator-name {
+    margin-bottom: 1em;
+    font-size: 1.2em;
+    font-weight: 700;
+}
+.operator-name input {
+    font-size: 1em;
+    width: 100%;
+}
+.table-code {
+    width: 100%;
+    border: #033966d4 solid 5px;
+    font-size: 1.2em;
+    border-radius: 10px;
+}
+.table-code th {
+    background: #fff;
+    color: #000;
+    padding: 1em 0.5em;
+    border: #000 solid 3px;
 }

@@ -4,6 +4,7 @@
 <title>Progreso de piezas</title>
 <script>
     window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";
+    window.baseUrl = "{{ url('/') }}";
 </script>
 @vite(['resources/css/pieces_views/piecesInProgress_view.css', 'resources/js/pieces_views/piecesInProgress_view.js'])
 @endsection

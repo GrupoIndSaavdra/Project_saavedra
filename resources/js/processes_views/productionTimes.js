@@ -1,10 +1,17 @@
 // selectClass.addEventListener('change', function () {
 //     inicializarVariables();
 // });
-console.log(workOrders);
 document.addEventListener("DOMContentLoaded", function () {
-    insertSelects(workOrders);
-    let selectClass = document.querySelector(".class");
+    if (workOrders.length !== 0){
+        insertSelects(workOrders);
+        let selectClass = document.querySelector(".class");
+    }else {
+        let div = document.querySelector(".search");
+        let label = document.createElement("label");
+        label.className = "form-label";
+        label.textContent = "Aun no hay ordenes de trabajo registradas.";
+        div.appendChild(label);
+    }
 });
 
 function insertSelects(array) {

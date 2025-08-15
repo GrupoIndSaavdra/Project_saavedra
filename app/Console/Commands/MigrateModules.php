@@ -31,9 +31,9 @@ class MigrateModules extends Command
     public function handle()
     {
         //Borrar todas las tablas excepto 'users'
-        $this->info("Truncating all tables except 'users'...");
-        $this->truncateAllExceptUsers();
-        $this->info("All tables truncated successfully, except 'users'.");
+        // $this->info("Truncating all tables except 'users'...");
+        // $this->truncateAllExceptUsers();
+        // $this->info("All tables truncated successfully, except 'users'.");
 
 
         //Correr todas las migraciones
@@ -52,6 +52,7 @@ class MigrateModules extends Command
             $relativePath = "database/migrations/" . basename($folder);
 
             $this->info("Executing migrations in folder: $relativePath");
+            
             $this->call('migrate', [
                 '--path' => $relativePath,
             ]);

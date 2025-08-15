@@ -92,8 +92,8 @@ class Dashboard {
         a.addEventListener("click", (e) => {
             e.preventDefault();
             if (confirm("¿Estás seguro de que deseas finalizar esta orden de trabajo?")) {
-                window.location.href
-                    = `/finishOrder/${wOrderName}/${className}`;
+                let url = `${window.baseUrl}/finishOrder/${wOrderName}/${className}`;
+                window.location.href = url;
             }
         });
         header_section.appendChild(a);

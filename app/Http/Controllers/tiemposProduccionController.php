@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Clase;
+use App\Models\Metas;
 use App\Models\Moldura;
 use App\Models\Orden_trabajo;
 use App\Models\Procesos;
 use App\Models\tiempoproduccion;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use PhpParser\Node\Stmt\Break_;
 
@@ -97,6 +99,7 @@ class tiemposProduccionController extends Controller
                 $procesos = $this->asignarProcesos($clase[0]->nombre);
                 if ($procesos != null) {
                     $this->calcularFechas($procesos, $clase);
+                    $this->updateMetas();
                 }
             }
         }
@@ -189,5 +192,42 @@ class tiemposProduccionController extends Controller
     {
         $maquinas = Procesos::where('id_clase', $claseID)->distinct()->value($proceso);
         return $maquinas;
+    }
+    public function updateMetas()
+    {
+        $metas = Metas::all();
+        if ($metas->count() > 0) {
+            foreach ($metas as $meta) {
+                //Asignar tiempo estándar
+                $tiempo = tiempoproduccion::where('id_clase', $meta->id_clase)->where('proceso', $meta->proceso)->first();
+                $meta->t_estandar = $tiempo->tiempo ?? 0;
+
+                //Calcular las horas de trabajo de cada operador
+                if ($tiempo) {
+                    $workHrs = $this->calculateHrs($meta->h_inicio, $meta->h_termino);
+                    $tiempo = $tiempo->tiempo != 0 ? round(($workHrs / $tiempo->tiempo)) : 0;
+                    $meta->meta = $tiempo; //Asignar la meta calculada
+                } else {
+                    $meta->meta = 0; //Si no se encuentra el tiempo, se asigna 0 a la meta
+                }
+                $meta->save(); //Guardar los cambios en la base de datos
+            }
+        }
+    }
+    public function calculateHrs($h_inicio, $h_termino) //Función para calcular las horas trabajadas.
+    {
+        // $carbon1 = Carbon::createFromFormat('H:i', $h_inicio);
+        $carbon1 = Carbon::parse($h_inicio);
+        $carbon2 = Carbon::parse($h_termino);
+        // $carbon2 = Carbon::createFromFormat('H:i', $h_termino);
+
+        //Calcular la diferencia entre las horas en minutos
+        $diferencia = $carbon1->diffInMinutes($carbon2);
+        if ($diferencia > 480) {
+            $diferencia = $diferencia - 90; //Si la diferencia es mayor a 8 horas, se le resta media hora de limpieza y una hora de comida
+        } else {
+            $diferencia = $diferencia - 60; //Si la diferencia es menor o igual a 8 horas, se le resta media hora de limpieza y media hora de comida
+        }
+        return $diferencia; //Retorno las horas trabajadas.
     }
 }

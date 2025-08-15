@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('tiempos_produccion')) {
+        if (!Schema::hasColumn('tiempos_produccion', 'id_clase')) {
             Schema::table('tiempos_produccion', function (Blueprint $table) {
                 $table->unsignedBigInteger('id_clase')->nullable()->after('id');
                 $table->foreign('id_clase')->references('id')->on('clases')->onDelete('cascade');
@@ -24,7 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (Schema::hasTable('tiempos_produccion')) {
+        if (Schema::hasColumn('tiempos_produccion', 'id_clase')) {
             Schema::table('tiempos_produccion', function (Blueprint $table) {
                 $table->dropForeign(['id_clase']);
                 $table->dropColumn('id_clase');

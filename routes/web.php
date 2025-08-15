@@ -109,8 +109,10 @@ Route::controller(ProcessesController::class)->group(function () {
 
 Route::controller(ProcessProductionController::class)->group(function () {
     Route::get('/processProduction', 'show')->name('processProduction'); //Ruta para ver los procesos de producción
-    Route::post('/processProduction/selected', 'selectProcess')->name('selectProcess'); //Ruta para ver los procesos de producción
-    Route::post('/processProduction/saveHeader', 'saveHeader')->name('saveHeaderProcess'); //Guardar datos de HeaderProcess
+    Route::post('/processProduction/selected', 'storeHeaderdata')->name('headerdata'); //Ruta para ver los procesos de producción
+    Route::get('/processProduction/format/{meta}/{process}/{edit}', 'showReportFormat')->name('showReportFormat'); //Ruta para ver los procesos de producción
+    Route::post('/processProduction/verified', 'verifiedPasswordAdmin')->name('verifiedPassword'); //Ruta para verificar la contraseña del administrador
+    Route::post('/processProduction/editMeta', 'editMeta')->name('editMeta'); //Ruta para editar las metas
     // Route::post('/processProduction', 'store')->name('storeProcessProduction'); //Ruta para guardar los procesos de producción
     // Route::get('/processProduction/{id}', 'edit')->name('editProcessProduction'); //Ruta para editar los procesos de producción
     // Route::post('/processProduction/update', 'update')->name('updateProcessProduction'); //Ruta para actualizar los procesos de producción

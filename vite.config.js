@@ -58,6 +58,8 @@ export default defineConfig({
                 "resources/js/processes_views/productionTimes.js",
                 "resources/css/processes_views/processProduction.css",
                 "resources/js/processes_views/processProduction.js",
+                "resources/css/processes_views/processProductionReport_view.css",
+                "resources/js/processes_views/processProductionReport_view.js",
 
 
                 "resources/css/cepillado.css",

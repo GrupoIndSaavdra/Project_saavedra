@@ -294,6 +294,8 @@ class PzasLiberadasController extends Controller
         if ($buena == 'false') {
             $piezas = $pieza;
         }
+        print_r($piezas);
+        die();
         return $piezas;
     }
     public function liberarPiezas($piezas, $proceso, $buena)
