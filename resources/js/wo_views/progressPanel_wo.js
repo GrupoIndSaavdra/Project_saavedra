@@ -9,11 +9,10 @@ function updateProgressBar(percent) {
 
     if (percent >= 100) {
         estado.textContent = 'Completado';
-        bar.style.borderRadius = '25px'; // redondear todo si está completo
+        bar.style.borderRadius = '25px';
     }
 }
 
-// Simula que el proceso avanza
 function simulateProgress() {
     let progress = 0;
     const interval = setInterval(() => {
@@ -25,3 +24,4 @@ function simulateProgress() {
         }
     }, 500);
 }
+

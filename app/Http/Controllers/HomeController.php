@@ -24,7 +24,7 @@ class HomeController extends Controller
                     break;
                 case 2:
                     $layout = "layouts.menu.appProduction";
-                    $backgroundImage = "images/fondoHome.jpg";
+                    $backgroundImage = "images/OPE.png";
                     $welcomeT = 'Bienvenido a Producción';
                     break;
                 case 3:

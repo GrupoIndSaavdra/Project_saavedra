@@ -19,6 +19,8 @@ header {
 }
 body {
     background-size: cover;
+    background-repeat: no-repeat;
+
     font-family: "Poppins", sans-serif;
 }
 .icon {
