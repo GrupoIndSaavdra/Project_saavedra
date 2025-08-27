@@ -14,6 +14,7 @@ body {
 .container-meta {
     display: flex;
     justify-content: space-between;
+    margin-bottom: 3em;
 }
 /* Estilos del div buscador */
 .principal-data {
@@ -97,7 +98,7 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    background: #9C0300;
+    background: #9c0300;
     color: #ffffff;
     text-decoration: none;
     padding: 0.8em;
@@ -126,6 +127,7 @@ p {
     position: relative;
     width: 50%;
     box-sizing: border-box;
+    text-align: center;
 }
 .form-verified-password {
     width: 100%;
@@ -228,4 +230,179 @@ p {
     color: #000;
     padding: 1em 0.5em;
     border: #000 solid 3px;
+}
+
+
+/* Tabla de piezas*/
+
+.label-table {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+    font-size: 1.5em;
+    text-transform: uppercase;
+    color: #033966;
+}
+.scrollable-table {
+    position: relative;
+    margin: auto;
+    border-radius: 10px;
+    width: 90vw;
+    height: 30vh;
+    overflow-x: auto;
+    display: flex;
+    align-items: center;
+    transform: translateY(-20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.table {
+    position: absolute;
+    border-collapse: collapse;
+    border: 2px solid #032c00cc;
+    background: #fff;
+    width: max-content;
+    margin: 10px;
+    width: 200%;
+    box-shadow: 0 0 10px rgba(0, 0, 0);
+}
+
+.table-title {
+    border: 3px solid #000;
+    background-color: #033966;
+    padding: 10px 0;
+    text-align: center;
+    color: #fff;
+    font-size: 1.2em;
+}
+
+.table input {
+    color: #000000;
+    text-align: center;
+    padding: 0.5em 0;
+    font-size: 1.2em;
+    background: #03396610;
+}
+.table td {
+    text-align: center;
+    font-size: 1.3em;
+    font-weight: 700;
+    border: 3px solid #033966;
+}
+.input-medio {
+    width: 50%;
+}
+.input {
+    width: 100%;
+}
+.div-btn {
+    display: flex;
+    justify-content: end;
+}
+.btn-finishReport {
+    opacity: 0;
+    background: #9c0300;
+    color: #ffffff;
+    padding: 0.5em 1em;
+    margin: 1em;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.3em;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.btn-finishReport:hover {
+    transform: scale(1.1);
+    transition: all 0.3s ease;
+}
+
+/* .alert-NoCotas {
+    color: #f00;
+    font-size: 1.2em;
+    font-weight: 700;
+    font-style: oblique;
+    text-transform: uppercase;
+    padding: 1em;
+    border: 2px solid #f00;
+    border-radius: 5px;
+    background: #fff;
+    margin: 1em 0;
+} */
+.div-opacity {
+    position: absolute;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: #0000003a;
+}
+.alert-NoCotas {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: white;
+    width: 60em;
+    transition: 0.2s;
+    padding: 2em;
+    border-radius: 10px;
+}
+.div-cerrar {
+    width: 3em;
+    margin-left: 95%;
+}
+
+.btn-cerrar {
+    border: none;
+    background: transparent;
+    transition: 0.2s;
+}
+
+.btn-cerrar:hover {
+    transform: scale(1.3);
+    transition: 0.2s;
+}
+
+.img-cerrar {
+    width: 100%;
+}
+
+.img-error {
+    width: 15em;
+    padding: 10px;
+}
+.label-alert {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 1em;
+}
+.btn-acept {
+    background: #9c0300;
+    color: #ffffff;
+    padding: 0.5em 1em;
+    margin: 1em;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.3em;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+.label-noCotas {
+    display: flex;
+    margin: auto;
+    color: #033966;
+    font-size: 1.5em;
+    font-weight: 700;
+    font-style: oblique;
+    text-transform: uppercase;
+    padding: 1em;
+    border: 5px solid #033966;
+    border-radius: 5px;
+    background: #fff;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
 }

@@ -113,6 +113,7 @@ Route::controller(ProcessProductionController::class)->group(function () {
     Route::get('/processProduction/format/{meta}/{process}/{edit}', 'showReportFormat')->name('showReportFormat'); //Ruta para ver los procesos de producción
     Route::post('/processProduction/verified', 'verifiedPasswordAdmin')->name('verifiedPassword'); //Ruta para verificar la contraseña del administrador
     Route::post('/processProduction/editMeta', 'editMeta')->name('editMeta'); //Ruta para editar las metas
+    Route::get('/processProduction/finishReport/{meta}', 'finishReport')->name('finishReport'); //Ruta para finalizar el reporte
     // Route::post('/processProduction', 'store')->name('storeProcessProduction'); //Ruta para guardar los procesos de producción
     // Route::get('/processProduction/{id}', 'edit')->name('editProcessProduction'); //Ruta para editar los procesos de producción
     // Route::post('/processProduction/update', 'update')->name('updateProcessProduction'); //Ruta para actualizar los procesos de producción
@@ -121,7 +122,7 @@ Route::controller(ProcessProductionController::class)->group(function () {
 //Ruta para ver el progreso de los procesos
 Route::get('/progresoOT', [ProgresoProcesosController::class, 'show'])->name('verProcesos');
 
-//Grupo de rutas para el controlador TiemposProduccionController
+//Grupo de rutas para el controlador TiemposProduccionCo    ntroller
 Route::controller(TiemposProduccionController::class)->group(function () {
     // Route::get('/tiemposProduccion/update', 'update')->name('actualizarClases');
     Route::get('/tiemposProduccion/{clase?}', 'show')->name('showTimes');

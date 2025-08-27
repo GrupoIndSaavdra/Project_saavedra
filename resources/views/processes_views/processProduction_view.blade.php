@@ -44,6 +44,7 @@
                 </tbody>
             </table>
         </form>
+        <button class="btn-finishReport">Terminar reporte</button>
     </div>
     <div class="div-table-code">
         <div class="operator-name form-group">
@@ -66,12 +67,6 @@
         </table>
     </div>
 </div>
-<div class="scrollable-table">
-
-</div>
-<div class="div-btn">
-    <button type="button" class="btn-add">Agregar</button>
-</div>
 <script>
     window.workOrders = @json($workOrders);
 </script>
@@ -81,6 +76,8 @@
     window.baseUrl = "{{ url('/') }}";
     window.edit = "{{ asset('images/img-edit.png') }}";
     window.back = "{{ asset('images/img-back.png') }}";
+    window.imgError = "{{ asset('images/personError.png') }}";
+    window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";
 </script>
 @endisset
 @endsection

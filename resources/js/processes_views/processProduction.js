@@ -1,3 +1,5 @@
+import { Process } from "./Process.js";
+
 function createSelects(labelText, className) {
     let form_grid = document.querySelector(".form-grid");
 
@@ -172,7 +174,7 @@ function createInputs() {
             input.type = {
                 "Hora de inicio": "time",
                 "Hora de termino": "time",
-                "Fecha": "date",
+                Fecha: "date",
             }[element];
             input.className = "form-control normal-input";
         }
@@ -207,6 +209,8 @@ function createInputsWithValue(values, valuesEnabled = []) {
         startTime: "Hora de inicio",
         endTime: "Hora de término",
         date: "Fecha",
+        consignmentPieces: "Pedido con consignación",
+        remainingPieces: "Piezas restantes",
     };
     let form_grid = document.querySelector(".form-grid");
     for (const [key, value] of Object.entries(values)) {
@@ -220,6 +224,7 @@ function createInputsWithValue(values, valuesEnabled = []) {
             key != "operator" &&
             key != "meta" &&
             key != "edit" &&
+            key != "cNominals" &&
             value != null &&
             value != ""
         ) {
@@ -239,25 +244,23 @@ function createInputsWithValue(values, valuesEnabled = []) {
             } else {
                 input.type = "text";
                 input.className = "form-control normal-input";
-                input.value = value;
+                input.value = key == "remainingPieces" ? value.length : value;
                 input.name = key;
                 input.readOnly = true;
             }
-            console.log(input);
 
             let label = document.createElement("label");
             label.textContent = arrayKeyNames[key];
             label.className = "form-label";
             label.setAttribute("for", "processName");
 
-            console.log(key, value);
             form_group.appendChild(input);
             form_group.appendChild(label);
             form_grid.appendChild(form_group);
         }
     }
 
-    if(valuesEnabled.length > 0){
+    if (valuesEnabled.length > 0) {
         let form_principalData = document.querySelector(".form-principal-data");
         let submit = document.createElement("button");
         submit.type = "submit";
@@ -303,7 +306,7 @@ function insertSelects() {
         let submit = document.querySelector(".btn-submit");
         if (selectedProcess && selectedProcess === "Operacion Equipo") {
             let selectSubprocesses = createSelects("Subproceso", "subprocess");
-            modifySelects(["1ra Operacion", "2da Operacion"], selectSubprocesses, "Subproceso");
+            modifySelects(["1 operacion", "2 operacion"], selectSubprocesses, "Subproceso");
         } else if (selectedProcess){
             submit.style.opacity = "1";
         }else {
@@ -343,7 +346,125 @@ function createInputPassword() {
     return form_group;
 }
 
+function createTable() {
+    let body = document.querySelector("body");
+
+    let scrollableTable = document.createElement("div");
+    scrollableTable.className = "scrollable-table";
+
+    if (window.arrayData["cNominals"]) {
+        if (window.arrayData["process"] == "Copiado") {
+            //Crear tabla de Cilindrado
+            let label = document.createElement("label");
+            label.className = "label-table";
+            label.innerHTML = "Cilindrado";
+
+            let process = new Process(
+                window.arrayData["process"],
+                "Cilindrado",
+                window.arrayData["cNominals"]["Cilindrado"][0],
+                window.arrayData["cNominals"]["Cilindrado"][1]
+            );
+            scrollableTable.appendChild(process.createProcess());
+            body.appendChild(label);
+            body.appendChild(scrollableTable);
+
+            //Crear la tabla de Cavidades
+            let label2 = document.createElement("label");
+            label2.className = "label-table";
+            label2.innerHTML = "Cavidades";
+
+            let scrollableTable2 = document.createElement("div");
+            scrollableTable2.className = "scrollable-table";
+            let process2 = new Process(
+                window.arrayData["process"],
+                "Cavidades",
+                window.arrayData["cNominals"]["Cavidades"][0],
+                window.arrayData["cNominals"]["Cavidades"][1]
+            );
+            scrollableTable2.appendChild(process2.createProcess());
+            body.appendChild(label2);
+            body.appendChild(scrollableTable2);
+        } else {
+            let process = new Process(
+                window.arrayData["process"],
+                window.arrayData["subprocess"],
+                window.arrayData["cNominals"][0],
+                window.arrayData["cNominals"][1]
+            );
+            scrollableTable.appendChild(process.createProcess());
+            body.appendChild(scrollableTable);
+        }
+    } else if (
+        window.arrayData["process"] == "Soldadura" ||
+        window.arrayData["process"] == "Soldadura PTA" ||
+        window.arrayData["process"] == "Asentado" ||
+        window.arrayData["process"] == "Rectificado"
+    ) {
+        let process = new Process(
+            window.arrayData["process"],
+            window.arrayData["subprocess"],
+            null,
+            null
+        );
+        scrollableTable.appendChild(process.createProcess());
+        body.appendChild(scrollableTable);
+    } else {
+        let div = document.createElement("div");
+        div.className = "label-noCotas";
+        div.innerHTML =
+            "No hay Cotas Nominales disponibles. Notificar inmediatamente al area de software o calidad.";
+        scrollableTable.appendChild(div);
+        let body = document.querySelector("body");
+        body.appendChild(scrollableTable);
+        body.appendChild(showDivNoCotas());
+    }
+}
+
+function showDivNoCotas() {
+    let div_padre = document.createElement("div");
+    div_padre.className = "div-opacity";
+    div_padre.id = "div-opacity";
+
+    let div = document.createElement("div");
+    div.className = "alert-NoCotas";
+
+    let label = document.createElement("label");
+    label.className = "label-alert";
+    label.innerHTML =
+        "Las Cotas Nominales y tolerancias aun no se han cargado. Por favor notifica al area de Calidad o Software";
+
+    let image = document.createElement("img");
+    image.className = "img-error";
+    image.src = window.imgError;
+
+    let div_cerrar = document.createElement("div");
+    div_cerrar.className = "div-cerrar";
+    let btn_cerrar = document.createElement("button");
+    btn_cerrar.className = "btn-cerrar";
+    btn_cerrar.addEventListener("click", function () {
+        cerrarDiv();
+    });
+    let imageCerrar = document.createElement("img");
+    imageCerrar.className = "img-cerrar";
+    imageCerrar.src = window.cerrarImgUrl;
+    btn_cerrar.appendChild(imageCerrar);
+    div_cerrar.appendChild(btn_cerrar);
+
+    div.appendChild(div_cerrar);
+    div.appendChild(image);
+    div.appendChild(label);
+    div_padre.appendChild(div);
+    return div_padre;
+}
+
+function cerrarDiv() {
+    let div_padre = document.getElementById("div-opacity");
+    div_padre.remove();
+}
+
 //Ejecucion del script
+// console.log(window.arrayData["piecesData"]);
 if (window.workOrders != null && window.arrayData == null) {
     insertSelects();
 } else {
@@ -400,6 +521,41 @@ if (window.workOrders != null && window.arrayData == null) {
         btn_edit.src = window.edit;
         btn_edit.alt = "Editar";
         div_table_meta.appendChild(btn_edit);
+
+        let btn_finishReport = document.querySelector(".btn-finishReport");
+        let reporteTerminado = false; // 🔒 control de estado
+
+        // Mostrar botón y manejar clic
+        btn_finishReport.style.opacity = "1";
+        btn_finishReport.addEventListener("click", function () {
+            if (confirm("¿Estás seguro de que deseas terminar el reporte?")) {
+                reporteTerminado = true; // ✅ permitir salir sin advertencia
+                window.location.href =
+                    window.baseUrl +
+                    "/processProduction/finishReport/" +
+                    window.arrayData["meta"].id;
+            }
+        });
+
+        //Insertar tabla de cotas nominales
+        createTable();
+        let table = document.querySelector(".table");
+        if (table) {
+            let inputs = table.querySelectorAll("input");
+            if (inputs.length > 0) {
+                inputs.forEach((input) => {
+                    input.disabled = true;
+                });
+            }
+        }
+        // // Prevenir cerrar o salir si no ha terminado el reporte
+        // window.addEventListener("beforeunload", function (e) {
+        //     if (!reporteTerminado) {
+        //         // Mostrar aviso
+        //         e.preventDefault();
+        //         e.returnValue = ""; // Requerido por compatibilidad
+        //     }
+        // });
     }
 }
 
@@ -428,3 +584,6 @@ btn_edit.addEventListener("click", function () {
         btn_edit.src = window.edit;
     }
 });
+
+// let process = new Process(processSelected, subProcessSelected, array[0], array[1]);
+//     scrollable_table.appendChild(process.createProcess());

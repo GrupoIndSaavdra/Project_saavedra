@@ -269,9 +269,39 @@ export class Process {
 
                 fields = ["id", "anchoRanura", "profuTaconHembra", "profuTaconMacho", "simetriaHembra", "simetriaMacho", "anchoTacon", "barrenoLateralHembra", "barrenoLateralMacho", "alturaTaconInicial", "alturaTaconIntermedia"];
                 break;
+
+            // Procesos que no necesitan Cotas nominales ni tolerancias
+            case "Soldadura":
+                this.tableTitles = ["#PZ", "Peso por pieza", "Temperatura de precalentado", "Tiempo de aplicación", "Tipo de soldadura", "Lote", "Error", "Observaciones"];
+                divisionsCNomi = [null];
+                divisionsTole = [null];
+                fields = null;
+                break;
+            case "Soldadura PTA":
+                this.tableTitles = ["#PZ", "Temperatura de calentado", "Temperatura en dispositivo", "Limpieza", "Error", "Observaciones"];
+                divisionsCNomi = [null];
+                divisionsTole = [null];
+                fields = null;
+                break;
+            case "Asentado":
+                this.tableTitles = ["#PZ", "Sin juego", "Sin luz", "Error", "Observaciones"];
+                divisionsCNomi = [null];
+                divisionsTole = [null];
+                fields = null;
+                break;
+            case "Rectificado":
+                this.tableTitles = ["#PZ", "Cumple", "Error", "Observaciones"];
+                divisionsCNomi = [null];
+                divisionsTole = [null];
+                fields = null;
+                break;
         }
-        values = this.getValues(fields, divisionsCNomi, divisionsTole);
-        return this.crearTabla(values[0], divisionsCNomi, divisionsTole, values[1], divisionsTitles);
+        
+        values = fields !== null ? this.getValues(fields, divisionsCNomi, divisionsTole) : null;
+        if(values != null){
+            return this.crearTabla(values[0], divisionsCNomi, divisionsTole, values[1], divisionsTitles);
+        }
+        return this.crearTabla(null, divisionsCNomi, divisionsTole, null, divisionsTitles);
     }
     //prettier-ignore
     crearTabla(names, divisionsCNomi, divisionsTole, values, divisionsTitles = []) {
@@ -280,6 +310,9 @@ export class Process {
         table.className = "table"; // Agregar clase a la tabla
 
         for (let i = 0; i < 3; i++) {
+            if(names == null && i > 0){
+                return table;
+            }
             let tr;
             switch (i) {
                 case 0: // Crear columnas de titulos
