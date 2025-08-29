@@ -73,6 +73,7 @@
 @isset($arrayData)
 <script>
     window.arrayData = @json($arrayData);
+    window.pieceToBeUsed = @json($pieceToBeUsed);
     window.baseUrl = "{{ url('/') }}";
     window.edit = "{{ asset('images/img-edit.png') }}";
     window.back = "{{ asset('images/img-back.png') }}";

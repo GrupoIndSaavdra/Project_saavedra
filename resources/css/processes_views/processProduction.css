@@ -232,9 +232,13 @@ p {
     border: #000 solid 3px;
 }
 
-
 /* Tabla de piezas*/
-
+.form-tablePieces {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 .label-table {
     display: flex;
     justify-content: center;
@@ -246,14 +250,12 @@ p {
 }
 .scrollable-table {
     position: relative;
-    margin: auto;
     border-radius: 10px;
-    width: 90vw;
+    width: 90%;
     height: 30vh;
     overflow-x: auto;
     display: flex;
     align-items: center;
-    transform: translateY(-20px);
     transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .table {
@@ -263,7 +265,7 @@ p {
     background: #fff;
     width: max-content;
     margin: 10px;
-    width: 200%;
+    width: 300%;
     box-shadow: 0 0 10px rgba(0, 0, 0);
 }
 
@@ -277,6 +279,7 @@ p {
 }
 
 .table input {
+    height: 100%;
     color: #000000;
     text-align: center;
     padding: 0.5em 0;
@@ -284,6 +287,8 @@ p {
     background: #03396610;
 }
 .table td {
+    width: 200px;
+    height: 50px;
     text-align: center;
     font-size: 1.3em;
     font-weight: 700;
@@ -294,6 +299,21 @@ p {
 }
 .input {
     width: 100%;
+}
+td textarea {
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    resize: none;
+    box-sizing: border-box;
+    font-size: 1.1em;
+}
+td select {
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    font-size: 1.1em;
 }
 .div-btn {
     display: flex;
@@ -315,6 +335,21 @@ p {
 .btn-finishReport:hover {
     transform: scale(1.1);
     transition: all 0.3s ease;
+}
+.btn-savePiece {
+    background: #033966;
+    color: #ffffff;
+    padding: 0.8em;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: 0.3s ease;
+    margin-top: 1em;
+}
+.btn-savePiece:hover {
+    transform: scale(1.1);
+    transition: 0.3s ease;
 }
 
 /* .alert-NoCotas {

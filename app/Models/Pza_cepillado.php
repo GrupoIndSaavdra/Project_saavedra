@@ -11,9 +11,6 @@ class Pza_cepillado extends Model
     protected $table = 'cepillado_pza';
 
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_pieza',
         'radiof_mordaza',
         'radiof_mayor',
         'radiof_sufridera',
@@ -23,10 +20,14 @@ class Pza_cepillado extends Model
         'acetato_MB',
         'ensamble',
         'distancia_barrenoAli',
-        'profu_barrenoAli',
-        'altura_vena',
+        'profu_barrenoAliHembra',
+        'profu_barrenoAliMacho',
+        'altura_venaHembra',
+        'altura_venaMacho',
         'ancho_vena',
-        'pin',
+        'laterales',
+        'pin1',
+        'pin2',
         'observaciones',
     ];
 }
