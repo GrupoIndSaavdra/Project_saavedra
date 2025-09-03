@@ -255,7 +255,6 @@ p {
     height: 30vh;
     overflow-x: auto;
     display: flex;
-    align-items: center;
     transition: opacity 0.5s ease, transform 0.5s ease;
 }
 .table {
@@ -429,6 +428,8 @@ td select {
 }
 .label-noCotas {
     display: flex;
+    justify-content: center;
+    align-items: center;
     margin: auto;
     color: #033966;
     font-size: 1.5em;

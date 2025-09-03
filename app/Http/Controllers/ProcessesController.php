@@ -214,7 +214,6 @@ class ProcessesController extends Controller
     public function verifycNominalsExisting($cNominal, $tolerance, $id_operation, $operation)
     {
         if ($cNominal && $tolerance) {
-            $this->updatePieces($id_operation, $cNominal, $tolerance, $operation);
             return true;
         }
         return false;
@@ -364,111 +363,6 @@ class ProcessesController extends Controller
             case "soldaduraPTA":
                 return "Soldadura PTA";
         }
-    }
-    //Se actualiza las piezas de cada proceso para verificar que este correcta
-    public function updatePieces($id_proceso, $cNominal, $tolerancia, $proceso)
-    {   
-        switch ($proceso) {
-            case 'Cepillado':
-                $idProceso = Cepillado::where('id_proceso', $id_proceso)->first();
-                if ($idProceso) {
-                    $piezas = Pza_cepillado::where('id_proceso', $idProceso->id)->where('estado', 2)->get();
-
-                    if ($piezas->count() > 0) {
-                        $controladorCepillado = new CepilladoController();
-                        foreach ($piezas as $pieza) {
-                            $this->actualizarError($controladorCepillado, $pieza, $cNominal, $tolerancia, $idProceso, $proceso, $proceso);
-                            //Actualizar resultado de la meta
-                            $pzasCorrectas = Pza_cepillado::where('id_meta', $pieza->id_meta)->where('correcto', 1)->get(); //Obtención de todas las piezas correctas.
-                            $meta = Metas::find($pieza->id_meta);
-                            $this->actualizarMetas($pzasCorrectas, $meta);
-                        }
-                    }
-                }
-                break;
-            case 'Desbaste Exterior':
-                $idProceso = DesbasteExterior::where('id_proceso', $id_proceso)->first();
-                if ($idProceso) {
-                    $piezas = Desbaste_pza::where('id_proceso', $idProceso->id)->where('estado', 2)->get();
-
-                    if ($piezas->count() > 0) {
-                        $controladorDesbaste = new DesbasteExteriorController();
-                        foreach ($piezas as $pieza) {
-                            $this->actualizarError($controladorDesbaste, $pieza, $cNominal, $tolerancia, $idProceso, "Desbaste_Exterior", $proceso);
-                        }
-                    }
-                }
-                break;
-            case 'Revision Laterales':
-                $idProceso = DesbasteExterior::where('id_proceso', $id_proceso)->first();
-                if ($idProceso) {
-                    $piezas = Desbaste_pza::where('id_proceso', $idProceso->id)->where('estado', 2)->get();
-
-                    if ($piezas->count() > 0) {
-                        $controladorRevLaterales = new RevLateralesController();
-                        foreach ($piezas as $pieza) {
-                            $this->actualizarError($controladorRevLaterales, $pieza, $cNominal, $tolerancia, $idProceso, "Revision_Laterales", $proceso);
-                        }
-                    }
-                }
-                break;
-            case 'Primera Operacion':
-                $idProceso = PrimeraOpeSoldadura::where('id_proceso', $id_proceso)->first();
-                if ($idProceso) {
-                    $piezas = PrimeraOpeSoldadura_pza::where('id_proceso', $idProceso->id)->where('estado', 2)->get();
-
-                    if ($piezas->count() > 0) {
-                        $controller = new PrimeraOpeSoldaduraController();
-                        foreach ($piezas as $pieza) {
-                            $this->actualizarError($controller, $pieza, $cNominal, $tolerancia, $idProceso, "Primera_Operacion", "Primera Operacion Soldadura");
-                        }
-                    }
-                }
-                break;
-        }
-    }
-    public function actualizarError($controlador, $piezaControlador, $cNominal, $tolerancia, $proceso, $stringProceso, $procesoNombre)
-    {
-        if ($controlador->compararDatosPieza($piezaControlador, $cNominal, $tolerancia) == 0) {
-            $piezaControlador->error = 'Maquinado';
-            $piezaControlador->correcto = 0;
-        } else {
-            $piezaControlador->error = 'Ninguno';
-            $piezaControlador->correcto = 1;
-        }
-        $piezaControlador->save();
-
-        $clases = Clase::where('id_ot', $proceso->id_ot)->get();
-        foreach ($clases as $clase) {
-            $id_proceso = $stringProceso . '_' . $clase->nombre . "_" . $clase->id_ot; //Creación de id_proceso.
-            if ($proceso->id_proceso == $id_proceso) {
-                $pieza = Pieza::where('n_pieza', $piezaControlador->n_pieza)->where('id_ot', $proceso->id_ot)->where('id_clase', $clase->id)->where('proceso', $procesoNombre)->first();
-                //Guardar los datos de las pieza en la tabla pieza (En donde se almacenan todas las piezas)
-                if (!isset($pieza)) {
-                    $pieza = new Pieza();
-                }
-                $pieza->error = $piezaControlador->error;
-                $pieza->save();
-                break;
-            }
-        }
-    }
-    public function actualizarMetas($pzasCorrectas, $meta)
-    {
-        $contadorPzas = 0;
-        $juegosUsados = array();
-        foreach ($pzasCorrectas as $pzaCorrecta) {
-            $pzaCorrecta2 = Pza_cepillado::where('n_juego', $pzaCorrecta->n_juego)->where('id_meta', $meta->id)->where('correcto', 1)->get();
-            if (count($pzaCorrecta2) == 2) {
-                if (!in_array($pzaCorrecta->n_juego, $juegosUsados)) {
-                    array_push($juegosUsados, $pzaCorrecta->n_juego);
-                    $contadorPzas++;
-                }
-            }
-        }
-        Metas::where('id', $meta->id)->update([ //Actualización de datos en tabla Metas.
-            'resultado' => $contadorPzas,
-        ]);
     }
     public function cepillado($id_proceso, $request)
     {

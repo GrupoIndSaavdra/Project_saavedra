@@ -72,6 +72,7 @@ function createSelects(labelText, className) {
 
     return select;
 }
+
 function modifySelects(array, select, labelText) {
     select.disabled = false; // Habilitar el select si ya existe
     select.innerHTML = ""; // Limpiar las opciones existentes
@@ -106,6 +107,7 @@ function modifySelects(array, select, labelText) {
         select.appendChild(option);
     });
 }
+
 function disabledSelects(className) {
     //Deshabilitar selects
     let array = ["subprocess", "process", "class"];
@@ -229,7 +231,7 @@ function createInputsWithValue(values, valuesEnabled = []) {
             key != "numberPieces" &&
             key != "availableAssemblies" &&
             value != null &&
-            value != ""
+            value !== ""
         ) {
             let input = document.createElement("input");
             input.name = key;
@@ -297,25 +299,25 @@ function insertSelects() {
         });
         //prettier-ignore
         selectClasses.addEventListener("change", function () {
-        let selectedClass = selectClasses.value;
-        if (selectedClass) {
-            let processes = window.workOrders[selectWO.value][selectedClass];
-            modifySelects(processes, document.querySelector(".process"), "Proceso");
-        }
-    });
+            let selectedClass = selectClasses.value;
+            if (selectedClass) {
+                let processes = window.workOrders[selectWO.value][selectedClass];
+                modifySelects(processes, document.querySelector(".process"), "Proceso");
+            }
+        });
         //prettier-ignore
         selectProcesses.addEventListener("change", function () {
-        let selectedProcess = selectProcesses.value;
-        let submit = document.querySelector(".btn-submit");
-        if (selectedProcess && selectedProcess === "Operacion Equipo") {
-            let selectSubprocesses = createSelects("Subproceso", "subprocess");
-            modifySelects(["1 operacion", "2 operacion"], selectSubprocesses, "Subproceso");
-        } else if (selectedProcess){
-            submit.style.opacity = "1";
-        }else {
-            submit.style.opacity = "0";
-        }
-    });
+            let selectedProcess = selectProcesses.value;
+            let submit = document.querySelector(".btn-submit");
+            if (selectedProcess && selectedProcess === "Operacion Equipo") {
+                let selectSubprocesses = createSelects("Subproceso", "subprocess");
+                modifySelects(["1 operacion", "2 operacion"], selectSubprocesses, "Subproceso");
+            } else if (selectedProcess) {
+                submit.style.opacity = "1";
+            } else {
+                submit.style.opacity = "0";
+            }
+        });
         createInputs();
     } else {
         let p = document.createElement("p");
@@ -390,6 +392,7 @@ function createTable() {
         form.appendChild(inputPiece);
     }
 
+    //Crear el contenedor de la tabla
     let scrollableTable = document.createElement("div");
     scrollableTable.className = "scrollable-table";
 
@@ -405,7 +408,7 @@ function createTable() {
                 "Cilindrado",
                 window.arrayData["cNominals"]["Cilindrado"][0],
                 window.arrayData["cNominals"]["Cilindrado"][1],
-                window.machinedPieces,
+                window.arrayData["machinedPiecesInMeta"],
                 window.pieceToBeUsed,
                 true
             );
@@ -425,7 +428,7 @@ function createTable() {
                 "Cavidades",
                 window.arrayData["cNominals"]["Cavidades"][0],
                 window.arrayData["cNominals"]["Cavidades"][1],
-                window.machinedPieces,
+                window.arrayData["machinedPiecesInMeta"],
                 window.pieceToBeUsed,
                 true
             );
@@ -434,9 +437,9 @@ function createTable() {
             form.appendChild(scrollableTable2);
         } else {
             //Verficar si hay piezas maquinadas o existe una pieza a utilizar
-            window.machinedPieces =
-                window.arrayData["machinedPieces"] != null
-                    ? window.arrayData["machinedPieces"]
+            window.machinedPiecesInMeta =
+                window.arrayData["machinedPiecesInMeta"] != null
+                    ? window.arrayData["machinedPiecesInMeta"]
                     : [];
             window.pieceToBeUsed = window.pieceToBeUsed
                 ? window.pieceToBeUsed
@@ -446,7 +449,7 @@ function createTable() {
                 window.arrayData["subprocess"],
                 window.arrayData["cNominals"][0],
                 window.arrayData["cNominals"][1],
-                window.machinedPieces,
+                window.machinedPiecesInMeta,
                 window.pieceToBeUsed,
                 true
             );
@@ -461,9 +464,9 @@ function createTable() {
         window.arrayData["process"] == "Rectificado"
     ) {
         //Verficar si hay piezas maquinadas o existe una pieza a utilizar
-        window.machinedPieces =
-            window.arrayData["machinedPieces"] != null
-                ? window.arrayData["machinedPieces"]
+        window.machinedPiecesInMeta =
+            window.arrayData["machinedPiecesInMeta"] != null
+                ? window.arrayData["machinedPiecesInMeta"]
                 : [];
         window.pieceToBeUsed = window.pieceToBeUsed
             ? window.pieceToBeUsed
@@ -471,7 +474,7 @@ function createTable() {
         let process = new Process(
             window.arrayData["process"],
             window.arrayData["subprocess"],
-            window.machinedPieces,
+            window.machinedPiecesInMeta,
             window.pieceToBeUsed,
             true
         );
@@ -479,38 +482,89 @@ function createTable() {
         scrollableTable.appendChild(process.createProcess());
         form.appendChild(scrollableTable);
     } else {
+        //Mostrar DIV de alerta para Cotas No disponibles
         let div = document.createElement("div");
         div.className = "label-noCotas";
         div.innerHTML =
             "No hay Cotas Nominales disponibles. Notificar inmediatamente al area de software o calidad.";
-        scrollableTable.appendChild(div);
-        let body = document.querySelector("body");
-        form.appendChild(scrollableTable);
-        form.appendChild(showDivNoCotas());
+        form.appendChild(div);
+        form.appendChild(
+            showDivAlert(
+                "Las Cotas Nominales y tolerancias aun no se han cargado. Por favor notifica al area de Calidad o Software",
+                true
+            )
+        );
     }
     body.appendChild(form);
     //Insertar boton de ELEGIR o GUARDAR
     insertButton_saveOrChoose();
 }
+
 function insertButton_saveOrChoose() {
     let btn = null;
-    if (window.pieceToBeUsed) {
-        btn = document.createElement("button");
-        btn.type = "submit";
-        btn.className = "btn-savePiece";
-        btn.textContent = "Guardar";
-    } else if (window.arrayData["remainingPieces"]) {
-        btn = document.createElement("button");
-        btn.type = "submit";
-        btn.className = "btn-savePiece";
-        btn.textContent = "Elegir pieza";
-    }
-    if (btn != null) {
-        let form_tablePieces = document.querySelector(".form-tablePieces");
-        form_tablePieces.appendChild(btn);
+    if (window.arrayData["cNominals"]) {
+        if (window.pieceToBeUsed) {
+            btn = document.createElement("button");
+            btn.type = "submit";
+            btn.className = "btn-savePiece";
+            btn.textContent = "Guardar";
+        } else if (window.arrayData["availableAssemblies"].length > 0) {
+            btn = document.createElement("button");
+            btn.type = "submit";
+            btn.className = "btn-savePiece";
+            btn.textContent = "Elegir pieza";
+
+            // Insertar select de piezas
+            insertSelectPieces();
+        }
+        if (btn != null) {
+            let form_tablePieces = document.querySelector(".form-tablePieces");
+            form_tablePieces.appendChild(btn);
+        }else {
+            //Insertar div de "No hay piezas por guardar"
+            let body = document.querySelector("body");
+            body.appendChild(
+                showDivAlert(
+                    "No hay piezas por registrar",
+                    true,
+                    window.imgNoPieces
+                )
+            );
+        }
     }
 }
-function showDivNoCotas() {
+function insertSelectPieces(){
+    let select = document.createElement("select");
+    select.className = "select-pieces";
+    select.name = "selectedPiece";
+    select.required = true;
+
+    //Agregar opciones al select
+    window.arrayData["availableAssemblies"].forEach((assembly, index) => {
+        //Crear opción vacia
+        if (index === 0) {
+            let option = document.createElement("option");
+            option.value = "";
+            option.textContent = "Seleccionar pieza";
+            select.appendChild(option);
+        }
+        //Crear las opciones con las piezas disponibles
+        let option = document.createElement("option");
+        option.value = assembly;
+        option.textContent = assembly;
+        select.appendChild(option);
+    });
+
+    // Insertar el select en la tabla
+    let table = document.querySelector(".table");
+    let tr = document.createElement("tr");
+    let td = document.createElement("td");
+    td.appendChild(select);
+    tr.appendChild(td);
+    table.appendChild(tr);
+}
+
+function showDivAlert(text, close, img) {
     let div_padre = document.createElement("div");
     div_padre.className = "div-opacity";
     div_padre.id = "div-opacity";
@@ -520,27 +574,28 @@ function showDivNoCotas() {
 
     let label = document.createElement("label");
     label.className = "label-alert";
-    label.innerHTML =
-        "Las Cotas Nominales y tolerancias aun no se han cargado. Por favor notifica al area de Calidad o Software";
+    label.innerHTML = text;
 
     let image = document.createElement("img");
     image.className = "img-error";
-    image.src = window.imgError;
+    image.src = img || window.imgError;
 
-    let div_cerrar = document.createElement("div");
-    div_cerrar.className = "div-cerrar";
-    let btn_cerrar = document.createElement("button");
-    btn_cerrar.className = "btn-cerrar";
-    btn_cerrar.addEventListener("click", function () {
-        cerrarDiv();
-    });
-    let imageCerrar = document.createElement("img");
-    imageCerrar.className = "img-cerrar";
-    imageCerrar.src = window.cerrarImgUrl;
-    btn_cerrar.appendChild(imageCerrar);
-    div_cerrar.appendChild(btn_cerrar);
-
-    div.appendChild(div_cerrar);
+    if (close) {
+        // Permitir cerrar la alerta
+        let div_cerrar = document.createElement("div");
+        div_cerrar.className = "div-cerrar";
+        let btn_cerrar = document.createElement("button");
+        btn_cerrar.className = "btn-cerrar";
+        btn_cerrar.addEventListener("click", function () {
+            cerrarDiv();
+        });
+        let imageCerrar = document.createElement("img");
+        imageCerrar.className = "img-cerrar";
+        imageCerrar.src = window.cerrarImgUrl;
+        btn_cerrar.appendChild(imageCerrar);
+        div_cerrar.appendChild(btn_cerrar);
+        div.appendChild(div_cerrar);
+    }
     div.appendChild(image);
     div.appendChild(label);
     div_padre.appendChild(div);
@@ -552,97 +607,116 @@ function cerrarDiv() {
     div_padre.remove();
 }
 
+function insertTable() {
+    createTable();
+    let table = document.querySelector(".table");
+    if (table) {
+        let inputs = table.querySelectorAll("input");
+        if (inputs.length > 0) {
+            inputs.forEach((input) => {
+                if (
+                    input.className != "input input-pieceUsed" &&
+                    input.className != "input-medio input-pieceUsed"
+                ) {
+                    input.disabled = true;
+                } else {
+                    input.style.backgroundColor = "#fff";
+                }
+            });
+        }
+    }
+    redirectToEndTable();
+}
+
+function redirectToEndTable() {
+    window.onload = function () {
+        const lastLine = document.querySelector(".table tr:last-child");
+        if (lastLine) {
+            lastLine.scrollIntoView({ behavior: "smooth", block: "end" });
+        }
+    };
+}
+
 //Ejecucion del script
 if (window.workOrders != null && window.arrayData == null) {
     insertSelects();
 } else {
-    if (window.arrayData["edit"]) {
-        //VERIFICAR SI YA HAY PIEZAS REGISTRADAS Y HABILITAR SOLO LOS CAMPOS DISPONIBLES
-        if (window.arrayData["numberPieces"] > 0) {
-            createInputsWithValue(window.arrayData, [
-                "startTime",
-                "endTime",
-                "date",
-            ]);
+    if (window.arrayData) {
+        if (window.arrayData["edit"]) {
+            //VERIFICAR SI YA HAY PIEZAS REGISTRADAS Y HABILITAR SOLO LOS CAMPOS DISPONIBLES
+            if (window.arrayData["numberPieces"] > 0) {
+                createInputsWithValue(window.arrayData, [
+                    "startTime",
+                    "endTime",
+                    "date",
+                ]);
+            } else {
+                insertSelects();
+            }
+
+            //Cambiar la ruta del formulario a la de editar
+            let form_principal_data = document.querySelector(
+                ".form-principal-data"
+            );
+            form_principal_data.action =
+                window.baseUrl + "/processProduction/editMeta";
+            let input_hidden = document.createElement("input");
+            input_hidden.type = "hidden";
+            input_hidden.name = "meta";
+            input_hidden.value = window.arrayData["meta"].id;
+
+            //Crear el boton de cancelar edición
+            let btn_cancel = document.createElement("a");
+            btn_cancel.href = "#";
+            btn_cancel.className = "btn-cancel";
+            btn_cancel.textContent = "Cancelar";
+            btn_cancel.onclick = function (e) {
+                e.preventDefault();
+                if (confirm("¿Estás seguro de que deseas cancelar?")) {
+                    window.location.href =
+                        window.baseUrl +
+                        "/processProduction/format/" +
+                        window.arrayData["meta"].id +
+                        "/" +
+                        window.arrayData["process"] +
+                        "/0";
+                }
+            };
+
+            let div_table_meta = document.querySelector(".div-table-meta");
+            div_table_meta.className = "div-table-meta";
+
+            div_table_meta.appendChild(btn_cancel);
+            form_principal_data.appendChild(input_hidden);
         } else {
-            insertSelects();
+            let div_table_meta = createInputsWithValue(window.arrayData);
+            let btn_edit = document.createElement("img");
+            btn_edit.className = "img-edit";
+            btn_edit.src = window.edit;
+            btn_edit.alt = "Editar";
+            div_table_meta.appendChild(btn_edit);
+
+            let btn_finishReport = document.querySelector(".btn-finishReport");
+            let reporteTerminado = false; // 🔒 control de estado
+
+            // Mostrar botón y manejar clic
+            btn_finishReport.style.opacity = "1";
+            btn_finishReport.addEventListener("click", function () {
+                if (
+                    confirm("¿Estás seguro de que deseas terminar el reporte?")
+                ) {
+                    reporteTerminado = true; // ✅ permitir salir sin advertencia
+                    window.location.href =
+                        window.baseUrl +
+                        "/processProduction/finishReport/" +
+                        window.arrayData["meta"].id;
+                }
+            });
+            insertTable();
         }
 
-        //Cambiar la ruta del formulario a la de editar
-        let form_principal_data = document.querySelector(
-            ".form-principal-data"
-        );
-        form_principal_data.action =
-            window.baseUrl + "/processProduction/editMeta";
-        let input_hidden = document.createElement("input");
-        input_hidden.type = "hidden";
-        input_hidden.name = "meta";
-        input_hidden.value = window.arrayData["meta"].id;
+        //Insertar tabla de cotas nominales solamente si aun no se ha habilitado la opcion de editar
 
-        //Crear el boton de cancelar edición
-        let btn_cancel = document.createElement("a");
-        btn_cancel.href = "#";
-        btn_cancel.className = "btn-cancel";
-        btn_cancel.textContent = "Cancelar";
-        btn_cancel.onclick = function (e) {
-            e.preventDefault();
-            if (confirm("¿Estás seguro de que deseas cancelar?")) {
-                window.location.href =
-                    window.baseUrl +
-                    "/processProduction/format/" +
-                    window.arrayData["meta"].id +
-                    "/" +
-                    window.arrayData["process"] +
-                    "/0";
-            }
-        };
-
-        let div_table_meta = document.querySelector(".div-table-meta");
-        div_table_meta.className = "div-table-meta";
-
-        div_table_meta.appendChild(btn_cancel);
-        form_principal_data.appendChild(input_hidden);
-    } else {
-        let div_table_meta = createInputsWithValue(window.arrayData);
-        let btn_edit = document.createElement("img");
-        btn_edit.className = "img-edit";
-        btn_edit.src = window.edit;
-        btn_edit.alt = "Editar";
-        div_table_meta.appendChild(btn_edit);
-
-        let btn_finishReport = document.querySelector(".btn-finishReport");
-        let reporteTerminado = false; // 🔒 control de estado
-
-        // Mostrar botón y manejar clic
-        btn_finishReport.style.opacity = "1";
-        btn_finishReport.addEventListener("click", function () {
-            if (confirm("¿Estás seguro de que deseas terminar el reporte?")) {
-                reporteTerminado = true; // ✅ permitir salir sin advertencia
-                window.location.href =
-                    window.baseUrl +
-                    "/processProduction/finishReport/" +
-                    window.arrayData["meta"].id;
-            }
-        });
-
-        //Insertar tabla de cotas nominales
-        createTable();
-        let table = document.querySelector(".table");
-        if (table) {
-            let inputs = table.querySelectorAll("input");
-            if (inputs.length > 0) {
-                inputs.forEach((input) => {
-                    if (
-                        input.className != "input input-pieceUsed" &&
-                        input.className != "input-medio input-pieceUsed"
-                    ) {
-                        input.disabled = true;
-                    } else {
-                        input.style.backgroundColor = "#fff";
-                    }
-                });
-            }
-        }
         // // Prevenir cerrar o salir si no ha terminado el reporte
         // window.addEventListener("beforeunload", function (e) {
         //     if (!reporteTerminado) {
@@ -651,34 +725,39 @@ if (window.workOrders != null && window.arrayData == null) {
         //         e.returnValue = ""; // Requerido por compatibilidad
         //     }
         // });
+    } else {
+        //Si aun no existen Ordenes de Trabajo disponibles mostrar Div de alerta
+        let body = document.querySelector("body");
+        body.appendChild(
+            showDivAlert("Aun no hay ordenes de trabajo disponibles", false)
+        );
     }
 }
 
 let btn_edit = document.querySelector(".img-edit");
-btn_edit.addEventListener("click", function () {
-    if (btn_edit.src == window.edit) {
-        let form_group_password = createInputPassword();
-        let table_meta = document.querySelector(".table-meta");
+if (btn_edit) {
+    btn_edit.addEventListener("click", function () {
+        if (btn_edit.src == window.edit) {
+            let form_group_password = createInputPassword();
+            let table_meta = document.querySelector(".table-meta");
 
-        let input_hidden = document.createElement("input");
-        input_hidden.type = "hidden";
-        input_hidden.name = "meta";
-        input_hidden.value = window.arrayData["meta"].id;
+            let input_hidden = document.createElement("input");
+            input_hidden.type = "hidden";
+            input_hidden.name = "meta";
+            input_hidden.value = window.arrayData["meta"].id;
 
-        form_group_password.appendChild(input_hidden);
-        table_meta.before(form_group_password);
+            form_group_password.appendChild(input_hidden);
+            table_meta.before(form_group_password);
 
-        btn_edit.src = window.back;
-    } else {
-        let form_group_password = document.querySelector(
-            ".form-group-password"
-        );
-        if (form_group_password) {
-            form_group_password.remove();
+            btn_edit.src = window.back;
+        } else {
+            let form_group_password = document.querySelector(
+                ".form-group-password"
+            );
+            if (form_group_password) {
+                form_group_password.remove();
+            }
+            btn_edit.src = window.edit;
         }
-        btn_edit.src = window.edit;
-    }
-});
-
-// let process = new Process(processSelected, subProcessSelected, array[0], array[1]);
-//     scrollable_table.appendChild(process.createProcess());
+    });
+}

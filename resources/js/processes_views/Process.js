@@ -133,7 +133,7 @@ export class Process {
 
                 positionSelects = [
                     [7, 17],
-                    [["Bien", "Mal"], ["", "Fundicion"]]
+                    [["Bien", "Mal"], ["Ninguno", "Fundicion"]]
                 ];
 
                 fields = !this.tablePieces ? ["id", "radiof_mordaza", "radiof_mayor", "radiof_sufridera", "profuFinal_CFC", "profuFinal_mitadMB", "profuFinal_PCO", "ensamble", "distancia_barrenoAli", "profu_barrenoAliHembra", "profu_barrenoAliMacho", "altura_venaHembra", "altura_venaMacho", "ancho_vena", "laterales", "pin"] 
@@ -319,7 +319,7 @@ export class Process {
                 break;
         }
         
-        if(this.tableTitles){ // Agregar campos de error y observaciones si la tabla es la de piezas
+        if(this.tablePieces){ // Agregar campos de error y observaciones si la tabla es la de piezas
             this.tableTitles.push("Error", "Observaciones");
             fields = fields !== null ? [...fields, "error", "observaciones"] : null;
         }
@@ -336,7 +336,7 @@ export class Process {
         const table = document.createElement("table"); // Crear tabla
         table.className = "table"; // Agregar clase a la tabla
 
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 5; i++) {
             if(names == null && i > 0){
                 return table;
             }
@@ -400,20 +400,39 @@ export class Process {
                     table.appendChild(tr); //Agregar fila a la tabla.
                     break;
                 case 3://Crear inputs de las piezas e input de la pieza a utilizar si es que existe
-                if(this.piecesData.length > 0){ // Crear inputs inhabilitados de las piezas maquinadas en la meta
-                    console.log("Crear inputs inhabilitados de las piezas maquinadas en la meta");
-                    // tr = document.createElement("tr");
-                    // names[i - 1].forEach((name, index) => {
-                    //     const td = document.createElement("td");
-                    //     if (index != 0) {
-                    //         td.appendChild(this.crearInputs("input", name));
-                    //     } else {
-                    //         td.innerHTML = name;
-                    //     }
-                    //     tr.appendChild(td);
-                    // });
-                    // table.appendChild(tr);
-                }
+                    if(this.piecesData.length > 0){ // Crear inputs inhabilitados de las piezas maquinadas en la meta
+                        let divisions = divisionsCNomi;
+                        this.piecesData.forEach((piece, index) => { // Recorrer cada una de las piezas
+                            let tr = document.createElement("tr");
+                            for(let i=0; i < fields.length; i++){ // Recorrer las medidas de la pieza
+                                const td = document.createElement("td");
+                                if(fields[i] !=  "id"){
+                                    if(divisions.includes(i)){
+                                        for (let j = 0; j < 2; j++) {
+                                            td.appendChild(this.crearInputs("input-medio", fields[i] + (j + 1), piece.piece[fields[i] + (j + 1)], this.dataType(piece.piece[fields[i] + (j + 1)])));
+                                            td.style.backgroundColor = piece.color;
+                                        }
+                                    }else {
+                                        td.appendChild(this.crearInputs("input", fields[i], piece.piece[fields[i]], this.dataType(piece.piece[fields[i]])));
+                                        td.style.backgroundColor = piece.color;
+                                    }
+                                    tr.appendChild(td);
+                                }else {
+                                    let noPiece = piece.piece.n_pieza.slice(0, - 1);
+                                    let letterPiece = piece.piece.n_pieza[piece.piece.n_pieza.length - 1];
+                                    td.innerHTML = {
+                                        "H": noPiece + " HEMBRA",
+                                        "M": noPiece + " MACHO",
+                                    }[letterPiece] || noPiece + " JUEGO";
+                                    td.style.backgroundColor = piece.color;
+                                }
+                                tr.appendChild(td);
+                            }
+                            table.appendChild(tr);
+                        });
+                    }
+                    break;
+                case 4:
                 if(this.pieceToBeUsed){ // Crear input de la pieza a utilizar
                     console.log("Crear input de la pieza a utilizar: " + this.pieceToBeUsed.n_pieza);
                     let divisions = divisionsCNomi;
@@ -480,5 +499,8 @@ export class Process {
             select.appendChild(opt);
         });
         return select;
+    }
+    dataType(value) {
+        return value != null && !isNaN(value) && value.trim() !== '' ? "number" : "text";
     }
 }

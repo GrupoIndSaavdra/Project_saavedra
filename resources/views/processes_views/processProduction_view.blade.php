@@ -69,16 +69,17 @@
 </div>
 <script>
     window.workOrders = @json($workOrders);
+    window.baseUrl = "{{ url('/') }}";
+    window.edit = "{{ asset('images/img-edit.png') }}";
+    window.back = "{{ asset('images/img-back.png') }}";
+    window.imgError = "{{ asset('images/personError.png') }}";
+    window.imgNoPieces = "{{ asset('images/ready.png') }}";
+    window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";
 </script>
 @isset($arrayData)
 <script>
     window.arrayData = @json($arrayData);
     window.pieceToBeUsed = @json($pieceToBeUsed);
-    window.baseUrl = "{{ url('/') }}";
-    window.edit = "{{ asset('images/img-edit.png') }}";
-    window.back = "{{ asset('images/img-back.png') }}";
-    window.imgError = "{{ asset('images/personError.png') }}";
-    window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";
 </script>
 @endisset
 @endsection
