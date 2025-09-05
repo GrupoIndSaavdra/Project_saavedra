@@ -6,7 +6,6 @@ use App\Models\Pza_cepillado;
 
 class CepilladoController extends Controller
 {
-    protected $controladorPzasLiberadas;
     public function __construct()
     {
         $this->middleware('auth');

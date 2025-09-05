@@ -384,7 +384,7 @@ function createTable() {
     inputProcess.value = window.arrayData["process"];
     form.appendChild(inputProcess);
 
-    if (window.pieceToBeUsed) {
+    if (window.pieceToBeUsed && window.pieceToBeUsed != "NoPreviousPieces") {
         let inputPiece = document.createElement("input");
         inputPiece.type = "hidden";
         inputPiece.name = "piece";
@@ -474,6 +474,8 @@ function createTable() {
         let process = new Process(
             window.arrayData["process"],
             window.arrayData["subprocess"],
+            null,
+            null,
             window.machinedPiecesInMeta,
             window.pieceToBeUsed,
             true
@@ -502,13 +504,28 @@ function createTable() {
 
 function insertButton_saveOrChoose() {
     let btn = null;
-    if (window.arrayData["cNominals"]) {
-        if (window.pieceToBeUsed) {
+    if (
+        window.arrayData["cNominals"] ||
+        window.arrayData["process"] == "Soldadura" ||
+        window.arrayData["process"] == "Soldadura PTA" ||
+        window.arrayData["process"] == "Asentado" ||
+        window.arrayData["process"] == "Rectificado"
+    ) {
+        if (
+            window.pieceToBeUsed &&
+            window.pieceToBeUsed != "NoPreviousPieces"
+        ) {
             btn = document.createElement("button");
             btn.type = "submit";
             btn.className = "btn-savePiece";
             btn.textContent = "Guardar";
         } else if (window.arrayData["availableAssemblies"].length > 0) {
+            // Cambiar la ruta del formulario para seleccionar un juego y registralo
+            let form_tablePieces = document.querySelector(".form-tablePieces");
+            form_tablePieces.action =
+                window.baseUrl + "/processProduction/selectAssembly";
+
+            // Crear botón de "Elegir pieza"
             btn = document.createElement("button");
             btn.type = "submit";
             btn.className = "btn-savePiece";
@@ -517,26 +534,36 @@ function insertButton_saveOrChoose() {
             // Insertar select de piezas
             insertSelectPieces();
         }
-        if (btn != null) {
-            let form_tablePieces = document.querySelector(".form-tablePieces");
-            form_tablePieces.appendChild(btn);
-        }else {
-            //Insertar div de "No hay piezas por guardar"
-            let body = document.querySelector("body");
-            body.appendChild(
-                showDivAlert(
-                    "No hay piezas por registrar",
-                    true,
-                    window.imgNoPieces
-                )
-            );
-        }
+    }
+    if (btn != null) {
+        let form_tablePieces = document.querySelector(".form-tablePieces");
+        form_tablePieces.appendChild(btn);
+    } else if (window.pieceToBeUsed == "NoPreviousPieces") {
+        //Insertar div de "No se han registrado piezas en el proceso anterior"
+        let body = document.querySelector("body");
+        body.appendChild(
+            showDivAlert(
+                "No se han registrado piezas en el proceso anterior. Informar inmediatamente a un supervisor",
+                true,
+                window.imgNoPiecesPrevious
+            )
+        );
+    } else {
+        //Insertar div de "No hay piezas por guardar"
+        let body = document.querySelector("body");
+        body.appendChild(
+            showDivAlert(
+                "No hay piezas por registrar",
+                true,
+                window.imgNoPieces
+            )
+        );
     }
 }
-function insertSelectPieces(){
+function insertSelectPieces() {
     let select = document.createElement("select");
     select.className = "select-pieces";
-    select.name = "selectedPiece";
+    select.name = "selectedAssembly";
     select.required = true;
 
     //Agregar opciones al select

@@ -14,7 +14,8 @@ export class Process {
         this.toleData = toleData;
         this.tableTitles = [];
         this.piecesData = piecesData;
-        this.pieceToBeUsed = pieceToBeUsed;
+        this.pieceToBeUsed =
+            pieceToBeUsed != "NoPreviousPieces" ? pieceToBeUsed : null;
         this.tablePieces = tablePieces;
     }
 
@@ -146,6 +147,11 @@ export class Process {
                 divisionsCNomi = [null];
                 divisionsTole = [1, 3, 5, 7, 9, 11, 13];
 
+                positionSelects = [
+                    [8],
+                    [["Ninguno", "Fundicion"]]
+                ];
+
                 fields = ["id", "diametro_mordaza", "diametro_ceja", "diametro_sufrideraExtra", "simetria_ceja", "simetria_mordaza", "altura_ceja", "altura_sufridera"];
                 break;
 
@@ -154,6 +160,11 @@ export class Process {
                 
                 divisionsCNomi = [null];
                 divisionsTole = [1, 3, 5, 7, 9];
+                
+                positionSelects = [
+                    [6],
+                    [["Ninguno", "Fundicion"]]
+                ];
 
                 fields = [ "id", "desfasamiento_entrada", "desfasamiento_salida", "ancho_simetriaEntrada", "ancho_simetriaSalida", "angulo_corte"];
                 break;
@@ -164,16 +175,26 @@ export class Process {
                 divisionsCNomi = [null];
                 divisionsTole = [9, 11];
 
+                positionSelects = [
+                    [13],
+                    [["Ninguno", "Fundicion"]]
+                ];
+
                 fields = ["id", "diametro1", "profundidad1", "diametro2", "profundidad2", "diametro3", "profundidad3", "diametroSoldadura", "profundidadSoldadura", "diametroBarreno", "simetriaLinea_partida", "pernoAlineacion", "Simetria90G"];
                 break;
 
             case "Barreno Maniobra": //Proceso de barreno maniobra
-                this.tableTitles = [ "", "Profundidad de Barreno", "Diametro de machuelo"];
+                this.tableTitles = !this.tablePieces ? [ "", "Profundidad de Barreno", "Diametro de machuelo"] : [ "", "Profundidad de Barreno", "Diametro de machuelo", "Acetato B/M"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [1, 3];
+                
+                positionSelects = [
+                    [3, 4],
+                    [["Bien", "Mal"], ["Ninguno", "Fundicion"]]
+                ];
 
-                fields = ["id", "profundidad_barreno", "diametro_machuelo"];
+                fields = !this.tablePieces ? ["id", "profundidad_barreno", "diametro_machuelo"] : ["id", "profundidad_barreno", "diametro_machuelo", "acetatoBM"];
                 break;
 
             case "Segunda Operacion": //Proceso de segunda operacion
@@ -182,9 +203,28 @@ export class Process {
                 divisionsCNomi = [null];
                 divisionsTole = [9, 11];
 
+                positionSelects = [
+                    [12],
+                    [["Ninguno", "Fundicion"]]
+                ];
+
                 fields = ["id", "diametro1", "profundidad1", "diametro2", "profundidad2", "diametro3", "profundidad3", "diametroSoldadura", "profundidadSoldadura", "alturaTotal", "simetria90G", "simetriaLinea_Partida"];
                 break;
 
+            case "Soldadura PTA": //Proceso de soldadura PTA
+                this.tableTitles = [ "Pieza", "Temperatura de precalentado", "Temperatura en dispositivo", "Limpieza"];
+
+                divisionsCNomi = [null];
+                divisionsTole = [null];
+
+                positionSelects = [
+                    [3, 4],
+                    [["Si", "No"], ["Ninguno", "Fundicion"]]
+                ];
+
+                fields = ["id", "temp_calentado", "temp_dispositivo", "limpieza"];
+                break;
+                
             case "Operacion Equipo":
                 this.tableTitles = [ "", "Altura", "ø Altura de candado", "Altura asiento obturador", "ø Profundidad de soldadura", "ø de PushUp"];
 
@@ -351,7 +391,7 @@ export class Process {
                         th.className = "table-title";
                         th.innerHTML = title;
                         if (index == 0) {
-                            th.style = "width:150px;";
+                            th.style = "width:300px;";
                         }else if (indexArray == 0 && titles.length > 1) {
                             if (divisionsTitles.includes(index)) {
                                 th.colSpan = 2;
@@ -368,36 +408,39 @@ export class Process {
                 // Crear columnas de cNominal y tolerancias
                 case 1:
                 case 2:
-                    tr = document.createElement("tr");
-                    let divisions = i == 1 ? divisionsCNomi : divisionsTole;
+                    if(this.nameProcess != "Soldadura" && this.nameProcess != "Asentado" && this.nameProcess != "Rectificado" && this.nameProcess != "Soldadura PTA"){
 
-                    for(let x=0; x < names[i - 1].length; x++) {
-                        const td = document.createElement("td");
-                        if (x != 0){
-                            if(divisions.includes(x)){
-                                for (let j = 0; j < 2; j++) {
-                                    if (values) {
-                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], values[i - 1][x]));
-                                    }else {
-                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], null));
+                        tr = document.createElement("tr");
+                        let divisions = i == 1 ? divisionsCNomi : divisionsTole;
+    
+                        for(let x=0; x < names[i - 1].length; x++) {
+                            const td = document.createElement("td");
+                            if (x != 0){
+                                if(divisions.includes(x)){
+                                    for (let j = 0; j < 2; j++) {
+                                        if (values) {
+                                            td.appendChild(this.crearInputs("input-medio", names[i - 1][x], values[i - 1][x]));
+                                        }else {
+                                            td.appendChild(this.crearInputs("input-medio", names[i - 1][x], null));
+                                        }
+                                        if (j != 1) {
+                                            x++;
+                                        }
                                     }
-                                    if (j != 1) {
-                                        x++;
+                                }else {
+                                    if(values) {
+                                        td.appendChild(this.crearInputs("input", names[i - 1][x], values[i - 1][x]));
+                                    }else {
+                                        td.appendChild(this.crearInputs("input", names[i - 1][x], null));
                                     }
                                 }
                             }else {
-                                if(values) {
-                                    td.appendChild(this.crearInputs("input", names[i - 1][x], values[i - 1][x]));
-                                }else {
-                                    td.appendChild(this.crearInputs("input", names[i - 1][x], null));
-                                }
+                                td.innerHTML = names[i - 1][x];
                             }
-                        }else {
-                            td.innerHTML = names[i - 1][x];
+                            tr.appendChild(td);
                         }
-                        tr.appendChild(td);
+                        table.appendChild(tr); //Agregar fila a la tabla.
                     }
-                    table.appendChild(tr); //Agregar fila a la tabla.
                     break;
                 case 3://Crear inputs de las piezas e input de la pieza a utilizar si es que existe
                     if(this.piecesData.length > 0){ // Crear inputs inhabilitados de las piezas maquinadas en la meta
@@ -418,8 +461,9 @@ export class Process {
                                     }
                                     tr.appendChild(td);
                                 }else {
-                                    let noPiece = piece.piece.n_pieza.slice(0, - 1);
-                                    let letterPiece = piece.piece.n_pieza[piece.piece.n_pieza.length - 1];
+
+                                    let noPiece = piece.piece.n_pieza ? piece.piece.n_pieza.slice(0, - 1) : piece.piece.n_juego.slice(0, -1);
+                                    let letterPiece = piece.piece.n_pieza ? piece.piece.n_pieza[piece.piece.n_pieza.length - 1] : piece.piece.n_juego[piece.piece.n_juego.length - 1];
                                     td.innerHTML = {
                                         "H": noPiece + " HEMBRA",
                                         "M": noPiece + " MACHO",
@@ -435,6 +479,7 @@ export class Process {
                 case 4:
                 if(this.pieceToBeUsed){ // Crear input de la pieza a utilizar
                     console.log("Crear input de la pieza a utilizar: " + this.pieceToBeUsed.n_pieza);
+                    console.log("Crear input del juego a utilizar: " + this.pieceToBeUsed.n_juego);
                     let divisions = divisionsCNomi;
                     tr = document.createElement("tr");
                     for (let x=0; x < fields.length; x++) {
@@ -458,13 +503,18 @@ export class Process {
                                 }
                             }
                         }else {
-                            let noPiece = this.pieceToBeUsed.n_pieza.slice(0, -1);
-                            let letterPiece = this.pieceToBeUsed.n_pieza[this.pieceToBeUsed.n_pieza.length - 1];
-                            if(letterPiece == "H"){
-                                td.innerHTML = noPiece + " HEMBRA";
-                            } else if(letterPiece == "M"){
-                                td.innerHTML = noPiece + " MACHO";
+                            if(this.pieceToBeUsed.n_pieza){
+                                let noPiece = this.pieceToBeUsed.n_pieza.slice(0, -1);
+                                let letterPiece = this.pieceToBeUsed.n_pieza[this.pieceToBeUsed.n_pieza.length - 1];
+                                if(letterPiece == "H"){
+                                    td.innerHTML = noPiece + " HEMBRA";
+                                } else if(letterPiece == "M"){
+                                    td.innerHTML = noPiece + " MACHO";
+                                } else {
+                                    td.innerHTML = noPiece + " JUEGO";
+                                }
                             } else {
+                                let noPiece = this.pieceToBeUsed.n_juego.slice(0, -1);
                                 td.innerHTML = noPiece + " JUEGO";
                             }
                         }
@@ -501,6 +551,8 @@ export class Process {
         return select;
     }
     dataType(value) {
-        return value != null && !isNaN(value) && value.trim() !== '' ? "number" : "text";
+        return value != null && !isNaN(value) && value.trim() !== ""
+            ? "number"
+            : "text";
     }
 }

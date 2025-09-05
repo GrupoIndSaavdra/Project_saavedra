@@ -11,9 +11,6 @@ class Desbaste_pza extends Model
     protected $table = 'desbaste_pza';
 
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_pieza',
         'diametro_mordaza',
         'diametro_ceja',
         'diametro_sufrideraExtra',

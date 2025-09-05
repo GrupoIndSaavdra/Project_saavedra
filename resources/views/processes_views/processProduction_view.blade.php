@@ -74,6 +74,7 @@
     window.back = "{{ asset('images/img-back.png') }}";
     window.imgError = "{{ asset('images/personError.png') }}";
     window.imgNoPieces = "{{ asset('images/ready.png') }}";
+    window.imgNoPiecesPrevious = "{{ asset('images/noPieces.png') }}";
     window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";
 </script>
 @isset($arrayData)

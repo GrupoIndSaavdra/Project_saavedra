@@ -11,12 +11,10 @@ class SoldaduraPTA_pza extends Model
     protected $table = 'soldaduraPTA_pza';
 
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_pieza',
         'temp_calentado',
         'temp_dispositivo',
         'limpieza',
+        'error',
         'observaciones',
     ];
 }

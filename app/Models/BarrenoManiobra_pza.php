@@ -11,11 +11,8 @@ class BarrenoManiobra_pza extends Model
     protected $table = 'barrenomaniobra_pza';
 
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_pieza',
         'profundidad_barreno',
-        'diametroMachuelo',
+        'diametro_machuelo',
         'acetatoBM',
         'observaciones',
     ];

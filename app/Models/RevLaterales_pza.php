@@ -11,9 +11,6 @@ class RevLaterales_pza extends Model
     protected $table = 'revlaterales_pza';
 
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_pieza',
         'desfasamiento_entrada',
         'desfasamiento_salida',
         'ancho_simetriaEntrada',

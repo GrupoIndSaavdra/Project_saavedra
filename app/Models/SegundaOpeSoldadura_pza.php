@@ -10,9 +10,6 @@ class SegundaOpeSoldadura_pza extends Model
     use HasFactory;
     protected $table = 'segundaOpeSoldadura_pza';
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_pieza',
         'diametro1',
         'profundidad1',
         'diametro2',
