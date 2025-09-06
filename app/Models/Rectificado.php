@@ -10,7 +10,7 @@ class Rectificado extends Model
     use HasFactory;
     protected $table = 'rectificado';
     protected $fillable = [
-        'id',
-        'id_ot'
+        'cumple',
+        'observaciones'
     ];
 }

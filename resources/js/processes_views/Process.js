@@ -224,25 +224,45 @@ export class Process {
 
                 fields = ["id", "temp_calentado", "temp_dispositivo", "limpieza"];
                 break;
-                
-            case "Operacion Equipo":
-                this.tableTitles = [ "", "Altura", "ø Altura de candado", "Altura asiento obturador", "ø Profundidad de soldadura", "ø de PushUp"];
+            case "Rectificado": //Proceso de rectificado
+                this.tableTitles = [ "Pieza", "Cumple"];
 
-                divisionsCNomi = [2, 4, 6];
-                divisionsTole = [2, 4, 6];
+                divisionsCNomi = [null];
+                divisionsTole = [null];
 
-                fields = ["id", "altura", "alturaCandado", "alturaAsientoObturador", "profundidadSoldadura", "pushUp"];
+                positionSelects = [
+                    [1, 2],
+                    [["Si", "No"], ["Ninguno", "Fundicion"]]
+                ];
+
+                fields = ["id", "cumple"];
                 break;
-
+            case "Asentado": //Proceso de asentado
+                this.tableTitles = [ "Pieza", "Sin juego", "Sin luz"];
+                
+                divisionsCNomi = [null];
+                divisionsTole = [null];
+                
+                positionSelects = [
+                    [1, 2, 3],
+                    [["✔", "X"], ["✔", "X"], ["Ninguno", "Fundicion"]]
+                ];
+                
+                fields = ["id", "sin_juego", "sin_luz"];
+                break;
             case "Calificado":
                 this.tableTitles = [ "", "Diametro de ceja", "Diametro de sufridera", "Altura de sufridera", "Diametro de conexion", "Altura de conexion", "Diametro de caja", "Altura de caja", "Altura total", "Simetria"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [1, 3, 5, 7, 9, 11, 13, 15, 17];
 
+                positionSelects = [
+                    [10],
+                    [["Ninguno", "Fundicion"]]
+                ];
+
                 fields = ["id", "diametro_ceja", "diametro_sufridera", "altura_sufridera", "diametro_conexion", "altura_conexion", "diametro_caja", "altura_caja", "altura_total", "simetria"];
                 break;
-
             case "Acabado Bombillo":
                 this.tableTitles = [ "", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Diametro Boca", "Diametro Asiento Corona", "Diametro llanta", "Diametro caja corona", "Profundidad corona", "Angulo de 30", "Profundidad caja corona", "Simetria" ];
 
@@ -331,31 +351,14 @@ export class Process {
 
                 fields = ["id", "anchoRanura", "profuTaconHembra", "profuTaconMacho", "simetriaHembra", "simetriaMacho", "anchoTacon", "barrenoLateralHembra", "barrenoLateralMacho", "alturaTaconInicial", "alturaTaconIntermedia"];
                 break;
+            // Procesos no comunes
+            case "Operacion Equipo":
+                this.tableTitles = [ "", "Altura", "ø Altura de candado", "Altura asiento obturador", "ø Profundidad de soldadura", "ø de PushUp"];
 
-            // Procesos que no necesitan Cotas nominales ni tolerancias
-            case "Soldadura":
-                this.tableTitles = ["#PZ", "Peso por pieza", "Temperatura de precalentado", "Tiempo de aplicación", "Tipo de soldadura", "Lote", "Error", "Observaciones"];
-                divisionsCNomi = [null];
-                divisionsTole = [null];
-                fields = null;
-                break;
-            case "Soldadura PTA":
-                this.tableTitles = ["#PZ", "Temperatura de calentado", "Temperatura en dispositivo", "Limpieza", "Error", "Observaciones"];
-                divisionsCNomi = [null];
-                divisionsTole = [null];
-                fields = null;
-                break;
-            case "Asentado":
-                this.tableTitles = ["#PZ", "Sin juego", "Sin luz", "Error", "Observaciones"];
-                divisionsCNomi = [null];
-                divisionsTole = [null];
-                fields = null;
-                break;
-            case "Rectificado":
-                this.tableTitles = ["#PZ", "Cumple", "Error", "Observaciones"];
-                divisionsCNomi = [null];
-                divisionsTole = [null];
-                fields = null;
+                divisionsCNomi = [2, 4, 6];
+                divisionsTole = [2, 4, 6];
+
+                fields = ["id", "altura", "alturaCandado", "alturaAsientoObturador", "profundidadSoldadura", "pushUp"];
                 break;
         }
         

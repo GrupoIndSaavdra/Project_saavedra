@@ -503,14 +503,9 @@ function createTable() {
 }
 
 function insertButton_saveOrChoose() {
+    let processNoCotas = ["Soldadura", "Soldadura PTA", "Asentado", "Rectificado"];
     let btn = null;
-    if (
-        window.arrayData["cNominals"] ||
-        window.arrayData["process"] == "Soldadura" ||
-        window.arrayData["process"] == "Soldadura PTA" ||
-        window.arrayData["process"] == "Asentado" ||
-        window.arrayData["process"] == "Rectificado"
-    ) {
+    if (window.arrayData["cNominals"] || processNoCotas.includes(window.arrayData["process"])) {
         if (
             window.pieceToBeUsed &&
             window.pieceToBeUsed != "NoPreviousPieces"
@@ -538,7 +533,7 @@ function insertButton_saveOrChoose() {
     if (btn != null) {
         let form_tablePieces = document.querySelector(".form-tablePieces");
         form_tablePieces.appendChild(btn);
-    } else if (window.pieceToBeUsed == "NoPreviousPieces") {
+    } else if (window.pieceToBeUsed == "NoPreviousPieces" && window.arrayData["cNominals"]) {
         //Insertar div de "No se han registrado piezas en el proceso anterior"
         let body = document.querySelector("body");
         body.appendChild(
@@ -548,7 +543,7 @@ function insertButton_saveOrChoose() {
                 window.imgNoPiecesPrevious
             )
         );
-    } else {
+    } else if(window.arrayData["cNominals"] || processNoCotas.includes(window.arrayData["process"])) {
         //Insertar div de "No hay piezas por guardar"
         let body = document.querySelector("body");
         body.appendChild(

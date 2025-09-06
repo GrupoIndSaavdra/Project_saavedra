@@ -11,9 +11,6 @@ class revCalificado_pza extends Model
     protected $table = 'revCalificado_pza';
 
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_juego',
         'diametro_ceja',
         'diametro_sufridera',
         'altura_sufridera',

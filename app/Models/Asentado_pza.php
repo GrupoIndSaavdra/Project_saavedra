@@ -11,9 +11,6 @@ class Asentado_pza extends Model
     protected $table = 'asentado_pza';
 
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_juego',
         'sin_juego',
         'sin_luz',
         'observaciones',
