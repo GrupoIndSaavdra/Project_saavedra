@@ -11,9 +11,6 @@ class BarrenoProfundidad_pza extends Model
     protected $table = 'barrenoProfundidad_pza';
 
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_pieza',
         'broca1',
         'tiempo1',
         'broca2',

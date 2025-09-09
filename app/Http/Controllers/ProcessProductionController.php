@@ -44,12 +44,7 @@ class ProcessProductionController extends Controller
                         $processes = Procesos::where('id_clase', $class->id)->first();
                         if ($processes) {
                             $workOrders[$workOrder->id][$class->nombre] = array();
-                            foreach ($processes->getAttributes() as $process => $valor) {
-                                if (($process != "id" && $process != "id_clase") && $valor != 0) {
-                                    $process = $this->processesController->convertProcessToString($process);
-                                    array_push($workOrders[$workOrder->id][$class->nombre], $process);
-                                }
-                            }
+                            $workOrders[$workOrder->id][$class->nombre] = $this->setOrderedProcess($class); // Establecer el orden de los procesos disponibles e insertarlos en el array
                         }
                     }
                 }
@@ -60,6 +55,29 @@ class ProcessProductionController extends Controller
             return $workOrders; // Si se solicita un array, se retorna el array de órdenes de trabajo
         }
         return view('processes_views.processProduction_view', compact('workOrders'));
+    }
+
+    public function setOrderedProcess($class)
+    {
+        //Establecer el orden de los procesos
+        $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado", "operacionEquipo", "embudoCM"];
+
+        //Verificar los procesos por los que pasa la clase
+        $processesNotEmpty = Procesos::where("id_clase", $class->id)->first();
+        foreach ($processesInOrder as $key => $proc) {
+            if ($processesNotEmpty->$proc == 0) {
+                unset($processesInOrder[$key]);
+            }
+        }
+        // Reindexar el array para mantener los índices consecutivos
+        $processesInOrder = array_values($processesInOrder);
+
+        // Convertir los procesos a su formato de nombre completo
+        foreach ($processesInOrder as $key => $proc) {
+            $processesInOrder[$key] = $this->processesController->convertProcessToString($proc);
+        }
+
+        return $processesInOrder;
     }
 
     public function showReportFormat($meta, $process, $edit)
@@ -246,14 +264,18 @@ class ProcessProductionController extends Controller
 
         // Obtener los datos de CNominal y Tolerancia del proceso
         if ($request->process != "Soldadura" && $request->process != "Asentado" && $request->process != "Rectificado" && $request->process != "Soldadura PTA") {
-            $id_process = str_replace(" ", "_", $request->process) . "_" . $class->nombre . "_" . $class->id_ot;
-            [$cNominalModel, $toleranceModel] = $this->getModelProcessCNominal_Tolerance($request->process);
-            $cNominal = $cNominalModel::where("id_proceso", $id_process)->first();
-            $tolerance = $toleranceModel::where("id_proceso", $id_process)->first();
-
-            //Guardar los datos de la pieza en su respectiva tabla del proceso
-            $controllerProcess = $this->get_ControllerProcess($request->process);
-            $controllerProcess->storePiece($request, $cNominal, $tolerance);
+            if($request->process == "Copiado"){
+                
+            } else {
+                $id_process = str_replace(" ", "_", $request->process) . "_" . $class->nombre . "_" . $class->id_ot;
+                [$cNominalModel, $toleranceModel] = $this->getModelProcessCNominal_Tolerance($request->process);
+                $cNominal = $cNominalModel::where("id_proceso", $id_process)->first();
+                $tolerance = $toleranceModel::where("id_proceso", $id_process)->first();
+    
+                //Guardar los datos de la pieza en su respectiva tabla del proceso
+                $controllerProcess = $this->get_ControllerProcess($request->process);
+                $controllerProcess->storePiece($request, $cNominal, $tolerance);
+            }
         } else {
             //Guardar los datos de la pieza en su respectiva tabla del proceso
             $controllerProcess = $this->get_ControllerProcess($request->process);
@@ -263,12 +285,13 @@ class ProcessProductionController extends Controller
         //Guardar la pieza en la tabla Piezas
         $modelProcessPiece = $this->get_ModelProcessPieces($request->process);
         $piece = $modelProcessPiece::find($request->piece);
-        $pieceInPiezas = Pieza::where("id_clase", $class->id)->where("proceso", $request->process)->where("n_pieza", $piece->n_pieza)->first();
+        $n_piece = $piece->n_pieza ? $piece->n_pieza : $piece->n_juego;
+        $pieceInPiezas = Pieza::where("id_clase", $class->id)->where("proceso", $request->process)->where("n_pieza", $n_piece)->first();
         if (!$pieceInPiezas) {
             $pieceInPiezas = new Pieza();
             $pieceInPiezas->id_ot = $class->id_ot;
             $pieceInPiezas->id_clase = $class->id;
-            $pieceInPiezas->n_pieza = $piece->n_pieza ? $piece->n_pieza : $piece->n_juego;
+            $pieceInPiezas->n_pieza = $n_piece;
             $pieceInPiezas->id_operador = $meta->id_usuario;
             $pieceInPiezas->maquina = $meta->maquina;
             $pieceInPiezas->proceso = $request->process;
@@ -607,12 +630,13 @@ class ProcessProductionController extends Controller
                     $piece->save(); // Actualizar la pieza en su tabla
 
                     //Actualizar la pieza en la tabla de Piezas (En donde se almacenan todas las piezas)
-                    $pieceDB = Pieza::where('n_pieza', $piece->n_pieza)->where('id_ot', $meta->id_ot)->where('id_clase', $class->id)->where('proceso', $meta->proceso)->first();
+                    $n_piece = $piece->n_pieza ? $piece->n_pieza : $piece->n_juego; // Obtener el nombre de la pieza o del juego
+                    $pieceDB = Pieza::where('n_pieza', $n_piece)->where('id_ot', $meta->id_ot)->where('id_clase', $class->id)->where('proceso', $meta->proceso)->first();
                     if (!isset($pieceDB)) {
                         $pieceDB = new Pieza();
                         $pieceDB->id_ot = $class->id_ot;
                         $pieceDB->id_clase = $class->id;
-                        $pieceDB->n_pieza = $piece->n_pieza ? $piece->n_pieza : $piece->n_juego;
+                        $pieceDB->n_pieza = $n_piece;
                         $pieceDB->id_operador = $meta->id_usuario;
                         $pieceDB->maquina = $meta->maquina;
                         $pieceDB->proceso = $meta->proceso;
@@ -798,67 +822,69 @@ class ProcessProductionController extends Controller
             $stringPreProcess = $stringPreProcess . "_" . $class->nombre . "_" . $class->id_ot; // Obtener el registro de la tabla del proceso anterior
             $preProcessDB = $modelPreProcess::where('id_proceso', $stringPreProcess)->first();
 
-            //Obtener las piezas maquinadas en el proceso anterior
-            $modelPiecesPreProcess = $this->get_ModelProcessPieces($previousProcess);
-            $prePieces = $modelPiecesPreProcess::where('id_proceso', $preProcessDB->id)->where('estado', 2)->get();
-            if (count($prePieces) > 0) {
-                [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($process, $class); //Obtener las piezas maquinadas
-                $countedAssemblies = array();
-                //Guardar en un array los juegos restantes de la piezas del proceso anterior
-                foreach ($prePieces as $prePiece) {
-                    $assembly = $modelPiecesPreProcess::where('n_juego', $prePiece->n_juego)->where('id_proceso', $prePiece->id_proceso)->get();
-                    if (!in_array($prePiece->n_juego, $occupiedAssemblies) && !in_array($prePiece->n_juego, $countedAssemblies)) {
-                        array_push($countedAssemblies, $prePiece->n_juego);
-                        $status = 0;
-                        if ($assembly->count() > 1) { //Si el juego tiene dos mitades
-                            foreach ($assembly as $piece) {
-                                // Verificar si la pieza esta correcta
-                                $releasedPiece = $this->verifyPiece(Pieza::where('n_pieza', $piece->n_pieza)->where('proceso', $previousProcess)->where('id_clase', $class->id)->first());
-                                $status = $releasedPiece ? $status + 1 : $status;
-                            }
-                            if ($status > 1) { //Si las dos piezas estan correctas o liberadas contar el juego
-                                $remainingPieces++;
-                                array_push($availableAssemblies, $prePiece->n_juego);
-                            }
-                        } else { // Si el juego es completo
-                            // Verificar si la pieza esta correcta
-                            $releasedPiece = $this->verifyPiece(Pieza::where('n_pieza', $assembly[0]->n_juego)->where('proceso', $previousProcess)->where('id_clase', $class->id)->first());
-                            if ($releasedPiece) {
-                                $remainingPieces++;
-                                array_push($availableAssemblies, $prePiece->n_juego);
-                            }
-                        }
-                    } else if (!in_array($prePiece->n_juego, $countedAssemblies)) {
-                        // Verificar si en el proceso actual se registran por juego o por mitad
-                        $processAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado"];
-                        if (in_array($previousProcess, $processAssembly)) { // Si el proceso anterior se registran por juego
-                            $prePiece = $prePiece->n_juego;
-                            if (in_array($process, $processAssembly)) {
-                                if (!in_array($prePiece, $machinedPieces)) {
-                                    $remainingPieces += 1; // Verificar si en el proceso actual se registran por juego o por mitad
+            if ($preProcessDB) {
+                //Obtener las piezas maquinadas en el proceso anterior
+                $modelPiecesPreProcess = $this->get_ModelProcessPieces($previousProcess);
+                $prePieces = $modelPiecesPreProcess::where('id_proceso', $preProcessDB->id)->where('estado', 2)->get();
+                if (count($prePieces) > 0) {
+                    [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($process, $class); //Obtener las piezas maquinadas
+                    $countedAssemblies = array();
+                    //Guardar en un array los juegos restantes de la piezas del proceso anterior
+                    foreach ($prePieces as $prePiece) {
+                        $assembly = $modelPiecesPreProcess::where('n_juego', $prePiece->n_juego)->where('id_proceso', $prePiece->id_proceso)->get();
+                        if (!in_array($prePiece->n_juego, $occupiedAssemblies) && !in_array($prePiece->n_juego, $countedAssemblies)) {
+                            array_push($countedAssemblies, $prePiece->n_juego);
+                            $status = 0;
+                            if ($assembly->count() > 1) { //Si el juego tiene dos mitades
+                                foreach ($assembly as $piece) {
+                                    // Verificar si la pieza esta correcta
+                                    $releasedPiece = $this->verifyPiece(Pieza::where('n_pieza', $piece->n_pieza)->where('proceso', $previousProcess)->where('id_clase', $class->id)->first());
+                                    $status = $releasedPiece ? $status + 1 : $status;
                                 }
-                            } else {
-                                $noAssembly = substr($prePiece, 0, -1);
-                                $halfLetter = substr($prePiece, -1) == "M" ? "H" : "M";
-                                for ($i = 1; $i <= 2; $i++) {
-                                    $halfPiece = substr($prePiece, 0, -1) . ($i == 1 ? "H" : "M");
-                                    if (!in_array($halfPiece, $machinedPieces)) {
-                                        $remainingPieces += 0.5;
+                                if ($status > 1) { //Si las dos piezas estan correctas o liberadas contar el juego
+                                    $remainingPieces++;
+                                    array_push($availableAssemblies, $prePiece->n_juego);
+                                }
+                            } else { // Si el juego es completo
+                                // Verificar si la pieza esta correcta
+                                $releasedPiece = $this->verifyPiece(Pieza::where('n_pieza', $assembly[0]->n_juego)->where('proceso', $previousProcess)->where('id_clase', $class->id)->first());
+                                if ($releasedPiece) {
+                                    $remainingPieces++;
+                                    array_push($availableAssemblies, $prePiece->n_juego);
+                                }
+                            }
+                        } else if (!in_array($prePiece->n_juego, $countedAssemblies)) {
+                            // Verificar si en el proceso actual se registran por juego o por mitad
+                            $processAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado"];
+                            if (in_array($previousProcess, $processAssembly)) { // Si el proceso anterior se registran por juego
+                                $prePiece = $prePiece->n_juego;
+                                if (in_array($process, $processAssembly)) {
+                                    if (!in_array($prePiece, $machinedPieces)) {
+                                        $remainingPieces += 1; // Verificar si en el proceso actual se registran por juego o por mitad
+                                    }
+                                } else {
+                                    $noAssembly = substr($prePiece, 0, -1);
+                                    $halfLetter = substr($prePiece, -1) == "M" ? "H" : "M";
+                                    for ($i = 1; $i <= 2; $i++) {
+                                        $halfPiece = substr($prePiece, 0, -1) . ($i == 1 ? "H" : "M");
+                                        if (!in_array($halfPiece, $machinedPieces)) {
+                                            $remainingPieces += 0.5;
+                                        }
                                     }
                                 }
-                            }
-                        } else { // Si el proceso anterior se registran por mitad
-                            $prePiece = $prePiece->n_pieza;
-                            if (in_array($process, $processAssembly)) {
-                                $noAssembly = substr($prePiece, 0, -1);
-                                $halfPiece = $noAssembly . "J";
-                                if (!in_array($halfPiece, $machinedPieces)) {
-                                    array_push($countedAssemblies, $halfPiece);
-                                    $remainingPieces += 1; // Verificar si en el proceso actual se registran por juego o por mitad
-                                }
-                            } else {
-                                if (!in_array($prePiece, $machinedPieces)) {
-                                    $remainingPieces += 0.5; // Verificar si en el proceso actual se registran por juego o por mitad
+                            } else { // Si el proceso anterior se registran por mitad
+                                $prePiece = $prePiece->n_pieza;
+                                if (in_array($process, $processAssembly)) {
+                                    $noAssembly = substr($prePiece, 0, -1);
+                                    $halfPiece = $noAssembly . "J";
+                                    if (!in_array($halfPiece, $machinedPieces)) {
+                                        array_push($countedAssemblies, $halfPiece);
+                                        $remainingPieces += 1; // Verificar si en el proceso actual se registran por juego o por mitad
+                                    }
+                                } else {
+                                    if (!in_array($prePiece, $machinedPieces)) {
+                                        $remainingPieces += 0.5; // Verificar si en el proceso actual se registran por juego o por mitad
+                                    }
                                 }
                             }
                         }

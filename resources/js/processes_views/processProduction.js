@@ -398,43 +398,65 @@ function createTable() {
 
     if (window.arrayData["cNominals"]) {
         if (window.arrayData["process"] == "Copiado") {
-            //Crear tabla de Cilindrado
-            let label = document.createElement("label");
-            label.className = "label-table";
-            label.innerHTML = "Cilindrado";
+            if (
+                window.arrayData["cNominals"]["Cilindrado"] &&
+                window.arrayData["cNominals"]["Cavidades"]
+            ) {
+                //Crear tabla de Cilindrado
+                let label = document.createElement("label");
+                label.className = "label-table";
+                label.innerHTML = "Cilindrado";
 
-            let process = new Process(
-                window.arrayData["process"],
-                "Cilindrado",
-                window.arrayData["cNominals"]["Cilindrado"][0],
-                window.arrayData["cNominals"]["Cilindrado"][1],
-                window.arrayData["machinedPiecesInMeta"],
-                window.pieceToBeUsed,
-                true
-            );
-            scrollableTable.appendChild(process.createProcess());
-            form.appendChild(label);
-            form.appendChild(scrollableTable);
+                window.machinedPiecesInMeta =
+                    window.arrayData["machinedPiecesInMeta"] != null
+                        ? window.arrayData["machinedPiecesInMeta"]
+                        : [];
+                let process = new Process(
+                    window.arrayData["process"],
+                    "Cilindrado",
+                    window.arrayData["cNominals"]["Cilindrado"][0],
+                    window.arrayData["cNominals"]["Cilindrado"][1],
+                    window.machinedPiecesInMeta,
+                    window.pieceToBeUsed,
+                    true
+                );
+                scrollableTable.appendChild(process.createProcess());
+                form.appendChild(label);
+                form.appendChild(scrollableTable);
 
-            //Crear la tabla de Cavidades
-            let label2 = document.createElement("label");
-            label2.className = "label-table";
-            label2.innerHTML = "Cavidades";
+                //Crear la tabla de Cavidades
+                let label2 = document.createElement("label");
+                label2.className = "label-table";
+                label2.innerHTML = "Cavidades";
 
-            let scrollableTable2 = document.createElement("div");
-            scrollableTable2.className = "scrollable-table";
-            let process2 = new Process(
-                window.arrayData["process"],
-                "Cavidades",
-                window.arrayData["cNominals"]["Cavidades"][0],
-                window.arrayData["cNominals"]["Cavidades"][1],
-                window.arrayData["machinedPiecesInMeta"],
-                window.pieceToBeUsed,
-                true
-            );
-            scrollableTable2.appendChild(process2.createProcess());
-            form.appendChild(label2);
-            form.appendChild(scrollableTable2);
+                let scrollableTable2 = document.createElement("div");
+                scrollableTable2.className = "scrollable-table";
+                let process2 = new Process(
+                    window.arrayData["process"],
+                    "Cavidades",
+                    window.arrayData["cNominals"]["Cavidades"][0],
+                    window.arrayData["cNominals"]["Cavidades"][1],
+                    window.machinedPiecesInMeta,
+                    window.pieceToBeUsed,
+                    true
+                );
+                scrollableTable2.appendChild(process2.createProcess());
+                form.appendChild(label2);
+                form.appendChild(scrollableTable2);
+            } else {
+                //Mostrar DIV de alerta para Cotas No disponibles
+                let div = document.createElement("div");
+                div.className = "label-noCotas";
+                div.innerHTML =
+                    "No hay Cotas Nominales disponibles. Notificar inmediatamente al area de software o calidad.";
+                form.appendChild(div);
+                form.appendChild(
+                    showDivAlert(
+                        "Las Cotas Nominales y tolerancias aun no se han cargado. Por favor notifica al area de Calidad o Software",
+                        true
+                    )
+                );
+            }
         } else {
             //Verficar si hay piezas maquinadas o existe una pieza a utilizar
             window.machinedPiecesInMeta =
@@ -503,37 +525,60 @@ function createTable() {
 }
 
 function insertButton_saveOrChoose() {
-    let processNoCotas = ["Soldadura", "Soldadura PTA", "Asentado", "Rectificado"];
+    let processNoCotas = [
+        "Soldadura",
+        "Soldadura PTA",
+        "Asentado",
+        "Rectificado",
+    ];
     let btn = null;
-    if (window.arrayData["cNominals"] || processNoCotas.includes(window.arrayData["process"])) {
+    if (
+        window.arrayData["cNominals"] ||
+        processNoCotas.includes(window.arrayData["process"])
+    ) {
         if (
-            window.pieceToBeUsed &&
-            window.pieceToBeUsed != "NoPreviousPieces"
+            (window.arrayData["process"] === "Copiado" &&
+                window.arrayData["cNominals"]["Cilindrado"] &&
+                window.arrayData["cNominals"]["Cavidades"]) ||
+            window.arrayData["process"] !== "Copiado"
         ) {
-            btn = document.createElement("button");
-            btn.type = "submit";
-            btn.className = "btn-savePiece";
-            btn.textContent = "Guardar";
-        } else if (window.arrayData["availableAssemblies"].length > 0) {
-            // Cambiar la ruta del formulario para seleccionar un juego y registralo
-            let form_tablePieces = document.querySelector(".form-tablePieces");
-            form_tablePieces.action =
-                window.baseUrl + "/processProduction/selectAssembly";
+            if (
+                window.pieceToBeUsed &&
+                window.pieceToBeUsed != "NoPreviousPieces"
+            ) {
+                btn = document.createElement("button");
+                btn.type = "submit";
+                btn.className = "btn-savePiece";
+                btn.textContent = "Guardar";
+            } else if (window.arrayData["availableAssemblies"].length > 0) {
+                // Cambiar la ruta del formulario para seleccionar un juego y registralo
+                let form_tablePieces =
+                    document.querySelector(".form-tablePieces");
+                form_tablePieces.action =
+                    window.baseUrl + "/processProduction/selectAssembly";
 
-            // Crear botón de "Elegir pieza"
-            btn = document.createElement("button");
-            btn.type = "submit";
-            btn.className = "btn-savePiece";
-            btn.textContent = "Elegir pieza";
+                // Crear botón de "Elegir pieza"
+                btn = document.createElement("button");
+                btn.type = "submit";
+                btn.className = "btn-savePiece";
+                btn.textContent = "Elegir pieza";
 
-            // Insertar select de piezas
-            insertSelectPieces();
+                // Insertar select de piezas
+                insertSelectPieces();
+            }
         }
     }
     if (btn != null) {
         let form_tablePieces = document.querySelector(".form-tablePieces");
         form_tablePieces.appendChild(btn);
-    } else if (window.pieceToBeUsed == "NoPreviousPieces" && window.arrayData["cNominals"]) {
+    } else if (
+        window.pieceToBeUsed == "NoPreviousPieces" &&
+        ((window.arrayData["cNominals"] &&
+            window.arrayData["process"] !== "Copiado") ||
+            (window.arrayData["cNominals"]["Cilindrado"] &&
+                window.arrayData["cNominals"]["Cavidades"] &&
+                window.arrayData["process"] == "Copiado"))
+    ) {
         //Insertar div de "No se han registrado piezas en el proceso anterior"
         let body = document.querySelector("body");
         body.appendChild(
@@ -543,7 +588,14 @@ function insertButton_saveOrChoose() {
                 window.imgNoPiecesPrevious
             )
         );
-    } else if(window.arrayData["cNominals"] || processNoCotas.includes(window.arrayData["process"])) {
+    } else if (
+        (window.arrayData["cNominals"] &&
+            window.arrayData["process"] !== "Copiado") ||
+        (window.arrayData["cNominals"]["Cilindrado"] &&
+            window.arrayData["cNominals"]["Cavidades"] &&
+            window.arrayData["process"] == "Copiado") ||
+        processNoCotas.includes(window.arrayData["process"])
+    ) {
         //Insertar div de "No hay piezas por guardar"
         let body = document.querySelector("body");
         body.appendChild(
@@ -631,20 +683,42 @@ function cerrarDiv() {
 
 function insertTable() {
     createTable();
-    let table = document.querySelector(".table");
-    if (table) {
-        let inputs = table.querySelectorAll("input");
-        if (inputs.length > 0) {
-            inputs.forEach((input) => {
-                if (
-                    input.className != "input input-pieceUsed" &&
-                    input.className != "input-medio input-pieceUsed"
-                ) {
-                    input.disabled = true;
-                } else {
-                    input.style.backgroundColor = "#fff";
+    if (window.arrayData["process"] === "Copiado") {
+        let arraySubprocess = [".cilindrado", ".cavidades"];
+        for (let i = 0; i < 2; i++) {
+            let table = document.querySelector(arraySubprocess[i]);
+            if (table) {
+                let inputs = table.querySelectorAll("input");
+                if (inputs.length > 0) {
+                    inputs.forEach((input) => {
+                        if (
+                            input.className != "input input-pieceUsed" &&
+                            input.className != "input-medio input-pieceUsed"
+                        ) {
+                            input.disabled = true;
+                        } else {
+                            input.style.backgroundColor = "#fff";
+                        }
+                    });
                 }
-            });
+            }
+        }
+    } else {
+        let table = document.querySelector(".table");
+        if (table) {
+            let inputs = table.querySelectorAll("input");
+            if (inputs.length > 0) {
+                inputs.forEach((input) => {
+                    if (
+                        input.className != "input input-pieceUsed" &&
+                        input.className != "input-medio input-pieceUsed"
+                    ) {
+                        input.disabled = true;
+                    } else {
+                        input.style.backgroundColor = "#fff";
+                    }
+                });
+            }
         }
     }
     redirectToEndTable();

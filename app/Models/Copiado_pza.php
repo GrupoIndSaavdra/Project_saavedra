@@ -10,9 +10,6 @@ class Copiado_pza extends Model
     use HasFactory;
     protected $table = 'copiado_pza';
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_juego',
         'diametro1_cilindrado',
         'profundidad1_cilindrado',
         'diametro2_cilindrado',

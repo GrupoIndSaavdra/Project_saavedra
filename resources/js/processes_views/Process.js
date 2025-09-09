@@ -273,21 +273,43 @@ export class Process {
                 break;
 
             case "Acabado Molde":
-                this.tableTitles = [ "", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Diametro Conexion Fondo", "Diametro llanta", "Diametro Caja Fondo", "Altura Conexion Fondo", "Profundidad Llanta", "Profundidad Caja Fondo", "Simetria"];
+                this.tableTitles = !this.tablePieces ? [ "", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Diametro Conexion Fondo", "Diametro llanta", "Diametro Caja Fondo", "Altura Conexion Fondo", "Profundidad Llanta", "Profundidad Caja Fondo", "Simetria"] : [ "", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Gauje ceja", "Altura total", "Diametro Conexion Fondo", "Diametro llanta", "Diametro Caja Fondo", "Altura Conexion Fondo", "Profundidad Llanta", "Profundidad Caja Fondo", "Simetria"];
 
                 divisionsCNomi = [null];
-                divisionsTole = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25];
+                divisionsTole = !this.tablePieces ? [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25] : [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25, 27];
+                positionSelects = [
+                    [7, 16],
+                    [["Si", "No"], ["Ninguno", "Fundicion"]]
+                ];
 
-                fields = ["id", "diametro_mordaza", "diametro_ceja", "diametro_sufridera", "altura_mordaza", "altura_ceja", "altura_sufridera", "diametro_conexion_fondo", "diametro_llanta", "diametro_caja_fondo", "altura_conexion_fondo", "profundidad_llanta", "profundidad_caja_fondo", "simetria"];
+                fields = !this.tablePieces ? ["id", "diametro_mordaza", "diametro_ceja", "diametro_sufridera", "altura_mordaza", "altura_ceja", "altura_sufridera", "diametro_conexion_fondo", "diametro_llanta", "diametro_caja_fondo", "altura_conexion_fondo", "profundidad_llanta", "profundidad_caja_fondo", "simetria"] : ["id", "diametro_mordaza", "diametro_ceja", "diametro_sufridera", "altura_mordaza", "altura_ceja", "altura_sufridera", "gauge_ceja", "altura_total", "diametro_conexion_fondo", "diametro_llanta", "diametro_caja_fondo", "altura_conexion_fondo", "profundidad_llanta", "profundidad_caja_fondo", "simetria"];
                 break;
-
             case "Barreno Profundidad":
                 this.tableTitles = [ "", "Broca 1", "Tiempo 1", "Broca 2", "Tiempo2", "Broca3", "Tiempo3", "Entrada / Salida", "Diametro de arrastre 1", "Diametro de arrastre 2", "Diametro de arrastre 3" ];
-
+    
                 divisionsCNomi = [null];
                 divisionsTole = [7];
 
+                positionSelects = [
+                    [12],
+                    [["Ninguno", "Fundicion"]]
+                ];
+
                 fields = ["id", "broca1", "tiempo1", "broca2", "tiempo2", "broca3", "tiempo3", "entradaSalida", "diametro_arrastre1", "diametro_arrastre2", "diametro_arrastre3"];
+                break;
+            case "Cavidades":
+                this.tableTitles = !this.tablePieces ? [["#PZ", "Altura 1", "Altura 2", "Altura 3"], ["", "Profundidad", "Diametro", "Profundidad", "Diametro", "Profundidad", "Diametro"]] : [["#PZ", "Altura 1", "Altura 2", "Altura 3"], ["", "Profundidad", "Diametro", "Profundidad", "Diametro", "Profundidad", "Diametro", "Acetato B/M"]];
+
+                divisionsTitles = [1, 2, 3];
+                divisionsCNomi = [null];
+                divisionsTole = [1, 3, 5, 7, 9, 11];
+
+                positionSelects = [
+                    [7, 8],
+                    [["Bien", "Mal"], ["Ninguno", "Fundicion"]]
+                ];
+
+                fields = !this.tablePieces ? ["id", "profundidad1", "diametro1", "profundidad2", "diametro2", "profundidad3", "diametro3"] : ["id", "profundidad1", "diametro1", "profundidad2", "diametro2", "profundidad3", "diametro3", "acetatoBM"];
                 break;
 
             case "Copiado":
@@ -297,12 +319,23 @@ export class Process {
                     divisionsCNomi = [null];
                     divisionsTole = [null];
 
+                    positionSelects = [
+                        [10],
+                        [["Ninguno", "Fundicion"]]
+                    ];
+
                     fields = ["id", "diametro1_cilindrado", "profundidad1_cilindrado", "diametro2_cilindrado", "profundidad2_cilindrado", "diametro_sufridera", "diametro_ranura", "profundidad_ranura", "profundidad_sufridera", "altura_total"];
                 } else {
-                    this.tableTitles = [ "", "Diametro 1", "Profundidad 1", "Diametro 2", "Profundidad 2", "Diametro 3", "Profundidad 3", "Diametro 4", "Profundidad 4", " VOLUMEN " ];
+                    this.tableTitles = [ "", "Diametro 1", "Profundidad 1", "Diametro 2", "Profundidad 2", "Diametro 3", "Profundidad 3", "Diametro 4", "Profundidad 4", " VOLUMEN" ];
 
                     divisionsCNomi = [null];
                     divisionsTole = [null];
+
+                    positionSelects = [
+                        [10],
+                        [["Ninguno", "Fundicion"]]
+                    ];
+
                     fields = ["id", "diametro1_cavidades", "profundidad1_cavidades", "diametro2_cavidades", "profundidad2_cavidades", "diametro3", "profundidad3", "diametro4", "profundidad4", "volumen"];
                 }
                 break;
@@ -333,15 +366,6 @@ export class Process {
 
                 fields = ["id", "conexion_lineaPartida", "conexion_90G", "altura_conexion", "diametro_embudo"];
                 break;
-            case "Cavidades":
-                this.tableTitles = [["#PZ", "Altura 1", "Altura 2", "Altura 3"], ["", "Profundidad", "Diametro", "Profundidad", "Diametro", "Profundidad", "Diametro"]];
-
-                divisionsTitles = [1, 2, 3];
-                divisionsCNomi = [null];
-                divisionsTole = [1, 3, 5, 7, 9, 11];
-
-                fields = ["id", "profundidad1", "diametro1", "profundidad2", "diametro2", "profundidad3", "diametro3"];
-                break;
             case "Off Set":
                 this.tableTitles = [["#PZ", "Ancho de altura", "Profundidad de tacon", "Simetria", "Ancho del tacon", "Barreno lateral", "Altura tacon inicial", "Altura tacon intermedia"], ["", "", "Hembra", "Macho", "Hembra", "Macho", "", "Hembra", "Macho", "", ""]];
 
@@ -363,7 +387,11 @@ export class Process {
         }
         
         if(this.tablePieces){ // Agregar campos de error y observaciones si la tabla es la de piezas
-            this.tableTitles.push("Error", "Observaciones");
+            if(this.nameProcess == "Cavidades"){
+                this.tableTitles[1].push("Error", "Observaciones");
+            } else {
+                this.tableTitles.push("Error", "Observaciones");
+            }
             fields = fields !== null ? [...fields, "error", "observaciones"] : null;
         }
 
@@ -377,7 +405,15 @@ export class Process {
     crearTabla(names, divisionsCNomi, divisionsTole, values, divisionsTitles = [], fields = [], positionSelects = []) {
         // Crear tabla
         const table = document.createElement("table"); // Crear tabla
-        table.className = "table"; // Agregar clase a la tabla
+        if(this.nameProcess == "Copiado"){
+            if(this.subprocess == "Cilindrado"){
+                table.className = "table cilindrado"; // Agregar clase a la tabla
+            } else {
+                table.className = "table cavidades"; // Agregar clase a la tabla
+            }
+        } else {
+            table.className = "table"; // Agregar clase a la tabla
+        }
 
         for (let i = 0; i < 5; i++) {
             if(names == null && i > 0){
@@ -387,6 +423,7 @@ export class Process {
             switch (i) {
                 case 0: // Crear columnas de titulos
                 let titles = this.tableTitles.length > 2 ? [this.tableTitles] : this.tableTitles;
+                console.log(this.tableTitles.length);
                 titles.forEach((array, indexArray) => {
                     tr = document.createElement("tr");
                     array.forEach((title, index) => {
@@ -395,12 +432,16 @@ export class Process {
                         th.innerHTML = title;
                         if (index == 0) {
                             th.style = "width:300px;";
-                        }else if (indexArray == 0 && titles.length > 1) {
-                            if (divisionsTitles.includes(index)) {
-                                th.colSpan = 2;
-                            }
                         }else if(title == "Observaciones"){
                             th.style = "width:500px;";
+                        }
+                        if(indexArray == 0 && divisionsTitles.length > 0){
+                            if(titles.length > 1){
+                                if (divisionsTitles.includes(index)) {
+                                    th.colSpan = 2;
+                                    console.log("Colspan 2 a: " + title);
+                                }
+                            }
                         }
                         tr.appendChild(th);
                     });
@@ -459,7 +500,12 @@ export class Process {
                                             td.style.backgroundColor = piece.color;
                                         }
                                     }else {
-                                        td.appendChild(this.crearInputs("input", fields[i], piece.piece[fields[i]], this.dataType(piece.piece[fields[i]])));
+                                        if(fields[i] == "entradaSalida" && this.nameProcess == "Barreno Profundidad"){
+                                            td.appendChild(this.crearInputs("input-medio", "entrada", piece.piece["entrada"], this.dataType(piece.piece["entrada"])));
+                                            td.appendChild(this.crearInputs("input-medio", "salida", piece.piece["salida"], this.dataType(piece.piece["salida"])));
+                                        } else {
+                                            td.appendChild(this.crearInputs("input", fields[i], piece.piece[fields[i]], this.dataType(piece.piece[fields[i]])));
+                                        }
                                         td.style.backgroundColor = piece.color;
                                     }
                                     tr.appendChild(td);
@@ -502,7 +548,12 @@ export class Process {
                                     textarea.name = fields[x];
                                     td.appendChild(textarea);
                                 } else {
-                                    td.appendChild(this.crearInputs("input input-pieceUsed", fields[x], null, "number"));
+                                    if(fields[x] == "entradaSalida" && this.nameProcess == "Barreno Profundidad"){
+                                        td.appendChild(this.crearInputs("input-medio input-pieceUsed", "entrada", null, "number"));
+                                        td.appendChild(this.crearInputs("input-medio input-pieceUsed", "salida", null, "number"));
+                                    } else {
+                                        td.appendChild(this.crearInputs("input input-pieceUsed", fields[x], null, "number"));
+                                    }
                                 }
                             }
                         }else {
