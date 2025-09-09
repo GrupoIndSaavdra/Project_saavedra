@@ -10,14 +10,10 @@ class Palomas_pza extends Model
     use HasFactory;
     protected $table = 'palomas_pza';
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_juego',
         'anchoPaloma',
         'gruesoPaloma',
         'profundidadPaloma',
         'rebajeLlanta',
         'observaciones',
-        'error'
     ];
 }

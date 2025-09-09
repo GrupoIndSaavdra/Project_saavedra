@@ -115,7 +115,7 @@ class ProcessesController extends Controller
         return view('processes_views.cNominals_view', compact('workOrders'));
     }
     public function searchCNominals($class, $process, $subprocess = null)
-    {   
+    {
         switch ($process) {
             case 'Cepillado':
                 $id_operation = 'Cepillado_' . $class->nombre . "_" . $class->id_ot;
@@ -173,7 +173,7 @@ class ProcessesController extends Controller
                 $tolerance = Cavidades_tolerancia::where('id_proceso', $id_operation)->first();
                 break;
             case 'Copiado':
-                $id_operation = 'Copiado_' . $subprocess . "_" . $class->nombre . "_" . $class->id_ot;
+                $id_operation = 'Copiado_' . $class->nombre . "_" . $class->id_ot;
                 $cNominal = Copiado_cnominal::where('id_proceso', $id_operation)->first();
                 $tolerance = Copiado_tolerancia::where('id_proceso', $id_operation)->first();
                 break;
@@ -222,7 +222,11 @@ class ProcessesController extends Controller
     {
         $processModified = str_replace(' ', '_', $request->process);
         if ($request->subProcess) {
-            $id_process = $processModified . '_' . $request->subProcess . '_' . $request->class . "_" . $request->workOrder;
+            if ($request->process == "Copiado") {
+                $id_process = $processModified . '_' . $request->class . "_" . $request->workOrder;
+            } else {
+                $id_process = $processModified . '_' . $request->subProcess . '_' . $request->class . "_" . $request->workOrder;
+            }
         } else if ($request->operation) {
             $operationModified = str_replace(' ', '_', $request->operation);
             $id_process = $processModified . '_' . $operationModified . '_' . $request->class . "_" . $request->workOrder;

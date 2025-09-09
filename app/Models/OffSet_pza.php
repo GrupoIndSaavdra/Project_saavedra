@@ -10,9 +10,6 @@ class OffSet_pza extends Model
     use HasFactory;
     protected $table = 'offSet_pza';
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_juego',
         'anchoRanura',
         'profuTaconHembra',
         'profuTaconMacho',
@@ -24,6 +21,5 @@ class OffSet_pza extends Model
         'alturaTaconInicial',
         'alturaTaconIntermedia',
         'observaciones',
-        'error'
     ];
 }

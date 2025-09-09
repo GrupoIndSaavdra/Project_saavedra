@@ -28,9 +28,7 @@ class Copiado_pza extends Model
         'diametro4',
         'profundidad4',
         'volumen',
-        'error_cilindrado',
         'observaciones_cilindrado',
-        'error_cavidades',
         'observaciones_cavidades'
     ];
 }

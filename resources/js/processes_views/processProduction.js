@@ -19,11 +19,7 @@ function createSelects(labelText, className) {
         select.appendChild(optionEmpty);
     }
 
-    if (
-        labelText === "Subproceso" ||
-        labelText === "Orden de trabajo" ||
-        labelText === "Proceso"
-    ) {
+    if (labelText === "Subproceso" || labelText === "Orden de trabajo" || labelText === "Proceso") {
         if (labelText !== "Proceso") {
             form_group.classList.add("full-width");
         }
@@ -79,10 +75,7 @@ function modifySelects(array, select, labelText) {
 
     // Crear opciones para cada orden de trabajo
 
-    let arrayElements =
-        labelText == "Proceso" || labelText == "Subproceso"
-            ? Object.values(array)
-            : Object.keys(array);
+    let arrayElements = labelText == "Proceso" || labelText == "Subproceso" ? Object.values(array) : Object.keys(array);
 
     arrayElements.forEach((element, key) => {
         // Crear un elemento de opción vacio
@@ -100,10 +93,7 @@ function modifySelects(array, select, labelText) {
         // Crear un elemento de opción con el valor de la orden de trabajo
         let option = document.createElement("option");
         option.value = element;
-        option.textContent =
-            labelText == "Orden de trabajo"
-                ? `${element} - ${array[element]["moldura"]}`
-                : element;
+        option.textContent = labelText == "Orden de trabajo" ? `${element} - ${array[element]["moldura"]}` : element;
         select.appendChild(option);
     });
 }
@@ -133,8 +123,7 @@ function disabledSelects(className) {
             } else {
                 let parent = select.parentElement;
                 if (parent) {
-                    let formGroupProcess =
-                        document.querySelector("#processGroup");
+                    let formGroupProcess = document.querySelector("#processGroup");
                     if (formGroupProcess) {
                         formGroupProcess.classList.remove("normal-width");
                         formGroupProcess.classList.add("full-width");
@@ -217,10 +206,7 @@ function createInputsWithValue(values, valuesEnabled = []) {
     let form_grid = document.querySelector(".form-grid");
     for (const [key, value] of Object.entries(values)) {
         let form_group = document.createElement("div");
-        form_group.className =
-            key == "workOrder" || key == "subprocess"
-                ? "form-group full-width"
-                : "form-group";
+        form_group.className = key == "workOrder" || key == "subprocess" ? "form-group full-width" : "form-group";
 
         if (
             key != "operator" &&
@@ -264,20 +250,19 @@ function createInputsWithValue(values, valuesEnabled = []) {
             form_grid.appendChild(form_group);
         }
     }
-
+    // Crear el boton de submit si hay campos habilitados
     if (valuesEnabled.length > 0) {
-        let form_principalData = document.querySelector(".form-principal-data");
-        let submit = document.createElement("button");
-        submit.type = "submit";
-        submit.className = "btn-submit";
-        submit.style.opacity = "1"; // Mostrar el botón de submit
-        submit.textContent = "Editar";
-        form_principalData.appendChild(submit);
+        document.querySelector(".form-principal-data").appendChild(createBtnSubmit_editMeta());
     }
-
-    return document.querySelector(".div-table-meta");
 }
-
+function createBtnSubmit_editMeta() {
+    let submit = document.createElement("button");
+    submit.type = "submit";
+    submit.className = "btn-submit";
+    submit.style.opacity = "1"; // Mostrar el botón de submit
+    submit.textContent = "Editar";
+    return submit;
+}
 function insertSelects() {
     let form_grid = document.querySelector(".form-grid");
     if (window.workOrders != null) {
@@ -290,11 +275,7 @@ function insertSelects() {
             let selectedValue = selectWO.value;
             if (selectedValue) {
                 let classes = window.workOrders[selectedValue];
-                modifySelects(
-                    classes,
-                    document.querySelector(".class"),
-                    "Clase"
-                );
+                modifySelects(classes, document.querySelector(".class"), "Clase");
             }
         });
         //prettier-ignore
@@ -355,35 +336,114 @@ function createTable() {
     let body = document.querySelector("body");
 
     //Creacion del formulario
+    let form = createForm("/processProduction/storePiece");
+    insertPrincipalVariables(form); // Insertar las variables principales
+
+    // Verificar si existen cotas nominales en el proceso
+    let cNominalsBool = false;
+    if (window.arrayData["process"] == "Copiado") {
+        cNominalsBool = !!(
+            window.arrayData?.cNominals?.Cilindrado?.[0]?.diametro1_cilindrado &&
+            window.arrayData?.cNominals?.Cavidades?.[0]?.diametro1_cavidades
+        );
+    } else {
+        cNominalsBool = !!window.arrayData?.cNominals;
+    }
+
+    //Insertar la tabla de las medidas si existen cotas nominales
+    if (cNominalsBool) {
+        //Crear el contenedor de la tabla
+        let scrollableTable = document.createElement("div");
+        scrollableTable.className = "scrollable-table";
+
+        let table;
+        if (window.arrayData["process"] == "Copiado") {
+            scrollableTable.classList.add("max-height-table");
+            const subprocesses = ["Cilindrado", "Cavidades"];
+            subprocesses.forEach((subProcess) => {
+                // Crear tabla de cada subproceso
+                // Crear etiqueta para el subproceso
+                let label = document.createElement("label");
+                label.className = "label-table";
+                label.innerHTML = subProcess;
+                scrollableTable.appendChild(label);
+
+                // Insertar tabla en el formulario
+                table = insertTableOnForm(
+                    window.arrayData["cNominals"][subProcess][0],
+                    window.arrayData["cNominals"][subProcess][1],
+                    scrollableTable,
+                    form,
+                    subProcess
+                );
+            });
+        } else {
+            table = insertTableOnForm(
+                window.arrayData["cNominals"][0],
+                window.arrayData["cNominals"][1],
+                scrollableTable,
+                form
+            );
+        }
+        //Insertar boton de ELEGIR o GUARDAR
+        insertButton_saveOrChoose(form, table);
+    } else {
+        const processesNoCotas = ["Soldadura", "Soldadura PTA", "Asentado", "Rectificado"];
+        if (processesNoCotas.includes(window.arrayData["process"])) {
+            let table = insertTableOnForm(null, null, scrollableTable, form);
+            //Insertar boton de ELEGIR o GUARDAR
+            insertButton_saveOrChoose(form, table);
+        } else {
+            //Mostrar DIV de alerta para Cotas No disponibles
+            let div = document.createElement("div");
+            div.className = "label-noCotas";
+            div.innerHTML =
+                "No hay Cotas Nominales disponibles. Notificar inmediatamente al area de software o calidad.";
+            form.appendChild(div);
+            form.appendChild(
+                showDivAlert(
+                    "Las Cotas Nominales y tolerancias aun no se han cargado. Por favor notifica al area de Calidad o Software",
+                    true
+                )
+            );
+        }
+    }
+    body.appendChild(form);
+}
+function createForm(route) {
+    //Creacion del formulario
     let form = document.createElement("form");
     form.className = "form-tablePieces";
     form.method = "POST";
-    form.action = window.baseUrl + "/processProduction/storePiece";
+    form.action = window.baseUrl + route;
 
     //Insertar CSRF
     // Obtener el token desde el <meta>
-    const csrfToken = document
-        .querySelector('meta[name="csrf-token"]')
-        .getAttribute("content");
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
     let inputCSRF = document.createElement("input");
     inputCSRF.type = "hidden";
     inputCSRF.name = "_token";
     inputCSRF.value = csrfToken;
     form.appendChild(inputCSRF);
 
-    //Insertar las variables principales
+    return form;
+}
+function insertPrincipalVariables(form) {
+    // Insertar el input que contiene el id de la meta
     let inputMeta = document.createElement("input");
     inputMeta.type = "hidden";
     inputMeta.name = "meta";
     inputMeta.value = window.arrayData["meta"].id;
     form.appendChild(inputMeta);
 
+    // Insertar el input que contiene el nombre del proceso
     let inputProcess = document.createElement("input");
     inputProcess.type = "hidden";
     inputProcess.name = "process";
     inputProcess.value = window.arrayData["process"];
     form.appendChild(inputProcess);
 
+    // Insertar el input que contiene el id de la pieza a utilizar si existe
     if (window.pieceToBeUsed && window.pieceToBeUsed != "NoPreviousPieces") {
         let inputPiece = document.createElement("input");
         inputPiece.type = "hidden";
@@ -391,223 +451,62 @@ function createTable() {
         inputPiece.value = window.pieceToBeUsed.id;
         form.appendChild(inputPiece);
     }
+}
+function insertTableOnForm(cNominals, tolerances, scrollableTable, form, subprocess = null) {
+    let process = new Process(
+        window.arrayData["process"],
+        subprocess,
+        cNominals,
+        tolerances,
+        window.arrayData["machinedPiecesInMeta"] ?? [],
+        window.pieceToBeUsed ?? null,
+        true
+    );
+    //Insertar tabla
+    let table = process.createProcess();
+    scrollableTable.appendChild(table);
+    form.appendChild(scrollableTable);
 
-    //Crear el contenedor de la tabla
-    let scrollableTable = document.createElement("div");
-    scrollableTable.className = "scrollable-table";
+    return table;
+}
 
-    if (window.arrayData["cNominals"]) {
-        if (window.arrayData["process"] == "Copiado") {
-            if (
-                window.arrayData["cNominals"]["Cilindrado"] &&
-                window.arrayData["cNominals"]["Cavidades"]
-            ) {
-                //Crear tabla de Cilindrado
-                let label = document.createElement("label");
-                label.className = "label-table";
-                label.innerHTML = "Cilindrado";
-
-                window.machinedPiecesInMeta =
-                    window.arrayData["machinedPiecesInMeta"] != null
-                        ? window.arrayData["machinedPiecesInMeta"]
-                        : [];
-                let process = new Process(
-                    window.arrayData["process"],
-                    "Cilindrado",
-                    window.arrayData["cNominals"]["Cilindrado"][0],
-                    window.arrayData["cNominals"]["Cilindrado"][1],
-                    window.machinedPiecesInMeta,
-                    window.pieceToBeUsed,
-                    true
-                );
-                scrollableTable.appendChild(process.createProcess());
-                form.appendChild(label);
-                form.appendChild(scrollableTable);
-
-                //Crear la tabla de Cavidades
-                let label2 = document.createElement("label");
-                label2.className = "label-table";
-                label2.innerHTML = "Cavidades";
-
-                let scrollableTable2 = document.createElement("div");
-                scrollableTable2.className = "scrollable-table";
-                let process2 = new Process(
-                    window.arrayData["process"],
-                    "Cavidades",
-                    window.arrayData["cNominals"]["Cavidades"][0],
-                    window.arrayData["cNominals"]["Cavidades"][1],
-                    window.machinedPiecesInMeta,
-                    window.pieceToBeUsed,
-                    true
-                );
-                scrollableTable2.appendChild(process2.createProcess());
-                form.appendChild(label2);
-                form.appendChild(scrollableTable2);
-            } else {
-                //Mostrar DIV de alerta para Cotas No disponibles
-                let div = document.createElement("div");
-                div.className = "label-noCotas";
-                div.innerHTML =
-                    "No hay Cotas Nominales disponibles. Notificar inmediatamente al area de software o calidad.";
-                form.appendChild(div);
-                form.appendChild(
-                    showDivAlert(
-                        "Las Cotas Nominales y tolerancias aun no se han cargado. Por favor notifica al area de Calidad o Software",
-                        true
-                    )
-                );
-            }
+function insertButton_saveOrChoose(form, table) {
+    if (window.pieceToBeUsed) {
+        if (window.pieceToBeUsed != "NoPreviousPieces") {
+            let btn = document.createElement("button");
+            btn.type = "submit";
+            btn.className = "btn-savePiece";
+            btn.textContent = "Guardar";
+            form.appendChild(btn);
         } else {
-            //Verficar si hay piezas maquinadas o existe una pieza a utilizar
-            window.machinedPiecesInMeta =
-                window.arrayData["machinedPiecesInMeta"] != null
-                    ? window.arrayData["machinedPiecesInMeta"]
-                    : [];
-            window.pieceToBeUsed = window.pieceToBeUsed
-                ? window.pieceToBeUsed
-                : null;
-            let process = new Process(
-                window.arrayData["process"],
-                window.arrayData["subprocess"],
-                window.arrayData["cNominals"][0],
-                window.arrayData["cNominals"][1],
-                window.machinedPiecesInMeta,
-                window.pieceToBeUsed,
-                true
+            //Mostrar DIV de alerta para "No hay piezas registradas anteriormente"
+            form.appendChild(
+                showDivAlert(
+                    "No hay piezas registradas anteriormente. Por favor notifica a un Supervisor o al área de Software.",
+                    true
+                )
             );
-            //Insertar tabla
-            scrollableTable.appendChild(process.createProcess());
-            form.appendChild(scrollableTable);
         }
-    } else if (
-        window.arrayData["process"] == "Soldadura" ||
-        window.arrayData["process"] == "Soldadura PTA" ||
-        window.arrayData["process"] == "Asentado" ||
-        window.arrayData["process"] == "Rectificado"
-    ) {
-        //Verficar si hay piezas maquinadas o existe una pieza a utilizar
-        window.machinedPiecesInMeta =
-            window.arrayData["machinedPiecesInMeta"] != null
-                ? window.arrayData["machinedPiecesInMeta"]
-                : [];
-        window.pieceToBeUsed = window.pieceToBeUsed
-            ? window.pieceToBeUsed
-            : null;
-        let process = new Process(
-            window.arrayData["process"],
-            window.arrayData["subprocess"],
-            null,
-            null,
-            window.machinedPiecesInMeta,
-            window.pieceToBeUsed,
-            true
-        );
-        //Insertar tabla
-        scrollableTable.appendChild(process.createProcess());
-        form.appendChild(scrollableTable);
     } else {
-        //Mostrar DIV de alerta para Cotas No disponibles
-        let div = document.createElement("div");
-        div.className = "label-noCotas";
-        div.innerHTML =
-            "No hay Cotas Nominales disponibles. Notificar inmediatamente al area de software o calidad.";
-        form.appendChild(div);
-        form.appendChild(
-            showDivAlert(
-                "Las Cotas Nominales y tolerancias aun no se han cargado. Por favor notifica al area de Calidad o Software",
-                true
-            )
-        );
-    }
-    body.appendChild(form);
-    //Insertar boton de ELEGIR o GUARDAR
-    insertButton_saveOrChoose();
-}
+        if (window.arrayData["availableAssemblies"].length > 0) {
+            // Cambiar la ruta del formulario para seleccionar un juego y registralo
+            form.action = window.baseUrl + "/processProduction/selectAssembly";
 
-function insertButton_saveOrChoose() {
-    let processNoCotas = [
-        "Soldadura",
-        "Soldadura PTA",
-        "Asentado",
-        "Rectificado",
-    ];
-    let btn = null;
-    if (
-        window.arrayData["cNominals"] ||
-        processNoCotas.includes(window.arrayData["process"])
-    ) {
-        if (
-            (window.arrayData["process"] === "Copiado" &&
-                window.arrayData["cNominals"]["Cilindrado"] &&
-                window.arrayData["cNominals"]["Cavidades"]) ||
-            window.arrayData["process"] !== "Copiado"
-        ) {
-            if (
-                window.pieceToBeUsed &&
-                window.pieceToBeUsed != "NoPreviousPieces"
-            ) {
-                btn = document.createElement("button");
-                btn.type = "submit";
-                btn.className = "btn-savePiece";
-                btn.textContent = "Guardar";
-            } else if (window.arrayData["availableAssemblies"].length > 0) {
-                // Cambiar la ruta del formulario para seleccionar un juego y registralo
-                let form_tablePieces =
-                    document.querySelector(".form-tablePieces");
-                form_tablePieces.action =
-                    window.baseUrl + "/processProduction/selectAssembly";
+            insertAvaliablePiecesSelect(table); // Insertar select de piezas disponibles
 
-                // Crear botón de "Elegir pieza"
-                btn = document.createElement("button");
-                btn.type = "submit";
-                btn.className = "btn-savePiece";
-                btn.textContent = "Elegir pieza";
-
-                // Insertar select de piezas
-                insertSelectPieces();
-            }
+            // Crear botón de "Elegir pieza"
+            let btn = document.createElement("button");
+            btn.type = "submit";
+            btn.className = "btn-savePiece";
+            btn.textContent = "Elegir pieza";
+            form.appendChild(btn);
+        } else {
+            //Mostrar DIV de alerta para "No hay piezas disponibles"
+            form.appendChild(showDivAlert("No hay piezas por registrar", true, window.imgNoPieces));
         }
     }
-    if (btn != null) {
-        let form_tablePieces = document.querySelector(".form-tablePieces");
-        form_tablePieces.appendChild(btn);
-    } else if (
-        window.pieceToBeUsed == "NoPreviousPieces" &&
-        ((window.arrayData["cNominals"] &&
-            window.arrayData["process"] !== "Copiado") ||
-            (window.arrayData["cNominals"]["Cilindrado"] &&
-                window.arrayData["cNominals"]["Cavidades"] &&
-                window.arrayData["process"] == "Copiado"))
-    ) {
-        //Insertar div de "No se han registrado piezas en el proceso anterior"
-        let body = document.querySelector("body");
-        body.appendChild(
-            showDivAlert(
-                "No se han registrado piezas en el proceso anterior. Informar inmediatamente a un supervisor",
-                true,
-                window.imgNoPiecesPrevious
-            )
-        );
-    } else if (
-        (window.arrayData["cNominals"] &&
-            window.arrayData["process"] !== "Copiado") ||
-        (window.arrayData["cNominals"]["Cilindrado"] &&
-            window.arrayData["cNominals"]["Cavidades"] &&
-            window.arrayData["process"] == "Copiado") ||
-        processNoCotas.includes(window.arrayData["process"])
-    ) {
-        //Insertar div de "No hay piezas por guardar"
-        let body = document.querySelector("body");
-        body.appendChild(
-            showDivAlert(
-                "No hay piezas por registrar",
-                true,
-                window.imgNoPieces
-            )
-        );
-    }
 }
-function insertSelectPieces() {
+function insertAvaliablePiecesSelect(table) {
     let select = document.createElement("select");
     select.className = "select-pieces";
     select.name = "selectedAssembly";
@@ -630,7 +529,6 @@ function insertSelectPieces() {
     });
 
     // Insertar el select en la tabla
-    let table = document.querySelector(".table");
     let tr = document.createElement("tr");
     let td = document.createElement("td");
     td.appendChild(select);
@@ -681,49 +579,34 @@ function cerrarDiv() {
     div_padre.remove();
 }
 
-function insertTable() {
+function enableTable() {
     createTable();
     if (window.arrayData["process"] === "Copiado") {
-        let arraySubprocess = [".cilindrado", ".cavidades"];
-        for (let i = 0; i < 2; i++) {
-            let table = document.querySelector(arraySubprocess[i]);
-            if (table) {
-                let inputs = table.querySelectorAll("input");
-                if (inputs.length > 0) {
-                    inputs.forEach((input) => {
-                        if (
-                            input.className != "input input-pieceUsed" &&
-                            input.className != "input-medio input-pieceUsed"
-                        ) {
-                            input.disabled = true;
-                        } else {
-                            input.style.backgroundColor = "#fff";
-                        }
-                    });
-                }
-            }
-        }
+        let arraySubprocess = [".Cilindrado", ".Cavidades"];
+        arraySubprocess.forEach((subprocess) => {
+            let table = document.querySelector(subprocess);
+            disabledInputsTable(table);
+        });
     } else {
         let table = document.querySelector(".table");
-        if (table) {
-            let inputs = table.querySelectorAll("input");
-            if (inputs.length > 0) {
-                inputs.forEach((input) => {
-                    if (
-                        input.className != "input input-pieceUsed" &&
-                        input.className != "input-medio input-pieceUsed"
-                    ) {
-                        input.disabled = true;
-                    } else {
-                        input.style.backgroundColor = "#fff";
-                    }
-                });
-            }
-        }
+        disabledInputsTable(table);
     }
     redirectToEndTable();
 }
-
+function disabledInputsTable(table) {
+    if (table) {
+        let inputs = table.querySelectorAll("input");
+        if (inputs.length > 0) {
+            inputs.forEach((input) => {
+                if (input.className != "input input-pieceUsed" && input.className != "input-medio input-pieceUsed") {
+                    input.disabled = true;
+                } else {
+                    input.style.backgroundColor = "#fff";
+                }
+            });
+        }
+    }
+}
 function redirectToEndTable() {
     window.onload = function () {
         const lastLine = document.querySelector(".table tr:last-child");
@@ -732,106 +615,12 @@ function redirectToEndTable() {
         }
     };
 }
+function createBtnMetaEdit() {
+    let btn_edit = document.createElement("img");
+    btn_edit.className = "img-edit";
+    btn_edit.src = window.edit;
+    btn_edit.alt = "Editar";
 
-//Ejecucion del script
-if (window.workOrders != null && window.arrayData == null) {
-    insertSelects();
-} else {
-    if (window.arrayData) {
-        if (window.arrayData["edit"]) {
-            //VERIFICAR SI YA HAY PIEZAS REGISTRADAS Y HABILITAR SOLO LOS CAMPOS DISPONIBLES
-            if (window.arrayData["numberPieces"] > 0) {
-                createInputsWithValue(window.arrayData, [
-                    "startTime",
-                    "endTime",
-                    "date",
-                ]);
-            } else {
-                insertSelects();
-            }
-
-            //Cambiar la ruta del formulario a la de editar
-            let form_principal_data = document.querySelector(
-                ".form-principal-data"
-            );
-            form_principal_data.action =
-                window.baseUrl + "/processProduction/editMeta";
-            let input_hidden = document.createElement("input");
-            input_hidden.type = "hidden";
-            input_hidden.name = "meta";
-            input_hidden.value = window.arrayData["meta"].id;
-
-            //Crear el boton de cancelar edición
-            let btn_cancel = document.createElement("a");
-            btn_cancel.href = "#";
-            btn_cancel.className = "btn-cancel";
-            btn_cancel.textContent = "Cancelar";
-            btn_cancel.onclick = function (e) {
-                e.preventDefault();
-                if (confirm("¿Estás seguro de que deseas cancelar?")) {
-                    window.location.href =
-                        window.baseUrl +
-                        "/processProduction/format/" +
-                        window.arrayData["meta"].id +
-                        "/" +
-                        window.arrayData["process"] +
-                        "/0";
-                }
-            };
-
-            let div_table_meta = document.querySelector(".div-table-meta");
-            div_table_meta.className = "div-table-meta";
-
-            div_table_meta.appendChild(btn_cancel);
-            form_principal_data.appendChild(input_hidden);
-        } else {
-            let div_table_meta = createInputsWithValue(window.arrayData);
-            let btn_edit = document.createElement("img");
-            btn_edit.className = "img-edit";
-            btn_edit.src = window.edit;
-            btn_edit.alt = "Editar";
-            div_table_meta.appendChild(btn_edit);
-
-            let btn_finishReport = document.querySelector(".btn-finishReport");
-            let reporteTerminado = false; // 🔒 control de estado
-
-            // Mostrar botón y manejar clic
-            btn_finishReport.style.opacity = "1";
-            btn_finishReport.addEventListener("click", function () {
-                if (
-                    confirm("¿Estás seguro de que deseas terminar el reporte?")
-                ) {
-                    reporteTerminado = true; // ✅ permitir salir sin advertencia
-                    window.location.href =
-                        window.baseUrl +
-                        "/processProduction/finishReport/" +
-                        window.arrayData["meta"].id;
-                }
-            });
-            insertTable();
-        }
-
-        //Insertar tabla de cotas nominales solamente si aun no se ha habilitado la opcion de editar
-
-        // // Prevenir cerrar o salir si no ha terminado el reporte
-        // window.addEventListener("beforeunload", function (e) {
-        //     if (!reporteTerminado) {
-        //         // Mostrar aviso
-        //         e.preventDefault();
-        //         e.returnValue = ""; // Requerido por compatibilidad
-        //     }
-        // });
-    } else {
-        //Si aun no existen Ordenes de Trabajo disponibles mostrar Div de alerta
-        let body = document.querySelector("body");
-        body.appendChild(
-            showDivAlert("Aun no hay ordenes de trabajo disponibles", false)
-        );
-    }
-}
-
-let btn_edit = document.querySelector(".img-edit");
-if (btn_edit) {
     btn_edit.addEventListener("click", function () {
         if (btn_edit.src == window.edit) {
             let form_group_password = createInputPassword();
@@ -847,13 +636,87 @@ if (btn_edit) {
 
             btn_edit.src = window.back;
         } else {
-            let form_group_password = document.querySelector(
-                ".form-group-password"
-            );
+            let form_group_password = document.querySelector(".form-group-password");
             if (form_group_password) {
                 form_group_password.remove();
             }
             btn_edit.src = window.edit;
         }
     });
+
+    return btn_edit;
+}
+
+function addEventToFinishReport() {
+    let btn_finishReport = document.querySelector(".btn-finishReport");
+    let reporteTerminado = false; // 🔒 control de estado
+
+    // Mostrar botón y manejar clic
+    btn_finishReport.style.opacity = "1";
+    btn_finishReport.addEventListener("click", function () {
+        if (confirm("¿Estás seguro de que deseas terminar el reporte?")) {
+            reporteTerminado = true; // ✅ permitir salir sin advertencia
+            window.location.href = window.baseUrl + "/processProduction/finishReport/" + window.arrayData["meta"].id;
+        }
+    });
+}
+function changeFormRoute() {
+    // Cambiar la ruta del formulario a la de editar
+    let form_principal_data = document.querySelector(".form-principal-data");
+    form_principal_data.action = window.baseUrl + "/processProduction/editMeta";
+
+    // Insertar el input que contiene el id de la meta
+    let input_hidden = document.createElement("input");
+    input_hidden.type = "hidden";
+    input_hidden.name = "meta";
+    input_hidden.value = window.arrayData["meta"].id;
+    form_principal_data.appendChild(input_hidden);
+
+    //Crear el boton de cancelar edición
+    document.querySelector(".div-table-meta").appendChild(createBtnCancelEdit());
+}
+function createBtnCancelEdit() {
+    let btn_cancel = document.createElement("a");
+    btn_cancel.href = "#";
+    btn_cancel.className = "btn-cancel";
+    btn_cancel.textContent = "Cancelar";
+    btn_cancel.onclick = function (e) {
+        e.preventDefault();
+        if (confirm("¿Estás seguro de que deseas cancelar?")) {
+            window.location.href =
+                window.baseUrl +
+                "/processProduction/format/" +
+                window.arrayData["meta"].id +
+                "/" +
+                window.arrayData["process"] +
+                "/0";
+        }
+    };
+    return btn_cancel;
+}
+
+//Ejecucion del script
+if (window.arrayData) {
+    if (window.arrayData["edit"]) {
+        //Cambiar la ruta del formulario a la de editar y crear el botón de cancelar edición
+        changeFormRoute();
+        if (window.arrayData["numberPieces"] > 0) { // Si ya se han registrado piezas, solo habilitar los inputs de tiempo y fecha
+            createInputsWithValue(window.arrayData, ["startTime", "endTime", "date"]);
+        } else { // Si no se han registrado piezas, habilitar todos los inputs
+            insertSelects();
+        }
+    } else {
+        createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
+        document.querySelector(".div-table-meta").appendChild(createBtnMetaEdit()); // Insertar botón de editar meta
+        addEventToFinishReport(); // Agregar evento al botón de terminar reporte
+        enableTable(); // Habilitar la tabla de piezas
+    }
+} else {
+    if (window.workOrders != null) {
+        insertSelects();
+    } else {
+        //Si aun no existen Ordenes de Trabajo disponibles mostrar Div de alerta
+        let body = document.querySelector("body");
+        body.appendChild(showDivAlert("Aun no hay ordenes de trabajo disponibles", false));
+    }
 }

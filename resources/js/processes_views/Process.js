@@ -14,8 +14,7 @@ export class Process {
         this.toleData = toleData;
         this.tableTitles = [];
         this.piecesData = piecesData;
-        this.pieceToBeUsed =
-            pieceToBeUsed != "NoPreviousPieces" ? pieceToBeUsed : null;
+        this.pieceToBeUsed = pieceToBeUsed != "NoPreviousPieces" ? pieceToBeUsed : null;
         this.tablePieces = tablePieces;
     }
 
@@ -53,43 +52,23 @@ export class Process {
                                         let lastChar = field.slice(-1);
                                         field = field.slice(0, -1);
 
-                                        keyNames[i].push(
-                                            `${rowName}_${field}1_${lastChar}`
-                                        );
-                                        keyNames[i].push(
-                                            `${rowName}_${field}2_${lastChar}`
-                                        );
+                                        keyNames[i].push(`${rowName}_${field}1_${lastChar}`);
+                                        keyNames[i].push(`${rowName}_${field}2_${lastChar}`);
 
                                         if (this.cNomiData && this.toleData) {
-                                            values[i].push(
-                                                arrayValues[
-                                                    `${field}1_${lastChar}`
-                                                ]
-                                            );
-                                            values[i].push(
-                                                arrayValues[
-                                                    `${field}2_${lastChar}`
-                                                ]
-                                            );
+                                            values[i].push(arrayValues[`${field}1_${lastChar}`]);
+                                            values[i].push(arrayValues[`${field}2_${lastChar}`]);
                                         }
                                         break;
                                     case "OffSet":
                                         break;
                                     default:
-                                        keyNames[i].push(
-                                            `${rowName}_${field}1`
-                                        );
-                                        keyNames[i].push(
-                                            `${rowName}_${field}2`
-                                        );
+                                        keyNames[i].push(`${rowName}_${field}1`);
+                                        keyNames[i].push(`${rowName}_${field}2`);
 
                                         if (this.cNomiData && this.toleData) {
-                                            values[i].push(
-                                                arrayValues[field + "1"]
-                                            );
-                                            values[i].push(
-                                                arrayValues[field + "2"]
-                                            );
+                                            values[i].push(arrayValues[field + "1"]);
+                                            values[i].push(arrayValues[field + "2"]);
                                         }
                                         break;
                                 }
@@ -339,12 +318,30 @@ export class Process {
                     fields = ["id", "diametro1_cavidades", "profundidad1_cavidades", "diametro2_cavidades", "profundidad2_cavidades", "diametro3", "profundidad3", "diametro4", "profundidad4", "volumen"];
                 }
                 break;
+            case "Off Set":
+                this.tableTitles = [["#PZ", "Ancho de altura", "Profundidad de tacon", "Simetria", "Ancho del tacon", "Barreno lateral", "Altura tacon inicial", "Altura tacon intermedia"], ["", "", "Hembra", "Macho", "Hembra", "Macho", "", "Hembra", "Macho", "", ""]];
 
+                divisionsTitles = [2, 3, 5];
+                divisionsCNomi = [null];
+                divisionsTole = [null];
+
+                positionSelects = [
+                    [11],
+                    [["Ninguno", "Fundicion"]]
+                ];
+
+                fields = ["id", "anchoRanura", "profuTaconHembra", "profuTaconMacho", "simetriaHembra", "simetriaMacho", "anchoTacon", "barrenoLateralHembra", "barrenoLateralMacho", "alturaTaconInicial", "alturaTaconIntermedia"];
+                break;
             case "Palomas": //Proceso de palomas
                 this.tableTitles = [ "", "Ancho de Paloma", "Grueso de Paloma", "Profundidad de Paloma", "Rebaje de llanta" ];
 
                 divisionsCNomi = [null];
                 divisionsTole = [null];
+
+                positionSelects = [
+                    [5],
+                    [["Ninguno", "Fundicion"]]
+                ];
 
                 fields = ["id", "anchoPaloma", "gruesoPaloma", "profundidadPaloma", "rebajeLlanta"];
                 break;
@@ -354,6 +351,11 @@ export class Process {
 
                 divisionsCNomi = [null];
                 divisionsTole = [null];
+
+                positionSelects = [
+                    [8],
+                    [["Ninguno", "Fundicion"]]
+                ];
 
                 fields = ["id", "rebaje1", "rebaje2", "rebaje3", "profundidad_bordonio", "vena1", "vena2", "simetria"];
                 break;
@@ -365,15 +367,6 @@ export class Process {
                 divisionsTole = [null];
 
                 fields = ["id", "conexion_lineaPartida", "conexion_90G", "altura_conexion", "diametro_embudo"];
-                break;
-            case "Off Set":
-                this.tableTitles = [["#PZ", "Ancho de altura", "Profundidad de tacon", "Simetria", "Ancho del tacon", "Barreno lateral", "Altura tacon inicial", "Altura tacon intermedia"], ["", "", "Hembra", "Macho", "Hembra", "Macho", "", "Hembra", "Macho", "", ""]];
-
-                divisionsTitles = [2, 3, 5];
-                divisionsCNomi = [null];
-                divisionsTole = [null];
-
-                fields = ["id", "anchoRanura", "profuTaconHembra", "profuTaconMacho", "simetriaHembra", "simetriaMacho", "anchoTacon", "barrenoLateralHembra", "barrenoLateralMacho", "alturaTaconInicial", "alturaTaconIntermedia"];
                 break;
             // Procesos no comunes
             case "Operacion Equipo":
@@ -387,12 +380,21 @@ export class Process {
         }
         
         if(this.tablePieces){ // Agregar campos de error y observaciones si la tabla es la de piezas
-            if(this.nameProcess == "Cavidades"){
+            if(this.nameProcess == "Cavidades" || this.nameProcess == "Off Set"){
                 this.tableTitles[1].push("Error", "Observaciones");
             } else {
                 this.tableTitles.push("Error", "Observaciones");
             }
-            fields = fields !== null ? [...fields, "error", "observaciones"] : null;
+
+            if(this.nameProcess == "Copiado"){
+                if(this.subprocess == "Cilindrado"){
+                    fields = fields !== null ? [...fields, "error_cilindrado", "observaciones_cilindrado"] : null;
+                } else {
+                    fields = fields !== null ? [...fields, "error_cavidades", "observaciones_cavidades"] : null;
+                }
+            } else {
+                fields = fields !== null ? [...fields, "error", "observaciones"] : null;
+            }
         }
 
         values = fields !== null ? this.getValues(fields, divisionsCNomi, divisionsTole) : null;
@@ -405,15 +407,8 @@ export class Process {
     crearTabla(names, divisionsCNomi, divisionsTole, values, divisionsTitles = [], fields = [], positionSelects = []) {
         // Crear tabla
         const table = document.createElement("table"); // Crear tabla
-        if(this.nameProcess == "Copiado"){
-            if(this.subprocess == "Cilindrado"){
-                table.className = "table cilindrado"; // Agregar clase a la tabla
-            } else {
-                table.className = "table cavidades"; // Agregar clase a la tabla
-            }
-        } else {
-            table.className = "table"; // Agregar clase a la tabla
-        }
+        table.className = this.nameProcess != "Copiado" ? "table" : `table ${this.subprocess}`; // Agregar clase a la tabla
+        
 
         for (let i = 0; i < 5; i++) {
             if(names == null && i > 0){
@@ -423,7 +418,6 @@ export class Process {
             switch (i) {
                 case 0: // Crear columnas de titulos
                 let titles = this.tableTitles.length > 2 ? [this.tableTitles] : this.tableTitles;
-                console.log(this.tableTitles.length);
                 titles.forEach((array, indexArray) => {
                     tr = document.createElement("tr");
                     array.forEach((title, index) => {
@@ -510,7 +504,6 @@ export class Process {
                                     }
                                     tr.appendChild(td);
                                 }else {
-
                                     let noPiece = piece.piece.n_pieza ? piece.piece.n_pieza.slice(0, - 1) : piece.piece.n_juego.slice(0, -1);
                                     let letterPiece = piece.piece.n_pieza ? piece.piece.n_pieza[piece.piece.n_pieza.length - 1] : piece.piece.n_juego[piece.piece.n_juego.length - 1];
                                     td.innerHTML = {
@@ -542,7 +535,7 @@ export class Process {
                             } else {
                                 if(positionSelects[0].includes(x)){
                                     td.appendChild(this.createSelects("select input-pieceUsed", fields[x], positionSelects[1][positionSelects[0].indexOf(x)]));
-                                } else if (fields[x] === "observaciones"){
+                                } else if (fields[x].includes("observaciones")){
                                     let textarea = document.createElement("textarea");
                                     textarea.className = "textarea input-pieceUsed";
                                     textarea.name = fields[x];
@@ -605,8 +598,6 @@ export class Process {
         return select;
     }
     dataType(value) {
-        return value != null && !isNaN(value) && value.trim() !== ""
-            ? "number"
-            : "text";
+        return value != null && !isNaN(value) && value.trim() !== "" ? "number" : "text";
     }
 }

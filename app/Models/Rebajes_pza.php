@@ -11,17 +11,13 @@ class Rebajes_pza extends Model
     protected $table = 'rebajes_pza';
 
     protected $fillable = [
-        'id_pza',
-        'id_proceso	',
-        'n_juego',
-        'rebajes1',
-        'rebajes2',
-        'rebajes3',
+        'rebaje1',
+        'rebaje2',
+        'rebaje3',
         'profundidad_bordonio',
         'vena1',
         'vena2',
         'simetria',
-        'error',
         'observaciones',
     ];
 }

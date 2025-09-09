@@ -264,18 +264,14 @@ class ProcessProductionController extends Controller
 
         // Obtener los datos de CNominal y Tolerancia del proceso
         if ($request->process != "Soldadura" && $request->process != "Asentado" && $request->process != "Rectificado" && $request->process != "Soldadura PTA") {
-            if($request->process == "Copiado"){
-                
-            } else {
-                $id_process = str_replace(" ", "_", $request->process) . "_" . $class->nombre . "_" . $class->id_ot;
-                [$cNominalModel, $toleranceModel] = $this->getModelProcessCNominal_Tolerance($request->process);
-                $cNominal = $cNominalModel::where("id_proceso", $id_process)->first();
-                $tolerance = $toleranceModel::where("id_proceso", $id_process)->first();
-    
-                //Guardar los datos de la pieza en su respectiva tabla del proceso
-                $controllerProcess = $this->get_ControllerProcess($request->process);
-                $controllerProcess->storePiece($request, $cNominal, $tolerance);
-            }
+            $id_process = str_replace(" ", "_", $request->process) . "_" . $class->nombre . "_" . $class->id_ot;
+            [$cNominalModel, $toleranceModel] = $this->getModelProcessCNominal_Tolerance($request->process);
+            $cNominal = $cNominalModel::where("id_proceso", $id_process)->first();
+            $tolerance = $toleranceModel::where("id_proceso", $id_process)->first();
+
+            //Guardar los datos de la pieza en su respectiva tabla del proceso
+            $controllerProcess = $this->get_ControllerProcess($request->process);
+            $controllerProcess->storePiece($request, $cNominal, $tolerance);
         } else {
             //Guardar los datos de la pieza en su respectiva tabla del proceso
             $controllerProcess = $this->get_ControllerProcess($request->process);
@@ -295,9 +291,23 @@ class ProcessProductionController extends Controller
             $pieceInPiezas->id_operador = $meta->id_usuario;
             $pieceInPiezas->maquina = $meta->maquina;
             $pieceInPiezas->proceso = $request->process;
-            $pieceInPiezas->error = $piece->error;
-            $pieceInPiezas->save();
         }
+        if ($request->process == "Copiado") {
+            $hasMaquinado = $piece->error_cilindrado === "Maquinado" || $piece->error_cavidades === "Maquinado";
+            $hasFundicion = $piece->error_cilindrado === "Fundicion" || $piece->error_cavidades === "Fundicion";
+
+            if ($hasFundicion) {
+                $error = "Fundicion";
+            } elseif ($hasMaquinado) {
+                $error = "Maquinado";
+            } else {
+                $error = "Ninguno";
+            }
+        } else {
+            $error = $piece->error;
+        }
+        $pieceInPiezas->error = $error;
+        $pieceInPiezas->save();
         //Retornar pieza siguiente
         return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->process, "edit" => 0])->with('success', 'Pieza registrada correctamente.');
     }
@@ -315,7 +325,7 @@ class ProcessProductionController extends Controller
 
         // Crear las piezas la tabla de piezas del proceso
         if ($request->selectedAssembly) {
-            $processAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado"];
+            $processAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Embudo CM"];
             $noAssembly = substr($request->selectedAssembly, 0, -1); // Extraer el numero de juego
             if (in_array($request->process, $processAssembly)) {
                 //Verificar que no exista la pieza que se quiere crear
@@ -616,16 +626,32 @@ class ProcessProductionController extends Controller
 
                 //Verificar si las medidas de la pieza estan correctas
                 foreach ($piecesInMeta as $piece) {
-                    $correct = $controllerProcess->comparePieceData($piece, $cNominal, $tolerance);
-                    if ($correct == 0 && ($piece->error == "Ninguno" || $piece->error == "Maquinado")) {
-                        $piece->error = 'Maquinado';
-                        $piece->correcto = 0;
-                    } else if (($correct == 0 && $piece->error == 'Fundicion') || ($correct == 1 && $piece->error == 'Fundicion')) {
-                        $piece->error = $piece->error;
-                        $piece->correcto = 0;
+                    if ($meta->proceso == "Copiado") {
+                        $correctSubprocess = $controllerProcess->comparePieceData($piece, $cNominal, $tolerance);
+                        foreach ($correctSubprocess as $key => $value) {
+                            if ($value == 0 && ($piece->$key == "Ninguno" || $piece->$key == "Maquinado")) {
+                                $piece->$key = 'Maquinado';
+                                $piece->correcto = 0;
+                            } else if (($value == 0 && $piece->$key == 'Fundicion') || ($value == 1 && $piece->$key == 'Fundicion')) {
+                                $piece->$key = $piece->$key;
+                                $piece->correcto = 0;
+                            } else {
+                                $piece->$key = 'Ninguno';
+                                $piece->correcto = 1;
+                            }
+                        }
                     } else {
-                        $piece->error = 'Ninguno';
-                        $piece->correcto = 1;
+                        $correct = $controllerProcess->comparePieceData($piece, $cNominal, $tolerance);
+                        if ($correct == 0 && ($piece->error == "Ninguno" || $piece->error == "Maquinado")) {
+                            $piece->error = 'Maquinado';
+                            $piece->correcto = 0;
+                        } else if (($correct == 0 && $piece->error == 'Fundicion') || ($correct == 1 && $piece->error == 'Fundicion')) {
+                            $piece->error = $piece->error;
+                            $piece->correcto = 0;
+                        } else {
+                            $piece->error = 'Ninguno';
+                            $piece->correcto = 1;
+                        }
                     }
                     $piece->save(); // Actualizar la pieza en su tabla
 
@@ -641,7 +667,21 @@ class ProcessProductionController extends Controller
                         $pieceDB->maquina = $meta->maquina;
                         $pieceDB->proceso = $meta->proceso;
                     }
-                    $pieceDB->error = $piece->error;
+                    if ($meta->proceso == "Copiado") {
+                        $hasMaquinado = $piece->error_cilindrado === "Maquinado" || $piece->error_cavidades === "Maquinado";
+                        $hasFundicion = $piece->error_cilindrado === "Fundicion" || $piece->error_cavidades === "Fundicion";
+
+                        if ($hasFundicion) {
+                            $error = "Fundicion";
+                        } elseif ($hasMaquinado) {
+                            $error = "Maquinado";
+                        } else {
+                            $error = "Ninguno";
+                        }
+                    } else {
+                        $error = $piece->error;
+                    }
+                    $pieceDB->error = $error;
                     $pieceDB->save();
                 }
             }
@@ -739,7 +779,11 @@ class ProcessProductionController extends Controller
         if (count($piecesProcess) > 0) {
             $machinedPieces = [];
             foreach ($piecesProcess as $key => $piece) {
-                $color = $piece->error == "Ninguno" ? "green" : "red";
+                if($meta->proceso == "Copiado") {
+                    $color = $piece->error_cilindrado === "Ninguno" && $piece->error_cavidades === "Ninguno" ? "green" : "red";
+                } else {
+                    $color = $piece->error == "Ninguno" ? "green" : "red";
+                }
                 $releasedPiece = Pieza::where("id_clase", $meta->id_clase)->first();
                 if ($releasedPiece) { //Verificar si la pieza esta inspeccionada (sin liberación, liberada, rechazada)
                     $color = match ($releasedPiece->liberacion) {
@@ -855,7 +899,7 @@ class ProcessProductionController extends Controller
                             }
                         } else if (!in_array($prePiece->n_juego, $countedAssemblies)) {
                             // Verificar si en el proceso actual se registran por juego o por mitad
-                            $processAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado"];
+                            $processAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Embudo CM"];
                             if (in_array($previousProcess, $processAssembly)) { // Si el proceso anterior se registran por juego
                                 $prePiece = $prePiece->n_juego;
                                 if (in_array($process, $processAssembly)) {

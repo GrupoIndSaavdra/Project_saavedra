@@ -255,10 +255,13 @@ p {
     height: 30vh;
     overflow-x: auto;
     display: flex;
+    flex-direction: column;
     transition: opacity 0.5s ease, transform 0.5s ease;
 }
+.max-height-table {
+    height: 50vh;
+}
 .table {
-    position: absolute;
     border-collapse: collapse;
     border: 2px solid #032c00cc;
     background: #fff;
@@ -344,11 +347,17 @@ td select {
     font-size: 1.2em;
     cursor: pointer;
     transition: 0.3s ease;
-    margin-top: 1em;
+    margin: 2em 0;
 }
 .btn-savePiece:hover {
     transform: scale(1.1);
     transition: 0.3s ease;
+}
+.select-pieces {
+    text-align: center;
+    background: #404040;
+    border: 3px solid #fff;
+    color: #ffffff;
 }
 
 /* .alert-NoCotas {
