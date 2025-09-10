@@ -203,6 +203,19 @@ export class Process {
 
                 fields = ["id", "temp_calentado", "temp_dispositivo", "limpieza"];
                 break;
+            case "Soldadura": //Proceso de soldadura
+                this.tableTitles = [ "Pieza", "Peso por pieza", "Temperatura de precalentado °", "Tiempo de aplicacion", "Tipo de soldadura", "Lote"];
+
+                divisionsCNomi = [null];
+                divisionsTole = [null];
+
+                positionSelects = [
+                    [6],
+                    [["Ninguno", "Fundicion"]]
+                ];
+
+                fields = ["id", "pesoxpieza", "temperatura_precalentado", "tiempo_aplicacion", "tipo_soldadura", "lote"];
+                break;
             case "Rectificado": //Proceso de rectificado
                 this.tableTitles = [ "Pieza", "Cumple"];
 
@@ -243,12 +256,17 @@ export class Process {
                 fields = ["id", "diametro_ceja", "diametro_sufridera", "altura_sufridera", "diametro_conexion", "altura_conexion", "diametro_caja", "altura_caja", "altura_total", "simetria"];
                 break;
             case "Acabado Bombillo":
-                this.tableTitles = [ "", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Diametro Boca", "Diametro Asiento Corona", "Diametro llanta", "Diametro caja corona", "Profundidad corona", "Angulo de 30", "Profundidad caja corona", "Simetria" ];
+                this.tableTitles = !this.tablePieces ? [ "", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Diametro Boca", "Diametro Asiento Corona", "Diametro llanta", "Diametro caja corona", "Profundidad corona", "Angulo de 30", "Profundidad caja corona", "Simetria" ] : [ "", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Gauge ceja", "Gauge corona", "Gauge llanta", "Altura total", "Diametro Boca", "Diametro Asiento Corona", "Diametro llanta", "Diametro caja corona", "Profundidad corona", "Angulo de 30", "Profundidad caja corona", "Simetria" ];
 
                 divisionsCNomi = [null];
-                divisionsTole = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27];
+                divisionsTole = !this.tablePieces ? [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27] : [1, 3, 5, 7, 9, 11, 17, 19, 21, 23, 25, 27, 29, 31];
 
-                fields = ["id", "diametro_mordaza", "diametro_ceja", "diametro_sufridera", "altura_mordaza", "altura_ceja", "altura_sufridera", "diametro_boca", "diametro_asiento_corona", "diametro_llanta", "diametro_caja_corona", "profundidad_corona", "angulo_30", "profundidad_caja_corona", "simetria"];
+                positionSelects = [
+                    [7, 9, 19],
+                    [["Si", "No"], ["Si", "No"], ["Ninguno", "Fundicion"]]
+                ];
+
+                fields = !this.tablePieces ? ["id", "diametro_mordaza", "diametro_ceja", "diametro_sufridera", "altura_mordaza", "altura_ceja", "altura_sufridera", "diametro_boca", "diametro_asiento_corona", "diametro_llanta", "diametro_caja_corona", "profundidad_corona", "angulo_30", "profundidad_caja_corona", "simetria"] : ["id", "diametro_mordaza", "diametro_ceja", "diametro_sufridera", "altura_mordaza", "altura_ceja", "altura_sufridera", "gauge_ceja", "gauge_corona", "gauge_llanta", "altura_total", "diametro_boca", "diametro_asiento_corona", "diametro_llanta", "diametro_caja_corona", "profundidad_corona", "angulo_30", "profundidad_caja_corona", "simetria"];
                 break;
 
             case "Acabado Molde":
@@ -270,7 +288,7 @@ export class Process {
                 divisionsTole = [7];
 
                 positionSelects = [
-                    [12],
+                    [11],
                     [["Ninguno", "Fundicion"]]
                 ];
 
@@ -545,7 +563,11 @@ export class Process {
                                         td.appendChild(this.crearInputs("input-medio input-pieceUsed", "entrada", null, "number"));
                                         td.appendChild(this.crearInputs("input-medio input-pieceUsed", "salida", null, "number"));
                                     } else {
-                                        td.appendChild(this.crearInputs("input input-pieceUsed", fields[x], null, "number"));
+                                        if(fields[x] == "tipo_soldadura" || fields[x] == "lote"){
+                                            td.appendChild(this.crearInputs("input input-pieceUsed", fields[x], null));
+                                        } else {
+                                            td.appendChild(this.crearInputs("input input-pieceUsed", fields[x], null, "number"));
+                                        }
                                     }
                                 }
                             }
@@ -578,6 +600,9 @@ export class Process {
         let input = document.createElement("input");
         input.className = className;
         input.type = type;
+        if(type == "text"){
+            input.maxLength = 25;
+        }
         input.name = name;
         input.step = "any";
         input.inputMode = "decimal";
@@ -598,6 +623,6 @@ export class Process {
         return select;
     }
     dataType(value) {
-        return value != null && !isNaN(value) && value.trim() !== "" ? "number" : "text";
+        return value != null && !isNaN(value) && String(value).trim() !== "" ? "number" : "text";
     }
 }

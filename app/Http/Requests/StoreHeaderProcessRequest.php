@@ -26,7 +26,7 @@ class StoreHeaderProcessRequest extends FormRequest
             'class' => 'required',
             'process' => 'required',
             'startTime' => 'required|date_format:H:i',
-            'endTime' => 'required|date_format:H:i|after:startTime',
+            'endTime' => 'required|date_format:H:i',
             'date' => 'required|date', 
             'machine' => 'required',
         ];

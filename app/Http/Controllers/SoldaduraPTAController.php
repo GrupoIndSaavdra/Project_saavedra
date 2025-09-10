@@ -6,7 +6,6 @@ use App\Models\SoldaduraPTA_pza;
 
 class SoldaduraPTAController extends Controller
 {
-    protected $controladorPzasLiberadas;
     public function __construct()
     {
         $this->middleware('auth');

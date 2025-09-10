@@ -812,7 +812,7 @@ function crearCasillas(operations, operationsArray, markedProcesses, edit) {
         createCheckboxAll(edit);
     }
 
-    changeStatusSoldaduras(); //Agregar eventos a los checkbox de soldaduras
+    // changeStatusSoldaduras(); //Agregar eventos a los checkbox de soldaduras
 }
 
 function createProcessBox(
@@ -928,13 +928,13 @@ function automateCheckbox(
 ) {
     checkbox.checked = true;
     machineInput.required = true;
-    //Si el proceso es de soldadura, se muestra desmarcado el checkbox y el input se deshabilita
-    if (operationName == "soldadura" || operationName == "soldaduraPTA") {
-        checkbox.className = "checkbox-soldaduras";
-        machineInput.className = "input-machine-soldaduras";
-        checkbox.checked = false;
-        machineInput.disabled = true;
-    }
+    // //Si el proceso es de soldadura, se muestra desmarcado el checkbox y el input se deshabilita
+    // if (operationName == "soldadura" || operationName == "soldaduraPTA") {
+    //     checkbox.className = "checkbox-soldaduras";
+    //     machineInput.className = "input-machine-soldaduras";
+    //     checkbox.checked = false;
+    //     machineInput.disabled = true;
+    // }
 
     if (markedProcesses !== null) {
         //Si el proceso ya ha sido seleccionado anteriormente en la clase, se muestra marcado el checkbox y se muestran las maquinas en el input

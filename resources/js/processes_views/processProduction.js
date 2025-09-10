@@ -349,13 +349,12 @@ function createTable() {
     } else {
         cNominalsBool = !!window.arrayData?.cNominals;
     }
-
+    
+    //Crear el contenedor de la tabla
+    let scrollableTable = document.createElement("div");
+    scrollableTable.className = "scrollable-table";
     //Insertar la tabla de las medidas si existen cotas nominales
     if (cNominalsBool) {
-        //Crear el contenedor de la tabla
-        let scrollableTable = document.createElement("div");
-        scrollableTable.className = "scrollable-table";
-
         let table;
         if (window.arrayData["process"] == "Copiado") {
             scrollableTable.classList.add("max-height-table");

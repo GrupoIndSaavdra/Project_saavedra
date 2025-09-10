@@ -206,18 +206,34 @@ class ProcessesController extends Controller
             default:
                 return null;
         }
-        if ($this->verifycNominalsExisting($cNominal, $tolerance, $id_operation, $process)) {
+        if ($this->verifycNominalsExisting($cNominal, $tolerance)) {
             return [$cNominal, $tolerance];
         }
         return null;
     }
-    public function verifycNominalsExisting($cNominal, $tolerance, $id_operation, $operation)
+    public function verifycNominalsExisting($cNominal, $tolerance)
     {
         if ($cNominal && $tolerance) {
             return true;
         }
         return false;
     }
+    public function updatePieces($workOrder, $class, $process, $subprocess = null, $operation = null)
+    {
+        $class = Clase::where('nombre', $class)->where('id_ot', $workOrder)->first(); // Obtener clase
+        // Obtener cadena de proceso y subproceso (Si existe)
+        $processModified = $process . ($operation ? "_$operation" : '');
+
+        // Obtener todas las piezas relacionadas con la orden de trabajo, clase y proceso
+        $metas = Metas::where('id_ot', $workOrder)->where('id_clase', $class->id)->where('proceso', $processModified)->get();
+
+        // Actualizar cada pieza de las meta
+        foreach ($metas as $meta) {
+            $controller = app(\App\Http\Controllers\ProcessProductionController::class);
+            $controller->updatePieces($process, $operation, $meta, $class);
+        }
+    }
+
     public function storeCNominalsData(Request $request)
     {
         $processModified = str_replace(' ', '_', $request->process);
@@ -252,6 +268,7 @@ class ProcessesController extends Controller
             'Operacion Equipo' => $this->pySOpeSoldadura($id_process, $request),
             'Embudo CM' => $this->embudoCM($id_process, $request),
         };
+        $this->updatePieces($request->workOrder, $request->class, $request->process, $request->subProcess ?? null, $request->operation ?? null);
         return redirect()->to('cNominals')->with('success', 'Datos de ' . $request->process . ' guardados correctamente.');
     }
 
