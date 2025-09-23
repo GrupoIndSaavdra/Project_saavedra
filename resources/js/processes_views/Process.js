@@ -99,7 +99,7 @@ export class Process {
         let positionSelects = [];
         let fields = [];
         let values = [];
-        console.log(this.nameProcess);
+        // console.log(this.nameProcess);
         switch (this.nameProcess) {
             case "Cepillado":
                 this.tableTitles = !this.tablePieces ? 
@@ -378,7 +378,8 @@ export class Process {
                 fields = ["id", "rebaje1", "rebaje2", "rebaje3", "profundidad_bordonio", "vena1", "vena2", "simetria"];
                 break;
                 
-            case "Embudo CM": //Proceso de Rebajes
+                // Procesos no comunes
+            case "Embudo CM":
                 this.tableTitles = ["", "Conexion de linea de partida", "Conexión 90G", "Altura de conexión", "Diametro de embudo"];
 
                 divisionsCNomi = [null];
@@ -386,12 +387,16 @@ export class Process {
 
                 fields = ["id", "conexion_lineaPartida", "conexion_90G", "altura_conexion", "diametro_embudo"];
                 break;
-            // Procesos no comunes
             case "Operacion Equipo":
                 this.tableTitles = [ "", "Altura", "ø Altura de candado", "Altura asiento obturador", "ø Profundidad de soldadura", "ø de PushUp"];
 
                 divisionsCNomi = [2, 4, 6];
                 divisionsTole = [2, 4, 6];
+
+                positionSelects = [
+                    [7],
+                    [["Ninguno", "Fundicion"]]
+                ];
 
                 fields = ["id", "altura", "alturaCandado", "alturaAsientoObturador", "profundidadSoldadura", "pushUp"];
                 break;
@@ -451,7 +456,6 @@ export class Process {
                             if(titles.length > 1){
                                 if (divisionsTitles.includes(index)) {
                                     th.colSpan = 2;
-                                    console.log("Colspan 2 a: " + title);
                                 }
                             }
                         }
@@ -538,8 +542,8 @@ export class Process {
                     break;
                 case 4:
                 if(this.pieceToBeUsed){ // Crear input de la pieza a utilizar
-                    console.log("Crear input de la pieza a utilizar: " + this.pieceToBeUsed.n_pieza);
-                    console.log("Crear input del juego a utilizar: " + this.pieceToBeUsed.n_juego);
+                    // console.log("Crear input de la pieza a utilizar: " + this.pieceToBeUsed.n_pieza);
+                    // console.log("Crear input del juego a utilizar: " + this.pieceToBeUsed.n_juego);
                     let divisions = divisionsCNomi;
                     tr = document.createElement("tr");
                     for (let x=0; x < fields.length; x++) {

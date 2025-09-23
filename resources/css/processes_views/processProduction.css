@@ -12,9 +12,9 @@ body {
     background-repeat: no-repeat;
 }
 .container-meta {
+    position: relative;
     display: flex;
     justify-content: space-between;
-    margin-bottom: 3em;
 }
 /* Estilos del div buscador */
 .principal-data {
@@ -96,8 +96,6 @@ body {
 }
 .btn-cancel {
     position: absolute;
-    top: 0;
-    left: 0;
     background: #9c0300;
     color: #ffffff;
     text-decoration: none;
@@ -234,6 +232,7 @@ p {
 
 /* Tabla de piezas*/
 .form-tablePieces {
+    position: relative;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -250,6 +249,7 @@ p {
 }
 .scrollable-table {
     position: relative;
+    margin-top: 2em;
     border-radius: 10px;
     width: 90%;
     height: 30vh;
@@ -450,4 +450,26 @@ td select {
     border-radius: 5px;
     background: #fff;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Editar piezas registradas */
+.div-editPieces {
+    position: absolute;
+    display: flex;
+    right: 8em;
+    bottom: 0;
+    box-sizing: border-box;
+    height: 3.5em;
+}
+.form-verifyPassword {
+    width: 100%;
+}
+.img-editPieces {
+    cursor: pointer;
+    transition: 0.2s ease;
+    border: none;
+    margin-left: 3em;
+}
+.img-editPieces:hover {
+    transform: scale(1.1);
 }

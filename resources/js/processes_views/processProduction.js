@@ -659,20 +659,19 @@ function addEventToFinishReport() {
         }
     });
 }
-function changeFormRoute() {
+function changeFormRoute(div, form, route) {
     // Cambiar la ruta del formulario a la de editar
-    let form_principal_data = document.querySelector(".form-principal-data");
-    form_principal_data.action = window.baseUrl + "/processProduction/editMeta";
+    form.action = window.baseUrl + route;
 
     // Insertar el input que contiene el id de la meta
     let input_hidden = document.createElement("input");
     input_hidden.type = "hidden";
     input_hidden.name = "meta";
     input_hidden.value = window.arrayData["meta"].id;
-    form_principal_data.appendChild(input_hidden);
+    form.appendChild(input_hidden);
 
     //Crear el boton de cancelar edición
-    document.querySelector(".div-table-meta").appendChild(createBtnCancelEdit());
+    div.appendChild(createBtnCancelEdit());
 }
 function createBtnCancelEdit() {
     let btn_cancel = document.createElement("a");
@@ -694,21 +693,86 @@ function createBtnCancelEdit() {
     return btn_cancel;
 }
 
+// Editar las piezas ya registradas en la meta
+function insertButtonEditPieces(){
+    
+    let div = document.createElement("div");
+    div.className = "div-editPieces";
+
+    let img = document.createElement("img");
+    img.src = window.imgEditPieces;
+    img.className = "img-editPieces";
+    img.alt = "Editar piezas";
+    div.appendChild(img);
+    document.querySelector(".container-meta").appendChild(div);
+
+    //Agregar evento onclick a la imagen
+    img.onclick = function () {
+        //Insertar campo de contraseña para editar piezas
+        if (img.src == window.imgEditPieces) {
+            div.style.width = "40%";
+            let form = createForm("/processProduction/verified");
+            form.className = "form-verifyPassword";
+
+            let input_hidden = document.createElement("input");
+            input_hidden.type = "hidden";
+            input_hidden.name = "editPieces";
+            input_hidden.value = true;
+
+            let input_meta = document.createElement("input");
+            input_meta.type = "hidden";
+            input_meta.name = "meta";
+            input_meta.value = window.arrayData["meta"].id;
+            
+            form.appendChild(input_meta);
+            form.appendChild(input_hidden);
+            form.appendChild(createInputPassword());
+
+            img.before(form);
+        } else {
+            div.querySelector(".form-verifyPassword").remove();
+            div.style.width = "auto";
+        }
+        img.src = img.src == window.imgEditPieces ? window.back : window.imgEditPieces;
+    };
+}
+
+
+
 //Ejecucion del script
 if (window.arrayData) {
     if (window.arrayData["edit"]) {
-        //Cambiar la ruta del formulario a la de editar y crear el botón de cancelar edición
-        changeFormRoute();
-        if (window.arrayData["numberPieces"] > 0) { // Si ya se han registrado piezas, solo habilitar los inputs de tiempo y fecha
-            createInputsWithValue(window.arrayData, ["startTime", "endTime", "date"]);
-        } else { // Si no se han registrado piezas, habilitar todos los inputs
-            insertSelects();
+        if (window.arrayData["edit"] == 1) {
+            //Cambiar la ruta del formulario a la de editar y crear el botón de cancelar edición
+            changeFormRoute(document.querySelector(".div-table-meta"), document.querySelector(".form-principal-data"), "/processProduction/editMeta");
+            let btnCancel = document.querySelector(".btn-cancel");
+            btnCancel.style.top = "0";
+            btnCancel.style.left = "0";
+            if (window.arrayData["numberPieces"] > 0) { // Si ya se han registrado piezas, solo habilitar los inputs de tiempo y fecha
+                createInputsWithValue(window.arrayData, ["startTime", "endTime", "date"]);
+            } else { // Si no se han registrado piezas, habilitar todos los inputs
+                insertSelects();
+            }
+        } else {
+            createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
+            enableTable(); // Habilitar la tabla de piezas
+            //Cambiar la ruta del formulario a la de editar y crear el botón de cancelar edición
+            changeFormRoute(document.querySelector(".container-meta"), document.querySelector(".form-tablePieces"), "/processProduction/editPieces");
+            let btnCancel = document.querySelector(".btn-cancel");
+            btnCancel.style.bottom = "0";
+            btnCancel.style.right = "6em";
+            if(document.querySelector(".btn-savePiece")){
+                document.querySelector(".btn-savePiece").remove(); // Eliminar el botón de guardar pieza
+            }
         }
     } else {
         createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
         document.querySelector(".div-table-meta").appendChild(createBtnMetaEdit()); // Insertar botón de editar meta
         addEventToFinishReport(); // Agregar evento al botón de terminar reporte
         enableTable(); // Habilitar la tabla de piezas
+        if(window.arrayData["machinedPiecesInMeta"] && window.arrayData["machinedPiecesInMeta"].length > 0){
+            insertButtonEditPieces(); // Insertar botón para editar piezas
+        }
     }
 } else {
     if (window.workOrders != null) {

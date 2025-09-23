@@ -116,9 +116,7 @@ Route::controller(ProcessProductionController::class)->group(function () {
     Route::get('/processProduction/finishReport/{meta}', 'finishReport')->name('finishReport'); //Ruta para finalizar el reporte
     Route::post('/processProduction/storePiece', 'storePiece')->name('storePiece'); //Ruta para almacenar una pieza
     Route::post('/processProduction/selectAssembly', 'selectAssembly')->name('selectAssembly'); //Ruta para almacenar una pieza
-    // Route::post('/processProduction', 'store')->name('storeProcessProduction'); //Ruta para guardar los procesos de producción
-    // Route::get('/processProduction/{id}', 'edit')->name('editProcessProduction'); //Ruta para editar los procesos de producción
-    // Route::post('/processProduction/update', 'update')->name('updateProcessProduction'); //Ruta para actualizar los procesos de producción
+    Route::post('/processProduction/editPieces', 'editPieces')->name('editPieces'); //Ruta para editar las piezas registradas
 });
 
 //Ruta para ver el progreso de los procesos
