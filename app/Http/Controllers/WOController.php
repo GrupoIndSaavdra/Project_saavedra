@@ -252,11 +252,11 @@ class WOController extends Controller
             case "revision_laterales":
                 return "Revision Laterales";
             case "pOperacion":
-                return "Primera Operacion Soldadura";
+                return "Primera Operacion";
             case "barreno_maniobra":
                 return "Barreno maniobra";
             case "sOperacion":
-                return "Segunda Operacion Soldadura";
+                return "Segunda Operacion";
             case "soldadura":
                 return "Soldadura";
             case "soldaduraPTA":

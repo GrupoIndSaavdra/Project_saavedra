@@ -17,13 +17,13 @@ return new class extends Migration
                 $table->string('id_proceso');
                 $table->decimal('diametro_ceja', 8, 3)->nullable();
                 $table->decimal('diametro_sufridera', 8, 3)->nullable();
-                $table->decimal('altura_sufridera')->nullable();
-                $table->decimal('diametro_conexion')->nullable();
-                $table->decimal('altura_conexion')->nullable();
-                $table->decimal('diametro_caja')->nullable();
-                $table->decimal('altura_caja')->nullable();
-                $table->decimal('altura_total')->nullable();
-                $table->decimal('simetria')->nullable();
+                $table->decimal('altura_sufridera', 8, 3)->nullable();
+                $table->decimal('diametro_conexion', 8, 3)->nullable();
+                $table->decimal('altura_conexion', 8, 3)->nullable();
+                $table->decimal('diametro_caja', 8, 3)->nullable();
+                $table->decimal('altura_caja', 8, 3)->nullable();
+                $table->decimal('altura_total', 8, 3)->nullable();
+                $table->decimal('simetria', 8, 3)->nullable();
                 $table->timestamps();
             });
         }

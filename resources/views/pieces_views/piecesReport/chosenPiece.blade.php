@@ -68,7 +68,7 @@
                     nombres = ['n_pieza', 'desfasamiento_entrada', 'desfasamiento_salida', 'ancho_simetriaEntrada', 'ancho_simetriaSalida', 'angulo_corte', 'error', 'observaciones'];
                     break;
 
-                case "Primera Operacion Soldadura": //Proceso de primera operacion
+                case "Primera Operacion": //Proceso de primera operacion
                     titulos = ['No.Pieza', 'Diametro 1', 'Profundidad 1 ', 'Diametro 2', 'Profundidad 2', 'Diametro 3', 'Profunfidad 3', 'Diametro de soldadura', 'Profundidad de soldadura', 'Diametro de barreno', 'Simetria línea de partida', 'Perno de alineación', 'Simetría a 90°', 'Error', 'Observaciones'];
 
                     cNomiPosiciones = [null]; // Posiciones de los inputs de c.nominal
@@ -91,10 +91,10 @@
 
                     nombresCnomi = ['id', 'profundidad_barreno', 'diametro_machuelo', ''];
                     nombresTole = ['id', 'profundidad_barreno1', 'profundidad_barreno2', 'diametro_machuelo1', 'diametro_machuelo2', ''];
-                    nombres = ['n_pieza', 'profundidad_barreno', 'diametro_machuelo', 'acetatoBM', 'error', 'observaciones'];
+                    nombres = ['n_juego', 'profundidad_barreno', 'diametro_machuelo', 'acetatoBM', 'error', 'observaciones'];
                     break;
 
-                case "Segunda Operacion Soldadura": //Proceso de segunda operacion
+                case "Segunda Operacion": //Proceso de segunda operacion
                     titulos = ['No. Pieza', 'Diametro 1', 'Profundidad 1 ', 'Diametro 2', 'Profundidad 2', 'Diametro 3', 'Profunfidad 3', 'Diametro de soldadura', 'Profundidad de soldadura', 'Altura total', 'Simetría a 90°', 'Simetria línea de partida', 'Error', 'Observaciones'];
 
                     cNomiPosiciones = [null]; // Posiciones de los inputs de c.nominal
@@ -157,7 +157,7 @@
 
                     nombresTole = ['id', 'diametro_ceja1', 'diametro_ceja2', 'diametro_sufridera1', 'diametro_sufridera2', 'altura_sufridera1', 'altura_sufridera2', 'diametro_conexion1', 'diametro_conexion2', 'altura_conexion1', 'altura_conexion2', 'diametro_caja1', 'diametro_caja2', 'altura_caja1', 'altura_caja2', 'altura_total1', 'altura_total2', 'simetria1', 'simetria2'];
 
-                    nombres = ['n_juego', 'diametro_ceja', 'diametro_sufridera', 'altura_sufridera', 'diametro_conexion', 'altura_conexion', 'diametro_caja', 'altura_caja', 'altura_total', 'simetria', 'error', 'observaciones'];
+                    nombres = ['n_pieza', 'diametro_ceja', 'diametro_sufridera', 'altura_sufridera', 'diametro_conexion', 'altura_conexion', 'diametro_caja', 'altura_caja', 'altura_total', 'simetria', 'error', 'observaciones'];
                     break;
 
                 case "Acabado Bombillo": //Proceso de acabado Bombillo
@@ -171,7 +171,7 @@
 
                     nombresTole = ['id', 'diametro_mordaza1', 'diametro_mordaza2', 'diametro_ceja1', 'diametro_ceja2', 'diametro_sufridera1', 'diametro_sufridera2', 'altura_mordaza1', 'altura_mordaza2', 'altura_ceja1', 'altura_ceja2', 'altura_sufridera1', 'altura_sufridera2', '', '', '', '', 'diametro_boca1', 'diametro_boca2', 'diametro_asiento_corona1', 'diametro_asiento_corona2', 'diametro_llanta1', 'diametro_llanta2', 'diametro_caja_corona1', 'diametro_caja_corona2', 'profundidad_corona1', 'profundidad_corona2', 'angulo_301', 'angulo_302', 'profundidad_caja_corona1', 'profundidad_caja_corona2', 'simetria1', 'simetria2'];
 
-                    nombres = ['n_juego', 'diametro_mordaza', 'diametro_ceja', 'diametro_sufridera', 'altura_mordaza', 'altura_ceja', 'altura_sufridera', 'gauge_ceja', 'gauge_corona', 'gauge_llanta', 'altura_total', 'diametro_boca', 'diametro_asiento_corona', 'diametro_llanta', 'diametro_caja_corona', 'profundidad_corona', 'angulo_30', 'profundidad_caja_corona', 'simetria', 'error', 'observaciones'];
+                    nombres = ['n_pieza', 'diametro_mordaza', 'diametro_ceja', 'diametro_sufridera', 'altura_mordaza', 'altura_ceja', 'altura_sufridera', 'gauge_ceja', 'gauge_corona', 'gauge_llanta', 'altura_total', 'diametro_boca', 'diametro_asiento_corona', 'diametro_llanta', 'diametro_caja_corona', 'profundidad_corona', 'angulo_30', 'profundidad_caja_corona', 'simetria', 'error', 'observaciones'];
                     break;
 
                 case "Acabado Molde": //Proceso de acabado molde
@@ -185,7 +185,7 @@
 
                     nombresTole = ['id', 'diametro_mordaza1', 'diametro_mordaza2', 'diametro_ceja1', 'diametro_ceja2', 'diametro_sufridera1', 'diametro_sufridera2', 'altura_mordaza1', 'altura_mordaza2', 'altura_ceja1', 'altura_ceja2', 'altura_sufridera1', 'altura_sufridera2', '', '', 'diametro_conexion_fondo1', 'diametro_conexion_fondo2', 'diametro_llanta1', 'diametro_llanta2', 'diametro_caja_fondo1', 'diametro_caja_fondo2', 'altura_conexion_fondo1', 'altura_conexion_fondo2', 'profundidad_llanta1', 'profundidad_llanta2', 'profundidad_caja_fondo1', 'profundidad_caja_fondo2', 'simetria1', 'simetria2'];
 
-                    nombres = ['n_juego', 'diametro_mordaza', 'diametro_ceja', 'diametro_sufridera', 'altura_mordaza', 'altura_ceja', 'altura_sufridera', 'gauge_ceja', 'altura_total', 'diametro_conexion_fondo', 'diametro_llanta', 'diametro_caja_fondo', 'altura_conexion_fondo', 'profundidad_llanta', 'profundidad_caja_fondo', 'simetria', 'error', 'observaciones'];
+                    nombres = ['n_pieza', 'diametro_mordaza', 'diametro_ceja', 'diametro_sufridera', 'altura_mordaza', 'altura_ceja', 'altura_sufridera', 'gauge_ceja', 'altura_total', 'diametro_conexion_fondo', 'diametro_llanta', 'diametro_caja_fondo', 'altura_conexion_fondo', 'profundidad_llanta', 'profundidad_caja_fondo', 'simetria', 'error', 'observaciones'];
                     break;
 
                 case 'Barreno Profundidad':
@@ -306,7 +306,8 @@
             for (let i = 0; i < this.valoresPieza.length; i++) {
                 valores.push([]);
                 for (let j = 0; j < nombres.length; j++) {
-                    if (this.valoresPieza[i]['correcto'] == null && j != 0) {
+                    let valueTest = this.valoresPieza[i]['correcto'] != null ? this.valoresPieza[i]['correcto'] : this.valoresPieza[i]['error'];
+                    if (valueTest == null && j != 0) {
                         valores[i].push('----');
                     } else {
                         valores[i].push(this.valoresPieza[i][nombres[j]]);
@@ -481,7 +482,6 @@
                     }
                 }
             }
-            console.log('Valor pieza: ' + valorPieza + ' Posicion: ' + posicion + ' Valores Cnomi: ' + valoresCnomi[posicion] + ' Valores Tole: ' + valoresTole[posicionesTole[posicion]] + ' Error: ' + error);
             return error;
         }
 
@@ -577,11 +577,11 @@
                     <th class="t-title" style="width:700px">Observaciones</th>
                 </tr>
                 <tr>
-                    <td><input type="text" class="input" value="{{$piezasInfo->n_juego}}" disabled></td>
-                    <td><input type="text" class="input" value="{{$piezasInfo->sin_juego}}" disabled></td>
-                    <td><input type="text" class="input" value="{{$piezasInfo->sin_luz}}" disabled></td>
-                    <td><input type="text" class="input" value="{{$piezasInfo->error}}" disabled /></td>
-                    <td><input type="text" class="input" value="{{$piezasInfo->observaciones}}" disabled /></td>
+                    <td><input type="text" class="input" value="{{$piecesInfo->n_juego}}" disabled></td>
+                    <td><input type="text" class="input" value="{{$piecesInfo->sin_juego}}" disabled></td>
+                    <td><input type="text" class="input" value="{{$piecesInfo->sin_luz}}" disabled></td>
+                    <td><input type="text" class="input" value="{{$piecesInfo->error}}" disabled /></td>
+                    <td><input type="text" class="input" value="{{$piecesInfo->observaciones}}" disabled /></td>
                 </tr>
             </table>
 
@@ -621,28 +621,30 @@
                 </tr>
                 <tr>
                     <td> Tolerancias </td>
-                    <td><input type="number" value="{{$tolerancia->profundidad1_1}}" class="input-medio" step="any" inputmode="decimal" disabled><input type="number" value="{{$tolerancia->profundidad2_1}}" class="input-medio" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" value="{{$tolerancia->diametro1_1}}" class="input-medio" step="any" inputmode="decimal" disabled><input type="number" value="{{$tolerancia->diametro2_1}}" class="input-medio" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" value="{{$tolerancia->profundidad1_2}}" class="input-medio" step="any" inputmode="decimal" disabled><input type="number" value="{{$tolerancia->profundidad2_2}}" class="input-medio" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" value="{{$tolerancia->diametro1_2}}" class="input-medio" step="any" inputmode="decimal" disabled><input type="number" value="{{$tolerancia->diametro2_2}}" class="input-medio" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" value="{{$tolerancia->profundidad1_3}}" class="input-medio" step="any" inputmode="decimal" disabled><input type="number" value="{{$tolerancia->profundidad2_3}}" class="input-medio" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" value="{{$tolerancia->diametro1_3}}" class="input-medio" step="any" inputmode="decimal" disabled><input type="number" value="{{$tolerancia->diametro2_3}}" class="input-medio" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" value="{{$tolerance->profundidad1_1}}" class="input-medio" step="any" inputmode="decimal" disabled><input type="number" value="{{$tolerance->profundidad2_1}}" class="input-medio" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" value="{{$tolerance->diametro1_1}}" class="input-medio" step="any" inputmode="decimal" disabled><input type="number" value="{{$tolerance->diametro2_1}}" class="input-medio" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" value="{{$tolerance->profundidad1_2}}" class="input-medio" step="any" inputmode="decimal" disabled><input type="number" value="{{$tolerance->profundidad2_2}}" class="input-medio" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" value="{{$tolerance->diametro1_2}}" class="input-medio" step="any" inputmode="decimal" disabled><input type="number" value="{{$tolerance->diametro2_2}}" class="input-medio" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" value="{{$tolerance->profundidad1_3}}" class="input-medio" step="any" inputmode="decimal" disabled><input type="number" value="{{$tolerance->profundidad2_3}}" class="input-medio" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" value="{{$tolerance->diametro1_3}}" class="input-medio" step="any" inputmode="decimal" disabled><input type="number" value="{{$tolerance->diametro2_3}}" class="input-medio" step="any" inputmode="decimal" disabled></td>
                     <td><input type="number" class="input" disabled></td>
                     <td><input type="number" class="input" disabled></td>
                     <td><input type="number" class="input" disabled></td>
                 </tr>
+                @foreach ($piecesInfo as $pieceInfo)
                 <tr>
-                    <td><input type="text" class="input" value="{{$piezasInfo->n_juego}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->profundidad1}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->diametro1}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->profundidad2}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->diametro2}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->profundidad3}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->diametro3}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="text" class="input" value="{{$piezasInfo->acetatoBM}}" disabled></td>
-                    <td><input type="text" class="input" value="{{$piezasInfo->error}}" disabled></td>
-                    <td><input type="text" class="input" value="{{$piezasInfo->observaciones}}" disabled></td>
+                    <td><input type="text" class="input" value="{{$pieceInfo['n_pieza']}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['profundidad1']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['diametro1']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['profundidad2']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['diametro2']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['profundidad3']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['diametro3']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="text" class="input" value="{{$pieceInfo['acetatoBM']}}" disabled></td>
+                    <td><input type="text" class="input" value="{{$pieceInfo['error']}}" disabled></td>
+                    <td><input type="text" class="input" value="{{$pieceInfo['observaciones']}}" disabled></td>
                 </tr>
+                @endforeach
             </table>
             @elseif ($process == 'Copiado')
             <table border="1" class="tabla3">
@@ -677,32 +679,34 @@
                 </tr>
                 <tr>
                     <td> Tolerancias. </td>
-                    <td><input type="number" class="input" value="{{$tolerancia->diametro1_cilindrado}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->profundidad1_cilindrado}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->diametro2_cilindrado}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->profundidad2_cilindrado}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->diametro_sufridera}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->diametro_ranura}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->profundidad_ranura}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->profundidad_sufridera}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->altura_total}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->diametro1_cilindrado}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->profundidad1_cilindrado}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->diametro2_cilindrado}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->profundidad2_cilindrado}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->diametro_sufridera}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->diametro_ranura}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->profundidad_ranura}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->profundidad_sufridera}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->altura_total}}" disabled></td>
                     <td></td>
                     <td></td>
                 </tr>
+                @foreach ($piecesInfo as $pieceInfo)                    
                 <tr>
-                    <td><input type="text" class="input" value="{{$piezasInfo->n_juego}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->diametro1_cilindrado}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->profundidad1_cilindrado}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->diametro2_cilindrado}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->profundidad2_cilindrado}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->diametro_sufridera}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->diametro_ranura}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->profundidad_ranura}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->profundidad_sufridera}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->altura_total}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="text" class="input" value="{{$piezasInfo->error_cilindrado}}" disabled></td>
-                    <td><input type="text" class="input" value="{{$piezasInfo->observaciones_cilindrado}}" disabled></td>
+                    <td><input type="text" class="input" value="{{$pieceInfo['n_pieza']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['diametro1_cilindrado']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['profundidad1_cilindrado']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['diametro2_cilindrado']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['profundidad2_cilindrado']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['diametro_sufridera']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['diametro_ranura']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['profundidad_ranura']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['profundidad_sufridera']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['altura_total']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="text" class="input" value="{{$pieceInfo['error_cilindrado']}}" disabled></td>
+                    <td><input type="text" class="input" value="{{$pieceInfo['observaciones_cilindrado']}}" disabled></td>
                 </tr>
+                @endforeach
             </table>
             <table border="1" class="tabla3">
                 <label class="title-subproceso"> C A V I D A D E S</label>
@@ -736,32 +740,34 @@
                 </tr>
                 <tr>
                     <td> Tolerancias. </td>
-                    <td><input type="number" class="input" value="{{$tolerancia->diametro1_cavidades}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->profundidad1_cavidades}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->diametro2_cavidades}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->profundidad2_cavidades}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->diametro3}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->profundidad3}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->diametro4}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->profundidad4}}" disabled></td>
-                    <td><input type="number" class="input" value="{{$tolerancia->volumen}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->diametro1_cavidades}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->profundidad1_cavidades}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->diametro2_cavidades}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->profundidad2_cavidades}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->diametro3}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->profundidad3}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->diametro4}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->profundidad4}}" disabled></td>
+                    <td><input type="number" class="input" value="{{$tolerance->volumen}}" disabled></td>
                     <td></td>
                     <td></td>
                 </tr>
+                @foreach ($piecesInfo as $pieceInfo)                    
                 <tr>
-                    <td><input type="text" class="input" value="{{$piezasInfo->n_juego}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->diametro1_cavidades}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->profundidad1_cavidades}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->diametro2_cavidades}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->profundidad2_cavidades}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->diametro3}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->profundidad3}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->diametro4}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->profundidad4}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="number" class="input" value="{{$piezasInfo->volumen}}" step="any" inputmode="decimal" disabled></td>
-                    <td><input type="text" class="input" value="{{$piezasInfo->error_cavidades}}" disabled></td>
-                    <td><input type="text" class="input" value="{{$piezasInfo->observaciones_cavidades}}" disabled></td>
+                    <td><input type="text" class="input" value="{{$pieceInfo['n_pieza']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['diametro1_cavidades']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['profundidad1_cavidades']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['diametro2_cavidades']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['profundidad2_cavidades']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['diametro3']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['profundidad3']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['diametro4']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['profundidad4']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="number" class="input" value="{{$pieceInfo['volumen']}}" step="any" inputmode="decimal" disabled></td>
+                    <td><input type="text" class="input" value="{{$pieceInfo['error_cavidades']}}" disabled></td>
+                    <td><input type="text" class="input" value="{{$pieceInfo['observaciones_cavidades']}}" disabled></td>
                 </tr>
+                @endforeach
             </table>
             @elseif($process == 'Off Set')
             <table border="1" class="tabla3">
@@ -810,39 +816,40 @@
                     </tr>
                     <tr>
                         <td> Tolerancias </td>
-                        <td><input type="number" name="tole_anchoRanura" value="{{$tolerancia->anchoRanura}}" class="input" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" name="tole_profuTaconHembra" value="{{$tolerancia->profuTaconHembra}}" class="input" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" name="tole_profuTaconMacho" value="{{$tolerancia->profuTaconMacho}}" class="input" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" name="tole_simetriaHembra" value="{{$tolerancia->simetriaHembra}}" class="input" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" name="tole_simetriaMacho" value="{{$tolerancia->simetriaMacho}}" class="input" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" name="tole_anchoTacon" value="{{$tolerancia->anchoTacon}}" class="input" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" name="tole_barrenoLateralHembra" value="{{$tolerancia->barrenoLateralHembra}}" class="input" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" name="tole_barrenoLateralMacho" value="{{$tolerancia->barrenoLateralMacho}}" class="input" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" name="tole_alturaTaconInicial" value="{{$tolerancia->alturaTaconInicial}}" class="input" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" name="tole_alturaTaconIntermedia" value="{{$tolerancia->alturaTaconIntermedia}}" class="input" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" name="tole_anchoRanura" value="{{$tolerance->anchoRanura}}" class="input" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" name="tole_profuTaconHembra" value="{{$tolerance->profuTaconHembra}}" class="input" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" name="tole_profuTaconMacho" value="{{$tolerance->profuTaconMacho}}" class="input" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" name="tole_simetriaHembra" value="{{$tolerance->simetriaHembra}}" class="input" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" name="tole_simetriaMacho" value="{{$tolerance->simetriaMacho}}" class="input" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" name="tole_anchoTacon" value="{{$tolerance->anchoTacon}}" class="input" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" name="tole_barrenoLateralHembra" value="{{$tolerance->barrenoLateralHembra}}" class="input" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" name="tole_barrenoLateralMacho" value="{{$tolerance->barrenoLateralMacho}}" class="input" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" name="tole_alturaTaconInicial" value="{{$tolerance->alturaTaconInicial}}" class="input" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" name="tole_alturaTaconIntermedia" value="{{$tolerance->alturaTaconIntermedia}}" class="input" step="any" inputmode="decimal" disabled></td>
                         <td><input type="number" class="input" disabled></td>
                         <td><input type="number" class="input" disabled></td>
                     </tr>
+                    @foreach ($piecesInfo as $pieceInfo)                        
                     <tr>
-                        <td><input type="text" class="input" value="{{$piezasInfo->n_juego}}" disabled></td>
-                        <td><input type="number" class="input" value="{{$piezasInfo->anchoRanura}}" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" class="input" value="{{$piezasInfo->profuTaconHembra}}" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" class="input" value="{{$piezasInfo->profuTaconMacho}}" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" class="input" value="{{$piezasInfo->simetriaHembra}}" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" class="input" value="{{$piezasInfo->simetriaMacho}}" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" class="input" value="{{$piezasInfo->anchoTacon}}" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" class="input" value="{{$piezasInfo->barrenoLateralHembra}}" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" class="input" value="{{$piezasInfo->barrenoLateralMacho}}" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" class="input" value="{{$piezasInfo->alturaTaconInicial}}" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="number" class="input" value="{{$piezasInfo->alturaTaconIntermedia}}" step="any" inputmode="decimal" disabled></td>
-                        <td><input type="text" class="input" value="{{$piezasInfo->error}}" disabled></td>
-                        <td><input type="text" class="input" value="{{$piezasInfo->observaciones}}" disabled></td>
+                        <td><input type="text" class="input" value="{{$pieceInfo['n_pieza']}}" disabled></td>
+                        <td><input type="number" class="input" value="{{$pieceInfo['anchoRanura']}}" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" class="input" value="{{$pieceInfo['profuTaconHembra']}}" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" class="input" value="{{$pieceInfo['profuTaconMacho']}}" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" class="input" value="{{$pieceInfo['simetriaHembra']}}" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" class="input" value="{{$pieceInfo['simetriaMacho']}}" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" class="input" value="{{$pieceInfo['anchoTacon']}}" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" class="input" value="{{$pieceInfo['barrenoLateralHembra']}}" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" class="input" value="{{$pieceInfo['barrenoLateralMacho']}}" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" class="input" value="{{$pieceInfo['alturaTaconInicial']}}" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="number" class="input" value="{{$pieceInfo['alturaTaconIntermedia']}}" step="any" inputmode="decimal" disabled></td>
+                        <td><input type="text" class="input" value="{{$pieceInfo['error']}}" disabled></td>
+                        <td><input type="text" class="input" value="{{$pieceInfo['observaciones']}}" disabled></td>
                     </tr>
+                    @endforeach
             </table>
 
             @else
             <script>
-                console.log();
                 document.getElementById('scrollabe-table').appendChild(process.crearProceso()); //Agregar tabla al div.
             </script>
             @endif

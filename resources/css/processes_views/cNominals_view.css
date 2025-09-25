@@ -68,7 +68,7 @@ h1 {
 .scrollable-table {
     position: relative;
     opacity: 0;
-    margin: 10em auto;
+    margin: 5em auto;
     border-radius: 10px;
     width: 90vw;
     height: 20vh;
@@ -124,10 +124,9 @@ h1 {
     width: 100%;
 }
 .btn-submit {
+    display: flex;
+    margin: auto;
     opacity: 0;
-    position: absolute;
-    bottom: 8vh;
-    left: 47vw;
     background: #033966;
     color: #ffffff;
     width: 8em;

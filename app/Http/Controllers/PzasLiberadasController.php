@@ -45,7 +45,8 @@ class PzasLiberadasController extends Controller
         $this->middleware('auth');
         $this->controladorPzas = new PzasGeneralesController();
     }
-    public function obtenerLayout(){
+    public function obtenerLayout()
+    {
         $perfil = auth()->user()->perfil;
         return $perfil == 4 ? 'layouts.appQuality' : 'layouts.appAdmin';
     }
@@ -138,7 +139,7 @@ class PzasLiberadasController extends Controller
                 }
                 $piezas = RevLaterales_pza::where('id_meta', $pieza[0]->id_meta)->get();
                 break;
-            case "Primera Operacion Soldadura":
+            case "Primera Operacion":
                 $pieza = array();
                 foreach ($juego as $pza) {
                     $p = PrimeraOpeSoldadura_pza::where('id_pza', $pza)->first();
@@ -154,7 +155,7 @@ class PzasLiberadasController extends Controller
                 }
                 $piezas = BarrenoManiobra_pza::where('id_meta', $pieza[0]->id_meta)->get();
                 break;
-            case "Segunda Operacion Soldadura":
+            case "Segunda Operacion":
                 $pieza = array();
                 foreach ($juego as $pza) {
                     $p = SegundaOpeSoldadura_pza::where('id_pza', $pza)->first();
@@ -194,7 +195,7 @@ class PzasLiberadasController extends Controller
                 }
                 $piezas = Asentado_pza::where('id_meta', $pieza[0]->id_meta)->get();
                 break;
-            case "Revision Calificado":
+            case "Calificado":
                 $pieza = array();
                 foreach ($juego as $pza) {
                     $p = revCalificado_pza::where('id_pza', $pza)->first();
@@ -291,67 +292,84 @@ class PzasLiberadasController extends Controller
                 $piezas = EmbudoCM_pza::where('id_meta', $pieza[0]->id_meta)->get();
                 break;
         }
-        if ($buena == 'false') {
-            $piezas = $pieza;
-        }
-        print_r($piezas);
-        die();
+        //Algoritmo para liberar 5 juegos despues de que se libere uno
+        // if ($buena == 'false') {
+        //     $piezas = $pieza;
+        // }
+        $piezas = $pieza;
         return $piezas;
     }
     public function liberarPiezas($piezas, $proceso, $buena)
     {
-        //Identificar los juegos malos
+        //Algoritmo para liberar solamente 1 juego
         $meta = Metas::find($piezas[0]->id_meta);
-        $juegosMalos = $this->juegosMalos($meta, $proceso);
-        if ($buena == 'true') {
-            foreach ($piezas as $pza) {
-                //Actualizar el estado de liberacion de la pieza
-                if ($pza->n_pieza) {
-                    $numero = substr($pza->n_pieza, 0, -1);
-                    $piezaH = Pieza::where('n_pieza', $numero . "H")->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->where('error', 'Ninguno')->where('liberacion', 0)->first();
-                    $piezaM = Pieza::where('n_pieza', $numero . "M")->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->where('error', 'Ninguno')->where('liberacion', 0)->first();
-
-                    if ($piezaH && $piezaM) {
-                        if (!in_array($numero, $juegosMalos)) {
-                            $piezaH->liberacion = 1;
-                            $piezaH->fecha_liberacion = date('Y-m-d H:i:s');
-                            $piezaH->user_liberacion = auth()->user()->matricula;
-                            $piezaH->save();
-
-                            $piezaM->liberacion = 1;
-                            $piezaM->fecha_liberacion = date('Y-m-d H:i:s');
-                            $piezaM->user_liberacion = auth()->user()->matricula;
-                            $piezaM->save();
-                        }
-                    }
-                } else {
-                    $pieza = Pieza::where('n_pieza', $pza->n_juego)->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->where('error', 'Ninguno')->where('liberacion', 0)->first();
-                    if ($pieza) {
-                        if (!in_array($this->controladorPzas->getPiezaNumber($pieza->n_pieza), $juegosMalos)) {
-                            $pieza->liberacion = 1;
-                            $pieza->fecha_liberacion = date('Y-m-d H:i:s');
-                            $pieza->user_liberacion = auth()->user()->matricula;
-                            $pieza->save();
-                        }
-                    }
-                }
+        //Actualizar el estado de liberacion de la pieza
+        foreach ($piezas as $pza) {
+            if ($pza->n_pieza) {
+                $n_pieza = $pza->n_pieza;
+            } else {
+                $n_pieza = $pza->n_juego;
             }
-        } else {
-            $meta = Metas::find($piezas[0]->id_meta);
-            //Actualizar el estado de liberacion de la pieza
-            foreach ($piezas as $pza) {
-                if ($pza->n_pieza) {
-                    $n_pieza = $pza->n_pieza;
-                } else {
-                    $n_pieza = $pza->n_juego;
-                }
-                Pieza::where('n_pieza', $n_pieza)->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->update([
-                    'liberacion' => 1,
-                    'fecha_liberacion' => date('Y-m-d H:i:s'),
-                    'user_liberacion' => auth()->user()->matricula,
-                ]);
-            }
+            Pieza::where('n_pieza', $n_pieza)->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->update([
+                'liberacion' => 1,
+                'fecha_liberacion' => date('Y-m-d H:i:s'),
+                'user_liberacion' => auth()->user()->matricula,
+            ]);
         }
+
+        //Algoritmo para liberar 5 juegos despues de que se libere uno
+        // //Identificar los juegos malos
+        // $meta = Metas::find($piezas[0]->id_meta);
+        // $juegosMalos = $this->juegosMalos($meta, $proceso);
+        // if ($buena == 'true') {
+        //     foreach ($piezas as $pza) {
+        //         //Actualizar el estado de liberacion de la pieza
+        //         if ($pza->n_pieza) {
+        //             $numero = substr($pza->n_pieza, 0, -1);
+        //             $piezaH = Pieza::where('n_pieza', $numero . "H")->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->where('error', 'Ninguno')->where('liberacion', 0)->first();
+        //             $piezaM = Pieza::where('n_pieza', $numero . "M")->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->where('error', 'Ninguno')->where('liberacion', 0)->first();
+
+        //             if ($piezaH && $piezaM) {
+        //                 if (!in_array($numero, $juegosMalos)) {
+        //                     $piezaH->liberacion = 1;
+        //                     $piezaH->fecha_liberacion = date('Y-m-d H:i:s');
+        //                     $piezaH->user_liberacion = auth()->user()->matricula;
+        //                     $piezaH->save();
+
+        //                     $piezaM->liberacion = 1;
+        //                     $piezaM->fecha_liberacion = date('Y-m-d H:i:s');
+        //                     $piezaM->user_liberacion = auth()->user()->matricula;
+        //                     $piezaM->save();
+        //                 }
+        //             }
+        //         } else {
+        //             $pieza = Pieza::where('n_pieza', $pza->n_juego)->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->where('error', 'Ninguno')->where('liberacion', 0)->first();
+        //             if ($pieza) {
+        //                 if (!in_array($this->controladorPzas->getPiezaNumber($pieza->n_pieza), $juegosMalos)) {
+        //                     $pieza->liberacion = 1;
+        //                     $pieza->fecha_liberacion = date('Y-m-d H:i:s');
+        //                     $pieza->user_liberacion = auth()->user()->matricula;
+        //                     $pieza->save();
+        //                 }
+        //             }
+        //         }
+        //     }
+        // } else {
+        //     $meta = Metas::find($piezas[0]->id_meta);
+        //     //Actualizar el estado de liberacion de la pieza
+        //     foreach ($piezas as $pza) {
+        //         if ($pza->n_pieza) {
+        //             $n_pieza = $pza->n_pieza;
+        //         } else {
+        //             $n_pieza = $pza->n_juego;
+        //         }
+        //         Pieza::where('n_pieza', $n_pieza)->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->update([
+        //             'liberacion' => 1,
+        //             'fecha_liberacion' => date('Y-m-d H:i:s'),
+        //             'user_liberacion' => auth()->user()->matricula,
+        //         ]);
+        //     }
+        // }
     }
     public function rechazarPieza($piezas, $proceso)
     {

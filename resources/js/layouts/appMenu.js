@@ -140,7 +140,7 @@ function getRoutes(profile) {
                         ["productionData", "Datos de produccion"],
                         ["cNominals", "Editar C.Nominales y Tolerancias"],
                         ["showTimes", "Modificar tiempos de producción"],
-                        ["show_panelWO", "Panel de progreso de O.T"],
+                        // ["show_panelWO", "Panel de progreso de O.T"],
                     ],
                 },
             ];

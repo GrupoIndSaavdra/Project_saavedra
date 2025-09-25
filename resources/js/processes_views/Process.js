@@ -486,9 +486,17 @@ export class Process {
                                             if(i == 2){
                                                 if(values[i - 1][x] != null){
                                                     if(names[i - 1][x].includes("pin")){
-                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `+-${values[i - 1][x]}`));
+                                                        if(!this.tablePieces){
+                                                            td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${values[i - 1][x]}`));
+                                                        } else {
+                                                            td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `+-${values[i - 1][x]}`));
+                                                        }
                                                     } else {
-                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${sign}${values[i - 1][x]}`));
+                                                        if(!this.tablePieces){
+                                                            td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${values[i - 1][x]}`));
+                                                        } else {
+                                                            td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${sign}${values[i - 1][x]}`));
+                                                        }
                                                     }
                                                 }
                                             } else {
@@ -504,7 +512,11 @@ export class Process {
                                 }else {
                                     if(values) {
                                         if(i == 2 && values[i - 1][x] != null){
-                                            td.appendChild(this.crearInputs("input", names[i - 1][x], `+-${values[i - 1][x]}`));
+                                            if(!this.tablePieces){
+                                                td.appendChild(this.crearInputs("input", names[i - 1][x], `${values[i - 1][x]}`));
+                                            } else {
+                                                td.appendChild(this.crearInputs("input", names[i - 1][x], `+-${values[i - 1][x]}`));
+                                            }
                                         } else {
                                             td.appendChild(this.crearInputs("input", names[i - 1][x], values[i - 1][x]));
                                         }

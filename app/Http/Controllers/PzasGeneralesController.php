@@ -406,20 +406,20 @@ class PzasGeneralesController extends Controller
                     $id_proceso = RevLaterales::where('id_proceso', $id_proceso)->first();
                     $infoPiezas[$contador][1] = 'Revision Laterales';
                     break;
-                case 'Primera Operacion Soldadura':
+                case 'Primera Operacion':
                     $id_proceso = 'Primera_Operacion_' . $clase . "_" . $pieza[0];
                     $id_proceso = PrimeraOpeSoldadura::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Primera Operacion Soldadura';
+                    $infoPiezas[$contador][1] = 'Primera Operacion';
                     break;
                 case 'Barreno Maniobra':
                     $id_proceso = 'Barreno_Maniobra_' . $clase . "_" . $pieza[0];
                     $id_proceso = BarrenoManiobra::where('id_proceso', $id_proceso)->first();
                     $infoPiezas[$contador][1] = 'Barreno Maniobra';
                     break;
-                case 'Segunda Operacion Soldadura':
+                case 'Segunda Operacion':
                     $id_proceso = 'Segunda_Operacion_' . $clase . "_" . $pieza[0];
                     $id_proceso = SegundaOpeSoldadura::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Segunda Operacion Soldadura';
+                    $infoPiezas[$contador][1] = 'Segunda Operacion';
                     break;
                 case 'Soldadura':
                     $id_proceso = 'Soldadura_' . $clase . "_" . $pieza[0];
@@ -441,10 +441,10 @@ class PzasGeneralesController extends Controller
                     $id_proceso = Asentado::where('id_proceso', $id_proceso)->first();
                     $infoPiezas[$contador][1] = 'Asentado';
                     break;
-                case 'Revision Calificado':
+                case 'Calificado':
                     $id_proceso = 'Calificado_' . $clase . "_" . $pieza[0];
                     $id_proceso = revCalificado::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Revision Calificado';
+                    $infoPiezas[$contador][1] = 'Calificado';
                     break;
                 case 'Acabado Bombillo':
                     $id_proceso = 'Acabado_Bombillo_' . $clase . "_" . $pieza[0];
@@ -559,7 +559,7 @@ class PzasGeneralesController extends Controller
                 $tolerance = RevLaterales_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $process = 'Revision Laterales';
                 break;
-            case 'Primera Operacion Soldadura':
+            case 'Primera Operacion':
                 //Obtener informacion de la pieza elegida
                 $pieceInfo = array();
                 $pieces = explode(",", $pieces);
@@ -570,7 +570,7 @@ class PzasGeneralesController extends Controller
                 $id_process = PrimeraOpeSoldadura::find($pieceInfo[0]->id_proceso);
                 $cNominal = PrimeraOpeSoldadura_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $tolerance = PrimeraOpeSoldadura_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $process = 'Primera Operacion Soldadura';
+                $process = 'Primera Operacion';
                 break;
             case 'Barreno Maniobra':
                 //Obtener informacion de la pieza elegida
@@ -585,7 +585,7 @@ class PzasGeneralesController extends Controller
                 $tolerance = BarrenoManiobra_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $process = 'Barreno Maniobra';
                 break;
-            case 'Segunda Operacion Soldadura':
+            case 'Segunda Operacion':
                 //Obtener informacion de la pieza elegida
                 $pieceInfo = array();
                 $pieces = explode(",", $pieces);
@@ -596,7 +596,7 @@ class PzasGeneralesController extends Controller
                 $id_process = SegundaOpeSoldadura::find($pieceInfo[0]->id_proceso);
                 $cNominal = SegundaOpeSoldadura_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $tolerance = SegundaOpeSoldadura_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $process = 'Segunda Operacion Soldadura';
+                $process = 'Segunda Operacion';
                 break;
             case 'Soldadura':
                 //Obtener informacion de la pieza elegida
@@ -637,27 +637,39 @@ class PzasGeneralesController extends Controller
 
             case 'Calificado':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = revCalificado_pza::where('id_pza', $pieces)->first();
+                $pieceInfo = array();
+                $pieces = explode(",", $pieces);
+                foreach ($pieces as $piece) {
+                    array_push($pieceInfo, revCalificado_pza::where('id_pza', $piece)->first());
+                }
                 //Obtener Cotas nominales y tolerancias
-                $id_process = revCalificado::find($pieceInfo->id_proceso);
+                $id_process = revCalificado::find($pieceInfo[0]->id_proceso);
                 $cNominal = revCalificado_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $tolerance = revCalificado_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $process = 'Calificado';
                 break;
             case 'Acabado Bombillo':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = AcabadoBombilo_pza::where('id_pza', $pieces)->first();
+                $pieceInfo = array();
+                $pieces = explode(",", $pieces);
+                foreach ($pieces as $piece) {
+                    array_push($pieceInfo, AcabadoBombilo_pza::where('id_pza', $piece)->first());
+                }
                 //Obtener Cotas nominales y tolerancias
-                $id_process = AcabadoBombilo::find($pieceInfo->id_proceso);
+                $id_process = AcabadoBombilo::find($pieceInfo[0]->id_proceso);
                 $cNominal = AcabadoBombilo_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $tolerance = AcabadoBombilo_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $process = 'Acabado Bombillo';
                 break;
             case 'Acabado Molde':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = AcabadoMolde_pza::where('id_pza', $pieces)->first();
+                $pieceInfo = array();
+                $pieces = explode(",", $pieces);
+                foreach ($pieces as $piece) {
+                    array_push($pieceInfo, AcabadoMolde_pza::where('id_pza', $piece)->first());
+                }
                 //Obtener Cotas nominales y tolerancias
-                $id_process = AcabadoMolde::find($pieceInfo->id_proceso);
+                $id_process = AcabadoMolde::find($pieceInfo[0]->id_proceso);
                 $cNominal = AcabadoMolde_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $tolerance = AcabadoMolde_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $process = 'Acabado Molde';
@@ -673,30 +685,42 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Cavidades':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = Cavidades_pza::where('id_pza', $pieces)->first();
+                $pieceInfo = array();
+                $pieces = explode(",", $pieces);
+                foreach ($pieces as $piece) {
+                    array_push($pieceInfo, Cavidades_pza::where('id_pza', $piece)->first());
+                }
                 //Obtener Cotas nominales y tolerancias
-                $id_process = Cavidades::find($pieceInfo->id_proceso);
+                $id_process = Cavidades::find($pieceInfo[0]->id_proceso);
                 $cNominal = Cavidades_cnominal::where('id_proceso', $id_process->id_proceso)->first();
                 $tolerance = Cavidades_tolerancia::where('id_proceso', $id_process->id_proceso)->first();
                 $proceso = 'Cavidades';
                 break;
             case 'Copiado':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = Copiado_pza::where('id_pza', $pieces)->first();
+                $pieceInfo = array();
+                $pieces = explode(",", $pieces);
+                foreach ($pieces as $piece) {
+                    array_push($pieceInfo, Copiado_pza::where('id_pza', $piece)->first());
+                }
                 //Obtener Cotas nominales y tolerancias
-                $id_process = Copiado::find($pieceInfo->id_proceso);
+                $id_process = Copiado::find($pieceInfo[0]->id_proceso);
                 $cNominal = Copiado_cnominal::where('id_proceso', $id_process->id_proceso)->first();
                 $tolerance = Copiado_tolerancia::where('id_proceso', $id_process->id_proceso)->first();
                 $process = 'Copiado';
                 break;
             case 'Off Set':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = OffSet_pza::where('id_pza', $pieces)->first();
+                $pieceInfo = array();
+                $pieces = explode(",", $pieces);
+                foreach ($pieces as $piece) {
+                    array_push($pieceInfo, OffSet_pza::where('id_pza', $piece)->first());
+                }
                 //Obtener Cotas nominales y tolerancias
-                $id_process = OffSet::find($pieceInfo->id_proceso);
+                $id_process = OffSet::find($pieceInfo[0]->id_proceso);
                 $cNominal = OffSet_cnominal::where('id_proceso', $id_process->id_proceso)->first();
                 $tolerance = OffSet_tolerancia::where('id_proceso', $id_process->id_proceso)->first();
-                $process = 'Off_Set';
+                $process = 'Off Set';
                 break;
             case 'Palomas':
                 //Obtener informacion de la pieza elegida
@@ -765,7 +789,7 @@ class PzasGeneralesController extends Controller
         } else {
             $clase = $clase->nombre . " " . $clase->tamanio;
         }
-        if ($process != 'Asentado' && $process != 'Cavidades' && $process != 'Copiado' && $process != 'Off Set') {
+        if ($process != 'Asentado') {
             $piecesInfo = array();
             //Si el juego es mitad
             if (is_array($pieceInfo)) {
@@ -1468,11 +1492,11 @@ class PzasGeneralesController extends Controller
             case "revision_laterales":
                 return "Revision Laterales";
             case "pOperacion":
-                return "Primera Operacion Soldadura";
+                return "Primera Operacion";
             case "barreno_maniobra":
                 return "Barreno Maniobra";
             case "sOperacion":
-                return "Segunda Operacion Soldadura";
+                return "Segunda Operacion";
             case "soldadura":
                 return "Soldadura";
             case "soldaduraPTA":

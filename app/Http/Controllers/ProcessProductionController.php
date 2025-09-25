@@ -228,7 +228,7 @@ class ProcessProductionController extends Controller
         if ($passwordEntered) {
             $users = User::all();
             foreach ($users as $user) {
-                if ($user->perfil == 1) {
+                if ($user->perfil == 1 || $user->perfil == 3 || $user->perfil == 4) { // Verificar si el usuario es admin o calidad o superadmin
                     if (Hash::check($passwordEntered, $user->contrasena)) {
                         return true; // Contraseña correcta
                     }
@@ -975,7 +975,8 @@ class ProcessProductionController extends Controller
                 } else {
                     $color = $piece->error == "Ninguno" ? "green" : "red";
                 }
-                $releasedPiece = Pieza::where("id_clase", $meta->id_clase)->first();
+                $nPiece = $piece->n_pieza ? $piece->n_pieza : $piece->n_juego;
+                $releasedPiece = Pieza::where("id_clase", $meta->id_clase)->where('proceso', $meta->proceso)->where("n_pieza", $nPiece)->first();
                 if ($releasedPiece) { //Verificar si la pieza esta inspeccionada (sin liberación, liberada, rechazada)
                     $color = match ($releasedPiece->liberacion) {
                         0 => $color, //Sin liberación

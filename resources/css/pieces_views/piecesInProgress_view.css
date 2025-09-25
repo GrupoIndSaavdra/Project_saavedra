@@ -48,18 +48,16 @@ header {
 }
 .text-header-class {
     margin: 5px;
-    font-size: 1.4em;
+    font-size: 1.3em;
     font-weight: 100;
 }
 .workOrder-text {
-    font-size: 3em;
+    font-size: 3rem;
     font-weight: 700;
-    margin-bottom: 0.5em;
 }
 .pieces-text {
     font-size: 3em;
     font-weight: 700;
-    margin-bottom: 0.5em;
 }
 .finish-order {
     position: absolute;

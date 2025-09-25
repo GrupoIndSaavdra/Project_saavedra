@@ -179,7 +179,8 @@ class DatosProduccionController extends Controller
                 $meta = $this->obtenerMeta($pieza, $clase->nombre);
                 $operadores[$operadorName][$fecha] = ["Piezas buenas" => 0, "Piezas malas" => 0, "meta" => $meta, "Productividad" => 0];
             }
-            $cantidad = ($pieza->proceso == "Cepillado" || $pieza->proceso == "Desbaste Exterior" || $pieza->proceso == "Revision laterales") ? 0.5 : 1;
+            $processesAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado"];
+            $cantidad = in_array($pieza->proceso, $processesAssembly) ? 1 : 0.5;
             if ($pieza->error != "Ninguno") {
                 if ($pieza->liberacion == 1) {
                     $operadores[$operadorName][$fecha]["Piezas buenas"] += $cantidad;
@@ -220,14 +221,14 @@ class DatosProduccionController extends Controller
             "Cepillado" => ["cepillado", null],
             "Desbaste Exterior" => ["desbaste", null],
             "Revision Laterales" => ["revLaterales", null],
-            "Primera Operacion Soldadura" => ["primeraOpeSoldadura", null],
+            "Primera Operacion" => ["primeraOpeSoldadura", null],
             "Barreno Maniobra" => ["barrenoManiobra", null],
-            "Segunda Operacion Soldadura" => ["segundaOpeSoldadura", null],
+            "Segunda Operacion" => ["segundaOpeSoldadura", null],
             "Soldadura" => ["soldadura", null],
             "Soldadura PTA" => ["soldaduraPTA", null],
             "Rectificado" => ["rectificado", null],
             "Asentado" => ["asentado", null],
-            "Revision Calificado" => ["revCalificado", null],
+            "Calificado" => ["revCalificado", null],
             "Acabado Bombillo" => ["acabadoBombillo", null],
             "Acabado Molde" => ["acabadoMolde", null],
             "Cavidades" => "cavidades",
@@ -246,11 +247,7 @@ class DatosProduccionController extends Controller
     public function obtenerMeta($pieza, $nameClass)
     {
         //Obtener el id_proceso que esta asociado a la pieza
-        $processName = match($pieza->proceso) {
-            "Primera Operacion Soldadura" => "Primera_Operacion",
-            "Segunda Operacion Soldadura" => "Segunda_Operacion",
-            default => str_replace(" ", "_", $pieza->proceso),
-        };
+        $processName = str_replace(" ", "_", $pieza->proceso);
         $idString = $processName . "_" . $nameClass . "_" . $pieza->id_ot;
         $meta = $this->get_idMeta($idString, $pieza);
         return $meta->meta;
@@ -271,35 +268,35 @@ class DatosProduccionController extends Controller
                 $id_proceso = RevLaterales::where('id_proceso', $idString)->first();
                 $piezaFounded = RevLaterales_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
                 break;
-            case "Primera Operacion Soldadura":
+            case "Primera Operacion":
                 $id_proceso = PrimeraOpeSoldadura::where('id_proceso', $idString)->first();
                 $piezaFounded = PrimeraOpeSoldadura_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
                 break;
             case "Barreno Maniobra":
                 $id_proceso = BarrenoManiobra::where('id_proceso', $idString)->first();
-                $piezaFounded = BarrenoManiobra_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
+                $piezaFounded = BarrenoManiobra_pza::where('id_proceso', $id_proceso->id)->where("n_juego", $pieza->n_pieza)->first();
                 break;
-            case "Segunda Operacion Soldadura":
+            case "Segunda Operacion":
                 $id_proceso = SegundaOpeSoldadura::where('id_proceso', $idString)->first();
                 $piezaFounded = SegundaOpeSoldadura_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
                 break;
             case "Soldadura":
                 $id_proceso = Soldadura::where('id_proceso', $idString)->first();
-                $piezaFounded = Soldadura_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
+                $piezaFounded = Soldadura_pza::where('id_proceso', $id_proceso->id)->where("n_juego", $pieza->n_pieza)->first();
                 break;
             case "Soldadura PTA":
                 $id_proceso = SoldaduraPTA::where('id_proceso', $idString)->first();
-                $piezaFounded = SoldaduraPTA_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
+                $piezaFounded = SoldaduraPTA_pza::where('id_proceso', $id_proceso->id)->where("n_juego", $pieza->n_pieza)->first();
                 break;
             case "Rectificado":
                 $id_proceso = Rectificado::where('id_proceso', $idString)->first();
-                $piezaFounded = Rectificado_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
+                $piezaFounded = Rectificado_pza::where('id_proceso', $id_proceso->id)->where("n_juego", $pieza->n_pieza)->first();
                 break;
             case "Asentado":
                 $id_proceso = Asentado::where('id_proceso', $idString)->first();
-                $piezaFounded = Asentado_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
+                $piezaFounded = Asentado_pza::where('id_proceso', $id_proceso->id)->where("n_juego", $pieza->n_pieza)->first();
                 break;
-            case "Revision Calificado":
+            case "Calificado":
                 $id_proceso = revCalificado::where('id_proceso', $idString)->first();
                 $piezaFounded = revCalificado_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
                 break;
@@ -317,7 +314,7 @@ class DatosProduccionController extends Controller
                 break;
             case "Barreno Profundidad":
                 $id_proceso = BarrenoProfundidad::where('id_proceso', $idString)->first();
-                $piezaFounded = BarrenoManiobra_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
+                $piezaFounded = BarrenoManiobra_pza::where('id_proceso', $id_proceso->id)->where("n_juego", $pieza->n_pieza)->first();
                 break;
             case "Copiado":
                 $id_proceso = Copiado::where('id_proceso', $idString)->first();
@@ -329,11 +326,11 @@ class DatosProduccionController extends Controller
                 break;
             case "Palomas":
                 $id_proceso = Palomas::where('id_proceso', $idString)->first();
-                $piezaFounded = Palomas_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
+                $piezaFounded = Palomas_pza::where('id_proceso', $id_proceso->id)->where("n_juego", $pieza->n_pieza)->first();
                 break;
             case "Rebajes":
                 $id_proceso = Rebajes::where('id_proceso', $idString)->first();
-                $piezaFounded = Rebajes_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
+                $piezaFounded = Rebajes_pza::where('id_proceso', $id_proceso->id)->where("n_juego", $pieza->n_pieza)->first();
                 break;
             // case "Grabado":
             //     $id_proceso = Grabado::where('id_proceso', $idString)->first();
