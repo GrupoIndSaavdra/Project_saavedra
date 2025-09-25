@@ -10,39 +10,55 @@ class CepilladoController extends Controller
     {
         $this->middleware('auth');
     }
-    public function storePiece($request, $cNominal, $tolerance)
+    public function storePiece($request, $cNominal, $tolerance, $index)
     {
-        $piece = Pza_cepillado::find($request->piece);
-        //Guardar los datos de la pieza
-        $piece->fill($request->only([
-            'radiof_mordaza',
-            'radiof_mayor',
-            'radiof_sufridera',
-            'profuFinal_CFC',
-            'profuFinal_mitadMB',
-            'profuFinal_PCO',
-            'acetato_MB',
-            'ensamble',
-            'distancia_barrenoAli',
-            'profu_barrenoAliHembra',
-            'profu_barrenoAliMacho',
-            'altura_venaHembra',
-            'altura_venaMacho',
-            'ancho_vena',
-            'laterales',
-            'pin1',
-            'pin2',
-            'observaciones',
-        ]));
-        $piece->estado = 2;
+        if ($index !== null) {
+            $piece = Pza_cepillado::find($request->piece[$index]);
 
+            // Crear arreglo de datos por índice
+            $fields = ['radiof_mordaza', 'radiof_mayor', 'radiof_sufridera', 'profuFinal_CFC', 'profuFinal_mitadMB', 'profuFinal_PCO', 'acetato_MB', 'ensamble', 'distancia_barrenoAli', 'profu_barrenoAliHembra', 'profu_barrenoAliMacho', 'altura_venaHembra', 'altura_venaMacho', 'ancho_vena', 'laterales', 'pin1', 'pin2', 'observaciones'];
+
+            $data = array();
+            foreach($fields as $field){
+                $data[$field] = $request->$field[$index] ?? null;
+            }
+            $piece->fill($data);
+            $error = $request->error[$index];
+        } else {
+            $piece = Pza_cepillado::find($request->piece);
+            //Guardar los datos de la pieza
+            $piece->fill($request->only([
+                'radiof_mordaza',
+                'radiof_mayor',
+                'radiof_sufridera',
+                'profuFinal_CFC',
+                'profuFinal_mitadMB',
+                'profuFinal_PCO',
+                'acetato_MB',
+                'ensamble',
+                'distancia_barrenoAli',
+                'profu_barrenoAliHembra',
+                'profu_barrenoAliMacho',
+                'altura_venaHembra',
+                'altura_venaMacho',
+                'ancho_vena',
+                'laterales',
+                'pin1',
+                'pin2',
+                'observaciones',
+            ]));
+
+            $error = $request->error;
+        }
+
+        $piece->estado = 2;
         //Verificar si las medidas de la pieza estan correctas
         $correct = $this->comparePieceData($piece, $cNominal, $tolerance);
-        if ($correct == 0 && $request->error == "Ninguno") {
+        if ($correct == 0 && $error == "Ninguno") {
             $piece->error = 'Maquinado';
             $piece->correcto = 0;
-        } else if (($correct == 0 && $request->error == 'Fundicion') || ($correct == 1 && $request->error == 'Fundicion')) {
-            $piece->error = $request->error;
+        } else if (($correct == 0 && $error == 'Fundicion') || ($correct == 1 && $error == 'Fundicion')) {
+            $piece->error = $error;
             $piece->correcto = 0;
         } else {
             $piece->error = 'Ninguno';

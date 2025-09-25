@@ -6,7 +6,8 @@ export class Process {
         toleData,
         piecesData = [],
         pieceToBeUsed = null,
-        tablePieces = false
+        tablePieces = false,
+        edit = false
     ) {
         this.nameProcess = nameProcess;
         this.subprocess = subprocess;
@@ -16,6 +17,7 @@ export class Process {
         this.piecesData = piecesData;
         this.pieceToBeUsed = pieceToBeUsed != "NoPreviousPieces" ? pieceToBeUsed : null;
         this.tablePieces = tablePieces;
+        this.edit = edit;
     }
 
     getValues(fields, divisionCNomi, divisionsTole) {
@@ -426,7 +428,7 @@ export class Process {
         }
         return this.crearTabla(null, divisionsCNomi, divisionsTole, null, divisionsTitles);
     }
-    //prettier-ignore
+    // prettier-ignore
     crearTabla(names, divisionsCNomi, divisionsTole, values, divisionsTitles = [], fields = [], positionSelects = []) {
         // Crear tabla
         const table = document.createElement("table"); // Crear tabla
@@ -443,6 +445,7 @@ export class Process {
                 let titles = this.tableTitles.length > 2 ? [this.tableTitles] : this.tableTitles;
                 titles.forEach((array, indexArray) => {
                     tr = document.createElement("tr");
+                    tr.className = "table-row-title";
                     array.forEach((title, index) => {
                         let th = document.createElement("th");
                         th.className = "table-title";
@@ -469,8 +472,8 @@ export class Process {
                 case 1:
                 case 2:
                     if(this.nameProcess != "Soldadura" && this.nameProcess != "Asentado" && this.nameProcess != "Rectificado" && this.nameProcess != "Soldadura PTA"){
-
                         tr = document.createElement("tr");
+                        tr.className = "table-row-cNominals";
                         let divisions = i == 1 ? divisionsCNomi : divisionsTole;
     
                         for(let x=0; x < names[i - 1].length; x++) {
@@ -513,16 +516,48 @@ export class Process {
                                     if(divisions.includes(i)){
                                         for (let j = 0; j < 2; j++) {
                                             td.appendChild(this.crearInputs("input-medio", fields[i] + (j + 1), piece.piece[fields[i] + (j + 1)], this.dataType(piece.piece[fields[i] + (j + 1)])));
-                                            td.style.backgroundColor = piece.color;
+                                            if(!this.edit){
+                                                td.style.backgroundColor = piece.color;
+                                            }
                                         }
                                     }else {
-                                        if(fields[i] == "entradaSalida" && this.nameProcess == "Barreno Profundidad"){
-                                            td.appendChild(this.crearInputs("input-medio", "entrada", piece.piece["entrada"], this.dataType(piece.piece["entrada"])));
-                                            td.appendChild(this.crearInputs("input-medio", "salida", piece.piece["salida"], this.dataType(piece.piece["salida"])));
+                                        if(this.edit){
+                                            if (positionSelects[0].includes(i)) {
+                                                td.appendChild(
+                                                    this.createSelects(
+                                                        "select input-pieceUsed",
+                                                        fields[i],
+                                                        positionSelects[1][positionSelects[0].indexOf(i)],
+                                                        piece.piece[fields[i]]
+                                                    )
+                                                );
+                                            } else if (fields[i].includes("observaciones")) {
+                                                let textarea = document.createElement("textarea");
+                                                textarea.className = "textarea input-pieceUsed";
+                                                textarea.name = `${fields[i]}[]`;
+                                                textarea.value = piece.piece[fields[i]];
+                                                td.appendChild(textarea);
+                                            } else {
+                                                if (fields[i] == "entradaSalida" && this.nameProcess == "Barreno Profundidad") {
+                                                    td.appendChild(this.crearInputs("input-medio", "entrada", piece.piece["entrada"], piece.piece["entrada"]));
+                                                    td.appendChild(this.crearInputs("input-medio", "salida", piece.piece["salida"], piece.piece["salida"]));
+                                                } else {
+                                                    if (fields[i] == "tipo_soldadura" || fields[i] == "lote") {
+                                                        td.appendChild(this.crearInputs("input", fields[i], piece.piece[fields[i]], this.dataType(piece.piece[fields[i]])));
+                                                    } else {
+                                                        td.appendChild(this.crearInputs("input", fields[i], piece.piece[fields[i]], this.dataType(piece.piece[fields[i]])));
+                                                    }
+                                                }
+                                            }
                                         } else {
-                                            td.appendChild(this.crearInputs("input", fields[i], piece.piece[fields[i]], this.dataType(piece.piece[fields[i]])));
+                                            if(fields[i] == "entradaSalida" && this.nameProcess == "Barreno Profundidad"){
+                                                td.appendChild(this.crearInputs("input-medio", "entrada", piece.piece["entrada"], this.dataType(piece.piece["entrada"])));
+                                                td.appendChild(this.crearInputs("input-medio", "salida", piece.piece["salida"], this.dataType(piece.piece["salida"])));
+                                            } else {
+                                                td.appendChild(this.crearInputs("input", fields[i], piece.piece[fields[i]], this.dataType(piece.piece[fields[i]])));
+                                            }
+                                            td.style.backgroundColor = piece.color;
                                         }
-                                        td.style.backgroundColor = piece.color;
                                     }
                                     tr.appendChild(td);
                                 }else {
@@ -532,7 +567,15 @@ export class Process {
                                         "H": noPiece + " HEMBRA",
                                         "M": noPiece + " MACHO",
                                     }[letterPiece] || noPiece + " JUEGO";
-                                    td.style.backgroundColor = piece.color;
+                                    if(!this.edit){
+                                        td.style.backgroundColor = piece.color;
+                                    } else {
+                                        let inptHiddn_id = document.createElement("input");
+                                        inptHiddn_id.type = "hidden";
+                                        inptHiddn_id.value = piece.piece["id"];
+                                        table.appendChild(inptHiddn_id);
+                                        inptHiddn_id.name = "piece[]";
+                                    }
                                 }
                                 tr.appendChild(td);
                             }
@@ -544,86 +587,105 @@ export class Process {
                 if(this.pieceToBeUsed){ // Crear input de la pieza a utilizar
                     // console.log("Crear input de la pieza a utilizar: " + this.pieceToBeUsed.n_pieza);
                     // console.log("Crear input del juego a utilizar: " + this.pieceToBeUsed.n_juego);
-                    let divisions = divisionsCNomi;
-                    tr = document.createElement("tr");
-                    for (let x=0; x < fields.length; x++) {
-                        const td = document.createElement("td");
-                        if (x != 0) {
-                            if(divisions.includes(x)){
-                                //Crear los dos inputs e insertarlos en el mismo td
-                                for(let j = 0; j < 2; j++){
-                                    td.appendChild(this.crearInputs("input-medio input-pieceUsed", fields[x] + (j + 1), null, "number"));
-                                }
-                            } else {
-                                if(positionSelects[0].includes(x)){
-                                    td.appendChild(this.createSelects("select input-pieceUsed", fields[x], positionSelects[1][positionSelects[0].indexOf(x)]));
-                                } else if (fields[x].includes("observaciones")){
-                                    let textarea = document.createElement("textarea");
-                                    textarea.className = "textarea input-pieceUsed";
-                                    textarea.name = fields[x];
-                                    td.appendChild(textarea);
-                                } else {
-                                    if(fields[x] == "entradaSalida" && this.nameProcess == "Barreno Profundidad"){
-                                        td.appendChild(this.crearInputs("input-medio input-pieceUsed", "entrada", null, "number"));
-                                        td.appendChild(this.crearInputs("input-medio input-pieceUsed", "salida", null, "number"));
-                                    } else {
-                                        if(fields[x] == "tipo_soldadura" || fields[x] == "lote"){
-                                            td.appendChild(this.crearInputs("input input-pieceUsed", fields[x], null));
-                                        } else {
-                                            td.appendChild(this.crearInputs("input input-pieceUsed", fields[x], null, "number"));
-                                        }
-                                    }
-                                }
-                            }
-                        }else {
-                            if(this.pieceToBeUsed.n_pieza){
-                                let noPiece = this.pieceToBeUsed.n_pieza.slice(0, -1);
-                                let letterPiece = this.pieceToBeUsed.n_pieza[this.pieceToBeUsed.n_pieza.length - 1];
-                                if(letterPiece == "H"){
-                                    td.innerHTML = noPiece + " HEMBRA";
-                                } else if(letterPiece == "M"){
-                                    td.innerHTML = noPiece + " MACHO";
-                                } else {
-                                    td.innerHTML = noPiece + " JUEGO";
-                                }
-                            } else {
-                                let noPiece = this.pieceToBeUsed.n_juego.slice(0, -1);
-                                td.innerHTML = noPiece + " JUEGO";
-                            }
-                        }
-                        tr.appendChild(td);
+                    if(!this.edit){
+                        this.createPieceToBeUsed(tr, fields, divisionsCNomi, positionSelects, table);
                     }
-                    table.appendChild(tr);
                 }
                 break;
             }
         }
         return table;
     }
+    createPieceToBeUsed(tr, fields, divisionsCNomi, positionSelects, table) {
+        let divisions = divisionsCNomi;
+        tr = document.createElement("tr");
+        for (let x = 0; x < fields.length; x++) {
+            const td = document.createElement("td");
+            if (x != 0) {
+                if (divisions.includes(x)) {
+                    //Crear los dos inputs e insertarlos en el mismo td
+                    for (let j = 0; j < 2; j++) {
+                        td.appendChild(
+                            this.crearInputs("input-medio input-pieceUsed", fields[x] + (j + 1), null, "number")
+                        );
+                    }
+                } else {
+                    if (positionSelects[0].includes(x)) {
+                        td.appendChild(
+                            this.createSelects(
+                                "select input-pieceUsed",
+                                fields[x],
+                                positionSelects[1][positionSelects[0].indexOf(x)]
+                            )
+                        );
+                    } else if (fields[x].includes("observaciones")) {
+                        let textarea = document.createElement("textarea");
+                        textarea.className = "textarea input-pieceUsed";
+                        textarea.name = fields[x];
+                        td.appendChild(textarea);
+                    } else {
+                        if (fields[x] == "entradaSalida" && this.nameProcess == "Barreno Profundidad") {
+                            td.appendChild(this.crearInputs("input-medio input-pieceUsed", "entrada", null, "number"));
+                            td.appendChild(this.crearInputs("input-medio input-pieceUsed", "salida", null, "number"));
+                        } else {
+                            if (fields[x] == "tipo_soldadura" || fields[x] == "lote") {
+                                td.appendChild(this.crearInputs("input input-pieceUsed", fields[x], null));
+                            } else {
+                                td.appendChild(this.crearInputs("input input-pieceUsed", fields[x], null, "number"));
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (this.pieceToBeUsed.n_pieza) {
+                    let noPiece = this.pieceToBeUsed.n_pieza.slice(0, -1);
+                    let letterPiece = this.pieceToBeUsed.n_pieza[this.pieceToBeUsed.n_pieza.length - 1];
+                    if (letterPiece == "H") {
+                        td.innerHTML = noPiece + " HEMBRA";
+                    } else if (letterPiece == "M") {
+                        td.innerHTML = noPiece + " MACHO";
+                    } else {
+                        td.innerHTML = noPiece + " JUEGO";
+                    }
+                } else {
+                    let noPiece = this.pieceToBeUsed.n_juego.slice(0, -1);
+                    td.innerHTML = noPiece + " JUEGO";
+                }
+            }
+            tr.appendChild(td);
+        }
+        table.appendChild(tr);
+    }
     crearInputs(className, name, valueInput, type = "text") {
         let input = document.createElement("input");
         input.className = className;
         input.type = type;
-        if(type == "text"){
+        if (type == "text") {
             input.maxLength = 25;
         }
-        input.name = name;
+        input.name = this.edit ? `${name}[]` : name;
         input.step = "any";
         input.inputMode = "decimal";
         input.required = "true";
         input.value = valueInput || "";
         return input;
     }
-    createSelects(className, name, options) {
+    createSelects(className, name, options, value = null) {
         let select = document.createElement("select");
         select.className = className;
-        select.name = name;
+        select.name = this.edit ? `${name}[]` : name;
         options.forEach((option) => {
             let opt = document.createElement("option");
             opt.value = option;
             opt.text = option;
             select.appendChild(opt);
         });
+        if (value) {
+            let key = options.indexOf(value);
+            if(key > -1){
+                select.selectedIndex = key;
+            }
+        }
         return select;
     }
     dataType(value) {

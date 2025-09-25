@@ -10,27 +10,55 @@ class AsentadoController extends Controller
     {
         $this->middleware('auth');
     }
-    public function storePiece($request)
+    public function storePiece($request, $index)
     {
-        $piece = Asentado_pza::find($request->piece);
-        //Guardar los datos de la pieza
-        $piece->fill($request->only([
-            'sin_juego',
-            'sin_luz',
-            'observaciones',
-        ]));
-        $piece->estado = 2;
+        if ($index !== null) {
+            $piece = Asentado_pza::find($request->piece[$index]);
 
-        //Calcular el error
-        if ($request->error == "Fundicion") {
-            $piece->error = $request->error;
+            // Crear arreglo de datos por índice
+            $fields = [
+                'sin_juego',
+                'sin_luz',
+                'observaciones',
+            ];
+
+            $data = array();
+            foreach ($fields as $field) {
+                $data[$field] = $request->$field[$index] ?? null;
+            }
+            $piece->fill($data);
+
+            //Calcular el error
+            if ($request->error[$index] == "Fundicion") {
+                $piece->error = $request->error[$index];
+            } else {
+                if ($request->sin_juego[$index] == "X" || $request->sin_luz[$index] == "X") {
+                    $piece->error = "Maquinado";
+                } else {
+                    $piece->error = $request->error[$index];
+                }
+            }
         } else {
-            if($request->sin_juego == "X" || $request->sin_luz == "X"){
-                $piece->error = "Maquinado";
-            }else {
+            $piece = Asentado_pza::find($request->piece);
+            //Guardar los datos de la pieza
+            $piece->fill($request->only([
+                'sin_juego',
+                'sin_luz',
+                'observaciones',
+            ]));
+
+            //Calcular el error
+            if ($request->error == "Fundicion") {
                 $piece->error = $request->error;
+            } else {
+                if ($request->sin_juego == "X" || $request->sin_luz == "X") {
+                    $piece->error = "Maquinado";
+                } else {
+                    $piece->error = $request->error;
+                }
             }
         }
+        $piece->estado = 2;
         $piece->save();
     }
 }

@@ -263,26 +263,36 @@ class ProcessProductionController extends Controller
     {
         $meta = Metas::find($request->input('meta'));
         $class = Clase::find($meta->id_clase);
+        $this->savePiece($class, $meta->proceso, $request, $meta);
 
+        //Retornar pieza siguiente
+        return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->process, "edit" => 0])->with('success', 'Pieza registrada correctamente.');
+    }
+    public function savePiece($class, $processName, $request, $meta, $index = null, $arrayPieces = null)
+    {
         // Obtener los datos de CNominal y Tolerancia del proceso
-        if ($request->process != "Soldadura" && $request->process != "Asentado" && $request->process != "Rectificado" && $request->process != "Soldadura PTA") {
-            $id_process = str_replace(" ", "_", $request->process) . "_" . $class->nombre . "_" . $class->id_ot;
-            [$cNominalModel, $toleranceModel] = $this->getModelProcessCNominal_Tolerance($request->process);
+        if ($processName != "Soldadura" && $processName != "Asentado" && $processName != "Rectificado" && $processName != "Soldadura PTA") {
+            $id_process = str_replace(" ", "_", $processName) . "_" . $class->nombre . "_" . $class->id_ot;
+            [$cNominalModel, $toleranceModel] = $this->getModelProcessCNominal_Tolerance($processName);
             $cNominal = $cNominalModel::where("id_proceso", $id_process)->first();
             $tolerance = $toleranceModel::where("id_proceso", $id_process)->first();
 
             //Guardar los datos de la pieza en su respectiva tabla del proceso
-            $controllerProcess = $this->get_ControllerProcess($request->process);
-            $controllerProcess->storePiece($request, $cNominal, $tolerance);
+            $controllerProcess = $this->get_ControllerProcess($processName);
+            if ($processName == "Copiado") {
+                $controllerProcess->storePiece($request, $cNominal, $tolerance, $index !== null ? $index : null, $arrayPieces);
+            } else {
+                $controllerProcess->storePiece($request, $cNominal, $tolerance, $index !== null ? $index : null);
+            }
         } else {
             //Guardar los datos de la pieza en su respectiva tabla del proceso
-            $controllerProcess = $this->get_ControllerProcess($request->process);
-            $controllerProcess->storePiece($request);
+            $controllerProcess = $this->get_ControllerProcess($processName);
+            $controllerProcess->storePiece($request, $index !== null ? $index : null);
         }
 
         //Guardar la pieza en la tabla Piezas
         $modelProcessPiece = $this->get_ModelProcessPieces($request->process);
-        $piece = $modelProcessPiece::find($request->piece);
+        $piece = $modelProcessPiece::find($index !== null ? $request->piece[$index] : $request->piece);
         $n_piece = $piece->n_pieza ? $piece->n_pieza : $piece->n_juego;
         $pieceInPiezas = Pieza::where("id_clase", $class->id)->where("proceso", $request->process)->where("n_pieza", $n_piece)->first();
         if (!$pieceInPiezas) {
@@ -310,8 +320,6 @@ class ProcessProductionController extends Controller
         }
         $pieceInPiezas->error = $error;
         $pieceInPiezas->save();
-        //Retornar pieza siguiente
-        return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->process, "edit" => 0])->with('success', 'Pieza registrada correctamente.');
     }
     public function selectAssembly(Request $request)
     {
@@ -452,8 +460,21 @@ class ProcessProductionController extends Controller
         }
         return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->process, "edit" => 0])->with($param, $message);
     }
-    public function editPieces(Request $request) {
-        // Lógica para editar piezas
+    public function editPieces(Request $request)
+    {
+        $meta = Metas::find($request->meta);
+        $class = Clase::find($meta->id_clase);
+
+        $arrayPieces = array_unique($request->piece);
+        foreach ($arrayPieces as $index => $piece) {
+            if($meta->proceso == "Copiado"){
+                $this->savePiece($class, $meta->proceso, $request, $meta, $index, $arrayPieces);
+            } else {
+                $this->savePiece($class, $meta->proceso, $request, $meta, $index);
+            }
+        }
+        //Retornar pieza siguiente
+        return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->process, "edit" => 0])->with('success', 'Piezas editadas correctamente.');
     }
     public function editMeta(Request $request)
     {
@@ -647,6 +668,8 @@ class ProcessProductionController extends Controller
         $previousProcess = $this->convertProcessToString($this->get_previousProcess($class, $process));
         if ($previousProcess == "Desbaste Exterior" || $previousProcess == "Revision Laterales") {
             [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_LateralesOrDesbaste($process, $previousProcess, $class);
+        } else if ($previousProcess == "Soldadura PTA") {
+            [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_Soldaduras($process, $class);
         } else {
             $process = $process == "Operacion Equipo" ? $meta->proceso : $process;
             [$availableAssemblies, $remainingPieces] = $this->get_RemainingPieces($process, $previousProcess, $class);
@@ -656,8 +679,6 @@ class ProcessProductionController extends Controller
             $reverseProcess = $process == "Soldadura" ? "Soldadura PTA" : "Soldadura";
             $this->get_FilteredPiecesSoldadura_SoldaduraPTA($reverseProcess, $class, $availableAssemblies, $remainingPieces);
         }
-        // print_r($availableAssemblies);
-        // die("<br>" . $remainingPieces);
 
         // Asignar los valores en el array
         $arrayData = [
@@ -668,6 +689,64 @@ class ProcessProductionController extends Controller
         ];
         return $arrayData;
     }
+    public function getRemainingPieces_Soldaduras($process, $class)
+    {
+        //Obtener los juegos buenos maquinados en Soldadura y Soldadura PTA
+        $processes = ["Soldadura", "Soldadura PTA"];
+        $availableAssemblies = [];
+        foreach ($processes as $processArray) {
+            [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($processArray, $class);
+            foreach ($machinedPieces as $piece) {
+                if (!in_array($piece, $availableAssemblies)) {
+                    if ($this->verifyPiece(Pieza::where('n_pieza', $piece)->where('proceso', $processArray)->where('id_clase', $class->id)->first())) {
+                        $availableAssemblies[] = $piece;
+                    }
+                }
+            }
+        }
+
+        //Filtrar los juegos ocupados y maquinados
+        $remainingPieces = 0;
+        //Filtrar los juegos que pasaron y los que se encuentran registrados en el proceso actual
+        [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($process, $class); //Obtener las piezas maquinadas en el proceso actual
+        foreach ($availableAssemblies as $assembly) {
+            if (!in_array($assembly, $occupiedAssemblies)) {
+                $remainingPieces++;
+            } else { // Si el juego ya esta ocupado en el proceso actual pero no ha sido maquinado
+                $processAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Embudo CM"];
+                if (in_array($process, $processAssembly)) {
+                    if (!in_array($assembly, $machinedPieces)) {
+                        $remainingPieces += 1;
+                    } else {
+                        //Si ya esta maquinado eliminar del array de disponibles
+                        $key = array_search($assembly, $availableAssemblies);
+                        if ($key !== false) {
+                            unset($availableAssemblies[$key]);
+                            // Reindexar el array para evitar huecos en las claves
+                            $availableAssemblies = array_values($availableAssemblies);
+                        }
+                    }
+                } else {
+                    for ($i = 1; $i <= 2; $i++) {
+                        $halfPiece = substr($assembly, 0, -1) . ($i == 1 ? "H" : "M");
+                        if (!in_array($halfPiece, $machinedPieces)) {
+                            $remainingPieces += 0.5;
+                        } else {
+                            //Si ya esta maquinado eliminar del array de disponibles
+                            $key = array_search($assembly, $availableAssemblies);
+                            if ($key !== false) {
+                                unset($availableAssemblies[$key]);
+                                // Reindexar el array para evitar huecos en las claves
+                                $availableAssemblies = array_values($availableAssemblies);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return [$availableAssemblies, $remainingPieces];
+    }
+
     public function get_FilteredPiecesSoldadura_SoldaduraPTA($reverseProcess, $class, &$availableAssemblies, &$remainingPieces)
     {
         // Filtrar los juegos que aun no han sido maquinados en el proceso inverso

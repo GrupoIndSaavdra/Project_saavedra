@@ -383,6 +383,7 @@ td select {
     align-items: center;
     text-align: center;
     background: #0000003a;
+    z-index: 1;
 }
 .alert-NoCotas {
     display: flex;

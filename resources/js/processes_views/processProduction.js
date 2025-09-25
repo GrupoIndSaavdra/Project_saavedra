@@ -349,7 +349,7 @@ function createTable() {
     } else {
         cNominalsBool = !!window.arrayData?.cNominals;
     }
-    
+
     //Crear el contenedor de la tabla
     let scrollableTable = document.createElement("div");
     scrollableTable.className = "scrollable-table";
@@ -399,7 +399,7 @@ function createTable() {
             div.innerHTML =
                 "No hay Cotas Nominales disponibles. Notificar inmediatamente al area de software o calidad.";
             form.appendChild(div);
-            form.appendChild(
+            body.appendChild(
                 showDivAlert(
                     "Las Cotas Nominales y tolerancias aun no se han cargado. Por favor notifica al area de Calidad o Software",
                     true
@@ -459,7 +459,8 @@ function insertTableOnForm(cNominals, tolerances, scrollableTable, form, subproc
         tolerances,
         window.arrayData["machinedPiecesInMeta"] ?? [],
         window.pieceToBeUsed ?? null,
-        true
+        true,
+        window.arrayData["edit"] == 2 ? true : false
     );
     //Insertar tabla
     let table = process.createProcess();
@@ -479,29 +480,44 @@ function insertButton_saveOrChoose(form, table) {
             form.appendChild(btn);
         } else {
             //Mostrar DIV de alerta para "No hay piezas registradas anteriormente"
-            form.appendChild(
-                showDivAlert(
-                    "No hay piezas registradas anteriormente. Por favor notifica a un Supervisor o al área de Software.",
-                    true
-                )
-            );
+            document
+                .querySelector("body")
+                .appendChild(
+                    showDivAlert(
+                        "No hay piezas registradas anteriormente. Por favor notifica a un Supervisor o al área de Software.",
+                        true
+                    )
+                );
         }
     } else {
         if (window.arrayData["availableAssemblies"].length > 0) {
-            // Cambiar la ruta del formulario para seleccionar un juego y registralo
-            form.action = window.baseUrl + "/processProduction/selectAssembly";
+            if (window.arrayData["edit"] != 2) {
+                // Cambiar la ruta del formulario para seleccionar un juego y registralo
+                form.action = window.baseUrl + "/processProduction/selectAssembly";
 
-            insertAvaliablePiecesSelect(table); // Insertar select de piezas disponibles
+                insertAvaliablePiecesSelect(table); // Insertar select de piezas disponibles
 
-            // Crear botón de "Elegir pieza"
+                // Crear botón de "Elegir pieza"
+                let btn = document.createElement("button");
+                btn.type = "submit";
+                btn.className = "btn-savePiece";
+                btn.textContent = "Elegir pieza";
+                form.appendChild(btn);
+            }
+        } else {
+            //Mostrar DIV de alerta para "No hay piezas disponibles"
+            if (window.arrayData["edit"] != 2) {
+                document
+                    .querySelector("body")
+                    .appendChild(showDivAlert("No hay piezas por registrar", true, window.imgNoPieces));
+            }
+        }
+        if (window.arrayData["edit"] == 2) {
             let btn = document.createElement("button");
             btn.type = "submit";
             btn.className = "btn-savePiece";
-            btn.textContent = "Elegir pieza";
+            btn.textContent = "Guardar";
             form.appendChild(btn);
-        } else {
-            //Mostrar DIV de alerta para "No hay piezas disponibles"
-            form.appendChild(showDivAlert("No hay piezas por registrar", true, window.imgNoPieces));
         }
     }
 }
@@ -598,7 +614,12 @@ function disabledInputsTable(table) {
         if (inputs.length > 0) {
             inputs.forEach((input) => {
                 if (input.className != "input input-pieceUsed" && input.className != "input-medio input-pieceUsed") {
-                    input.disabled = true;
+                    if (window.arrayData["edit"] == 2) {
+                        input.disabled =
+                            input.parentElement.parentElement.className === "table-row-cNominals" ? true : false;
+                    } else {
+                        input.disabled = true;
+                    }
                 } else {
                     input.style.backgroundColor = "#fff";
                 }
@@ -694,8 +715,7 @@ function createBtnCancelEdit() {
 }
 
 // Editar las piezas ya registradas en la meta
-function insertButtonEditPieces(){
-    
+function insertButtonEditPieces() {
     let div = document.createElement("div");
     div.className = "div-editPieces";
 
@@ -723,7 +743,7 @@ function insertButtonEditPieces(){
             input_meta.type = "hidden";
             input_meta.name = "meta";
             input_meta.value = window.arrayData["meta"].id;
-            
+
             form.appendChild(input_meta);
             form.appendChild(input_hidden);
             form.appendChild(createInputPassword());
@@ -737,40 +757,46 @@ function insertButtonEditPieces(){
     };
 }
 
-
-
 //Ejecucion del script
 if (window.arrayData) {
+    console.log(window.arrayData);
     if (window.arrayData["edit"]) {
         if (window.arrayData["edit"] == 1) {
             //Cambiar la ruta del formulario a la de editar y crear el botón de cancelar edición
-            changeFormRoute(document.querySelector(".div-table-meta"), document.querySelector(".form-principal-data"), "/processProduction/editMeta");
+            changeFormRoute(
+                document.querySelector(".div-table-meta"),
+                document.querySelector(".form-principal-data"),
+                "/processProduction/editMeta"
+            );
             let btnCancel = document.querySelector(".btn-cancel");
             btnCancel.style.top = "0";
             btnCancel.style.left = "0";
-            if (window.arrayData["numberPieces"] > 0) { // Si ya se han registrado piezas, solo habilitar los inputs de tiempo y fecha
+            if (window.arrayData["numberPieces"] > 0) {
+                // Si ya se han registrado piezas, solo habilitar los inputs de tiempo y fecha
                 createInputsWithValue(window.arrayData, ["startTime", "endTime", "date"]);
-            } else { // Si no se han registrado piezas, habilitar todos los inputs
+            } else {
+                // Si no se han registrado piezas, habilitar todos los inputs
                 insertSelects();
             }
         } else {
             createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
             enableTable(); // Habilitar la tabla de piezas
             //Cambiar la ruta del formulario a la de editar y crear el botón de cancelar edición
-            changeFormRoute(document.querySelector(".container-meta"), document.querySelector(".form-tablePieces"), "/processProduction/editPieces");
+            changeFormRoute(
+                document.querySelector(".container-meta"),
+                document.querySelector(".form-tablePieces"),
+                "/processProduction/editPieces"
+            );
             let btnCancel = document.querySelector(".btn-cancel");
             btnCancel.style.bottom = "0";
             btnCancel.style.right = "6em";
-            if(document.querySelector(".btn-savePiece")){
-                document.querySelector(".btn-savePiece").remove(); // Eliminar el botón de guardar pieza
-            }
         }
     } else {
         createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
         document.querySelector(".div-table-meta").appendChild(createBtnMetaEdit()); // Insertar botón de editar meta
         addEventToFinishReport(); // Agregar evento al botón de terminar reporte
         enableTable(); // Habilitar la tabla de piezas
-        if(window.arrayData["machinedPiecesInMeta"] && window.arrayData["machinedPiecesInMeta"].length > 0){
+        if (window.arrayData["machinedPiecesInMeta"] && window.arrayData["machinedPiecesInMeta"].length > 0) {
             insertButtonEditPieces(); // Insertar botón para editar piezas
         }
     }

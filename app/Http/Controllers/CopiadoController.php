@@ -10,47 +10,95 @@ class CopiadoController extends Controller
     {
         $this->middleware('auth');
     }
-    public function storePiece($request, $cNominal, $tolerance)
+    public function storePiece($request, $cNominal, $tolerance, $index, $arrayPieces)
     {
-        $piece = Copiado_pza::find($request->piece);
-        //Guardar los datos de la pieza
-        $piece->fill($request->only([
-            'diametro1_cilindrado',
-            'profundidad1_cilindrado',
-            'diametro2_cilindrado',
-            'profundidad2_cilindrado',
-            'diametro_sufridera',
-            'diametro_ranura',
-            'profundidad_ranura',
-            'profundidad_sufridera',
-            'altura_total',
-            'diametro1_cavidades',
-            'profundidad1_cavidades',
-            'diametro2_cavidades',
-            'profundidad2_cavidades',
-            'diametro3',
-            'profundidad3',
-            'diametro4',
-            'profundidad4',
-            'volumen',
-            'observaciones_cilindrado',
-            'observaciones_cavidades'
-        ]));
-        $piece->estado = 2;
-        //Verificar si las medidas de la pieza estan correctas
-        $correctSubprocess = $this->comparePieceData($piece, $cNominal, $tolerance);
-        foreach ($correctSubprocess as $key => $value) {
-            if ($value == 0 && $request->error == "Ninguno") {
-                $piece->$key = 'Maquinado';
-                $piece->correcto = 0;
-            } else if (($value == 0 && $request->$key == 'Fundicion') || ($value == 1 && $request->$key == 'Fundicion')) {
-                $piece->$key = $request->$key;
-                $piece->correcto = 0;
-            } else {
-                $piece->$key = 'Ninguno';
-                $piece->correcto = 1;
+        if ($index !== null) {
+            $piece = Copiado_pza::find($arrayPieces ? $arrayPieces[$index] : $request->piece[$index]);
+
+            // Crear arreglo de datos por índice
+            $fields = [
+                'diametro1_cilindrado',
+                'profundidad1_cilindrado',
+                'diametro2_cilindrado',
+                'profundidad2_cilindrado',
+                'diametro_sufridera',
+                'diametro_ranura',
+                'profundidad_ranura',
+                'profundidad_sufridera',
+                'altura_total',
+                'diametro1_cavidades',
+                'profundidad1_cavidades',
+                'diametro2_cavidades',
+                'profundidad2_cavidades',
+                'diametro3',
+                'profundidad3',
+                'diametro4',
+                'profundidad4',
+                'volumen',
+                'observaciones_cilindrado',
+                'observaciones_cavidades'
+            ];
+
+            $data = array();
+            foreach ($fields as $field) {
+                $data[$field] = $request->$field[$index] ?? null;
+            }
+            $piece->fill($data);
+            //Verificar si las medidas de la pieza estan correctas
+            $correctSubprocess = $this->comparePieceData($piece, $cNominal, $tolerance);
+            foreach ($correctSubprocess as $key => $value) {
+                if ($value == 0 && $request->error == "Ninguno") {
+                    $piece->$key = 'Maquinado';
+                    $piece->correcto = 0;
+                } else if (($value == 0 && $request->$key[$index] == 'Fundicion') || ($value == 1 && $request->$key[$index] == 'Fundicion')) {
+                    $piece->$key = $request->$key[$index];
+                    $piece->correcto = 0;
+                } else {
+                    $piece->$key = 'Ninguno';
+                    $piece->correcto = 1;
+                }
+            }
+        } else {
+            $piece = Copiado_pza::find($request->piece);
+            //Guardar los datos de la pieza
+            $piece->fill($request->only([
+                'diametro1_cilindrado',
+                'profundidad1_cilindrado',
+                'diametro2_cilindrado',
+                'profundidad2_cilindrado',
+                'diametro_sufridera',
+                'diametro_ranura',
+                'profundidad_ranura',
+                'profundidad_sufridera',
+                'altura_total',
+                'diametro1_cavidades',
+                'profundidad1_cavidades',
+                'diametro2_cavidades',
+                'profundidad2_cavidades',
+                'diametro3',
+                'profundidad3',
+                'diametro4',
+                'profundidad4',
+                'volumen',
+                'observaciones_cilindrado',
+                'observaciones_cavidades'
+            ]));
+            //Verificar si las medidas de la pieza estan correctas
+            $correctSubprocess = $this->comparePieceData($piece, $cNominal, $tolerance);
+            foreach ($correctSubprocess as $key => $value) {
+                if ($value == 0 && $request->error == "Ninguno") {
+                    $piece->$key = 'Maquinado';
+                    $piece->correcto = 0;
+                } else if (($value == 0 && $request->$key == 'Fundicion') || ($value == 1 && $request->$key == 'Fundicion')) {
+                    $piece->$key = $request->$key;
+                    $piece->correcto = 0;
+                } else {
+                    $piece->$key = 'Ninguno';
+                    $piece->correcto = 1;
+                }
             }
         }
+        $piece->estado = 2;
         $piece->save();
     }
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.

@@ -10,35 +10,50 @@ class DesbasteExteriorController extends Controller
     {
         $this->middleware('auth');
     }
-    public function storePiece($request, $cNominal, $tolerance)
+    public function storePiece($request, $cNominal, $tolerance, $index)
     {
-        $piece = Desbaste_pza::find($request->piece);
-        //Guardar los datos de la pieza
-        $piece->fill($request->only([
-            'diametro_mordaza',
-            'diametro_ceja',
-            'diametro_sufrideraExtra',
-            'simetria_ceja',
-            'simetria_mordaza',
-            'altura_ceja',
-            'altura_sufridera',
-            'observaciones',
-        ]));
+        if ($index !== null) {
+            $piece = Desbaste_pza::find($request->piece[$index]);
+
+            // Crear arreglo de datos por índice
+            $fields = ['diametro_mordaza', 'diametro_ceja', 'diametro_sufrideraExtra', 'simetria_ceja', 'simetria_mordaza', 'altura_ceja', 'altura_sufridera', 'observaciones',];
+
+            $data = array();
+            foreach ($fields as $field) {
+                $data[$field] = $request->$field[$index] ?? null;
+            }
+            $piece->fill($data);
+            $error = $request->error[$index];
+        } else {
+            $piece = Desbaste_pza::find($request->piece);
+            //Guardar los datos de la pieza
+            $piece->fill($request->only([
+                'diametro_mordaza',
+                'diametro_ceja',
+                'diametro_sufrideraExtra',
+                'simetria_ceja',
+                'simetria_mordaza',
+                'altura_ceja',
+                'altura_sufridera',
+                'observaciones',
+            ]));
+            $error = $request->error;
+        }
         $piece->estado = 2;
 
         //Verificar si las medidas de la pieza estan correctas
         $correct = $this->comparePieceData($piece, $cNominal, $tolerance);
-        if ($correct == 0 && $request->error == "Ninguno") {
+        if ($correct == 0 && $error == "Ninguno") {
             $piece->error = 'Maquinado';
             $piece->correcto = 0;
-        } else if (($correct == 0 && $request->error == 'Fundicion') || ($correct == 1 && $request->error == 'Fundicion')) {
-            $piece->error = $request->error;
+        } else if (($correct == 0 && $error == 'Fundicion') || ($correct == 1 && $error == 'Fundicion')) {
+            $piece->error = $error;
             $piece->correcto = 0;
         } else {
             $piece->error = 'Ninguno';
             $piece->correcto = 1;
         }
-        $piece->save();
+        $piece->save(); 
     }
 
 

@@ -10,22 +10,45 @@ class RectificadoController extends Controller
     {
         $this->middleware('auth');
     }
-    public function storePiece($request)
+    public function storePiece($request, $index)
     {
-        $piece = Rectificado_pza::find($request->piece);
-        //Guardar los datos de la pieza
-        $piece->fill($request->only([
-            'cumple',
-            'observaciones',
-        ]));
-        $piece->estado = 2;
-        
-        //Calcular el error
-        if($request->error == "Fundicion"){
-            $piece->error = $request->error;
+        if ($index !== null) {
+            $piece = Rectificado_pza::find($request->piece[$index]);
+
+            // Crear arreglo de datos por índice
+            $fields = [
+                'cumple',
+                'observaciones',
+            ];
+
+            $data = array();
+            foreach ($fields as $field) {
+                $data[$field] = $request->$field[$index] ?? null;
+            }
+            $piece->fill($data);
+
+            //Calcular el error
+            if ($request->error[$index] == "Fundicion") {
+                $piece->error = $request->error[$index];
+            } else {
+                $piece->error = $request->cumple[$index] == "Si" ? $request->error[$index] : "Maquinado";
+            }
         } else {
-            $piece->error = $request->cumple == "Si" ? $request->error : "Maquinado";
+            $piece = Rectificado_pza::find($request->piece);
+            //Guardar los datos de la pieza
+            $piece->fill($request->only([
+                'cumple',
+                'observaciones',
+            ]));
+
+            //Calcular el error
+            if ($request->error == "Fundicion") {
+                $piece->error = $request->error;
+            } else {
+                $piece->error = $request->cumple == "Si" ? $request->error : "Maquinado";
+            }
         }
+        $piece->estado = 2;
         $piece->save();
     }
 }

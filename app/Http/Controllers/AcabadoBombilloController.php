@@ -10,40 +10,75 @@ class AcabadoBombilloController extends Controller
     {
         $this->middleware('auth');
     }
-    public function storePiece($request, $cNominal, $tolerance)
+    public function storePiece($request, $cNominal, $tolerance, $index)
     {
-        $piece = AcabadoBombilo_pza::find($request->piece);
-        //Guardar los datos de la pieza
-        $piece->fill($request->only([
-            'diametro_mordaza',
-            'diametro_ceja',
-            'diametro_sufridera',
-            'altura_mordaza',
-            'altura_ceja',
-            'altura_sufridera',
-            'gauge_ceja',
-            'gauge_corona',
-            'gauge_llanta',
-            'altura_total',
-            'diametro_boca',
-            'diametro_asiento_corona',
-            'diametro_llanta',
-            'diametro_caja_corona',
-            'profundidad_corona',
-            'angulo_30',
-            'profundidad_caja_corona',
-            'simetria',
-            'observaciones',
-        ]));
+        if ($index !== null) {
+            $piece = AcabadoBombilo_pza::find($request->piece[$index]);
+
+            // Crear arreglo de datos por índice
+            $fields = [
+                'diametro_mordaza',
+                'diametro_ceja',
+                'diametro_sufridera',
+                'altura_mordaza',
+                'altura_ceja',
+                'altura_sufridera',
+                'gauge_ceja',
+                'gauge_corona',
+                'gauge_llanta',
+                'altura_total',
+                'diametro_boca',
+                'diametro_asiento_corona',
+                'diametro_llanta',
+                'diametro_caja_corona',
+                'profundidad_corona',
+                'angulo_30',
+                'profundidad_caja_corona',
+                'simetria',
+                'observaciones',
+            ];
+
+            $data = array();
+            foreach ($fields as $field) {
+                $data[$field] = $request->$field[$index] ?? null;
+            }
+            $piece->fill($data);
+            $error = $request->error[$index];
+        } else {
+            $piece = AcabadoBombilo_pza::find($request->piece);
+            //Guardar los datos de la pieza
+            $piece->fill($request->only([
+                'diametro_mordaza',
+                'diametro_ceja',
+                'diametro_sufridera',
+                'altura_mordaza',
+                'altura_ceja',
+                'altura_sufridera',
+                'gauge_ceja',
+                'gauge_corona',
+                'gauge_llanta',
+                'altura_total',
+                'diametro_boca',
+                'diametro_asiento_corona',
+                'diametro_llanta',
+                'diametro_caja_corona',
+                'profundidad_corona',
+                'angulo_30',
+                'profundidad_caja_corona',
+                'simetria',
+                'observaciones',
+            ]));
+            $error = $request->error;
+        }
         $piece->estado = 2;
 
         //Verificar si las medidas de la pieza estan correctas
         $correct = $this->comparePieceData($piece, $cNominal, $tolerance);
-        if ($correct == 0 && $request->error == "Ninguno") {
+        if ($correct == 0 && $error == "Ninguno") {
             $piece->error = 'Maquinado';
             $piece->correcto = 0;
-        } else if (($correct == 0 && $request->error == 'Fundicion') || ($correct == 1 && $request->error == 'Fundicion')) {
-            $piece->error = $request->error;
+        } else if (($correct == 0 && $error == 'Fundicion') || ($correct == 1 && $error == 'Fundicion')) {
+            $piece->error = $error;
             $piece->correcto = 0;
         } else {
             $piece->error = 'Ninguno';
