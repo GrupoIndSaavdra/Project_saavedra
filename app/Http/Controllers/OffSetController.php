@@ -11,32 +11,59 @@ class OffSetController extends Controller
     {
         $this->middleware('auth');
     }
-    public function storePiece($request, $cNominal, $tolerance)
+    public function storePiece($request, $cNominal, $tolerance, $index)
     {
-        $piece = OffSet_pza::find($request->piece);
-        //Guardar los datos de la pieza
-        $piece->fill($request->only([
-            'anchoRanura',
-            'profuTaconHembra',
-            'profuTaconMacho',
-            'simetriaHembra',
-            'simetriaMacho',
-            'anchoTacon',
-            'barrenoLateralHembra',
-            'barrenoLateralMacho',
-            'alturaTaconInicial',
-            'alturaTaconIntermedia',
-            'observaciones',
-        ]));
+        if ($index !== null) {
+            $piece = OffSet_pza::find($request->piece[$index]);
+
+            // Crear arreglo de datos por índice
+            $fields = [
+                'anchoRanura',
+                'profuTaconHembra',
+                'profuTaconMacho',
+                'simetriaHembra',
+                'simetriaMacho',
+                'anchoTacon',
+                'barrenoLateralHembra',
+                'barrenoLateralMacho',
+                'alturaTaconInicial',
+                'alturaTaconIntermedia',
+                'observaciones',
+            ];
+
+            $data = array();
+            foreach ($fields as $field) {
+                $data[$field] = $request->$field[$index] ?? null;
+            }
+            $piece->fill($data);
+            $error = $request->error[$index];
+        } else {
+            $piece = OffSet_pza::find($request->piece);
+            //Guardar los datos de la pieza
+            $piece->fill($request->only([
+                'anchoRanura',
+                'profuTaconHembra',
+                'profuTaconMacho',
+                'simetriaHembra',
+                'simetriaMacho',
+                'anchoTacon',
+                'barrenoLateralHembra',
+                'barrenoLateralMacho',
+                'alturaTaconInicial',
+                'alturaTaconIntermedia',
+                'observaciones',
+            ]));
+            $error = $request->error;
+        }
         $piece->estado = 2;
 
         //Verificar si las medidas de la pieza estan correctas
         $correct = $this->comparePieceData($piece, $cNominal, $tolerance);
-        if ($correct == 0 && $request->error == "Ninguno") {
+        if ($correct == 0 && $error == "Ninguno") {
             $piece->error = 'Maquinado';
             $piece->correcto = 0;
-        } else if (($correct == 0 && $request->error == 'Fundicion') || ($correct == 1 && $request->error == 'Fundicion')) {
-            $piece->error = $request->error;
+        } else if (($correct == 0 && $error == 'Fundicion') || ($correct == 1 && $error == 'Fundicion')) {
+            $piece->error = $error;
             $piece->correcto = 0;
         } else {
             $piece->error = 'Ninguno';

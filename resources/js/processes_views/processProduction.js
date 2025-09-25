@@ -313,6 +313,7 @@ function createInputPassword() {
     let form_group = document.createElement("div");
     form_group.className = "form-group-password";
     form_group.style.width = "100%";
+    form_group.style.zIndex = "1000";
 
     let inputPassword = document.createElement("input");
     inputPassword.type = "password";
@@ -551,10 +552,15 @@ function insertAvaliablePiecesSelect(table) {
     table.appendChild(tr);
 }
 
-function showDivAlert(text, close, img) {
+function createDivOpacity() {
     let div_padre = document.createElement("div");
     div_padre.className = "div-opacity";
     div_padre.id = "div-opacity";
+
+    return div_padre;
+}
+function showDivAlert(text, close, img) {
+    let div_padre = createDivOpacity();
 
     let div = document.createElement("div");
     div.className = "alert-NoCotas";
@@ -643,6 +649,9 @@ function createBtnMetaEdit() {
 
     btn_edit.addEventListener("click", function () {
         if (btn_edit.src == window.edit) {
+            //Insertar el div-opacity
+            document.querySelector("body").appendChild(createDivOpacity());
+
             let form_group_password = createInputPassword();
             let table_meta = document.querySelector(".table-meta");
 
@@ -655,12 +664,18 @@ function createBtnMetaEdit() {
             table_meta.before(form_group_password);
 
             btn_edit.src = window.back;
+            btn_edit.style.zIndex = "1000";
         } else {
             let form_group_password = document.querySelector(".form-group-password");
             if (form_group_password) {
                 form_group_password.remove();
+                let div_opacity = document.getElementById("div-opacity");
+                if (div_opacity) {
+                    div_opacity.remove();
+                }
             }
             btn_edit.src = window.edit;
+            btn_edit.style.zIndex = "1";
         }
     });
 
@@ -730,6 +745,8 @@ function insertButtonEditPieces() {
     img.onclick = function () {
         //Insertar campo de contraseña para editar piezas
         if (img.src == window.imgEditPieces) {
+            document.querySelector("body").appendChild(createDivOpacity());
+
             div.style.width = "40%";
             let form = createForm("/processProduction/verified");
             form.className = "form-verifyPassword";
@@ -744,14 +761,21 @@ function insertButtonEditPieces() {
             input_meta.name = "meta";
             input_meta.value = window.arrayData["meta"].id;
 
+            let form_group_password = createInputPassword();
+            form.appendChild(form_group_password);
             form.appendChild(input_meta);
             form.appendChild(input_hidden);
-            form.appendChild(createInputPassword());
 
             img.before(form);
+            div.style.zIndex = "1000";
         } else {
             div.querySelector(".form-verifyPassword").remove();
             div.style.width = "auto";
+            div.style.zIndex = "1";
+            let div_opacity = document.getElementById("div-opacity");
+            if (div_opacity) {
+                div_opacity.remove();
+            }
         }
         img.src = img.src == window.imgEditPieces ? window.back : window.imgEditPieces;
     };

@@ -373,7 +373,7 @@ td select {
     margin: 1em 0;
 } */
 .div-opacity {
-    position: absolute;
+    position: fixed;
     top: 0;
     width: 100vw;
     height: 100vh;
@@ -383,6 +383,8 @@ td select {
     align-items: center;
     text-align: center;
     background: #0000003a;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(8px); /* Safari */
     z-index: 1;
 }
 .alert-NoCotas {
@@ -460,7 +462,7 @@ td select {
     right: 8em;
     bottom: 0;
     box-sizing: border-box;
-    height: 3.5em;
+    height: 3em;
 }
 .form-verifyPassword {
     width: 100%;
