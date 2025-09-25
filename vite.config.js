@@ -15,6 +15,7 @@ export default defineConfig({
                 
                 //View home
                 "resources/css/home.css",
+                "resources/js/home.js",
 
                 //View login
                 "resources/css/auth/login.css",

@@ -86,15 +86,11 @@ body {
 }
 .btn-close-session {
     position: absolute;
-    bottom: 2em;
-    right: 1em;
     background-color: #9c0303;
     color: #fff;
     text-align: center;
-    width: 140px;
-    padding: 10px;
-    margin: 0 15px;
-    border-radius: 5px;
+    padding: 1em;
+    border-radius: 10px;
     border: none;
     font-weight: 700;
     font-size: 1.2em;

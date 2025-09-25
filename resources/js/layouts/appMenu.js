@@ -4,6 +4,9 @@ import "../layouts/partials/messages.js";
 let btn_open = document.querySelector(".open-menu"); //Obtenemos el elemento por su id.
 let nav = document.querySelector(".filter-opacity"); //Obtenemos el elemento por su id.
 
+// Crear la lista de rutas
+let profile = document.getElementById("profile").value;
+createMenu(profile);
 //Agregamos un evento al botón de abrir
 btn_open.addEventListener("click", function () {
     //Agregamos un evento al botón de abrir
@@ -18,15 +21,18 @@ btn_open.addEventListener("click", function () {
     nav.style.translationX = "0%"; //Agregamos una transición al nav.
 });
 
-// Crear la lista de rutas
-let profile = document.getElementById("profile").value;
-createMenu(profile);
 
 //Funcion para crear La lista de rutas para el menu
 function createMenu(profile) {
-    let routes = getRoutes(profile);
-    let ul = document.querySelector(".nav-list");
-    ul.appendChild(createList(routes));
+    if(profile == 2) {
+        let btn_open = document.querySelector(".open-menu"); //Obtenemos el elemento por su id.
+        btn_open.style.opacity = "0"; //Cambiamos la opacidad del nav.
+        btn_open.style.pointerEvents = "none"; //Cambiamos la opacidad del nav.
+    } else {
+        let routes = getRoutes(profile);
+        let ul = document.querySelector(".nav-list");
+        ul.appendChild(createList(routes));
+    }
 }
 
 function createList(sections) {
@@ -149,28 +155,6 @@ function getRoutes(profile) {
                     title: null,
                     routes: [
                         ["processProduction", "Proceso de Producción"],
-
-                        ["cepillado", "Cepillado"],
-                        ["desbasteExterior", "Desbaste exterior"],
-                        ["revisionLaterales", "Revisión de laterales"],
-                        ["primeraOpeSoldadura", "1ra Operación Soldadura"],
-                        ["barrenoManiobra", "Barreno de maniobra"],
-                        ["segundaOpeSoldadura", "2da Operación Soldadura"],
-                        ["soldadura", "Soldadura"],
-                        ["soldaduraPTA", "Soldadura PTA"],
-                        ["rectificado", "Reporte diario de rectificado"],
-                        ["asentado", "Asentado"],
-                        ["calificado", "Calificado"],
-                        ["acabadoBombillo", "Revisión acabados bombillo"],
-                        ["acabadoMolde", "Revisión acabados molde"],
-                        ["barrenoProfundidad", "Barreno de profundidad"],
-                        ["cavidades", "Reporte diario de Cavidades"],
-                        ["copiado", "Reporte de Copiado"],
-                        ["offSet", "Ranura Off-Set"],
-                        ["palomas", "Reporte de Palomas"],
-                        ["rebajes", "Rebajes"],
-                        ["operacionEquipo", "1ra y 2da Operación Equipo"],
-                        ["embudoCM", "Embudo C.M"],
                     ],
                 },
             ];

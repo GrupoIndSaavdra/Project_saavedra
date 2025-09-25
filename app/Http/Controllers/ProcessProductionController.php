@@ -652,7 +652,7 @@ class ProcessProductionController extends Controller
             }
             return redirect()->route('home');
         }
-        return redirect()->back()->with('error', 'Meta no encontrada.');
+        return redirect()->route('home')->with('error', 'Meta no encontrada.');
     }
 
     public function get_ArrayPieces($process, $class, $meta)

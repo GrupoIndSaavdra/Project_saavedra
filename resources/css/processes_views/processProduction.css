@@ -52,6 +52,9 @@ body {
     border: 5px solid #033966d4;
     color: #ffffff;
 }
+td {
+    position: relative;
+}
 .form-label {
     font-size: 1.3rem;
     font-weight: 700;

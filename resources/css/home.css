@@ -14,9 +14,11 @@
 }
 /* Introduction section */
 .intro {
-    margin: auto;
-    max-width: 50em;
-    margin-top: 17em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
 }
 .intro-img {
     width: 100%;
@@ -43,7 +45,66 @@
     text-align: justify;
     margin-top: 1em;
 }
+.btn-close-session-home {
+    position: absolute;
+    bottom: 5%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centrado real */
+    background-color: #b30404;
+    color: white;
+    padding: 1em;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 1.3em;
+    box-shadow: 0 0 10px 0px #000000;
+    transition: all 0.2s ease;
+}
+.btn-close-session-home:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+.div-new-report {
+    position: absolute;
+    top: 5rem;
+    right: 0;
+    height: calc(100vh - 5rem);
+    width: 10%;
+    overflow: hidden;
+    background-color: transparent;
+    transition: width 0.6s ease, background-color 0.6s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    color: white;
+    font-size: 10em;
+    animation: float 1s ease-in-out infinite;
+    text-shadow: #fff 0px 0px 10px;
+}
 
+.div-new-report.active {
+    cursor: pointer;
+    width: 50%;
+    background-color: #030041;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+    font-size: 2em;
+    text-shadow: none;
+}
+@keyframes float {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+.div-new-report:hover {
+    animation: none;
+}
 
 /* Responsive design */
 @media screen and (max-width: 600px) {

@@ -684,14 +684,18 @@ function createBtnMetaEdit() {
 
 function addEventToFinishReport() {
     let btn_finishReport = document.querySelector(".btn-finishReport");
-    let reporteTerminado = false; // 🔒 control de estado
+    let reporteTerminado = false; // control de estado
 
     // Mostrar botón y manejar clic
     btn_finishReport.style.opacity = "1";
     btn_finishReport.addEventListener("click", function () {
         if (confirm("¿Estás seguro de que deseas terminar el reporte?")) {
             reporteTerminado = true; // ✅ permitir salir sin advertencia
-            window.location.href = window.baseUrl + "/processProduction/finishReport/" + window.arrayData["meta"].id;
+            if(window.arrayData){
+                window.location.href = window.baseUrl + "/processProduction/finishReport/" + window.arrayData["meta"].id;
+            } else {
+                window.location.href = window.baseUrl + "/processProduction/finishReport/0";
+            }
         }
     });
 }
@@ -827,6 +831,7 @@ if (window.arrayData) {
 } else {
     if (window.workOrders != null) {
         insertSelects();
+        addEventToFinishReport();
     } else {
         //Si aun no existen Ordenes de Trabajo disponibles mostrar Div de alerta
         let body = document.querySelector("body");
