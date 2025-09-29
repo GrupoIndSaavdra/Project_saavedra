@@ -86,6 +86,10 @@ class ProcessProductionController extends Controller
         $workOrders = $this->show(true); // Obtener el array de órdenes de trabajo disponibles para registrar piezas
 
         $meta = Metas::find($meta); // Obtener meta actualizada para encontrar los valores siguientes
+        $machine = Maquinas::where('id_meta', $meta->id)->first();
+        if(!$machine){
+            return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
+        }
         // Obtener orden de trabajo junto con la moldura asociada
         $workOrder = Orden_trabajo::find($meta->id_ot);
         $molding = Moldura::find($workOrder->id_moldura);
@@ -262,11 +266,16 @@ class ProcessProductionController extends Controller
     public function storePiece(Request $request)
     {
         $meta = Metas::find($request->input('meta'));
-        $class = Clase::find($meta->id_clase);
-        $this->savePiece($class, $meta->proceso, $request, $meta);
-
-        //Retornar pieza siguiente
-        return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->process, "edit" => 0])->with('success', 'Pieza registrada correctamente.');
+        $machine = Maquinas::where('id_meta', $meta->id)->first();
+        if($machine){
+            $class = Clase::find($meta->id_clase);
+            $this->savePiece($class, $meta->proceso, $request, $meta);
+    
+            //Retornar pieza siguiente
+            return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->process, "edit" => 0])->with('success', 'Pieza registrada correctamente.');
+        } else {
+            return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
+        }
     }
     public function savePiece($class, $processName, $request, $meta, $index = null, $arrayPieces = null)
     {
@@ -325,6 +334,10 @@ class ProcessProductionController extends Controller
     {
         // Obtener las variables principales
         $meta = Metas::find($request->input('meta'));
+        $machine = Maquinas::where('id_meta', $meta->id)->first();
+        if(!$machine){
+            return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
+        }
         $class = Clase::find($meta->id_clase);
 
         // Obtener los modelo de la tabla de las piezas del proceso
@@ -463,6 +476,10 @@ class ProcessProductionController extends Controller
     public function editPieces(Request $request)
     {
         $meta = Metas::find($request->meta);
+        $machine = Maquinas::where('id_meta', $meta->id)->first();
+        if(!$machine){
+            return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
+        }
         $class = Clase::find($meta->id_clase);
 
         $arrayPieces = array_unique($request->piece);

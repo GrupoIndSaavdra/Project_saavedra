@@ -1,0 +1,135 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-height: 50vh;
+    overflow: auto;
+}
+.wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 1.5em;
+    width: 40vw;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 5px 10px 80px #000000b0;
+}
+.lg-saavedra {
+    width: 25em;
+    padding: 2em 0;
+}
+h2 {
+    font-size: 1.8em;
+    margin: 1em;
+    color: #404040;
+    font-weight: 100;
+}
+table {
+    position: relative;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+    font-size: 1.2em;
+}
+thead {
+    background-color: #033966;
+    color: #fff;
+}
+tbody {
+    background-color: #f9f9f9;
+}
+th {
+    padding: 0.7em 0;
+}
+th,
+td {
+    border: 1px solid #ddd;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+input[type="text"] {
+    width: 100%;
+    height: 2em;
+    border: none;
+    font-size: 1.2em;
+    font-weight: 700;
+    text-align: center;
+}
+.machine-table-row:hover {
+    background-color: #f1f1f1;
+}
+.btn {
+    display: inline-block;
+    color: #fff;
+    font-size: 1em;
+    border: none;
+    padding: 0.5em 1em;
+    margin: 0.2em;
+    border-radius: 5px;
+    letter-spacing: 0.5px;
+    transition: 0.2s;
+}
+.btn-desoccupied {
+    background-color: #9c0303;
+}
+.btn:hover {
+    transform: scale(1.1);
+    transition: 0.2s;
+}
+@media (max-width: 991.98px) {
+    /* PARA TODOS LOS ESTILOS */
+    body {
+        overflow: hidden;
+        background-size: auto;
+    }
+    .lg-saavedra {
+        width: 60%;
+        padding: 1em 0;
+    }
+    h2 {
+        font-size: 1.4em;
+        margin: 0.5em;
+    }
+    .wrapper {
+        width: 90vw;
+        padding: 1em;
+    }
+    table {
+        font-size: 0.9em;
+    }
+    .td {
+        padding: 0.5em;
+    }
+    .btn {
+        font-size: 0.9em;
+    }
+    .btn-desoccupied {
+        background-color: #0a8504;
+    }
+    th {
+        width: 50%;
+    }
+    input[type="text"] {
+        font-weight: 700;
+        text-align: center;
+        padding: 5px;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .alert {
+        font-size: 0.8em;
+    }
+}

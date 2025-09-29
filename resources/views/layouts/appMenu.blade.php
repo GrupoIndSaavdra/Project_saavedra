@@ -52,6 +52,7 @@
         showTimes: @json(route('showTimes')),
         productionData: @json(route('productionData')),
         panelProgreso: @json(route('panelProgreso')),
+        machinesOccupied: @json(route('machinesOccupied')),
         logout: @json(route('logout')),
     };
 </script>

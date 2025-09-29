@@ -60,14 +60,11 @@ export default defineConfig({
                 "resources/css/processes_views/processProduction.css",
                 "resources/js/processes_views/processProduction.js",
 
+                //Views machines
+                'resources/css/machines_views/machinesOccupied.css',
+                'resources/js/machines_views/machinesOccupied.js',
 
-                "resources/css/cepillado.css",
-                "resources/css/barreno.css",
-                "resources/js/editarInterfaz.js",
-                "resources/js/editarTabla.js",
                 'resources/css/maquinas2.css',
-                'resources/css/rectificado.css',
-                'resources/css/copiado.css',
                 'resources/css/viewUsers.css',
                 'resources/js/viewUsers.js',
             ],

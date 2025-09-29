@@ -32,6 +32,7 @@ use App\Http\Controllers\SoldaduraController;
 use App\Http\Controllers\SoldaduraPTAController;
 use App\Http\Controllers\TiemposProduccionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\MachinesController;
 use App\Http\Controllers\MoldingController;
 use App\Http\Controllers\ProcessesController;
 use App\Http\Controllers\ProcessProductionController;
@@ -149,6 +150,12 @@ Route::controller(PzasLiberadasController::class)->group(function () {
 Route::controller(DatosProduccionController::class)->group(function () {
     Route::get('/productionData', 'index')->name('productionData'); //Vista de datos de producción
     Route::post('/productionData', 'show')->name('showProduccion'); //Vista de datos de producción
+});
+
+//Rutas para el controlador de MachinesController
+Route::controller(MachinesController::class)->group(function () {
+    Route::get('/machinesOccupied', 'show')->name('machinesOccupied'); //Vista de máquinas ocupadas
+    Route::post('/machinesOccupied/freeUp', 'freeUp')->name('freeUp'); //Vista de máquinas ocupadas
 });
 
 //Rutas para el controlador de ProgressPanelController
