@@ -97,6 +97,9 @@ class PzasLiberadasController extends Controller
             $this->rechazarPieza($this->getPiezasLiberar($pieza, $proceso, $buena), $proceso);
         }
         //Datos de las piezas
+        if ($request == 'null') {
+            return redirect()->route('home');
+        }
         $request = explode(",", $request);
         $datosPiezas = array(
             "workOrder" => $request[0],

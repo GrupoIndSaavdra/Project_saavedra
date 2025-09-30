@@ -386,10 +386,15 @@ class PzasGeneralesController extends Controller
         }
         return $array;
     }
-    public function saveInfoPzas(&$infoPiezas, $piezas, $clase)
+    public function saveInfoPzas(&$infoPiezas, $piezas, $clase = null)
     {
         $contador = 0;
         foreach ($piezas as $pieza) {
+            if($clase == null){
+                $clase = Clase::find($pieza[3]);
+                $clase = $clase->nombre;
+            }
+            $clase = $clase == null ?  : $clase;
             switch ($pieza[4]) {
                 case 'Cepillado':
                     $id_proceso = 'Cepillado_' . $clase . "_" . $pieza[0];

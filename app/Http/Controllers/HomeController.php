@@ -2,13 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Pieza;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
+    protected $pzasGeneralesController;
     public function __construct()
     {
         $this->middleware('auth');
+        $this->pzasGeneralesController = new PzasGeneralesController();
     }
     public function index()
     {
@@ -17,6 +20,8 @@ class HomeController extends Controller
         if ($perfil !== null) {
             $backgroundImage = "images/fondoadmin.jpg";
             $objectiveT = 'Nuestro objetivo es producir moldes de alta calidad para botellas de vidrio que cumplan con las especificaciones de los clientes y sean eficientes en términos de costos de producción.';
+            $pieces_Released = [];
+            $infoPieces = [];
             switch (auth()->user()->perfil) {
                 case 1:
                     $layout = "layouts.menu.appAdmin";
@@ -36,13 +41,30 @@ class HomeController extends Controller
                     $backgroundImage = "images/calidad.png";
                     $welcomeT = 'Bienvenido a Control de calidad';
                     $objectiveT = 'En nuestro perfil de calidad, cada milímetro importa. Nos comprometemos a inspeccionar con precisión cada pieza, asegurando medidas exactas y calidad impecable. En la búsqueda constante de la excelencia, nos destacamos por nuestra meticulosidad y compromiso con la perfección.';
+                    [$pieces_Released, $infoPieces] = $this->piecesToBeReleased();
                     break;
                 case 5:
                     $layout = "layouts.menu.appWarehouse";
                     $welcomeT = 'Bienvenido a Almacen';
                     break;
             }
-            return view('home', compact('layout', 'backgroundImage', 'objectiveT', 'welcomeT'));
+            return view('home', compact('layout', 'backgroundImage', 'objectiveT', 'welcomeT', 'pieces_Released', 'infoPieces'));
         }
+    }
+    public function piecesToBeReleased()
+    {
+        $infoPieces = array();
+        $pieces = Pieza::where('error', '!=', "Ninguno")->where('liberacion', 0)->get();
+        $pieces = $this->pzasGeneralesController->saveInArray($pieces);
+        foreach ($pieces as $key => $piece) {
+            if(str_contains($piece[5], "Incompleto")){
+                //borrar pieza del array
+                unset($pieces[$key]);
+            }
+        }
+        if (count($pieces) > 0) {
+            $this->pzasGeneralesController->saveInfoPzas($infoPieces, $pieces);
+        }
+        return [$pieces, $infoPieces];
     }
 }

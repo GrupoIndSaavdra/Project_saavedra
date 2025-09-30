@@ -155,6 +155,7 @@ function crearTabla(piezas, infoPiezas) {
 }
 
 function convertirObjectToArray(obj) {
+    console.log(obj);
     let array = [];
     for (let i = 0; i < obj.length; i++) {
         array.push(Object.values(obj[i]));
