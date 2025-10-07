@@ -344,6 +344,7 @@ class PzasGeneralesController extends Controller
             if ($band) {
                 $array[$contador][0] = $item->id_ot;
                 $array[$contador][3] = $item->maquina;
+                $array[$contador]["id_clase"] = $item->id_clase;
                 if ($item->proceso == "Operacion Equipo_1" || $item->proceso == "Operacion Equipo_2") {
                     $array[$contador][4] = substr($item->proceso, 0, -2);
                     $array[$contador][5] = substr($item->proceso, -1);
@@ -380,7 +381,6 @@ class PzasGeneralesController extends Controller
                 } else {
                     array_push($array[$contador], "juego");
                 }
-
                 $contador++;
             }
         }
@@ -391,7 +391,7 @@ class PzasGeneralesController extends Controller
         $contador = 0;
         foreach ($piezas as $pieza) {
             if($clase == null){
-                $clase = Clase::find($pieza[3]);
+                $clase = Clase::find($pieza["id_clase"]);
                 $clase = $clase->nombre;
             }
             $clase = $clase == null ?  : $clase;
