@@ -24,6 +24,7 @@ function createTable(machines, form) {
     table.appendChild(thead);
 
     //Crear las filas de las maquinas
+    console.log(machines);
     if (machines.length > 0) {
         machines.forEach((machine) => {
             let tr = document.createElement("tr");
@@ -50,6 +51,12 @@ function createTable(machines, form) {
             desoccupiedButton.onclick = (e) => {
                 e.preventDefault();
                 if (confirm("¿Estás seguro de que deseas desocupar la máquina?")) {
+                    let inputIdMachine = document.createElement("input");
+                    inputIdMachine.type = "hidden";
+                    inputIdMachine.name = "idMachine";
+                    inputIdMachine.value = machine.id;
+                    form.appendChild(inputIdMachine);
+                    
                     //Redirigir a la ruta que ya tiene el formulario
                     form.submit();
                 }

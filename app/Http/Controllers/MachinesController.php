@@ -35,9 +35,7 @@ class MachinesController extends Controller
     }
     public function freeUp(Request $request)
     {
-        $machine = Maquinas::where("proceso", $request->input('process'))
-            ->where("maquina", $request->input('machine'))
-            ->first();
+        $machine = Maquinas::find($request->idMachine);
         if ($machine) {
             // Desocupar la maquina
             $machine->delete();
