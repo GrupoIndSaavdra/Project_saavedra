@@ -86,8 +86,9 @@ class ProcessProductionController extends Controller
         $workOrders = $this->show(true); // Obtener el array de órdenes de trabajo disponibles para registrar piezas
 
         $meta = Metas::find($meta); // Obtener meta actualizada para encontrar los valores siguientes
+
         $machine = Maquinas::where('id_meta', $meta->id)->first();
-        if(!$machine){
+        if (!$machine) {
             return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
         // Obtener orden de trabajo junto con la moldura asociada
@@ -197,8 +198,12 @@ class ProcessProductionController extends Controller
                         $modelPreviousProcessPieces = $this->get_ModelProcessPieces($previousProcess);
                         $previousProcessId = str_replace(" ", "_", $previousProcess) . "_" . $class->nombre . "_" . $class->id_ot;
                         $previousProcessDB = $this->get_ModelProcess($previousProcess)::where('id_proceso', $previousProcessId)->first();
-                        $previousPieces = $modelPreviousProcessPieces::where('id_proceso', $previousProcessDB->id)->where('estado', 2)->get();
-                        if (!$previousPieces->isNotEmpty()) {
+                        if ($previousProcessDB) {
+                            $previousPieces = $modelPreviousProcessPieces::where('id_proceso', $previousProcessDB->id)->where('estado', 2)->get();
+                            if (!$previousPieces->isNotEmpty()) {
+                                return "NoPreviousPieces";
+                            }
+                        } else {
                             return "NoPreviousPieces";
                         }
                     }
@@ -267,10 +272,10 @@ class ProcessProductionController extends Controller
     {
         $meta = Metas::find($request->input('meta'));
         $machine = Maquinas::where('id_meta', $meta->id)->first();
-        if($machine){
+        if ($machine) {
             $class = Clase::find($meta->id_clase);
             $this->savePiece($class, $meta->proceso, $request, $meta);
-    
+
             //Retornar pieza siguiente
             return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->process, "edit" => 0])->with('success', 'Pieza registrada correctamente.');
         } else {
@@ -335,7 +340,7 @@ class ProcessProductionController extends Controller
         // Obtener las variables principales
         $meta = Metas::find($request->input('meta'));
         $machine = Maquinas::where('id_meta', $meta->id)->first();
-        if(!$machine){
+        if (!$machine) {
             return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
         $class = Clase::find($meta->id_clase);
@@ -477,14 +482,14 @@ class ProcessProductionController extends Controller
     {
         $meta = Metas::find($request->meta);
         $machine = Maquinas::where('id_meta', $meta->id)->first();
-        if(!$machine){
+        if (!$machine) {
             return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
         $class = Clase::find($meta->id_clase);
 
         $arrayPieces = array_unique($request->piece);
         foreach ($arrayPieces as $index => $piece) {
-            if($meta->proceso == "Copiado"){
+            if ($meta->proceso == "Copiado") {
                 $this->savePiece($class, $meta->proceso, $request, $meta, $index, $arrayPieces);
             } else {
                 $this->savePiece($class, $meta->proceso, $request, $meta, $index);
@@ -506,6 +511,8 @@ class ProcessProductionController extends Controller
                 $startTime = $startTime->format('H:i:s');
                 $endTime = DateTime::createFromFormat('H:i', $request->endTime);
                 $endTime = $endTime->format('H:i:s');
+                $date = Carbon::createFromFormat('Y-m-d', $request->date)->format('Y-m-d');
+
                 //Verificar si ya hay piezas registradas de esa meta
                 if ($this->verifyNumbersOfPieces($foundedMeta) == 0) {
                     // Verificar si la maquina no esta siendo ocupada
@@ -524,7 +531,7 @@ class ProcessProductionController extends Controller
                         //Verificar si existe una meta creada con los datos ingresados
                         $existingMeta = Metas::where('id_ot', $workOrder)
                             ->where('id_clase', $class->id)
-                            ->where('fecha', $request->date)
+                            ->where('fecha', $date)
                             ->where('h_inicio', $startTime)
                             ->where('h_termino', $endTime)
                             ->where('maquina', $request->machine)
@@ -541,7 +548,7 @@ class ProcessProductionController extends Controller
                             $meta = $existingMeta;
                         } else {
                             //Si no existe se edita la meta que habia ingresado
-                            $this->storeMeta($request, $class, $startTime, $endTime, $foundedMeta);
+                            $this->storeMeta($request, $class, $startTime, $endTime, $date, $foundedMeta);
                             $this->storeMachine($request, $foundedMeta); // Se crea una nueva máquina ocupada asociada a la meta
                             $successMessage = 'Tu meta se ha editado correctamente';
                             $meta = $foundedMeta;
@@ -551,7 +558,7 @@ class ProcessProductionController extends Controller
                     }
                     return redirect()->route('showReportFormat', ["meta" => $foundedMeta, "process" => $foundedMeta->proceso, "edit" => 0])->with('error', 'La máquina esta ocupada. Por favor, elija otra maquina o pida a un supervisor desbloquearla'); // Si la mquina esta ocupada retornar error con la meta antes creada
                 } else {
-                    $foundedMeta->fecha = $request->date;
+                    $foundedMeta->fecha = $date;
                     $foundedMeta->h_inicio = $startTime;
                     $foundedMeta->h_termino = $endTime;
                     $this->calculateMeta($foundedMeta, $startTime, $endTime, $class);
@@ -566,7 +573,6 @@ class ProcessProductionController extends Controller
     public function storeHeaderdata(StoreHeaderProcessRequest $request)
     {
         $validatedData = $request->validated(); //Validación de los datos ingresados.
-
         // Verificar que la clase ingresada exista
         $class = Clase::where('id_ot', $request->workOrder)->where('nombre', $request->class)->first();
         if ($class) {
@@ -578,10 +584,11 @@ class ProcessProductionController extends Controller
                 $startTime = $startTime->format('H:i:s');
                 $endTime = DateTime::createFromFormat('H:i', $request->endTime);
                 $endTime = $endTime->format('H:i:s');
+                $date = Carbon::createFromFormat('Y-m-d', $request->date)->format('Y-m-d');
 
                 $foundedMeta = Metas::where('id_ot', $request->workOrder)
                     ->where('id_clase', $class->id)
-                    ->where('fecha', $request->date)
+                    ->where('fecha', $date)
                     ->where('h_inicio', $startTime)
                     ->where('h_termino', $endTime)
                     ->where('maquina', $request->machine)
@@ -593,7 +600,7 @@ class ProcessProductionController extends Controller
                     $meta = $foundedMeta;
                     $successMessage = 'Se ha ingresado correctamente a la meta de ' . auth()->user()->a_paterno . ' ' . auth()->user()->a_materno . ' ' . auth()->user()->nombre;
                 } else { // Si la máquina no existe y tampoco una meta con esos datos, se crea una nueva meta y maquina
-                    $meta = $this->storeMeta($request, $class, $startTime, $endTime);
+                    $meta = $this->storeMeta($request, $class, $startTime, $endTime, $date);
                     $meta = Metas::find($meta->id);
                     $this->storeMachine($request, $meta); // Se crea una nueva máquina ocupada asociada a la meta
                     $successMessage = 'Se ha creado correctamente la meta';
@@ -605,7 +612,7 @@ class ProcessProductionController extends Controller
         return redirect()->route('processProduction')->with('error', 'La clase ingresada no existe.'); // Si la clase no existe, retornar error
     }
 
-    public function storeMeta($request, $class, $startTime, $endTime, $meta = null)
+    public function storeMeta($request, $class, $startTime, $endTime, $date, $meta = null)
     {
         // Si no se encontró la meta, se puede crear una nueva
         if (!$meta) {
@@ -613,7 +620,7 @@ class ProcessProductionController extends Controller
         }
         $meta->id_ot = strtok($request->workOrder, ' ');
         $meta->id_usuario = auth()->user()->matricula;
-        $meta->fecha = $request->date;
+        $meta->fecha = $date;
         $meta->h_inicio = $startTime;
         $meta->h_termino = $endTime;
         $meta->maquina = $request->machine;
