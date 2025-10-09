@@ -17,22 +17,15 @@ function crearTabla(piezas, infoPiezas) {
                         td.textContent = crearFecha(piezas[i][j]);
                         break;
                     case 10:
-                        if (
-                            !piezas[i][6].includes("Incompleto") &&
-                            piezas[i][piezas[i].length - 2] != 1
-                        ) {
-                            td.appendChild(
-                                crearBotonLiberar(infoPiezas, i, piezas)
-                            );
+                        if (!piezas[i][6].includes("Incompleto") && piezas[i][piezas[i].length - 2] != 1) {
+                            td.appendChild(crearBotonLiberar(infoPiezas, i, piezas));
                         }
                         break;
                     case 11:
                         td.appendChild(crearBotonRechazar(infoPiezas, i));
                         break;
                     case 12:
-                        td.appendChild(
-                            crearBotonVer(infoPiezas, i, piezas[i][2])
-                        );
+                        td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
                         break;
                     default:
                         if (piezas[i][j] != undefined) {
@@ -43,7 +36,7 @@ function crearTabla(piezas, infoPiezas) {
                         break;
                 }
                 tr.appendChild(td);
-                switch (piezas[i][piezas[i].length - 2]) {
+                switch (piezas[i][9]) {
                     case 0:
                         if (piezas[i][6].includes("Incompleto")) {
                             tr.style.backgroundColor = "#FFFF99";
@@ -71,22 +64,15 @@ function crearTabla(piezas, infoPiezas) {
                             td.textContent = crearFecha(piezas[i][j]);
                             break;
                         case 9:
-                            if (
-                                !piezas[i][5].includes("Incompleto") &&
-                                piezas[i][piezas[i].length - 2] != 1
-                            ) {
-                                td.appendChild(
-                                    crearBotonLiberar(infoPiezas, i, piezas)
-                                );
+                            if (!piezas[i][5].includes("Incompleto") && piezas[i][9] != 1) {
+                                td.appendChild(crearBotonLiberar(infoPiezas, i, piezas));
                             }
                             break;
                         case 10:
                             td.appendChild(crearBotonRechazar(infoPiezas, i));
                             break;
                         case 11:
-                            td.appendChild(
-                                crearBotonVer(infoPiezas, i, piezas[i][2])
-                            );
+                            td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
                             break;
                         default:
                             if (piezas[i][j] != undefined) {
@@ -105,23 +91,18 @@ function crearTabla(piezas, infoPiezas) {
                             td.textContent = crearFecha(piezas[i][j]);
                             break;
                         case 9:
-                            if (
-                                !piezas[i][5].includes("Incompleto") &&
-                                piezas[i][piezas[i].length - 2] != 1
-                            ) {
-                                td.appendChild(
-                                    crearBotonLiberar(infoPiezas, i, piezas)
-                                );
+                            if (!piezas[i][5].includes("Incompleto") && piezas[i][9] != 1) {
+                                td.appendChild(crearBotonLiberar(infoPiezas, i, piezas));
                                 tr.appendChild(td);
                             }
                             break;
                         case 10:
-                            td.appendChild(crearBotonRechazar(infoPiezas, i));
+                            if (piezas[i][9] != 2) {
+                                td.appendChild(crearBotonRechazar(infoPiezas, i));
+                            }
                             break;
                         case 11:
-                            td.appendChild(
-                                crearBotonVer(infoPiezas, i, piezas[i][2])
-                            );
+                            td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
                             break;
                         default:
                             if (piezas[i][j] != undefined) {
@@ -134,8 +115,8 @@ function crearTabla(piezas, infoPiezas) {
                     }
                     tr.appendChild(td);
                 }
-                console.log(piezas[i][3]);
-                switch (piezas[i][3]) {
+                console.log(piezas[i]);
+                switch (piezas[i][9]) {
                     case 0:
                         if (piezas[i][5].includes("Incompleto")) {
                             tr.style.backgroundColor = "#FFFF99";
@@ -179,12 +160,14 @@ function crearBotonLiberar(infoPiezas, i, piezas) {
     a.className = "btn-liberar";
 
     let bool;
-    if (infoPiezas[i][2] == "Ninguno" && piezas[i][piezas[i].length - 2] != 2) {
+    if (infoPiezas[i][2] == "Ninguno" && piezas[i][9] != 2) {
         bool = true;
     } else {
         bool = false;
     }
-    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${infoPiezas[i][1]}/${true}/${bool}/${obtenerRequest()}`;
+    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${
+        infoPiezas[i][1]
+    }/${true}/${bool}/${obtenerRequest()}`;
     a.href = url;
 
     const image = document.createElement("img");
@@ -197,7 +180,9 @@ function crearBotonLiberar(infoPiezas, i, piezas) {
 function crearBotonRechazar(infoPiezas, i) {
     const a = document.createElement("a");
     a.className = "btn-liberar";
-    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${infoPiezas[i][1]}/${false}/${false}/${obtenerRequest()}`;
+    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${
+        infoPiezas[i][1]
+    }/${false}/${false}/${obtenerRequest()}`;
     a.href = url;
 
     const image = document.createElement("img");
@@ -227,15 +212,7 @@ function crearBotonVer(infoPiezas, i, usuarios) {
     return a;
 }
 function obtenerRequest() {
-    let names = [
-        "workOrder",
-        "class",
-        "operador",
-        "maquina",
-        "proceso",
-        "error",
-        "fecha",
-    ];
+    let names = ["workOrder", "class", "operador", "maquina", "proceso", "error", "fecha"];
     let request = [];
     for (let i = 0; i < names.length; i++) {
         let value = document.getElementsByName(names[i])[0].value;

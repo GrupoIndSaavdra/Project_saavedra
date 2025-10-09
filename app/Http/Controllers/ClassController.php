@@ -133,6 +133,9 @@ class ClassController extends Controller
     public function destroy($idClass, $workOrderParam = null)
     {
         $class = Clase::find($idClass);
+        if(!$class){
+            return redirect()->back()->with("error", "La clase que intentas eliminar no existe");
+        }
         $workOrder = Orden_trabajo::find($class->id_ot); //Busco la OT ingresada
 
         //Si existen metas asociadas a la clase no se elimina
