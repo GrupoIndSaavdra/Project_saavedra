@@ -2,7 +2,7 @@ var operacion = false;
 
 function crearTabla(piezas, infoPiezas) {
     //Crea la tabla de piezas trabajadas en la O.T
-    console.log(piezas);
+    // console.log(piezas);
     const table = document.getElementById("table");
     const tbody = document.createElement("tbody");
     //Convertir el objeto a un array
@@ -125,7 +125,7 @@ function crearTabla(piezas, infoPiezas) {
                             break;
                         default:
                             if (piezas[i][j] != undefined) {
-                                console.log(piezas[i][1] + " " + piezas[i][j]);
+                                // console.log(piezas[i][1] + " " + piezas[i][j]);
                                 td.textContent = piezas[i][j];
                             } else {
                                 td.textContent = "";
@@ -134,14 +134,15 @@ function crearTabla(piezas, infoPiezas) {
                     }
                     tr.appendChild(td);
                 }
-                switch (piezas[i][piezas[i].length - 2]) {
+                console.log(piezas[i][3]);
+                switch (piezas[i][3]) {
                     case 0:
                         if (piezas[i][5].includes("Incompleto")) {
                             tr.style.backgroundColor = "#FFFF99";
                         }
                         break;
                     case 1:
-                        tr.style.backgroundColor = "#ACF980";
+                        tr.style.backgroundColor = "#79BFED";
                         break;
                     case 2:
                         tr.style.backgroundColor = "#EC7063";
@@ -155,7 +156,6 @@ function crearTabla(piezas, infoPiezas) {
 }
 
 function convertirObjectToArray(obj) {
-    console.log(obj);
     let array = [];
     for (let i = 0; i < obj.length; i++) {
         array.push(Object.values(obj[i]));
