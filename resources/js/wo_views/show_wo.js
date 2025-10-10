@@ -3,11 +3,7 @@ createForm(); //Creación del formulario de la clase
 
 function createForm() {
     let div_rows = document.querySelector(".div-rows"); //Obtención del div en donde se insertará el formulario
-    div_rows.appendChild(
-        createRowsForm(
-            get_inputAttributes(window.workOrder.id, window.molding.nombre)[0]
-        )
-    ); //Creación del formulario de la clase
+    div_rows.appendChild(createRowsForm(get_inputAttributes(window.workOrder.id, window.molding.nombre)[0])); //Creación del formulario de la clase
     let div_rowsHidden = document.createElement("div");
     div_rowsHidden.className = "div-rows-hidden";
     div_rows.appendChild(div_rowsHidden);
@@ -44,15 +40,7 @@ function get_inputAttributes(workOrder, molding, value = null) {
                 name: "class",
                 class: "classes",
             },
-            options: [
-                "Bombillo",
-                "Molde",
-                "Obturador",
-                "Fondo",
-                "Corona",
-                "Plato",
-                "Embudo",
-            ],
+            options: ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo"],
         },
         size: {
             label: "Seleccione el tamaño",
@@ -124,21 +112,21 @@ function get_inputAttributes(workOrder, molding, value = null) {
         //Modificacion de valor del id de la clase en el input de tipo hidden
         inputClassId.setAttribute("value", value.id);
 
-        //Modificación de las opciones del select de tamaño si la clase es obturador
-        if (value.nombre == "Obturador") {
-            let sectionOptions = [1, 2];
-            sectionOptions.splice(sectionOptions.indexOf(value.seccion), 1);
-            sectionOptions.unshift(value.seccion);
+        // //Modificación de las opciones del select de tamaño si la clase es obturador
+        // if (value.nombre == "Obturador") {
+        //     let sectionOptions = [1, 2];
+        //     sectionOptions.splice(sectionOptions.indexOf(value.seccion), 1);
+        //     sectionOptions.unshift(value.seccion);
 
-            formInputsHidden.size = {
-                label: "Selecciona la sección",
-                select: {
-                    name: "section",
-                    class: "selects",
-                },
-                options: sectionOptions,
-            };
-        }
+        //     formInputsHidden.size = {
+        //         label: "Selecciona la sección",
+        //         select: {
+        //             name: "section",
+        //             class: "selects",
+        //         },
+        //         options: sectionOptions,
+        //     };
+        // }
 
         formInputsHidden.classType = {
             label: "Clase",
@@ -184,15 +172,9 @@ function createRowsForm(formInputs) {
                 }
 
                 //Creación del input correspondiente
-                let element = formInputs[nameInput].hasOwnProperty("select")
-                    ? "select"
-                    : "input";
+                let element = formInputs[nameInput].hasOwnProperty("select") ? "select" : "input";
                 let attributesArray = formInputs[nameInput]; //Obtención de los atributos del input correspondiente
-                let htmlTag = createSelectOrInput(
-                    element,
-                    attributesArray,
-                    nameInput
-                );
+                let htmlTag = createSelectOrInput(element, attributesArray, nameInput);
 
                 //Inserción de elementos
                 col.appendChild(htmlTag);
@@ -220,9 +202,7 @@ function insertWOButtons(fragment) {
     buttonDelete.addEventListener("click", function () {
         event.preventDefault();
         let container_form = document.querySelector(".container-form");
-        container_form.appendChild(
-            mostrarDiv(`../destroyWO/${window.workOrder.id}`)
-        );
+        container_form.appendChild(mostrarDiv(`../destroyWO/${window.workOrder.id}`));
     });
 
     //Creación del botón de generar PDF de la orden de trabajo
@@ -249,11 +229,7 @@ function createSelectOrInput(element, attributesArray, nameInput) {
     let htmlTag = document.createElement(element);
     for (let attribute in attributesArray[element]) {
         htmlTag.setAttribute(attribute, attributesArray[element][attribute]); //Insertar los atributos correspondientes al input
-        if (
-            window.profile == 5 &&
-            nameInput != "order" &&
-            nameInput != "pieces"
-        ) {
+        if (window.profile == 5 && nameInput != "order" && nameInput != "pieces") {
             htmlTag.disabled = true;
         }
     }
@@ -285,13 +261,8 @@ function modifySelect(className) {
     let label = sizeSelect.previousElementSibling.textContent;
 
     //If para verificart si es necesario modificar el select de tamaño dependendiendo del tipo de clase
-    if (
-        (className == "Obturador" && label != "Seleccione la sección") ||
-        (className != "Obturador" && label != "Seleccione el tamaño")
-    ) {
-        let divSelect = removeSelect(sizeSelect); //Recibe como parametro el select que se eliminara
-        divSelect.appendChild(createSelect(className)); //Agrega el nuevo select
-    }
+    let divSelect = removeSelect(sizeSelect); //Recibe como parametro el select que se eliminara
+    divSelect.appendChild(createSelect(className)); //Agrega el nuevo select al div padre
 }
 
 function removeSelect(select) {
@@ -309,28 +280,16 @@ function createSelect(className) {
     let select = document.createElement("select");
     select.className = "selects form-control";
 
-    if (className == "Obturador") {
-        //Si la clase es obturador, se crea un select con las opciones de sección
-        label.textContent = "Seleccione la sección";
-        select.name = "section";
-        for (let i = 0; i < 2; i++) {
-            let option = document.createElement("option");
-            option.value = i + 1;
-            option.text = i + 1;
-            select.add(option);
-        }
-    } else {
-        //Si la clase no es obturador, se crea un select con las opciones de tamaño
-        label.textContent = "Seleccione el tamaño";
-        select.name = "size";
+    //Se crea un select con las opciones de tamaño
+    label.textContent = "Seleccione el tamaño";
+    select.name = "size";
 
-        let options = ["Chico", "Mediano", "Grande"];
-        for (let i = 0; i < 3; i++) {
-            let option = document.createElement("option");
-            option.value = options[i];
-            option.text = options[i];
-            select.add(option);
-        }
+    let options = ["Chico", "Mediano", "Grande"];
+    for (let i = 0; i < 3; i++) {
+        let option = document.createElement("option");
+        option.value = options[i];
+        option.text = options[i];
+        select.add(option);
     }
     fragment.appendChild(label);
     fragment.appendChild(select);
@@ -359,12 +318,7 @@ function createTableClasses(classes) {
     table.className = "table"; //Clase de la tabla
 
     //Creación de la fila de títulos
-    let titles = [
-        "Clase",
-        "Tamaño/Sección",
-        "Piezas con consignación",
-        "Pedido",
-    ];
+    let titles = ["Clase", "Tamaño", "Piezas con consignación", "Pedido"];
     let tr = document.createElement("tr");
     titles.forEach((title) => {
         let th = document.createElement("th");
@@ -425,11 +379,7 @@ function createTableClasses(classes) {
                 }
             }
 
-            createOperationsCheckBox(
-                classArray["nombre"],
-                window.processes[button.value],
-                false
-            ); //Crear las casillas de los procesos
+            createOperationsCheckBox(classArray["nombre"], window.processes[button.value], false); //Crear las casillas de los procesos
             //Mostrar el formulario de la clase junto con sus procesos
             showformHidden(true);
         });
@@ -455,7 +405,7 @@ function setOrDelete_ClassButtons(idClass, action) {
     if (!action) {
         if (idClass !== null) {
             let div_btns = document.querySelector(".div-btns"); //Obtener el div en donde se insertaran los botones de accion de la clase
-            //Ocultar el boton de agregar clase 
+            //Ocultar el boton de agregar clase
             let btn_addClass = document.querySelector(".btn-addClass");
             btn_addClass.style.display = "none";
 
@@ -520,11 +470,7 @@ function enableEditClass(idClass) {
         if (window.classes[classObject].id == idClass) {
             div_rowsHidden.appendChild(
                 createRowsForm(
-                    get_inputAttributes(
-                        window.workOrder.id,
-                        window.molding.nombre,
-                        window.classes[classObject]
-                    )[1]
+                    get_inputAttributes(window.workOrder.id, window.molding.nombre, window.classes[classObject])[1]
                 )
             );
             break;
@@ -552,13 +498,10 @@ function setClassInfo(classesObject = null, classSelected) {
                     },
                 },
                 size: {
-                    label: "Tamaño/Sección",
+                    label: "Tamaño",
                     input: {
                         type: "text",
-                        value:
-                            classesObject[classObject].tamanio == null
-                                ? classesObject[classObject].seccion
-                                : classesObject[classObject].tamanio,
+                        value: classesObject[classObject].tamanio,
                         disabled: true,
                     },
                 },
@@ -650,12 +593,7 @@ function createCheckboxAddClass() {
             let div_rowsHidden = document.querySelector(".div-rows-hidden");
             div_rowsHidden.innerHTML = "";
             div_rowsHidden.appendChild(
-                createRowsForm(
-                    get_inputAttributes(
-                        window.workOrder.id,
-                        window.molding.nombre
-                    )[1]
-                )
+                createRowsForm(get_inputAttributes(window.workOrder.id, window.molding.nombre)[1])
             );
 
             let className = document.querySelector(".classes").value;
@@ -745,19 +683,11 @@ function get_operationsArray(className) {
             ];
             break;
         case "Obturador":
-            operations = [
-                "Soldadura",
-                "Soldadura PTA",
-                "1ra y 2da Operación Equipo",
-            ];
+            operations = ["Soldadura", "Soldadura PTA", "1ra y 2da Operación Equipo"];
             operationsArray = ["soldadura", "soldaduraPTA", "operacionEquipo"];
             break;
         case "Fondo":
-            operations = [
-                "1ra y 2da Operación Equipo",
-                "Soldadura",
-                "Soldadura PTA",
-            ];
+            operations = ["1ra y 2da Operación Equipo", "Soldadura", "Soldadura PTA"];
             operationsArray = ["operacionEquipo", "soldadura", "soldaduraPTA"];
             break;
         case "Corona":
@@ -765,10 +695,7 @@ function get_operationsArray(className) {
             operationsArray = ["cepillado", "desbaste_exterior"];
             break;
         case "Plato":
-            operations = [
-                "1ra y 2da Operación Equipo",
-                "Barreno de Profundidad",
-            ];
+            operations = ["1ra y 2da Operación Equipo", "Barreno de Profundidad"];
             operationsArray = ["operacionEquipo", "barreno_profundidad"];
             break;
         case "Embudo":
@@ -790,13 +717,7 @@ function crearCasillas(operations, operationsArray, markedProcesses, edit) {
 
     for (let i = 0; i < operations.length; i++) {
         //For para la creación de cada una de las casillas
-        let div = createProcessBox(
-            operations[i],
-            i + 1,
-            operationsArray[i],
-            markedProcesses,
-            edit
-        );
+        let div = createProcessBox(operations[i], i + 1, operationsArray[i], markedProcesses, edit);
         //Agregar a las secciones correspondientes
         if (i < parseInt(operations.length / 2)) {
             section1.appendChild(div);
@@ -815,13 +736,7 @@ function crearCasillas(operations, operationsArray, markedProcesses, edit) {
     // changeStatusSoldaduras(); //Agregar eventos a los checkbox de soldaduras
 }
 
-function createProcessBox(
-    operation,
-    processIndex,
-    operationName,
-    markedProcesses,
-    edit
-) {
+function createProcessBox(operation, processIndex, operationName, markedProcesses, edit) {
     //Creación de un div que sera el contenedor de los elementos del proceso correspondiente
     let div = document.createElement("div");
     div.className = "checkbox-container";
@@ -846,13 +761,7 @@ function createProcessBox(
     checkbox.className = "checkbox";
 
     //Algoritmo para el desmarcado y deshabilitado de los checkbox y los inputs de las maquinas
-    let elements = automateCheckbox(
-        checkbox,
-        machineInput,
-        operationName,
-        markedProcesses,
-        edit
-    );
+    let elements = automateCheckbox(checkbox, machineInput, operationName, markedProcesses, edit);
     checkbox = elements[0];
     machineInput = elements[1];
 
@@ -919,13 +828,7 @@ function createCheckboxAll(value) {
     }
 }
 
-function automateCheckbox(
-    checkbox,
-    machineInput,
-    operationName,
-    markedProcesses,
-    edit
-) {
+function automateCheckbox(checkbox, machineInput, operationName, markedProcesses, edit) {
     checkbox.checked = true;
     machineInput.required = true;
     // //Si el proceso es de soldadura, se muestra desmarcado el checkbox y el input se deshabilita
@@ -1037,7 +940,6 @@ function mostrarDiv(route) {
         ? "¿Estás seguro de eliminar la clase?"
         : "¿Estás seguro de eliminar la orden de trabajo?";
 
-    
     let image = document.createElement("img");
     image.className = "img-delete";
     image.src = window.deleteImgUrl;

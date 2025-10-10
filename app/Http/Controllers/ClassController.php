@@ -68,16 +68,11 @@ class ClassController extends Controller
             $class->piezas = $request->pieces;
             $class->fecha_inicio = $request->start_date;
             $class->hora_inicio = $request->start_time;
-            if ($request->class != "Obturador") { //Si la clase no es obturador.
-                $class->tamanio = $request->size;
-                $class->seccion = null;
-            } else { //Si la clase es obturador.
-                $class->seccion = $request->section;
-                $class->tamanio = null;
-            }
+            $class->tamanio = $request->size;
+            $class->seccion = null;
             $class->save();
 
-            //Establecer los tiempos de producción si la clase es diferente a Obturador
+            //Establecer los tiempos de producción
             $controllerProductionTime = new tiemposProduccionController();
             $controllerProductionTime->setProductionTimes($class);
 
@@ -101,19 +96,18 @@ class ClassController extends Controller
             $class->piezas = $request->pieces;
             $class->fecha_inicio = $request->start_date;
             $class->hora_inicio = $request->start_time;
-            if ($class->nombre != "Obturador") { //Si la clase no es obturador.
-                $class->tamanio = $request->size;
-                $class->seccion = null;
-            } else { //Si la clase es obturador.
-                $class->seccion = $request->section;
-                $class->tamanio = null;
-            }
+            $class->tamanio = $request->size;
+            $class->seccion = null;
         } else {
             $class->piezas = $request->pieces;
             $class->pedido = $request->order;
         }
         $class->save(); //Guardo los cambios.
 
+        //Establecer los tiempos de producción
+        $controllerProductionTime = new tiemposProduccionController();
+        $controllerProductionTime->setProductionTimes($class);
+        
         //Actualizar las metas que tengan relacion con la clase
         $goals = Metas::where('id_clase', $class->id)->get();
         if (count($goals) > 0) {

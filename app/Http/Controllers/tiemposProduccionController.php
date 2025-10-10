@@ -104,7 +104,7 @@ class tiemposProduccionController extends Controller
                 $tiempo = tiempoproduccion::where('id_clase', $class->id)->where('proceso', $processName)->first();
                 if ($tiempo) {
                     $tiempo->tamanio = $class->tamanio;
-                    $tiempo->tiempo = $time;
+                    $tiempo->tiempo = $tiempo->tiempo != 0 ? $tiempo->tiempo : $time;
                 } else {
                     $tiempo = new tiempoproduccion();
                     $tiempo->id_clase = $class->id;
