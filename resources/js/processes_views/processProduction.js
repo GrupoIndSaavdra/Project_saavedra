@@ -283,7 +283,9 @@ function insertSelects() {
             let selectedClass = selectClasses.value;
             if (selectedClass) {
                 let processes = window.workOrders[selectWO.value][selectedClass];
-                modifySelects(processes, document.querySelector(".process"), "Proceso");
+                if (processes.length > 0) {
+                    modifySelects(processes, document.querySelector(".process"), "Proceso");
+                }
             }
         });
         //prettier-ignore
