@@ -77,6 +77,11 @@ class ClassController extends Controller
             }
             $class->save();
 
+            //Establecer los tiempos de producción si la clase es diferente a Obturador
+            $controllerProductionTime = new tiemposProduccionController();
+            $controllerProductionTime->setProductionTimes($class);
+
+            //Asignar los procesos a la clase
             if ($request->operations != null) { //Si se seleccionaron procesos
                 $process = new Procesos();
                 $this->storeProcess($class, $request->operations, $request->machines, $process); //Verifico las casillas.
@@ -133,7 +138,7 @@ class ClassController extends Controller
     public function destroy($idClass, $workOrderParam = null)
     {
         $class = Clase::find($idClass);
-        if(!$class){
+        if (!$class) {
             return redirect()->back()->with("error", "La clase que intentas eliminar no existe");
         }
         $workOrder = Orden_trabajo::find($class->id_ot); //Busco la OT ingresada
