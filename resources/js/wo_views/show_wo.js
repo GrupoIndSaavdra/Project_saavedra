@@ -487,8 +487,6 @@ function enableEditClass(idClass) {
                     get_inputAttributes(window.workOrder.id, window.molding.nombre, window.classes[classObject])[1]
                 )
             );
-            console.log(window.classes[classObject])[1];
-            
             break;
         }
     }
