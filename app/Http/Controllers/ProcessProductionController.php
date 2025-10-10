@@ -361,7 +361,7 @@ class ProcessProductionController extends Controller
                     ->where("n_juego", $request->selectedAssembly)
                     ->first();
 
-                if (!$existingPiece || $existingPiece && $existingPiece->meta == $meta->id) {
+                if (!$existingPiece || ($existingPiece && $existingPiece->meta == $meta->id)) {
                     if ($request->process == "Soldadura" || $request->process == "Soldadura PTA") {
                         $reverseProcess = $request->process == "Soldadura" ? "Soldadura PTA" : "Soldadura";
                         $processReverseIdString = str_replace(" ", "_", $reverseProcess) . "_" . $class->nombre . "_" . $class->id_ot;

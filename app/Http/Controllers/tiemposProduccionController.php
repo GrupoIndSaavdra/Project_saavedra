@@ -199,7 +199,8 @@ class tiemposProduccionController extends Controller
         if ($metas->count() > 0) {
             foreach ($metas as $meta) {
                 //Asignar tiempo estándar
-                $tiempo = tiempoproduccion::where('id_clase', $meta->id_clase)->where('proceso', $meta->proceso)->first();
+                $processName = $this->get_processName($meta->proceso);
+                $tiempo = tiempoproduccion::where('id_clase', $meta->id_clase)->where('proceso', $processName)->first();
                 $meta->t_estandar = $tiempo->tiempo ?? 0;
 
                 //Calcular las horas de trabajo de cada operador
@@ -229,5 +230,36 @@ class tiemposProduccionController extends Controller
             $diferencia = $diferencia - 60; //Si la diferencia es menor o igual a 8 horas, se le resta media hora de limpieza y media hora de comida
         }
         return $diferencia; //Retorno las horas trabajadas.
+    }
+
+    public function get_processName($processName)
+    {
+        $process = match ($processName) {
+            'Cepillado' => 'cepillado',
+            'Desbaste Exterior' => 'desbaste',
+            'Revision Laterales' => 'revLaterales',
+            'Primera Operacion' => 'primeraOpeSoldadura',
+            'Barreno Maniobra' => 'barrenoManiobra',
+            'Segunda Operacion' => 'segundaOpeSoldadura',
+            'Rectificado' => 'rectificado',
+            'Asentado' => 'asentado',
+            'Calificado' => 'revCalificado',
+            'Acabado Bombillo' => 'acabadoBombillo',
+            'Acabado Molde' => 'acabadoMolde',
+            'Barreno Profundidad' => 'barrenoProfundidad',
+            'Cavidades' => 'cavidades',
+            'Copiado' => 'copiado',
+            'Off Set' => 'offset',
+            'Palomas' => 'palomas',
+            'Rebajes' => 'rebajes',
+            'Grabado' => 'grabado',
+            'Operacion Equipo' => 'operacionEquipo',
+            'Operacion Equipo_1 operacion' => 'operacionEquipo',
+            'Operacion Equipo_2 operacion' => 'operacionEquipo',
+            'Embudo CM' => 'embudoCM',
+            'Soldadura' => 'soldadura',
+            'Soldadura PTA' => 'soldaduraPTA',
+        };
+        return $process;
     }
 }
