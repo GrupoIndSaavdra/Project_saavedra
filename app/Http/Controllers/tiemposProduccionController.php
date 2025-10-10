@@ -82,6 +82,15 @@ class tiemposProduccionController extends Controller
                     'Grande' => ['Cepillado' => 120, 'Desbaste Exterior' => 35, 'Revision Laterales' => 26, 'Primera Operacion' => 26, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 30, 'Soldadura' => 70, 'Soldadura PTA' => 70, 'Rectificado' => 20, 'Asentado' => 30, 'Calificado' => 26, 'Acabado Molde' => 30, 'Barreno Profundidad' => 90, 'Cavidades' => 0, 'Copiado' => 0, 'Off Set' => 0, 'Palomas' => 0, 'Rebajes' => 0, 'Grabado' => 0,],
                     default => null,
                 };
+            case "Obturador":
+            case "Fondo":
+            case "Plato":
+            case "Embudo":
+            case "Corona":
+                return match ($class->tamanio) {
+                    'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Soldadura' => 30, 'Soldadura PTA' => 15],
+                    default => null,
+                };
             default:
                 return null;
         }
