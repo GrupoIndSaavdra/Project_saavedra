@@ -33,6 +33,19 @@ function get_inputAttributes(workOrder, molding, value = null) {
         table: {},
     };
 
+    //Insertar los demas tamanios al arreglo
+    let tamanios = [];
+    if (value != null) {
+        tamanios.push(value.tamanio);
+        ["Chico", "Mediano", "Grande"].forEach((size) => {
+            if (!tamanios.includes(size)) {
+                tamanios.push(size);
+            }
+        });
+    } else {
+        tamanios = ["Chico", "Mediano", "Grande"];
+    }
+
     formInputsHidden = {
         classType: {
             label: "Seleccione el tipo ",
@@ -48,7 +61,8 @@ function get_inputAttributes(workOrder, molding, value = null) {
                 name: "size",
                 class: "selects",
             },
-            options: ["Chico", "Mediano", "Grande"],
+            options: tamanios,
+            
         },
         order: {
             label: "Pedido Total",
@@ -473,6 +487,8 @@ function enableEditClass(idClass) {
                     get_inputAttributes(window.workOrder.id, window.molding.nombre, window.classes[classObject])[1]
                 )
             );
+            console.log(window.classes[classObject])[1];
+            
             break;
         }
     }

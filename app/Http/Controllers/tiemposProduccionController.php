@@ -103,8 +103,12 @@ class tiemposProduccionController extends Controller
                 $processName = $this->get_processName($process);
                 $tiempo = tiempoproduccion::where('id_clase', $class->id)->where('proceso', $processName)->first();
                 if ($tiempo) {
+                    if ($tiempo->tamanio == $class->tamanio) {
+                        $tiempo->tiempo = $tiempo->tiempo != 0 ? $tiempo->tiempo : $time;
+                    } else {
+                        $tiempo->tiempo = $time;
+                    }
                     $tiempo->tamanio = $class->tamanio;
-                    $tiempo->tiempo = $tiempo->tiempo != 0 ? $tiempo->tiempo : $time;
                 } else {
                     $tiempo = new tiempoproduccion();
                     $tiempo->id_clase = $class->id;
@@ -129,13 +133,13 @@ class tiemposProduccionController extends Controller
 
             $processName = $this->get_processNormalName($key);
             if ($tiempo) {
-                $tiempo->tamanio = "DISABLED";
+                $tiempo->tamanio = $class->tamanio;
                 $tiempo->tiempo = $value != 0 ? $value : ($productionTimes[$processName]) ?? 0;
             } else {
                 $tiempo = new tiempoproduccion();
                 $tiempo->id_clase = $class->id;
                 $tiempo->clase = $request->input('class');
-                $tiempo->tamanio = "DISABLED";
+                $tiempo->tamanio = $class->tamanio;
                 $tiempo->proceso = $key;
                 $tiempo->tiempo = $value != 0 ? $value : ($productionTimes[$processName]) ?? 0;
             }
