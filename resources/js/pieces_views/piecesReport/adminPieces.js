@@ -2,7 +2,7 @@ var operacion = false;
 
 function crearTabla(piezas, infoPiezas) {
     //Crea la tabla de piezas trabajadas en la O.T
-    console.log(piezas);
+
     const table = document.querySelector(".table");
     const tbody = document.createElement("tbody");
     //Convertir el objeto a un array
@@ -17,9 +17,7 @@ function crearTabla(piezas, infoPiezas) {
                         td.textContent = crearFecha(piezas[i][j]);
                         break;
                     case piezas[i].length - 4:
-                        td.appendChild(
-                            crearBotonVer(infoPiezas, i, piezas[i][2])
-                        );
+                        td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
                         break;
                     default:
                         if (piezas[i][j] != undefined) {
@@ -30,17 +28,22 @@ function crearTabla(piezas, infoPiezas) {
                         break;
                 }
                 tr.appendChild(td);
-                if (piezas[i][6].includes("Incompleto")) {
-                    tr.style.backgroundColor = "#FFFF99";
-                } else if (piezas[i][piezas[i].length - 2] == 1) {
-                    tr.style.backgroundColor = "#AED6F1";
-                } else if (
-                    piezas[i][6] != "Ninguno" ||
-                    piezas[i][piezas[i].length - 2] == 2
-                ) {
-                    tr.style.backgroundColor = "#EC7063";
-                } else {
-                    tr.style.backgroundColor = "#ACF980";
+                switch (piezas[i][9]) {
+                    case 0:
+                        if (piezas[i][6].includes("Incompleto")) {
+                            tr.style.backgroundColor = "#FFFF99";
+                        } else if (piezas[i][6] == "Ninguno") {
+                            tr.style.backgroundColor = "#ACF980A8";
+                        } else {
+                            tr.style.backgroundColor = "#E59CFF";
+                        }
+                        break;
+                    case 1:
+                        tr.style.backgroundColor = "#79BFED";
+                        break;
+                    case 2:
+                        tr.style.backgroundColor = "#EC7063";
+                        break;
                 }
             } else {
                 if (operacion) {
@@ -56,9 +59,7 @@ function crearTabla(piezas, infoPiezas) {
                             tr.appendChild(td);
                             break;
                         case piezas[i].length - 4:
-                            td.appendChild(
-                                crearBotonVer(infoPiezas, i, piezas[i][2])
-                            );
+                            td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
                             tr.appendChild(td);
                             break;
                         default:
@@ -76,9 +77,7 @@ function crearTabla(piezas, infoPiezas) {
                             td.textContent = crearFecha(piezas[i][j]);
                             break;
                         case piezas[i].length - 4:
-                            td.appendChild(
-                                crearBotonVer(infoPiezas, i, piezas[i][2])
-                            );
+                            td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
                             break;
                         default:
                             if (piezas[i][j] != undefined) {
@@ -90,17 +89,22 @@ function crearTabla(piezas, infoPiezas) {
                     }
                     tr.appendChild(td);
                 }
-                if (piezas[i][5].includes("Incompleto")) {
-                    tr.style.backgroundColor = "#FFFF99";
-                } else if (piezas[i][piezas[i].length - 2] == 1) {
-                    tr.style.backgroundColor = "#AED6F1";
-                } else if (
-                    piezas[i][5] != "Ninguno" ||
-                    piezas[i][piezas[i].length - 2] == 2
-                ) {
-                    tr.style.backgroundColor = "#EC7063";
-                } else {
-                    tr.style.backgroundColor = "#ACF980";
+                switch (piezas[i][9]) {
+                    case 0:
+                        if (piezas[i][5].includes("Incompleto")) {
+                            tr.style.backgroundColor = "#FFFF99";
+                        } else if (piezas[i][5] == "Ninguno") {
+                            tr.style.backgroundColor = "#ACF980A8";
+                        } else {
+                            tr.style.backgroundColor = "#E59CFF";
+                        }
+                        break;
+                    case 1:
+                        tr.style.backgroundColor = "#79BFED";
+                        break;
+                    case 2:
+                        tr.style.backgroundColor = "#EC7063";
+                        break;
                 }
             }
         }
@@ -138,7 +142,9 @@ function crearBotonLiberar(infoPiezas, i, piezas) {
     } else {
         boolean = false;
     }
-    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${infoPiezas[i][1]}/${true}/${boolean}/${this.obtenerRequest()}`;
+    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${
+        infoPiezas[i][1]
+    }/${true}/${boolean}/${this.obtenerRequest()}`;
     a.href = url;
 
     const image = document.createElement("img");
@@ -152,8 +158,9 @@ function crearBotonRechazar(infoPiezas, i) {
     const a = document.createElement("a");
     a.className = "btn-liberar";
 
-    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${infoPiezas[i][1]}/${false}/${false}/${this.obtenerRequest()}`;
-
+    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${
+        infoPiezas[i][1]
+    }/${false}/${false}/${this.obtenerRequest()}`;
 
     a.href = url;
 
@@ -169,13 +176,15 @@ function crearBotonVer(infoPiezas, i, usuarios) {
     a.className = "btn-pza";
 
     let nPiezas = [];
+
     for (let j = 0; j < infoPiezas[i][0].length; j++) {
         nPiezas.push(infoPiezas[i][0][j]);
     }
-    let url = `${window.baseUrl}/pieces/${nPiezas}/${infoPiezas[i][1]}/${document.getElementsByName("profile")[0].value}`;
+    let url = `${window.baseUrl}/pieces/${nPiezas}/${infoPiezas[i][1]}/${
+        document.getElementsByName("profile")[0].value
+    }`;
     a.href = url;
 
-    console.log(url);
     const image = document.createElement("img");
     image.src = window.ojito;
     image.alt = "Ver pieza";
@@ -184,15 +193,7 @@ function crearBotonVer(infoPiezas, i, usuarios) {
     return a;
 }
 function obtenerRequest() {
-    let names = [
-        "ot",
-        "clase",
-        "operador",
-        "maquina",
-        "proceso",
-        "error",
-        "fecha",
-    ];
+    let names = ["ot", "clase", "operador", "maquina", "proceso", "error", "fecha"];
     let request = [];
     for (let i = 0; i < names.length; i++) {
         let value = document.getElementsByName(names[i])[0].value;
@@ -200,7 +201,92 @@ function obtenerRequest() {
     }
     return request;
 }
+function createFilters() {
+    let titles = ["Orden de trabajo", "Clase", "Operador", "Maquina", "Proceso", "Error", "Fecha"];
+    Object.keys(window.selectedItems).forEach((item, index) => {
+        let div = document.createElement("div");
+        div.className = "filter";
+
+        switch (item) {
+            case "date":
+                let input = document.createElement("input");
+                input.type = "date";
+                input.name = item;
+                input.className = "input-filter";
+                input.value = window.selectedItems[item];
+                div.appendChild(input);
+                break;
+            default:
+                if (item != "action") {
+                    const select = document.createElement("select");
+                    select.className = "select-filter";
+                    select.name = item;
+
+                    console.log(window.selectedItems[item]);
+                    const optionDefault = document.createElement("option");
+                    if (item == "operator" && window.selectedItems[item] != "Todos") {
+                        optionDefault.value = window.selectedItems[item].matricula;
+                        optionDefault.textContent =
+                            window.selectedItems[item].nombre +
+                            " " +
+                            window.selectedItems[item].a_paterno +
+                            " " +
+                            window.selectedItems[item].a_materno;
+                    } else {
+                        optionDefault.value = window.selectedItems[item];
+                        optionDefault.textContent = window.selectedItems[item];
+                    }
+                    select.appendChild(optionDefault);
+                    if (window.selectedItems[item] != "Todos") {
+                        //Crear la opción de Todos
+                        const optionAll = document.createElement("option");
+                        optionAll.value = "Todos";
+                        optionAll.textContent = "Todos";
+                        select.appendChild(optionAll);
+                    }
+
+                    window.filtersData[item].forEach((key) => {
+                        if (item == "operator") {
+                            if (key.matricula == window.selectedItems[item].matricula) {
+                                return;
+                            }
+                        } else {
+                            if (key == window.selectedItems[item]) {
+                                return;
+                            }
+                        }
+                        const option = document.createElement("option");
+                        option.value = item == "operator" ? key.matricula : key;
+                        option.textContent =
+                            item == "operator" ? key.nombre + " " + key.a_paterno + " " + key.a_materno : key;
+                        select.appendChild(option);
+                    });
+                    div.appendChild(select);
+                }
+                break;
+        }
+        //Agregar label
+        if (item != "action") {
+            let label = document.createElement("label");
+            label.textContent = titles[index] + ": ";
+            div.appendChild(label);
+            document.querySelector(".filters").appendChild(div);
+        }
+    });
+
+    let button = document.createElement("button");
+    button.textContent = "Buscar";
+    button.className = "btns";
+    button.type = "submit";
+    button.name = "action";
+    button.value = "search";
+    button.textContent = "Buscar";
+
+    document.querySelector(".filters").appendChild(button);
+}
+createFilters();
 if (pieces.length > 0) {
-    crearTabla(pieces, piecesData);
+    console.log(pieces);
+    crearTabla(pieces, infoPiezas);
 }
 const pdf = document.getElementById("pdf");

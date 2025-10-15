@@ -4,39 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Piezas PDF</title>
+    <title>Reporte de piezas</title>
 </head>
 
 <body>
     <style>
-        .contenedor {
-            text-align: center;
-            margin: 0 auto;
+        * {
+            font-family: Arial, Helvetica, sans-serif;
         }
 
-        .title_ot {
-
-            font-size: 24px;
+        .title {
+            font-size: .7em;
+            text-align: center;
             font-weight: bold;
-            color: blue;
-            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+
+        h2 {
+            font-size: 1rem;
+            text-align: center;
         }
 
         table {
-            margin-left: 0px;
-            margin-top: 20px;
-            width: 80%;
-            border: 1px solid;
-            border-collapse: collapse;
-            /* Colapsa los bordes de las celdas */
             width: 100%;
-            font-family: Verdana, Geneva, Tahoma, sans-serif;
-        }
-
-        .etiquetas {
-            color: black;
-            font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-            font-size: 24px;
+            border-collapse: collapse;
+            border: 2px solid #032c00cc;
+            background: #fff;
+            width: max-content;
+            box-shadow: 0 0 10px rgba(0, 0, 0);
+            font-size: 12px;
         }
 
         label {
@@ -49,179 +44,168 @@
             display: inline-block;
         }
 
-        .contenedor {
-            display: flex;
-            justify-content: flex-end;
-            /* Centra horizontalmente el contenido */
-            width: 100%;
-            height: 100vh;
-            /* Altura del viewport */
-        }
-
-        img {
-            max-width: 100%;
-            /* Ajusta el tamaño máximo de la imagen al ancho del contenedor */
-            max-height: 100%;
-            /* Ajusta el tamaño máximo de la imagen a la altura del contenedor */
-        }
-
-        tr,
+        th,
         td {
-            text-align: center;
+            border: 1px solid #000;
             padding: 5px;
-            font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            text-align: center;
+        }
+
+        th {
+            background-color: #033966;
+            color: #fff;
+        }
+
+        .principalData {
+            width: 100%;
+        }
+
+        .colors,
+        .filters {
+            display: inline-block;
+            width: 49%;
+        }
+        .filters {
+            margin-top: 4em;
+        }
+        .table-filters, .table-colors {
+            width: 100%;
+        }
+
+        .table-pieces {
+            margin: 1em 0;
         }
     </style>
-    <div class="contenedor">
-        <label class="title_ot">Orden de trabajo: {{ $workOrder->id }}</label><br>
-        <label class="title_ot">Clase: {{ $class->nombre }}</label>
-    </div>
-    <div class="etiquetas">
-        <label for="etiqueta2">Operador: {{ $array[0] }}</label><br>
-        <label for="etiqueta3">Máquina: {{ $array[1] }}</label><br>
-        <label for="etiqueta4">Proceso: {{ $array[2] }}</label><br>
-        <label for="etiqueta5">Error: {{ $array[3] }}</label><br>
-        <label for="etiqueta6">Fecha: {{ $array[4] }}</label><br>
 
+    <div class="title">
+        <h1>Reporte de piezas</h1>
     </div>
-    <table border="1" id="table">
+    <div class="principalData">
+        <div class="colors">
+            <h2>Tabla de colores</h2>
+            <table class="table-colors">
+                <thead>
+                    <tr>
+                        <th>Color</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $colorsArray = ["Azul" => "Liberado", "Rojo" => "Rechazado", "Verde" => "Buena sin liberacion/rechazo", "Morado" => "Mala sin liberacion/rechazo", "Amarillo" => "Incompleto"]; ?>
+                    @foreach ($colorsArray as $key => $colorArray)
+                    <tr>
+                        <td>{{$key}}</td>
+                        <td>{{$colorArray}}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="filters">
+            <h2>Filtros aplicados</h2>
+            <?php $titles = [
+                "workOrder" => "Orden de trabajo",
+                "class" => "Clase",
+                "operator" => "Operador",
+                "machine" => "Maquina",
+                "process" => "Proceso",
+                "error" => "Error",
+                "date" => "Fecha"
+            ];
+            ?>
+            <table class="table-filters">
+                <thead>
+                    <!--Titulos de la tabla filtros-->
+                    <tr>
+                        <th>Filtro</th>
+                        <th>Valor elegido</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <!--Valores de los filtros-->
+                    @foreach ($selectedItems as $key => $filter)
+                    <tr>
+                        <td>{{ $titles[$key] }}</td>
+                        @if ($key == "operator" && $filter != "Todos")
+                        <td>{{$filter->nombre}} {{$filter->a_paterno}} {{$filter->a_materno}}</td>
+                        @else
+                        <td>{{ $filter }}</td>
+                        @endif
+                    </tr>
+                    @endforeach
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <table class="table-pieces">
         <thead>
             <tr>
-                <th>N_pieza</th>
+                <th>Juego</th>
                 <th>Nombre del operador</th>
                 <th>Máquina</th>
                 <th>Proceso</th>
-                @foreach ($piezas as $pieza)
-                    @if ($pieza[4] == 'Operacion Equipo')
-                        <th>Operación</th>
-                        @php
-                            $band = true;
-                        @endphp
-                    @break
+                @foreach ($pieces as $piece)
+                @if ($piece[4] == 'Operacion Equipo')
+                <th>Operación</th>
+                @php
+                $band = true;
+                @endphp
+                @break
                 @endif
-            @endforeach
-            <th>Errores</th>
-            <th>Fecha de máquinado</th>
-            @if ($profile == "quality")
+                @endforeach
+                <th>Errores</th>
+                <th>Fecha de máquinado</th>
                 <th>Fecha de liberación</th>
                 <th>Liberado por</th>
-            @endif
-        </tr>
-    </thead>
+            </tr>
+        </thead>
 
-    @for ($i = 0; $i < count($piezas); $i++) ¿
-        @if ($piezas[$i][4] == 'Operacion Equipo')
-            @if ($perfil == "quality")
-                @if ($piezas[$i][10] == 1)    
-                    <tr style="background-color: #acf980a8">
-                @elseif ($piezas[$i][6] == 'Incompleto')
-                    <tr style="background-color: #f9f9a8">
-                @elseif ($piezas[$i][10] == 2)
-                    <tr style="background-color: #ec7163cd">
-                @else
-                    <tr>
-                @endif
-            @else
-                @if ($piezas[$i][6] == "Ninguno")    
-                    <tr style="background-color: #acf980a8">
-                @elseif ($piezas[$i][6] == 'Incompleto')
-                    <tr style="background-color: #f9f9a8">
-                @elseif($piezas[$i][6] != "Ninguno")
-                    <tr style="background-color: #ec7163cd">
-                @else
-                    <tr>
-                @endif
-            @endif
-        
-            @if ($perfil == "quality")
-                @for ($j = 1; $j < count($piezas[$i]) - 1; $j++)
-                    <td>{{ $piezas[$i][$j] }}</td>
-                @endfor
-            @else
-                @for ($j = 1; $j < count($piezas[$i]) - 4; $j++)
-                    <td>{{ $piezas[$i][$j] }}</td>
-                @endfor
-            @endif
-            </tr>
-        @elseif (isset($band))
-            @if($perfil == "quality")
-                @if ($piezas[$i][9] == 1)
-                    <tr style="background-color: #acf980a8">
-                @elseif ($piezas[$i][5] == 'Incompleto')
-                    <tr style="background-color: #f9f9a8">
-                @elseif ($piezas[$i][9] == 2)
-                    <tr style="background-color: #ec7163cd">
-                @else
-                    <tr>
-                @endif
-            @else
-                @if ($piezas[$i][5] == "Ninguno")
-                    <tr style="background-color: #acf980a8">
-                @elseif ($piezas[$i][5] == 'Incompleto')
-                    <tr style="background-color: #f9f9a8">
-                @elseif($piezas[$i][5] != 'Ninguno')
-                    <tr style="background-color: #ec7163cd">
-                @else
-                    <tr>
-                @endif
-            @endif
-            @if ($profile == "quality")
-                @for ($j = 1; $j < count($piezas[$i]) - 1; $j++)
-                    @if ($j == 5)
-                        <td></td>
-                        <td>{{ $piezas[$i][$j] }}</td>
-                    @else
-                        <td>{{ $piezas[$i][$j] }}</td>
-                    @endif
-                @endfor
-            @else
-                @for ($j = 1; $j < count($piezas[$i]) - 4; $j++)
-                    @if ($j == 5)
-                        <td></td>
-                        <td>{{ $piezas[$i][$j] }}</td>
-                    @else
-                        <td>{{ $piezas[$i][$j] }}</td>
-                    @endif
-                @endfor
-            @endif
-            </tr>
-        @else
-            @if ($profile == "quality")
-                @if ($piezas[$i][9] == 1)
-                    <tr style="background-color: #acf980a8">
-                @elseif ($piezas[$i][5] == 'Incompleto')
-                    <tr style="background-color: #f9f9a8">
-                @elseif ($piezas[$i][9] == 2)
-                    <tr style="background-color: #ec7163cd">
-                @else
-                    <tr>
-                @endif
-            @else
-                @if ($piezas[$i][5] == "Ninguno")
-                    <tr style="background-color: #acf980a8">
-                @elseif ($piezas[$i][5] == 'Incompleto')
-                    <tr style="background-color: #f9f9a8">
-                @elseif ($piezas[$i][5] != "Ninguno")
-                    <tr style="background-color: #ec7163cd">
-                @else
-                    <tr>
-                @endif
-            @endif
-            @if ($profile == "quality")
-                @for ($j = 1; $j < count($piezas[$i]) - 1; $j++)
-                    <td>{{ $piezas[$i][$j] }}</td>
-                @endfor
-            @else
-                @for ($j = 1; $j < count($piezas[$i]) - 4; $j++)
-                    <td>{{ $piezas[$i][$j] }}</td>
-                @endfor
-            @endif
-            </tr>
-        @endif
-    @endfor
+        <tbody>
+            @for ($i = 0; $i < count($pieces); $i++)
+                <!--Definicion del color de la columna con respecto a sus liberaciones y errores-->
+                <?php
+                $colorColumn;
+                $indexLiberation = $pieces[$i][4] == "Operacion Equipo" ? 10 : 9;
+                $indexError = $pieces[$i][4] == "Operacion Equipo" ? 6 : 5;
+                switch (true) {
+                    case $pieces[$i][9] == 1:
+                        $colorColumn = "#79BFED"; // Azul
+                        break;
+                    case $pieces[$i][9] == 2:
+                        $colorColumn = "#EC7063"; // Rojo
+                        break;
+                    case $pieces[$i][9] == 0:
+                        $colorColumn = match ($pieces[$i][5]) {
+                            "Incompleto" => "#FFFF99", // Amarillo
+                            "Ninguno" => "#ACF980A8", // Verde
+                            default => "#E59CFF" // Morado
+                        };
+                        break;
+                }
+                ?>
 
-</table>
-</div>
+                <tr style="background-color: {{$colorColumn}}">
+                    @if(isset($band))
+                        @for ($j = 1; $j < count($pieces[$i]) - 4; $j++)
+                            @if ($j==5)
+                                <td></td>   
+                                <td>{{ $pieces[$i][$j] }}</td>
+                            @else
+                                <td>{{ $pieces[$i][$j] }}</td>
+                            @endif
+                        @endfor
+                    @else
+                        @for ($j = 1; $j < count($pieces[$i]) - 4; $j++)
+                            <td>{{ $pieces[$i][$j] }}</td>
+                        @endfor
+                    @endif
+                </tr>
+                @endfor
+        </tbody>
+    </table>
+    </div>
 </body>
 
 </html>

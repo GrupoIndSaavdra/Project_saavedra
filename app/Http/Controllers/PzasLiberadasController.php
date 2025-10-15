@@ -52,41 +52,37 @@ class PzasLiberadasController extends Controller
     }
     public function show()
     {
-        $arregloOT = $this->controladorPzas->getAllWorkOrders();
-        if (count($arregloOT) != 0) {
-            return view('pieces_views.releasePieces.releasePieces_view', compact('arregloOT'));
-        } else {
-            return view('pieces_views.releasePieces.releasePieces_view');
-        }
+        return $this->getPiecesRequest(new Request());
     }
     public function getPiecesRequest(Request $request)
     {
         $datosPiezas = array(
             "workOrder" => $request->workOrder,
             "class" => $request->class,
-            "operador" => $request->operador,
-            "maquina" => $request->maquina,
-            "proceso" => $request->proceso,
+            "operator" => $request->operator,
+            "machine" => $request->machine,
+            "process" => $request->process,
             "error" => $request->error,
-            "fecha" => $request->fecha,
+            "date" => $request->date,
             "action" => $request->input("action"),
         );
         return $this->showPieces($this->controladorPzas->search($datosPiezas, "quality"));
     }
     public function showPieces($array)
     {
-        if ($array[0]) {
-            return view('pieces_views.releasePieces.pzasLiberar', ['piezas' => $array[1], 'otElegida' => $array[2], 'clase' => $array[3], 'operadores' => $array[4], 'maquina' => $array[5], 'array' => $array[6], 'proceso' => $array[7], 'error' => $array[8], 'infoPiezas' => $array[9]]);
+        $toView = $array[0];
+        $pieces = $array[1];
+        $piecesData = $array[2];
+        $infoPieces = $array[3];
+        $selectedItems = $array[4];
+        $filtersData = $array[5];
+        $profile = "quality";
+
+        if ($toView) {
+            return view('pieces_views.releasePieces.pzasLiberar', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
         } else {
-            //Eliminar el último elemento del array
-            $contador = 0;
-            foreach ($array[1] as $pza) {
-                array_pop($pza);
-                $array[1][$contador] = $pza;
-                $contador++;
-            }
-            $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', ['piezas' => $array[1], 'workOrder' => $array[2], 'class' => $array[3], 'operadores' => $array[4], 'maquina' => $array[5], 'array' => $array[6], 'proceso' => $array[7], 'error' => $array[8], 'profile' => "quality"]);
-            return $pdf->download('Informe de piezas.pdf');
+            $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'profile'));
+            return $pdf->download('Reporte de piezas.pdf');
         }
     }
     public function liberar_rechazar($pieza, $proceso, $liberar, $buena, $request) //Función para liberar o rechazar piezas
@@ -104,11 +100,11 @@ class PzasLiberadasController extends Controller
         $datosPiezas = array(
             "workOrder" => $request[0],
             "class" => $request[1],
-            "operador" => $request[2],
-            "maquina" => $request[3],
-            "proceso" => $request[4],
+            "operator" => $request[2],
+            "machine" => $request[3],
+            "process" => $request[4],
             "error" => $request[5],
-            "fecha" => $request[6],
+            "date" => $request[6],
             "action" => null,
         );
         return $this->showPieces($this->controladorPzas->search($datosPiezas, 'quality'));

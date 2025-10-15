@@ -3,13 +3,16 @@ var operacion = false;
 function crearTabla(piezas, infoPiezas) {
     //Crea la tabla de piezas trabajadas en la O.T
     // console.log(piezas);
-    const table = document.getElementById("table");
+    const table = document.querySelector(".table");
     const tbody = document.createElement("tbody");
     //Convertir el objeto a un array
     piezas = convertirObjectToArray(piezas);
     for (let i = 0; i < piezas.length; i++) {
         const tr = document.createElement("tr");
         for (let j = 1; j < piezas[i].length + 1; j++) {
+            if(j >= 12){
+                break;
+            }
             let td = document.createElement("td");
             if (piezas[i][4] == "Operacion Equipo") {
                 switch (j) {
@@ -22,7 +25,7 @@ function crearTabla(piezas, infoPiezas) {
                         }
                         break;
                     case 11:
-                        td.appendChild(crearBotonRechazar(infoPiezas, i));
+                        td.appendChild(crearBotonRechazar(infoPiezas, i)); 
                         break;
                     case 12:
                         td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
@@ -40,10 +43,14 @@ function crearTabla(piezas, infoPiezas) {
                     case 0:
                         if (piezas[i][6].includes("Incompleto")) {
                             tr.style.backgroundColor = "#FFFF99";
+                        } else if(piezas[i][6] == "Ninguno"){
+                            tr.style.backgroundColor = "#ACF980A8";
+                        } else {
+                            tr.style.backgroundColor = "#E59CFF";
                         }
                         break;
                     case 1:
-                        tr.style.backgroundColor = "#ACF980";
+                        tr.style.backgroundColor = "#79BFED";
                         break;
                     case 2:
                         tr.style.backgroundColor = "#EC7063";
@@ -115,11 +122,14 @@ function crearTabla(piezas, infoPiezas) {
                     }
                     tr.appendChild(td);
                 }
-                console.log(piezas[i]);
                 switch (piezas[i][9]) {
                     case 0:
                         if (piezas[i][5].includes("Incompleto")) {
                             tr.style.backgroundColor = "#FFFF99";
+                        } else if(piezas[i][5] == "Ninguno"){
+                            tr.style.backgroundColor = "#ACF980A8";
+                        } else {
+                            tr.style.backgroundColor = "#E59CFF";
                         }
                         break;
                     case 1:
@@ -212,7 +222,7 @@ function crearBotonVer(infoPiezas, i, usuarios) {
     return a;
 }
 function obtenerRequest() {
-    let names = ["workOrder", "class", "operador", "maquina", "proceso", "error", "fecha"];
+    let names = ["workOrder", "class", "operator", "machine", "process", "error", "date"];
     let request = [];
     for (let i = 0; i < names.length; i++) {
         let value = document.getElementsByName(names[i])[0].value;
@@ -220,6 +230,90 @@ function obtenerRequest() {
     }
     return request;
 }
+function createFilters() {
+    let titles = ["Orden de trabajo", "Clase", "Operador", "Maquina", "Proceso", "Error", "Fecha"];
+    Object.keys(window.selectedItems).forEach((item, index) => {
+        let div = document.createElement("div");
+        div.className = "filter";
 
-crearTabla(window.piezas, window.infoPiezas);
+        switch (item) {
+            case "date":
+                let input = document.createElement("input");
+                input.type = "date";
+                input.name = item;
+                input.className = "input-filter";
+                input.value = window.selectedItems[item];
+                div.appendChild(input);
+                break;
+            default:
+                if (item != "action") {
+                    const select = document.createElement("select");
+                    select.className = "select-filter";
+                    select.name = item;
+
+                    const optionDefault = document.createElement("option");
+                    if (item == "operator" && window.selectedItems[item] != "Todos") {
+                        optionDefault.value = window.selectedItems[item].matricula;
+                        optionDefault.textContent =
+                            window.selectedItems[item].nombre +
+                            " " +
+                            window.selectedItems[item].a_paterno +
+                            " " +
+                            window.selectedItems[item].a_materno;
+                    } else {
+                        optionDefault.value = window.selectedItems[item];
+                        optionDefault.textContent = window.selectedItems[item];
+                    }
+                    select.appendChild(optionDefault);
+                    if (window.selectedItems[item] != "Todos") {
+                        //Crear la opción de Todos
+                        const optionAll = document.createElement("option");
+                        optionAll.value = "Todos";
+                        optionAll.textContent = "Todos";
+                        select.appendChild(optionAll);
+                    }
+
+                    window.filtersData[item].forEach((key) => {
+                        if (item == "operator") {
+                            if (key.matricula == window.selectedItems[item].matricula) {
+                                return;
+                            }
+                        } else {
+                            if (key == window.selectedItems[item]) {
+                                return;
+                            }
+                        }
+                        const option = document.createElement("option");
+                        option.value = item == "operator" ? key.matricula : key;
+                        option.textContent =
+                            item == "operator" ? key.nombre + " " + key.a_paterno + " " + key.a_materno : key;
+                        select.appendChild(option);
+                    });
+                    div.appendChild(select);
+                }
+                break;
+        }
+        //Agregar label
+        if (item != "action") {
+            let label = document.createElement("label");
+            label.textContent = titles[index] + ": ";
+            div.appendChild(label);
+            document.querySelector(".filters").appendChild(div);
+        }
+    });
+
+    let button = document.createElement("button");
+    button.textContent = "Buscar";
+    button.className = "btns";
+    button.type = "submit";
+    button.name = "action";
+    button.value = "search";
+    button.textContent = "Buscar";
+
+    document.querySelector(".filters").appendChild(button);
+}
+createFilters();
+if (window.pieces.length > 0) {
+    crearTabla(window.pieces, window.infoPieces);
+}
 const pdf = document.getElementById("pdf");

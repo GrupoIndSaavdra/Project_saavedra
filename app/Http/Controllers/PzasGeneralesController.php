@@ -96,24 +96,7 @@ class PzasGeneralesController extends Controller
     }
     public function showPiecesReport_view()
     {
-        $dataWO = $this->getAllWorkOrders();
-        return view('pieces_views.piecesReport.piecesReport_view', compact('dataWO'));
-    }
-    public function getAllWorkOrders()
-    {
-        $workOrders = Orden_trabajo::all();
-        $array = array();
-        if (count($workOrders) > 0) {
-            $counter = 0;
-            foreach ($workOrders as $workOrder) {
-                $classes = Clase::where('id_ot', $workOrder->id)->get();
-                if (count($classes) > 0) {
-                    $this->getDataWO($workOrder, $counter, $classes, $array);
-                    $counter++;
-                }
-            }
-        }
-        return $array;
+        return $this->getPiecesRequest(new Request());
     }
     public function getDataWO($workOrder, $index, $classes, &$array)
     {
@@ -128,85 +111,85 @@ class PzasGeneralesController extends Controller
             $array[$index][1][$indexClass][1] = $class->nombre . " " . $class->tamanio;
         }
     }
-    public function search($datosPiezas, $profile = null)
+    public function search($piecesData, $profile = null)
     {
-        $array = array();
-        $infoPiezas = array();
-        $workOrder = Orden_trabajo::find($datosPiezas["workOrder"]);
-        $class = Clase::find($datosPiezas["class"]);
-        $operadores = $this->getOperadores($workOrder->id);
-        $maquina = Pieza::where('id_ot', $workOrder->id)->distinct('maquina')->pluck('maquina');
-        $proceso = $this->procesosClase($class);
-        $piezas = $this->buscarPiezas($workOrder, $class, $datosPiezas["operador"], $datosPiezas["maquina"], $datosPiezas["proceso"], $datosPiezas["error"], $datosPiezas["fecha"], $array);
-        $error = ['Ninguno', 'Maquinado', 'Fundicion'];
-        $this->saveInfoPzas($infoPiezas, $piezas, $class->nombre);
+        $selectedItems = array();
+        $infoPieces = array();
+        $filtersData = $this->getFiltersInfo();
+        $pieces = $this->buscarPiezas($piecesData, $selectedItems);
+        $this->saveInfoPzas($infoPieces, $pieces);
 
-        if ($datosPiezas["action"] != 'pdf' || $datosPiezas["action"] == null) {
+        if ($piecesData["action"] != 'pdf' || $piecesData["action"] == null) {
             if ($profile == 'quality') {
-                return [true, $piezas, $workOrder, $class, $operadores, $maquina, $array, $proceso, $error, $infoPiezas];
+                return [true, $pieces, $piecesData, $infoPieces, $selectedItems, $filtersData];
             }
-            return view('pieces_views.piecesReport.adminPieces', compact('piezas', 'workOrder', 'class', 'operadores', 'maquina', 'array', 'proceso', 'error', 'infoPiezas'));
+            return view('pieces_views.piecesReport.adminPieces', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
         } else {
             if ($profile == 'quality') {
-                return [false, $piezas, $workOrder, $class, $operadores, $maquina, $array, $proceso, $error];
+                return [false, $pieces, $piecesData, $infoPieces, $selectedItems, $filtersData];
             }
-            $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('piezas', 'workOrder', 'class', 'operadores', 'maquina', 'array', 'proceso', 'error', 'profile'));
+            $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
             return $pdf->download('Reporte de piezas.pdf');
         }
+    }
+    public function getFiltersInfo()
+    {
+        $filtersData = array(
+            "workOrder" => $this->objectToArrayFromDB(Orden_trabajo::all(), "workOrder"),
+            "class" => ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo"],
+            "operator" => $this->objectToArrayFromDB(User::all(), "operator"),
+            "machine" => [1, 2, 3, 4, 5, 6, 7],
+            "process" => ["Cepillado", "Desbaste Exterior", "Revision Laterales", "Primera Operacion", "Barreno Maniobra", "Segunda Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado", "Acabado Bombillo", "Acabado Molde", "Barreno Profundidad", "Cavidades", "Copiado", "Off Set", "Palomas", "Rebajes", "Operacion Equipo", "Embudo CM"],
+            "error" => ["Ninguno", "Maquinado", "Fundicion"],
+        );
+        return $filtersData;
+    }
+    public function objectToArrayFromDB($object, $param)
+    {
+        $array = array();
+        foreach ($object as $item) {
+            $value = $param == "workOrder" ? $item->id : $item;
+            array_push($array, $value);
+        }
+        return $array;
     }
     public function getPiecesRequest(Request $request)
     {
         $datosPiezas = array(
             "workOrder" => $request->workOrder,
             "class" => $request->class,
-            "operador" => $request->operador,
-            "maquina" => $request->maquina,
-            "proceso" => $request->proceso,
+            "operator" => $request->operator,
+            "machine" => $request->machine,
+            "process" => $request->process,
             "error" => $request->error,
-            "fecha" => $request->fecha,
+            "date" => $request->date,
             "action" => $request->input("action"),
         );
         return $this->search($datosPiezas, 'admin');
     }
-    public function buscarPiezas($ot, $clase, $operador, $maquina, $proceso, $error, $fecha, &$itemElegidos)
+    public function buscarPiezas($piecesData, &$itemElegidos)
     {
         //Busca las piezas que coincidan con los parametros de búsqueda
-        $array = array();
-        if ($ot != null) {
-            $array = Pieza::where('id_ot', $ot->id)->where('id_clase', $clase->id)->get();
-            $array = $this->saveInArray($array);
-            if (($operador != "todos" && isset($operador)) && $array != "[]") {
-                $array = $this->buscarElemento($array, 2, $operador);
-                $itemElegidos[0] = $operador;
-            } else {
-                $itemElegidos[0] = "Todos";
+        $array = Pieza::all();
+        $array = $this->saveInArray($array);
+        if (count($array) > 0) {
+            $positionsArray = array("workOrder" => 0, "class" => "className",  "operator" => 2, "machine" => 3, "process" => 4, "error" => 5, "date" => 6);
+            foreach ($piecesData as $key => $value) {
+                if ($key != "action") {
+                    if ($value !== "Todos" && isset($piecesData[$key])) {
+                        $itemElegidos[$key] = $piecesData[$key];
+                        if ($key == "operator") {
+                            $itemElegidos[$key] = User::where('matricula', $piecesData[$key])->first();
+                            $piecesData[$key] = User::where('matricula', $piecesData[$key])->first()->nombre . " " . User::where('matricula', $piecesData[$key])->first()->a_paterno . " " . User::where('matricula', $piecesData[$key])->first()->a_materno;
+                        }
+                        $array = $this->buscarElemento($array, $positionsArray[$key], $piecesData[$key]);
+                    } else {
+                        $itemElegidos[$key] = "Todos";
+                    }
+                }
             }
-            if (($maquina != "todos" && isset($maquina)) && $array != "[]") {
-                $array = $this->buscarElemento($array, 3, $maquina);
-                $itemElegidos[1] = $maquina;
-            } else {
-                $itemElegidos[1] = "Todos";
-            }
-            if (($proceso != "todos" && isset($proceso)) && $array != "[]") {
-                $array = $this->buscarElemento($array, 4, $proceso);
-                $itemElegidos[2] = $proceso;
-            } else {
-                $itemElegidos[2] = "Todos";
-            }
-            if (($error != "todos" && isset($error)) && $array != "[]") {
-                $array = $this->buscarElemento($array, 5, $error);
-                $itemElegidos[3] = $error;
-            } else {
-                $itemElegidos[3] = "Todos";
-            }
-            if (($fecha != "todos" && isset($fecha)) && $array != "[]") {
-                $array = $this->buscarElemento($array, 6, $fecha);
-                $itemElegidos[4] = $fecha;
-            } else {
-                $itemElegidos[4] = "Todos";
-            }
+            return $array;
         }
-        return $array;
     }
     //Obtener los procesos por los que pasa una clase
     public function procesosClase($clase)
@@ -345,6 +328,8 @@ class PzasGeneralesController extends Controller
                 $array[$contador][0] = $item->id_ot;
                 $array[$contador][3] = $item->maquina;
                 $array[$contador]["id_clase"] = $item->id_clase;
+                $className = Clase::find($item->id_clase);
+                $array[$contador]["className"] = $className ? $className->nombre : null;
                 if ($item->proceso == "Operacion Equipo_1" || $item->proceso == "Operacion Equipo_2") {
                     $array[$contador][4] = substr($item->proceso, 0, -2);
                     $array[$contador][5] = substr($item->proceso, -1);
@@ -386,15 +371,15 @@ class PzasGeneralesController extends Controller
         }
         return $array;
     }
-    public function saveInfoPzas(&$infoPiezas, $piezas, $clase = null)
+    public function saveInfoPzas(&$infoPiezas, $piezas)
     {
         $contador = 0;
         foreach ($piezas as $pieza) {
-            if($clase == null){
-                $clase = Clase::find($pieza["id_clase"]);
-                $clase = $clase->nombre;
-            }
-            $clase = $clase == null ?  : $clase;
+            //Buscar la clase de la pieza
+            $clase = Clase::find($pieza["id_clase"]);
+            $clase = $clase->nombre;
+
+            $clase = $clase == null ?: $clase;
             switch ($pieza[4]) {
                 case 'Cepillado':
                     $id_proceso = 'Cepillado_' . $clase . "_" . $pieza[0];
