@@ -10,7 +10,7 @@ function crearTabla(piezas, infoPiezas) {
     for (let i = 0; i < piezas.length; i++) {
         const tr = document.createElement("tr");
         for (let j = 1; j < piezas[i].length + 1; j++) {
-            if(j >= 12){
+            if (j >= 12) {
                 break;
             }
             let td = document.createElement("td");
@@ -25,7 +25,7 @@ function crearTabla(piezas, infoPiezas) {
                         }
                         break;
                     case 11:
-                        td.appendChild(crearBotonRechazar(infoPiezas, i)); 
+                        td.appendChild(crearBotonRechazar(infoPiezas, i));
                         break;
                     case 12:
                         td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
@@ -43,7 +43,7 @@ function crearTabla(piezas, infoPiezas) {
                     case 0:
                         if (piezas[i][6].includes("Incompleto")) {
                             tr.style.backgroundColor = "#FFFF99";
-                        } else if(piezas[i][6] == "Ninguno"){
+                        } else if (piezas[i][6] == "Ninguno") {
                             tr.style.backgroundColor = "#ACF980A8";
                         } else {
                             tr.style.backgroundColor = "#E59CFF";
@@ -126,7 +126,7 @@ function crearTabla(piezas, infoPiezas) {
                     case 0:
                         if (piezas[i][5].includes("Incompleto")) {
                             tr.style.backgroundColor = "#FFFF99";
-                        } else if(piezas[i][5] == "Ninguno"){
+                        } else if (piezas[i][5] == "Ninguno") {
                             tr.style.backgroundColor = "#ACF980A8";
                         } else {
                             tr.style.backgroundColor = "#E59CFF";
@@ -301,16 +301,17 @@ function createFilters() {
             document.querySelector(".filters").appendChild(div);
         }
     });
+    if (Object.keys(window.selectedItems).length > 0) {
+        let button = document.createElement("button");
+        button.textContent = "Buscar";
+        button.className = "btns btn-search";
+        button.type = "submit";
+        button.name = "action";
+        button.value = "search";
+        button.textContent = "Buscar";
 
-    let button = document.createElement("button");
-    button.textContent = "Buscar";
-    button.className = "btns";
-    button.type = "submit";
-    button.name = "action";
-    button.value = "search";
-    button.textContent = "Buscar";
-
-    document.querySelector(".filters").appendChild(button);
+        document.querySelector(".filters").appendChild(button);
+    }
 }
 createFilters();
 if (window.pieces.length > 0) {

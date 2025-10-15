@@ -21,10 +21,9 @@ btn_open.addEventListener("click", function () {
     nav.style.translationX = "0%"; //Agregamos una transición al nav.
 });
 
-
 //Funcion para crear La lista de rutas para el menu
 function createMenu(profile) {
-    if(profile == 2) {
+    if (profile == 2) {
         let btn_open = document.querySelector(".open-menu"); //Obtenemos el elemento por su id.
         btn_open.style.opacity = "0"; //Cambiamos la opacidad del nav.
         btn_open.style.pointerEvents = "none"; //Cambiamos la opacidad del nav.
@@ -84,8 +83,7 @@ function createList(sections) {
                 a.href = window.routes[route[0]];
                 a.textContent = route[1];
 
-                const linkPath = new URL(a.href, window.location.origin)
-                    .pathname;
+                const linkPath = new URL(a.href, window.location.origin).pathname;
                 if (currentPath === linkPath) {
                     a.classList.add("active");
                 }
@@ -154,9 +152,7 @@ function getRoutes(profile) {
                 },
                 {
                     title: null,
-                    routes: [
-                        ["processProduction", "Proceso de Producción"],
-                    ],
+                    routes: [["processProduction", "Proceso de Producción"]],
                 },
             ];
             break;
@@ -164,7 +160,7 @@ function getRoutes(profile) {
             sections = [
                 {
                     title: null,
-                    routes: [routeHome],
+                    routes: [routeHome, ["createUser", "Registrar usuario"]],
                 },
             ];
             break;
@@ -176,9 +172,7 @@ function getRoutes(profile) {
                 },
                 {
                     title: "Liberación de Piezas",
-                    routes: [
-                        ["showReleasePieces_view", "Liberacion de piezas"],
-                    ],
+                    routes: [["showReleasePieces_view", "Liberacion de piezas"]],
                 },
                 {
                     title: "Producción",
@@ -217,7 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".submenu-toggle").forEach((toggle) => {
         toggle.addEventListener("click", function (e) {
             e.preventDefault();
-            if(this.parentElement.classList.contains("active")) {
+            if (this.parentElement.classList.contains("active")) {
                 this.parentElement.classList.remove("active");
                 this.nextElementSibling.style.display = "none";
             } else {

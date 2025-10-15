@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (!Schema::hasColumn('acabadomolde_pza', 'n_pieza')) {
-            Schema::table('acabadomolde_pza', function (Blueprint $table) {
+        if (!Schema::hasColumn('acabadoMolde_pza', 'n_pieza')) {
+            Schema::table('acabadoMolde_pza', function (Blueprint $table) {
                 $table->string('n_pieza')->nullable();
             });
         }
@@ -23,8 +23,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        if (Schema::hasColumn('acabadomolde_pza', 'n_pieza')) {
-            Schema::table('acabadomolde_pza', function (Blueprint $table) {
+        if (Schema::hasColumn('acabadoMolde_pza', 'n_pieza')) {
+            Schema::table('acabadoMolde_pza', function (Blueprint $table) {
                 $table->dropColumn('n_pieza');
             });
         }

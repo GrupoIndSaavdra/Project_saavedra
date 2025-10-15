@@ -273,16 +273,17 @@ function createFilters() {
             document.querySelector(".filters").appendChild(div);
         }
     });
+    if (Object.keys(window.selectedItems).length > 0) {
+        let button = document.createElement("button");
+        button.textContent = "Buscar";
+        button.className = "btns btn-search";
+        button.type = "submit";
+        button.name = "action";
+        button.value = "search";
+        button.textContent = "Buscar";
 
-    let button = document.createElement("button");
-    button.textContent = "Buscar";
-    button.className = "btns";
-    button.type = "submit";
-    button.name = "action";
-    button.value = "search";
-    button.textContent = "Buscar";
-
-    document.querySelector(".filters").appendChild(button);
+        document.querySelector(".filters").appendChild(button);
+    }
 }
 createFilters();
 if (pieces.length > 0) {

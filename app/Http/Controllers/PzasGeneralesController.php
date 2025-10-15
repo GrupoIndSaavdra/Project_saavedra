@@ -117,6 +117,7 @@ class PzasGeneralesController extends Controller
         $infoPieces = array();
         $filtersData = $this->getFiltersInfo();
         $pieces = $this->buscarPiezas($piecesData, $selectedItems);
+        $pieces = $pieces == null ? array() : $pieces;
         $this->saveInfoPzas($infoPieces, $pieces);
 
         if ($piecesData["action"] != 'pdf' || $piecesData["action"] == null) {
@@ -149,7 +150,13 @@ class PzasGeneralesController extends Controller
         $array = array();
         foreach ($object as $item) {
             $value = $param == "workOrder" ? $item->id : $item;
-            array_push($array, $value);
+            if ($param == "operator") {
+                if ($item->perfil == 2) {
+                    array_push($array, $value);
+                }
+            } else {
+                array_push($array, $value);
+            }
         }
         return $array;
     }
@@ -241,11 +248,11 @@ class PzasGeneralesController extends Controller
                 $mitad = true;
                 //Si la pieza es mitad, buscar si ya se guardo el juego
                 $numJuego = $this->getPiezaNumber($item->n_pieza);
-                if (!in_array($numJuego . "J" . "_" . $item->proceso, $juegosGuardados)) {
+                if (!in_array($numJuego . "J" . "_" . $item->proceso . "_" . $item->id_clase . "_" . $item->id_ot, $juegosGuardados)) {
                     $band = true;
                     //Guardar el numero de juego
                     $array[$contador][1] = $numJuego . "J";
-                    array_push($juegosGuardados, $array[$contador][1] . "_" . $item->proceso);
+                    array_push($juegosGuardados, $array[$contador][1] . "_" . $item->proceso . "_" . $item->id_clase . "_" . $item->id_ot);
 
                     //Buscar las mitades del juego para los demás datos
                     $pzas[0] = Pieza::where('id_clase', $item->id_clase)->where('proceso', $item->proceso)->where('n_pieza', $numJuego . 'H')->first();
@@ -374,6 +381,9 @@ class PzasGeneralesController extends Controller
     public function saveInfoPzas(&$infoPiezas, $piezas)
     {
         $contador = 0;
+        if ($piezas == null || count($piezas) == 0) {
+            return;
+        }
         foreach ($piezas as $pieza) {
             //Buscar la clase de la pieza
             $clase = Clase::find($pieza["id_clase"]);
