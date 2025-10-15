@@ -6,7 +6,7 @@
     window.liberar = "{{ asset('images/Liberar.png') }}"
     window.rechazar = "{{ asset('images/Rechazar.png') }}"
     window.ojito = "{{ asset('images/ojito.png') }}"
-
+    window.loading = "{{ asset('images/loading.gif') }}"
     window.baseUrl = "{{ url('/') }}";
 </script>
 @vite(['resources/js/pieces_views/releasePieces/releasePieces.js', 'resources/css/pieces_views/piecesReport/adminPieces.css'])

@@ -206,7 +206,35 @@ tr:nth-child(even) {
     justify-content: center;
     align-items: center;
 }
-
+.div-opacity {
+    position: fixed;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: #0000003a;
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(8px); /* Safari */
+    z-index: 1;
+}
+.loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+.img-loading {
+    width: 100%;
+}
 @media (max-width: 991.98px) {
     body {
         height: 100vh;

@@ -310,6 +310,23 @@ function createFilters() {
         button.value = "search";
         button.textContent = "Buscar";
 
+        //Agregar div de cargando
+        button.addEventListener("click", () => {
+            let div_opacity = document.createElement("div");
+            div_opacity.className = "div-opacity";
+            document.body.appendChild(div_opacity);
+
+            let divLoading = document.createElement("div");
+            divLoading.className = "loading";
+            //Insertar video de cargando
+            let imgLoading = document.createElement("img");
+            imgLoading.src = window.loading;
+            imgLoading.alt = "Cargando...";
+            imgLoading.className = "img-loading";
+            divLoading.appendChild(imgLoading);
+            document.body.appendChild(divLoading);
+        });
+
         document.querySelector(".filters").appendChild(button);
     }
 }

@@ -8,7 +8,7 @@
     window.liberar = "{{ asset('images/Liberar.png') }}"
     window.rechazar = "{{ asset('images/Rechazar.png') }}"
     window.ojito = "{{ asset('images/ojito.png') }}"
-
+    window.loading = "{{ asset('images/loading.gif') }}"
     window.baseUrl = "{{ url('/') }}";
 </script>
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")') <!--Body background Image-->
