@@ -9,7 +9,7 @@ function crearTabla(piezas, infoPiezas) {
     piezas = convertirObjectToArray(piezas);
     for (let i = 0; i < piezas.length; i++) {
         const tr = document.createElement("tr");
-        for (let j = 1; j < piezas[i].length + 1; j++) {
+        for (let j = 0; j < piezas[i].length + 1; j++) {
             if (j >= 12) {
                 break;
             }
@@ -112,9 +112,17 @@ function crearTabla(piezas, infoPiezas) {
                             td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
                             break;
                         default:
+                            console.log(j);
                             if (piezas[i][j] != undefined) {
-                                // console.log(piezas[i][1] + " " + piezas[i][j]);
-                                td.textContent = piezas[i][j];
+                                if (j == 0) {
+                                    console.log(piezas[i]);
+                                    td.textContent = piezas[i][j];
+                                    let tdClass = document.createElement("td");
+                                    tdClass.textContent = piezas[i][12];
+                                    tr.appendChild(tdClass);
+                                } else {
+                                    td.textContent = piezas[i][j];
+                                }
                             } else {
                                 td.textContent = "";
                             }

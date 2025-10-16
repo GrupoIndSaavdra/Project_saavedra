@@ -65,6 +65,8 @@
         <table class="table">
             <thead>
                 <tr>
+                    <th>Clase</th>
+                    <th>Orden de trabajo</th>
                     <th>Juego</th>
                     <th style="width: 500px;">Nombre del operador</th>
                     <th>Máquina</th>

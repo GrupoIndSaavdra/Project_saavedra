@@ -54,6 +54,8 @@
             <table class="table">
                 <thead>
                     <tr>
+                        <th>Clase</th>
+                        <th>Orden de trabajo</th>
                         <th>Juego</th>
                         <th style="width: 500px;">Nombre del operador</th>
                         <th>Máquina</th>
@@ -87,7 +89,9 @@
     <div class="colors">
         <table class="table-colors">
             <thead>
-                <tr><th colspan="2">Tabla de colores</th></tr>
+                <tr>
+                    <th colspan="2">Tabla de colores</th>
+                </tr>
                 <tr>
                     <th>Color</th>
                     <th>Estado</th>

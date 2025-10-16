@@ -9,7 +9,7 @@ function crearTabla(piezas, infoPiezas) {
     piezas = convertirObjectToArray(piezas);
     for (let i = 0; i < piezas.length; i++) {
         const tr = document.createElement("tr");
-        for (let j = 1; j < piezas[i].length - 3; j++) {
+        for (let j = 0; j < piezas[i].length - 3; j++) {
             let td = document.createElement("td");
             if (piezas[i][4] == "Operacion Equipo") {
                 switch (j) {
@@ -81,7 +81,14 @@ function crearTabla(piezas, infoPiezas) {
                             break;
                         default:
                             if (piezas[i][j] != undefined) {
-                                td.textContent = piezas[i][j];
+                                if(j == 0){
+                                    td.textContent = piezas[i][j];
+                                    let tdClass = document.createElement("td");
+                                    tdClass.textContent = piezas[i][12];
+                                    tr.appendChild(tdClass);
+                                } else {
+                                    td.textContent = piezas[i][j];
+                                }
                             } else {
                                 td.textContent = "";
                             }
