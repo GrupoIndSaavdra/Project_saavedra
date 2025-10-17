@@ -340,7 +340,8 @@ class PzasGeneralesController extends Controller
                 if ($item->proceso == "Operacion Equipo_1" || $item->proceso == "Operacion Equipo_2") {
                     $array[$contador][4] = substr($item->proceso, 0, -2);
                     $array[$contador][5] = substr($item->proceso, -1);
-                    $array[$contador][7] = $item->created_at;
+                    $date = new \DateTime($item->created_at);
+                    $array[$contador][7] = $date->format('Y-m-d H:i:s');
                     if ($item->fecha_liberacion != null) {
                         $array[$contador][8] = $item->fecha_liberacion;
                     } else {
@@ -353,7 +354,8 @@ class PzasGeneralesController extends Controller
                     }
                 } else {
                     $array[$contador][4] = $item->proceso;
-                    $array[$contador][6] = $item->created_at;
+                    $date = new \DateTime($item->created_at);
+                    $array[$contador][6] = $date->format('Y-m-d H:i:s');
                     if ($item->fecha_liberacion != null) {
                         $array[$contador][7] = $item->fecha_liberacion;
                     } else {

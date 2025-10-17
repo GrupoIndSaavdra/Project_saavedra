@@ -165,7 +165,7 @@ function convertirObjectToArray(obj) {
 function crearFecha(fecha) {
     let cadena = "";
     if (fecha != "No liberado") {
-        let array = fecha.split("T");
+        let array = fecha.split(" ");
         cadena = array[0] + "\n " + array[1].slice(0, 8);
     } else {
         cadena = fecha;
