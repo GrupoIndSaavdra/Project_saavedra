@@ -111,9 +111,11 @@ class DatosProduccionController extends Controller
         $datos = [];
         foreach ($OTs as $ot) {
             //Asignar nombre de la moldura en el arreglo
+            $datos[$ot->id] = [];
             $this->insertarMoldura($ot, $datos[$ot->id]["moldura"]);
 
             //Agregar operadores de la orden de trabajo 
+            $datos[$ot->id]["operadores"] = [];
             $this->insertarDatosRestantes($ot, $datos[$ot->id]["operadores"]);
         }
 
@@ -126,25 +128,24 @@ class DatosProduccionController extends Controller
     }
     public function insertarDatosRestantes($ot, &$arrayOperadores)
     {
-        $arrayOperadores = [];
         $piezas = Pieza::where("id_ot", $ot->id)->get(); //Obtener las piezas en la que se ha trabajado la OT
         foreach ($piezas as $pieza) {
             //Verificar que el operador no se haya agregado previamente
-            if (!array_key_exists($pieza->id_operador, $arrayOperadores)) {
-                $arrayOperadores[$pieza->id_operador] = [];
-                //Obtener el nombre del operador
-                $operador = User::where("matricula", $pieza->id_operador)->first();
-                $arrayOperadores[$pieza->id_operador]["nombre"] = $operador->nombre . " " . $operador->a_paterno . " " . $operador->a_materno;
+            $operator = User::where("matricula", $pieza->id_operador)->first();
+            if (!array_key_exists($operator->matricula, $arrayOperadores)) {
+                $arrayOperadores[$operator->matricula] = [];
+                $arrayOperadores[$operator->matricula]["nombre"] = $operator->nombre . " " . $operator->a_paterno . " " . $operator->a_materno;
+                $arrayOperadores[$operator->matricula]["clases"] = [];
+            }
 
-                $arrayOperadores[$operador->matricula]["clases"] = [];
 
-                //Obtener el nombre de la clase en la que ha trabajado el operador
-                $clase = Clase::find($pieza->id_clase);
-                //Verificar que la clase no se haya agregado previamente
-                if (!array_key_exists($clase->nombre, $arrayOperadores[$operador->matricula]["clases"])) {
-                    $arrayOperadores[$operador->matricula]["clases"][$clase->nombre]["pedido"] = $clase->pedido;
-                    $arrayOperadores[$operador->matricula]["clases"][$clase->nombre]["procesos"] = $this->asignarProcesosOperador($clase->id, $operador->matricula);
-                }
+            //Obtener el nombre de la clase en la que ha trabajado el operador
+            $clase = Clase::find($pieza->id_clase);
+            //Verificar que la clase no se haya agregado previamente
+            if (!array_key_exists($clase->nombre, $arrayOperadores[$operator->matricula]["clases"])) {
+                $arrayOperadores[$operator->matricula]["clases"][$clase->nombre] = [];
+                $arrayOperadores[$operator->matricula]["clases"][$clase->nombre]["pedido"] = $clase->pedido;
+                $arrayOperadores[$operator->matricula]["clases"][$clase->nombre]["procesos"] = $this->asignarProcesosOperador($clase->id, $operator->matricula);
             }
         }
     }

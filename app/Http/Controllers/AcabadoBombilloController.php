@@ -87,7 +87,7 @@ class AcabadoBombilloController extends Controller
         }
         $piece->save();
     }
-    public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
+    public function comparePieceData($pieza, $cNominal, $tolerancia)
     {
         $campos = [
             'diametro_mordaza',
@@ -106,19 +106,28 @@ class AcabadoBombilloController extends Controller
             'simetria'
         ];
 
+        $epsilon = 0.000001; // tolerancia mínima para errores de redondeo
+
         foreach ($campos as $campo) {
-            if (
-                $pieza->$campo > ($cNominal->$campo + $tolerancia->{$campo . '1'}) ||
-                $pieza->$campo < ($cNominal->$campo - $tolerancia->{$campo . '2'})
-            ) {
-                Log::warning("Fuera de tolerancia en $campo", [
-                    'valor' => $pieza->$campo,
-                    'min' => $cNominal->$campo - $tolerancia->{$campo . '2'},
-                    'max' => $cNominal->$campo + $tolerancia->{$campo . '1'},
-                ]);
+            $valorPiece = (float) $pieza->$campo;
+            $nominal = (float) $cNominal->$campo;
+            $tolPlus = (float) $tolerancia->{$campo . '1'};
+            $tolMinus = (float) $tolerancia->{$campo . '2'};
+
+            $min = $nominal - $tolMinus;
+            $max = $nominal + $tolPlus;
+
+            // Compara con epsilon para evitar falsos positivos por decimales
+            if ($valorPiece > $max + $epsilon || $valorPiece < $min - $epsilon) {
+                // dd("Fuera de tolerancia en $campo", [
+                //     'valor' => $valorPiece,
+                //     'min' => $min,
+                //     'max' => $max,
+                // ]);
                 return 0;
             }
         }
+
         return 1;
     }
 }
