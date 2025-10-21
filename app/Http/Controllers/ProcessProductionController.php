@@ -159,56 +159,57 @@ class ProcessProductionController extends Controller
                     $unoccupiedPiece->save();
                     return $unoccupiedPiece;
                 }
-            } else {
-                if ($processName == "Cepillado") {
-                    if (count($availableAssemblies) > 0) {
-                        $assembly = $availableAssemblies[0];
-                        $noAssembly = substr($assembly, 0, -1); // Extraer el numero de juego
-                        for ($i = 1; $i <= 2; $i++) {
-                            $pieceLetter = $i > 1 ? "H" : "M"; // Asociar la letra de la mitad de la pieza
+            }
 
-                            //Verificar que no exista la pieza que se quiere crear
-                            $existingPiece = $modelPieces::where("id_proceso", $process->id)
-                                ->where("n_pieza", $noAssembly . $pieceLetter)
-                                ->first();
+            //Si no hay piezas vacias asociadas a la meta, se crea una nueva pieza solamente si el proceso es "Cepillado"
+            if ($processName == "Cepillado") {
+                if (count($availableAssemblies) > 0) {
+                    $assembly = $availableAssemblies[0];
+                    $noAssembly = substr($assembly, 0, -1); // Extraer el numero de juego
+                    for ($i = 1; $i <= 2; $i++) {
+                        $pieceLetter = $i > 1 ? "H" : "M"; // Asociar la letra de la mitad de la pieza
 
-                            if (!$existingPiece) {
-                                //Creación de piezas
-                                $newPiece = new $modelPieces();
-                                $newPiece->id_pza = $noAssembly . $pieceLetter . $process->id;
-                                $newPiece->id_meta = $meta->id;
-                                $newPiece->id_proceso = $process->id;
-                                $newPiece->estado = 1;
-                                $newPiece->n_pieza = $noAssembly . $pieceLetter;
-                                $newPiece->n_juego = $assembly;
-                                $newPiece->save();
-                            }
-                            if ($i == 1) {
-                                $pieceToBeUsed = !$existingPiece ? $newPiece : $existingPiece;
-                            }
+                        //Verificar que no exista la pieza que se quiere crear
+                        $existingPiece = $modelPieces::where("id_proceso", $process->id)
+                            ->where("n_pieza", $noAssembly . $pieceLetter)
+                            ->first();
+
+                        if (!$existingPiece) {
+                            //Creación de piezas
+                            $newPiece = new $modelPieces();
+                            $newPiece->id_pza = $noAssembly . $pieceLetter . $process->id;
+                            $newPiece->id_meta = $meta->id;
+                            $newPiece->id_proceso = $process->id;
+                            $newPiece->estado = 1;
+                            $newPiece->n_pieza = $noAssembly . $pieceLetter;
+                            $newPiece->n_juego = $assembly;
+                            $newPiece->save();
                         }
-                        return $pieceToBeUsed;
-                    } else {
-                        return null;
+                        if ($i == 1) {
+                            $pieceToBeUsed = !$existingPiece ? $newPiece : $existingPiece;
+                        }
                     }
+                    return $pieceToBeUsed;
                 } else {
-                    //Verificar que haya piezas registradas en el proceso anterior
-                    $previousProcess = $this->convertProcessToString($this->get_previousProcess($class, $processName));
-                    if ($previousProcess) {
-                        $modelPreviousProcessPieces = $this->get_ModelProcessPieces($previousProcess);
-                        $previousProcessId = str_replace(" ", "_", $previousProcess) . "_" . $class->nombre . "_" . $class->id_ot;
-                        $previousProcessDB = $this->get_ModelProcess($previousProcess)::where('id_proceso', $previousProcessId)->first();
-                        if ($previousProcessDB) {
-                            $previousPieces = $modelPreviousProcessPieces::where('id_proceso', $previousProcessDB->id)->where('estado', 2)->get();
-                            if (!$previousPieces->isNotEmpty()) {
-                                return "NoPreviousPieces";
-                            }
-                        } else {
-                            return "NoPreviousPieces";
-                        }
-                    }
                     return null;
                 }
+            } else {
+                //Verificar que haya piezas registradas en el proceso anterior
+                $previousProcess = $this->convertProcessToString($this->get_previousProcess($class, $processName));
+                if ($previousProcess) {
+                    $modelPreviousProcessPieces = $this->get_ModelProcessPieces($previousProcess);
+                    $previousProcessId = str_replace(" ", "_", $previousProcess) . "_" . $class->nombre . "_" . $class->id_ot;
+                    $previousProcessDB = $this->get_ModelProcess($previousProcess)::where('id_proceso', $previousProcessId)->first();
+                    if ($previousProcessDB) {
+                        $previousPieces = $modelPreviousProcessPieces::where('id_proceso', $previousProcessDB->id)->where('estado', 2)->get();
+                        if (!$previousPieces->isNotEmpty()) {
+                            return "NoPreviousPieces";
+                        }
+                    } else {
+                        return "NoPreviousPieces";
+                    }
+                }
+                return null;
             }
         } else {
             return "NoPreviousPieces";
