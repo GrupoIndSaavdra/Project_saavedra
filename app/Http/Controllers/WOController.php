@@ -266,7 +266,7 @@ class WOController extends Controller
             case "asentado":
                 return "Asentado";
             case "calificado":
-                return "Revision Calificado";
+                return "Calificado";
             case "acabadoBombillo":
                 return "Acabado Bombillo";
             case "acabadoMolde":
@@ -428,7 +428,6 @@ class WOController extends Controller
             $piecesArray["bad"] = $counterBadPieces;
         } else {
             $pieces = Pieza::where("proceso", $processName)->where('id_clase', $class->id)->get();
-
             if (count($pieces) > 0) {
                 //Recorrer cada una de las piezas
                 foreach ($pieces as $piece) {
