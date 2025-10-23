@@ -197,16 +197,36 @@ class ProcessProductionController extends Controller
                 //Verificar que haya piezas registradas en el proceso anterior
                 $previousProcess = $this->convertProcessToString($this->get_previousProcess($class, $processName));
                 if ($previousProcess) {
-                    $modelPreviousProcessPieces = $this->get_ModelProcessPieces($previousProcess);
-                    $previousProcessId = str_replace(" ", "_", $previousProcess) . "_" . $class->nombre . "_" . $class->id_ot;
-                    $previousProcessDB = $this->get_ModelProcess($previousProcess)::where('id_proceso', $previousProcessId)->first();
-                    if ($previousProcessDB) {
-                        $previousPieces = $modelPreviousProcessPieces::where('id_proceso', $previousProcessDB->id)->where('estado', 2)->get();
-                        if (!$previousPieces->isNotEmpty()) {
-                            return "NoPreviousPieces";
+                    $specialProcess = ["Soldadura", "Soldadura PTA", "Desbaste Exterior", "Revision Laterales"];
+                    if (in_array($previousProcess, $specialProcess)) {
+                        $specialProcesses = $previousProcess == "Soldadura" || $previousProcess == "Soldadura PTA" ? ["Soldadura", "Soldadura PTA"] : ["Desbaste Exterior", "Revision Laterales"];
+                        foreach($specialProcesses as $specProcess) {
+                            $modelPreviousProcessPieces = $this->get_ModelProcessPieces($specProcess);
+                            $previousProcessId = str_replace(" ", "_", $specProcess) . "_" . $class->nombre . "_" . $class->id_ot;
+                            $previousProcessDB = $this->get_ModelProcess($specProcess)::where('id_proceso', $previousProcessId)->first();
+                            if ($previousProcessDB) {
+                                $previousPieces = $modelPreviousProcessPieces::where('id_proceso', $previousProcessDB->id)->where('estado', 2)->get();
+                                if ($previousPieces->isNotEmpty()) {
+                                    break;
+                                } else {
+                                    return "NoPreviousPieces";
+                                }
+                            } else {
+                                return "NoPreviousPieces";
+                            }
                         }
                     } else {
-                        return "NoPreviousPieces";
+                        $modelPreviousProcessPieces = $this->get_ModelProcessPieces($previousProcess);
+                        $previousProcessId = str_replace(" ", "_", $previousProcess) . "_" . $class->nombre . "_" . $class->id_ot;
+                        $previousProcessDB = $this->get_ModelProcess($previousProcess)::where('id_proceso', $previousProcessId)->first();
+                        if ($previousProcessDB) {
+                            $previousPieces = $modelPreviousProcessPieces::where('id_proceso', $previousProcessDB->id)->where('estado', 2)->get();
+                            if (!$previousPieces->isNotEmpty()) {
+                                return "NoPreviousPieces";
+                            }
+                        } else {
+                            return "NoPreviousPieces";
+                        }
                     }
                 }
                 return null;
@@ -932,6 +952,7 @@ class ProcessProductionController extends Controller
     {
         $total = 0;
         if ($arrayPiecesInMeta) {
+
             $usedAssemblies = array();
             foreach ($arrayPiecesInMeta as $piece) {
                 //Verificar si la pieza se registra por mitad o por juego
@@ -960,6 +981,22 @@ class ProcessProductionController extends Controller
                                 $correct += $this->verifyPiece($halfPiece) ? 0.5 : 0;
                                 $correct += $this->verifyPiece($halfPiece2) ? 0.5 : 0;
                                 $total += $correct < 1 ? 0 : 1;
+
+                                // Verificar si las mitades no pertenecen a la misma meta
+                                $id_process = str_replace(" ", "_", $process) . '_' . $class->nombre . '_' . $class->id_ot;
+                                $processDB = $this->get_ModelProcess($process)::where('id_proceso', $id_process)->first();
+
+                                $modelProcessPieces = $this->get_ModelProcessPieces($process);
+                                $piece2 = $modelProcessPieces::where('id_proceso', $processDB->id)
+                                    ->where(function ($query) use ($halfPiece2) {
+                                        $query->where('n_pieza', $halfPiece2->n_pieza)
+                                            ->orWhere('n_juego', substr($halfPiece2->n_pieza, 0, -1));
+                                    })
+                                    ->first();
+                                if ($piece2->id_meta != $piece["piece"]->id_meta) {
+                                    // Si las mitades pertenecen a diferentes metas, restar la mitad correspondiente
+                                    $total -= 0.5;
+                                }
                             } else {
                                 // Seleccionar la pieza que corresponda al operador de la meta y verificarla
                                 if ($halfPiece->id_operador == auth()->user()->matricula) {
