@@ -110,7 +110,8 @@
                 "machine" => "Maquina",
                 "process" => "Proceso",
                 "error" => "Error",
-                "date" => "Fecha"
+                "dateFrom" => "Desde",
+                "dateTo" => "Hasta",
             ];
             ?>
             <table class="table-filters">
