@@ -73,6 +73,7 @@
                         <th>Fecha de Maquinado</th>
                         <th>Fecha de Liberacion</th>
                         <th>Liberado por</th>
+                        <th>Observaciones</th>
                         <th>Liberar</th>
                         <th>Rechazar</th>
                         <th>Ver</th>

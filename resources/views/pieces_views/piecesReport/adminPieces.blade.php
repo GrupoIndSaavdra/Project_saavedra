@@ -84,6 +84,7 @@
                     <th>Fecha de Maquinado</th>
                     <th>Fecha de Liberacion</th>
                     <th>Liberado por</th>
+                    <th>Observaciones</th>
                     <th>Ver</th>
                 </tr>
             </thead>

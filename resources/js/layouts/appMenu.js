@@ -137,8 +137,8 @@ function getRoutes(profile) {
                     routes: [
                         ["productionData", "Datos de produccion"],
                         ["cNominals", "Editar C.Nominales y Tolerancias"],
-                        ["showTimes", "Modificar tiempos de producción"],
                         ["machinesOccupied", "Maquinas ocupadas"],
+                        // ["showTimes", "Modificar tiempos de producción"],
                         // ["show_panelWO", "Panel de progreso de O.T"],
                     ],
                 },

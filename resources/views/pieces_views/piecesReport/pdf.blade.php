@@ -197,7 +197,7 @@
                             @endif
                         @endfor
                     @else
-                        @for ($j = 1; $j < count($pieces[$i]) - 4; $j++)
+                        @for ($j = 1; $j < count($pieces[$i]) - 5; $j++)
                             <td>{{ $pieces[$i][$j] }}</td>
                         @endfor
                     @endif

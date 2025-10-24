@@ -81,11 +81,14 @@ function crearTabla(piezas, infoPiezas) {
                             break;
                         default:
                             if (piezas[i][j] != undefined) {
-                                if(j == 0){
+                                if (j == 0) {
                                     td.textContent = piezas[i][j];
                                     let tdClass = document.createElement("td");
                                     tdClass.textContent = piezas[i][12];
                                     tr.appendChild(tdClass);
+                                } else if (j == piezas[i].length - 5) {
+                                    td.textContent = piezas[i][13];
+                                    td.style.width = "600px";
                                 } else {
                                     td.textContent = piezas[i][j];
                                 }
@@ -209,13 +212,15 @@ function obtenerRequest() {
     return request;
 }
 function createFilters() {
-    let titles = ["Orden de trabajo", "Clase", "Operador", "Maquina", "Proceso", "Error", "Fecha"];
+    console.log(window.selectedItems);
+    let titles = ["Orden de trabajo", "Clase", "Operador", "Maquina", "Proceso", "Error", "Desde", "Hasta"];
     Object.keys(window.selectedItems).forEach((item, index) => {
         let div = document.createElement("div");
         div.className = "filter";
 
         switch (item) {
-            case "date":
+            case "dateFrom":
+            case "dateTo":
                 let input = document.createElement("input");
                 input.type = "date";
                 input.name = item;
@@ -229,7 +234,6 @@ function createFilters() {
                     select.className = "select-filter";
                     select.name = item;
 
-                    console.log(window.selectedItems[item]);
                     const optionDefault = document.createElement("option");
                     if (item == "operator" && window.selectedItems[item] != "Todos") {
                         optionDefault.value = window.selectedItems[item].matricula;

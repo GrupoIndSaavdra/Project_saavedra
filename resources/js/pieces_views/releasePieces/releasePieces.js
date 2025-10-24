@@ -10,7 +10,7 @@ function crearTabla(piezas, infoPiezas) {
     for (let i = 0; i < piezas.length; i++) {
         const tr = document.createElement("tr");
         for (let j = 0; j < piezas[i].length + 1; j++) {
-            if (j >= 12) {
+            if (j >= 13) {
                 break;
             }
             let td = document.createElement("td");
@@ -98,24 +98,26 @@ function crearTabla(piezas, infoPiezas) {
                             td.textContent = crearFecha(piezas[i][j]);
                             break;
                         case 9:
+                            td.textContent = piezas[i][13];
+                            td.style.width = "600px";
+                            break;
+                        case 10:
                             if (!piezas[i][5].includes("Incompleto") && piezas[i][9] != 1) {
                                 td.appendChild(crearBotonLiberar(infoPiezas, i, piezas));
                                 tr.appendChild(td);
                             }
                             break;
-                        case 10:
+                        case 11:
                             if (piezas[i][9] != 2) {
                                 td.appendChild(crearBotonRechazar(infoPiezas, i));
                             }
                             break;
-                        case 11:
+                        case 12:
                             td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
                             break;
                         default:
-                            console.log(j);
                             if (piezas[i][j] != undefined) {
                                 if (j == 0) {
-                                    console.log(piezas[i]);
                                     td.textContent = piezas[i][j];
                                     let tdClass = document.createElement("td");
                                     tdClass.textContent = piezas[i][12];
@@ -230,7 +232,7 @@ function crearBotonVer(infoPiezas, i, usuarios) {
     return a;
 }
 function obtenerRequest() {
-    let names = ["workOrder", "class", "operator", "machine", "process", "error", "date"];
+    let names = ["workOrder", "class", "operator", "machine", "process", "error", "dateFrom", "dateTo"];
     let request = [];
     for (let i = 0; i < names.length; i++) {
         let value = document.getElementsByName(names[i])[0].value;
@@ -239,13 +241,14 @@ function obtenerRequest() {
     return request;
 }
 function createFilters() {
-    let titles = ["Orden de trabajo", "Clase", "Operador", "Maquina", "Proceso", "Error", "Fecha"];
+    let titles = ["Orden de trabajo", "Clase", "Operador", "Maquina", "Proceso", "Error", "Desde", "Hasta"];
     Object.keys(window.selectedItems).forEach((item, index) => {
         let div = document.createElement("div");
         div.className = "filter";
 
         switch (item) {
-            case "date":
+            case "dateFrom":
+            case "dateTo":
                 let input = document.createElement("input");
                 input.type = "date";
                 input.name = item;

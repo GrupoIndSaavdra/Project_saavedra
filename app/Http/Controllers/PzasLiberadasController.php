@@ -63,7 +63,8 @@ class PzasLiberadasController extends Controller
             "machine" => $request->machine,
             "process" => $request->process,
             "error" => $request->error,
-            "date" => $request->date,
+            "dateFrom" => $request->dateFrom,
+            "dateTo" => $request->dateTo,
             "action" => $request->input("action"),
         );
         return $this->showPieces($this->controladorPzas->search($datosPiezas, "quality"));
@@ -104,7 +105,8 @@ class PzasLiberadasController extends Controller
             "machine" => $request[3],
             "process" => $request[4],
             "error" => $request[5],
-            "date" => $request[6],
+            "dateFrom" => $request[6],
+            "dateTo" => $request[7],
             "action" => null,
         );
         return $this->showPieces($this->controladorPzas->search($datosPiezas, 'quality'));

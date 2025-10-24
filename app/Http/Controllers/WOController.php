@@ -293,6 +293,7 @@ class WOController extends Controller
     }
     function finishOrder(Request $request)
     {
+        // Algoritmo para finalizar el pedido de una clase
         $clase = Clase::where('id_ot', $request->wOrderName)->where('nombre', $request->className)->first();
         $clase->finalizada = 1;
         $clase->save();

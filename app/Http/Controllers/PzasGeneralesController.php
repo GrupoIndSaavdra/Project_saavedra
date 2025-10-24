@@ -41,6 +41,7 @@ use App\Models\EmbudoCM_cnominal;
 use App\Models\EmbudoCM_pza;
 use App\Models\EmbudoCM_tolerancias;
 use App\Models\Metas;
+use App\Models\Moldura;
 use App\Models\OffSet;
 use App\Models\OffSet_cnominal;
 use App\Models\OffSet_pza;
@@ -149,13 +150,12 @@ class PzasGeneralesController extends Controller
     {
         $array = array();
         foreach ($object as $item) {
-            $value = $param == "workOrder" ? $item->id : $item;
-            if ($param == "operator") {
-                if ($item->perfil == 2) {
-                    array_push($array, $value);
-                }
-            } else {
-                array_push($array, $value);
+            if (($param == "operator" && $item->perfil == 2)) {
+                array_push($array, $item);
+            } else if ($param == "workOrder") {
+                $molding = Moldura::where('id', $item->id_moldura)->first();
+                $text = $item->id . " - " . $molding->nombre;
+                array_push($array, $text);
             }
         }
         return $array;
@@ -169,7 +169,8 @@ class PzasGeneralesController extends Controller
             "machine" => $request->machine,
             "process" => $request->process,
             "error" => $request->error,
-            "date" => $request->date,
+            "dateFrom" => $request->dateFrom,
+            "dateTo" => $request->dateTo,
             "action" => $request->input("action"),
         );
         return $this->search($datosPiezas, 'admin');
@@ -180,16 +181,30 @@ class PzasGeneralesController extends Controller
         $array = Pieza::all();
         $array = $this->saveInArray($array);
         if (count($array) > 0) {
-            $positionsArray = array("workOrder" => 0, "class" => "className",  "operator" => 2, "machine" => 3, "process" => 4, "error" => 5, "date" => 6);
+            $positionsArray = array("workOrder" => 0, "class" => "className",  "operator" => 2, "machine" => 3, "process" => 4, "error" => 5, "dateFrom" => 6, "dateTo" => 6);
             foreach ($piecesData as $key => $value) {
+                $dateField = false;
                 if ($key != "action") {
                     if ($value !== "Todos" && isset($piecesData[$key])) {
                         $itemElegidos[$key] = $piecesData[$key];
                         if ($key == "operator") {
                             $itemElegidos[$key] = User::where('matricula', $piecesData[$key])->first();
                             $piecesData[$key] = User::where('matricula', $piecesData[$key])->first()->nombre . " " . User::where('matricula', $piecesData[$key])->first()->a_paterno . " " . User::where('matricula', $piecesData[$key])->first()->a_materno;
+                        } else if ($key == "workOrder") {
+                            $workOrderId = explode(" - ", $piecesData[$key])[0];
+                            $workOrder = Orden_trabajo::find($workOrderId);
+                            $molding = Moldura::where('id', $workOrder->id_moldura)->first();
+                            $itemElegidos[$key] = $workOrder->id . " - " . $molding->nombre;
+                            $piecesData[$key] = $workOrder->id;
                         }
-                        $array = $this->buscarElemento($array, $positionsArray[$key], $piecesData[$key]);
+                        if (($key == "dateFrom" || $key == "dateTo") && !$dateField) {
+                            $dateField = true;
+                            $dateFrom = $piecesData["dateFrom"] ? $piecesData["dateFrom"] . " 00:00:00" : null;
+                            $dateTo = $piecesData["dateTo"] ? $piecesData["dateTo"] . " 23:59:59" : null;
+                            $array = $this->buscarElemento($array, $positionsArray[$key], [$dateFrom, $dateTo]);
+                        } else {
+                            $array = $this->buscarElemento($array, $positionsArray[$key], $piecesData[$key]);
+                        }
                     } else {
                         $itemElegidos[$key] = "Todos";
                     }
@@ -223,14 +238,34 @@ class PzasGeneralesController extends Controller
             if (is_numeric($arrayP[$i][$posicion]) && $posicion == 5) {
                 $elementoArray = $arrayP[$i][$posicion + 1];
             }
-            if (strpos($elementoArray, $elemento) !== false) {
-                if ($elemento == "Soldadura") {
-                    if ($arrayP[$i][$posicion] === $elemento) {
+
+            switch (true) {
+                case count($elemento) > 1: // Si se estan filtrando por fechas
+                    $fechaDesde = $elemento[0];
+                    $fechaHasta = $elemento[1];
+
+                    $cumpleDesde = is_null($fechaDesde) || $elementoArray >= $fechaDesde;
+                    $cumpleHasta = is_null($fechaHasta) || $elementoArray <= $fechaHasta;
+
+                    if ($cumpleDesde && $cumpleHasta) {
+                        if ($elemento == "Soldadura") {
+                            if ($arrayP[$i][$posicion] === $elemento) {
+                                array_push($array, $arrayP[$i]);
+                            }
+                        } else {
+                            array_push($array, $arrayP[$i]);
+                        }
+                    }
+                    break;
+                case strpos($elementoArray, $elemento) !== false: // Si el campo de la pieza coincide con el elemento filtrado
+                    if ($elemento == "Soldadura") {
+                        if ($arrayP[$i][$posicion] === $elemento) {
+                            array_push($array, $arrayP[$i]);
+                        }
+                    } else {
                         array_push($array, $arrayP[$i]);
                     }
-                } else {
-                    array_push($array, $arrayP[$i]);
-                }
+                    break;
             }
         }
         return $array;
@@ -337,6 +372,19 @@ class PzasGeneralesController extends Controller
                 $array[$contador]["id_clase"] = $item->id_clase;
                 $className = Clase::find($item->id_clase);
                 $array[$contador]["className"] = $className ? $className->nombre : null;
+
+                //Obtener las observaciones  de la pieza
+                $array[$contador]["observations"] = "";
+                $controller = new ProcessProductionController();
+                $id_process = str_replace(" ", "_", $item->proceso) . "_" . $className->nombre . "_" . $item->id_ot;
+                $id_procesDB = $controller->get_ModelProcess($item->proceso)::where('id_proceso', $id_process)->first()->id;
+                $pieces = $controller->get_ModelProcessPieces($item->proceso)::where('id_proceso', $id_procesDB)->where('n_juego', $numJuego . "J")->get();
+                foreach ($pieces as $piece) {
+                    if ($piece == $pieces->last() && $array[$contador]["observations"] != "" && $piece->observaciones != "") {
+                        $array[$contador]["observations"] .= " / ";
+                    }
+                    $array[$contador]["observations"] .= $piece->observaciones;
+                }
                 if ($item->proceso == "Operacion Equipo_1" || $item->proceso == "Operacion Equipo_2") {
                     $array[$contador][4] = substr($item->proceso, 0, -2);
                     $array[$contador][5] = substr($item->proceso, -1);

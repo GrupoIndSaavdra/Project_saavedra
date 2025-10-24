@@ -25,6 +25,7 @@ use App\Models\DesbasteExterior;
 use App\Models\EmbudoCM_cnominal;
 use App\Models\EmbudoCM_tolerancias;
 use App\Models\Metas;
+use App\Models\Moldura;
 use App\Models\OffSet_cnominal;
 use App\Models\OffSet_tolerancia;
 use App\Models\Orden_trabajo;
@@ -65,33 +66,35 @@ class ProcessesController extends Controller
             foreach ($wOrdersFounded as $workOrder) {
                 $classes = $this->classController->getClasses($workOrder);
                 if (count($classes) > 0) {
-                    $workOrders[$workOrder->id] = array();
+                    $molding = Moldura::where('id', $workOrder->id_moldura)->first();
+                    $workOrderTxt = $workOrder->id . " - " . $molding->nombre;
+                    $workOrders[$workOrderTxt] = array();
                     foreach ($classes as $class) {
                         $processes = Procesos::where('id_clase', $class->id)->first();
                         if ($processes) {
-                            $workOrders[$workOrder->id][$class->nombre] = array();
+                            $workOrders[$workOrderTxt][$class->nombre] = array();
                             foreach ($processes->getAttributes() as $process => $valor) {
                                 if (($process != "id" && $process != "id_clase" && $process != "soldadura" && $process != "soldaduraPTA" && $process != "rectificado" && $process != "asentado") && $valor != 0) {
                                     $process = $this->convertProcessToString($process);
-                                    $workOrders[$workOrder->id][$class->nombre][$process] = array();
+                                    $workOrders[$workOrderTxt][$class->nombre][$process] = array();
                                     if ($process == "Operacion Equipo") {
                                         for ($i = 1; $i <= 2; $i++) {
-                                            $workOrders[$workOrder->id][$class->nombre][$process][$i . ' operacion'] = array();
+                                            $workOrders[$workOrderTxt][$class->nombre][$process][$i . ' operacion'] = array();
                                             $data = $this->searchCNominals($class, $process, $i . ' operacion');
                                             if ($data) {
                                                 foreach ($data as $key => $value) {
-                                                    $workOrders[$workOrder->id][$class->nombre][$process][$i . ' operacion'][$key] = $value;
+                                                    $workOrders[$workOrderTxt][$class->nombre][$process][$i . ' operacion'][$key] = $value;
                                                 }
                                             }
                                         }
                                     } elseif ($process == "Copiado") {
                                         $subProcesses = ["Cilindrado", "Cavidades"];
                                         foreach ($subProcesses as $subprocess) {
-                                            $workOrders[$workOrder->id][$class->nombre][$process][$subprocess] = array();
+                                            $workOrders[$workOrderTxt][$class->nombre][$process][$subprocess] = array();
                                             $data = $this->searchCNominals($class, $process, $subprocess);
                                             if ($data) {
                                                 foreach ($data as $key => $value) {
-                                                    $workOrders[$workOrder->id][$class->nombre][$process][$subprocess][$key] = $value;
+                                                    $workOrders[$workOrderTxt][$class->nombre][$process][$subprocess][$key] = $value;
                                                 }
                                             }
                                         }
@@ -100,7 +103,7 @@ class ProcessesController extends Controller
                                         $data = $this->searchCNominals($class, $process);
                                         if ($data) {
                                             foreach ($data as $key => $value) {
-                                                $workOrders[$workOrder->id][$class->nombre][$process][$key] = $value;
+                                                $workOrders[$workOrderTxt][$class->nombre][$process][$key] = $value;
                                             }
                                         }
                                     }
@@ -220,6 +223,7 @@ class ProcessesController extends Controller
     }
     public function updatePieces($workOrder, $class, $process, $subprocess = null, $operation = null)
     {
+        $workOrder = explode(" - ", $workOrder)[0];
         $class = Clase::where('nombre', $class)->where('id_ot', $workOrder)->first(); // Obtener clase
         // Obtener cadena de proceso y subproceso (Si existe)
         $processModified = $process . ($operation ? "_$operation" : '');
@@ -237,17 +241,18 @@ class ProcessesController extends Controller
     public function storeCNominalsData(Request $request)
     {
         $processModified = str_replace(' ', '_', $request->process);
+        $workOrderId = explode(" - ", $request->workOrder)[0];
         if ($request->subProcess) {
             if ($request->process == "Copiado") {
-                $id_process = $processModified . '_' . $request->class . "_" . $request->workOrder;
+                $id_process = $processModified . '_' . $request->class . "_" . $workOrderId;
             } else {
-                $id_process = $processModified . '_' . $request->subProcess . '_' . $request->class . "_" . $request->workOrder;
+                $id_process = $processModified . '_' . $request->subProcess . '_' . $request->class . "_" . $workOrderId;
             }
         } else if ($request->operation) {
             $operationModified = str_replace(' ', '_', $request->operation);
-            $id_process = $processModified . '_' . $operationModified . '_' . $request->class . "_" . $request->workOrder;
+            $id_process = $processModified . '_' . $operationModified . '_' . $request->class . "_" . $workOrderId;
         } else {
-            $id_process = $processModified . '_' . $request->class . "_" . $request->workOrder;
+            $id_process = $processModified . '_' . $request->class . "_" . $workOrderId;
         }
         $array = match ($request->process) {
             'Cepillado' => $this->cepillado($id_process, $request),
@@ -268,7 +273,7 @@ class ProcessesController extends Controller
             'Operacion Equipo' => $this->pySOpeSoldadura($id_process, $request),
             'Embudo CM' => $this->embudoCM($id_process, $request),
         };
-        $this->updatePieces($request->workOrder, $request->class, $request->process, $request->subProcess ?? null, $request->operation ?? null);
+        $this->updatePieces($workOrderId, $request->class, $request->process, $request->subProcess ?? null, $request->operation ?? null);
         return redirect()->to('cNominals')->with('success', 'Datos de ' . $request->process . ' guardados correctamente.');
     }
 
