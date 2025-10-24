@@ -240,7 +240,7 @@ class PzasGeneralesController extends Controller
             }
 
             switch (true) {
-                case count($elemento) > 1: // Si se estan filtrando por fechas
+                case is_array($elemento): // Si se estan filtrando por fechas
                     $fechaDesde = $elemento[0];
                     $fechaHasta = $elemento[1];
 
