@@ -3,6 +3,9 @@
 @section('head')
 <title>Editar molduras</title>
 @vite(['resources/css/moldings_views/edit_molding.css', 'resources/js/moldings_views/edit_molding.js'])
+<script>
+    window.baseUrl = "{{ url('/') }}";
+</script>
 @endsection
 
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")') <!--Body background Image-->

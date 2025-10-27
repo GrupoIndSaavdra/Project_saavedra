@@ -135,7 +135,7 @@ function createTable(moldings, form) {
                     )
                 ) {
                     let moldingId = molding.id;
-                    window.location.href = `/deleteMolding/${moldingId}`;
+                    window.location.href = window.baseUrl + `/deleteMolding/${moldingId}`;
                 }
             };
             tdActions.appendChild(deleteButton);
