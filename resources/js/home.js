@@ -33,7 +33,7 @@ if (newReportDiv) {
 
 if (window.pieces_Released && window.pieces_Released.length > 0) {
     const divOpacity = document.createElement("div");
-    divOpacity.classList.add("div-opacity");
+    divOpacity.classList.add("filter-opacity");
 
     let operacion = false;
     // Crear elementos

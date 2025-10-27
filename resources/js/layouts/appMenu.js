@@ -110,15 +110,21 @@ function createList(sections) {
                     let div_opacity = document.createElement("div");
                     div_opacity.classList.add("div-opacity");
 
+                    let div_loading = document.createElement("div");
+                    div_loading.classList.add("loading");
+
                     let img_loading = document.createElement("img");
+                    img_loading.classList.add("img-loading");
                     img_loading.src = window.loading;
                     img_loading.alt = "Cargando...";
-                    div_opacity.appendChild(img_loading);
+                    div_loading.appendChild(img_loading);
 
+                    div_opacity.appendChild(div_loading);
                     document.body.appendChild(div_opacity);
 
                     window.location.href = a.href;
                 });
+                
                 const linkPath = new URL(a.href, window.location.origin).pathname;
                 if (currentPath === linkPath) {
                     a.classList.add("active");
