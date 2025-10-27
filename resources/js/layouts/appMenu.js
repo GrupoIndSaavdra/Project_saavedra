@@ -124,7 +124,7 @@ function createList(sections) {
 
                     window.location.href = a.href;
                 });
-                
+
                 const linkPath = new URL(a.href, window.location.origin).pathname;
                 if (currentPath === linkPath) {
                     a.classList.add("active");
@@ -170,7 +170,7 @@ function getRoutes(profile) {
                     title: "Usuarios",
                     routes: [
                         // ['users', 'Ver usuarios'],
-                        ["createUser", "Registrar usuario"],
+                        // ["createUser", "Registrar usuario"],
                         ["recoverPassword", "Recuperar contraseña"],
                     ],
                 },
