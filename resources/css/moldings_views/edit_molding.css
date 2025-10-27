@@ -5,18 +5,19 @@
 }
 .wrapper {
     position: absolute;
+    width: 50%;
+    max-width: 1200px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-sizing: border-box;
     padding: 1.5em;
     background: #fff;
     border-radius: 10px;
     box-shadow: 5px 10px 80px #000000b0;
-    box-sizing: border-box;
+    
 }
 form {
     display: flex;
