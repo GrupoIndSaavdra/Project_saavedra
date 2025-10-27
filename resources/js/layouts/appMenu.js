@@ -83,6 +83,16 @@ function createList(sections) {
                 a.href = window.routes[route[0]];
                 a.textContent = route[1];
 
+                a.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    console.log("Click en el enlace:", a.href);
+                    //Aparecer div opacity
+                    let div_opacity = document.querySelector(".filter-opacity");
+                    div_opacity.style.opacity = "1";
+                    document.body.appendChild(div_opacity);
+
+
+                });
                 const linkPath = new URL(a.href, window.location.origin).pathname;
                 if (currentPath === linkPath) {
                     a.classList.add("active");

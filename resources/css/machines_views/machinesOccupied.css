@@ -37,6 +37,11 @@ h2 {
     color: #404040;
     font-weight: 100;
 }
+.machines-table-container {
+    width: 100%;
+    max-height: 50vh;
+    overflow: auto;
+}
 table {
     position: relative;
     width: 100%;

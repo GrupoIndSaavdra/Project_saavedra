@@ -83,5 +83,8 @@ function createTable(machines, form) {
 
 document.addEventListener("DOMContentLoaded", () => {
     let form = document.querySelector("form");
-    form.appendChild(createTable(machines, form));
+    let div_table = document.createElement("div");
+    div_table.classList.add("machines-table-container");
+    div_table.appendChild(createTable(machines, form));
+    form.appendChild(div_table);
 });
