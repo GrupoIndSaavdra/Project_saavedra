@@ -116,6 +116,8 @@ function createList(sections) {
                     div_opacity.appendChild(img_loading);
 
                     document.body.appendChild(div_opacity);
+
+                    window.location.href = a.href;
                 });
                 const linkPath = new URL(a.href, window.location.origin).pathname;
                 if (currentPath === linkPath) {
