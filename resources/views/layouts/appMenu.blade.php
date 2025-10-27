@@ -29,7 +29,7 @@
         </div>
 
         <!--Texto central-->
-        <span class="text-header">MAQUINADOS Y FUSIONES MEXICANAS S. DE R.L DE C.V.</span>
+        <span class="text-header">GRUPO INDUSTRIAL SAAVEDRA</span>
         <!--Logo Saavedra-->
         <img src="{!! asset('images/lg_saavedra.png') !!}" alt="logo" class="logo">
         @endauth
