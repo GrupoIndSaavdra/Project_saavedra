@@ -8,6 +8,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/layouts/appMenu.css', 'resources/js/layouts/appMenu.js'])
     @yield('head')
+    <script>
+        window.loading = "{{ asset('images/loading.gif') }}"
+    </script>
 </head>
 
 <body style="@yield('background-body')">

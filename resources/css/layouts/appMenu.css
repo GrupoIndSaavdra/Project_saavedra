@@ -36,7 +36,21 @@ body {
     background: #0000003a;
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(8px); /* Safari */
-    z-index: 1;
+    z-index: 999;
+}
+.loading {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+.img-loading {
+    width: 100%;
 }
 .icon {
     width: 100%;
@@ -189,7 +203,8 @@ body {
         font-size: 0.9em;
         margin-left: 60px;
     }
-    .nav-link, .submenu-toggle{
+    .nav-link,
+    .submenu-toggle {
         font-size: 12px;
         letter-spacing: normal;
     }
@@ -199,7 +214,6 @@ body {
         position: absolute;
         bottom: 70px;
         right: 10px;
-
     }
     .open-menu {
         width: 2em;

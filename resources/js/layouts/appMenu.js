@@ -59,6 +59,27 @@ function createList(sections) {
                 a.href = window.routes[route[0]];
                 a.textContent = route[1];
 
+                a.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    //Aparecer div opacity
+                    let div_opacity = document.createElement("div");
+                    div_opacity.classList.add("div-opacity");
+
+                    let div_loading = document.createElement("div");
+                    div_loading.classList.add("loading");
+
+                    let img_loading = document.createElement("img");
+                    img_loading.classList.add("img-loading");
+                    img_loading.src = window.loading;
+                    img_loading.alt = "Cargando...";
+                    div_loading.appendChild(img_loading);
+
+                    div_opacity.appendChild(div_loading);
+                    document.body.appendChild(div_opacity);
+
+                    window.location.href = a.href;
+                });
+
                 const linkPath = new URL(a.href, window.location.origin).pathname;
                 if (currentPath === linkPath) {
                     a.classList.add("active");
@@ -85,13 +106,16 @@ function createList(sections) {
 
                 a.addEventListener("click", (e) => {
                     e.preventDefault();
-                    console.log("Click en el enlace:", a.href);
                     //Aparecer div opacity
-                    let div_opacity = document.querySelector(".filter-opacity");
-                    div_opacity.style.opacity = "1";
+                    let div_opacity = document.createElement("div");
+                    div_opacity.classList.add("div-opacity");
+
+                    let img_loading = document.createElement("img");
+                    img_loading.src = window.loading;
+                    img_loading.alt = "Cargando...";
+                    div_opacity.appendChild(img_loading);
+
                     document.body.appendChild(div_opacity);
-
-
                 });
                 const linkPath = new URL(a.href, window.location.origin).pathname;
                 if (currentPath === linkPath) {
