@@ -52,13 +52,16 @@ tbody {
     background-color: #f9f9f9;
 }
 th {
-    padding: 0.7em 0;
+    padding: 10px;
 }
 th,
 td {
     border: 1px solid #ddd;
     text-align: center;
     border-bottom: 1px solid #ddd;
+}
+td {
+    padding: 5px;
 }
 input[type="text"] {
     width: 100%;
