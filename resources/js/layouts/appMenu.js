@@ -173,7 +173,7 @@ function getRoutes(profile) {
                         ["cNominals", "Editar C.Nominales y Tolerancias"],
                         ["machinesOccupied", "Maquinas ocupadas"],
                         // ["showTimes", "Modificar tiempos de producción"],
-                        // ["show_panelWO", "Panel de progreso de O.T"],
+                        ["show_panelWO", "Panel de progreso de O.T"],
                     ],
                 },
             ];
