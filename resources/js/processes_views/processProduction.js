@@ -442,7 +442,7 @@ function insertPrincipalVariables(form) {
     let inputProcess = document.createElement("input");
     inputProcess.type = "hidden";
     inputProcess.name = "process";
-    inputProcess.value = window.arrayData["process"];
+    inputProcess.value = window.arrayData["subprocess"] ? window.arrayData["process"] + "_" + window.arrayData["subprocess"] : window.arrayData["process"];
     form.appendChild(inputProcess);
 
     // Insertar el input que contiene el id de la pieza a utilizar si existe

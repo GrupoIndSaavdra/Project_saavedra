@@ -2,120 +2,58 @@ var operacion = false;
 
 function crearTabla(piezas, infoPiezas) {
     //Crea la tabla de piezas trabajadas en la O.T
-
     const table = document.querySelector(".table");
     const tbody = document.createElement("tbody");
     //Convertir el objeto a un array
     piezas = convertirObjectToArray(piezas);
+    console.log(piezas);
     for (let i = 0; i < piezas.length; i++) {
         const tr = document.createElement("tr");
         for (let j = 0; j < piezas[i].length - 3; j++) {
             let td = document.createElement("td");
-            if (piezas[i][4] == "Operacion Equipo") {
-                switch (j) {
-                    case 7:
-                        td.textContent = crearFecha(piezas[i][j]);
-                        break;
-                    case piezas[i].length - 4:
-                        td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
-                        break;
-                    default:
-                        if (piezas[i][j] != undefined) {
+            switch (j) {
+                case 6:
+                    td.textContent = crearFecha(piezas[i][j]);
+                    break;
+                case piezas[i].length - 4:
+                    td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
+                    break;
+                default:
+                    if (piezas[i][j] != undefined) {
+                        if (j == 0) {
                             td.textContent = piezas[i][j];
+                            let tdClass = document.createElement("td");
+                            tdClass.textContent = piezas[i][12];
+                            tr.appendChild(tdClass);
+                        } else if (j == piezas[i].length - 5) {
+                            td.textContent = piezas[i][13];
+                            td.style.width = "600px";
                         } else {
-                            td.textContent = "";
+                            td.textContent = piezas[i][j];
                         }
-                        break;
-                }
-                tr.appendChild(td);
-                switch (piezas[i][9]) {
-                    case 0:
-                        if (piezas[i][6].includes("Incompleto")) {
-                            tr.style.backgroundColor = "#FFFF99";
-                        } else if (piezas[i][6] == "Ninguno") {
-                            tr.style.backgroundColor = "#ACF980A8";
-                        } else {
-                            tr.style.backgroundColor = "#E59CFF";
-                        }
-                        break;
-                    case 1:
-                        tr.style.backgroundColor = "#79BFED";
-                        break;
-                    case 2:
-                        tr.style.backgroundColor = "#EC7063";
-                        break;
-                }
-            } else {
-                if (operacion) {
-                    switch (j) {
-                        case 5:
-                            tr.appendChild(td);
-                            let td1 = document.createElement("td");
-                            td1.textContent = piezas[i][j];
-                            tr.appendChild(td1);
-                            break;
-                        case 6:
-                            td.textContent = crearFecha(piezas[i][j]);
-                            tr.appendChild(td);
-                            break;
-                        case piezas[i].length - 4:
-                            td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
-                            tr.appendChild(td);
-                            break;
-                        default:
-                            if (piezas[i][j] != undefined) {
-                                td.textContent = piezas[i][j];
-                            } else {
-                                td.textContent = "";
-                            }
-                            tr.appendChild(td);
-                            break;
+                    } else {
+                        td.textContent = "";
                     }
-                } else {
-                    switch (j) {
-                        case 6:
-                            td.textContent = crearFecha(piezas[i][j]);
-                            break;
-                        case piezas[i].length - 4:
-                            td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
-                            break;
-                        default:
-                            if (piezas[i][j] != undefined) {
-                                if (j == 0) {
-                                    td.textContent = piezas[i][j];
-                                    let tdClass = document.createElement("td");
-                                    tdClass.textContent = piezas[i][12];
-                                    tr.appendChild(tdClass);
-                                } else if (j == piezas[i].length - 5) {
-                                    td.textContent = piezas[i][13];
-                                    td.style.width = "600px";
-                                } else {
-                                    td.textContent = piezas[i][j];
-                                }
-                            } else {
-                                td.textContent = "";
-                            }
-                            break;
+                    break;
+            }
+            tr.appendChild(td);
+
+            switch (piezas[i][9]) {
+                case 0:
+                    if (piezas[i][5].includes("Incompleto")) {
+                        tr.style.backgroundColor = "#FFFF99";
+                    } else if (piezas[i][5] == "Ninguno") {
+                        tr.style.backgroundColor = "#ACF980A8";
+                    } else {
+                        tr.style.backgroundColor = "#E59CFF";
                     }
-                    tr.appendChild(td);
-                }
-                switch (piezas[i][9]) {
-                    case 0:
-                        if (piezas[i][5].includes("Incompleto")) {
-                            tr.style.backgroundColor = "#FFFF99";
-                        } else if (piezas[i][5] == "Ninguno") {
-                            tr.style.backgroundColor = "#ACF980A8";
-                        } else {
-                            tr.style.backgroundColor = "#E59CFF";
-                        }
-                        break;
-                    case 1:
-                        tr.style.backgroundColor = "#79BFED";
-                        break;
-                    case 2:
-                        tr.style.backgroundColor = "#EC7063";
-                        break;
-                }
+                    break;
+                case 1:
+                    tr.style.backgroundColor = "#79BFED";
+                    break;
+                case 2:
+                    tr.style.backgroundColor = "#EC7063";
+                    break;
             }
         }
         tbody.appendChild(tr);
@@ -190,6 +128,7 @@ function crearBotonVer(infoPiezas, i, usuarios) {
     for (let j = 0; j < infoPiezas[i][0].length; j++) {
         nPiezas.push(infoPiezas[i][0][j]);
     }
+    console.log(infoPiezas[i]);
     let url = `${window.baseUrl}/pieces/${nPiezas}/${infoPiezas[i][1]}/${
         document.getElementsByName("profile")[0].value
     }`;
@@ -212,7 +151,6 @@ function obtenerRequest() {
     return request;
 }
 function createFilters() {
-    console.log(window.selectedItems);
     let titles = ["Orden de trabajo", "Clase", "Operador", "Maquina", "Proceso", "Error", "Desde", "Hasta"];
     Object.keys(window.selectedItems).forEach((item, index) => {
         let div = document.createElement("div");
@@ -314,7 +252,6 @@ function createFilters() {
 }
 createFilters();
 if (pieces.length > 0) {
-    console.log(pieces);
     crearTabla(pieces, infoPiezas);
 }
 const pdf = document.getElementById("pdf");

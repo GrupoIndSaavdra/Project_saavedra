@@ -20,7 +20,6 @@ return new class extends Migration
                 $table->integer('correcto')->nullable();
                 $table->integer('estado')->default(0);
                 $table->string('n_juego')->nullable();
-                $table->string('n_pieza')->nullable();
                 $table->decimal('altura', 8, 3)->nullable();
                 $table->decimal('alturaCandado1', 8, 3)->nullable();
                 $table->decimal('alturaCandado2', 8, 3)->nullable();

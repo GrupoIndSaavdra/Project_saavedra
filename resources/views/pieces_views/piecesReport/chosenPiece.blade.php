@@ -247,7 +247,8 @@
                     nombresTole = ['id', 'rebaje1', 'rebaje2', 'rebaje3', 'profundidad_bordonio', 'vena1', 'vena2', 'simetria'];
                     nombres = ['n_juego', 'rebaje1', 'rebaje2', 'rebaje3', 'profundidad_bordonio', 'vena1', 'vena2', 'simetria', 'error', 'observaciones'];
                     break;
-                case "Operacion Equipo": //Proceso de Rebajes
+                case "Operacion Equipo_1 operacion": //Proceso de operacion equipo 1 operacion
+                case "Operacion Equipo_2 operacion": //Proceso de operacion equipo 2 operacion
                     titulos = ['No. Pieza', 'Altura', 'ø  Altura de candado', 'Altura asiento obturador', 'ø Profundidad Soldadura', 'ø de PushUp', 'Error', 'Observaciones'];
 
                     cNomiPosiciones = [2, 4, 6]; // Posiciones de los inputs de c.nominal
@@ -256,7 +257,7 @@
 
                     nombresCnomi = ['id', 'altura', 'alturaCandado1', 'alturaCandado2', 'alturaAsientoObturador1', 'alturaAsientoObturador2', 'profundidadSoldadura1', 'profundidadSoldadura2', 'pushUp'];
                     nombresTole = ['id', 'altura', 'alturaCandado1', 'alturaCandado2', 'alturaAsientoObturador1', 'alturaAsientoObturador2', 'profundidadSoldadura1', 'profundidadSoldadura2', 'pushUp'];
-                    nombres = ['n_pieza', 'altura', 'alturaCandado1', 'alturaCandado2', 'alturaAsientoObturador1', 'alturaAsientoObturador2', 'profundidadSoldadura1', 'profundidadSoldadura2', 'pushUp', 'error', 'observaciones'];
+                    nombres = ['n_juego', 'altura', 'alturaCandado1', 'alturaCandado2', 'alturaAsientoObturador1', 'alturaAsientoObturador2', 'profundidadSoldadura1', 'profundidadSoldadura2', 'pushUp', 'error', 'observaciones'];
                     break;
                 case "Embudo CM": //Proceso de Rebajes
                     titulos = ['No. Pieza', 'Conexión línea de partida', 'Conexión a 90°', 'Altura de conexión', 'Diametro embudo', 'Error', 'Observaciones'];
@@ -691,7 +692,7 @@
                     <td></td>
                     <td></td>
                 </tr>
-                @foreach ($piecesInfo as $pieceInfo)                    
+                @foreach ($piecesInfo as $pieceInfo)
                 <tr>
                     <td><input type="text" class="input" value="{{$pieceInfo['n_pieza']}}" step="any" inputmode="decimal" disabled></td>
                     <td><input type="number" class="input" value="{{$pieceInfo['diametro1_cilindrado']}}" step="any" inputmode="decimal" disabled></td>
@@ -752,7 +753,7 @@
                     <td></td>
                     <td></td>
                 </tr>
-                @foreach ($piecesInfo as $pieceInfo)                    
+                @foreach ($piecesInfo as $pieceInfo)
                 <tr>
                     <td><input type="text" class="input" value="{{$pieceInfo['n_pieza']}}" step="any" inputmode="decimal" disabled></td>
                     <td><input type="number" class="input" value="{{$pieceInfo['diametro1_cavidades']}}" step="any" inputmode="decimal" disabled></td>
@@ -829,7 +830,7 @@
                         <td><input type="number" class="input" disabled></td>
                         <td><input type="number" class="input" disabled></td>
                     </tr>
-                    @foreach ($piecesInfo as $pieceInfo)                        
+                    @foreach ($piecesInfo as $pieceInfo)
                     <tr>
                         <td><input type="text" class="input" value="{{$pieceInfo['n_pieza']}}" disabled></td>
                         <td><input type="number" class="input" value="{{$pieceInfo['anchoRanura']}}" step="any" inputmode="decimal" disabled></td>

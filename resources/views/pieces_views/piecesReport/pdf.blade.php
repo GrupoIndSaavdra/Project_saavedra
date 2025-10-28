@@ -65,10 +65,13 @@
             display: inline-block;
             width: 49%;
         }
+
         .filters {
             margin-top: 4em;
         }
-        .table-filters, .table-colors {
+
+        .table-filters,
+        .table-colors {
             width: 100%;
         }
 
@@ -147,15 +150,6 @@
                 <th>Nombre del operador</th>
                 <th>Máquina</th>
                 <th>Proceso</th>
-                @foreach ($pieces as $piece)
-                @if ($piece[4] == 'Operacion Equipo')
-                <th>Operación</th>
-                @php
-                $band = true;
-                @endphp
-                @break
-                @endif
-                @endforeach
                 <th>Errores</th>
                 <th>Fecha de máquinado</th>
                 <th>Fecha de liberación</th>
@@ -188,20 +182,9 @@
                 ?>
 
                 <tr style="background-color: {{$colorColumn}}">
-                    @if(isset($band))
-                        @for ($j = 1; $j < count($pieces[$i]) - 4; $j++)
-                            @if ($j==5)
-                                <td></td>   
-                                <td>{{ $pieces[$i][$j] }}</td>
-                            @else
-                                <td>{{ $pieces[$i][$j] }}</td>
-                            @endif
-                        @endfor
-                    @else
-                        @for ($j = 1; $j < count($pieces[$i]) - 5; $j++)
-                            <td>{{ $pieces[$i][$j] }}</td>
-                        @endfor
-                    @endif
+                    @for ($j = 1; $j < count($pieces[$i]) - 5; $j++)
+                        <td>{{ $pieces[$i][$j] }}</td>
+                    @endfor
                 </tr>
                 @endfor
         </tbody>

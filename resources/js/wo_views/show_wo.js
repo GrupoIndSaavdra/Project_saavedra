@@ -62,7 +62,6 @@ function get_inputAttributes(workOrder, molding, value = null) {
                 class: "selects",
             },
             options: tamanios,
-            
         },
         order: {
             label: "Pedido Total",
@@ -697,12 +696,9 @@ function get_operationsArray(className) {
             ];
             break;
         case "Obturador":
+        case "Fondo":
             operations = ["Soldadura", "Soldadura PTA", "1ra y 2da Operación Equipo"];
             operationsArray = ["soldadura", "soldaduraPTA", "operacionEquipo"];
-            break;
-        case "Fondo":
-            operations = ["1ra y 2da Operación Equipo", "Soldadura", "Soldadura PTA"];
-            operationsArray = ["operacionEquipo", "soldadura", "soldaduraPTA"];
             break;
         case "Corona":
             operations = ["Cepillado", "Desbaste exterior"];

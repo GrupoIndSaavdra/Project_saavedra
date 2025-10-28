@@ -71,15 +71,6 @@
                     <th style="width: 500px;">Nombre del operador</th>
                     <th>Máquina</th>
                     <th style="width: 500px;">Proceso</th>
-                    @foreach ($pieces as $piece)
-                    @if ($piece[4] == "Operacion Equipo")
-                    <th>Operacion</th>
-                    <script>
-                        operacion = true;
-                    </script>
-                    @break
-                    @endif
-                    @endforeach
                     <th style="width: 300px;">Errores</th>
                     <th>Fecha de Maquinado</th>
                     <th>Fecha de Liberacion</th>

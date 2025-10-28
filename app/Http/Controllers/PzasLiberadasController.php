@@ -98,6 +98,7 @@ class PzasLiberadasController extends Controller
             return redirect()->route('home');
         }
         $request = explode(",", $request);
+        $request[0] = str_replace("_", "/", $request[0]);
         $datosPiezas = array(
             "workOrder" => $request[0],
             "class" => $request[1],
@@ -268,7 +269,7 @@ class PzasLiberadasController extends Controller
                 }
                 $piezas = Rebajes_pza::where('id_meta', $pieza[0]->id_meta)->get();
                 break;
-            case "Operacion Equipo_1":
+            case "Operacion Equipo_1 operacion":
                 $pieza = array();
                 foreach ($juego as $pza) {
                     $p = PySOpeSoldadura_pza::where('id_pza', $pza)->first();
@@ -276,7 +277,7 @@ class PzasLiberadasController extends Controller
                 }
                 $piezas = PySOpeSoldadura_pza::where('id_meta', $pieza[0]->id_meta)->get();
                 break;
-            case "Operacion Equipo_2":
+            case "Operacion Equipo_2 operacion":
                 $pieza = array();
                 foreach ($juego as $pza) {
                     $p = PySOpeSoldadura_pza::where('id_pza', $pza)->first();
