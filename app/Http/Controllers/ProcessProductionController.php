@@ -227,7 +227,7 @@ class ProcessProductionController extends Controller
                             }
                         }
                     } else {
-                        $preProcessString = str_contains($previousProcess, "Operacion Equipo") ? $this->getSub_Process($previousProcess, 0) : $processName;
+                        $preProcessString = str_contains($previousProcess, "Operacion Equipo") ? $this->getSub_Process($previousProcess, 0) : $previousProcess;
                         $modelPreviousProcessPieces = $this->get_ModelProcessPieces($preProcessString);
                         $previousProcessId = str_replace(" ", "_", $previousProcess) . "_" . $class->nombre . "_" . $class->id_ot;
                         $previousProcessDB = $this->get_ModelProcess($preProcessString)::where('id_proceso', $previousProcessId)->first();
