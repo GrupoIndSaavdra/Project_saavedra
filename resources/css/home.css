@@ -24,14 +24,14 @@
 /* ESTILOS PARA LA TABLA */
 .div-table {
     background-color: #fff;
-    width: 60%;
+    width: 80%;
+    max-height: 900px;
     overflow-x: auto;
     overflow-y: auto;
 }
 table {
     width: 200%;
     border-collapse: collapse;
-    margin-top: 12px;
     text-align: center;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-size: 22px;

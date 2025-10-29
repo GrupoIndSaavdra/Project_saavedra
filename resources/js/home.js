@@ -44,7 +44,7 @@ if (window.pieces_Released && window.pieces_Released.length > 0) {
     const tr = document.createElement("tr");
 
     // Agregar encabezados base
-    const headers = ["N_juego", "Nombre del operador", "Máquina", "Proceso"];
+    const headers = ["Clase", "Orden de trabajo", "N_juego", "Nombre del operador", "Máquina", "Proceso"];
 
     // Agregar columnas base
     headers.forEach((header, i) => {
@@ -57,23 +57,13 @@ if (window.pieces_Released && window.pieces_Released.length > 0) {
         tr.appendChild(th);
     });
 
-    // Verificar si hay columna de "Operacion"
-    for (let pieza of window.pieces_Released) {
-        if (pieza[4] === "Operacion Equipo") {
-            const thOperacion = document.createElement("th");
-            thOperacion.textContent = "Operacion";
-            tr.appendChild(thOperacion);
-            operacion = true;
-            break;
-        }
-    }
-
     // Agregar columnas finales
     const moreHeaders = [
         { name: "Errores", width: "300px" },
         "Fecha de Maquinado",
         "Fecha de Liberación",
         "Liberado/Rechazado por",
+        "Observaciones",
         "Liberar",
         "Rechazar",
         "Ver",
@@ -106,7 +96,7 @@ var operacion = false;
 function crearTabla(piezas, infoPiezas) {
     //Crea la tabla de piezas trabajadas en la O.T
     // console.log(piezas);
-    const table = document.querySelector(".table");
+    const table = document.getElementById("table");;
     const tbody = document.createElement("tbody");
     //Convertir el objeto a un array
     piezas = convertirObjectToArray(piezas);
@@ -119,7 +109,8 @@ function crearTabla(piezas, infoPiezas) {
             let td = document.createElement("td");
             switch (j) {
                 case 6:
-                    td.textContent = crearFecha(piezas[i][j]);
+                    // td.textContent = crearFecha(piezas[i][j]);
+                    td.textContent = piezas[i][j];
                     break;
                 case 9:
                     td.textContent = piezas[i][13];
@@ -188,10 +179,13 @@ function convertirObjectToArray(obj) {
 }
 
 function crearFecha(fecha) {
+    console.log(fecha);
     let cadena = "";
     if (fecha != "No liberado") {
         let array = fecha.split("T");
+        console.log(array);
         cadena = array[0] + "\n " + array[1].slice(0, 8);
+        console.log(cadena);
     } else {
         cadena = fecha;
     }
