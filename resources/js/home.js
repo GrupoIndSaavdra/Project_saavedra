@@ -1,5 +1,3 @@
-
-
 const newReportDiv = document.querySelector(".div-new-report");
 if (newReportDiv) {
     newReportDiv.addEventListener("click", function () {
@@ -103,134 +101,76 @@ if (window.pieces_Released && window.pieces_Released.length > 0) {
     crearTabla(window.pieces_Released, window.info_Pieces);
 }
 
-
 var operacion = false;
 
 function crearTabla(piezas, infoPiezas) {
     //Crea la tabla de piezas trabajadas en la O.T
-    const table = document.getElementById("table");
+    // console.log(piezas);
+    const table = document.querySelector(".table");
     const tbody = document.createElement("tbody");
     //Convertir el objeto a un array
     piezas = convertirObjectToArray(piezas);
     for (let i = 0; i < piezas.length; i++) {
         const tr = document.createElement("tr");
-        for (let j = 1; j < piezas[i].length + 1; j++) {
+        for (let j = 0; j < piezas[i].length + 1; j++) {
+            if (j >= 13) {
+                break;
+            }
             let td = document.createElement("td");
-            if (piezas[i][4] == "Operacion Equipo") {
-                switch (j) {
-                    case 7:
-                        td.textContent = crearFecha(piezas[i][j]);
-                        break;
-                    case 10:
-                        if (!piezas[i][6].includes("Incompleto") && piezas[i][piezas[i].length - 2] != 1) {
-                            td.appendChild(crearBotonLiberar(infoPiezas, i, piezas));
-                        }
-                        break;
-                    case 11:
-                        td.appendChild(crearBotonRechazar(infoPiezas, i));
-                        break;
-                    case 12:
-                        td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
-                        break;
-                    default:
-                        if (piezas[i][j] != undefined) {
-                            td.textContent = piezas[i][j];
-                        } else {
-                            td.textContent = "";
-                        }
-                        break;
-                }
-                tr.appendChild(td);
-                switch (piezas[i][piezas[i].length - 2]) {
-                    case 0:
-                        if (piezas[i][6].includes("Incompleto")) {
-                            tr.style.backgroundColor = "#FFFF99";
-                        }
-                        break;
-                    case 1:
-                        tr.style.backgroundColor = "#ACF980";
-                        break;
-                    case 2:
-                        tr.style.backgroundColor = "#EC7063";
-                        break;
-                }
-            } else {
-                if (operacion) {
-                    let inputEmpty = false;
-                    switch (j) {
-                        case 5:
-                            tr.appendChild(td);
-                            let td1 = document.createElement("td");
-                            td1.textContent = piezas[i][j];
-                            tr.appendChild(td1);
-                            inputEmpty = true;
-                            break;
-                        case 6:
-                            td.textContent = crearFecha(piezas[i][j]);
-                            break;
-                        case 9:
-                            if (!piezas[i][5].includes("Incompleto") && piezas[i][piezas[i].length - 2] != 1) {
-                                td.appendChild(crearBotonLiberar(infoPiezas, i, piezas));
-                            }
-                            break;
-                        case 10:
-                            td.appendChild(crearBotonRechazar(infoPiezas, i));
-                            break;
-                        case 11:
-                            td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
-                            break;
-                        default:
-                            if (piezas[i][j] != undefined) {
-                                td.textContent = piezas[i][j];
-                            } else {
-                                td.textContent = "";
-                            }
-                            break;
-                    }
-                    if (!inputEmpty) {
+            switch (j) {
+                case 6:
+                    td.textContent = crearFecha(piezas[i][j]);
+                    break;
+                case 9:
+                    td.textContent = piezas[i][13];
+                    td.style.width = "600px";
+                    break;
+                case 10:
+                    if (!piezas[i][5].includes("Incompleto") && piezas[i][9] != 1) {
+                        td.appendChild(crearBotonLiberar(infoPiezas, i, piezas));
                         tr.appendChild(td);
                     }
-                } else {
-                    switch (j) {
-                        case 6:
-                            td.textContent = crearFecha(piezas[i][j]);
-                            break;
-                        case 9:
-                            if (!piezas[i][5].includes("Incompleto") && piezas[i][piezas[i].length - 2] != 1) {
-                                td.appendChild(crearBotonLiberar(infoPiezas, i, piezas));
-                                tr.appendChild(td);
-                            }
-                            break;
-                        case 10:
-                            td.appendChild(crearBotonRechazar(infoPiezas, i));
-                            break;
-                        case 11:
-                            td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
-                            break;
-                        default:
-                            if (piezas[i][j] != undefined) {
-                                // console.log(piezas[i][1] + " " + piezas[i][j]);
-                                td.textContent = piezas[i][j];
-                            } else {
-                                td.textContent = "";
-                            }
-                            break;
+                    break;
+                case 11:
+                    if (piezas[i][9] != 2) {
+                        td.appendChild(crearBotonRechazar(infoPiezas, i));
                     }
-                    tr.appendChild(td);
-                }
-                switch (piezas[i][piezas[i].length - 2]) {
-                    case 0:
-                        if (piezas[i][5].includes("Incompleto")) {
-                            tr.style.backgroundColor = "#FFFF99";
+                    break;
+                case 12:
+                    td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
+                    break;
+                default:
+                    if (piezas[i][j] != undefined) {
+                        if (j == 0) {
+                            td.textContent = piezas[i][j];
+                            let tdClass = document.createElement("td");
+                            tdClass.textContent = piezas[i][12];
+                            tr.appendChild(tdClass);
+                        } else {
+                            td.textContent = piezas[i][j];
                         }
-                        break;
-                    case 1:
-                        tr.style.backgroundColor = "#ACF980";
-                        break;
-                    case 2:
-                        tr.style.backgroundColor = "#EC7063";
-                        break;
-                }
+                    } else {
+                        td.textContent = "";
+                    }
+                    break;
+            }
+            tr.appendChild(td);
+            switch (piezas[i][9]) {
+                case 0:
+                    if (piezas[i][5].includes("Incompleto")) {
+                        tr.style.backgroundColor = "#FFFF99";
+                    } else if (piezas[i][5] == "Ninguno") {
+                        tr.style.backgroundColor = "#ACF980A8";
+                    } else {
+                        tr.style.backgroundColor = "#E59CFF";
+                    }
+                    break;
+                case 1:
+                    tr.style.backgroundColor = "#79BFED";
+                    break;
+                case 2:
+                    tr.style.backgroundColor = "#EC7063";
+                    break;
             }
         }
         tbody.appendChild(tr);
@@ -268,9 +208,7 @@ function crearBotonLiberar(infoPiezas, i, piezas) {
     } else {
         bool = false;
     }
-    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${
-        infoPiezas[i][1]
-    }/${true}/${bool}/${null}`;
+    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${infoPiezas[i][1]}/${true}/${bool}/${null}`;
     a.href = url;
 
     const image = document.createElement("img");
@@ -283,9 +221,7 @@ function crearBotonLiberar(infoPiezas, i, piezas) {
 function crearBotonRechazar(infoPiezas, i) {
     const a = document.createElement("a");
     a.className = "btn-liberar";
-    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${
-        infoPiezas[i][1]
-    }/${false}/${false}/${null}`;
+    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${infoPiezas[i][1]}/${false}/${false}/${null}`;
     a.href = url;
 
     const image = document.createElement("img");
