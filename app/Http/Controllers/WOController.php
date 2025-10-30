@@ -45,7 +45,7 @@ class WOController extends Controller
                     if ($clases->count() == 0) {
                         continue;
                     }
-                }else {
+                } else {
                     $clases = Clase::where("id_ot", $workOrder->id)->where('finalizada', 0)->get();
                     if ($clases->count() == 0) {
                         continue;
@@ -132,7 +132,8 @@ class WOController extends Controller
         return $pdf->download('Orden_de_trabajo_' . $workOrder->id . '.pdf');
     }
 
-    public function show_panelWO(){
+    public function show_panelWO()
+    {
         return view('wo_views.progressPanel_wo');
     }
 
@@ -301,15 +302,27 @@ class WOController extends Controller
         // Algoritmo para finalizar el pedido de una clase
         $class = Clase::where('id_ot', $request->wOrderName)->where('nombre', $request->className)->first();
         $arrayProcesses = $this->insertProcessesData($class);
-        foreach($arrayProcesses as $key => $process){
-            if($process["pieces"]["total"] < $class->piezas){
-                $finishOrder = ["error", "No se puede finalizar el pedido porque las piezas no se han completado en " . $key];
+
+        $text = "Se ha finalizado el pedido correctamente";
+        foreach ($arrayProcesses as $key => $process) {
+            $text = "No se puede finalizar el pedido porque las piezas no se han completado en " . $key;
+            if (($key == "Soldadura" || $key == "Soldadura PTA")) {
+                $total = 0;
+                foreach (["Soldadura", "Soldadura PTA"] as $processSold) {
+                    $total += array_key_exists($processSold, $arrayProcesses) ? $arrayProcesses[$processSold]["pieces"]["total"] : 0;
+                }
+                $text = "No se puede finalizar el pedido porque las piezas no se han completado en las soldaduras";
+            } else {
+                $total = $process["pieces"]["total"];
+            }
+            if($total < $class->piezas){
+                $finishOrder = ["error", $text];
                 return redirect()->back()->with('finishOrder', $finishOrder);
             }
         }
         $class->finalizada = 1;
         $class->save();
-        $finishOrder = ["success", "Se ha finalizado el pedido correctamente"];
+        $finishOrder = ["success", $text];
         return redirect()->route('showPiecesInProgress')->with('finishOrder', $finishOrder);
     }
     function getPieces($class, $processName, &$piecesBadData)
