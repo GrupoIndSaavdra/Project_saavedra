@@ -27,7 +27,6 @@ class HomeController extends Controller
                 case 1:
                     $layout = "layouts.menu.appAdmin";
                     $welcomeT = 'Bienvenido a Administración';
-                    [$pieces_Released, $infoPieces] = $this->piecesToBeReleased();
                     break;
                 case 2:
                     $layout = "layouts.menu.appProduction";
