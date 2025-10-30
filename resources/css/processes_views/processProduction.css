@@ -411,6 +411,7 @@ td select {
     flex-direction: column;
     background-color: white;
     width: 60em;
+    height: 20em;
     transition: 0.2s;
     padding: 2em;
     border-radius: 10px;

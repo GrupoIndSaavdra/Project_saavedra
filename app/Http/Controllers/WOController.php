@@ -40,8 +40,13 @@ class WOController extends Controller
             $workOrders = []; //Arreglo para guardar las molduras de cada OT
             $counter = 0; // Contador para las molduras y OT
             foreach ($workOrdersAll as $workOrder) { //Recorro las ordenes de trabajo
+                $clases = Clase::where("id_ot", $workOrder->id)->get();
                 if (auth()->user()->perfil == 5) {
-                    $clases = Clase::where("id_ot", $workOrder->id)->get();
+                    if ($clases->count() == 0) {
+                        continue;
+                    }
+                }else {
+                    $clases = Clase::where("id_ot", $workOrder->id)->where('finalizada', 0)->get();
                     if ($clases->count() == 0) {
                         continue;
                     }
@@ -294,10 +299,18 @@ class WOController extends Controller
     function finishOrder(Request $request)
     {
         // Algoritmo para finalizar el pedido de una clase
-        $clase = Clase::where('id_ot', $request->wOrderName)->where('nombre', $request->className)->first();
-        $clase->finalizada = 1;
-        $clase->save();
-        return redirect()->route('showPiecesInProgress');
+        $class = Clase::where('id_ot', $request->wOrderName)->where('nombre', $request->className)->first();
+        $arrayProcesses = $this->insertProcessesData($class);
+        foreach($arrayProcesses as $key => $process){
+            if($process["pieces"]["total"] < $class->piezas){
+                $finishOrder = ["error", "No se puede finalizar el pedido porque las piezas no se han completado en " . $key];
+                return redirect()->back()->with('finishOrder', $finishOrder);
+            }
+        }
+        $class->finalizada = 1;
+        $class->save();
+        $finishOrder = ["success", "Se ha finalizado el pedido correctamente"];
+        return redirect()->route('showPiecesInProgress')->with('finishOrder', $finishOrder);
     }
     function getPieces($class, $processName, &$piecesBadData)
     {

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Clase;
 use App\Models\Pieza;
 use Illuminate\Http\Request;
 
@@ -26,6 +27,7 @@ class HomeController extends Controller
                 case 1:
                     $layout = "layouts.menu.appAdmin";
                     $welcomeT = 'Bienvenido a Administración';
+                    [$pieces_Released, $infoPieces] = $this->piecesToBeReleased();
                     break;
                 case 2:
                     $layout = "layouts.menu.appProduction";
@@ -53,11 +55,18 @@ class HomeController extends Controller
     }
     public function piecesToBeReleased()
     {
+        //Obtener las clases ya finalizadas
+        $finishedClasess = Clase::where('finalizada', '!=', 0)->get();
+        $arrayFClasses = array();
+        foreach ($finishedClasess as $finishedClass) {
+            array_push($arrayFClasses, $finishedClass->id);
+        }
+
         $infoPieces = array();
         $pieces = Pieza::where('error', '!=', "Ninguno")->where('liberacion', 0)->get();
         $pieces = $this->pzasGeneralesController->saveInArray($pieces);
         foreach ($pieces as $key => $piece) {
-            if(str_contains($piece[5], "Incompleto")){
+            if (str_contains($piece[5], "Incompleto") || in_array($piece["id_clase"], $arrayFClasses)) {
                 //borrar pieza del array
                 unset($pieces[$key]);
             }

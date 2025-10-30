@@ -65,6 +65,13 @@ class ProcessesController extends Controller
         if (count($wOrdersFounded) > 0) {
             foreach ($wOrdersFounded as $workOrder) {
                 $classes = $this->classController->getClasses($workOrder);
+                //Filtrar clases no finalizadas
+                foreach ($classes as $key => $item) {
+                    if($item->finalizada != 0){
+                        unset($classes[$key]);
+                    }
+                }
+
                 if (count($classes) > 0) {
                     $molding = Moldura::where('id', $workOrder->id_moldura)->first();
                     $workOrderTxt = $workOrder->id . " - " . $molding->nombre;

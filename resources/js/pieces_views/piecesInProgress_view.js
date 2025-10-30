@@ -52,11 +52,7 @@ class Dashboard {
     }
     generateHeaderofWorkOrder(wOrderName, moldingName, className, classArray) {
         let valueText = [
-            [
-                `OT: ${wOrderName}`,
-                `Moldura: ${moldingName}`,
-                `Clase: ${className}`,
-            ],
+            [`OT: ${wOrderName}`, `Moldura: ${moldingName}`, `Clase: ${className}`],
             [
                 `Pedido: ${this.getCompletedPieces(classArray)}/${classArray["pieces"]}`,
                 `Fecha de inicio: ${classArray["startDate"]}`,
@@ -101,9 +97,11 @@ class Dashboard {
         return header_section;
     }
 
-    getCompletedPieces(classArray){
+    getCompletedPieces(classArray) {
         //Obtener las piezas del ultimo proceso de la clase
-        let completedPieces = Object.values(classArray["processes"])[Object.keys(classArray["processes"]).length - 1]["pieces"]["good"];
+        let completedPieces = Object.values(classArray["processes"])[Object.keys(classArray["processes"]).length - 1][
+            "pieces"
+        ]["good"];
         return completedPieces;
     }
     generateProcessSection(processesArray, processName, order) {
@@ -118,10 +116,7 @@ class Dashboard {
         let progressBar = document.createElement("div");
         progressBar.className = "progress-bar";
 
-        let pieces = [
-            processesArray["pieces"]["good"],
-            processesArray["pieces"]["bad"],
-        ];
+        let pieces = [processesArray["pieces"]["good"], processesArray["pieces"]["bad"]];
         for (let i = 0; i < pieces.length; i++) {
             let progressBar = document.createElement("div");
             progressBar.className = "progress-bar";
@@ -143,7 +138,9 @@ class Dashboard {
         }
 
         //Agregar evento al div de progreso
-        processSection.addEventListener("click", () => { this.generateDivBadPieces(processName, processesArray["piecesBadData"]); });
+        processSection.addEventListener("click", () => {
+            this.generateDivBadPieces(processName, processesArray["piecesBadData"]);
+        });
         return processSection;
     }
     generateDivBadPieces(processName, badPieces) {
@@ -195,7 +192,10 @@ class Dashboard {
         table.className = "bad-pieces-table";
         let thead = document.createElement("thead");
         let headerRow = document.createElement("tr");
-        let headers = processName == "Operacion Equipo" ? ["Pieza", "Numero de juego", "Operador", "Proceso", "Operacion", "Error"] : ["Pieza", "Numero de juego", "Operador", "Proceso", "Error"];
+        let headers =
+            processName == "Operacion Equipo"
+                ? ["Pieza", "Numero de juego", "Operador", "Proceso", "Operacion", "Error"]
+                : ["Pieza", "Numero de juego", "Operador", "Proceso", "Error"];
 
         //Insertar encabezados de la tabla
         headers.forEach((header) => {
@@ -204,14 +204,24 @@ class Dashboard {
             th.style.width = headers.length / 100 + "%"; // Ajustar el ancho de las columnas
             headerRow.appendChild(th);
         });
-        
+
         //Insertar los datos de cada una de las piezas malas
         //prettier-ignore
         let tbody = document.createElement("tbody");
-        if(Object.keys(badPieces).length > 0){
+        if (Object.keys(badPieces).length > 0) {
             Object.values(badPieces).forEach((piece) => {
                 let row = document.createElement("tr");
-                let pieceData = processName == "Operacion Equipo" ? [piece["piece"], piece["setNumber"], piece["operator"], piece["process"], piece["operation"], piece["error"]] : [piece["piece"], piece["setNumber"], piece["operator"], piece["process"], piece["error"]];
+                let pieceData =
+                    processName == "Operacion Equipo"
+                        ? [
+                              piece["piece"],
+                              piece["setNumber"],
+                              piece["operator"],
+                              piece["process"],
+                              piece["operation"],
+                              piece["error"],
+                          ]
+                        : [piece["piece"], piece["setNumber"], piece["operator"], piece["process"], piece["error"]];
                 pieceData.forEach((data) => {
                     let td = document.createElement("td");
                     td.innerHTML = data;
@@ -219,7 +229,7 @@ class Dashboard {
                 });
                 tbody.appendChild(row);
             });
-        }else{
+        } else {
             let row = document.createElement("tr");
             let td = document.createElement("td");
             td.colSpan = headers.length;
@@ -234,34 +244,45 @@ class Dashboard {
         return table;
     }
 }
+let div_opacity = document.querySelector(".div-opacity");
+if(div_opacity){
+    document.querySelector(".btn-cerrar").addEventListener("click", () => {
+        let div_padre = document.querySelector(".div-opacity");
+        div_padre.remove();
+    });
+    div_opacity.addEventListener("click", () => {
+        let div_padre = document.querySelector(".div-opacity");
+        div_padre.remove();
+    });
+}
 
 if (Object.keys(wOrderArray).length > 0) {
     let dashboard = new Dashboard(wOrderArray);
     dashboard.createSections();
     const secciones = document.querySelectorAll("section");
     let scrollTimeout = null;
-    
+
     function getClosestSection() {
         let closest = null;
         let minDist = Infinity;
         const scrollY = window.scrollY;
-    
-        secciones.forEach(sec => {
+
+        secciones.forEach((sec) => {
             const dist = Math.abs(sec.offsetTop - scrollY);
             if (dist < minDist) {
                 minDist = dist;
                 closest = sec;
             }
         });
-    
+
         return closest;
     }
-    
+
     window.addEventListener("scroll", () => {
         if (scrollTimeout) {
             clearTimeout(scrollTimeout);
         }
-    
+
         // Espera 200ms tras dejar de hacer scroll
         scrollTimeout = setTimeout(() => {
             const destino = getClosestSection();
@@ -270,7 +291,7 @@ if (Object.keys(wOrderArray).length > 0) {
             }
         }, 200);
     });
-}else {
+} else {
     let body = document.querySelector("body");
     let noDataMessage = document.createElement("h2");
     noDataMessage.className = "no-data-message";

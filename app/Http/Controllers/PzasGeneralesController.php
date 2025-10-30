@@ -272,11 +272,21 @@ class PzasGeneralesController extends Controller
     }
     public function saveInArray($arrayP)
     {
+        //Obtener las clases ya finalizadas
+        $finishedClasess = Clase::where('finalizada', '!=', 0)->get();
+        $arrayFClasses = array();
+        foreach ($finishedClasess as $finishedClass) {
+            array_push($arrayFClasses, $finishedClass->id);
+        }
+        
         $array = array();
         $juegosGuardados = array();
         $contador = 0;
         $mitad = false;
         foreach ($arrayP as $item) {
+            if(in_array($item->id_clase, $arrayFClasses)){
+                continue;
+            }
             $band = false;
             //Identificar si la pieza es mitad o juego
             if (substr($item->n_pieza, -1) != "J") { //Si la pieza es mitad
