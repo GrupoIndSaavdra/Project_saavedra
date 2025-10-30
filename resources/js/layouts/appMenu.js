@@ -219,6 +219,7 @@ function getRoutes(profile) {
                 {
                     title: "Producción",
                     routes: [
+                        ["piecesInProgress", "Piezas en progreso"],
                         ["cNominals", "Editar C.Nominales y Tolerancias"],
                         ["showTimes", "Modificar tiempos de producción"],
                     ],
