@@ -81,6 +81,7 @@
             </thead>
         </table>
     </div>
+    <div class="total-records-found">Registros encontrados: {{ count($pieces) }}</div>
     @else
     <div class="letrero">
         <label class="advertence"> No hay piezas trabajadas.</label>

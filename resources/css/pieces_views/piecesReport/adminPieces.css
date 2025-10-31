@@ -235,6 +235,12 @@ tr:nth-child(even) {
 .img-loading {
     width: 100%;
 }
+.total-records-found {
+    font-size: 1.5em;
+    font-weight: 700;
+    padding: 20px;
+    color: #033966;
+}
 @media (max-width: 991.98px) {
     body {
         height: 100vh;

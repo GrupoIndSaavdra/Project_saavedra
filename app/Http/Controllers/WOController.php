@@ -158,12 +158,15 @@ class WOController extends Controller
         if ($processesFounded) {
             foreach ($processesFounded->getAttributes() as $field => $value) {
                 if ($value != 0 && $field != 'id' && $field != 'id_clase') {
-                    $processName = $this->nombreProceso($field);
-                    $processes[$processName] = array();
-                    $piecesBadData = array();
-                    $processes[$processName]['pieces'] = $this->getPieces($class, $processName, $piecesBadData);
-                    $processes[$processName]['piecesBadData'] = $piecesBadData; //Informacion de las piezas malas
-                    $processes[$processName]['endDate'] = $this->getDateEndFromProcess($field, $class->id); //Fecha de termino del proceso
+                    $field = $field == "operacionEquipo" ? ["1 operacion", "2 operacion"] : [$field];
+                    foreach ($field as $processField) {
+                        $processName = count($field) > 1 ? "Operacion Equipo_" . $processField : $this->nombreProceso($processField);
+                        $processes[$processName] = array();
+                        $piecesBadData = array();
+                        $processes[$processName]['pieces'] = $this->getPieces($class, $processName, $piecesBadData);
+                        $processes[$processName]['piecesBadData'] = $piecesBadData; //Informacion de las piezas malas
+                        $processes[$processName]['endDate'] = $this->getDateEndFromProcess($field, $class->id); //Fecha de termino del proceso
+                    }
                 }
             }
         }
@@ -196,6 +199,7 @@ class WOController extends Controller
                 foreach ($classes as $index => $class) {
                     //Verificar si ya se asignaron procesos a la clase
                     $process = Procesos::where('id_clase', $class->id)->first();
+
                     if ($process) {
                         if ($index == 0) {
                             $wOInProgress[$workOrder->id] = array();
@@ -315,7 +319,7 @@ class WOController extends Controller
             } else {
                 $total = $process["pieces"]["total"];
             }
-            if($total < $class->piezas){
+            if ($total < $class->piezas) {
                 $finishOrder = ["error", $text];
                 return redirect()->back()->with('finishOrder', $finishOrder);
             }
@@ -332,232 +336,109 @@ class WOController extends Controller
         $piecesArray["good"] = array();
         $piecesArray["bad"] = array();
         $piecesArray["total"] = 0;
-        if ($processName == "Operacion Equipo") {
-            $process1 = PySOpeSoldadura::where('id_ot', $class->id_ot)->where('id_proceso', "Operacion_Equipo_1_operacion_" . $class->nombre . "_" . $class->id_ot)->first();
-            $process2 = PySOpeSoldadura::where('id_ot', $class->id_ot)->where('id_proceso', "Operacion_Equipo_2_operacion_" . $class->nombre . "_" . $class->id_ot)->first();
+        $pieces = Pieza::where("proceso", $processName)->where('id_clase', $class->id)->get();
+        if (count($pieces) > 0) {
+            //Recorrer cada una de las piezas
+            foreach ($pieces as $piece) {
+                //Verificar si es juego o pieza
+                if (substr($piece->n_pieza, -1, 1) != "J") { // Si no es un juego y se divide en hembra y macho
+                    $pares = true;
+                    preg_match('/^\d+/', $piece->n_pieza, $noSet); //Obtener el numero de juego de la pieza
+                    $noSet = $noSet[0];
+                    //Comprobar si el juego ya fue almacenado en el array
+                    if (!in_array($noSet, $setStoredParts)) {
+                        array_push($setStoredParts, $noSet); //Almacenar el juego en el array
 
-            if ($process1 && $process2) {
-                //Calcular las piezas totales
-                $pieces1 = PySOpeSoldadura_pza::where('estado', 2)->where('id_proceso', $process1->id)->get();
-                $pieces2 = PySOpeSoldadura_pza::where('estado', 2)->where('id_proceso', $process2->id)->get();
+                        //Obtener las piezas del juego
+                        $pFemale = Pieza::where("n_pieza", $noSet . "H")->where('id_clase', $class->id)->where('proceso', $processName)->first();
+                        $pMale = Pieza::where("n_pieza", $noSet . "M")->where('id_clase', $class->id)->where('proceso', $processName)->first();
 
-                $piecesProcess = [$pieces1, $pieces2];
-                $totalPieces = array();
-                foreach ($piecesProcess as $index => $pieceProcess) {
-                    $totalPieces["operacion_" . ($index + 1)] = array();
-                    $storedSets = array();
-                    foreach ($pieceProcess as $piece) {
-                        if (!in_array($piece->n_juego, $storedSets)) {
-                            array_push($storedSets, $piece->n_juego);
-                            $piecesFounded = PySOpeSoldadura_pza::where('estado', 2)->where('id_proceso', $piece->id_proceso)->where('n_juego', $piece->n_juego)->get();
-                            if (count($piecesFounded) > 1) {
-                                array_push($totalPieces["operacion_" . ($index + 1)], $piece->n_juego);
-                            }
-                        }
-                    }
-                }
-
-                //Obtener piezas Totales en las dos operaciones
-                $counterTotalPieces = 0;
-                foreach ($totalPieces["operacion_2"] as $piece2) {
-                    if (in_array($piece2, $totalPieces["operacion_1"])) {
-                        $counterTotalPieces++;
-                    } else {
-                        $counterTotalPieces += .5;
-                    }
-                }
-
-                //Obtener las piezas buenas
-                if ($process1) { //Si existe el proceso
-                    $goodPieces = array();
-                    foreach ($totalPieces as $index => $piecesOperation) {
-                        $storedSets = array();
-                        $process = $index == "operacion_1" ? $process1 : $process2;
-                        $goodPieces["operacion_" . ($index + 1)] = array();
-                        foreach ($piecesOperation as $piece) {
-                            $piecesFounded = PySOpeSoldadura_pza::where('estado', 2)->where('error', 'Ninguno')->where('id_proceso', $process->id)->where('n_juego', $piece)->get();
-                            if (count($piecesFounded) > 1) {
-                                array_push($goodPieces["operacion_" . ($index + 1)], $piece);
-                            }
-                        }
-                    }
-                    $counterGoodPieces = 0;
-                    //Obtener piezas buenas en las dos operaciones
-                    foreach ($goodPieces["operacion_2"] as $goodSet2) {
-                        if (in_array($goodSet2, $goodPieces["operacion_1"])) {
-                            $counterGoodPieces++;
-                        }
-                    }
-
-
-                    //Obtener las piezas malas en cada operación
-                    $badPieces = array();
-                    foreach ($totalPieces as $index => $piecesOperation) {
-                        $storedSets = array();
-                        $process = $index == "operacion_1" ? $process1 : $process2;
-                        $badPieces["operacion_" . ($index + 1)] = array();
-                        foreach ($piecesOperation as $piece) {
-                            $piecesFounded = PySOpeSoldadura_pza::where('estado', 2)->where('correcto', 0)->where('id_proceso', $process->id)->where('n_juego', $piece)->get();
-                            if (count($piecesFounded) > 1) {
-                                array_push($badPieces["operacion_" . ($index + 1)], $piece->n_juego);
-                                foreach ($piecesFounded as $badPiece) {
-                                    if ($badPiece->error != "Ninguno") {
-                                        $pieceFounded = Pieza::where('n_pieza', $badPiece->n_juego)->where('proceso', $processName)->where('id_clase', $class->id)->first();
-                                        array_push($piecesBadData, $this->getBadPiecesData($pieceFounded, null, $index + 1));
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    $counterBadPieces = 0;
-                    //Obtener piezas malas en las dos operaciones
-                    $badSets = array();
-                    if (count($badPieces["operacion_2"]) > count($badPieces["operacion_1"])) {
-                        foreach ($badPieces["operacion_2"] as $badPiece2) {
-                            if (!in_array($badPiece2, $badPieces["operacion_1"])) {
-                                $counterBadPieces++;
-                                array_push($badSets, $badPiece2);
-                            }
-                        }
-                    } else {
-                        foreach ($badPieces["operacion_1"] as $badPiece1) {
-                            if (!in_array($badPiece1, $badPieces["operacion_2"])) {
-                                $counterBadPieces++;
-                                array_push($badSets, $badPiece1);
-                            }
-                        }
-                    }
-
-                    //Obtener toda la informacion de todas las piezas malas encontradas
-                    foreach ($badPieces["operacion_2"] as $piece) {
-                        if (!in_array($piece, $badSets)) {
-                            $counterBadPieces++;
-                        }
-                    }
-                    foreach ($badPieces["operacion_1"] as $piece) {
-                        if (!in_array($piece, $badSets)) {
-                            $counterBadPieces++;
-                        }
-                    }
-                } else {
-                    $counterGoodPieces = 0;
-                    $counterBadPieces = 0;
-                    $counterTotalPieces = 0;
-                }
-            } else {
-                $counterGoodPieces = 0;
-                $counterBadPieces = 0;
-                $counterTotalPieces = 0;
-            }
-            $piecesArray["total"] = $counterTotalPieces;
-            $piecesArray["good"] = $counterGoodPieces;
-            $piecesArray["bad"] = $counterBadPieces;
-        } else {
-            $pieces = Pieza::where("proceso", $processName)->where('id_clase', $class->id)->get();
-            if (count($pieces) > 0) {
-                //Recorrer cada una de las piezas
-                foreach ($pieces as $piece) {
-                    //Verificar si es juego o pieza
-                    if (substr($piece->n_pieza, -1, 1) != "J") { // Si no es un juego y se divide en hembra y macho
-                        $pares = true;
-                        preg_match('/^\d+/', $piece->n_pieza, $noSet); //Obtener el numero de juego de la pieza
-                        $noSet = $noSet[0];
-                        //Comprobar si el juego ya fue almacenado en el array
-                        if (!in_array($noSet, $setStoredParts)) {
-                            array_push($setStoredParts, $noSet); //Almacenar el juego en el array
-
-                            //Obtener las piezas del juego
-                            $pFemale = Pieza::where("n_pieza", $noSet . "H")->where('id_clase', $class->id)->where('proceso', $processName)->first();
-                            $pMale = Pieza::where("n_pieza", $noSet . "M")->where('id_clase', $class->id)->where('proceso', $processName)->first();
-
-                            //Verificar si ambas piezas existen
-                            if ($pFemale && $pMale) {
-                                //Verificar si el juego esta rechazado o liberado
-                                if ($pFemale->liberacion == 0) {
-                                    //Verificar si las pieza son correctas o no
-                                    if ($pFemale->error == "Ninguno" && $pMale->error == "Ninguno") {
-                                        array_push($piecesArray["good"], $pFemale, $pMale);
-                                    } else {
-                                        //Guardar el juego completo como malo
-                                        array_push($piecesArray["bad"], $pFemale, $pMale);
-
-                                        if ($pFemale->error != "Ninguno") {
-                                            array_push($piecesBadData, $this->getBadPiecesData($pFemale));
-                                        }
-                                        if ($pMale->error != "Ninguno") {
-                                            array_push($piecesBadData, $this->getBadPiecesData($pMale));
-                                        }
-                                    }
-                                } else if ($pFemale->liberacion == 1) {
+                        //Verificar si ambas piezas existen
+                        if ($pFemale && $pMale) {
+                            //Verificar si el juego esta rechazado o liberado
+                            if ($pFemale->liberacion == 0) {
+                                //Verificar si las pieza son correctas o no
+                                if ($pFemale->error == "Ninguno" && $pMale->error == "Ninguno") {
                                     array_push($piecesArray["good"], $pFemale, $pMale);
                                 } else {
+                                    //Guardar el juego completo como malo
                                     array_push($piecesArray["bad"], $pFemale, $pMale);
 
                                     if ($pFemale->error != "Ninguno") {
                                         array_push($piecesBadData, $this->getBadPiecesData($pFemale));
-                                    } else {
-                                        array_push($piecesBadData, $this->getBadPiecesData($pFemale, "Rechazada"));
                                     }
                                     if ($pMale->error != "Ninguno") {
                                         array_push($piecesBadData, $this->getBadPiecesData($pMale));
-                                    } else {
-                                        array_push($piecesBadData, $this->getBadPiecesData($pMale, "Rechazada"));
                                     }
                                 }
+                            } else if ($pFemale->liberacion == 1) {
+                                array_push($piecesArray["good"], $pFemale, $pMale);
                             } else {
-                                //Si no existe una de las piezas, se guarda la pieza incompleta como mala
-                                $imcompletePiece = $pFemale ? $pFemale : $pMale;
+                                array_push($piecesArray["bad"], $pFemale, $pMale);
 
-                                if ($imcompletePiece->liberacion == 2) {
-                                    array_push($piecesArray["bad"], $imcompletePiece, $imcompletePiece);
-                                    array_push($piecesBadData, $this->getBadPiecesData($imcompletePiece, "Rechazada"));
+                                if ($pFemale->error != "Ninguno") {
+                                    array_push($piecesBadData, $this->getBadPiecesData($pFemale));
+                                } else {
+                                    array_push($piecesBadData, $this->getBadPiecesData($pFemale, "Rechazada"));
+                                }
+                                if ($pMale->error != "Ninguno") {
+                                    array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                } else {
+                                    array_push($piecesBadData, $this->getBadPiecesData($pMale, "Rechazada"));
                                 }
                             }
-                        }
-                    } else {
-                        $pares = false;
-                        $piecesArray["total"] = count($pieces);
-                        //Verificar si el juego esta rechazado o liberado
-                        if ($piece->liberacion == 0) {
-                            //Verificar si las pieza son correctas o no
-                            if ($piece->error == "Ninguno") {
-                                array_push($piecesArray["good"], $piece);
-                            } else {
-                                //Guardar el juego completo como malo
-                                array_push($piecesArray["bad"], $piece);
-                                array_push($piecesBadData, $this->getBadPiecesData($piece));
+                        } else {
+                            //Si no existe una de las piezas, se guarda la pieza incompleta como mala
+                            $imcompletePiece = $pFemale ? $pFemale : $pMale;
+
+                            if ($imcompletePiece->liberacion == 2) {
+                                array_push($piecesArray["bad"], $imcompletePiece, $imcompletePiece);
+                                array_push($piecesBadData, $this->getBadPiecesData($imcompletePiece, "Rechazada"));
                             }
-                        } else if ($piece->liberacion == 1) {
+                        }
+                    }
+                } else {
+                    $pares = false;
+                    $piecesArray["total"] = count($pieces);
+                    //Verificar si el juego esta rechazado o liberado
+                    if ($piece->liberacion == 0) {
+                        //Verificar si las pieza son correctas o no
+                        if ($piece->error == "Ninguno") {
                             array_push($piecesArray["good"], $piece);
                         } else {
+                            //Guardar el juego completo como malo
                             array_push($piecesArray["bad"], $piece);
-                            if ($piece->error != "Ninguno") {
-                                array_push($piecesBadData, $this->getBadPiecesData($piece));
-                            } else {
-                                array_push($piecesBadData, $this->getBadPiecesData($piece, "Rechazada"));
-                            }
+                            array_push($piecesBadData, $this->getBadPiecesData($piece));
+                        }
+                    } else if ($piece->liberacion == 1) {
+                        array_push($piecesArray["good"], $piece);
+                    } else {
+                        array_push($piecesArray["bad"], $piece);
+                        if ($piece->error != "Ninguno") {
+                            array_push($piecesBadData, $this->getBadPiecesData($piece));
+                        } else {
+                            array_push($piecesBadData, $this->getBadPiecesData($piece, "Rechazada"));
                         }
                     }
                 }
-                if (isset($pares)) {
-                    if ($pares) {
-                        $piecesArray["total"] = count($pieces) / 2;
-                        $piecesArray["good"] = count($piecesArray["good"]) / 2;
-                        $piecesArray["bad"] = count($piecesArray["bad"]) / 2;
-                    } else {
-                        $piecesArray["total"] = count($pieces);
-                        $piecesArray["good"] = count($piecesArray["good"]);
-                        $piecesArray["bad"] = count($piecesArray["bad"]);
-                    }
-                }
-            } else {
-                $piecesArray = [
-                    "total" => 0,
-                    "good" => 0,
-                    "bad" => 0
-                ];
             }
+            if (isset($pares)) {
+                if ($pares) {
+                    $piecesArray["total"] = count($pieces) / 2;
+                    $piecesArray["good"] = count($piecesArray["good"]) / 2;
+                    $piecesArray["bad"] = count($piecesArray["bad"]) / 2;
+                } else {
+                    $piecesArray["total"] = count($pieces);
+                    $piecesArray["good"] = count($piecesArray["good"]);
+                    $piecesArray["bad"] = count($piecesArray["bad"]);
+                }
+            }
+        } else {
+            $piecesArray = [
+                "total" => 0,
+                "good" => 0,
+                "bad" => 0
+            ];
         }
         return $piecesArray;
     }
