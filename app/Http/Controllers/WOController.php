@@ -155,6 +155,8 @@ class WOController extends Controller
     {
         $processes = array();
         $processesFounded = Procesos::where('id_clase', $class->id)->first();
+        //Ordenar array
+        //********************************************************** */
         if ($processesFounded) {
             foreach ($processesFounded->getAttributes() as $field => $value) {
                 if ($value != 0 && $field != 'id' && $field != 'id_clase') {

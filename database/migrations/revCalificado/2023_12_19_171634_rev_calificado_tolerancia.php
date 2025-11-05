@@ -34,6 +34,7 @@ return new class extends Migration
                 $table->decimal('simetria1', 8, 3)->nullable();
                 $table->decimal('simetria2', 8, 3)->nullable();
                 $table->timestamps();
+
             });
         }
     }

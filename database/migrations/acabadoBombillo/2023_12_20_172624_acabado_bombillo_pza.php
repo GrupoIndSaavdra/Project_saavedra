@@ -43,6 +43,8 @@ return new class extends Migration
                 $table->timestamps();
                 $table->foreign('id_meta')->references('id')->on('metas');
                 $table->foreign('id_proceso')->references('id')->on('acabadoBombillo');
+
+                $table->unique('id_pza');
             });
         }
     }

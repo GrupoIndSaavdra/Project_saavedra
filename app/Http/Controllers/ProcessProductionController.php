@@ -193,7 +193,14 @@ class ProcessProductionController extends Controller
                             $newPiece->estado = 1;
                             $newPiece->n_pieza = $noAssembly . $pieceLetter;
                             $newPiece->n_juego = $assembly;
-                            $newPiece->save();
+                            try {
+                                $newPiece->save();
+                            } catch (\Illuminate\Database\QueryException $ex) {
+                                if ($ex->errorInfo[1] == 1062) {
+                                    return back()->with('error', 'Este juego ya fue asignado.');
+                                }
+                                throw $ex;
+                            }
                         }
                         if ($i == 1) {
                             $pieceToBeUsed = !$existingPiece ? $newPiece : $existingPiece;
@@ -433,7 +440,14 @@ class ProcessProductionController extends Controller
                     $newPiece->id_proceso = $process->id;
                     $newPiece->estado = 1;
                     $newPiece->n_juego = $request->selectedAssembly;
-                    $newPiece->save();
+                    try {
+                        $newPiece->save();
+                    } catch (\Illuminate\Database\QueryException $ex) {
+                        if ($ex->errorInfo[1] == 1062) {
+                            return back()->with('error', 'Este juego ya fue asignado.');
+                        }
+                        throw $ex;
+                    }
 
                     $param = "success";
                     $message = 'Juego ' . $noAssembly . ' seleccionado correctamente';
@@ -498,7 +512,14 @@ class ProcessProductionController extends Controller
                         $newPiece->estado = 1;
                         $newPiece->n_pieza = $noAssembly . $pieceLetter;
                         $newPiece->n_juego = $request->selectedAssembly;
-                        $newPiece->save();
+                        try {
+                            $newPiece->save();
+                        } catch (\Illuminate\Database\QueryException $ex) {
+                            if ($ex->errorInfo[1] == 1062) {
+                                return back()->with('error', 'Este juego ya fue asignado.');
+                            }
+                            throw $ex;
+                        }
 
                         $param = "success";
                         $message = 'Juego ' . $noAssembly . ' seleccionado correctamente';

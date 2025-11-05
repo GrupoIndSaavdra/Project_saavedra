@@ -788,6 +788,13 @@ function insertButtonEditPieces() {
 }
 
 //Ejecucion del script
+//Evitar doble click en el submit
+document.addEventListener("submit", e => {
+    const btn = e.target.querySelector("button[type='submit']");
+    console.log(btn);
+    if (btn) btn.disabled = true;
+});
+
 if (window.arrayData) {
     console.log(window.arrayData);
     if (window.arrayData["edit"]) {
