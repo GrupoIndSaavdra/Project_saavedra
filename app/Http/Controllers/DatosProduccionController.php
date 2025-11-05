@@ -336,10 +336,10 @@ class DatosProduccionController extends Controller
             // case "Grabado":
             //     $id_proceso = Grabado::where('id_proceso', $idString)->first();
             //     break;
-            case "Operacion Equipo_1":
-            case "Operacion Equipo_2":
+            case "Operacion Equipo_1 operacion":
+            case "Operacion Equipo_2 operacion":
                 $id_proceso = PySOpeSoldadura::where('id_proceso', $idString)->first();
-                $piezaFounded = PySOpeSoldadura_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
+                $piezaFounded = PySOpeSoldadura_pza::where('id_proceso', $id_proceso->id)->where("n_juego", $pieza->n_pieza)->first();
                 break;
             case "embudoCm":
                 $id_proceso = EmbudoCM::where('id_proceso', $idString)->first();
