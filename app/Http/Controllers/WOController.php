@@ -21,12 +21,14 @@ class WOController extends Controller
 {
     protected $classController;
     protected $processesController;
+    protected $releasedPiecesController;
 
     public function __construct()
     {
         $this->middleware('auth');
         $this->classController = new ClassController();
         $this->processesController = new ProcessesController();
+        $this->releasedPiecesController = new PzasLiberadasController();
     }
 
     //Mostrar la vista para seleccionar o crear una Orden de Trabajo
@@ -214,7 +216,8 @@ class WOController extends Controller
                 }
             }
         }
-        return view('pieces_views.piecesInProgress_view', compact('wOInProgress'));
+        [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
+        return view('pieces_views.piecesInProgress_view', compact('wOInProgress', 'pieces_Released', 'info_Pieces'));
     }
     public function getStringDate($date, $time)
     {

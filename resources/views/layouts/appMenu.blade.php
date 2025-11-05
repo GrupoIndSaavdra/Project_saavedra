@@ -10,6 +10,11 @@
     @yield('head')
     <script>
         window.loading = "{{ asset('images/loading.gif') }}"
+        window.liberar = "{{ asset('images/Liberar.png') }}"
+        window.rechazar = "{{ asset('images/Rechazar.png') }}"
+        window.ojito = "{{ asset('images/ojito.png') }}"
+
+        window.baseUrl = "{{ url('/') }}";
     </script>
 </head>
 
@@ -23,7 +28,7 @@
         <div class="filter-opacity">
             <nav class="nav" id="nav">
                 <ul class="nav-list"></ul>
-                <a class="btn-close-session" href="{{ route('logout') }}">Cerrar sesión</a> 
+                <a class="btn-close-session" href="{{ route('logout') }}">Cerrar sesión</a>
                 <input type="hidden" value="{{ auth()->user()->perfil }}" id="profile">
             </nav>
         </div>
@@ -59,5 +64,11 @@
         logout: @json(route('logout')),
     };
 </script>
+@isset($pieces_Released)
+<script>
+    window.pieces_Released = @json(auth()->user()->perfil) == 4 ? @json($pieces_Released) : [];
+    window.info_Pieces = @json(auth()->user()->perfil) == 4 ? @json($info_Pieces) : [];
+</script>
+@endisset
 
 </html>

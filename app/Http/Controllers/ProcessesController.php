@@ -53,10 +53,12 @@ use Illuminate\Http\Request;
 class ProcessesController extends Controller
 {
     protected $classController;
+    protected $releasedPiecesController;
     public function __construct()
     {
         $this->middleware('auth');
         $this->classController = new ClassController();
+        $this->releasedPiecesController = new PzasLiberadasController();
     }
     public function show_cNominalsView()
     {
@@ -122,7 +124,9 @@ class ProcessesController extends Controller
             }
         }
         $workOrders = count($workOrders) > 0 ? $workOrders : null;
-        return view('processes_views.cNominals_view', compact('workOrders'));
+
+        [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
+        return view('processes_views.cNominals_view', compact('workOrders', 'pieces_Released', 'info_Pieces'));
     }
     public function searchCNominals($class, $process, $subprocess = null)
     {

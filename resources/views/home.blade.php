@@ -2,13 +2,6 @@
 
 @section('head')
 <title>Inicio</title>
-<script>
-    window.liberar = "{{ asset('images/Liberar.png') }}"
-    window.rechazar = "{{ asset('images/Rechazar.png') }}"
-    window.ojito = "{{ asset('images/ojito.png') }}"
-
-    window.baseUrl = "{{ url('/') }}";
-</script>
 <!--Styles-->
 @vite(['resources/css/home.css', 'resources/js/home.js'])
 
@@ -39,7 +32,5 @@
 <script>
     window.baseUrl = @json(url('/'));
     window.reportRoute = @json(route('processProduction'));
-    window.pieces_Released = @json($pieces_Released);
-    window.info_Pieces = @json($infoPieces);
 </script>
 @endsection

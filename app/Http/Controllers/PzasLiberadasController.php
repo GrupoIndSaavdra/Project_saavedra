@@ -2,39 +2,31 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AcabadoBombilo;
 use App\Models\AcabadoBombilo_pza;
-use App\Models\AcabadoMolde;
 use App\Models\AcabadoMolde_pza;
 use App\Models\Asentado_pza;
-use App\Models\BarrenoManiobra;
 use App\Models\BarrenoManiobra_pza;
 use App\Models\BarrenoProfundidad_pza;
 use App\Models\Cavidades_pza;
+use App\Models\Clase;
 use App\Models\Copiado_pza;
 use App\Models\Desbaste_pza;
 use App\Models\EmbudoCM_pza;
 use App\Models\Metas;
 use App\Models\OffSet_pza;
-use App\Models\Orden_trabajo;
 use App\Models\Palomas_pza;
 use App\Models\Pieza;
-use App\Models\PrimeraOpeSoldadura;
 use App\Models\PrimeraOpeSoldadura_pza;
-use App\Models\PySOpeSoldadura;
 use App\Models\PySOpeSoldadura_pza;
 use App\Models\Pza_cepillado;
 use App\Models\Rebajes_pza;
 use App\Models\Rectificado_pza;
 use App\Models\revCalificado_pza;
 use App\Models\RevLaterales_pza;
-use App\Models\SegundaOpeSoldadura;
 use App\Models\SegundaOpeSoldadura_pza;
 use App\Models\Soldadura_pza;
 use App\Models\SoldaduraPTA_pza;
-use ArchTech\Enums\Meta\Meta;
 use Barryvdh\DomPDF\Facade\Pdf;
-use DragonCode\Contracts\Cashier\Auth\Auth;
 use Illuminate\Http\Request;
 
 class PzasLiberadasController extends Controller
@@ -79,8 +71,10 @@ class PzasLiberadasController extends Controller
         $filtersData = $array[5];
         $profile = "quality";
 
+        [$pieces_Released, $info_Pieces] = $this->piecesToBeReleased();
+
         if ($toView) {
-            return view('pieces_views.releasePieces.pzasLiberar', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
+            return view('pieces_views.releasePieces.pzasLiberar', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'pieces_Released', 'info_Pieces'));
         } else {
             $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'profile'));
             return $pdf->download('Reporte de piezas.pdf');
@@ -451,5 +445,28 @@ class PzasLiberadasController extends Controller
                 }
             }
         }
+    }
+    public function piecesToBeReleased()
+    {
+        //Obtener las clases ya finalizadas
+        $finishedClasess = Clase::where('finalizada', '!=', 0)->get();
+        $arrayFClasses = array();
+        foreach ($finishedClasess as $finishedClass) {
+            array_push($arrayFClasses, $finishedClass->id);
+        }
+
+        $infoPieces = array();
+        $pieces = Pieza::where('error', '!=', "Ninguno")->where('liberacion', 0)->get();
+        $pieces = $this->controladorPzas->saveInArray($pieces);
+        foreach ($pieces as $key => $piece) {
+            if (str_contains($piece[5], "Incompleto") || in_array($piece["id_clase"], $arrayFClasses)) {
+                //borrar pieza del array
+                unset($pieces[$key]);
+            }
+        }
+        if (count($pieces) > 0) {
+            $this->controladorPzas->saveInfoPzas($infoPieces, $pieces);
+        }
+        return [$pieces, $infoPieces];
     }
 }
