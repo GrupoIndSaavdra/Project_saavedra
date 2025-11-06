@@ -150,27 +150,31 @@ class ProcessProductionController extends Controller
         $modelPieces = $this->get_ModelProcessPieces($processString);
         if ($process) { // Si no existe el proceso, no se puede obtener una pieza
             //Verificar si hay piezas vacias asociadas a la meta del usuario
-            $pieceMeta = $modelPieces::where("id_meta", $meta->id)->whereNot('estado', 2)->first();
-            if ($pieceMeta) { // Si hay una pieza vacía asociada a la meta, se puede usar
-                if ($this->verifiedRejectedPiece($pieceMeta, $class, $processName)) {
-                    $pieceMeta->estado = 1;
-                    $pieceMeta->save();
-                    return $pieceMeta;
+            $pieceMeta = $modelPieces::where("id_meta", $meta->id)->whereNot('estado', 2)->get();
+            if (count($pieceMeta) > 0) { // Si hay una pieza vacía asociada a la meta, se puede usar
+                foreach ($pieceMeta as $pMeta) {
+                    if ($this->verifiedRejectedPiece($pMeta, $class, $processName)) {
+                        $pMeta->estado = 1;
+                        $pMeta->save();
+                        return $pMeta;
+                    }
                 }
             }
             //Verificar si hay alguna pieza que este en la misma maquina en la que se esta trabajando
-            $unoccupiedPiece = $modelPieces::where("id_proceso", $process->id)->where('estado', 0)->first();
-            if ($unoccupiedPiece) {
+            $unoccupiedPiece = $modelPieces::where("id_proceso", $process->id)->where('estado', 0)->get();
+            if (count($unoccupiedPiece) > 0) {
                 //Verificar que la pieza aun no este rechazada
-                if ($this->verifiedRejectedPiece($unoccupiedPiece, $class, $processName)) {
-                    $metaPiece = $unoccupiedPiece->id_meta;
-                    $metaPiece = Metas::find($metaPiece);
-                    if ($metaPiece->maquina == $meta->maquina) {
-                        // Marcar la pieza como ocupada
-                        $unoccupiedPiece->estado = 1;
-                        $unoccupiedPiece->id_meta = $meta->id;
-                        $unoccupiedPiece->save();
-                        return $unoccupiedPiece;
+                foreach ($unoccupiedPiece as $uPiece) {
+                    if ($this->verifiedRejectedPiece($uPiece, $class, $processName)) {
+                        $metaPiece = $uPiece->id_meta;
+                        $metaPiece = Metas::find($metaPiece);
+                        if ($metaPiece->maquina == $meta->maquina) {
+                            // Marcar la pieza como ocupada
+                            $uPiece->estado = 1;
+                            $uPiece->id_meta = $meta->id;
+                            $uPiece->save();
+                            return $uPiece;
+                        }
                     }
                 }
             }
@@ -264,7 +268,7 @@ class ProcessProductionController extends Controller
         $n_juego = $piece->n_pieza ? $piece->n_pieza : $piece->n_juego;
         $n_juego = substr($n_juego, 0, -1);
         $unoccupiedPieceV = Pieza::where("id_clase", $class->id)->where('proceso', $processName)->where('n_pieza', 'like', "%$n_juego%")->first();
-        if($unoccupiedPieceV){
+        if ($unoccupiedPieceV) {
             if ($unoccupiedPieceV->liberacion == 0) {
                 return true;
             }
