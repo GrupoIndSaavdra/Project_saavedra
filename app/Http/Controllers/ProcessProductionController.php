@@ -300,7 +300,7 @@ class ProcessProductionController extends Controller
         if ($passwordEntered) {
             $users = User::all();
             foreach ($users as $user) {
-                if ($user->perfil == 1 || $user->perfil == 3 || $user->perfil == 4) { // Verificar si el usuario es admin o calidad o superadmin
+                if ($user->perfil == 1 || $user->perfil == 4) { // Verificar si el usuario es admin o calidad o superadmin
                     if (Hash::check($passwordEntered, $user->contrasena)) {
                         return true; // Contraseña correcta
                     }
