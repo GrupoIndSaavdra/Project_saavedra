@@ -410,8 +410,7 @@ td select {
     align-items: center;
     flex-direction: column;
     background-color: white;
-    width: 60em;
-    height: 20em;
+    max-width: 700px;
     transition: 0.2s;
     padding: 2em;
     border-radius: 10px;
