@@ -21,7 +21,6 @@
     <input type="hidden" name="idClass" id="idClass">
     <div class="main-layout">
         <div class="wrapper">
-            <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
             <h3>Información de la orden de trabajo</h3>
             @include('layouts.partials.messages')
 
@@ -33,7 +32,7 @@
 
         <!--Segunda parte del formulario-->
         <div class="div-boxes" id="casillas">
-            <h3>Selecciona los procesos</h3>
+            <h3>Procesos y numero de máquinas disponibles</h3>
             <div class="sections">
                 <!--Se inserta el algoritmos para generar las casillas atraves de JavaScript-->
             </div>

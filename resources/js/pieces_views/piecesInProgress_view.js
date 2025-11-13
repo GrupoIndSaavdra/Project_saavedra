@@ -99,9 +99,21 @@ class Dashboard {
 
     getCompletedPieces(classArray) {
         //Obtener las piezas del ultimo proceso de la clase
-        let completedPieces = Object.values(classArray["processes"])[Object.keys(classArray["processes"]).length - 1][
-            "pieces"
-        ]["good"];
+        let completedPieces;
+        let lastProcess = Object.keys(classArray["processes"])[Object.keys(classArray["processes"]).length - 1];
+        if(lastProcess == "Soldadura PTA" || lastProcess == "Soldadura"){ // Si ultimo proceso es Soldadura o Soldadura PTA
+            let otherProcess = lastProcess == "Soldadura PTA" ? "Soldadura" : "Soldadura PTA";
+            // Si se incluyen los dos procesos en la clase, sumar las piezas buenas
+            if(Object.keys(classArray["processes"]).includes(otherProcess)){
+                completedPieces = classArray["processes"][lastProcess]["pieces"]["good"] + classArray["processes"][otherProcess]["pieces"]["good"]
+            } else {
+                completedPieces = classArray["processes"][lastProcess]["pieces"]["good"];
+            }
+        } else {
+            completedPieces = Object.values(classArray["processes"])[Object.keys(classArray["processes"]).length - 1][
+                "pieces"
+            ]["good"];
+        }
         return completedPieces;
     }
     generateProcessSection(processesArray, processName, order) {
@@ -112,14 +124,13 @@ class Dashboard {
         processTitle.className = "process-title";
         processTitle.innerHTML = processName;
         processSection.appendChild(processTitle);
-        //Crear barra de progreso
-        let progressBar = document.createElement("div");
-        progressBar.className = "progress-bar";
-
+        
         let pieces = [processesArray["pieces"]["good"], processesArray["pieces"]["bad"]];
         for (let i = 0; i < pieces.length; i++) {
+            //Crear barra de progreso
             let progressBar = document.createElement("div");
             progressBar.className = "progress-bar";
+            progressBar.style.backgroundColor = i == 0 ? "#e1fcc6" : "#fcc6c6"; 
 
             let progress = document.createElement("div");
             progress.className = i == 0 ? "good-progress" : "bad-progress";
@@ -130,7 +141,7 @@ class Dashboard {
             percentage = percentage != 0 ? percentage.toFixed(1) : 0;
             let div = document.createElement("div");
             div.className = "progress-percentage";
-            div.innerHTML = `${percentage}%`;
+            div.innerHTML = pieces[i] == 1 ? `${percentage}% ${pieces[i]} pieza` : `${percentage}% ${pieces[i]} piezas`;
 
             progressBar.appendChild(progress);
             progressBar.appendChild(div);

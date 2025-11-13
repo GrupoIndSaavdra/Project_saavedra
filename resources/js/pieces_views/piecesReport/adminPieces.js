@@ -2,71 +2,70 @@ var operacion = false;
 
 function crearTabla(piezas, infoPiezas) {
     //Crea la tabla de piezas trabajadas en la O.T
+    console.log(piezas);
     const table = document.querySelector(".table");
     const tbody = document.createElement("tbody");
     //Convertir el objeto a un array
-    piezas = convertirObjectToArray(piezas);
-    console.log(piezas);
-    for (let i = 0; i < piezas.length; i++) {
+    piezas.forEach((pieza, counter) => {
         const tr = document.createElement("tr");
-        for (let j = 0; j < piezas[i].length - 3; j++) {
-            let td = document.createElement("td");
-            switch (j) {
-                case 6:
-                    td.textContent = crearFecha(piezas[i][j]);
-                    break;
-                case piezas[i].length - 4:
-                    td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
-                    break;
-                default:
-                    if (piezas[i][j] != undefined) {
-                        if (j == 0) {
-                            td.textContent = piezas[i][j];
-                            let tdClass = document.createElement("td");
-                            tdClass.textContent = piezas[i][12];
-                            tr.appendChild(tdClass);
-                        } else if (j == piezas[i].length - 5) {
-                            td.textContent = piezas[i][13];
+        pieza = orderedArray(pieza);
+        //Insertar valores
+        Object.keys(pieza).forEach((key) => {
+            if (key != "colorPiece") {
+                const td = document.createElement("td");
+                switch (key) {
+                    case "btn_seePiece":
+                        td.appendChild(crearBotonVer(infoPiezas, counter, pieza[key]));
+                        break;
+                    default:
+                        td.textContent = pieza[key];
+                        if (key == "operator" || key == "observations" || key == "observacion_liberacion") {
                             td.style.width = "600px";
-                        } else {
-                            td.textContent = piezas[i][j];
                         }
-                    } else {
-                        td.textContent = "";
-                    }
-                    break;
+                        break;
+                }
+                tr.appendChild(td);
+            } else {
+                tr.style.backgroundColor = pieza[key];
             }
-            tr.appendChild(td);
-
-            switch (piezas[i][9]) {
-                case 0:
-                    if (piezas[i][5].includes("Incompleto")) {
-                        tr.style.backgroundColor = "#FFFF99";
-                    } else if (piezas[i][5] == "Ninguno") {
-                        tr.style.backgroundColor = "#ACF980A8";
-                    } else {
-                        tr.style.backgroundColor = "#E59CFF";
-                    }
-                    break;
-                case 1:
-                    tr.style.backgroundColor = "#79BFED";
-                    break;
-                case 2:
-                    tr.style.backgroundColor = "#EC7063";
-                    break;
-            }
-        }
+        });
         tbody.appendChild(tr);
-    }
+    });
     table.appendChild(tbody);
 }
-
-function convertirObjectToArray(obj) {
-    let array = [];
-    for (let i = 0; i < obj.length; i++) {
-        array.push(Object.values(obj[i]));
+function asignColorTr(status, error) {
+    switch (status) {
+        case 0:
+            if (error.includes("Incompleto")) {
+                return "#FFFF99";
+            } else if (error == "Ninguno") {
+                return "#ACF980A8";
+            } else {
+                return "#E59CFF";
+            }
+        case 1:
+            return "#79BFED";
+        case 2:
+            return "#EC7063";
     }
-    return array;
+}
+function orderedArray(array) {
+    return {
+        class: array["className"],
+        workOrder: array[0],
+        noAssembly: array[1],
+        operator: array[2],
+        machine: array[3],
+        process: array[4],
+        errors: array[5],
+        observations: array.observations,
+        machinedDate: array[6],
+        liberationDate: array[7],
+        user_liberation: array[8],
+        observacion_liberacion: array.observacion_liberacion,
+        btn_seePiece: array[2],
+        colorPiece: asignColorTr(array[9], array[5]),
+    };
 }
 
 function crearFecha(fecha) {
@@ -78,46 +77,6 @@ function crearFecha(fecha) {
         cadena = fecha;
     }
     return cadena;
-}
-
-function crearBotonLiberar(infoPiezas, i, piezas) {
-    const a = document.createElement("a");
-    a.className = "btn-liberar";
-
-    let boolean;
-    if (infoPiezas[i][2] == "Ninguno" && piezas[i][piezas[i].length - 2] != 2) {
-        boolean = true;
-    } else {
-        boolean = false;
-    }
-    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${
-        infoPiezas[i][1]
-    }/${true}/${boolean}/${this.obtenerRequest()}`;
-    a.href = url;
-
-    const image = document.createElement("img");
-    image.src = window.liberar;
-    image.alt = "Liberar";
-    image.className = "ver";
-    a.appendChild(image);
-    return a;
-}
-function crearBotonRechazar(infoPiezas, i) {
-    const a = document.createElement("a");
-    a.className = "btn-liberar";
-
-    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${
-        infoPiezas[i][1]
-    }/${false}/${false}/${this.obtenerRequest()}`;
-
-    a.href = url;
-
-    const image = document.createElement("img");
-    image.src = window.rechazar;
-    image.alt = "Rechazar";
-    image.className = "ver";
-    a.appendChild(image);
-    return a;
 }
 function crearBotonVer(infoPiezas, i, usuarios) {
     const a = document.createElement("a");

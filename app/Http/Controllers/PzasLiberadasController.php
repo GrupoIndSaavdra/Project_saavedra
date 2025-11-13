@@ -80,28 +80,29 @@ class PzasLiberadasController extends Controller
             return $pdf->download('Reporte de piezas.pdf');
         }
     }
-    public function liberar_rechazar($pieza, $proceso, $liberar, $buena, $request) //Función para liberar o rechazar piezas
+    public function liberar_rechazar(Request $request) //Función para liberar o rechazar piezas
     {
-        if ($liberar == 'true') {
-            $this->liberarPiezas($this->getPiezasLiberar($pieza, $proceso, $buena), $proceso, $buena);
+        if ($request->liberar == 'true') {
+            $this->liberarPiezas($this->getPiezasLiberar($request->pieza, $request->proceso, $request->buena), $request->proceso, $request->buena, $request->observationPiece);
         } else {
-            $this->rechazarPieza($this->getPiezasLiberar($pieza, $proceso, $buena), $proceso);
+            $this->rechazarPieza($this->getPiezasLiberar($request->pieza, $request->proceso, $request->buena), $request->proceso, $request->observationPiece);
         }
         //Datos de las piezas
         if ($request == 'null') {
             return redirect()->route('home');
         }
-        $request = explode(",", $request);
-        $request[0] = str_replace("_", "/", $request[0]);
+        $extraRequest = explode(",", $request->extraRequest);
+        $extraRequest[0] = str_replace("_", "/", $extraRequest[0]);
+
         $datosPiezas = array(
-            "workOrder" => $request[0],
-            "class" => $request[1],
-            "operator" => $request[2],
-            "machine" => $request[3],
-            "process" => $request[4],
-            "error" => $request[5],
-            "dateFrom" => $request[6],
-            "dateTo" => $request[7],
+            "workOrder" => $extraRequest[0],
+            "class" => $extraRequest[1],
+            "operator" => $extraRequest[2],
+            "machine" => $extraRequest[3],
+            "process" => $extraRequest[4],
+            "error" => $extraRequest[5],
+            "dateFrom" => $extraRequest[6],
+            "dateTo" => $extraRequest[7],
             "action" => null,
         );
         return $this->showPieces($this->controladorPzas->search($datosPiezas, 'quality'));
@@ -295,7 +296,7 @@ class PzasLiberadasController extends Controller
         $piezas = $pieza;
         return $piezas;
     }
-    public function liberarPiezas($piezas, $proceso, $buena)
+    public function liberarPiezas($piezas, $proceso, $buena, $observacion)
     {
         //Algoritmo para liberar solamente 1 juego
         $meta = Metas::find($piezas[0]->id_meta);
@@ -310,6 +311,7 @@ class PzasLiberadasController extends Controller
                 'liberacion' => 1,
                 'fecha_liberacion' => date('Y-m-d H:i:s'),
                 'user_liberacion' => auth()->user()->matricula,
+                'observacion_liberacion' => $observacion,
             ]);
         }
 
@@ -367,7 +369,7 @@ class PzasLiberadasController extends Controller
         //     }
         // }
     }
-    public function rechazarPieza($piezas, $proceso)
+    public function rechazarPieza($piezas, $proceso, $observacion)
     {
         $meta = Metas::find($piezas[0]->id_meta);
         //Actualizar el estado de liberacion de la pieza
@@ -381,6 +383,7 @@ class PzasLiberadasController extends Controller
                 'liberacion' => 2,
                 'fecha_liberacion' => date('Y-m-d H:i:s'),
                 'user_liberacion' => auth()->user()->matricula,
+                'observacion_liberacion' => $observacion,
             ]);
         }
     }

@@ -7,6 +7,7 @@
     window.rechazar = "{{ asset('images/Rechazar.png') }}"
     window.ojito = "{{ asset('images/ojito.png') }}"
     window.loading = "{{ asset('images/loading.gif') }}"
+    window.back = "{{ asset('images/img-back.png') }}";
     window.baseUrl = "{{ url('/') }}";
 </script>
 @vite(['resources/js/pieces_views/releasePieces/releasePieces.js', 'resources/css/pieces_views/piecesReport/adminPieces.css'])
@@ -39,7 +40,7 @@
 </style>
 @endif
 <div class="container">
-    <form action="{{ route('piecesRelease') }}" method="post">
+    <form action="{{ route('piecesRelease') }}" method="post" class="form-search">
         @csrf
         <!-- FILTROS DE BÚSQUEDA Y RESULTADOS DE PIEZAS EN GENERAL. -->
         <h1>Liberación de piezas</h1>
@@ -57,23 +58,15 @@
                         <th>Clase</th>
                         <th>Orden de trabajo</th>
                         <th>Juego</th>
-                        <th style="width: 500px;">Nombre del operador</th>
+                        <th>Nombre del operador</th>
                         <th>Máquina</th>
-                        <th style="width: 500px;">Proceso</th>
-                        @foreach ($pieces as $piece)
-                        @if ($piece[4] == "Operacion Equipo")
-                        <th>Operacion</th>
-                        <script>
-                            operacion = true;
-                        </script>
-                        @break
-                        @endif
-                        @endforeach
-                        <th style="width: 300px;">Errores</th>
+                        <th>Proceso</th>
+                        <th>Errores</th>
+                        <th>Observaciones</th>
                         <th>Fecha de Maquinado</th>
                         <th>Fecha de Liberacion</th>
                         <th>Liberado por</th>
-                        <th>Observaciones</th>
+                        <th>Observaciones de Liberacion</th>
                         <th>Liberar</th>
                         <th>Rechazar</th>
                         <th>Ver</th>

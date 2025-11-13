@@ -378,10 +378,12 @@ function createTableClasses(classes) {
 
             //Estilos de los botones de la tabla
             let buttons = document.querySelectorAll(".btnClass");
-            buttons.forEach((button) => {
-                button.style.backgroundColor = "white";
+            buttons.forEach((buttonOne) => {
+                buttonOne.style.backgroundColor = "white";
+                buttonOne.style.color = "#000000";
             });
-            button.style.backgroundColor = "#007bff";
+            button.style.backgroundColor = "#033966";
+            button.style.color = "#ffffff";
 
             //Obtener el valor del boton y mostrar la información de la clase seleccionada
             setClassInfo(classes, button.value);
@@ -697,8 +699,8 @@ function get_operationsArray(className) {
             break;
         case "Obturador":
         case "Fondo":
-            operations = ["Soldadura", "Soldadura PTA", "1ra y 2da Operación Equipo"];
-            operationsArray = ["soldadura", "soldaduraPTA", "operacionEquipo"];
+            operations = ["1ra y 2da Operación Equipo", "Soldadura", "Soldadura PTA"];
+            operationsArray = ["operacionEquipo", "soldadura", "soldaduraPTA"];
             break;
         case "Corona":
             operations = ["Cepillado", "Desbaste exterior"];
@@ -757,6 +759,10 @@ function createProcessBox(operation, processIndex, operationName, markedProcesse
     label.innerHTML = operation;
 
     //Creación de un input en donde se insertara el numero de maquinas a utilizar en el proceso correspondiente
+    let labelMachine = document.createElement("label");
+    labelMachine.textContent = "Máquinas: ";
+    labelMachine.classList.add("class", "label-machine");
+
     let machineInput = document.createElement("input");
     machineInput.type = "number";
     machineInput.name = "machines[]";
@@ -776,6 +782,7 @@ function createProcessBox(operation, processIndex, operationName, markedProcesse
     machineInput = elements[1];
 
     //Inserción de los elementos en el div contenedor
+    div.appendChild(labelMachine);
     div.appendChild(machineInput);
     div.appendChild(checkbox);
     div.appendChild(label);

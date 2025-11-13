@@ -24,6 +24,7 @@ return new class extends Migration
                 $table->integer('liberacion')->default(0);
                 $table->dateTime('fecha_liberacion')->nullable();
                 $table->string('user_liberacion')->nullable();
+                $table->string('observacion_liberacion')->nullable();
                 $table->foreign('id_ot')->references('id')->on('orden_trabajo');
                 $table->foreign('id_clase')->references('id')->on('clases');
                 $table->foreign('id_operador')->references('matricula')->on('users');

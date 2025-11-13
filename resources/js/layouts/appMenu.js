@@ -266,170 +266,146 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 //Si window.pieces_released es de tipo Object convertirlo a Array
-window.pieces_Released = !Array.isArray(window.pieces_Released) ? Object.values(window.pieces_Released) : window.pieces_Released;
+if (window.pieces_Released) {
+    window.pieces_Released = !Array.isArray(window.pieces_Released)
+        ? Object.values(window.pieces_Released)
+        : window.pieces_Released;
 
-if (window.pieces_Released && window.pieces_Released.length > 0) {
-    const divOpacity = document.createElement("div");
-    divOpacity.classList.add("filter-opacity-home");
+    if (window.pieces_Released && window.pieces_Released.length > 0) {
+        const divOpacity = document.createElement("div");
+        divOpacity.classList.add("filter-opacity-home");
 
-    let operacion = false;
-    // Crear elementos
-    const divTable = document.createElement("div");
-    divTable.className = "div-table-pieces-released";
-    const table = document.createElement("table");
-    table.id = "table";
-    table.classList.add("table-pieces-released");
+        // Crear elementos
+        const divTable = document.createElement("div");
+        divTable.className = "div-table-pieces-released";
+        const table = document.createElement("table");
+        table.id = "table";
+        table.classList.add("table-pieces-released");
 
-    const thead = document.createElement("thead");
-    const tr = document.createElement("tr");
+        const thead = document.createElement("thead");
+        const tr = document.createElement("tr");
 
-    // Agregar encabezados base
-    const headers = ["Clase", "Orden de trabajo", "N_juego", "Nombre del operador", "Máquina", "Proceso"];
+        // Agregar encabezados base
+        const headers = ["Clase", "Orden de trabajo", "Juego", "Nombre del operador", "Máquina", "Proceso"];
 
-    // Agregar columnas base
-    headers.forEach((header, i) => {
-        const th = document.createElement("th");
-        th.textContent = header;
-        // Aplicar estilos a columnas específicas
-        if (header === "Nombre del operador" || header === "Proceso") {
-            th.style.width = "500px";
-        }
-        tr.appendChild(th);
-    });
-
-    // Agregar columnas finales
-    const moreHeaders = [
-        { name: "Errores", width: "300px" },
-        "Fecha de Maquinado",
-        "Fecha de Liberación",
-        "Liberado/Rechazado por",
-        "Observaciones",
-        "Liberar",
-        "Rechazar",
-        "Ver",
-    ];
-
-    moreHeaders.forEach((header) => {
-        const th = document.createElement("th");
-        if (typeof header === "object") {
-            th.textContent = header.name;
-            th.style.width = header.width;
-        } else {
+        // Agregar columnas base
+        headers.forEach((header, i) => {
+            const th = document.createElement("th");
             th.textContent = header;
-        }
-        tr.appendChild(th);
-    });
+            // Aplicar estilos a columnas específicas
+            if (header === "Orden de trabajo") {
+                th.style.width = "200px";
+            }
+            tr.appendChild(th);
+        });
 
-    // Estructurar tabla
-    thead.appendChild(tr);
-    table.appendChild(thead);
-    divTable.appendChild(table);
+        // Agregar columnas finales
+        const moreHeaders = [
+            { name: "Errores", width: "300px" },
+            "Observaciones",
+            "Fecha de Maquinado",
+            "Liberar",
+            "Rechazar",
+            "Ver",
+        ];
 
-    // Finalmente, agregar a tu documento
-    divOpacity.appendChild(divTable); // O donde tú necesites insertarlo
-    document.body.appendChild(divOpacity);
-    crearTabla(window.pieces_Released, window.info_Pieces);
+        moreHeaders.forEach((header) => {
+            const th = document.createElement("th");
+            if (typeof header === "object") {
+                th.textContent = header.name;
+                th.style.width = header.width;
+            } else {
+                th.textContent = header;
+            }
+            tr.appendChild(th);
+        });
+
+        // Estructurar tabla
+        thead.appendChild(tr);
+        table.appendChild(thead);
+        divTable.appendChild(table);
+
+        // Finalmente, agregar a tu documento
+        divOpacity.appendChild(divTable); // O donde tú necesites insertarlo
+        document.body.appendChild(divOpacity);
+        crearTabla(window.pieces_Released, window.info_Pieces);
+    }
 }
-
-var operacion = false;
-
 function crearTabla(piezas, infoPiezas) {
     //Crea la tabla de piezas trabajadas en la O.T
-    // console.log(piezas);
-    const table = document.getElementById("table");;
+    console.log(piezas);
+    const table = document.getElementById("table");
     const tbody = document.createElement("tbody");
     //Convertir el objeto a un array
-    piezas = convertirObjectToArray(piezas);
-    for (let i = 0; i < piezas.length; i++) {
+    piezas.forEach((pieza, counter) => {
         const tr = document.createElement("tr");
-        for (let j = 0; j < piezas[i].length + 1; j++) {
-            if (j >= 13) {
-                break;
-            }
-            let td = document.createElement("td");
-            switch (j) {
-                case 6:
-                    // td.textContent = crearFecha(piezas[i][j]);
-                    td.textContent = piezas[i][j];
-                    break;
-                case 9:
-                    td.textContent = piezas[i][13];
-                    td.style.width = "600px";
-                    break;
-                case 10:
-                    if (!piezas[i][5].includes("Incompleto") && piezas[i][9] != 1) {
-                        td.appendChild(crearBotonLiberar(infoPiezas, i, piezas));
-                        tr.appendChild(td);
-                    }
-                    break;
-                case 11:
-                    if (piezas[i][9] != 2) {
-                        td.appendChild(crearBotonRechazar(infoPiezas, i));
-                    }
-                    break;
-                case 12:
-                    td.appendChild(crearBotonVer(infoPiezas, i, piezas[i][2]));
-                    break;
-                default:
-                    if (piezas[i][j] != undefined) {
-                        if (j == 0) {
-                            td.textContent = piezas[i][j];
-                            let tdClass = document.createElement("td");
-                            tdClass.textContent = piezas[i][12];
-                            tr.appendChild(tdClass);
-                        } else {
-                            td.textContent = piezas[i][j];
+        pieza = orderedArray(pieza);
+        //Insertar valores
+        Object.keys(pieza).forEach((key) => {
+            if (key != "colorPiece") {
+                const td = document.createElement("td");
+                switch (key) {
+                    case "btn_release":
+                        if (!pieza[key][1].includes("Incompleto") && pieza[key][0] != 1) {
+                            td.appendChild(crearBotonLiberar(infoPiezas, counter, piezas));
                         }
-                    } else {
-                        td.textContent = "";
-                    }
-                    break;
+                        break;
+                    case "btn_decline":
+                        if (pieza[key] != 2) {
+                            td.appendChild(crearBotonRechazar(infoPiezas, counter));
+                        }
+                        break;
+                    case "btn_seePiece":
+                        td.appendChild(crearBotonVer(infoPiezas, counter, pieza[key]));
+                        break;
+                    default:
+                        td.textContent = pieza[key];
+                        if (key == "operator" || key == "observations" || key == "observacion_liberacion") {
+                            td.style.width = "600px";
+                        }
+                        break;
+                }
+                tr.appendChild(td);
+            } else {
+                tr.style.backgroundColor = pieza[key];
             }
-            tr.appendChild(td);
-            switch (piezas[i][9]) {
-                case 0:
-                    if (piezas[i][5].includes("Incompleto")) {
-                        tr.style.backgroundColor = "#FFFF99";
-                    } else if (piezas[i][5] == "Ninguno") {
-                        tr.style.backgroundColor = "#ACF980A8";
-                    } else {
-                        tr.style.backgroundColor = "#E59CFF";
-                    }
-                    break;
-                case 1:
-                    tr.style.backgroundColor = "#79BFED";
-                    break;
-                case 2:
-                    tr.style.backgroundColor = "#EC7063";
-                    break;
-            }
-        }
+        });
         tbody.appendChild(tr);
-    }
+    });
     table.appendChild(tbody);
 }
-
-function convertirObjectToArray(obj) {
-    // console.log(obj);
-    let array = [];
-    for (let i = 0; i < obj.length; i++) {
-        array.push(Object.values(obj[i]));
+function asignColorTr(status, error) {
+    switch (status) {
+        case 0:
+            if (error.includes("Incompleto")) {
+                return "#FFFF99";
+            } else if (error == "Ninguno") {
+                return "#ACF980A8";
+            } else {
+                return "#E59CFF";
+            }
+        case 1:
+            return "#79BFED";
+        case 2:
+            return "#EC7063";
     }
-    return array;
 }
-
-function crearFecha(fecha) {
-    console.log(fecha);
-    let cadena = "";
-    if (fecha != "No liberado") {
-        let array = fecha.split("T");
-        console.log(array);
-        cadena = array[0] + "\n " + array[1].slice(0, 8);
-        console.log(cadena);
-    } else {
-        cadena = fecha;
-    }
-    return cadena;
+function orderedArray(array) {
+    return {
+        class: array["className"],
+        workOrder: array[0],
+        noAssembly: array[1],
+        operator: array[2],
+        machine: array[3],
+        process: array[4],
+        errors: array[5],
+        observations: array.observations,
+        machinedDate: array[6],
+        btn_release: [array[9], array[5]],
+        btn_decline: array[9],
+        btn_seePiece: array[2],
+        colorPiece: asignColorTr(array[9], array[5]),
+    };
 }
 
 function crearBotonLiberar(infoPiezas, i, piezas) {
@@ -437,33 +413,129 @@ function crearBotonLiberar(infoPiezas, i, piezas) {
     a.className = "btn-liberar";
 
     let bool;
-    if (infoPiezas[i][2] == "Ninguno" && piezas[i][piezas[i].length - 2] != 2) {
+    if (infoPiezas[i][2] == "Ninguno" && piezas[i][9] != 2) {
         bool = true;
     } else {
         bool = false;
     }
-    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${infoPiezas[i][1]}/${true}/${bool}/${null}`;
-    a.href = url;
 
+    //Agregar imagen al boton de liberar
     const image = document.createElement("img");
     image.src = window.liberar;
     image.alt = "Liberar";
     image.className = "ver";
     a.appendChild(image);
+
+    let keys = {
+        pieza: infoPiezas[i][0],
+        proceso: infoPiezas[i][1],
+        liberar: true,
+        buena: bool,
+    };
+    // Agregar evento al boton
+    a.addEventListener("click", (e) => {
+        e.preventDefault;
+        create_ObservationsField(keys);
+    });
     return a;
 }
 function crearBotonRechazar(infoPiezas, i) {
     const a = document.createElement("a");
     a.className = "btn-liberar";
-    let url = `${window.baseUrl}/piezasLiberar/${infoPiezas[i][0]}/${infoPiezas[i][1]}/${false}/${false}/${null}`;
-    a.href = url;
 
+    //Agregar imagen al boton de rechazar
     const image = document.createElement("img");
     image.src = window.rechazar;
     image.alt = "Rechazar";
     image.className = "ver";
     a.appendChild(image);
+
+    let keys = {
+        pieza: infoPiezas[i][0],
+        proceso: infoPiezas[i][1],
+        liberar: false,
+        buena: false,
+    };
+
+    // Agregar evento al boton
+    a.addEventListener("click", (e) => {
+        e.preventDefault;
+        create_ObservationsField(keys);
+    });
     return a;
+}
+function create_ObservationsField(keys) {
+    //Creacion del div con efcto blur
+    let div_opacity = document.createElement("div");
+    div_opacity.className = "div-opacity";
+    div_opacity.addEventListener("click", () => {
+        div_opacity.remove();
+    });
+
+    //Creacion del formulario
+    let form = document.createElement("form");
+    form.action = window.baseUrl + "/piezasLiberar";
+    form.method = "POST";
+    form.classList.add("form-liberation");
+    form.addEventListener("click", (e) => {
+        e.stopPropagation();
+    });
+    form.appendChild(generateToken());
+    createInputsHidden(keys, form);
+
+    //Creacion del textarea
+    let textArea = document.createElement("textarea");
+    textArea.setAttribute("cols", "50");
+    textArea.setAttribute("row", "5");
+    textArea.setAttribute(
+        "placeholder",
+        `Agrega una observación para el juego ${keys.pieza[0].slice(0, -2)}J de ${keys.proceso} (Opcional)`
+    );
+    textArea.classList.add("textArea-liberation");
+    textArea.setAttribute("name", "observationPiece");
+
+    //Creacion del submit
+    let submit = document.createElement("input");
+    submit.type = "submit";
+    submit.value = keys.liberar ? "Liberar" : "Rechazar";
+    submit.classList.add("btns", "btn-submit");
+    submit.style.backgroundColor = !keys.liberar ? "#f00000" : "#033966";
+
+    form.appendChild(textArea);
+    form.appendChild(submit);
+    div_opacity.appendChild(form);
+    document.body.appendChild(div_opacity);
+}
+function generateToken() {
+    let token = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+    let input_token = document.createElement("input");
+    input_token.type = "hidden";
+    input_token.name = "_token";
+    input_token.value = token;
+    return input_token;
+}
+function createInputsHidden(array, form) {
+    // Guardar claves del array
+    let keysArray = [];
+    Object.keys(array).forEach((item) => {
+        keysArray.push(item);
+    });
+
+    // Crear inputs hidden e insertarlos en el form
+    keysArray.forEach((key) => {
+        let input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = array[key];
+        form.appendChild(input);
+    });
+
+    //Insertar valores generales
+    let input = document.createElement("input");
+    input.type = "hidden";
+    input.name = "extraRequest";
+    input.value = obtenerRequest();
+    form.appendChild(input);
 }
 function crearBotonVer(infoPiezas, i, usuarios) {
     const a = document.createElement("a");
@@ -483,4 +555,13 @@ function crearBotonVer(infoPiezas, i, usuarios) {
     image.className = "ver";
     a.appendChild(image);
     return a;
+}
+function obtenerRequest() {
+    let names = ["workOrder", "class", "operator", "machine", "process", "error", "dateFrom", "dateTo"];
+    let request = [];
+    for (let i = 0; i < names.length; i++) {
+        let value = document.getElementsByName(names[i])[0].value.replaceAll("/", "_");
+        request.push(value);
+    }
+    return request;
 }

@@ -20,19 +20,20 @@
 }
 
 .lg-saavedra {
-    width: 27em;
+    width: 40%;
 }
 
 h2 {
     margin-top: 2em;
     color: #404040;
     font-weight: 100;
-    font-size: 1.8em;
+    font-size: 1.5em;
 }
 
 .bttns-add-select {
-    padding: 10px 20px;
-    font-size: 1.5em;
+    padding: 10px;
+    font-size: 1em;
+    font-weight: 900;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -52,7 +53,7 @@ h2 {
     text-align: center;
 }
 h3 {
-    font-size: 1.5em;
+    font-size: 1.2em;
     margin-top: 2em;
     color: #404040;
     font-weight: 100;
@@ -65,8 +66,8 @@ h3 {
     background: #03396610;
     border: 1px solid #00000033;
     text-align: center;
-    font-size: 1.3em;
-    margin: 1em 0;
+    font-size: 1em;
+    margin: .5em 0;
 }
 .form-control:hover {
     border: 1px solid #033966;
@@ -78,7 +79,7 @@ h3 {
     background-color: #033966;
     color: #fff;
     border: none;
-    font-size: 1.3em;
+    font-size: 1em;
     padding: 0.7em;
     letter-spacing: 1px;
     transition: 0.2s;
@@ -90,10 +91,10 @@ h3 {
     transition: 0.2s;
 }
 
-h4 {
-    font-size: 1.5em;
-    color: #404040;
-    font-weight: 100;
+.form-label {
+    font-size: 1em;
+    color: #033966;
+    font-weight: 800;
 }
 
 /* Estilos de alertas */
@@ -117,44 +118,44 @@ h4 {
     /* CUANDO LE DAMOS CLIC AL BOTON CREAR OT */
     .wrapper {
         width: 90%;
-        padding:10px 20px;
+        padding: 10px 20px;
     }
     .lg-saavedra {
         width: 50%;
         padding: 1em 0;
     }
-    h2{
+    h2 {
         font-size: 1.2em;
         margin-top: 0.4em;
         text-align: center;
     }
-    .container-form{
+    .container-form {
         width: 100%;
         margin-top: 1em;
     }
     .btn.btn-block {
-    margin-top: 1.5em;
-    border-radius: 20px;
-    background-color: #033966;
-    color: #fff;
-    border: none;
-    width: 35%;
-    font-size: 1em;
-    padding: 0.7em;
-    letter-spacing: 1px;
-    transition: 0.2s;
-}
-.btn.btn-block:hover {
-    transform: scale(1.1);
-    background-color: #0a8504;
-    transition: 0.2s;
-}
+        margin-top: 1.5em;
+        border-radius: 20px;
+        background-color: #033966;
+        color: #fff;
+        border: none;
+        width: 35%;
+        font-size: 1em;
+        padding: 0.7em;
+        letter-spacing: 1px;
+        transition: 0.2s;
+    }
+    .btn.btn-block:hover {
+        transform: scale(1.1);
+        background-color: #0a8504;
+        transition: 0.2s;
+    }
     .bttns-add-select {
         font-size: 1em;
         padding: 0.5em 1em;
         margin: 1em 1em;
     }
-    .form-label{
+    .form-label {
         font-size: 1em;
         margin: 0.5em 0;
     }
@@ -167,13 +168,11 @@ h4 {
     }
     .close-alert {
         font-size: 0.7em;
-        padding: 0 ;
+        padding: 0;
     }
-    .alert  {
+    .alert {
         font-size: 0.8em;
         padding: 0.5em 1em;
         text-align: left 50px;
     }
-    
-    
 }

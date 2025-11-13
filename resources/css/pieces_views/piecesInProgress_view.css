@@ -14,19 +14,23 @@ header {
     position: fixed;
 }
 .section {
-    padding-top: 5rem;
+    padding-top: 2rem;
     box-sizing: border-box;
     width: 100%;
     height: 100vh;
     margin: auto;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
     box-shadow: #0a8504 0px 0px 10px;
+    scrollbar-width: thin;
+    scrollbar-color: #033966 #f1f1f1;
 }
 .header-section {
     position: relative;
-    width: 100%;
+    width: 90%;
     height: 25%;
+    margin: auto;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -34,25 +38,24 @@ header {
     box-sizing: border-box;
 }
 .title-div {
-    width: 50%;
+    width: 40%;
     background: #033966;
-    margin: 2em 8em;
-    padding: 2em;
+    margin: 0 12px;
     color: #fff;
     border-radius: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    text-align: center;
     box-shadow: #033966 0px 0px 10px;
 }
 .text-header-class {
-    margin: 5px;
-    font-size: 1.3em;
+    font-size: 1.2em;
     font-weight: 100;
 }
 .workOrder-text {
-    font-size: 3rem;
+    font-size: 2.5em;
     font-weight: 700;
 }
 .pieces-text {
@@ -60,25 +63,23 @@ header {
     font-weight: 700;
 }
 .finish-order {
+    width: 13%;
+    text-align: center;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    padding: 1em;
+    padding: 10px;
     background: #0a8504;
     color: #fff;
-    font-size: 1.4em;
+    font-size: 1.5em;
     font-weight: 700;
     border-radius: 10px;
-    box-shadow: #033966 0px 0px 10px;
     text-decoration: none;
-    transition: 0.2s;
+    transition: 0.2s all;
 }
 .finish-order:hover {
-    background: #033966;
-    padding: 1.1em;
-    font-size: 1.5em;
-    transition: 0.2s;
+    box-shadow: #033966 0px 0px 10px;
 }
 .div-opacity {
     position: fixed;
@@ -101,7 +102,10 @@ header {
     align-items: center;
     flex-direction: column;
     background-color: white;
+    width: 50%;
+    max-width: 900px;
     font-size: 1.5em;
+    font-weight: 800;
     transition: 0.2s;
     padding: 2em;
     border-radius: 10px;
@@ -138,25 +142,24 @@ header {
 }
 .process-section {
     width: 20%;
-    height: 17%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin: 0.8em;
-    padding: 0.5em;
+    text-align: center;
+    margin: 5px;
+    padding: 10px;
     border-radius: 10px;
-    background: #404040;
-    box-shadow: #000 0px 0px 10px;
+    background: #404040bb;
+    box-shadow: #000 0px 0px 5px;
     color: #fff;
-    font-size: 1.2em;
-    transition: 0.2s;
+    font-size: 1em;
+    transition: 0.2s all;
 }
 .process-section:hover {
     background: #033966;
     transform: scale(1.05);
     cursor: pointer;
-    transition: 0.2s;
 }
 .progress-bar {
     position: relative;
@@ -165,17 +168,16 @@ header {
     background-color: #f3f3f3;
     border-radius: 10px;
     overflow: hidden;
-    margin: 0.3em 0;
-    box-shadow: #033966 0px 0px 5px;
+    margin: 3px 0;
 }
 .progress {
     height: 100%;
 }
 .good-progress {
-    background-color: #0a8504;
+    background: linear-gradient(to right, #9ff390, #0a8504);
 }
 .bad-progress {
-    background-color: #9c0303;
+    background: linear-gradient(to right, #f38080, #9c0303);
 }
 
 .progress-percentage {
@@ -230,9 +232,8 @@ header {
     height: 85%;
     border-collapse: collapse;
     margin-top: 1em;
-    box-shadow: #033966 0px 0px 10px;
-    border-radius: 10px;
-    font-size: 1.5em;
+    border-top: 2px solid #033966;
+    font-size: 1em;
     overflow-y: auto;
 }
 .bad-pieces-table th,
@@ -245,7 +246,6 @@ header {
     color: #404040;
     padding: 10px;
     background: #f9f9f9;
-    box-shadow: #033966 0px 0px 5px;
 }
 .no-data-message {
     position: absolute;

@@ -267,7 +267,12 @@ class ProcessProductionController extends Controller
         //Verificar que la pieza aun no este rechazada
         $n_juego = $piece->n_pieza ? $piece->n_pieza : $piece->n_juego;
         $n_juego = substr($n_juego, 0, -1);
-        $unoccupiedPieceV = Pieza::where("id_clase", $class->id)->where('proceso', $processName)->where('n_pieza', 'like', "%$n_juego%")->first();
+
+        $unoccupiedPieceV = Pieza::where('id_clase', $class->id)
+            ->where('proceso', $processName)
+            ->whereRaw("n_pieza REGEXP '^{$n_juego}[A-Z]$'")
+            ->first();
+
         if ($unoccupiedPieceV) {
             if ($unoccupiedPieceV->liberacion == 0) {
                 return true;

@@ -49,7 +49,7 @@
 </style>
 @endif
 
-<form action="{{ route('searchPieces') }}" method="post">
+<form action="{{ route('searchPieces') }}" method="post" class="form-search">
     @csrf
     <input type="hidden" name="profile" value="admin">
     <!-- FILTROS DE BÚSQUEDA Y RESULTADOS DE PIEZAS EN GENERAL. -->
@@ -68,14 +68,15 @@
                     <th>Clase</th>
                     <th>Orden de trabajo</th>
                     <th>Juego</th>
-                    <th style="width: 500px;">Nombre del operador</th>
+                    <th>Nombre del operador</th>
                     <th>Máquina</th>
-                    <th style="width: 500px;">Proceso</th>
-                    <th style="width: 300px;">Errores</th>
+                    <th>Proceso</th>
+                    <th>Errores</th>
+                    <th>Observaciones</th>
                     <th>Fecha de Maquinado</th>
                     <th>Fecha de Liberacion</th>
                     <th>Liberado por</th>
-                    <th>Observaciones</th>
+                    <th>Observaciones de Liberacion</th>
                     <th>Ver</th>
                 </tr>
             </thead>

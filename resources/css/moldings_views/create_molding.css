@@ -19,18 +19,17 @@ form {
     flex-direction: column;
     align-items: center;
     box-sizing: border-box;
-    padding: 1.5em;
-    width: 28vw;
+    padding: 20px 50px;
     background: #fff;
     border-radius: 10px;
     box-shadow: 5px 10px 80px #000000b0;
 }
 .lg-saavedra {
-    width: 25em;
+    width: 200px;
     padding: 2em 0;
 }
 h2 {
-    font-size: 1.8em;
+    font-size: 1.5em;
     margin: 1em;
     color: #404040;
     font-weight: 100;
@@ -42,7 +41,7 @@ h2 {
     margin: 1em;
     border: 1px solid #00000033;
     text-align: center;
-    font-size: 1.3em;
+    font-size: 1em;
     background: #03396610;
 }
 
@@ -57,16 +56,14 @@ h2 {
     color: #fff;
     border: none;
     width: 50%;
-    font-size: 1.3em;
-    padding: .7em;
+    font-size: 1em;
+    padding: 10px;
     letter-spacing: 1px;
-    transition: 0.2s;
+    transition: 0.2s all;
 }
 
 .btn.btn-block:hover {
     transform: scale(1.1);
-    background-color: #0a8504;
-    transition: 0.2s;
 }
 
 @media (max-width: 991.98px) {

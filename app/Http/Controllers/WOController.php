@@ -88,7 +88,6 @@ class WOController extends Controller
 
         //Se obtienen las maquinas de los procesos guardados
         $processes = $this->classController->getClassProcesses($classes);
-
         return view('wo_views.show_wo', compact('workOrder', 'molding', 'classes', 'processes'));
     }
 
@@ -157,12 +156,28 @@ class WOController extends Controller
     {
         $processes = array();
         $processesFounded = Procesos::where('id_clase', $class->id)->first();
+
+        //Establecer el orden de los procesos
+        $processesInOrder = array();
+        switch ($class->nombre) {
+            case "Bombillo":
+            case "Molde":
+                $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                break;
+            case "Obturador":
+            case "Fondo":
+                $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                break;
+            default:
+                $processesInOrder = [];
+                break;
+        }
         //Ordenar array
         //********************************************************** */
         if ($processesFounded) {
-            foreach ($processesFounded->getAttributes() as $field => $value) {
-                if ($value != 0 && $field != 'id' && $field != 'id_clase') {
-                    $field = $field == "operacionEquipo" ? ["1 operacion", "2 operacion"] : [$field];
+            foreach ($processesInOrder as $process) {
+                if ($processesFounded[$process] != 0) {
+                    $field = $process == "operacionEquipo" ? ["1 operacion", "2 operacion"] : [$process];
                     foreach ($field as $processField) {
                         $processName = count($field) > 1 ? "Operacion Equipo_" . $processField : $this->nombreProceso($processField);
                         $processes[$processName] = array();
@@ -312,18 +327,38 @@ class WOController extends Controller
         $class = Clase::where('id_ot', $request->wOrderName)->where('nombre', $request->className)->first();
         $arrayProcesses = $this->insertProcessesData($class);
 
-        $text = "Se ha finalizado el pedido correctamente";
+        $counterRejected = 0;
+        $text = "";
+        $bandSold = false;
         foreach ($arrayProcesses as $key => $process) {
             $text = "No se puede finalizar el pedido porque las piezas no se han completado en " . $key;
+            $total = 0;
+            // Sumar las piezas rechazadas de soldadura y soldadura pta
+            if (str_contains($key, "Soldadura")) {
+                if (!$bandSold) {
+                    $bandSold = true;
+                    foreach (["Soldadura", "Soldadura PTA"] as $processSold) {
+                        $counterRejected += array_key_exists($processSold, $arrayProcesses) ? $arrayProcesses[$processSold]["pieces"]["bad"] : 0;
+                    }
+                }
+            } else { // Sumar las piezas rechazadas del proceso actual
+                $counterRejected += $process["pieces"]["bad"];
+            }
+
+            //Sumar las piezas buenas de los procesos
             if (($key == "Soldadura" || $key == "Soldadura PTA")) {
-                $total = 0;
-                foreach (["Soldadura", "Soldadura PTA"] as $processSold) {
-                    $total += array_key_exists($processSold, $arrayProcesses) ? $arrayProcesses[$processSold]["pieces"]["total"] : 0;
+                if (array_key_exists("Soldadura", $arrayProcesses) && array_key_exists("Soldadura PTA", $arrayProcesses)) {
+                    foreach (["Soldadura", "Soldadura PTA"] as $processSold) {
+                        $total += array_key_exists($processSold, $arrayProcesses) ? $arrayProcesses[$processSold]["pieces"]["good"] : 0;
+                    }
                 }
                 $text = "No se puede finalizar el pedido porque las piezas no se han completado en las soldaduras";
             } else {
-                $total = $process["pieces"]["total"];
+                $total = $process["pieces"]["good"];
             }
+
+            $total += $counterRejected; // Sumar las piezas rechazadas de los anteriores procesos con las piezas buenas del proceso
+
             if ($total < $class->piezas) {
                 $finishOrder = ["error", $text];
                 return redirect()->back()->with('finishOrder', $finishOrder);
@@ -331,7 +366,7 @@ class WOController extends Controller
         }
         $class->finalizada = 1;
         $class->save();
-        $finishOrder = ["success", $text];
+        $finishOrder = ["success", "Se ha finalizado el pedido correctamente"];
         return redirect()->route('showPiecesInProgress')->with('finishOrder', $finishOrder);
     }
     function getPieces($class, $processName, &$piecesBadData)
@@ -404,7 +439,6 @@ class WOController extends Controller
                     }
                 } else {
                     $pares = false;
-                    $piecesArray["total"] = count($pieces);
                     //Verificar si el juego esta rechazado o liberado
                     if ($piece->liberacion == 0) {
                         //Verificar si las pieza son correctas o no
@@ -429,14 +463,13 @@ class WOController extends Controller
             }
             if (isset($pares)) {
                 if ($pares) {
-                    $piecesArray["total"] = count($pieces) / 2;
                     $piecesArray["good"] = count($piecesArray["good"]) / 2;
                     $piecesArray["bad"] = count($piecesArray["bad"]) / 2;
                 } else {
-                    $piecesArray["total"] = count($pieces);
                     $piecesArray["good"] = count($piecesArray["good"]);
                     $piecesArray["bad"] = count($piecesArray["bad"]);
                 }
+                $piecesArray["total"] = $piecesArray["good"] + $piecesArray["bad"];
             }
         } else {
             $piecesArray = [

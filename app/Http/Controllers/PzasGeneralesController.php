@@ -379,7 +379,10 @@ class PzasGeneralesController extends Controller
                 $className = Clase::find($item->id_clase);
                 $array[$contador]["className"] = $className ? $className->nombre : null;
 
-                //Obtener las observaciones  de la pieza
+                //Obtener las observaciones de la pieza por parte del operador
+                $array[$contador]["observacion_liberacion"] = $item->observacion_liberacion;
+
+                //Obtener las observaciones de la pieza por parte del operador
                 $array[$contador]["observations"] = "";
                 $controller = new ProcessProductionController();
                 $id_process = str_replace(" ", "_", $item->proceso) . "_" . $className->nombre . "_" . $item->id_ot;

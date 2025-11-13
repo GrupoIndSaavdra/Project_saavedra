@@ -2,7 +2,7 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
 }
-form {
+.form-search {
     position: absolute;
     text-align: center;
     width: 75%;
@@ -17,6 +17,9 @@ form {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     overflow-x: auto;
 }
+h1 {
+    font-size: 2em;
+}
 .filters {
     display: flex;
     justify-content: center;
@@ -26,7 +29,7 @@ form {
     margin: 1em 0;
 }
 .filter {
-    width: 130px;
+    width: 120px;
 }
 select,
 input[type="date"] {
@@ -35,14 +38,14 @@ input[type="date"] {
     padding: 0.8em 0.2em;
     border: 1px solid #00000033;
     text-align: center;
-    font-size: 1.2em;
+    font-size: 1em;
     letter-spacing: 1px;
     background: #033966;
     border: 5px solid #033966d4;
     color: #ffffff;
 }
 label {
-    font-size: 1.2em;
+    font-size: 1em;
     font-weight: 600;
     color: #033966;
 }
@@ -68,14 +71,14 @@ label {
     transition: 0.2s;
 }
 .btns {
-    padding: 10px 30px;
+    padding: 10px;
     background-color: #0a8504;
     box-shadow: 0 2px 5px #0a8504ff;
     color: #fff;
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    font-size: 1.5em;
+    font-size: 1em;
     font-weight: 700;
     margin: 0 10px;
     transition: 0.2s;
@@ -85,12 +88,9 @@ label {
     transition: 0.2s;
     transform: scale(1.2); /* Realiza un pequeño zoom del 5% */
 }
-h1 {
-    font-size: 3em;
-    margin-top: 20px;
-}
+
 .title_ot {
-    font-size: 2em; /* Tamaño de fuente */
+    font-size: 1.5em; /* Tamaño de fuente */
     font-family: Verdana, Geneva, Tahoma, sans-serif; /* Tipo de fuente */
     margin: 10px; /* Espaciado interno */
     display: block; /* Para que ocupe todo el ancho disponible */
@@ -101,23 +101,22 @@ h1 {
 }
 /* ESTILOS PARA LA TABLA */
 .div-table {
-    margin: 2em;
+    margin-top: 2em;
     height: 60%;
     overflow-x: auto;
 }
 table {
-    width: 200%;
+    width: 100%;
     border-collapse: collapse;
     border: 2px solid #032c00cc;
     background: #fff;
     width: max-content;
     box-shadow: 0 0 10px rgba(0, 0, 0);
-    font-size: 12px;
 }
 th,
 td {
     text-align: center;
-    font-size: 1.3em;
+    font-size: 1em;
     border: 3px solid #000;
     padding: 0.5em;
 }
@@ -140,7 +139,7 @@ tr:nth-child(even) {
     padding: 10px;
     border-radius: 10px;
     margin: 0 10px;
-    font-size: 1.5em;
+    font-size: 1.2em;
 }
 /* Cuando se posiciona sobre una opción del select este cambia de color a negro*/
 .filter-select:focus {
@@ -163,8 +162,8 @@ tr:nth-child(even) {
 }
 .btn-PDF {
     position: absolute;
-    width: 10em;
-    top: 5px;
+    width: 60px;
+    top: 10px;
     right: 5px;
     background-color: transparent;
     border: none;
@@ -181,9 +180,8 @@ tr:nth-child(even) {
 
 /* ADVERTENCE */
 .advertence {
-    font-size: 100px;
+    font-size: 3em;
     color: #9c0300;
-    font-family: Arial, Helvetica, sans-serif;
 }
 .letrero {
     margin-top: 9%;
@@ -206,21 +204,6 @@ tr:nth-child(even) {
     justify-content: center;
     align-items: center;
 }
-.div-opacity {
-    position: fixed;
-    top: 0;
-    width: 100vw;
-    height: 100vh;
-    box-sizing: border-box;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    background: #0000003a;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(8px); /* Safari */
-    z-index: 1;
-}
 .loading {
     position: fixed;
     top: 50%;
@@ -236,10 +219,38 @@ tr:nth-child(even) {
     width: 100%;
 }
 .total-records-found {
-    font-size: 1.5em;
+    font-size: 1.2em;
     font-weight: 700;
-    padding: 20px;
     color: #033966;
+}
+.form-liberation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+.textArea-liberation {
+    border-radius: 5px;
+    border: none;
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: #033966;
+    text-align: center;
+    padding: 30px;
+}
+.btn-submit {
+    margin: 20px;
+    
+    box-shadow: none;
+    width: 150px;
+}
+.btn-submit:hover {
+    background: #033966;
+}
+.btn-back {
+    position: absolute;
+    width: 50px;
 }
 @media (max-width: 991.98px) {
     body {

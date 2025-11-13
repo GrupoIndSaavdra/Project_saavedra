@@ -182,7 +182,7 @@
                 ?>
 
                 <tr style="background-color: {{$colorColumn}}">
-                    @for ($j = 1; $j < count($pieces[$i]) - 5; $j++)
+                    @for ($j = 1; $j < count($pieces[$i]) - 6; $j++)
                         <td>{{ $pieces[$i][$j] }}</td>
                     @endfor
                 </tr>

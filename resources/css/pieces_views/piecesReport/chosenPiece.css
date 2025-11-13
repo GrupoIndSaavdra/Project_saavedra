@@ -1,5 +1,6 @@
 .titles {
-    width: 100%;
+    position: absolute;
+    margin: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -7,43 +8,44 @@
 }
 
 .title {
-    font-size: 50px;
-    color: black;
+    font-size: 2em;
+    font-weight: 800;
 }
 
 .container {
     position: relative;
-    margin-top: 200px;
     width: 100%;
-    padding: 30px;
+    height: 95vh;
+    padding: 20px;
     display: flex;
     flex-direction: column;
+    align-items: center;
 }
 
 .tablaOperadores{
+    position: absolute;
+    right: 0;
+    margin: 50px;
     border: 2px solid #000000;
-    background-color: rgba(217, 217, 217, 0.8);
-    height: 36px;
     text-align: center;
-    font-size: 25px;
-    width: 40%;
-    margin-left: 56%;
+    font-size: 1em;
 }
 .tablaOperadores th{
     border: 3px solid #000;
     background-color: #033966;
-    padding: 10px 0;
+    padding: 10px;
     text-align: center;
     color: #fff;
 
 }
 .tablaOperadores tr{
-    width: 200px;
-    height: 50px;
     text-align: center;
     font-weight: 700;
     border: 3px solid #033966;
     background-color: #ffffff;
+}
+.tablaOperadores td {
+    padding: 10px;
 }
 
 .scrollabe-table {
@@ -51,9 +53,8 @@
     overflow-x: auto;
     border-radius: 5px;
     background-color: rgba(7, 7, 7, 0.592);
-    width: 95%;
-    height: 300px;
-    padding: .5rem;
+    width: 95vw;
+    padding: 10px;
 }
 
 .tabla3 {
@@ -62,7 +63,6 @@
     background: #fff;
     width: max-content;
     margin: 10px;
-    width: 300%;
     box-shadow: 0 0 10px rgba(0, 0, 0);
 }
 
@@ -70,7 +70,7 @@
     height: 100%;
     color: #000000;
     text-align: center;
-    padding: 0.5em 0;
+    padding: 10px 0;
     font-size: 1.2em;
     background: #03396610;
 }
@@ -78,19 +78,17 @@
 .tabla3 th {
     border: 3px solid #000;
     background-color: #033966;
-    padding: 10px 0;
     text-align: center;
     color: #fff;
-    font-size: 1.2em;
+    padding: 10px 0;
+    font-size: 1em;
 }
 
 .tabla3 td {
-    width: 200px;
-    height: 50px;
     text-align: center;
-    font-size: 1.3em;
     font-weight: 700;
     border: 3px solid #033966;
+    width: 150px;
 }
 
 .input {
@@ -110,12 +108,12 @@
 
 .btn-regresar {
     position: absolute;
-    top: 2rem;
-    left: 10rem;
-    background: #033966;
+    top: 50px;
+    left: 50px;
+    background: #9C0300;
     color: #fff;
     font-weight: 900;
-    font-size: 1.5em;
+    font-size: 1em;
     padding: 10px 20px;
     border: none;
     border-radius: 5px;
