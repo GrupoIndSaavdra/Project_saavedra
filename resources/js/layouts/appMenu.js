@@ -177,7 +177,7 @@ function getRoutes(profile) {
                 {
                     title: "Producción",
                     routes: [
-                        ["productionData", "Datos de produccion"],
+                        ["productionData", "Datos de productividad"],
                         ["cNominals", "Editar C.Nominales y Tolerancias"],
                         ["machinesOccupied", "Maquinas ocupadas"],
                         // ["showTimes", "Modificar tiempos de producción"],

@@ -22,17 +22,16 @@ form {
     align-items: center;
     box-sizing: border-box;
     padding: 1.5em;
-    width: 40vw;
     background: #fff;
     border-radius: 10px;
     box-shadow: 5px 10px 80px #000000b0;
 }
 .lg-saavedra {
-    width: 25em;
+    width: 200px;
     padding: 2em 0;
 }
 h2 {
-    font-size: 1.8em;
+    font-size: 1.5em;
     margin: 1em;
     color: #404040;
     font-weight: 100;
@@ -47,7 +46,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1em;
-    font-size: 1.2em;
+    font-size: 1em;
 }
 thead {
     background-color: #033966;
@@ -64,12 +63,13 @@ td {
     border: 1px solid #ddd;
     text-align: center;
     border-bottom: 1px solid #ddd;
+    padding: 10px;
 }
 input[type="text"] {
     width: 100%;
     height: 2em;
     border: none;
-    font-size: 1.2em;
+    font-size: 1em;
     font-weight: 700;
     text-align: center;
 }

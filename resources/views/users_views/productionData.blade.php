@@ -1,7 +1,7 @@
 @extends('layouts.appMenu')
 
 @section('head')
-<title>Datos de producción</title>
+<title>Datos de productividad</title>
 @vite(['resources/css/users_views/productionData.css', 'resources/js/users_views/productionData.js'])
 @endsection
 
@@ -9,7 +9,7 @@
 
 @section('content')
 <div class="container">
-    <h1>Datos de producción</h1>
+    <h1>Datos de productividad</h1>
     <!--Sección del dashboard de producción-->
     <form method="post" action="{{ route('showProduccion') }}">
         @csrf
