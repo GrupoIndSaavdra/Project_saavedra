@@ -173,13 +173,26 @@ class WOController extends Controller
                 break;
         }
         //Ordenar array
-        //********************************************************** */
+        $soldaduraBand = false;
         if ($processesFounded) {
             foreach ($processesInOrder as $process) {
                 if ($processesFounded[$process] != 0) {
+                    if (str_contains($process, "soldadura") && $soldaduraBand) { // Verificar si soldadura o soldadura PTA ya fueron insertadas
+                        continue;
+                    }
+                    $soldaduraBand = str_contains($process, "soldadura") ? true : false;
                     $field = $process == "operacionEquipo" ? ["1 operacion", "2 operacion"] : [$process];
                     foreach ($field as $processField) {
-                        $processName = count($field) > 1 ? "Operacion Equipo_" . $processField : $this->nombreProceso($processField);
+                        //Asignar el nombre del proceso
+                        if (count($field) > 1) {
+                            $processName = "Operacion Equipo_" . $processField;
+                        } else {
+                            if (str_contains($processField, "soldadura")) {
+                                $processName = "Soldadura y Soldadura PTA";
+                            } else {
+                                $processName = $this->nombreProceso($processField);
+                            }
+                        }
                         $processes[$processName] = array();
                         $piecesBadData = array();
                         $processes[$processName]['pieces'] = $this->getPieces($class, $processName, $piecesBadData);
@@ -218,7 +231,6 @@ class WOController extends Controller
                 foreach ($classes as $index => $class) {
                     //Verificar si ya se asignaron procesos a la clase
                     $process = Procesos::where('id_clase', $class->id)->first();
-
                     if ($process) {
                         if ($index == 0) {
                             $wOInProgress[$workOrder->id] = array();
@@ -376,107 +388,109 @@ class WOController extends Controller
         $piecesArray["good"] = array();
         $piecesArray["bad"] = array();
         $piecesArray["total"] = 0;
-        $pieces = Pieza::where("proceso", $processName)->where('id_clase', $class->id)->get();
-        if (count($pieces) > 0) {
-            //Recorrer cada una de las piezas
-            foreach ($pieces as $piece) {
-                //Verificar si es juego o pieza
-                if (substr($piece->n_pieza, -1, 1) != "J") { // Si no es un juego y se divide en hembra y macho
-                    $pares = true;
-                    preg_match('/^\d+/', $piece->n_pieza, $noSet); //Obtener el numero de juego de la pieza
-                    $noSet = $noSet[0];
-                    //Comprobar si el juego ya fue almacenado en el array
-                    if (!in_array($noSet, $setStoredParts)) {
-                        array_push($setStoredParts, $noSet); //Almacenar el juego en el array
+        $processNamesArray = $processName == "Soldadura y Soldadura PTA" ? ["Soldadura", "Soldadura PTA"] : [$processName];
 
-                        //Obtener las piezas del juego
-                        $pFemale = Pieza::where("n_pieza", $noSet . "H")->where('id_clase', $class->id)->where('proceso', $processName)->first();
-                        $pMale = Pieza::where("n_pieza", $noSet . "M")->where('id_clase', $class->id)->where('proceso', $processName)->first();
+        foreach ($processNamesArray as $processName) {
+            $pieces = Pieza::where("proceso", $processName)->where('id_clase', $class->id)->get();
+            if (count($pieces) > 0) {
+                //Recorrer cada una de las piezas
+                foreach ($pieces as $piece) {
+                    //Verificar si es juego o pieza
+                    if (substr($piece->n_pieza, -1, 1) != "J") { // Si no es un juego y se divide en hembra y macho
+                        $pares = true;
+                        preg_match('/^\d+/', $piece->n_pieza, $noSet); //Obtener el numero de juego de la pieza
+                        $noSet = $noSet[0];
+                        //Comprobar si el juego ya fue almacenado en el array
+                        if (!in_array($noSet, $setStoredParts)) {
+                            array_push($setStoredParts, $noSet); //Almacenar el juego en el array
 
-                        //Verificar si ambas piezas existen
-                        if ($pFemale && $pMale) {
-                            //Verificar si el juego esta rechazado o liberado
-                            if ($pFemale->liberacion == 0) {
-                                //Verificar si las pieza son correctas o no
-                                if ($pFemale->error == "Ninguno" && $pMale->error == "Ninguno") {
+                            //Obtener las piezas del juego
+                            $pFemale = Pieza::where("n_pieza", $noSet . "H")->where('id_clase', $class->id)->where('proceso', $processName)->first();
+                            $pMale = Pieza::where("n_pieza", $noSet . "M")->where('id_clase', $class->id)->where('proceso', $processName)->first();
+
+                            //Verificar si ambas piezas existen
+                            if ($pFemale && $pMale) {
+                                //Verificar si el juego esta rechazado o liberado
+                                if ($pFemale->liberacion == 0) {
+                                    //Verificar si las pieza son correctas o no
+                                    if ($pFemale->error == "Ninguno" && $pMale->error == "Ninguno") {
+                                        array_push($piecesArray["good"], $pFemale, $pMale);
+                                    } else {
+                                        //Guardar el juego completo como malo
+                                        array_push($piecesArray["bad"], $pFemale, $pMale);
+
+                                        if ($pFemale->error != "Ninguno") {
+                                            array_push($piecesBadData, $this->getBadPiecesData($pFemale));
+                                        }
+                                        if ($pMale->error != "Ninguno") {
+                                            array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                        }
+                                    }
+                                } else if ($pFemale->liberacion == 1) {
                                     array_push($piecesArray["good"], $pFemale, $pMale);
                                 } else {
-                                    //Guardar el juego completo como malo
                                     array_push($piecesArray["bad"], $pFemale, $pMale);
 
                                     if ($pFemale->error != "Ninguno") {
                                         array_push($piecesBadData, $this->getBadPiecesData($pFemale));
+                                    } else {
+                                        array_push($piecesBadData, $this->getBadPiecesData($pFemale, "Rechazada"));
                                     }
                                     if ($pMale->error != "Ninguno") {
                                         array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                    } else {
+                                        array_push($piecesBadData, $this->getBadPiecesData($pMale, "Rechazada"));
                                     }
                                 }
-                            } else if ($pFemale->liberacion == 1) {
-                                array_push($piecesArray["good"], $pFemale, $pMale);
                             } else {
-                                array_push($piecesArray["bad"], $pFemale, $pMale);
+                                //Si no existe una de las piezas, se guarda la pieza incompleta como mala
+                                $imcompletePiece = $pFemale ? $pFemale : $pMale;
 
-                                if ($pFemale->error != "Ninguno") {
-                                    array_push($piecesBadData, $this->getBadPiecesData($pFemale));
-                                } else {
-                                    array_push($piecesBadData, $this->getBadPiecesData($pFemale, "Rechazada"));
+                                if ($imcompletePiece->liberacion == 2) {
+                                    array_push($piecesArray["bad"], $imcompletePiece, $imcompletePiece);
+                                    array_push($piecesBadData, $this->getBadPiecesData($imcompletePiece, "Rechazada"));
                                 }
-                                if ($pMale->error != "Ninguno") {
-                                    array_push($piecesBadData, $this->getBadPiecesData($pMale));
-                                } else {
-                                    array_push($piecesBadData, $this->getBadPiecesData($pMale, "Rechazada"));
-                                }
-                            }
-                        } else {
-                            //Si no existe una de las piezas, se guarda la pieza incompleta como mala
-                            $imcompletePiece = $pFemale ? $pFemale : $pMale;
-
-                            if ($imcompletePiece->liberacion == 2) {
-                                array_push($piecesArray["bad"], $imcompletePiece, $imcompletePiece);
-                                array_push($piecesBadData, $this->getBadPiecesData($imcompletePiece, "Rechazada"));
                             }
                         }
-                    }
-                } else {
-                    $pares = false;
-                    //Verificar si el juego esta rechazado o liberado
-                    if ($piece->liberacion == 0) {
-                        //Verificar si las pieza son correctas o no
-                        if ($piece->error == "Ninguno") {
+                    } else {
+                        $pares = false;
+                        //Verificar si el juego esta rechazado o liberado
+                        if ($piece->liberacion == 0) {
+                            //Verificar si las pieza son correctas o no
+                            if ($piece->error == "Ninguno") {
+                                array_push($piecesArray["good"], $piece);
+                            } else {
+                                //Guardar el juego completo como malo
+                                array_push($piecesArray["bad"], $piece);
+                                array_push($piecesBadData, $this->getBadPiecesData($piece));
+                            }
+                        } else if ($piece->liberacion == 1) {
                             array_push($piecesArray["good"], $piece);
                         } else {
-                            //Guardar el juego completo como malo
                             array_push($piecesArray["bad"], $piece);
-                            array_push($piecesBadData, $this->getBadPiecesData($piece));
-                        }
-                    } else if ($piece->liberacion == 1) {
-                        array_push($piecesArray["good"], $piece);
-                    } else {
-                        array_push($piecesArray["bad"], $piece);
-                        if ($piece->error != "Ninguno") {
-                            array_push($piecesBadData, $this->getBadPiecesData($piece));
-                        } else {
-                            array_push($piecesBadData, $this->getBadPiecesData($piece, "Rechazada"));
+                            if ($piece->error != "Ninguno") {
+                                array_push($piecesBadData, $this->getBadPiecesData($piece));
+                            } else {
+                                array_push($piecesBadData, $this->getBadPiecesData($piece, "Rechazada"));
+                            }
                         }
                     }
                 }
             }
-            if (isset($pares)) {
-                if ($pares) {
-                    $piecesArray["good"] = count($piecesArray["good"]) / 2;
-                    $piecesArray["bad"] = count($piecesArray["bad"]) / 2;
-                } else {
-                    $piecesArray["good"] = count($piecesArray["good"]);
-                    $piecesArray["bad"] = count($piecesArray["bad"]);
-                }
-                $piecesArray["total"] = $piecesArray["good"] + $piecesArray["bad"];
+        }
+        if (isset($pares)) {
+            if ($pares) {
+                $piecesArray["good"] = count($piecesArray["good"]) != 0 ? count($piecesArray["good"]) / 2 : 0;
+                $piecesArray["bad"] = count($piecesArray["bad"]) != 0 ? count($piecesArray["bad"]) / 2 : 0;
+            } else {
+                $piecesArray["good"] = count($piecesArray["good"]);
+                $piecesArray["bad"] = count($piecesArray["bad"]);
             }
+            $piecesArray["total"] = $piecesArray["good"] + $piecesArray["bad"];
         } else {
-            $piecesArray = [
-                "total" => 0,
-                "good" => 0,
-                "bad" => 0
-            ];
+            $piecesArray["good"] = 0;
+            $piecesArray["bad"] = 0;
+            $piecesArray["total"] = 0;
         }
         return $piecesArray;
     }

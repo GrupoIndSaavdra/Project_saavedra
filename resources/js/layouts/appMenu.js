@@ -180,7 +180,7 @@ function getRoutes(profile) {
                         ["productionData", "Datos de productividad"],
                         ["cNominals", "Editar C.Nominales y Tolerancias"],
                         ["machinesOccupied", "Maquinas ocupadas"],
-                        ["showTimes", "Modificar tiempos de producción"],
+                        // ["showTimes", "Modificar tiempos de producción"],
                         ["show_panelWO", "Panel de progreso de O.T"],
                     ],
                 },

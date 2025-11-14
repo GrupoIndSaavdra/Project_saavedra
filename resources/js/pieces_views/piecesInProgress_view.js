@@ -41,8 +41,10 @@ class Dashboard {
                 processesSection.className = "processes-section";
             
                 Object.values(classArray["processes"]).forEach((processesArray, indexProcess) => {
-                    let processName = Object.keys(classArray["processes"])[indexProcess];
-                    processesSection.appendChild(this.generateProcessSection(processesArray, processName, classArray["pieces"]));
+                    let processName = Object.keys(classArray["processes"])[indexProcess]
+                    let previousProcess = classArray["processes"][Object.keys(classArray["processes"])[indexProcess - 1]];
+                    let limitPieces = previousProcess ? previousProcess["pieces"]["good"] : classArray["pieces"];
+                    processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces));
                 });
                 section.appendChild(headerSection);
                 section.appendChild(processesSection);
@@ -116,7 +118,7 @@ class Dashboard {
         }
         return completedPieces;
     }
-    generateProcessSection(processesArray, processName, order) {
+    generateProcessSection(processesArray, processName, limitPieces) {
         let processSection = document.createElement("div");
         processSection.className = "process-section";
 
@@ -135,7 +137,7 @@ class Dashboard {
             let progress = document.createElement("div");
             progress.className = i == 0 ? "good-progress" : "bad-progress";
             progress.classList.add("progress");
-            let percentage = (pieces[i] * 100) / order;
+            let percentage = pieces[i] == 0 ? 0 : (pieces[i] * 100) / limitPieces;
             progress.style.width = `${percentage}%`;
 
             percentage = percentage != 0 ? percentage.toFixed(1) : 0;
