@@ -85,7 +85,7 @@
 }
 .div-new-report {
     position: absolute;
-    top: 5rem;
+    top: 5vh;
     right: 0;
     height: calc(100vh - 5rem);
     width: 10%;
