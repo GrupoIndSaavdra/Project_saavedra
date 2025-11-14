@@ -646,7 +646,7 @@ class ProcessProductionController extends Controller
                     $foundedMeta->fecha = $date;
                     $foundedMeta->h_inicio = $startTime;
                     $foundedMeta->h_termino = $endTime;
-                    $this->calculateMeta($foundedMeta, $startTime, $endTime, $class);
+                    $this->calculateMeta($foundedMeta, $startTime, $endTime, $class, $foundedMeta->maquina);
                     $foundedMeta->save();
                     return redirect()->route('showReportFormat', ["meta" => $foundedMeta, "process" => $request->process, "edit" => 0])->with('success', 'Tu meta se ha editado correctamente');
                 }
@@ -712,7 +712,7 @@ class ProcessProductionController extends Controller
         $meta->maquina = $request->machine;
         $meta->id_clase = $class->id;
         $meta->proceso = $request->subprocess ? $request->process . '_' . $request->subprocess : $request->process;
-        $this->calculateMeta($meta, $startTime, $endTime, $class);
+        $this->calculateMeta($meta, $startTime, $endTime, $class, $request->machine);
         $meta->save();
         return $meta;
     }
@@ -897,6 +897,7 @@ class ProcessProductionController extends Controller
         $machinedPiecesInMeta = $this->get_machinedPiecesInMeta($meta);
 
         //Calcular la meta
+        $this->calculateMeta($meta, $meta->h_inicio, $meta->h_termino, $class, $meta->maquina);
         $meta->resultado = $this->calculate_metaResult($machinedPiecesInMeta, $class, $process);
         $meta->save();
     }
@@ -1609,7 +1610,7 @@ class ProcessProductionController extends Controller
         }
         return $diferencia; //Retorno las horas trabajadas.
     }
-    public function calculateMeta(&$meta, $h_inicio, $h_termino, $class) //Función para calcular la meta.
+    public function calculateMeta(&$meta, $h_inicio, $h_termino, $class, $machine) //Función para calcular la meta.
     {
         //Asignar tiempo estándar
         $tiempo = tiempoproduccion::where('id_clase', $class->id)->where('proceso', $this->nameProcess($meta->proceso))->first();
@@ -1619,7 +1620,7 @@ class ProcessProductionController extends Controller
         if ($tiempo) {
             $workHrs = $this->calculateHrs($h_inicio, $h_termino);
             $tiempo = $tiempo->tiempo != 0 ? round(($workHrs / $tiempo->tiempo)) : 0;
-            $meta->meta = $tiempo; //Asignar la meta calculada
+            $meta->meta = str_contains($machine, '_') ? $tiempo * 2 : $tiempo; //Asignar la meta calculada
         } else {
             $meta->meta = 0; //Si no se encuentra el tiempo, se asigna 0 a la meta
         }

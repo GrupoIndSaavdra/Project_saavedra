@@ -141,8 +141,13 @@ function createFilters() {
                             " " +
                             window.selectedItems[item].a_materno;
                     } else {
-                        optionDefault.value = window.selectedItems[item];
-                        optionDefault.textContent = window.selectedItems[item];
+                        if(item == "machine"){
+                            optionDefault.value = window.selectedItems[item];
+                            optionDefault.textContent = window.selectedItems[item].replace("_", " y ");
+                        } else {
+                            optionDefault.value = window.selectedItems[item];
+                            optionDefault.textContent = window.selectedItems[item];
+                        }
                     }
                     select.appendChild(optionDefault);
                     if (window.selectedItems[item] != "Todos") {
@@ -164,9 +169,14 @@ function createFilters() {
                             }
                         }
                         const option = document.createElement("option");
-                        option.value = item == "operator" ? key.matricula : key;
-                        option.textContent =
+                        if(item == "machine"){
+                            option.value = key;
+                            option.textContent = key.replace("_", " y ");
+                        } else {
+                            option.value = item == "operator" ? key.matricula : key;
+                            option.textContent =
                             item == "operator" ? key.nombre + " " + key.a_paterno + " " + key.a_materno : key;
+                        }
                         select.appendChild(option);
                     });
                     div.appendChild(select);

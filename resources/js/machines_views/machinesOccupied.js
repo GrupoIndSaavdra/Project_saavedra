@@ -36,8 +36,18 @@ function createTable(machines, form) {
                 let input = document.createElement("input");
                 input.type = "text";
                 input.maxLength = 100;
-                input.name = i == 0 ? "process" : "machine";
-                input.value = i == 0 ? machine.process : machine.machine;
+                if(i == 0){
+                    input.name = "process";
+                    input.value = machine.process;
+                } else {
+                    let inputHidden = document.createElement("input");
+                    inputHidden.type = "hidden";
+                    inputHidden.name = "machine";
+                    inputHidden.value = machine.machine;
+
+                    input.value = machine.machine.replace("_", " y ");
+                    form.appendChild(inputHidden);
+                }
                 input.readOnly = true;
                 td.appendChild(input);
                 tr.appendChild(td);

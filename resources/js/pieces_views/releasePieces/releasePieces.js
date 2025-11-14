@@ -29,7 +29,7 @@ function crearTabla(piezas, infoPiezas) {
                         break;
                     default:
                         td.textContent = pieza[key];
-                        if(key == "operator" || key == "observations" || key == "observacion_liberacion"){
+                        if (key == "operator" || key == "observations" || key == "observacion_liberacion") {
                             td.style.width = "600px";
                         }
                         break;
@@ -279,8 +279,13 @@ function createFilters() {
                             " " +
                             window.selectedItems[item].a_materno;
                     } else {
-                        optionDefault.value = window.selectedItems[item];
-                        optionDefault.textContent = window.selectedItems[item];
+                        if (item == "machine") {
+                            optionDefault.value = window.selectedItems[item];
+                            optionDefault.textContent = window.selectedItems[item].replace("_", " y ");
+                        } else {
+                            optionDefault.value = window.selectedItems[item];
+                            optionDefault.textContent = window.selectedItems[item];
+                        }
                     }
                     select.appendChild(optionDefault);
                     if (window.selectedItems[item] != "Todos") {
@@ -302,9 +307,14 @@ function createFilters() {
                             }
                         }
                         const option = document.createElement("option");
-                        option.value = item == "operator" ? key.matricula : key;
-                        option.textContent =
-                            item == "operator" ? key.nombre + " " + key.a_paterno + " " + key.a_materno : key;
+                        if (item == "machine") {
+                            option.value = key;
+                            option.textContent = key.replace("_", " y ");
+                        } else {
+                            option.value = item == "operator" ? key.matricula : key;
+                            option.textContent =
+                                item == "operator" ? key.nombre + " " + key.a_paterno + " " + key.a_materno : key;
+                        }
                         select.appendChild(option);
                     });
                     div.appendChild(select);
