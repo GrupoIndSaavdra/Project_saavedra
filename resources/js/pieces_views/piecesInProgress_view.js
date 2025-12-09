@@ -44,7 +44,7 @@ class Dashboard {
                     let processName = Object.keys(classArray["processes"])[indexProcess]
                     let previousProcess = classArray["processes"][Object.keys(classArray["processes"])[indexProcess - 1]];
                     let limitPieces = previousProcess ? previousProcess["pieces"]["good"] : classArray["pieces"];
-                    processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces));
+                    processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces, classArray["pieces"]));
                 });
                 section.appendChild(headerSection);
                 section.appendChild(processesSection);
@@ -54,16 +54,21 @@ class Dashboard {
     }
     generateHeaderofWorkOrder(wOrderName, moldingName, className, classArray) {
         let valueText = [
-            [`OT: ${wOrderName}`, `Moldura: ${moldingName}`, `Clase: ${className}`],
             [
-                `Pedido: ${this.getCompletedPieces(classArray)}/${classArray["pieces"]}`,
+                `${wOrderName} ${moldingName}`,
+                `${className}`,
                 `Fecha de inicio: ${classArray["startDate"]}`,
                 `Fecha de término: ${classArray["endDate"]}`,
             ],
+            [
+                `Pedido: ${classArray["order"]}`,
+                `Pedido mas consignación: ${classArray["pieces"]}`,
+                `Piezas completadas: ${this.getCompletedPieces(classArray)}`,
+            ],
         ];
         let classText = [
-            ["workOrder-text", "molding-text", "class-text"],
-            ["pieces-text", "start-date-text", "end-date-text"],
+            ["workOrder-text", "class-text", "start-date-text", "end-date-text"],
+            ["order-text", "pieces-text", "completed-pieces-text"],
         ];
 
         let header_section = document.createElement("divHeader");
@@ -75,7 +80,6 @@ class Dashboard {
             for (let j = 0; j < valueText[i].length; j++) {
                 let h3 = document.createElement("h3");
                 h3.className = classText[i][j];
-                h3.classList.add("text-header-class");
                 h3.innerHTML = valueText[i][j];
 
                 div.appendChild(h3);
@@ -103,11 +107,14 @@ class Dashboard {
         //Obtener las piezas del ultimo proceso de la clase
         let completedPieces;
         let lastProcess = Object.keys(classArray["processes"])[Object.keys(classArray["processes"]).length - 1];
-        if(lastProcess == "Soldadura PTA" || lastProcess == "Soldadura"){ // Si ultimo proceso es Soldadura o Soldadura PTA
+        if (lastProcess == "Soldadura PTA" || lastProcess == "Soldadura") {
+            // Si ultimo proceso es Soldadura o Soldadura PTA
             let otherProcess = lastProcess == "Soldadura PTA" ? "Soldadura" : "Soldadura PTA";
             // Si se incluyen los dos procesos en la clase, sumar las piezas buenas
-            if(Object.keys(classArray["processes"]).includes(otherProcess)){
-                completedPieces = classArray["processes"][lastProcess]["pieces"]["good"] + classArray["processes"][otherProcess]["pieces"]["good"]
+            if (Object.keys(classArray["processes"]).includes(otherProcess)) {
+                completedPieces =
+                    classArray["processes"][lastProcess]["pieces"]["good"] +
+                    classArray["processes"][otherProcess]["pieces"]["good"];
             } else {
                 completedPieces = classArray["processes"][lastProcess]["pieces"]["good"];
             }
@@ -118,7 +125,7 @@ class Dashboard {
         }
         return completedPieces;
     }
-    generateProcessSection(processesArray, processName, limitPieces) {
+    generateProcessSection(processesArray, processName, limitPieces, pedido) {
         let processSection = document.createElement("div");
         processSection.className = "process-section";
 
@@ -126,18 +133,20 @@ class Dashboard {
         processTitle.className = "process-title";
         processTitle.innerHTML = processName;
         processSection.appendChild(processTitle);
-        
+
         let pieces = [processesArray["pieces"]["good"], processesArray["pieces"]["bad"]];
         for (let i = 0; i < pieces.length; i++) {
             //Crear barra de progreso
             let progressBar = document.createElement("div");
             progressBar.className = "progress-bar";
-            progressBar.style.backgroundColor = i == 0 ? "#e1fcc6" : "#fcc6c6"; 
+            progressBar.style.backgroundColor = i == 0 ? "#e1fcc6" : "#fcc6c6";
 
             let progress = document.createElement("div");
             progress.className = i == 0 ? "good-progress" : "bad-progress";
             progress.classList.add("progress");
-            let percentage = pieces[i] == 0 ? 0 : (pieces[i] * 100) / limitPieces;
+            let piecesNoRegistered = pedido - limitPieces;
+            let percentage = pieces[i] == 0 ? 0 : (pieces[i] * 100) / (limitPieces + piecesNoRegistered);
+
             progress.style.width = `${percentage}%`;
 
             percentage = percentage != 0 ? percentage.toFixed(1) : 0;
@@ -258,7 +267,7 @@ class Dashboard {
     }
 }
 let div_opacity = document.querySelector(".div-opacity");
-if(div_opacity){
+if (div_opacity) {
     document.querySelector(".btn-cerrar").addEventListener("click", () => {
         let div_padre = document.querySelector(".div-opacity");
         div_padre.remove();

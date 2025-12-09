@@ -223,31 +223,6 @@ tr:nth-child(even) {
     font-weight: 700;
     color: #033966;
 }
-.form-liberation {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
-}
-.textArea-liberation {
-    border-radius: 5px;
-    border: none;
-    font-size: 1.2rem;
-    font-weight: 400;
-    color: #033966;
-    text-align: center;
-    padding: 30px;
-}
-.btn-submit {
-    margin: 20px;
-    
-    box-shadow: none;
-    width: 150px;
-}
-.btn-submit:hover {
-    background: #033966;
-}
 .btn-back {
     position: absolute;
     width: 50px;

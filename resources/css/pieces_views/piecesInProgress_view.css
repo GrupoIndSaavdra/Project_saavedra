@@ -41,25 +41,35 @@ header {
     width: 40%;
     background: #033966;
     margin: 0 12px;
+    padding: 20px;
     color: #fff;
     border-radius: 10px;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    text-align: center;
+    text-align: start;
     box-shadow: #033966 0px 0px 10px;
 }
 .text-header-class {
-    font-size: 1.2em;
+    font-size: 2em;
     font-weight: 100;
 }
 .workOrder-text {
     font-size: 2.5em;
     font-weight: 700;
 }
-.pieces-text {
-    font-size: 3em;
+.class-text {
+    font-size: 2em;
+    font-weight: 700;
+}
+.start-date-text, .end-date-text {
+    text-align: start;
+    font-size: 1.5em;
+    font-weight: 500;
+}
+.order-text, .pieces-text, .completed-pieces-text {
+    text-align: start;
+    font-size: 1.5em;
     font-weight: 700;
 }
 .finish-order {

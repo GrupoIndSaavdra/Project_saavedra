@@ -29,7 +29,7 @@ function crearTabla(piezas, infoPiezas) {
                         break;
                     default:
                         td.textContent = pieza[key];
-                        if (key == "operator" || key == "observations" || key == "observacion_liberacion") {
+                        if(key == "operator" || key == "observations" || key == "observacion_liberacion"){
                             td.style.width = "600px";
                         }
                         break;
@@ -180,7 +180,7 @@ function create_ObservationsField(keys) {
     let submit = document.createElement("input");
     submit.type = "submit";
     submit.value = keys.liberar ? "Liberar" : "Rechazar";
-    submit.classList.add("btns", "btn-submit");
+    submit.classList.add("btn-liberation");
     submit.style.backgroundColor = !keys.liberar ? "#f00000" : "#033966";
 
     form.appendChild(textArea);
@@ -279,13 +279,8 @@ function createFilters() {
                             " " +
                             window.selectedItems[item].a_materno;
                     } else {
-                        if (item == "machine") {
-                            optionDefault.value = window.selectedItems[item];
-                            optionDefault.textContent = window.selectedItems[item].replace("_", " y ");
-                        } else {
-                            optionDefault.value = window.selectedItems[item];
-                            optionDefault.textContent = window.selectedItems[item];
-                        }
+                        optionDefault.value = window.selectedItems[item];
+                        optionDefault.textContent = window.selectedItems[item];
                     }
                     select.appendChild(optionDefault);
                     if (window.selectedItems[item] != "Todos") {
@@ -307,14 +302,9 @@ function createFilters() {
                             }
                         }
                         const option = document.createElement("option");
-                        if (item == "machine") {
-                            option.value = key;
-                            option.textContent = key.replace("_", " y ");
-                        } else {
-                            option.value = item == "operator" ? key.matricula : key;
-                            option.textContent =
-                                item == "operator" ? key.nombre + " " + key.a_paterno + " " + key.a_materno : key;
-                        }
+                        option.value = item == "operator" ? key.matricula : key;
+                        option.textContent =
+                            item == "operator" ? key.nombre + " " + key.a_paterno + " " + key.a_materno : key;
                         select.appendChild(option);
                     });
                     div.appendChild(select);

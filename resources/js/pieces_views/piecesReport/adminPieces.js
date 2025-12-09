@@ -141,7 +141,7 @@ function createFilters() {
                             " " +
                             window.selectedItems[item].a_materno;
                     } else {
-                        if(item == "machine"){
+                        if (item == "machine") {
                             optionDefault.value = window.selectedItems[item];
                             optionDefault.textContent = window.selectedItems[item].replace("_", " y ");
                         } else {
@@ -169,13 +169,15 @@ function createFilters() {
                             }
                         }
                         const option = document.createElement("option");
-                        if(item == "machine"){
+                        if (item == "machine") {
                             option.value = key;
-                            option.textContent = key.replace("_", " y ");
+                            if (String(key).includes("_")) {
+                                option.textContent = String(key).replace("_", " y ");
+                            }
                         } else {
                             option.value = item == "operator" ? key.matricula : key;
                             option.textContent =
-                            item == "operator" ? key.nombre + " " + key.a_paterno + " " + key.a_materno : key;
+                                item == "operator" ? key.nombre + " " + key.a_paterno + " " + key.a_materno : key;
                         }
                         select.appendChild(option);
                     });

@@ -162,6 +162,7 @@ class WOController extends Controller
         switch ($class->nombre) {
             case "Bombillo":
             case "Molde":
+            case 'Corona':
                 $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
                 break;
             case "Obturador":

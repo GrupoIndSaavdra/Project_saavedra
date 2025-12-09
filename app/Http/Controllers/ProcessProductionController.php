@@ -37,14 +37,18 @@ class ProcessProductionController extends Controller
             foreach ($wOrdersFounded as $workOrder) {
                 $classes = $this->classController->getClasses($workOrder);
                 if (count($classes) > 0) {
-                    $workOrders[$workOrder->id] = array();
-                    $molding = Moldura::find($workOrder->id_moldura);
-                    $workOrders[$workOrder->id]['moldura'] = $molding ? $molding->nombre : 'Moldura no encontrada';
-                    foreach ($classes as $class) {
-                        $processes = Procesos::where('id_clase', $class->id)->first();
-                        if ($processes) {
-                            $workOrders[$workOrder->id][$class->nombre] = array();
-                            $workOrders[$workOrder->id][$class->nombre] = $this->setOrderedProcess($class); // Establecer el orden de los procesos disponibles e insertarlos en el array
+                    foreach ($classes as $key => $class) {
+                        if($class->finalizada == 0){
+                            if(!array_key_exists($workOrder->id, $workOrders)){
+                                $workOrders[$workOrder->id] = array();
+                                $molding = Moldura::find($workOrder->id_moldura);
+                                $workOrders[$workOrder->id]['moldura'] = $molding ? $molding->nombre : 'Moldura no encontrada';
+                            }
+                            $processes = Procesos::where('id_clase', $class->id)->first();
+                            if ($processes) {
+                                $workOrders[$workOrder->id][$class->nombre] = array();
+                                $workOrders[$workOrder->id][$class->nombre] = $this->setOrderedProcess($class); // Establecer el orden de los procesos disponibles e insertarlos en el array
+                            }
                         }
                     }
                 }

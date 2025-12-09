@@ -22,6 +22,35 @@ body {
     background-repeat: no-repeat;
     font-family: "Poppins", sans-serif;
 }
+.form-liberation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+.textArea-liberation {
+    border-radius: 5px;
+    border: none;
+    font-size: 1rem;
+    font-weight: 400;
+    color: #033966;
+    text-align: center;
+    padding: 30px;
+}
+.btn-liberation {
+    margin: 20px;
+    padding:10px;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 800;
+    box-shadow: none;
+    width: 150px;
+    transition: 0.2s all;
+}
+.btn-liberation:hover {
+    transform: scale(1.1);
+}
 .filter-opacity-home {
     position: fixed;
     top: 0;

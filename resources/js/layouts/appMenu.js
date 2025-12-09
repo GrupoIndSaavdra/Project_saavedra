@@ -471,7 +471,7 @@ function create_ObservationsField(keys) {
     div_opacity.addEventListener("click", () => {
         div_opacity.remove();
     });
-
+    
     //Creacion del formulario
     let form = document.createElement("form");
     form.action = window.baseUrl + "/piezasLiberar";
@@ -482,6 +482,7 @@ function create_ObservationsField(keys) {
     });
     form.appendChild(generateToken());
     createInputsHidden(keys, form);
+
 
     //Creacion del textarea
     let textArea = document.createElement("textarea");
@@ -498,7 +499,7 @@ function create_ObservationsField(keys) {
     let submit = document.createElement("input");
     submit.type = "submit";
     submit.value = keys.liberar ? "Liberar" : "Rechazar";
-    submit.classList.add("btns", "btn-submit");
+    submit.classList.add("btn-submit", "btn-liberation");
     submit.style.backgroundColor = !keys.liberar ? "#f00000" : "#033966";
 
     form.appendChild(textArea);
@@ -530,11 +531,10 @@ function createInputsHidden(array, form) {
         form.appendChild(input);
     });
 
-    //Insertar valores generales
     let input = document.createElement("input");
     input.type = "hidden";
-    input.name = "extraRequest";
-    input.value = obtenerRequest();
+    input.name = "requestLiberation";
+    input.value = "yes";
     form.appendChild(input);
 }
 function crearBotonVer(infoPiezas, i, usuarios) {
@@ -555,13 +555,4 @@ function crearBotonVer(infoPiezas, i, usuarios) {
     image.className = "ver";
     a.appendChild(image);
     return a;
-}
-function obtenerRequest() {
-    let names = ["workOrder", "class", "operator", "machine", "process", "error", "dateFrom", "dateTo"];
-    let request = [];
-    for (let i = 0; i < names.length; i++) {
-        let value = document.getElementsByName(names[i])[0].value.replaceAll("/", "_");
-        request.push(value);
-    }
-    return request;
 }

@@ -136,19 +136,11 @@ class PzasGeneralesController extends Controller
     }
     public function getFiltersInfo()
     {
-        $arrayMachine = array();
-        for ($i = 1; $i <= 35; $i++) {
-            $numberText = (string)$i;
-            if ($i == 1 || $i == 25 || $i == 27) {
-                array_push($arrayMachine, $numberText . "_" . ($i + 1));
-            }
-            array_push($arrayMachine, $numberText);
-        }
         $filtersData = array(
             "workOrder" => $this->objectToArrayFromDB(Orden_trabajo::all(), "workOrder"),
             "class" => ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo"],
             "operator" => $this->objectToArrayFromDB(User::all(), "operator"),
-            "machine" => $arrayMachine,
+            "machine" => [1, 2, 3, 4, 5, 6, 7],
             "process" => ["Cepillado", "Desbaste Exterior", "Revision Laterales", "Primera Operacion", "Barreno Maniobra", "Segunda Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado", "Acabado Bombillo", "Acabado Molde", "Barreno Profundidad", "Cavidades", "Copiado", "Off Set", "Palomas", "Rebajes", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion", "Embudo CM"],
             "error" => ["Ninguno", "Maquinado", "Fundicion"],
         );
@@ -286,21 +278,21 @@ class PzasGeneralesController extends Controller
         foreach ($finishedClasess as $finishedClass) {
             array_push($arrayFClasses, $finishedClass->id);
         }
-
+        
         $array = array();
         $juegosGuardados = array();
         $contador = 0;
         $mitad = false;
         foreach ($arrayP as $item) {
-            if (in_array($item->id_clase, $arrayFClasses)) {
+            if(in_array($item->id_clase, $arrayFClasses)){
                 continue;
             }
             $band = false;
+            $numJuego = $this->getPiezaNumber($item->n_pieza);
             //Identificar si la pieza es mitad o juego
             if (substr($item->n_pieza, -1) != "J") { //Si la pieza es mitad
                 $mitad = true;
                 //Si la pieza es mitad, buscar si ya se guardo el juego
-                $numJuego = $this->getPiezaNumber($item->n_pieza);
                 if (!in_array($numJuego . "J" . "_" . $item->proceso . "_" . $item->id_clase . "_" . $item->id_ot, $juegosGuardados)) {
                     $band = true;
                     //Guardar el numero de juego
@@ -443,6 +435,7 @@ class PzasGeneralesController extends Controller
             $clase = $clase->nombre;
 
             $clase = $clase == null ?: $clase;
+
             switch ($pieza[4]) {
                 case 'Cepillado':
                     $id_proceso = 'Cepillado_' . $clase . "_" . $pieza[0];
