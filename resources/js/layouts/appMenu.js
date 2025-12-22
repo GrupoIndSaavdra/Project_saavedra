@@ -166,6 +166,10 @@ function getRoutes(profile) {
                     title: null,
                     routes: [routeHome],
                 },
+                {
+                    title: "Usuarios",
+                    routes: [{"CreateUser", "Registrar usuario"}],
+                }
             ];
             break;
         case "4":
