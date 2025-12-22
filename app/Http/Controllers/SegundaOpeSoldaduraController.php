@@ -75,10 +75,55 @@ class SegundaOpeSoldaduraController extends Controller
 
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
-        if ($pieza->diametro1 > ($cNominal->diametro1 + $tolerancia->diametro1) || $pieza->diametro1 < ($cNominal->diametro1 - $tolerancia->diametro1) || $pieza->profundidad1 > ($cNominal->profundidad1 + $tolerancia->profundidad1) || $pieza->profundidad1 < ($cNominal->profundidad1 - $tolerancia->profundidad1) || $pieza->diametro2 > ($cNominal->diametro2 + $tolerancia->diametro2) || $pieza->diametro2 < ($cNominal->diametro2 - $tolerancia->diametro2) || $pieza->profundidad2 > ($cNominal->profundidad2 + $tolerancia->profundidad2) || $pieza->profundidad2 < ($cNominal->profundidad2 - $tolerancia->profundidad2) || $pieza->diametro3 > ($cNominal->diametro3 + $tolerancia->diametro3) || $pieza->diametro3 < ($cNominal->diametro3 - $tolerancia->diametro3) || $pieza->profundidad3  > ($cNominal->profundidad3  + $tolerancia->profundidad3) || $pieza->profundidad3 < ($cNominal->profundidad3 - $tolerancia->profundidad3) || $pieza->diametroSoldadura > ($cNominal->diametroSoldadura  + $tolerancia->diametroSoldadura) || $pieza->diametroSoldadura < ($cNominal->diametroSoldadura - $tolerancia->diametroSoldadura) || $pieza->profundidadSoldadura > ($cNominal->profundidadSoldadura + $tolerancia->profundidadSoldadura) || $pieza->profundidadSoldadura < ($cNominal->profundidadSoldadura - $tolerancia->profundidadSoldadura) || $pieza->alturaTotal < ($cNominal->alturaTotal - $tolerancia->alturaTotal1) || $pieza->alturaTotal > ($cNominal->alturaTotal + $tolerancia->alturaTotal2) || $pieza->simetria90G > ($cNominal->simetria90G + $tolerancia->simetria90G2) || $pieza->simetria90G < ($cNominal->simetria90G - $tolerancia->simetria90G1) || $pieza->simetriaLinea_Partida < ($cNominal->simetriaLinea_Partida - $tolerancia->simetriaLinea_Partida) || $pieza->simetriaLinea_Partida > ($cNominal->simetriaLinea_Partida + $tolerancia->simetriaLinea_Partida)) {
-            return 0; //Si los datos de la pieza son diferentes a los nominales y de tolerancia, se retorna 0.
-        } else {
-            return 1; //Si los datos de la pieza son iguales a los nominales y de tolerancia, se retorna 1.
+        $camposSimples = [
+            'diametro1',
+            'profundidad1',
+            'diametro2',
+            'profundidad2',
+            'diametro3',
+            'profundidad3',
+            'diametroSoldadura',
+            'profundidadSoldadura',
+            'simetriaLinea_Partida',
+        ];
+
+        $epsilon = 0.000001; // tolerancia mínima para errores de redondeo
+
+        // 1️⃣ Comparar los campos "simples" (± tolerancia)
+        foreach ($camposSimples as $campo) {
+            $valorPieza = $pieza->$campo;
+            $valorNominal = $cNominal->$campo;
+            $valorTolerancia = $tolerancia->$campo;
+
+            if (
+                $valorPieza > ($valorNominal + $valorTolerancia + $epsilon) ||
+                $valorPieza < ($valorNominal - $valorTolerancia - $epsilon)
+            ) {
+                return 0;
+            }
         }
+
+        // 2️⃣ Comparar campos con tolerancias diferentes arriba y abajo
+        $camposEspeciales = [
+            'alturaTotal' => ['min' => 'alturaTotal1', 'max' => 'alturaTotal2'],
+            'simetria90G' => ['min' => 'simetria90G1', 'max' => 'simetria90G2'],
+        ];
+
+        foreach ($camposEspeciales as $campo => $rangos) {
+            $valorPieza = $pieza->$campo;
+            $valorNominal = $cNominal->$campo;
+            $tolMin = $tolerancia->{$rangos['min']};
+            $tolMax = $tolerancia->{$rangos['max']};
+
+            if (
+                $valorPieza < ($valorNominal - $tolMin - $epsilon) ||
+                $valorPieza > ($valorNominal + $tolMax + $epsilon)
+            ) {
+                return 0;
+            }
+        }
+
+        // Si todos los valores están dentro del rango permitido
+        return 1;
     }
 }

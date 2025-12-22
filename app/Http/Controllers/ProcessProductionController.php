@@ -37,14 +37,18 @@ class ProcessProductionController extends Controller
             foreach ($wOrdersFounded as $workOrder) {
                 $classes = $this->classController->getClasses($workOrder);
                 if (count($classes) > 0) {
-                    $workOrders[$workOrder->id] = array();
-                    $molding = Moldura::find($workOrder->id_moldura);
-                    $workOrders[$workOrder->id]['moldura'] = $molding ? $molding->nombre : 'Moldura no encontrada';
-                    foreach ($classes as $class) {
-                        $processes = Procesos::where('id_clase', $class->id)->first();
-                        if ($processes) {
-                            $workOrders[$workOrder->id][$class->nombre] = array();
-                            $workOrders[$workOrder->id][$class->nombre] = $this->setOrderedProcess($class); // Establecer el orden de los procesos disponibles e insertarlos en el array
+                    foreach ($classes as $key => $class) {
+                        if($class->finalizada == 0){
+                            if(!array_key_exists($workOrder->id, $workOrders)){
+                                $workOrders[$workOrder->id] = array();
+                                $molding = Moldura::find($workOrder->id_moldura);
+                                $workOrders[$workOrder->id]['moldura'] = $molding ? $molding->nombre : 'Moldura no encontrada';
+                            }
+                            $processes = Procesos::where('id_clase', $class->id)->first();
+                            if ($processes) {
+                                $workOrders[$workOrder->id][$class->nombre] = array();
+                                $workOrders[$workOrder->id][$class->nombre] = $this->setOrderedProcess($class); // Establecer el orden de los procesos disponibles e insertarlos en el array
+                            }
                         }
                     }
                 }
@@ -60,7 +64,20 @@ class ProcessProductionController extends Controller
     public function setOrderedProcess($class)
     {
         //Establecer el orden de los procesos
-        $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado", "operacionEquipo", "embudoCM"];
+        switch ($class->nombre) {
+            case "Bombillo":
+            case "Molde":
+                $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                break;
+            case "Obturador":
+            case "Fondo":
+                $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                break;
+            default:
+                $processesInOrder = [];
+                break;
+        }
+
 
         //Verificar los procesos por los que pasa la clase
         $processesNotEmpty = Procesos::where("id_clase", $class->id)->first();
@@ -86,8 +103,9 @@ class ProcessProductionController extends Controller
         $workOrders = $this->show(true); // Obtener el array de órdenes de trabajo disponibles para registrar piezas
 
         $meta = Metas::find($meta); // Obtener meta actualizada para encontrar los valores siguientes
+
         $machine = Maquinas::where('id_meta', $meta->id)->first();
-        if(!$machine){
+        if (!$machine) {
             return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
         // Obtener orden de trabajo junto con la moldura asociada
@@ -100,8 +118,7 @@ class ProcessProductionController extends Controller
         // Obtener cadena de proceso y subproceso (Si existe)
         $process = $this->getSub_Process($meta->proceso, 0);
         $subprocess = $this->getSub_Process($meta->proceso, 1);
-
-        $piecesData = $this->get_ArrayPieces($process, $class, $meta); // Obtener datos de las piezas
+        $piecesData = $this->get_ArrayPieces($meta->proceso, $class, $meta); // Obtener datos de las piezas
 
         // Asignar los valores a un array que se enviara a la vista
         $arrayData = [
@@ -123,91 +140,151 @@ class ProcessProductionController extends Controller
             'availableAssemblies' => $piecesData['availableAssemblies'],
             'cNominals' => $this->saveCNominals($class, $process, $subprocess),
         ];
-
-        $pieceToBeUsed = $this->get_pieceToBeUsed($process, $piecesData['availableAssemblies'], $meta, $class); // Obtener la pieza a utilizar en la interfaz del reporte
+        $pieceToBeUsed = $this->get_pieceToBeUsed($meta->proceso, $piecesData['availableAssemblies'], $meta, $class); // Obtener la pieza a utilizar en la interfaz del reporte
         return view('processes_views.processProduction_view', compact('arrayData', 'workOrders', 'pieceToBeUsed')); // Redireccionar a la vista del reporte con los datos
     }
     public function get_pieceToBeUsed($processName, $availableAssemblies, $meta, $class)
     {
         // Obtener el modelo del proceso
-        $modelProcess = $this->get_ModelProcess($processName);
+        $processString = str_contains($processName, "Operacion Equipo") ? $this->getSub_Process($processName, 0) : $processName;
+        $modelProcess = $this->get_ModelProcess($processString);
         $id_process = str_replace(" ", "_", $processName) . "_" . $class->nombre . "_" . $class->id_ot;
         $process = $modelProcess::where('id_proceso', $id_process)->first();
-
         // Obtener el modelo de las piezas del proceso
-        $modelPieces = $this->get_ModelProcessPieces($processName);
-
+        $modelPieces = $this->get_ModelProcessPieces($processString);
         if ($process) { // Si no existe el proceso, no se puede obtener una pieza
             //Verificar si hay piezas vacias asociadas a la meta del usuario
-            $pieceMeta = $modelPieces::where("id_meta", $meta->id)->whereNot('estado', 2)->first();
-            if ($pieceMeta) { // Si hay una pieza vacía asociada a la meta, se puede usar
-                $pieceMeta->estado = 1;
-                $pieceMeta->save();
-                return $pieceMeta;
+            $pieceMeta = $modelPieces::where("id_meta", $meta->id)->whereNot('estado', 2)->get();
+            if (count($pieceMeta) > 0) { // Si hay una pieza vacía asociada a la meta, se puede usar
+                foreach ($pieceMeta as $pMeta) {
+                    if ($this->verifiedRejectedPiece($pMeta, $class, $processName)) {
+                        $pMeta->estado = 1;
+                        $pMeta->save();
+                        return $pMeta;
+                    }
+                }
+            }
+            //Verificar si hay alguna pieza que este en la misma maquina en la que se esta trabajando
+            $unoccupiedPiece = $modelPieces::where("id_proceso", $process->id)->where('estado', 0)->get();
+            if (count($unoccupiedPiece) > 0) {
+                //Verificar que la pieza aun no este rechazada
+                foreach ($unoccupiedPiece as $uPiece) {
+                    if ($this->verifiedRejectedPiece($uPiece, $class, $processName)) {
+                        $metaPiece = $uPiece->id_meta;
+                        $metaPiece = Metas::find($metaPiece);
+                        if ($metaPiece->maquina == $meta->maquina) {
+                            // Marcar la pieza como ocupada
+                            $uPiece->estado = 1;
+                            $uPiece->id_meta = $meta->id;
+                            $uPiece->save();
+                            return $uPiece;
+                        }
+                    }
+                }
             }
 
-            //Verificar si hay alguna pieza que este en la misma maquina en la que se esta trabajando
-            $unoccupiedPiece = $modelPieces::where("id_proceso", $process->id)->where('estado', 0)->first();
-            if ($unoccupiedPiece) {
-                $metaPiece = $unoccupiedPiece->id_meta;
-                $metaPiece = Metas::find($metaPiece);
-                if ($metaPiece->maquina == $meta->maquina) {
-                    // Marcar la pieza como ocupada
-                    $unoccupiedPiece->estado = 1;
-                    $unoccupiedPiece->id_meta = $meta->id;
-                    $unoccupiedPiece->save();
-                    return $unoccupiedPiece;
-                }
-            } else {
-                if ($processName == "Cepillado") {
-                    if (count($availableAssemblies) > 0) {
-                        $assembly = $availableAssemblies[0];
-                        $noAssembly = substr($assembly, 0, -1); // Extraer el numero de juego
-                        for ($i = 1; $i <= 2; $i++) {
-                            $pieceLetter = $i > 1 ? "H" : "M"; // Asociar la letra de la mitad de la pieza
+            //Si no hay piezas vacias asociadas a la meta, se crea una nueva pieza solamente si el proceso es "Cepillado"
+            if ($processString == "Cepillado") {
+                if (count($availableAssemblies) > 0) {
+                    $assembly = $availableAssemblies[0];
+                    $noAssembly = substr($assembly, 0, -1); // Extraer el numero de juego
+                    for ($i = 1; $i <= 2; $i++) {
+                        $pieceLetter = $i > 1 ? "H" : "M"; // Asociar la letra de la mitad de la pieza
 
-                            //Verificar que no exista la pieza que se quiere crear
-                            $existingPiece = $modelPieces::where("id_proceso", $process->id)
-                                ->where("n_pieza", $noAssembly . $pieceLetter)
-                                ->first();
+                        //Verificar que no exista la pieza que se quiere crear
+                        $existingPiece = $modelPieces::where("id_proceso", $process->id)
+                            ->where("n_pieza", $noAssembly . $pieceLetter)
+                            ->first();
 
-                            if (!$existingPiece) {
-                                //Creación de piezas
-                                $newPiece = new $modelPieces();
-                                $newPiece->id_pza = $noAssembly . $pieceLetter . $process->id;
-                                $newPiece->id_meta = $meta->id;
-                                $newPiece->id_proceso = $process->id;
-                                $newPiece->estado = 1;
-                                $newPiece->n_pieza = $noAssembly . $pieceLetter;
-                                $newPiece->n_juego = $assembly;
+                        if (!$existingPiece) {
+                            //Creación de piezas
+                            $newPiece = new $modelPieces();
+                            $newPiece->id_pza = $noAssembly . $pieceLetter . $process->id;
+                            $newPiece->id_meta = $meta->id;
+                            $newPiece->id_proceso = $process->id;
+                            $newPiece->estado = 1;
+                            $newPiece->n_pieza = $noAssembly . $pieceLetter;
+                            $newPiece->n_juego = $assembly;
+                            try {
                                 $newPiece->save();
-                            }
-                            if ($i == 1) {
-                                $pieceToBeUsed = !$existingPiece ? $newPiece : $existingPiece;
+                            } catch (\Illuminate\Database\QueryException $ex) {
+                                if ($ex->errorInfo[1] == 1062) {
+                                    return back()->with('error', 'Este juego ya fue asignado.');
+                                }
+                                throw $ex;
                             }
                         }
-                        return $pieceToBeUsed;
-                    } else {
-                        return null;
+                        if ($i == 1) {
+                            $pieceToBeUsed = !$existingPiece ? $newPiece : $existingPiece;
+                        }
                     }
+                    return $pieceToBeUsed;
                 } else {
-                    //Verificar que haya piezas registradas en el proceso anterior
-                    $previousProcess = $this->convertProcessToString($this->get_previousProcess($class, $processName));
-                    if ($previousProcess) {
-                        $modelPreviousProcessPieces = $this->get_ModelProcessPieces($previousProcess);
+                    return null;
+                }
+            } else {
+                //Verificar que haya piezas registradas en el proceso anterior
+                $previousProcess = $this->convertProcessToString($this->get_previousProcess($class, $processName));
+                $previousProcess = $previousProcess == "operacionEquipo" ? "Operacion Equipo_2 operacion" : $previousProcess;
+                if ($previousProcess) {
+                    $specialProcess = ["Soldadura", "Soldadura PTA", "Desbaste Exterior", "Revision Laterales"];
+                    if (in_array($previousProcess, $specialProcess)) {
+                        $specialProcesses = $previousProcess == "Soldadura" || $previousProcess == "Soldadura PTA" ? ["Soldadura", "Soldadura PTA"] : ["Desbaste Exterior", "Revision Laterales"];
+                        foreach ($specialProcesses as $specProcess) {
+                            $modelPreviousProcessPieces = $this->get_ModelProcessPieces($specProcess);
+                            $previousProcessId = str_replace(" ", "_", $specProcess) . "_" . $class->nombre . "_" . $class->id_ot;
+                            $previousProcessDB = $this->get_ModelProcess($specProcess)::where('id_proceso', $previousProcessId)->first();
+                            if ($previousProcessDB) {
+                                $previousPieces = $modelPreviousProcessPieces::where('id_proceso', $previousProcessDB->id)->where('estado', 2)->get();
+                                if ($previousPieces->isNotEmpty()) {
+                                    break;
+                                } else {
+                                    return "NoPreviousPieces";
+                                }
+                            } else {
+                                return "NoPreviousPieces";
+                            }
+                        }
+                    } else {
+                        $preProcessString = str_contains($previousProcess, "Operacion Equipo") ? $this->getSub_Process($previousProcess, 0) : $previousProcess;
+                        $modelPreviousProcessPieces = $this->get_ModelProcessPieces($preProcessString);
                         $previousProcessId = str_replace(" ", "_", $previousProcess) . "_" . $class->nombre . "_" . $class->id_ot;
-                        $previousProcessDB = $this->get_ModelProcess($previousProcess)::where('id_proceso', $previousProcessId)->first();
-                        $previousPieces = $modelPreviousProcessPieces::where('id_proceso', $previousProcessDB->id)->where('estado', 2)->get();
-                        if (!$previousPieces->isNotEmpty()) {
+                        $previousProcessDB = $this->get_ModelProcess($preProcessString)::where('id_proceso', $previousProcessId)->first();
+                        if ($previousProcessDB) {
+                            $previousPieces = $modelPreviousProcessPieces::where('id_proceso', $previousProcessDB->id)->where('estado', 2)->get();
+                            if (!$previousPieces->isNotEmpty()) {
+                                return "NoPreviousPieces";
+                            }
+                        } else {
                             return "NoPreviousPieces";
                         }
                     }
-                    return null;
                 }
+                return null;
             }
         } else {
             return "NoPreviousPieces";
         }
+    }
+    public function verifiedRejectedPiece($piece, $class, $processName)
+    {
+        //Verificar que la pieza aun no este rechazada
+        $n_juego = $piece->n_pieza ? $piece->n_pieza : $piece->n_juego;
+        $n_juego = substr($n_juego, 0, -1);
+
+        $unoccupiedPieceV = Pieza::where('id_clase', $class->id)
+            ->where('proceso', $processName)
+            ->whereRaw("n_pieza REGEXP '^{$n_juego}[A-Z]$'")
+            ->first();
+
+        if ($unoccupiedPieceV) {
+            if ($unoccupiedPieceV->liberacion == 0) {
+                return true;
+            }
+        } else {
+            return true;
+        }
+        return false;
     }
     public function saveCNominals($class, $process, $subprocess)
     {
@@ -232,7 +309,7 @@ class ProcessProductionController extends Controller
         if ($passwordEntered) {
             $users = User::all();
             foreach ($users as $user) {
-                if ($user->perfil == 1 || $user->perfil == 3 || $user->perfil == 4) { // Verificar si el usuario es admin o calidad o superadmin
+                if ($user->perfil == 1 || $user->perfil == 4) { // Verificar si el usuario es admin o calidad o superadmin
                     if (Hash::check($passwordEntered, $user->contrasena)) {
                         return true; // Contraseña correcta
                     }
@@ -259,7 +336,8 @@ class ProcessProductionController extends Controller
     }
     public function verifyNumbersOfPieces($meta)
     {
-        $model = $this->get_ModelProcessPieces($meta->proceso);
+        $processString = str_contains($meta->proceso, "Operacion Equipo") ? $this->getSub_Process($meta->proceso, 0) : $meta->proceso;
+        $model = $this->get_ModelProcessPieces($processString);
         $piecesCount = $model::where('id_meta', $meta->id)->count();
         return $piecesCount;
     }
@@ -267,10 +345,10 @@ class ProcessProductionController extends Controller
     {
         $meta = Metas::find($request->input('meta'));
         $machine = Maquinas::where('id_meta', $meta->id)->first();
-        if($machine){
+        if ($machine) {
             $class = Clase::find($meta->id_clase);
             $this->savePiece($class, $meta->proceso, $request, $meta);
-    
+
             //Retornar pieza siguiente
             return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->process, "edit" => 0])->with('success', 'Pieza registrada correctamente.');
         } else {
@@ -279,15 +357,16 @@ class ProcessProductionController extends Controller
     }
     public function savePiece($class, $processName, $request, $meta, $index = null, $arrayPieces = null)
     {
+        $processString = str_contains($processName, "Operacion Equipo") ? $this->getSub_Process($processName, 0) : $processName;
         // Obtener los datos de CNominal y Tolerancia del proceso
-        if ($processName != "Soldadura" && $processName != "Asentado" && $processName != "Rectificado" && $processName != "Soldadura PTA") {
+        if ($processString != "Soldadura" && $processString != "Asentado" && $processString != "Rectificado" && $processString != "Soldadura PTA") {
             $id_process = str_replace(" ", "_", $processName) . "_" . $class->nombre . "_" . $class->id_ot;
-            [$cNominalModel, $toleranceModel] = $this->getModelProcessCNominal_Tolerance($processName);
+            [$cNominalModel, $toleranceModel] = $this->getModelProcessCNominal_Tolerance($processString);
             $cNominal = $cNominalModel::where("id_proceso", $id_process)->first();
             $tolerance = $toleranceModel::where("id_proceso", $id_process)->first();
 
             //Guardar los datos de la pieza en su respectiva tabla del proceso
-            $controllerProcess = $this->get_ControllerProcess($processName);
+            $controllerProcess = $this->get_ControllerProcess($processString);
             if ($processName == "Copiado") {
                 $controllerProcess->storePiece($request, $cNominal, $tolerance, $index !== null ? $index : null, $arrayPieces);
             } else {
@@ -295,12 +374,12 @@ class ProcessProductionController extends Controller
             }
         } else {
             //Guardar los datos de la pieza en su respectiva tabla del proceso
-            $controllerProcess = $this->get_ControllerProcess($processName);
+            $controllerProcess = $this->get_ControllerProcess($processString);
             $controllerProcess->storePiece($request, $index !== null ? $index : null);
         }
 
         //Guardar la pieza en la tabla Piezas
-        $modelProcessPiece = $this->get_ModelProcessPieces($request->process);
+        $modelProcessPiece = $this->get_ModelProcessPieces($processString);
         $piece = $modelProcessPiece::find($index !== null ? $request->piece[$index] : $request->piece);
         $n_piece = $piece->n_pieza ? $piece->n_pieza : $piece->n_juego;
         $pieceInPiezas = Pieza::where("id_clase", $class->id)->where("proceso", $request->process)->where("n_pieza", $n_piece)->first();
@@ -335,30 +414,31 @@ class ProcessProductionController extends Controller
         // Obtener las variables principales
         $meta = Metas::find($request->input('meta'));
         $machine = Maquinas::where('id_meta', $meta->id)->first();
-        if(!$machine){
+        if (!$machine) {
             return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
         $class = Clase::find($meta->id_clase);
 
-        // Obtener los modelo de la tabla de las piezas del proceso
+        // Obtener los modelos de la tabla de las piezas del proceso
+        $processString = str_contains($request->process, "Operacion Equipo") ? $this->getSub_Process($request->process, 0) : $request->process;
         $processIdString = str_replace(" ", "_", $request->process) . "_" . $class->nombre . "_" . $class->id_ot;
-        $modelProcess = $this->get_ModelProcess($request->process);
+        $modelProcess = $this->get_ModelProcess($processString);
         $process = $modelProcess::where("id_proceso", $processIdString)->first();
-        $modelPieces = $this->get_ModelProcessPieces($request->process);
+        $modelPieces = $this->get_ModelProcessPieces($processString);
 
         // Crear las piezas la tabla de piezas del proceso
         if ($request->selectedAssembly) {
             $processAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Embudo CM"];
             $noAssembly = substr($request->selectedAssembly, 0, -1); // Extraer el numero de juego
-            if (in_array($request->process, $processAssembly)) {
+            if (in_array($processString, $processAssembly)) {
                 //Verificar que no exista la pieza que se quiere crear
                 $existingPiece = $modelPieces::where("id_proceso", $process->id)
                     ->where("n_juego", $request->selectedAssembly)
                     ->first();
 
-                if (!$existingPiece || $existingPiece && $existingPiece->meta == $meta->id) {
-                    if ($request->process == "Soldadura" || $request->process == "Soldadura PTA") {
-                        $reverseProcess = $request->process == "Soldadura" ? "Soldadura PTA" : "Soldadura";
+                if (!$existingPiece || ($existingPiece && $existingPiece->meta == $meta->id)) {
+                    if ($processString == "Soldadura" || $processString == "Soldadura PTA") {
+                        $reverseProcess = $processString == "Soldadura" ? "Soldadura PTA" : "Soldadura";
                         $processReverseIdString = str_replace(" ", "_", $reverseProcess) . "_" . $class->nombre . "_" . $class->id_ot;
                         $modelProcessReverse = $this->get_ModelProcess($reverseProcess);
                         $reverseProcessDB = $modelProcessReverse::where("id_proceso", $processReverseIdString)->first();
@@ -376,7 +456,7 @@ class ProcessProductionController extends Controller
                     // Obtener el proceso anterior
                     $previousProcess = $this->convertProcessToString($this->get_previousProcess($class, $request->process));
                     if ($previousProcess == "Desbaste Exterior" || $previousProcess == "Revision Laterales") {
-                        [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_LateralesOrDesbaste($request->process, $previousProcess, $class);
+                        [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_LateralesOrDesbaste($processString, $previousProcess, $class);
                         if (!in_array($request->selectedAssembly, $availableAssemblies)) {
                             // Si el juego seleccionado esta disponible, se crea la pieza
                             $param = "error";
@@ -392,7 +472,14 @@ class ProcessProductionController extends Controller
                     $newPiece->id_proceso = $process->id;
                     $newPiece->estado = 1;
                     $newPiece->n_juego = $request->selectedAssembly;
-                    $newPiece->save();
+                    try {
+                        $newPiece->save();
+                    } catch (\Illuminate\Database\QueryException $ex) {
+                        if ($ex->errorInfo[1] == 1062) {
+                            return back()->with('error', 'Este juego ya fue asignado.');
+                        }
+                        throw $ex;
+                    }
 
                     $param = "success";
                     $message = 'Juego ' . $noAssembly . ' seleccionado correctamente';
@@ -411,9 +498,9 @@ class ProcessProductionController extends Controller
 
                     if (!$existingPiece) {
                         // Verificar si el proceso actual es Revision Laterales o Desbaste Exterior
-                        if ($request->process == "Revision Laterales" || $request->process == "Desbaste Exterior") {
+                        if ($processString == "Revision Laterales" || $processString == "Desbaste Exterior") {
                             // Verificar si el juego ya esta maquinado o ocupado en el proceso intermedio
-                            $intermediateProcess = $request->process == "Revision Laterales" ? "Desbaste Exterior" : "Revision Laterales";
+                            $intermediateProcess = $processString == "Revision Laterales" ? "Desbaste Exterior" : "Revision Laterales";
                             $intermediateProcessId = str_replace(" ", "_", $intermediateProcess) . "_" . $class->nombre . "_" . $class->id_ot;
                             $intermediateProcessDB = $this->get_ModelProcess($intermediateProcess)::where('id_proceso', $intermediateProcessId)->first();
                             if ($intermediateProcessDB) {
@@ -457,7 +544,14 @@ class ProcessProductionController extends Controller
                         $newPiece->estado = 1;
                         $newPiece->n_pieza = $noAssembly . $pieceLetter;
                         $newPiece->n_juego = $request->selectedAssembly;
-                        $newPiece->save();
+                        try {
+                            $newPiece->save();
+                        } catch (\Illuminate\Database\QueryException $ex) {
+                            if ($ex->errorInfo[1] == 1062) {
+                                return back()->with('error', 'Este juego ya fue asignado.');
+                            }
+                            throw $ex;
+                        }
 
                         $param = "success";
                         $message = 'Juego ' . $noAssembly . ' seleccionado correctamente';
@@ -477,14 +571,14 @@ class ProcessProductionController extends Controller
     {
         $meta = Metas::find($request->meta);
         $machine = Maquinas::where('id_meta', $meta->id)->first();
-        if(!$machine){
+        if (!$machine) {
             return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
         $class = Clase::find($meta->id_clase);
 
         $arrayPieces = array_unique($request->piece);
         foreach ($arrayPieces as $index => $piece) {
-            if($meta->proceso == "Copiado"){
+            if ($meta->proceso == "Copiado") {
                 $this->savePiece($class, $meta->proceso, $request, $meta, $index, $arrayPieces);
             } else {
                 $this->savePiece($class, $meta->proceso, $request, $meta, $index);
@@ -506,6 +600,8 @@ class ProcessProductionController extends Controller
                 $startTime = $startTime->format('H:i:s');
                 $endTime = DateTime::createFromFormat('H:i', $request->endTime);
                 $endTime = $endTime->format('H:i:s');
+                $date = Carbon::createFromFormat('Y-m-d', $request->date)->format('Y-m-d');
+
                 //Verificar si ya hay piezas registradas de esa meta
                 if ($this->verifyNumbersOfPieces($foundedMeta) == 0) {
                     // Verificar si la maquina no esta siendo ocupada
@@ -524,7 +620,7 @@ class ProcessProductionController extends Controller
                         //Verificar si existe una meta creada con los datos ingresados
                         $existingMeta = Metas::where('id_ot', $workOrder)
                             ->where('id_clase', $class->id)
-                            ->where('fecha', $request->date)
+                            ->where('fecha', $date)
                             ->where('h_inicio', $startTime)
                             ->where('h_termino', $endTime)
                             ->where('maquina', $request->machine)
@@ -541,7 +637,7 @@ class ProcessProductionController extends Controller
                             $meta = $existingMeta;
                         } else {
                             //Si no existe se edita la meta que habia ingresado
-                            $this->storeMeta($request, $class, $startTime, $endTime, $foundedMeta);
+                            $this->storeMeta($request, $class, $startTime, $endTime, $date, $foundedMeta);
                             $this->storeMachine($request, $foundedMeta); // Se crea una nueva máquina ocupada asociada a la meta
                             $successMessage = 'Tu meta se ha editado correctamente';
                             $meta = $foundedMeta;
@@ -551,10 +647,10 @@ class ProcessProductionController extends Controller
                     }
                     return redirect()->route('showReportFormat', ["meta" => $foundedMeta, "process" => $foundedMeta->proceso, "edit" => 0])->with('error', 'La máquina esta ocupada. Por favor, elija otra maquina o pida a un supervisor desbloquearla'); // Si la mquina esta ocupada retornar error con la meta antes creada
                 } else {
-                    $foundedMeta->fecha = $request->date;
+                    $foundedMeta->fecha = $date;
                     $foundedMeta->h_inicio = $startTime;
                     $foundedMeta->h_termino = $endTime;
-                    $this->calculateMeta($foundedMeta, $startTime, $endTime, $class);
+                    $this->calculateMeta($foundedMeta, $startTime, $endTime, $class, $foundedMeta->maquina);
                     $foundedMeta->save();
                     return redirect()->route('showReportFormat', ["meta" => $foundedMeta, "process" => $request->process, "edit" => 0])->with('success', 'Tu meta se ha editado correctamente');
                 }
@@ -566,7 +662,6 @@ class ProcessProductionController extends Controller
     public function storeHeaderdata(StoreHeaderProcessRequest $request)
     {
         $validatedData = $request->validated(); //Validación de los datos ingresados.
-
         // Verificar que la clase ingresada exista
         $class = Clase::where('id_ot', $request->workOrder)->where('nombre', $request->class)->first();
         if ($class) {
@@ -578,14 +673,16 @@ class ProcessProductionController extends Controller
                 $startTime = $startTime->format('H:i:s');
                 $endTime = DateTime::createFromFormat('H:i', $request->endTime);
                 $endTime = $endTime->format('H:i:s');
+                $date = Carbon::createFromFormat('Y-m-d', $request->date)->format('Y-m-d');
 
+                echo $processString = $request->subprocess ? $request->process . '_' . $request->subprocess : $request->process;
                 $foundedMeta = Metas::where('id_ot', $request->workOrder)
                     ->where('id_clase', $class->id)
-                    ->where('fecha', $request->date)
+                    ->where('fecha', $date)
                     ->where('h_inicio', $startTime)
                     ->where('h_termino', $endTime)
                     ->where('maquina', $request->machine)
-                    ->where('proceso', $request->process)
+                    ->where('proceso', $processString)
                     ->where('id_usuario', auth()->user()->matricula)
                     ->first();
                 if ($foundedMeta) { // Si la máquina no existe, pero ya existe una meta con los mismos datos
@@ -593,19 +690,19 @@ class ProcessProductionController extends Controller
                     $meta = $foundedMeta;
                     $successMessage = 'Se ha ingresado correctamente a la meta de ' . auth()->user()->a_paterno . ' ' . auth()->user()->a_materno . ' ' . auth()->user()->nombre;
                 } else { // Si la máquina no existe y tampoco una meta con esos datos, se crea una nueva meta y maquina
-                    $meta = $this->storeMeta($request, $class, $startTime, $endTime);
+                    $meta = $this->storeMeta($request, $class, $startTime, $endTime, $date);
                     $meta = Metas::find($meta->id);
                     $this->storeMachine($request, $meta); // Se crea una nueva máquina ocupada asociada a la meta
                     $successMessage = 'Se ha creado correctamente la meta';
                 }
-                return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->process, "edit" => 0])->with('success', $successMessage);
+                return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $processString, "edit" => 0])->with('success', $successMessage);
             }
             return redirect()->route('processProduction')->with('error', 'La máquina esta ocupada. Por favor, elija otra maquina o pida a un supervisor desbloquearla');
         }
         return redirect()->route('processProduction')->with('error', 'La clase ingresada no existe.'); // Si la clase no existe, retornar error
     }
 
-    public function storeMeta($request, $class, $startTime, $endTime, $meta = null)
+    public function storeMeta($request, $class, $startTime, $endTime, $date, $meta = null)
     {
         // Si no se encontró la meta, se puede crear una nueva
         if (!$meta) {
@@ -613,13 +710,13 @@ class ProcessProductionController extends Controller
         }
         $meta->id_ot = strtok($request->workOrder, ' ');
         $meta->id_usuario = auth()->user()->matricula;
-        $meta->fecha = $request->date;
+        $meta->fecha = $date;
         $meta->h_inicio = $startTime;
         $meta->h_termino = $endTime;
         $meta->maquina = $request->machine;
         $meta->id_clase = $class->id;
         $meta->proceso = $request->subprocess ? $request->process . '_' . $request->subprocess : $request->process;
-        $this->calculateMeta($meta, $startTime, $endTime, $class);
+        $this->calculateMeta($meta, $startTime, $endTime, $class, $request->machine);
         $meta->save();
         return $meta;
     }
@@ -646,11 +743,12 @@ class ProcessProductionController extends Controller
                 $machineOccupied->delete();
             }
             // Desocupar piezas en la meta si es que estaban ocupadas
-            $modelProcessPieces = $this->get_ModelProcessPieces($meta->proceso);
+            $processString = str_contains($meta->proceso, "Operacion Equipo") ? $this->getSub_Process($meta->proceso, 0) : $meta->proceso;
+            $modelProcessPieces = $this->get_ModelProcessPieces($processString);
             $occupiedPieces = $modelProcessPieces::where('id_meta', $meta->id)->where('estado', 1)->get();
             if (count($occupiedPieces) > 0) {
                 $processesAssemblies = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Embudo CM"];
-                if (in_array($meta->proceso, $processesAssemblies)) {
+                if (in_array($processString, $processesAssemblies)) {
                     foreach ($occupiedPieces as $piece) { // Si es un juego marcar como desocupado
                         $piece->delete();
                     }
@@ -685,13 +783,12 @@ class ProcessProductionController extends Controller
         $previousProcess = $this->convertProcessToString($this->get_previousProcess($class, $process));
         if ($previousProcess == "Desbaste Exterior" || $previousProcess == "Revision Laterales") {
             [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_LateralesOrDesbaste($process, $previousProcess, $class);
-        } else if ($previousProcess == "Soldadura PTA") {
+        } else if ($previousProcess == "Soldadura PTA" || $previousProcess == "Soldadura") {
             [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_Soldaduras($process, $class);
         } else {
-            $process = $process == "Operacion Equipo" ? $meta->proceso : $process;
+            $previousProcess = $previousProcess == "operacionEquipo" ? "Operacion Equipo_2 operacion" : $previousProcess;
             [$availableAssemblies, $remainingPieces] = $this->get_RemainingPieces($process, $previousProcess, $class);
         }
-
         if ($process == "Soldadura" || $process == "Soldadura PTA") {
             $reverseProcess = $process == "Soldadura" ? "Soldadura PTA" : "Soldadura";
             $this->get_FilteredPiecesSoldadura_SoldaduraPTA($reverseProcess, $class, $availableAssemblies, $remainingPieces);
@@ -708,6 +805,7 @@ class ProcessProductionController extends Controller
     }
     public function getRemainingPieces_Soldaduras($process, $class)
     {
+
         //Obtener los juegos buenos maquinados en Soldadura y Soldadura PTA
         $processes = ["Soldadura", "Soldadura PTA"];
         $availableAssemblies = [];
@@ -803,6 +901,7 @@ class ProcessProductionController extends Controller
         $machinedPiecesInMeta = $this->get_machinedPiecesInMeta($meta);
 
         //Calcular la meta
+        $this->calculateMeta($meta, $meta->h_inicio, $meta->h_termino, $class, $meta->maquina);
         $meta->resultado = $this->calculate_metaResult($machinedPiecesInMeta, $class, $process);
         $meta->save();
     }
@@ -818,7 +917,6 @@ class ProcessProductionController extends Controller
         //Obtener registro del proceso
         $modelProcess = $this->get_ModelProcess($process);
         $processDB = $modelProcess::where('id_proceso', $processId)->first();
-
         if ($processDB && ($process != "Soldadura PTA" && $process != "Soldadura" && $process != "Asentado" && $process != "Rectificado")) { // Si ya hay piezas creadas de  esa clase y proceso
             //Obtener las piezas registradas del proceso
             $modelProcessPieces = $this->get_ModelProcessPieces($process);
@@ -917,6 +1015,8 @@ class ProcessProductionController extends Controller
             'Off Set' => new OffSetController(),
             'Palomas' => new PalomasController(),
             'Rebajes' => new RebajesController(),
+
+            'Operacion Equipo' => new PySOpeSoldaduraController(),
         };
     }
 
@@ -924,12 +1024,13 @@ class ProcessProductionController extends Controller
     {
         $total = 0;
         if ($arrayPiecesInMeta) {
+
             $usedAssemblies = array();
             foreach ($arrayPiecesInMeta as $piece) {
                 //Verificar si la pieza se registra por mitad o por juego
                 $char = substr($piece["piece"]->n_pieza, -1) ? substr($piece["piece"]->n_pieza, -1) : "J";
                 if ($char == "J") {
-                    $total += $piece["color"] == "green" || $piece["color"] == "blue" ? 1 : 0;
+                    $total += $piece["color"] == "#ACF980A8" || $piece["color"] == "#79BFED" ? 1 : 0;
                 } else {
                     $badPieces = 0;
                     // Extraer el numero de pieza
@@ -952,6 +1053,22 @@ class ProcessProductionController extends Controller
                                 $correct += $this->verifyPiece($halfPiece) ? 0.5 : 0;
                                 $correct += $this->verifyPiece($halfPiece2) ? 0.5 : 0;
                                 $total += $correct < 1 ? 0 : 1;
+
+                                // Verificar si las mitades no pertenecen a la misma meta
+                                $id_process = str_replace(" ", "_", $process) . '_' . $class->nombre . '_' . $class->id_ot;
+                                $processDB = $this->get_ModelProcess($process)::where('id_proceso', $id_process)->first();
+
+                                $modelProcessPieces = $this->get_ModelProcessPieces($process);
+                                $piece2 = $modelProcessPieces::where('id_proceso', $processDB->id)
+                                    ->where(function ($query) use ($halfPiece2) {
+                                        $query->where('n_pieza', $halfPiece2->n_pieza)
+                                            ->orWhere('n_juego', substr($halfPiece2->n_pieza, 0, -1));
+                                    })
+                                    ->first();
+                                if ($piece2->id_meta != $piece["piece"]->id_meta) {
+                                    // Si las mitades pertenecen a diferentes metas, restar la mitad correspondiente
+                                    $total -= 0.5;
+                                }
                             } else {
                                 // Seleccionar la pieza que corresponda al operador de la meta y verificarla
                                 if ($halfPiece->id_operador == auth()->user()->matricula) {
@@ -982,23 +1099,24 @@ class ProcessProductionController extends Controller
     public function get_machinedPiecesInMeta($meta)
     {
         //Obtener las piezas desde la tabla del proceso y despues compararla para ver si esta liberada o no
-        $modelPiecesProcess = $this->get_ModelProcessPieces($meta->proceso);
+
+        $modelPiecesProcess = $this->get_ModelProcessPieces($this->getSub_Process($meta->proceso, 0));
         $piecesProcess = $modelPiecesProcess::where("id_meta", $meta->id)->where('estado', 2)->get();
         if (count($piecesProcess) > 0) {
             $machinedPieces = [];
             foreach ($piecesProcess as $key => $piece) {
                 if ($meta->proceso == "Copiado") {
-                    $color = $piece->error_cilindrado === "Ninguno" && $piece->error_cavidades === "Ninguno" ? "green" : "red";
+                    $color = $piece->error_cilindrado === "Ninguno" && $piece->error_cavidades === "Ninguno" ? "#ACF980A8" : "#EC7063";
                 } else {
-                    $color = $piece->error == "Ninguno" ? "green" : "red";
+                    $color = $piece->error == "Ninguno" ? "#ACF980A8" : "#EC7063";
                 }
                 $nPiece = $piece->n_pieza ? $piece->n_pieza : $piece->n_juego;
                 $releasedPiece = Pieza::where("id_clase", $meta->id_clase)->where('proceso', $meta->proceso)->where("n_pieza", $nPiece)->first();
                 if ($releasedPiece) { //Verificar si la pieza esta inspeccionada (sin liberación, liberada, rechazada)
                     $color = match ($releasedPiece->liberacion) {
                         0 => $color, //Sin liberación
-                        1 => 'blue', // Liberada
-                        2 => 'red', // Rechazada
+                        1 => '#79BFED', // Liberada
+                        2 => '#EC7063', // Rechazada
                     };
                 }
                 $machinedPieces[$key] = [
@@ -1010,12 +1128,25 @@ class ProcessProductionController extends Controller
         }
         return null;
     }
-    public function get_previousProcess($class, $process)
+    public function get_previousProcess($class, $processName)
     {
-        $process = $this->get_processNameDB($process);
+        $processString = str_contains($processName, "Operacion Equipo") ? $this->getSub_Process($processName, 0) : $processName;
+        $process = $this->get_processNameDB($processString);
 
         //Establecer el orden de los procesos
-        $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado", "operacionEquipo", "embudoCM"];
+        switch ($class->nombre) {
+            case "Bombillo":
+            case "Molde":
+                $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                break;
+            case "Obturador":
+            case "Fondo":
+                $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                break;
+            default:
+                $processesInOrder = [];
+                break;
+        }
 
         //Verificar los procesos por los que pasa la clase
         $processesNotEmpty = Procesos::where("id_clase", $class->id)->first();
@@ -1030,11 +1161,19 @@ class ProcessProductionController extends Controller
         //Obtener el proceso anterior al actual
         $positionActualProcess = array_search($process, $processesInOrder);
         $previousProcess = $positionActualProcess !== 0 ? $processesInOrder[array_search($process, $processesInOrder) - 1] : null;
-        if ($process == "soldaduraPTA" && $previousProcess == "soldadura" || $process == "revision_laterales" && $previousProcess == "desbaste_exterior") {
-            if (array_search($previousProcess, $processesInOrder) != 0) {
-                $previousProcess = $processesInOrder[array_search($process, $processesInOrder) - 2];
-            } else {
-                return null;
+        if ($process == "operacionEquipo") {
+            $subOperation = $this->getSub_Process($processName, 1);
+            if ($subOperation[0] == "2") {
+                return "Operacion Equipo_1 operacion";
+            }
+            return null;
+        } else {
+            if ($process == "soldaduraPTA" && $previousProcess == "soldadura" || $process == "revision_laterales" && $previousProcess == "desbaste_exterior") {
+                if (array_search($previousProcess, $processesInOrder) != 0) {
+                    $previousProcess = $processesInOrder[array_search($process, $processesInOrder) - 2];
+                } else {
+                    return null;
+                }
             }
         }
         return $previousProcess;
@@ -1062,8 +1201,6 @@ class ProcessProductionController extends Controller
             'Rebajes' => 'rebajes',
             'Grabado' => 'grabado',
             'Operacion Equipo' => 'operacionEquipo',
-            'Operacion Equipo_1 operacion' => 'operacionEquipo',
-            'Operacion Equipo_2 operacion' => 'operacionEquipo',
             'Embudo CM' => 'embudoCM',
             'Soldadura' => 'soldadura',
             'Soldadura PTA' => 'soldaduraPTA',
@@ -1144,7 +1281,6 @@ class ProcessProductionController extends Controller
                 }
             }
         }
-
         //Filtrar los juegos que pasaron y los que se encuentran registrados en el proceso actual
         [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($process, $class); //Obtener las piezas maquinadas en el proceso actual
         foreach ($goodAssemblies as $assembly) {
@@ -1171,20 +1307,20 @@ class ProcessProductionController extends Controller
     }
     public function get_RemainingPieces($process, $previousProcess, $class)
     {
-
+        $preProcessString = str_contains($previousProcess, "Operacion Equipo") ? "Operacion Equipo" : $previousProcess;
         $remainingPieces = 0;
         $availableAssemblies = array();
         if ($previousProcess != null) {
             //Obtener las piezas maquinadas que esten correctas o liberadas del proceso anterior
             //Obtener el id del proceso anterior
-            $modelPreProcess = $this->get_ModelProcess($previousProcess);
+
+            $modelPreProcess = $this->get_ModelProcess($preProcessString);
             $stringPreProcess = str_replace(' ', '_', $previousProcess);
             $stringPreProcess = $stringPreProcess . "_" . $class->nombre . "_" . $class->id_ot; // Obtener el registro de la tabla del proceso anterior
             $preProcessDB = $modelPreProcess::where('id_proceso', $stringPreProcess)->first();
-
             if ($preProcessDB) {
                 //Obtener las piezas maquinadas en el proceso anterior
-                $modelPiecesPreProcess = $this->get_ModelProcessPieces($previousProcess);
+                $modelPiecesPreProcess = $this->get_ModelProcessPieces($preProcessString);
                 $prePieces = $modelPiecesPreProcess::where('id_proceso', $preProcessDB->id)->where('estado', 2)->get();
                 if (count($prePieces) > 0) {
                     [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($process, $class); //Obtener las piezas maquinadas en el proceso actual
@@ -1310,10 +1446,10 @@ class ProcessProductionController extends Controller
 
     public function get_machinedPieces($processName, $class)
     {
+        $processString = str_contains($processName, "Operacion Equipo") ? $this->getSub_Process($processName, 0) : $processName;
         // Obtener el modelo del proceso
-        $modelProcess = $this->get_ModelProcess($processName);
-        $stringProcess = str_replace(' ', '_', $processName);
-        $id_process_string = $stringProcess . "_" . $class->nombre . "_" . $class->id_ot;
+        $modelProcess = $this->get_ModelProcess($processString);
+        $id_process_string = str_replace(' ', '_', $processName) . "_" . $class->nombre . "_" . $class->id_ot;
         $processDB = $modelProcess::where('id_proceso', $id_process_string)->first();
 
         //Si el proceso no existe crearlo para retornar las piezas
@@ -1321,14 +1457,16 @@ class ProcessProductionController extends Controller
             $processDB = new $modelProcess();
             $processDB->id_proceso = $id_process_string;
             $processDB->id_ot = $class->id_ot;
-            if ($processName == "Operacion Equipo") {
+            if ($processString == "Operacion Equipo") {
                 $processDB->id_clase = $class->id;
+                $noOperation = explode(" ", $this->getSub_Process($processName, 1));
+                $processDB->operacion = $noOperation[0];
             }
             $processDB->save();
         }
 
         // Obtener las piezas maquinadas en el proceso correspondiente
-        $modelPiecesProcess = $this->get_ModelProcessPieces($processName);
+        $modelPiecesProcess = $this->get_ModelProcessPieces($processString);
         $machinedPiecesInProcess = $modelPiecesProcess::where('id_proceso', $processDB->id)->where('estado', 2)->get();
 
         //Insertar los juegos maquinados en un array
@@ -1374,8 +1512,6 @@ class ProcessProductionController extends Controller
             'Rebajes' => "Rebajes",
             'Grabado' => "Grabado", // No existe, crearlo
             'Operacion Equipo' => "PySOpeSoldadura",
-            'Operacion Equipo_1 operacion' => "PySOpeSoldadura",
-            'Operacion Equipo_2 operacion' => "PySOpeSoldadura",
             'Embudo CM' => "EmbudoCM",
             'Soldadura' => "Soldadura",
             'Soldadura PTA' => "SoldaduraPTA",
@@ -1401,8 +1537,7 @@ class ProcessProductionController extends Controller
             'Palomas' => "Palomas_cnominal",
             'Rebajes' => "Rebajes_cnominal",
             'Grabado' => "Grabado_cnominal", // No existe, crearlo
-            'Operacion Equipo_1 operacion' => "PySOpeSoldadura_cnominal",
-            'Operacion Equipo_2 operacion' => "PySOpeSoldadura_cnominal",
+            'Operacion Equipo' => "PySOpeSoldadura_cnominal",
             'Embudo CM' => "EmbudoCM_cnominal",
         };
         $cNominal = "App\Models\\" . $cNominal;
@@ -1424,8 +1559,7 @@ class ProcessProductionController extends Controller
             'Palomas' => "Palomas_tolerancia",
             'Rebajes' => "Rebajes_tolerancia",
             'Grabado' => "Grabado_tolerancia", // No existe, crearlo
-            'Operacion Equipo_1 operacion' => "PySOpeSoldadura_tolerancia",
-            'Operacion Equipo_2 operacion' => "PySOpeSoldadura_tolerancia",
+            'Operacion Equipo' => "PySOpeSoldadura_tolerancia",
             'Embudo CM' => "EmbudoCM_tolerancias",
         };
         $tolerance = "App\Models\\" . $tolerance;
@@ -1452,10 +1586,8 @@ class ProcessProductionController extends Controller
             'Off Set' => "OffSet_pza",
             'Palomas' => "Palomas_pza",
             'Rebajes' => "Rebajes_pza",
-            'Grabado' => "Grabado_pza", // No existe, crearlo
+            // 'Grabado' => "Grabado_pza", // No existe, crearlo
             'Operacion Equipo' => "PySOpeSoldadura_pza",
-            'Operacion Equipo_1 operacion' => "PySOpeSoldadura_pza",
-            'Operacion Equipo_2 operacion' => "PySOpeSoldadura_pza",
             'Embudo CM' => "EmbudoCM_pza",
             'Soldadura' => "Soldadura_pza",
             'Soldadura PTA' => "SoldaduraPTA_pza",
@@ -1482,7 +1614,7 @@ class ProcessProductionController extends Controller
         }
         return $diferencia; //Retorno las horas trabajadas.
     }
-    public function calculateMeta(&$meta, $h_inicio, $h_termino, $class) //Función para calcular la meta.
+    public function calculateMeta(&$meta, $h_inicio, $h_termino, $class, $machine) //Función para calcular la meta.
     {
         //Asignar tiempo estándar
         $tiempo = tiempoproduccion::where('id_clase', $class->id)->where('proceso', $this->nameProcess($meta->proceso))->first();
@@ -1492,7 +1624,7 @@ class ProcessProductionController extends Controller
         if ($tiempo) {
             $workHrs = $this->calculateHrs($h_inicio, $h_termino);
             $tiempo = $tiempo->tiempo != 0 ? round(($workHrs / $tiempo->tiempo)) : 0;
-            $meta->meta = $tiempo; //Asignar la meta calculada
+            $meta->meta = str_contains($machine, '_') ? $tiempo * 2 : $tiempo; //Asignar la meta calculada
         } else {
             $meta->meta = 0; //Si no se encuentra el tiempo, se asigna 0 a la meta
         }
@@ -1567,8 +1699,6 @@ class ProcessProductionController extends Controller
                 return "Rebajes";
             case "grabado":
                 return "Grabado";
-            case "operacionEquipo":
-                return "Operacion Equipo";
             case "embudoCM":
                 return "Embudo CM";
             case "soldadura":
@@ -1576,7 +1706,7 @@ class ProcessProductionController extends Controller
             case "soldaduraPTA":
                 return "Soldadura PTA";
             default:
-                return null;
+                return $process;
         }
     }
 }

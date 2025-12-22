@@ -144,7 +144,7 @@ Route::controller(PzasGeneralesController::class)->group(function () {
 Route::controller(PzasLiberadasController::class)->group(function () {
     Route::get('/releasePieces', 'show')->name('showReleasePieces_view'); //Ruta para la vista de piezas para liberar
     Route::post('/pieces', 'getPiecesRequest')->name('piecesRelease'); //Ruta para ver los procesos de las maquinas
-    Route::get('/piezasLiberar/{pieza}/{proceso}/{liberar}/{buena}/{request}', 'liberar_rechazar')->name('liberar_rechazar'); //Ruta para liberar o rechazar
+    Route::post('/piezasLiberar', 'liberar_rechazar')->name('liberar_rechazar'); //Ruta para liberar o rechazar
 });
 //Rutas para el controlador de DatosProduccionController
 Route::controller(DatosProduccionController::class)->group(function () {
@@ -162,3 +162,12 @@ Route::controller(MachinesController::class)->group(function () {
 Route::get('/panel-progreso', function () {
     return view('progress'); // o el nombre de tu vista Blade
 })->name('panelProgreso');
+
+
+Route::get('/check-time', function () {
+    return [
+        'PHP timezone' => date_default_timezone_get(),
+        'Laravel timezone' => config('app.timezone'),
+        'Current time' => now()->toDateTimeString(),
+    ];
+});

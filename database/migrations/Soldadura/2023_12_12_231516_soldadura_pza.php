@@ -20,8 +20,8 @@ return new class extends Migration
                 $table->integer('estado')->default(0);
                 $table->string('n_juego');
                 $table->decimal('pesoxpieza', 8, 3)->nullable();
-                $table->integer('temperatura_precalentado', 8, 3)->nullable();
-                $table->integer('tiempo_aplicacion', 8, 3)->nullable();
+                $table->integer('temperatura_precalentado')->nullable();
+                $table->integer('tiempo_aplicacion')->nullable();
                 $table->string('tipo_soldadura')->nullable();
                 $table->string('lote')->nullable();
                 $table->string('error')->nullable();
@@ -29,6 +29,8 @@ return new class extends Migration
                 $table->timestamps();
                 $table->foreign('id_meta')->references('id')->on('metas');
                 $table->foreign('id_proceso')->references('id')->on('soldadura');
+
+                $table->unique('id_pza');
             });
         }
     }

@@ -68,15 +68,15 @@ class ClassController extends Controller
             $class->piezas = $request->pieces;
             $class->fecha_inicio = $request->start_date;
             $class->hora_inicio = $request->start_time;
-            if ($request->class != "Obturador") { //Si la clase no es obturador.
-                $class->tamanio = $request->size;
-                $class->seccion = null;
-            } else { //Si la clase es obturador.
-                $class->seccion = $request->section;
-                $class->tamanio = null;
-            }
+            $class->tamanio = $request->size;
+            $class->seccion = null;
             $class->save();
 
+            //Establecer los tiempos de producción
+            $controllerProductionTime = new tiemposProduccionController();
+            $controllerProductionTime->setProductionTimes($class);
+
+            //Asignar los procesos a la clase
             if ($request->operations != null) { //Si se seleccionaron procesos
                 $process = new Procesos();
                 $this->storeProcess($class, $request->operations, $request->machines, $process); //Verifico las casillas.
@@ -96,19 +96,18 @@ class ClassController extends Controller
             $class->piezas = $request->pieces;
             $class->fecha_inicio = $request->start_date;
             $class->hora_inicio = $request->start_time;
-            if ($class->nombre != "Obturador") { //Si la clase no es obturador.
-                $class->tamanio = $request->size;
-                $class->seccion = null;
-            } else { //Si la clase es obturador.
-                $class->seccion = $request->section;
-                $class->tamanio = null;
-            }
+            $class->tamanio = $request->size;
+            $class->seccion = null;
         } else {
             $class->piezas = $request->pieces;
             $class->pedido = $request->order;
         }
         $class->save(); //Guardo los cambios.
 
+        //Establecer los tiempos de producción
+        $controllerProductionTime = new tiemposProduccionController();
+        $controllerProductionTime->setProductionTimes($class);
+        
         //Actualizar las metas que tengan relacion con la clase
         $goals = Metas::where('id_clase', $class->id)->get();
         if (count($goals) > 0) {
@@ -133,6 +132,9 @@ class ClassController extends Controller
     public function destroy($idClass, $workOrderParam = null)
     {
         $class = Clase::find($idClass);
+        if (!$class) {
+            return redirect()->back()->with("error", "La clase que intentas eliminar no existe");
+        }
         $workOrder = Orden_trabajo::find($class->id_ot); //Busco la OT ingresada
 
         //Si existen metas asociadas a la clase no se elimina

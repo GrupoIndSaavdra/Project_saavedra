@@ -28,6 +28,7 @@ return new class extends Migration
                 $table->decimal('altura_venaHembra', 8, 3);
                 $table->decimal('altura_venaMacho', 8, 3);
                 $table->decimal('ancho_vena', 8, 3);
+                $table->decimal('laterales', 8, 3);
                 $table->decimal('pin1', 8, 3);
                 $table->decimal('pin2', 8, 3);
                 $table->timestamps();

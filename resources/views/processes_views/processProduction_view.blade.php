@@ -45,6 +45,7 @@
             </table>
         </form>
         <button class="btn-finishReport">Terminar reporte</button>
+        <label class="warning-pieces">⚠️ IMPORTANTE: Si no encuentras la pieza que necesitas registrar, avisa de inmediato al supervisor, pero continúa trabajando con las demás piezas disponibles mientras se resuelve la situación.</label>
     </div>
     <div class="div-table-code">
         <div class="operator-name form-group">

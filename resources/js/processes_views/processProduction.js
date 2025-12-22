@@ -154,10 +154,16 @@ function createInputs() {
             optionEmpty.value = "";
             optionEmpty.textContent = "Selecciona una opción";
             input.appendChild(optionEmpty);
-            for (let i = 1; i <= 7; i++) {
+            for (let i = 1; i <= 35; i++) {
                 let option = document.createElement("option");
-                option.value = `${i}`;
-                option.textContent = `Maquina ${i}`;
+                if (i == 1 || i == 25 || i == 27) {
+                    option.value = `${i}_${i + 1}`;
+                    option.textContent = `Maquina ${i} y ${i + 1}`;
+                    i++;
+                } else {
+                    option.value = `${i}`;
+                    option.textContent = `Maquina ${i}`;
+                }
                 input.appendChild(option);
             }
         } else {
@@ -233,10 +239,19 @@ function createInputsWithValue(values, valuesEnabled = []) {
                 input.style.backgroundColor = "#033966dd";
                 input.style.color = "#ffffff";
             } else {
+                if (key == "machine") {
+                    let input_hidden = document.createElement("input");
+                    input_hidden.type = "hidden";
+                    input_hidden.name = key;
+                    input_hidden.value = value;
+                    form_group.appendChild(input_hidden);
+                    input.value = value.replace("_", " y ");
+                } else {
+                    input.name = key;
+                    input.value = key == "remainingPieces" ? value : value;
+                }
                 input.type = "text";
                 input.className = "form-control normal-input";
-                input.value = key == "remainingPieces" ? value : value;
-                input.name = key;
                 input.readOnly = true;
             }
 
@@ -283,7 +298,9 @@ function insertSelects() {
             let selectedClass = selectClasses.value;
             if (selectedClass) {
                 let processes = window.workOrders[selectWO.value][selectedClass];
-                modifySelects(processes, document.querySelector(".process"), "Proceso");
+                if (processes.length > 0) {
+                    modifySelects(processes, document.querySelector(".process"), "Proceso");
+                }
             }
         });
         //prettier-ignore
@@ -440,7 +457,9 @@ function insertPrincipalVariables(form) {
     let inputProcess = document.createElement("input");
     inputProcess.type = "hidden";
     inputProcess.name = "process";
-    inputProcess.value = window.arrayData["process"];
+    inputProcess.value = window.arrayData["subprocess"]
+        ? window.arrayData["process"] + "_" + window.arrayData["subprocess"]
+        : window.arrayData["process"];
     form.appendChild(inputProcess);
 
     // Insertar el input que contiene el id de la pieza a utilizar si existe
@@ -691,8 +710,9 @@ function addEventToFinishReport() {
     btn_finishReport.addEventListener("click", function () {
         if (confirm("¿Estás seguro de que deseas terminar el reporte?")) {
             reporteTerminado = true; // ✅ permitir salir sin advertencia
-            if(window.arrayData){
-                window.location.href = window.baseUrl + "/processProduction/finishReport/" + window.arrayData["meta"].id;
+            if (window.arrayData) {
+                window.location.href =
+                    window.baseUrl + "/processProduction/finishReport/" + window.arrayData["meta"].id;
             } else {
                 window.location.href = window.baseUrl + "/processProduction/finishReport/0";
             }
@@ -786,6 +806,13 @@ function insertButtonEditPieces() {
 }
 
 //Ejecucion del script
+//Evitar doble click en el submit
+document.addEventListener("submit", (e) => {
+    const btn = e.target.querySelector("button[type='submit']");
+    console.log(btn);
+    if (btn) btn.disabled = true;
+});
+
 if (window.arrayData) {
     console.log(window.arrayData);
     if (window.arrayData["edit"]) {

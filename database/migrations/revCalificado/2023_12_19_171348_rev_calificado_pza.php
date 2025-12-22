@@ -34,6 +34,8 @@ return new class extends Migration
                 $table->timestamps();
                 $table->foreign('id_meta')->references('id')->on('metas');
                 $table->foreign('id_proceso')->references('id')->on('revCalificado');
+
+                $table->unique('id_pza');
             });
         }
     }

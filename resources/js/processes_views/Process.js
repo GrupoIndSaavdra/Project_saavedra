@@ -396,7 +396,7 @@ export class Process {
                 divisionsTole = [2, 4, 6];
 
                 positionSelects = [
-                    [7],
+                    [6],
                     [["Ninguno", "Fundicion"]]
                 ];
 
@@ -484,19 +484,17 @@ export class Process {
                                         let sign = j == 0 ? "+" : "-";
                                         if (values) {
                                             if(i == 2){
-                                                if(values[i - 1][x] != null){
-                                                    if(names[i - 1][x].includes("pin")){
-                                                        if(!this.tablePieces){
-                                                            td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${values[i - 1][x]}`));
-                                                        } else {
-                                                            td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `+-${values[i - 1][x]}`));
-                                                        }
+                                                if(names[i - 1][x].includes("pin")){
+                                                    if(!this.tablePieces){
+                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${values[i - 1][x]}`));
                                                     } else {
-                                                        if(!this.tablePieces){
-                                                            td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${values[i - 1][x]}`));
-                                                        } else {
-                                                            td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${sign}${values[i - 1][x]}`));
-                                                        }
+                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `+-${values[i - 1][x]}`));
+                                                    }
+                                                } else {
+                                                    if(!this.tablePieces){
+                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${values[i - 1][x]}`));
+                                                    } else {
+                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${sign}${values[i - 1][x]}`));
                                                     }
                                                 }
                                             } else {
@@ -534,7 +532,7 @@ export class Process {
                     break;
                 case 3://Crear inputs de las piezas e input de la pieza a utilizar si es que existe
                     if(this.piecesData.length > 0){ // Crear inputs inhabilitados de las piezas maquinadas en la meta
-                        let divisions = divisionsCNomi;
+                        let divisions = this.nameProcess == "Operacion Equipo" ? [2, 3, 4]: divisionsCNomi;
                         this.piecesData.forEach((piece, index) => { // Recorrer cada una de las piezas
                             let tr = document.createElement("tr");
                             for(let i=0; i < fields.length; i++){ // Recorrer las medidas de la pieza
@@ -624,12 +622,13 @@ export class Process {
         return table;
     }
     createPieceToBeUsed(tr, fields, divisionsCNomi, positionSelects, table) {
-        let divisions = divisionsCNomi;
+        let divisions = this.nameProcess == "Operacion Equipo" ? [2, 3, 4] : divisionsCNomi;
         tr = document.createElement("tr");
         for (let x = 0; x < fields.length; x++) {
             const td = document.createElement("td");
             if (x != 0) {
                 if (divisions.includes(x)) {
+                    
                     //Crear los dos inputs e insertarlos en el mismo td
                     for (let j = 0; j < 2; j++) {
                         td.appendChild(
@@ -694,7 +693,7 @@ export class Process {
         input.step = "any";
         input.inputMode = "decimal";
         input.required = "true";
-        input.value = valueInput || "";
+        input.value = valueInput && valueInput != "null" ? valueInput : "";
         return input;
     }
     createSelects(className, name, options, value = null) {

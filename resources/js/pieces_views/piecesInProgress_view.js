@@ -41,8 +41,10 @@ class Dashboard {
                 processesSection.className = "processes-section";
             
                 Object.values(classArray["processes"]).forEach((processesArray, indexProcess) => {
-                    let processName = Object.keys(classArray["processes"])[indexProcess];
-                    processesSection.appendChild(this.generateProcessSection(processesArray, processName, classArray["pieces"]));
+                    let processName = Object.keys(classArray["processes"])[indexProcess]
+                    let previousProcess = classArray["processes"][Object.keys(classArray["processes"])[indexProcess - 1]];
+                    let limitPieces = previousProcess ? previousProcess["pieces"]["good"] : classArray["pieces"];
+                    processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces, classArray["pieces"]));
                 });
                 section.appendChild(headerSection);
                 section.appendChild(processesSection);
@@ -53,19 +55,20 @@ class Dashboard {
     generateHeaderofWorkOrder(wOrderName, moldingName, className, classArray) {
         let valueText = [
             [
-                `OT: ${wOrderName}`,
-                `Moldura: ${moldingName}`,
-                `Clase: ${className}`,
-            ],
-            [
-                `Pedido: ${this.getCompletedPieces(classArray)}/${classArray["pieces"]}`,
+                `${wOrderName} ${moldingName}`,
+                `${className}`,
                 `Fecha de inicio: ${classArray["startDate"]}`,
                 `Fecha de término: ${classArray["endDate"]}`,
             ],
+            [
+                `Pedido: ${classArray["order"]}`,
+                `Pedido mas consignación: ${classArray["pieces"]}`,
+                `Piezas completadas: ${this.getCompletedPieces(classArray)}`,
+            ],
         ];
         let classText = [
-            ["workOrder-text", "molding-text", "class-text"],
-            ["pieces-text", "start-date-text", "end-date-text"],
+            ["workOrder-text", "class-text", "start-date-text", "end-date-text"],
+            ["order-text", "pieces-text", "completed-pieces-text"],
         ];
 
         let header_section = document.createElement("divHeader");
@@ -77,7 +80,6 @@ class Dashboard {
             for (let j = 0; j < valueText[i].length; j++) {
                 let h3 = document.createElement("h3");
                 h3.className = classText[i][j];
-                h3.classList.add("text-header-class");
                 h3.innerHTML = valueText[i][j];
 
                 div.appendChild(h3);
@@ -101,12 +103,29 @@ class Dashboard {
         return header_section;
     }
 
-    getCompletedPieces(classArray){
+    getCompletedPieces(classArray) {
         //Obtener las piezas del ultimo proceso de la clase
-        let completedPieces = Object.values(classArray["processes"])[Object.keys(classArray["processes"]).length - 1]["pieces"]["good"];
+        let completedPieces;
+        let lastProcess = Object.keys(classArray["processes"])[Object.keys(classArray["processes"]).length - 1];
+        if (lastProcess == "Soldadura PTA" || lastProcess == "Soldadura") {
+            // Si ultimo proceso es Soldadura o Soldadura PTA
+            let otherProcess = lastProcess == "Soldadura PTA" ? "Soldadura" : "Soldadura PTA";
+            // Si se incluyen los dos procesos en la clase, sumar las piezas buenas
+            if (Object.keys(classArray["processes"]).includes(otherProcess)) {
+                completedPieces =
+                    classArray["processes"][lastProcess]["pieces"]["good"] +
+                    classArray["processes"][otherProcess]["pieces"]["good"];
+            } else {
+                completedPieces = classArray["processes"][lastProcess]["pieces"]["good"];
+            }
+        } else {
+            completedPieces = Object.values(classArray["processes"])[Object.keys(classArray["processes"]).length - 1][
+                "pieces"
+            ]["good"];
+        }
         return completedPieces;
     }
-    generateProcessSection(processesArray, processName, order) {
+    generateProcessSection(processesArray, processName, limitPieces, pedido) {
         let processSection = document.createElement("div");
         processSection.className = "process-section";
 
@@ -114,28 +133,26 @@ class Dashboard {
         processTitle.className = "process-title";
         processTitle.innerHTML = processName;
         processSection.appendChild(processTitle);
-        //Crear barra de progreso
-        let progressBar = document.createElement("div");
-        progressBar.className = "progress-bar";
 
-        let pieces = [
-            processesArray["pieces"]["good"],
-            processesArray["pieces"]["bad"],
-        ];
+        let pieces = [processesArray["pieces"]["good"], processesArray["pieces"]["bad"]];
         for (let i = 0; i < pieces.length; i++) {
+            //Crear barra de progreso
             let progressBar = document.createElement("div");
             progressBar.className = "progress-bar";
+            progressBar.style.backgroundColor = i == 0 ? "#e1fcc6" : "#fcc6c6";
 
             let progress = document.createElement("div");
             progress.className = i == 0 ? "good-progress" : "bad-progress";
             progress.classList.add("progress");
-            let percentage = (pieces[i] * 100) / order;
+            let piecesNoRegistered = pedido - limitPieces;
+            let percentage = pieces[i] == 0 ? 0 : (pieces[i] * 100) / (limitPieces + piecesNoRegistered);
+
             progress.style.width = `${percentage}%`;
 
             percentage = percentage != 0 ? percentage.toFixed(1) : 0;
             let div = document.createElement("div");
             div.className = "progress-percentage";
-            div.innerHTML = `${percentage}%`;
+            div.innerHTML = pieces[i] == 1 ? `${percentage}% ${pieces[i]} pieza` : `${percentage}% ${pieces[i]} piezas`;
 
             progressBar.appendChild(progress);
             progressBar.appendChild(div);
@@ -143,7 +160,9 @@ class Dashboard {
         }
 
         //Agregar evento al div de progreso
-        processSection.addEventListener("click", () => { this.generateDivBadPieces(processName, processesArray["piecesBadData"]); });
+        processSection.addEventListener("click", () => {
+            this.generateDivBadPieces(processName, processesArray["piecesBadData"]);
+        });
         return processSection;
     }
     generateDivBadPieces(processName, badPieces) {
@@ -195,7 +214,10 @@ class Dashboard {
         table.className = "bad-pieces-table";
         let thead = document.createElement("thead");
         let headerRow = document.createElement("tr");
-        let headers = processName == "Operacion Equipo" ? ["Pieza", "Numero de juego", "Operador", "Proceso", "Operacion", "Error"] : ["Pieza", "Numero de juego", "Operador", "Proceso", "Error"];
+        let headers =
+            processName == "Operacion Equipo"
+                ? ["Pieza", "Numero de juego", "Operador", "Proceso", "Operacion", "Error"]
+                : ["Pieza", "Numero de juego", "Operador", "Proceso", "Error"];
 
         //Insertar encabezados de la tabla
         headers.forEach((header) => {
@@ -204,14 +226,24 @@ class Dashboard {
             th.style.width = headers.length / 100 + "%"; // Ajustar el ancho de las columnas
             headerRow.appendChild(th);
         });
-        
+
         //Insertar los datos de cada una de las piezas malas
         //prettier-ignore
         let tbody = document.createElement("tbody");
-        if(Object.keys(badPieces).length > 0){
+        if (Object.keys(badPieces).length > 0) {
             Object.values(badPieces).forEach((piece) => {
                 let row = document.createElement("tr");
-                let pieceData = processName == "Operacion Equipo" ? [piece["piece"], piece["setNumber"], piece["operator"], piece["process"], piece["operation"], piece["error"]] : [piece["piece"], piece["setNumber"], piece["operator"], piece["process"], piece["error"]];
+                let pieceData =
+                    processName == "Operacion Equipo"
+                        ? [
+                              piece["piece"],
+                              piece["setNumber"],
+                              piece["operator"],
+                              piece["process"],
+                              piece["operation"],
+                              piece["error"],
+                          ]
+                        : [piece["piece"], piece["setNumber"], piece["operator"], piece["process"], piece["error"]];
                 pieceData.forEach((data) => {
                     let td = document.createElement("td");
                     td.innerHTML = data;
@@ -219,7 +251,7 @@ class Dashboard {
                 });
                 tbody.appendChild(row);
             });
-        }else{
+        } else {
             let row = document.createElement("tr");
             let td = document.createElement("td");
             td.colSpan = headers.length;
@@ -234,34 +266,45 @@ class Dashboard {
         return table;
     }
 }
+let div_opacity = document.querySelector(".div-opacity");
+if (div_opacity) {
+    document.querySelector(".btn-cerrar").addEventListener("click", () => {
+        let div_padre = document.querySelector(".div-opacity");
+        div_padre.remove();
+    });
+    div_opacity.addEventListener("click", () => {
+        let div_padre = document.querySelector(".div-opacity");
+        div_padre.remove();
+    });
+}
 
 if (Object.keys(wOrderArray).length > 0) {
     let dashboard = new Dashboard(wOrderArray);
     dashboard.createSections();
     const secciones = document.querySelectorAll("section");
     let scrollTimeout = null;
-    
+
     function getClosestSection() {
         let closest = null;
         let minDist = Infinity;
         const scrollY = window.scrollY;
-    
-        secciones.forEach(sec => {
+
+        secciones.forEach((sec) => {
             const dist = Math.abs(sec.offsetTop - scrollY);
             if (dist < minDist) {
                 minDist = dist;
                 closest = sec;
             }
         });
-    
+
         return closest;
     }
-    
+
     window.addEventListener("scroll", () => {
         if (scrollTimeout) {
             clearTimeout(scrollTimeout);
         }
-    
+
         // Espera 200ms tras dejar de hacer scroll
         scrollTimeout = setTimeout(() => {
             const destino = getClosestSection();
@@ -270,7 +313,7 @@ if (Object.keys(wOrderArray).length > 0) {
             }
         }, 200);
     });
-}else {
+} else {
     let body = document.querySelector("body");
     let noDataMessage = document.createElement("h2");
     noDataMessage.className = "no-data-message";

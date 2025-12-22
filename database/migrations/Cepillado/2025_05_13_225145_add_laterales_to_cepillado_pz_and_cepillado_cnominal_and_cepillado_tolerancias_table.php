@@ -11,21 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        if (Schema::hasTable('cepillado_pza') && Schema::hasTable('cepillado_cnominal') && Schema::hasTable('cepillado_tolerancia')) {
+        if (!Schema::hasTable('cepillado_pza') && !Schema::hasTable('cepillado_cnominal') && !Schema::hasTable('cepillado_tolerancia')) {
             return;
         }
-        Schema::table('cepillado_pza', function (Blueprint $table) {
-            $table->decimal('laterales', 8, 3)->nullable()->default(0)->after('ancho_vena');
-        });
+        if(!Schema::hasColumn('cepillado_pza', 'laterales')){
+            Schema::table('cepillado_pza', function (Blueprint $table) {
+                $table->decimal('laterales', 8, 3)->nullable()->default(0)->after('ancho_vena');
+            });
+        }
+        if(!Schema::hasColumn('cepillado_cnominal', 'laterales')){
+            Schema::table('cepillado_cnominal', function (Blueprint $table) {
+                $table->decimal('laterales', 8, 3)->nullable()->default(0)->after('ancho_vena');
+            });
+        }
 
-        Schema::table('cepillado_cnominal', function (Blueprint $table) {
-            $table->decimal('laterales', 8, 3)->nullable()->default(0)->after('ancho_vena');
-        });
-
-        Schema::table('cepillado_tolerancia', function (Blueprint $table) {
-            $table->decimal('laterales1', 8, 3)->nullable()->default(0)->after('ancho_vena2');
-            $table->decimal('laterales2', 8, 3)->nullable()->default(0)->after('laterales1');
-        });
+        if(!Schema::hasColumn('cepillado_tolerancia', 'laterales1') && !Schema::hasColumn('cepillado_tolerancia', 'laterales2')){
+            Schema::table('cepillado_tolerancia', function (Blueprint $table) {
+                $table->decimal('laterales1', 8, 3)->nullable()->default(0)->after('ancho_vena2');
+                $table->decimal('laterales2', 8, 3)->nullable()->default(0)->after('laterales1');
+            });
+        }
     }
 
     /**

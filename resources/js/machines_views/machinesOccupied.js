@@ -24,6 +24,7 @@ function createTable(machines, form) {
     table.appendChild(thead);
 
     //Crear las filas de las maquinas
+    console.log(machines);
     if (machines.length > 0) {
         machines.forEach((machine) => {
             let tr = document.createElement("tr");
@@ -35,8 +36,18 @@ function createTable(machines, form) {
                 let input = document.createElement("input");
                 input.type = "text";
                 input.maxLength = 100;
-                input.name = i == 0 ? "process" : "machine";
-                input.value = i == 0 ? machine.process : machine.machine;
+                if(i == 0){
+                    input.name = "process";
+                    input.value = machine.process;
+                } else {
+                    let inputHidden = document.createElement("input");
+                    inputHidden.type = "hidden";
+                    inputHidden.name = "machine";
+                    inputHidden.value = machine.machine;
+
+                    input.value = machine.machine.replace("_", " y ");
+                    form.appendChild(inputHidden);
+                }
                 input.readOnly = true;
                 td.appendChild(input);
                 tr.appendChild(td);
@@ -50,6 +61,14 @@ function createTable(machines, form) {
             desoccupiedButton.onclick = (e) => {
                 e.preventDefault();
                 if (confirm("¿Estás seguro de que deseas desocupar la máquina?")) {
+                    if (!document.querySelector(".idMachine")) {
+                        let inputIdMachine = document.createElement("input");
+                        inputIdMachine.type = "hidden";
+                        inputIdMachine.name = "idMachine";
+                        inputIdMachine.className = "idMachine";
+                        inputIdMachine.value = machine.id;
+                        form.appendChild(inputIdMachine);
+                    }
                     //Redirigir a la ruta que ya tiene el formulario
                     form.submit();
                 }
@@ -74,5 +93,8 @@ function createTable(machines, form) {
 
 document.addEventListener("DOMContentLoaded", () => {
     let form = document.querySelector("form");
-    form.appendChild(createTable(machines, form));
+    let div_table = document.createElement("div");
+    div_table.classList.add("machines-table-container");
+    div_table.appendChild(createTable(machines, form));
+    form.appendChild(div_table);
 });

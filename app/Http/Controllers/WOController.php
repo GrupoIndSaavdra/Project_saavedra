@@ -21,12 +21,14 @@ class WOController extends Controller
 {
     protected $classController;
     protected $processesController;
+    protected $releasedPiecesController;
 
     public function __construct()
     {
         $this->middleware('auth');
         $this->classController = new ClassController();
         $this->processesController = new ProcessesController();
+        $this->releasedPiecesController = new PzasLiberadasController();
     }
 
     //Mostrar la vista para seleccionar o crear una Orden de Trabajo
@@ -40,8 +42,13 @@ class WOController extends Controller
             $workOrders = []; //Arreglo para guardar las molduras de cada OT
             $counter = 0; // Contador para las molduras y OT
             foreach ($workOrdersAll as $workOrder) { //Recorro las ordenes de trabajo
+                $clases = Clase::where("id_ot", $workOrder->id)->get();
                 if (auth()->user()->perfil == 5) {
-                    $clases = Clase::where("id_ot", $workOrder->id)->get();
+                    if ($clases->count() == 0) {
+                        continue;
+                    }
+                } else {
+                    $clases = Clase::where("id_ot", $workOrder->id)->where('finalizada', 0)->get();
                     if ($clases->count() == 0) {
                         continue;
                     }
@@ -81,7 +88,6 @@ class WOController extends Controller
 
         //Se obtienen las maquinas de los procesos guardados
         $processes = $this->classController->getClassProcesses($classes);
-
         return view('wo_views.show_wo', compact('workOrder', 'molding', 'classes', 'processes'));
     }
 
@@ -127,7 +133,8 @@ class WOController extends Controller
         return $pdf->download('Orden_de_trabajo_' . $workOrder->id . '.pdf');
     }
 
-    public function show_panelWO(){
+    public function show_panelWO()
+    {
         return view('wo_views.progressPanel_wo');
     }
 
@@ -149,15 +156,50 @@ class WOController extends Controller
     {
         $processes = array();
         $processesFounded = Procesos::where('id_clase', $class->id)->first();
+
+        //Establecer el orden de los procesos
+        $processesInOrder = array();
+        switch ($class->nombre) {
+            case "Bombillo":
+            case "Molde":
+            case 'Corona':
+                $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                break;
+            case "Obturador":
+            case "Fondo":
+                $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                break;
+            default:
+                $processesInOrder = [];
+                break;
+        }
+        //Ordenar array
+        $soldaduraBand = false;
         if ($processesFounded) {
-            foreach ($processesFounded->getAttributes() as $field => $value) {
-                if ($value != 0 && $field != 'id' && $field != 'id_clase') {
-                    $processName = $this->nombreProceso($field);
-                    $processes[$processName] = array();
-                    $piecesBadData = array();
-                    $processes[$processName]['pieces'] = $this->getPieces($class, $processName, $piecesBadData);
-                    $processes[$processName]['piecesBadData'] = $piecesBadData; //Informacion de las piezas malas
-                    $processes[$processName]['endDate'] = $this->getDateEndFromProcess($field, $class->id); //Fecha de termino del proceso
+            foreach ($processesInOrder as $process) {
+                if ($processesFounded[$process] != 0) {
+                    if (str_contains($process, "soldadura") && $soldaduraBand) { // Verificar si soldadura o soldadura PTA ya fueron insertadas
+                        continue;
+                    }
+                    $soldaduraBand = str_contains($process, "soldadura") ? true : false;
+                    $field = $process == "operacionEquipo" ? ["1 operacion", "2 operacion"] : [$process];
+                    foreach ($field as $processField) {
+                        //Asignar el nombre del proceso
+                        if (count($field) > 1) {
+                            $processName = "Operacion Equipo_" . $processField;
+                        } else {
+                            if (str_contains($processField, "soldadura")) {
+                                $processName = "Soldadura y Soldadura PTA";
+                            } else {
+                                $processName = $this->nombreProceso($processField);
+                            }
+                        }
+                        $processes[$processName] = array();
+                        $piecesBadData = array();
+                        $processes[$processName]['pieces'] = $this->getPieces($class, $processName, $piecesBadData);
+                        $processes[$processName]['piecesBadData'] = $piecesBadData; //Informacion de las piezas malas
+                        $processes[$processName]['endDate'] = $this->getDateEndFromProcess($field, $class->id); //Fecha de termino del proceso
+                    }
                 }
             }
         }
@@ -202,7 +244,8 @@ class WOController extends Controller
                 }
             }
         }
-        return view('pieces_views.piecesInProgress_view', compact('wOInProgress'));
+        [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
+        return view('pieces_views.piecesInProgress_view', compact('wOInProgress', 'pieces_Released', 'info_Pieces'));
     }
     public function getStringDate($date, $time)
     {
@@ -266,7 +309,7 @@ class WOController extends Controller
             case "asentado":
                 return "Asentado";
             case "calificado":
-                return "Revision Calificado";
+                return "Calificado";
             case "acabadoBombillo":
                 return "Acabado Bombillo";
             case "acabadoMolde":
@@ -293,10 +336,51 @@ class WOController extends Controller
     }
     function finishOrder(Request $request)
     {
-        $clase = Clase::where('id_ot', $request->wOrderName)->where('nombre', $request->className)->first();
-        $clase->finalizada = 1;
-        $clase->save();
-        return redirect()->route('showPiecesInProgress');
+        // Algoritmo para finalizar el pedido de una clase
+        $class = Clase::where('id_ot', $request->wOrderName)->where('nombre', $request->className)->first();
+        $arrayProcesses = $this->insertProcessesData($class);
+
+        $counterRejected = 0;
+        $text = "";
+        $bandSold = false;
+        foreach ($arrayProcesses as $key => $process) {
+            $text = "No se puede finalizar el pedido porque las piezas no se han completado en " . $key;
+            $total = 0;
+            // Sumar las piezas rechazadas de soldadura y soldadura pta
+            if (str_contains($key, "Soldadura")) {
+                if (!$bandSold) {
+                    $bandSold = true;
+                    foreach (["Soldadura", "Soldadura PTA"] as $processSold) {
+                        $counterRejected += array_key_exists($processSold, $arrayProcesses) ? $arrayProcesses[$processSold]["pieces"]["bad"] : 0;
+                    }
+                }
+            } else { // Sumar las piezas rechazadas del proceso actual
+                $counterRejected += $process["pieces"]["bad"];
+            }
+
+            //Sumar las piezas buenas de los procesos
+            if (($key == "Soldadura" || $key == "Soldadura PTA")) {
+                if (array_key_exists("Soldadura", $arrayProcesses) && array_key_exists("Soldadura PTA", $arrayProcesses)) {
+                    foreach (["Soldadura", "Soldadura PTA"] as $processSold) {
+                        $total += array_key_exists($processSold, $arrayProcesses) ? $arrayProcesses[$processSold]["pieces"]["good"] : 0;
+                    }
+                }
+                $text = "No se puede finalizar el pedido porque las piezas no se han completado en las soldaduras";
+            } else {
+                $total = $process["pieces"]["good"];
+            }
+
+            $total += $counterRejected; // Sumar las piezas rechazadas de los anteriores procesos con las piezas buenas del proceso
+
+            if ($total < $class->piezas) {
+                $finishOrder = ["error", $text];
+                return redirect()->back()->with('finishOrder', $finishOrder);
+            }
+        }
+        $class->finalizada = 1;
+        $class->save();
+        $finishOrder = ["success", "Se ha finalizado el pedido correctamente"];
+        return redirect()->route('showPiecesInProgress')->with('finishOrder', $finishOrder);
     }
     function getPieces($class, $processName, &$piecesBadData)
     {
@@ -305,130 +389,10 @@ class WOController extends Controller
         $piecesArray["good"] = array();
         $piecesArray["bad"] = array();
         $piecesArray["total"] = 0;
-        if ($processName == "Operacion Equipo") {
-            $process1 = PySOpeSoldadura::where('id_ot', $class->id_ot)->where('id_proceso', "Operacion_Equipo_1_operacion_" . $class->nombre . "_" . $class->id_ot)->first();
-            $process2 = PySOpeSoldadura::where('id_ot', $class->id_ot)->where('id_proceso', "Operacion_Equipo_2_operacion_" . $class->nombre . "_" . $class->id_ot)->first();
+        $processNamesArray = $processName == "Soldadura y Soldadura PTA" ? ["Soldadura", "Soldadura PTA"] : [$processName];
 
-            if ($process1 && $process2) {
-                //Calcular las piezas totales
-                $pieces1 = PySOpeSoldadura_pza::where('estado', 2)->where('id_proceso', $process1->id)->get();
-                $pieces2 = PySOpeSoldadura_pza::where('estado', 2)->where('id_proceso', $process2->id)->get();
-
-                $piecesProcess = [$pieces1, $pieces2];
-                $totalPieces = array();
-                foreach ($piecesProcess as $index => $pieceProcess) {
-                    $totalPieces["operacion_" . ($index + 1)] = array();
-                    $storedSets = array();
-                    foreach ($pieceProcess as $piece) {
-                        if (!in_array($piece->n_juego, $storedSets)) {
-                            array_push($storedSets, $piece->n_juego);
-                            $piecesFounded = PySOpeSoldadura_pza::where('estado', 2)->where('id_proceso', $piece->id_proceso)->where('n_juego', $piece->n_juego)->get();
-                            if (count($piecesFounded) > 1) {
-                                array_push($totalPieces["operacion_" . ($index + 1)], $piece->n_juego);
-                            }
-                        }
-                    }
-                }
-
-                //Obtener piezas Totales en las dos operaciones
-                $counterTotalPieces = 0;
-                foreach ($totalPieces["operacion_2"] as $piece2) {
-                    if (in_array($piece2, $totalPieces["operacion_1"])) {
-                        $counterTotalPieces++;
-                    } else {
-                        $counterTotalPieces += .5;
-                    }
-                }
-
-                //Obtener las piezas buenas
-                if ($process1) { //Si existe el proceso
-                    $goodPieces = array();
-                    foreach ($totalPieces as $index => $piecesOperation) {
-                        $storedSets = array();
-                        $process = $index == "operacion_1" ? $process1 : $process2;
-                        $goodPieces["operacion_" . ($index + 1)] = array();
-                        foreach ($piecesOperation as $piece) {
-                            $piecesFounded = PySOpeSoldadura_pza::where('estado', 2)->where('error', 'Ninguno')->where('id_proceso', $process->id)->where('n_juego', $piece)->get();
-                            if (count($piecesFounded) > 1) {
-                                array_push($goodPieces["operacion_" . ($index + 1)], $piece);
-                            }
-                        }
-                    }
-                    $counterGoodPieces = 0;
-                    //Obtener piezas buenas en las dos operaciones
-                    foreach ($goodPieces["operacion_2"] as $goodSet2) {
-                        if (in_array($goodSet2, $goodPieces["operacion_1"])) {
-                            $counterGoodPieces++;
-                        }
-                    }
-
-
-                    //Obtener las piezas malas en cada operación
-                    $badPieces = array();
-                    foreach ($totalPieces as $index => $piecesOperation) {
-                        $storedSets = array();
-                        $process = $index == "operacion_1" ? $process1 : $process2;
-                        $badPieces["operacion_" . ($index + 1)] = array();
-                        foreach ($piecesOperation as $piece) {
-                            $piecesFounded = PySOpeSoldadura_pza::where('estado', 2)->where('correcto', 0)->where('id_proceso', $process->id)->where('n_juego', $piece)->get();
-                            if (count($piecesFounded) > 1) {
-                                array_push($badPieces["operacion_" . ($index + 1)], $piece->n_juego);
-                                foreach ($piecesFounded as $badPiece) {
-                                    if ($badPiece->error != "Ninguno") {
-                                        $pieceFounded = Pieza::where('n_pieza', $badPiece->n_juego)->where('proceso', $processName)->where('id_clase', $class->id)->first();
-                                        array_push($piecesBadData, $this->getBadPiecesData($pieceFounded, null, $index + 1));
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    $counterBadPieces = 0;
-                    //Obtener piezas malas en las dos operaciones
-                    $badSets = array();
-                    if (count($badPieces["operacion_2"]) > count($badPieces["operacion_1"])) {
-                        foreach ($badPieces["operacion_2"] as $badPiece2) {
-                            if (!in_array($badPiece2, $badPieces["operacion_1"])) {
-                                $counterBadPieces++;
-                                array_push($badSets, $badPiece2);
-                            }
-                        }
-                    } else {
-                        foreach ($badPieces["operacion_1"] as $badPiece1) {
-                            if (!in_array($badPiece1, $badPieces["operacion_2"])) {
-                                $counterBadPieces++;
-                                array_push($badSets, $badPiece1);
-                            }
-                        }
-                    }
-
-                    //Obtener toda la informacion de todas las piezas malas encontradas
-                    foreach ($badPieces["operacion_2"] as $piece) {
-                        if (!in_array($piece, $badSets)) {
-                            $counterBadPieces++;
-                        }
-                    }
-                    foreach ($badPieces["operacion_1"] as $piece) {
-                        if (!in_array($piece, $badSets)) {
-                            $counterBadPieces++;
-                        }
-                    }
-                } else {
-                    $counterGoodPieces = 0;
-                    $counterBadPieces = 0;
-                    $counterTotalPieces = 0;
-                }
-            } else {
-                $counterGoodPieces = 0;
-                $counterBadPieces = 0;
-                $counterTotalPieces = 0;
-            }
-            $piecesArray["total"] = $counterTotalPieces;
-            $piecesArray["good"] = $counterGoodPieces;
-            $piecesArray["bad"] = $counterBadPieces;
-        } else {
+        foreach ($processNamesArray as $processName) {
             $pieces = Pieza::where("proceso", $processName)->where('id_clase', $class->id)->get();
-
             if (count($pieces) > 0) {
                 //Recorrer cada una de las piezas
                 foreach ($pieces as $piece) {
@@ -491,7 +455,6 @@ class WOController extends Controller
                         }
                     } else {
                         $pares = false;
-                        $piecesArray["total"] = count($pieces);
                         //Verificar si el juego esta rechazado o liberado
                         if ($piece->liberacion == 0) {
                             //Verificar si las pieza son correctas o no
@@ -514,24 +477,21 @@ class WOController extends Controller
                         }
                     }
                 }
-                if (isset($pares)) {
-                    if ($pares) {
-                        $piecesArray["total"] = count($pieces) / 2;
-                        $piecesArray["good"] = count($piecesArray["good"]) / 2;
-                        $piecesArray["bad"] = count($piecesArray["bad"]) / 2;
-                    } else {
-                        $piecesArray["total"] = count($pieces);
-                        $piecesArray["good"] = count($piecesArray["good"]);
-                        $piecesArray["bad"] = count($piecesArray["bad"]);
-                    }
-                }
-            } else {
-                $piecesArray = [
-                    "total" => 0,
-                    "good" => 0,
-                    "bad" => 0
-                ];
             }
+        }
+        if (isset($pares)) {
+            if ($pares) {
+                $piecesArray["good"] = count($piecesArray["good"]) != 0 ? count($piecesArray["good"]) / 2 : 0;
+                $piecesArray["bad"] = count($piecesArray["bad"]) != 0 ? count($piecesArray["bad"]) / 2 : 0;
+            } else {
+                $piecesArray["good"] = count($piecesArray["good"]);
+                $piecesArray["bad"] = count($piecesArray["bad"]);
+            }
+            $piecesArray["total"] = $piecesArray["good"] + $piecesArray["bad"];
+        } else {
+            $piecesArray["good"] = 0;
+            $piecesArray["bad"] = 0;
+            $piecesArray["total"] = 0;
         }
         return $piecesArray;
     }

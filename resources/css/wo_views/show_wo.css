@@ -5,24 +5,25 @@
     transform: translate(-50%, -50%);
     display: flex;
     width: 90vw;
-    height: 80vh;
+    height: calc(80vh - 5rem);
     justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
 }
 .wrapper {
-    border-radius: 10px;
-    padding: 1em 5em;
+    height: 100%;
+    width: 50%;
+    padding: 1em 3em;
     overflow-y: auto;
     overflow-x: hidden;
     background: #ffffff;
-}
-.lg-saavedra {
-    width: 300px;
-    display: flex;
-    margin: auto;
+    box-shadow: 0px 0px 8px #000000;
+    scrollbar-width: thin;
+    scrollbar-color: #033966 #f1f1f1;
 }
 h3 {
     text-align: center;
-    font-size: 1.8em;
+    font-size: 1.5em;
     color: #404040;
     padding: 22px;
     font-weight: 100;
@@ -39,7 +40,7 @@ h3 {
 .form-control {
     border-radius: 5px;
     border: 1px solid #00000033;
-    font-size: 1.3em;
+    font-size: 1em;
     padding: 0.7em;
     transition: 0.2s;
     background: #03396610;
@@ -51,7 +52,7 @@ h3 {
 label {
     color: #033966;
     font-weight: bold;
-    font-size: 1.3em;
+    font-size: 1em;
 }
 .div-rows-hidden {
     display: none;
@@ -65,6 +66,8 @@ label {
     background-color: #00000033;
     overflow-y: auto;
     padding: 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: #033966 #f1f1f1;
 }
 .table {
     width: 100%;
@@ -76,7 +79,7 @@ label {
     width: 150px;
     border: 2px solid #000000;
     background-color: #fffa;
-    font-size: 1.3em;
+    font-size: 1em;
 }
 .btnClass {
     width: 100%;
@@ -85,17 +88,17 @@ label {
     justify-content: space-between;
     border: none;
     transition: 0.2s;
-    font-size: 0.9rem;
+    font-size: 1em;
 }
 .btnClass:hover {
     background-color: #033966 !important;
-    color: #ffffff;
+    color: #ffffff !important;
     transition: 0.2s;
 }
 .div-td {
     width: 100%;
     padding: 5px 0;
-    font-size: 1.5em;
+    font-weight: 700;
 }
 
 /*Estilos para los botones de la Orden de trabajo*/
@@ -107,18 +110,10 @@ label {
 
 .btn-deleteWO {
     background-color: #9c0303;
-    padding: 10px;
 }
 
 .btn-pdfWO {
     background-color: #033966;
-    padding: 10px;
-}
-.btn-pdfWO:hover {
-    transform: scale(1.1);
-    background-color: #0a8504;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 2.2);
-    transition: 0.2s;
 }
 
 /*Estilos para el checbox de agregar una clase*/
@@ -128,7 +123,7 @@ label {
 }
 
 .checkbox-add-class {
-    transform: scale(2);
+    transform: scale(1.5);
     margin: 0 1.5em;
     border: 4px solid #000000;
 }
@@ -141,67 +136,75 @@ label {
 .div-boxes {
     position: relative;
     display: none;
-    background-color: #fff;
     flex-direction: column;
-    margin-left: 4em;
-    border-radius: 10px;
+    background-color: #fff;
+    margin-left: 1em;
     padding: 1em;
-    justify-content: center;
+    justify-content: flex-start;
+    
+    max-height: 72vh;
+    overflow: auto;
+    box-shadow: 0px 0px 8px #000000;
+    scrollbar-width: thin;
+    scrollbar-color: #033966 #f1f1f1;
 }
 .div-boxes h3 {
-    position: absolute;
-    top: 0;
-    width: 90%;
+    top: 20px;
 }
 .sections {
+    width: 100%;
     display: flex;
     flex-direction: row;
-    padding: 0 5em;
+    align-items: center;
+    justify-content: center;
 }
 
 .section1 {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 1em;
+    padding: 0.5em;
 }
 
 .section2 {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 1em;
+    padding: 0.5em;
 }
 
 /* Estilo para la casilla de verificación */
 .checkbox-container {
     display: flex;
-    padding: 1.5em 0;
+    padding: 1em 0;
 }
 
 .checkbox,
 .checkbox-soldaduras,
 .checkboxAll {
-    transform: scale(2);
+    transform: scale(1.5);
     margin: 0 1em;
 }
 
 .div-checkboxAll {
-    position: absolute;
     display: flex;
-    right: 0;
-    bottom: 0;
-    margin: 3em;
+    align-self: flex-end;
+    margin: 1em;
 }
 
+.label-machine {
+    font-weight: 100;
+    padding: 5px;
+}
 .input-machine,
 .input-machine-soldaduras {
-    width: 2.2em;
+    width: 40px;
+    padding: 5px;
     margin-right: 10px;
     border-radius: 5px;
     border: 1px solid #000000;
     text-align: center;
-    font-size: 1.5em;
+    font-size: 1em;
 }
 
 /* Estilos para los botones accion de las clases*/
@@ -230,14 +233,9 @@ label {
 }
 .btn-deleteClass {
     background-color: #9c0303;
-    padding: 10px;
 }
 .btn-editClass {
     background-color: #033966;
-    padding: 10px 20px;
-}
-.btn-editClass:hover {
-    background-color: #0a8504;
 }
 .action-btns {
     color: white;
@@ -246,8 +244,9 @@ label {
     transition: 0.2s;
     text-align: center;
     margin: 0 10px;
+    padding: 5px;
     border: none;
-    font-size: 1.2em;
+    font-size: 1em;
 }
 .action-btns:hover {
     transform: scale(1.1);
@@ -343,7 +342,8 @@ label {
         z-index: 1;
         flex-direction: column;
         align-items: center;
-        background-color: white;
+        background-color: #fff;
+        box-shadow: 0 2px 8px #000000;
     }
 
     .lg-saavedra {
@@ -610,26 +610,25 @@ label {
         border: none;
         transition: 0.2s;
     }
-    .div-delete{
+    .div-delete {
         position: fixed;
         top: 0;
         left: 0;
         width: 80%;
         height: 30%;
         margin-top: 60%;
-        margin-left:10%;
+        margin-left: 10%;
         background-color: #ffffff;
         z-index: 1000;
     }
-    .div-opacity{
+    .div-opacity {
         background: none;
     }
-    .img-cerrar{
+    .img-cerrar {
         margin-left: 500%;
     }
     .btn-cerrar:hover {
-    all: unset;
-    cursor: default;
-}
-
+        all: unset;
+        cursor: default;
+    }
 }

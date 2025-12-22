@@ -41,6 +41,7 @@ use App\Models\EmbudoCM_cnominal;
 use App\Models\EmbudoCM_pza;
 use App\Models\EmbudoCM_tolerancias;
 use App\Models\Metas;
+use App\Models\Moldura;
 use App\Models\OffSet;
 use App\Models\OffSet_cnominal;
 use App\Models\OffSet_pza;
@@ -96,24 +97,7 @@ class PzasGeneralesController extends Controller
     }
     public function showPiecesReport_view()
     {
-        $dataWO = $this->getAllWorkOrders();
-        return view('pieces_views.piecesReport.piecesReport_view', compact('dataWO'));
-    }
-    public function getAllWorkOrders()
-    {
-        $workOrders = Orden_trabajo::all();
-        $array = array();
-        if (count($workOrders) > 0) {
-            $counter = 0;
-            foreach ($workOrders as $workOrder) {
-                $classes = Clase::where('id_ot', $workOrder->id)->get();
-                if (count($classes) > 0) {
-                    $this->getDataWO($workOrder, $counter, $classes, $array);
-                    $counter++;
-                }
-            }
-        }
-        return $array;
+        return $this->getPiecesRequest(new Request());
     }
     public function getDataWO($workOrder, $index, $classes, &$array)
     {
@@ -128,85 +112,106 @@ class PzasGeneralesController extends Controller
             $array[$index][1][$indexClass][1] = $class->nombre . " " . $class->tamanio;
         }
     }
-    public function search($datosPiezas, $profile = null)
+    public function search($piecesData, $profile = null)
     {
-        $array = array();
-        $infoPiezas = array();
-        $workOrder = Orden_trabajo::find($datosPiezas["workOrder"]);
-        $class = Clase::find($datosPiezas["class"]);
-        $operadores = $this->getOperadores($workOrder->id);
-        $maquina = Pieza::where('id_ot', $workOrder->id)->distinct('maquina')->pluck('maquina');
-        $proceso = $this->procesosClase($class);
-        $piezas = $this->buscarPiezas($workOrder, $class, $datosPiezas["operador"], $datosPiezas["maquina"], $datosPiezas["proceso"], $datosPiezas["error"], $datosPiezas["fecha"], $array);
-        $error = ['Ninguno', 'Maquinado', 'Fundicion'];
-        $this->saveInfoPzas($infoPiezas, $piezas, $class->nombre);
+        $selectedItems = array();
+        $infoPieces = array();
+        $filtersData = $this->getFiltersInfo();
+        $pieces = $this->buscarPiezas($piecesData, $selectedItems);
+        $pieces = $pieces == null ? array() : $pieces;
+        $this->saveInfoPzas($infoPieces, $pieces);
 
-        if ($datosPiezas["action"] != 'pdf' || $datosPiezas["action"] == null) {
+        if ($piecesData["action"] != 'pdf' || $piecesData["action"] == null) {
             if ($profile == 'quality') {
-                return [true, $piezas, $workOrder, $class, $operadores, $maquina, $array, $proceso, $error, $infoPiezas];
+                return [true, $pieces, $piecesData, $infoPieces, $selectedItems, $filtersData];
             }
-            return view('pieces_views.piecesReport.adminPieces', compact('piezas', 'workOrder', 'class', 'operadores', 'maquina', 'array', 'proceso', 'error', 'infoPiezas'));
+            return view('pieces_views.piecesReport.adminPieces', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
         } else {
             if ($profile == 'quality') {
-                return [false, $piezas, $workOrder, $class, $operadores, $maquina, $array, $proceso, $error];
+                return [false, $pieces, $piecesData, $infoPieces, $selectedItems, $filtersData];
             }
-            $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('piezas', 'workOrder', 'class', 'operadores', 'maquina', 'array', 'proceso', 'error', 'profile'));
+            $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
             return $pdf->download('Reporte de piezas.pdf');
         }
+    }
+    public function getFiltersInfo()
+    {
+        $filtersData = array(
+            "workOrder" => $this->objectToArrayFromDB(Orden_trabajo::all(), "workOrder"),
+            "class" => ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo"],
+            "operator" => $this->objectToArrayFromDB(User::all(), "operator"),
+            "machine" => [1, 2, 3, 4, 5, 6, 7],
+            "process" => ["Cepillado", "Desbaste Exterior", "Revision Laterales", "Primera Operacion", "Barreno Maniobra", "Segunda Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado", "Acabado Bombillo", "Acabado Molde", "Barreno Profundidad", "Cavidades", "Copiado", "Off Set", "Palomas", "Rebajes", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion", "Embudo CM"],
+            "error" => ["Ninguno", "Maquinado", "Fundicion"],
+        );
+        return $filtersData;
+    }
+    public function objectToArrayFromDB($object, $param)
+    {
+        $array = array();
+        foreach ($object as $item) {
+            if (($param == "operator" && $item->perfil == 2)) {
+                array_push($array, $item);
+            } else if ($param == "workOrder") {
+                $molding = Moldura::where('id', $item->id_moldura)->first();
+                $text = $item->id . " - " . $molding->nombre;
+                array_push($array, $text);
+            }
+        }
+        return $array;
     }
     public function getPiecesRequest(Request $request)
     {
         $datosPiezas = array(
             "workOrder" => $request->workOrder,
             "class" => $request->class,
-            "operador" => $request->operador,
-            "maquina" => $request->maquina,
-            "proceso" => $request->proceso,
+            "operator" => $request->operator,
+            "machine" => $request->machine,
+            "process" => $request->process,
             "error" => $request->error,
-            "fecha" => $request->fecha,
+            "dateFrom" => $request->dateFrom,
+            "dateTo" => $request->dateTo,
             "action" => $request->input("action"),
         );
         return $this->search($datosPiezas, 'admin');
     }
-    public function buscarPiezas($ot, $clase, $operador, $maquina, $proceso, $error, $fecha, &$itemElegidos)
+    public function buscarPiezas($piecesData, &$itemElegidos)
     {
         //Busca las piezas que coincidan con los parametros de búsqueda
-        $array = array();
-        if ($ot != null) {
-            $array = Pieza::where('id_ot', $ot->id)->where('id_clase', $clase->id)->get();
-            $array = $this->saveInArray($array);
-            if (($operador != "todos" && isset($operador)) && $array != "[]") {
-                $array = $this->buscarElemento($array, 2, $operador);
-                $itemElegidos[0] = $operador;
-            } else {
-                $itemElegidos[0] = "Todos";
+        $array = Pieza::all();
+        $array = $this->saveInArray($array);
+        if (count($array) > 0) {
+            $positionsArray = array("workOrder" => 0, "class" => "className",  "operator" => 2, "machine" => 3, "process" => 4, "error" => 5, "dateFrom" => 6, "dateTo" => 6);
+            foreach ($piecesData as $key => $value) {
+                $dateField = false;
+                if ($key != "action") {
+                    if ($value !== "Todos" && isset($piecesData[$key])) {
+                        $itemElegidos[$key] = $piecesData[$key];
+                        if ($key == "operator") {
+                            $itemElegidos[$key] = User::where('matricula', $piecesData[$key])->first();
+                            $piecesData[$key] = User::where('matricula', $piecesData[$key])->first()->nombre . " " . User::where('matricula', $piecesData[$key])->first()->a_paterno . " " . User::where('matricula', $piecesData[$key])->first()->a_materno;
+                        } else if ($key == "workOrder") {
+                            $workOrderId = explode(" - ", $piecesData[$key])[0];
+                            $workOrder = Orden_trabajo::find($workOrderId);
+                            $molding = Moldura::where('id', $workOrder->id_moldura)->first();
+                            $itemElegidos[$key] = $workOrder->id . " - " . $molding->nombre;
+                            $piecesData[$key] = $workOrder->id;
+                        }
+                        if (($key == "dateFrom" || $key == "dateTo") && !$dateField) {
+                            $dateField = true;
+                            $dateFrom = $piecesData["dateFrom"] ? $piecesData["dateFrom"] . " 00:00:00" : null;
+                            $dateTo = $piecesData["dateTo"] ? $piecesData["dateTo"] . " 23:59:59" : null;
+                            $array = $this->buscarElemento($array, $positionsArray[$key], [$dateFrom, $dateTo]);
+                        } else {
+                            $array = $this->buscarElemento($array, $positionsArray[$key], $piecesData[$key]);
+                        }
+                    } else {
+                        $itemElegidos[$key] = "Todos";
+                    }
+                }
             }
-            if (($maquina != "todos" && isset($maquina)) && $array != "[]") {
-                $array = $this->buscarElemento($array, 3, $maquina);
-                $itemElegidos[1] = $maquina;
-            } else {
-                $itemElegidos[1] = "Todos";
-            }
-            if (($proceso != "todos" && isset($proceso)) && $array != "[]") {
-                $array = $this->buscarElemento($array, 4, $proceso);
-                $itemElegidos[2] = $proceso;
-            } else {
-                $itemElegidos[2] = "Todos";
-            }
-            if (($error != "todos" && isset($error)) && $array != "[]") {
-                $array = $this->buscarElemento($array, 5, $error);
-                $itemElegidos[3] = $error;
-            } else {
-                $itemElegidos[3] = "Todos";
-            }
-            if (($fecha != "todos" && isset($fecha)) && $array != "[]") {
-                $array = $this->buscarElemento($array, 6, $fecha);
-                $itemElegidos[4] = $fecha;
-            } else {
-                $itemElegidos[4] = "Todos";
-            }
+            return $array;
         }
-        return $array;
     }
     //Obtener los procesos por los que pasa una clase
     public function procesosClase($clase)
@@ -233,36 +238,66 @@ class PzasGeneralesController extends Controller
             if (is_numeric($arrayP[$i][$posicion]) && $posicion == 5) {
                 $elementoArray = $arrayP[$i][$posicion + 1];
             }
-            if (strpos($elementoArray, $elemento) !== false) {
-                if ($elemento == "Soldadura") {
-                    if ($arrayP[$i][$posicion] === $elemento) {
+
+            switch (true) {
+                case is_array($elemento): // Si se estan filtrando por fechas
+                    $fechaDesde = $elemento[0];
+                    $fechaHasta = $elemento[1];
+
+                    $cumpleDesde = is_null($fechaDesde) || $elementoArray >= $fechaDesde;
+                    $cumpleHasta = is_null($fechaHasta) || $elementoArray <= $fechaHasta;
+
+                    if ($cumpleDesde && $cumpleHasta) {
+                        if ($elemento == "Soldadura") {
+                            if ($arrayP[$i][$posicion] === $elemento) {
+                                array_push($array, $arrayP[$i]);
+                            }
+                        } else {
+                            array_push($array, $arrayP[$i]);
+                        }
+                    }
+                    break;
+                case strpos($elementoArray, $elemento) !== false: // Si el campo de la pieza coincide con el elemento filtrado
+                    if ($elemento == "Soldadura") {
+                        if ($arrayP[$i][$posicion] === $elemento) {
+                            array_push($array, $arrayP[$i]);
+                        }
+                    } else {
                         array_push($array, $arrayP[$i]);
                     }
-                } else {
-                    array_push($array, $arrayP[$i]);
-                }
+                    break;
             }
         }
         return $array;
     }
     public function saveInArray($arrayP)
     {
+        //Obtener las clases ya finalizadas
+        $finishedClasess = Clase::where('finalizada', '!=', 0)->get();
+        $arrayFClasses = array();
+        foreach ($finishedClasess as $finishedClass) {
+            array_push($arrayFClasses, $finishedClass->id);
+        }
+        
         $array = array();
         $juegosGuardados = array();
         $contador = 0;
         $mitad = false;
         foreach ($arrayP as $item) {
+            if(in_array($item->id_clase, $arrayFClasses)){
+                continue;
+            }
             $band = false;
+            $numJuego = $this->getPiezaNumber($item->n_pieza);
             //Identificar si la pieza es mitad o juego
             if (substr($item->n_pieza, -1) != "J") { //Si la pieza es mitad
                 $mitad = true;
                 //Si la pieza es mitad, buscar si ya se guardo el juego
-                $numJuego = $this->getPiezaNumber($item->n_pieza);
-                if (!in_array($numJuego . "J" . "_" . $item->proceso, $juegosGuardados)) {
+                if (!in_array($numJuego . "J" . "_" . $item->proceso . "_" . $item->id_clase . "_" . $item->id_ot, $juegosGuardados)) {
                     $band = true;
                     //Guardar el numero de juego
                     $array[$contador][1] = $numJuego . "J";
-                    array_push($juegosGuardados, $array[$contador][1] . "_" . $item->proceso);
+                    array_push($juegosGuardados, $array[$contador][1] . "_" . $item->proceso . "_" . $item->id_clase . "_" . $item->id_ot);
 
                     //Buscar las mitades del juego para los demás datos
                     $pzas[0] = Pieza::where('id_clase', $item->id_clase)->where('proceso', $item->proceso)->where('n_pieza', $numJuego . 'H')->first();
@@ -332,11 +367,7 @@ class PzasGeneralesController extends Controller
                 $mitad = false;
                 $array[$contador][1] = $item->n_pieza;
                 $array[$contador][2] = $this->getNameOperador($item->id_operador);
-                if ($item->proceso == "Operacion Equipo_1" || $item->proceso == "Operacion Equipo_2") {
-                    $array[$contador][6] = $item->error;
-                } else {
-                    $array[$contador][5] = $item->error;
-                }
+                $array[$contador][5] = $item->error;
             }
 
             //Almacenar los demas datos
@@ -344,34 +375,41 @@ class PzasGeneralesController extends Controller
             if ($band) {
                 $array[$contador][0] = $item->id_ot;
                 $array[$contador][3] = $item->maquina;
-                if ($item->proceso == "Operacion Equipo_1" || $item->proceso == "Operacion Equipo_2") {
-                    $array[$contador][4] = substr($item->proceso, 0, -2);
-                    $array[$contador][5] = substr($item->proceso, -1);
-                    $array[$contador][7] = $item->created_at;
-                    if ($item->fecha_liberacion != null) {
-                        $array[$contador][8] = $item->fecha_liberacion;
-                    } else {
-                        $array[$contador][8] = "No liberado";
+                $array[$contador]["id_clase"] = $item->id_clase;
+                $className = Clase::find($item->id_clase);
+                $array[$contador]["className"] = $className ? $className->nombre : null;
+
+                //Obtener las observaciones de la pieza por parte del operador
+                $array[$contador]["observacion_liberacion"] = $item->observacion_liberacion;
+
+                //Obtener las observaciones de la pieza por parte del operador
+                $array[$contador]["observations"] = "";
+                $controller = new ProcessProductionController();
+                $id_process = str_replace(" ", "_", $item->proceso) . "_" . $className->nombre . "_" . $item->id_ot;
+                $processString = str_contains($item->proceso, "Operacion Equipo") ? "Operacion Equipo" : $item->proceso;
+                $id_procesDB = $controller->get_ModelProcess($processString)::where('id_proceso', $id_process)->first()->id;
+                $pieces = $controller->get_ModelProcessPieces($processString)::where('id_proceso', $id_procesDB)->where('n_juego', $numJuego . "J")->get();
+                foreach ($pieces as $piece) {
+                    if ($piece == $pieces->last() && $array[$contador]["observations"] != "" && $piece->observaciones != "") {
+                        $array[$contador]["observations"] .= " / ";
                     }
-                    if ($user_liberacion) {
-                        $array[$contador][9] = $user_liberacion->nombre . " " . $user_liberacion->a_paterno . " " . $user_liberacion->a_materno;
-                    } else {
-                        $array[$contador][9] = null;
-                    }
-                } else {
-                    $array[$contador][4] = $item->proceso;
-                    $array[$contador][6] = $item->created_at;
-                    if ($item->fecha_liberacion != null) {
-                        $array[$contador][7] = $item->fecha_liberacion;
-                    } else {
-                        $array[$contador][7] = "No liberado";
-                    }
-                    if ($user_liberacion) {
-                        $array[$contador][8] = $user_liberacion->nombre . " " . $user_liberacion->a_paterno . " " . $user_liberacion->a_materno;
-                    } else {
-                        $array[$contador][8] = null;
-                    }
+                    $array[$contador]["observations"] .= $piece->observaciones;
                 }
+
+                $array[$contador][4] = $item->proceso;
+                $date = new \DateTime($item->created_at);
+                $array[$contador][6] = $date->format('Y-m-d H:i:s');
+                if ($item->fecha_liberacion != null) {
+                    $array[$contador][7] = $item->fecha_liberacion;
+                } else {
+                    $array[$contador][7] = "No liberado";
+                }
+                if ($user_liberacion) {
+                    $array[$contador][8] = $user_liberacion->nombre . " " . $user_liberacion->a_paterno . " " . $user_liberacion->a_materno;
+                } else {
+                    $array[$contador][8] = null;
+                }
+
                 //Almacenar valor de liberacion
                 array_push($array[$contador], $item->liberacion);
                 //Almacenar valor si la pieza es juego o no
@@ -380,21 +418,24 @@ class PzasGeneralesController extends Controller
                 } else {
                     array_push($array[$contador], "juego");
                 }
-
                 $contador++;
             }
         }
         return $array;
     }
-    public function saveInfoPzas(&$infoPiezas, $piezas, $clase = null)
+    public function saveInfoPzas(&$infoPiezas, $piezas)
     {
         $contador = 0;
+        if ($piezas == null || count($piezas) == 0) {
+            return;
+        }
         foreach ($piezas as $pieza) {
-            if($clase == null){
-                $clase = Clase::find($pieza[3]);
-                $clase = $clase->nombre;
-            }
-            $clase = $clase == null ?  : $clase;
+            //Buscar la clase de la pieza
+            $clase = Clase::find($pieza["id_clase"]);
+            $clase = $clase->nombre;
+
+            $clase = $clase == null ?: $clase;
+
             switch ($pieza[4]) {
                 case 'Cepillado':
                     $id_proceso = 'Cepillado_' . $clase . "_" . $pieza[0];
@@ -491,10 +532,15 @@ class PzasGeneralesController extends Controller
                     $id_proceso = Rebajes::where('id_proceso', $id_proceso)->first();
                     $infoPiezas[$contador][1] = 'Rebajes';
                     break;
-                case 'Operacion Equipo':
-                    $id_proceso = 'Operacion_Equipo_' . $pieza[5] . "_" . $clase . "_" . $pieza[0];
+                case 'Operacion Equipo_1 operacion':
+                    $id_proceso = 'Operacion_Equipo_1_operacion' . "_" . $clase . "_" . $pieza[0];
                     $id_proceso = PySOpeSoldadura::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Operacion Equipo_' . $pieza[5];
+                    $infoPiezas[$contador][1] = "Operacion Equipo_1 operacion";
+                    break;
+                case 'Operacion Equipo_2 operacion':
+                    $id_proceso = 'Operacion_Equipo_2_operacion' . "_" . $clase . "_" . $pieza[0];
+                    $id_proceso = PySOpeSoldadura::where('id_proceso', $id_proceso)->first();
+                    $infoPiezas[$contador][1] = "Operacion Equipo_2 operacion";
                     break;
                 case 'Embudo CM':
                     $id_proceso = 'Embudo_CM_' . $clase . "_" . $pieza[0];
@@ -745,7 +791,7 @@ class PzasGeneralesController extends Controller
                 $tolerance = Rebajes_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $process = 'Rebajes';
                 break;
-            case 'Operacion Equipo_1':
+            case 'Operacion Equipo_1 operacion':
                 //Obtener informacion del juego elegido
                 $pieceInfo = array();
                 $piece = explode(",", $pieces);
@@ -756,9 +802,9 @@ class PzasGeneralesController extends Controller
                 $id_process = PySOpeSoldadura::find($pieceInfo[0]->id_proceso);
                 $cNominal = PySOpeSoldadura_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $tolerance = PySOpeSoldadura_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $process = 'Operacion Equipo';
+                $process = 'Operacion Equipo_1 operacion';
                 break;
-            case 'Operacion Equipo_2':
+            case 'Operacion Equipo_2 operacion':
                 //Obtener informacion del juego elegido
                 $pieceInfo = array();
                 $piece = explode(",", $pieces);
@@ -769,7 +815,7 @@ class PzasGeneralesController extends Controller
                 $id_process = PySOpeSoldadura::find($pieceInfo[0]->id_proceso);
                 $cNominal = PySOpeSoldadura_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $tolerance = PySOpeSoldadura_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $process = 'Operacion Equipo';
+                $process = 'Operacion Equipo_2 operacion';
                 break;
             case 'Embudo CM':
                 //Obtener informacion de la pieza elegida
@@ -789,11 +835,7 @@ class PzasGeneralesController extends Controller
         }
         $ot = $meta->id_ot;
         $clase = Clase::find($meta->id_clase);
-        if ($clase->nombre == "Obturador") {
-            $clase = $clase->nombre . " - seccion: " . $clase->seccion;
-        } else {
-            $clase = $clase->nombre . " " . $clase->tamanio;
-        }
+        $clase = $clase->nombre . " " . $clase->tamanio;
         if ($process != 'Asentado') {
             $piecesInfo = array();
             //Si el juego es mitad

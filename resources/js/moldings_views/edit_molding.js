@@ -135,7 +135,7 @@ function createTable(moldings, form) {
                     )
                 ) {
                     let moldingId = molding.id;
-                    window.location.href = `/deleteMolding/${moldingId}`;
+                    window.location.href = window.baseUrl + `/deleteMolding/${moldingId}`;
                 }
             };
             tdActions.appendChild(deleteButton);
@@ -158,5 +158,8 @@ function createTable(moldings, form) {
 
 document.addEventListener("DOMContentLoaded", () => {
     let form = document.querySelector("form");
-    form.appendChild(createTable(moldings, form));
+    let div_table_container = document.createElement("div");
+    div_table_container.classList.add("table-container");
+    div_table_container.appendChild(createTable(moldings, form));
+    form.appendChild(div_table_container);
 });

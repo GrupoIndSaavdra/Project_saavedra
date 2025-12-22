@@ -27,7 +27,7 @@ return new class extends Migration
                 $table->decimal('altura_ceja', 8, 3)->nullable();
                 $table->decimal('altura_sufridera', 8, 3)->nullable();
                 $table->char('gauge_ceja')->nullable();
-                $table->decimal('gauge_corona')->nullable();
+                $table->decimal('gauge_corona', 8, 3)->nullable();
                 $table->char('gauge_llanta')->nullable();
                 $table->decimal('altura_total', 8, 3)->nullable();
                 $table->decimal('diametro_boca', 8, 3)->nullable();
@@ -43,6 +43,8 @@ return new class extends Migration
                 $table->timestamps();
                 $table->foreign('id_meta')->references('id')->on('metas');
                 $table->foreign('id_proceso')->references('id')->on('acabadoBombillo');
+
+                $table->unique('id_pza');
             });
         }
     }

@@ -4,8 +4,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    max-width: 900px;
-    width: 90%;
+    max-width: 800px;
     box-sizing: border-box;
     padding: 1.2em;
     background: #ffffff;
@@ -16,12 +15,12 @@
     box-shadow: 5px 10px 30px #000000b0;
 }
 .lg-saavedra {
-    width: 20em;
+    width: 200px;
     margin: 1em 0;
 }
 h1 {
-    margin: 0.7em;
-    font-size: 1.8em;
+    margin: 1em 4em;
+    font-size: 1.5em;
     font-weight: 100;
     color: #404040;
 }
@@ -47,7 +46,7 @@ h1 {
     padding: 0.8em 1em;
     border: 1px solid #00000033;
     text-align: center;
-    font-size: 1.3em;
+    font-size: 1em;
     margin: 0.5em;
     letter-spacing: 1px;
     background: #033966;
@@ -57,7 +56,7 @@ h1 {
     border: 1px solid #033966;
 }
 .title {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #033966;
 }
@@ -87,8 +86,7 @@ h1 {
     position: absolute;
     border-collapse: collapse;
     border: 2px solid #032c00cc;
-    background: #fff;
-    width: max-content;    
+    background: #fff;   
     margin: 10px;
     width: 200%;
     box-shadow: 0 0 10px rgba(0, 0, 0);
@@ -97,12 +95,10 @@ h1 {
 .table-title {
     border: 3px solid #000;
     background-color: #033966;
-    padding: 10px 0;
     text-align: center;
     color: #fff;
-    font-size: 1.2em;
+    padding: 10px;
 }
-
 .table input {
     color: #000000;
     text-align: center;
@@ -113,7 +109,6 @@ h1 {
 }
 .table td{
     text-align: center;
-    font-size: 1.3em;
     font-weight: 700;
     border: 3px solid #033966;
 }
@@ -134,14 +129,12 @@ h1 {
     padding: 0.8em 1.5em;
     border: none;
     border-radius: 5px;
-    font-size: 1.2em;
+    font-size: 1em;
     cursor: pointer;
-    transition: 0.3s ease;
+    transition: 0.3s all ease;
 }
 .btn-submit:hover {
-    background: #0a8504;
-    transform: scale(1.05);
-    transition: 0.3s ease;
+    transform: scale(1.1);
 }
 
 /* Estilos de alertas */

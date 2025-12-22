@@ -10,17 +10,19 @@ html, body {
   background-attachment: fixed;
 }
   .cascading-right {
+    width: 500px;
     border-radius: 10px;
     margin-right: -50px;
     margin-top: 30px;
   }
   .w-100 {
-    width: 200px;
-    margin-top: 30px;
+    margin-top: 40px;
+    margin-left: 200px;
+    max-width: 500px;
     box-shadow: 15px 15px 15px rgba(0, 0, 0, 0.3);
   }
   .lg-saavedra{
-    width: 300px;
+    width: 200px;
     margin-bottom: 10%;
   }
   .custom-btn{

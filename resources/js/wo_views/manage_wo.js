@@ -135,7 +135,7 @@ function addWorkOrder(moldings, errorState) {
         col.className = "col-md-6 mb-3";
         let formOutline = document.createElement("div");
         formOutline.className = "form-outline";
-        let label = document.createElement("h4");
+        let label = document.createElement("label");
         label.className = "form-label";
         if (i == 0) {
             //Si es la primera iteracion se crea el select de las molduras
@@ -151,7 +151,12 @@ function addWorkOrder(moldings, errorState) {
                     option.textContent = molding["nombre"];
                     select.appendChild(option);
                 });
+
+                let label = document.createElement("label");
+                label.textContent = "Moldura";
+                label.classList.add("form-label");
                 formOutline.appendChild(select);
+                formOutline.appendChild(label);
             } else {
                 errorState.error = true;
                 let div_alert = document.createElement("div");
@@ -165,14 +170,14 @@ function addWorkOrder(moldings, errorState) {
         } else {
             //Si es la segunda iteracion se crea el input para agregar la orden de trabajo
             if (moldings.length > 0) {
-                label.textContent = "Ingresa la orden de trabajo";
+                label.textContent = "Orden de trabajo";
                 let input = document.createElement("input");
                 input.className = "form-control";
                 input.type = "number";
                 input.name = "workOrderAdded";
-                input.placeholder = "Orden de trabajo";
+                input.required = true;
                 formOutline.appendChild(input);
-                formOutline.prepend(label);
+                formOutline.appendChild(label);
             }
         }
         col.appendChild(formOutline);
