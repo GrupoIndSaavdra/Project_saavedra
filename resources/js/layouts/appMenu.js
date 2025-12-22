@@ -168,7 +168,7 @@ function getRoutes(profile) {
                 },
                 {
                     title: "Usuarios",
-                    routes: [{"CreateUser", "Registrar usuario"}],
+                    routes: [["createUser", "Registrar usuario"]],
                 }
             ];
             break;
