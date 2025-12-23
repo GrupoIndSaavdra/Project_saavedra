@@ -169,6 +169,13 @@ Route::get('/trackingSoldadura', function () {
     return view('trackingSoldadura_views.trackingSoldadura');
 })->name('trackingSoldadura');
 
+//Ruta para registrar las soldaduras
+Route::get('/trackingSoldadura/registrar', function () {
+    return view('trackingSoldadura_views.registrar');
+})->name('registrarSoldadura');
+
+
+
 /* RECIBIR EL FORMULARIO (POST) */
 Route::post('/trackingSoldadura', [TrackingSoldaduraController::class, 'store'])
     ->name('storeTrackingSoldadura');

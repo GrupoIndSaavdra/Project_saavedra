@@ -45,7 +45,7 @@
             </table>
         </form>
         <button class="btn-finishReport">Terminar reporte</button>
-        <label class="warning-pieces">⚠️ IMPORTANTE: Si no encuentras la pieza que necesitas registrar, avisa de inmediato al supervisor, pero continúa trabajando con las demás piezas disponibles mientras se resuelve la situación.</label>
+        <label class="warning-pieces">🔴POR FAVOR SELECCIONA EL NÚMERO DE MÁQUINA QUE SE ENCUENTRA COLOCADO EN TU TORNO O EN EL MUEBLE CORRESPONDIENTE; EN CASO DE NO ENCONTRAR LA PIEZA QUE NECESITAS, NOTIFICA DE INMEDIATO PARA PODER REALIZAR SU RASTREO; TÚ MUEBLE Y COMPUTADORA DEBEN PERMANECER LIMPIOS, Y POR ÚLTIMO NO DESCONECTES LAS COMPUTADORAS❗</label>
     </div>
     <div class="div-table-code">
         <div class="operator-name form-group">

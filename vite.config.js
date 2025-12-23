@@ -69,7 +69,13 @@ export default defineConfig({
 
                 //Soldadura
                 'resources/css/TrackingSoldadura/trackingSoldadura.css',
-                'resources/js/TrackingSoldadura/soldadura.js'
+                'resources/js/TrackingSoldadura/soldadura.js',
+
+                //Registrar soldadura
+                'resources/css/trackingSoldadura/registerSoldadura.css',
+                'resources/js/trackingSoldadura/registerSoldadura.js'
+                
+
             ],
             refresh: true,
         }),

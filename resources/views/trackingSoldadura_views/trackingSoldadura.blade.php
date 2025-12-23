@@ -2,7 +2,8 @@
 
 @section('head')
 <title>Registro de soldadura</title>
-@vite(['resources/css/trackingSoldadura/trackingSoldadura.css', 'resources/js/TrackingSoldadura/soldadura.js'])
+@vite(['resources/css/trackingSoldadura/trackingSoldadura.css', 'resources/js/TrackingSoldadura/registerSoldadura.js'])
+
 @endsection
 
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
@@ -13,7 +14,7 @@
     <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
     <h2>Selecciona tu proceso a seguir</h2>
 
-    <form action="{{ route('storeTrackingSoldadura') }}" method="POST">
+    <form action="#" method="POST">
     @csrf
         @include('layouts.partials.messages')
 
