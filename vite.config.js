@@ -68,8 +68,8 @@ export default defineConfig({
                 'resources/js/viewUsers.js',
 
                 //Soldadura
-                'resources/js/TrackingSoldadura/soldadura.js',
-                'resources/css/trackingSoldadura/trackingSoldadura.css',,
+                'resources/css/TrackingSoldadura/trackingSoldadura.css',
+                'resources/js/TrackingSoldadura/soldadura.js'
             ],
             refresh: true,
         }),

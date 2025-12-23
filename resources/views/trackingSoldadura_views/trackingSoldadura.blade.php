@@ -2,7 +2,7 @@
 
 @section('head')
 <title>Registro de soldadura</title>
-@vite(['resources/css/TrackingSoladura/trackingSoldadura.css', 'resources/js/TrackingSoladura/soldadura.js'])
+@vite(['resources/css/trackingSoldadura/trackingSoldadura.css', 'resources/js/TrackingSoldadura/soldadura.js'])
 @endsection
 
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
@@ -14,13 +14,13 @@
     <h2>Selecciona tu proceso a seguir</h2>
 
     <form action="{{ route('storeTrackingSoldadura') }}" method="POST">
-        @csrf
+    @csrf
         @include('layouts.partials.messages')
 
         <input type="hidden" value="{{ auth()->user()->perfil }}" name="profile" />
 
         <!-- CAMPOS BÁSICOS -->
-        <div class="mb-3">
+        <!-- <div class="mb-3">
             <label class="form-label">Orden de trabajo</label>
             <input type="text" name="orden_trabajo" class="form-control" required>
         </div>
@@ -33,7 +33,7 @@
         <div class="mb-3">
             <label class="form-label">Observaciones</label>
             <textarea name="observaciones" class="form-control"></textarea>
-        </div>
+        </div> -->
 
         <!-- BOTONES -->
         <div class="div-bttns d-flex gap-3 justify-content-center mt-4">

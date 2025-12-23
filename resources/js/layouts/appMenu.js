@@ -246,7 +246,6 @@ function getRoutes(profile) {
                   {
                     title: "Soldadura",
                     routes: [
-
                         ["trackingSoldadura", "Registro y entrega de soldadura"],
                     ],
                 },
