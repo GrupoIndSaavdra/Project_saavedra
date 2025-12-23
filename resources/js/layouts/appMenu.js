@@ -234,7 +234,15 @@ function getRoutes(profile) {
                 },
                 {
                     title: "Orden de Trabajo",
-                    routes: [["manageWO", "Registrar o Modificar O.T"]],
+                    routes: [
+                        ["manageWO", "Modificar O.T"],
+                    ],
+                },
+                {
+                    title: "Soldadura",
+                    routes: [
+                        ["trackingSoldadura", "Registro y entrega de soldadura"],
+                    ],
                 },
             ];
             break;
@@ -471,7 +479,7 @@ function create_ObservationsField(keys) {
     div_opacity.addEventListener("click", () => {
         div_opacity.remove();
     });
-    
+
     //Creacion del formulario
     let form = document.createElement("form");
     form.action = window.baseUrl + "/piezasLiberar";

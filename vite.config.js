@@ -66,6 +66,10 @@ export default defineConfig({
                 'resources/css/maquinas2.css',
                 'resources/css/viewUsers.css',
                 'resources/js/viewUsers.js',
+
+                //Soldadura
+                'resources/js/TrackingSoldadura/soldadura.js',
+                'resources/css/trackingSoldadura/trackingSoldadura.css',,
             ],
             refresh: true,
         }),

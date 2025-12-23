@@ -39,6 +39,7 @@ use App\Http\Controllers\ProcessProductionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WOController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TrackingSoldaduraController;
 
 /*
 |--------------------------------------------------------------------------
@@ -162,6 +163,11 @@ Route::controller(MachinesController::class)->group(function () {
 Route::get('/panel-progreso', function () {
     return view('progress'); // o el nombre de tu vista Blade
 })->name('panelProgreso');
+
+//Rutas para TrackingSoladura
+Route::get('/trackingSoldadura', function () {
+    return view('trackingsoldadura');
+})->name('trackingSoldadura');
 
 
 Route::get('/check-time', function () {
