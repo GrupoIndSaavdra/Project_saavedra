@@ -12,15 +12,42 @@
 <div class="wrapper">
     <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
     <h2>Selecciona tu proceso a seguir</h2>
-    <form action="{{ route('storeWO') }}" method="POST" class="form pt-3">
+
+    <form action="{{ route('storeTrackingSoldadura') }}" method="POST">
         @csrf
         @include('layouts.partials.messages')
+
         <input type="hidden" value="{{ auth()->user()->perfil }}" name="profile" />
-        <div class="div-bttns"></div>
+
+        <!-- CAMPOS BÁSICOS -->
+        <div class="mb-3">
+            <label class="form-label">Orden de trabajo</label>
+            <input type="text" name="orden_trabajo" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Pieza</label>
+            <input type="text" name="pieza" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Observaciones</label>
+            <textarea name="observaciones" class="form-control"></textarea>
+        </div>
+
+        <!-- BOTONES -->
+        <div class="div-bttns d-flex gap-3 justify-content-center mt-4">
+            <button type="submit" name="accion" value="registrar" class="btn btn-primary">
+                Registrar soldadura
+            </button>
+
+            <button type="submit" name="accion" value="liberar" class="btn btn-success">
+                Liberar soldadura
+            </button>
+        </div>
     </form>
 </div>
 <script>
-    window.workOrders = @json($workOrders);
-    window.moldings = @json($moldings);
+    
 </script>
 @endsection

@@ -62,6 +62,7 @@
         panelProgreso: @json(route('panelProgreso')),
         machinesOccupied: @json(route('machinesOccupied')),
         logout: @json(route('logout')),
+        trackingSoldadura: @json(route('trackingSoldadura')),
     };
 </script>
 @isset($pieces_Released)

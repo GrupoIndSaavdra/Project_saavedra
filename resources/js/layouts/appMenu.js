@@ -240,14 +240,17 @@ function getRoutes(profile) {
                     title: "Orden de Trabajo",
                     routes: [
                         ["manageWO", "Modificar O.T"],
+         
                     ],
                 },
-                {
+                  {
                     title: "Soldadura",
                     routes: [
+
                         ["trackingSoldadura", "Registro y entrega de soldadura"],
                     ],
                 },
+
             ];
             break;
         default:

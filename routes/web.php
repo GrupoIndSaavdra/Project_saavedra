@@ -164,10 +164,14 @@ Route::get('/panel-progreso', function () {
     return view('progress'); // o el nombre de tu vista Blade
 })->name('panelProgreso');
 
-//Rutas para TrackingSoladura
+//Rutas para TrackingSoladuraController
 Route::get('/trackingSoldadura', function () {
-    return view('trackingsoldadura');
+    return view('trackingSoldadura_views.trackingSoldadura');
 })->name('trackingSoldadura');
+
+/* RECIBIR EL FORMULARIO (POST) */
+Route::post('/trackingSoldadura', [TrackingSoldaduraController::class, 'store'])
+    ->name('storeTrackingSoldadura');
 
 
 Route::get('/check-time', function () {
