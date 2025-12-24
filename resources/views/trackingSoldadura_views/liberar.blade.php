@@ -74,7 +74,7 @@
             @enderror
         </div>
 
-        <div class="d-flex justify-content-center">
+        <div class="div-bttns d-flex justify-content-center">
             <button type="submit" class="btn btn-primary">
                 Guardar
             </button>
