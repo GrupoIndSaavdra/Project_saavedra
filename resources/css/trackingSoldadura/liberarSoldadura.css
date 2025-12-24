@@ -1,0 +1,90 @@
+/* Contenedor principal */
+.wrapper {
+    max-width: 600px;
+    margin: 10rem auto;
+    padding: 2.5rem 2rem;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1.2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+/* Logo */
+.lg-saavedra {
+    width: 190px;
+    margin-bottom: 1.2rem;
+}
+
+/* Título */
+.wrapper h2 {
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #033966;
+}
+
+/* Inputs */
+.form-label {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 0.3rem;
+}
+
+.form-control {
+    border-radius: 0.55rem;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.95rem;
+    border: 1px solid #ccc;
+}
+
+.form-control:focus {
+    border-color: #033966;
+    box-shadow: 0 0 0 2px rgba(3, 57, 102, 0.2);
+}
+
+/* Espaciado */
+.mb-3 {
+    margin-bottom: 1.1rem;
+}
+
+/* Botones */
+.div-bttns {
+    margin-top: 2rem;
+}
+
+.div-bttns button {
+    min-width: 180px;
+    padding: 0.6rem 1.3rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 0.6rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.div-bttns button:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+/* Botón guardar */
+.btn-primary {
+    background-color: #4080b4;
+    border: none;
+    font-family: Poppins, sans-serif;
+}
+
+.btn-primary:hover {
+    background-color: #508dbf;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .wrapper {
+        margin: 2rem 1rem;
+        padding: 2rem 1.5rem;
+    }
+
+    .div-bttns button {
+        width: 100%;
+    }
+}

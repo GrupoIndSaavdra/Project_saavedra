@@ -12,21 +12,21 @@ export default defineConfig({
                 //Layout appMenu
                 "resources/css/layouts/appMenu.css",
                 "resources/js/layouts/appMenu.js",
-                
+
                 //View home
                 "resources/css/home.css",
                 "resources/js/home.js",
 
                 //View login
                 "resources/css/auth/login.css",
-                
+
                 //View moldings
                 "resources/css/moldings_views/create_molding.css",
                 "resources/css/moldings_views/edit_molding.css",
                 "resources/js/moldings_views/edit_molding.js",
-                
+
                 //Views OT
-                "resources/css/wo_views/manage_wo.css", 
+                "resources/css/wo_views/manage_wo.css",
                 "resources/css/wo_views/show_wo.css",
                 'resources/js/wo_views/manage_wo.js',
                 'resources/js/wo_views/show_wo.js',
@@ -49,7 +49,7 @@ export default defineConfig({
                 "resources/css/users_views/recoverPassword.css",
                 'resources/css/users_views/productionData.css',
                 'resources/js/users_views/productionData.js',
-                
+
                 //Views processes
                 "resources/css/processes_views/cNominals_view.css",
                 "resources/js/processes_views/cNominals_view.js",
@@ -73,8 +73,11 @@ export default defineConfig({
 
                 //Registrar soldadura
                 'resources/css/trackingSoldadura/registerSoldadura.css',
-                'resources/js/trackingSoldadura/registerSoldadura.js'
-                
+                'resources/js/trackingSoldadura/registerSoldadura.js',
+
+                //Liberar soldadura
+                'resources/css/trackingSoldadura/liberarSoldadura.css',
+                'resources/js/trackingSoldadura/liberarSoldadura.js'
 
             ],
             refresh: true,

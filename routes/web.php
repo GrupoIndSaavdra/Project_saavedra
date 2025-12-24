@@ -79,7 +79,7 @@ Route::controller(UserController::class)->group(function () {
 
 //Grupo de ruta para el controlador MolduraController
 Route::controller(MoldingController::class)->group(function () {
-    Route::get('/createMolding', 'create')->name('createMolding'); //Vista registrar moldura  
+    Route::get('/createMolding', 'create')->name('createMolding'); //Vista registrar moldura
     Route::post('/createMolding/storeMolding', 'store')->name('storeMolding'); //Registrar moldura
     Route::get('/editMolding', 'edit')->name('editMolding'); //Vista editar moldura
     Route::post('/editMolding/update', 'update')->name('updateMolding'); //Actualizar moldura
@@ -174,7 +174,10 @@ Route::get('/trackingSoldadura/registrar', function () {
     return view('trackingSoldadura_views.registrar');
 })->name('registrarSoldadura');
 
-
+//Ruta para liberar las soldaduras
+Route::get('/trackingSoldadura/liberar', function () {
+    return view('trackingSoldadura_views.liberar');
+})->name('liberarSoldadura');
 
 /* RECIBIR EL FORMULARIO (POST) */
 Route::post('/trackingSoldadura', [TrackingSoldaduraController::class, 'store'])
