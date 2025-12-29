@@ -2,7 +2,10 @@
 
 @section('head')
     <title>Liberar Soldadura</title>
-    @vite(['resources/css/trackingSoldadura/liberarSoldadura.css', 'resources/js/TrackingSoldadura/liberarSoldadura.js'])
+    @vite([
+        'resources/css/trackingSoldadura/liberarSoldadura.css',
+        'resources/js/TrackingSoldadura/liberarSoldadura.js'
+    ])
 @endsection
 
 @section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
@@ -13,12 +16,15 @@
 
         <h2>Liberar Soldadura</h2>
 
+        {{-- Mensajes del sistema --}}
+        @include('layouts.partials.messages')
+
         <form method="POST" action="{{ route('soldadura.liberar.store') }}">
             @csrf
 
-            {{-- Contenedor para que JS genere el select de operadores --}}
+            {{-- Select de operadores generado por JS --}}
             <div class="mb-3 text-start operador-container">
-                <label for="fecha_entrega" class="form-label">Selecciona al operador</label>
+                <label for="operador_id" class="form-label">Selecciona al operador</label>
             </div>
 
             {{-- Fecha de entrega --}}
@@ -31,9 +37,9 @@
                 @enderror
             </div>
 
-            {{-- Contenedor para que JS genere el select de soldaduras --}}
+            {{-- Select de soldaduras generado por JS --}}
             <div class="mb-3 text-start soldadura-container">
-                <label for="fecha_entrega" class="form-label">Selecciona el nombre y lote de la soldadura</label>
+                <label for="soldadura_id" class="form-label">Selecciona el nombre y lote de la soldadura</label>
             </div>
 
             {{-- Cantidad --}}
@@ -53,6 +59,7 @@
     </div>
 
     <script>
+        // Pasar los datos al JS
         window.operadores = @json($operadores);
         window.soldaduras = @json($soldaduras);
     </script>

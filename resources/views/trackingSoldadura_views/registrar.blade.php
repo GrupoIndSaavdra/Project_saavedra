@@ -2,8 +2,10 @@
 
 @section('head')
     <title>Registrar Soldadura</title>
-    @vite(['resources/css/trackingSoldadura/registerSoldadura.css', 'resources/js/trackingSoldadura/registerSoldadura.js'])
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    @vite([
+        'resources/css/trackingSoldadura/registerSoldadura.css',
+        'resources/js/trackingSoldadura/registerSoldadura.js'
+    ])
 @endsection
 
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
@@ -14,8 +16,12 @@
 
         <h2>Registrar Soldadura</h2>
 
+        {{-- Alertas del sistema --}}
+        @include('layouts.partials.messages')
+
         <form method="POST" action="{{ route('storeRegistroSoldadura') }}">
             @csrf
+
             {{-- Fecha de ingreso --}}
             <div class="mb-3 text-start">
                 <label for="fecha_ingreso" class="form-label">Fecha de ingreso:</label>

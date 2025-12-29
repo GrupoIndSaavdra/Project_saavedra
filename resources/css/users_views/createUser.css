@@ -10,6 +10,7 @@
     box-sizing: border-box;
     position: absolute;
     background: #fffb;
+    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
     width: 60em;
     height: 60em;

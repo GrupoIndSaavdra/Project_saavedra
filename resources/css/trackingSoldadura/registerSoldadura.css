@@ -1,3 +1,5 @@
+@import "../layouts/partials/messages.css";
+
 /* Contenedor principal */
 .wrapper {
     max-width: 600px;
@@ -24,9 +26,6 @@
 }
 
 /* === FORMULARIO === */
-
-/* Grupo de campo */
-.form,
 form {
     width: 100%;
 }
@@ -40,10 +39,8 @@ form {
     text-align: left;
 }
 
-/* Labels encima del input */
+/* Labels */
 .form-label {
-    text-align: left;
-    display: block;
     font-weight: 500;
     color: #033966;
     margin-bottom: 0.3rem;
@@ -56,8 +53,8 @@ form {
     padding: 0.55rem 0.75rem;
     border: 1px solid #cfcfcf;
     font-size: 0.95rem;
-    transition: border-color 0.3s, box-shadow 0.3s;
     background-color: #fafafa;
+    transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 /* Focus */
@@ -67,44 +64,34 @@ form {
     outline: none;
 }
 
-/* Errores */
-.invalid-feedback {
-    font-size: 0.8rem;
-    margin-top: 0.15rem;
-}
-
-/* Botones */
+/* Botón */
 .div-bttns {
     margin-top: 2rem;
 }
 
 .div-bttns button {
     min-width: 170px;
-    margin: 0 1rem;
-    padding: 0.6rem 1.2rem 0.5rem 1.2rem;
+    padding: 0.6rem 1.2rem;
     font-size: 1rem;
     font-weight: 500;
     border-radius: 0.6rem;
-    transition: all 0.5s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
 
 .div-bttns button:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-    transition: all 0.3s ease-in-out;
 }
 
 /* Botón guardar */
 .btn-primary {
     background-color: #4080b4;
     border: none;
-    font-family: Poppins, sans-serif;
 }
 
 .btn-primary:hover {
-    color: #fafafa;
     background-color: #3da7fe;
-    transition: all 0.3s ease-in-out;
+    color: #fafafa;
 }
 
 /* Responsive */
@@ -112,10 +99,6 @@ form {
     .wrapper {
         margin: 2rem 1rem;
         padding: 2rem 1.5rem;
-    }
-
-    .div-bttns {
-        flex-direction: column;
     }
 
     .div-bttns button {

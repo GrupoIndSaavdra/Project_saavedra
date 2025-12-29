@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class LiberacionSoldadura extends Model
 {
-    protected $table = 'liberacion_soldadura';
+    use HasFactory;
+    protected $table = 'soldadura_liberacion';
 
     protected $fillable = [
-        'operador_id',
+        'id_operador',
         'fecha_entrega',
-        'soldadura_id',
-        'cantidad',
+        'nombre',
+        'lote',
+        'cantidad'
     ];
 }

@@ -188,7 +188,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/trackingSoldadura/registrar', [RegistrarSoldaduraController::class, 'create'])
         ->name('registrarSoldadura');
 
-    // Guardar registro
     Route::post('/trackingSoldadura/registrar', [RegistrarSoldaduraController::class, 'store'])
         ->name('storeRegistroSoldadura');
 });

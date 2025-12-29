@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\Soldadura;
 use App\Models\LiberacionSoldadura;
+use App\Models\RegistroSoldadura;
 
 class LiberarSoldaduraController extends Controller
 {
@@ -21,12 +21,10 @@ class LiberarSoldaduraController extends Controller
     {
         $operadores = User::where('perfil', 2)->get();
 
-        $soldaduras = Soldadura::all();
+        // Antes: $soldaduras = Soldadura::all();
+        $soldaduras = RegistroSoldadura::all(); // Ahora sí trae los registros
 
-        return view('trackingSoldadura_views.liberar', compact(
-            'operadores',
-            'soldaduras'
-        ));
+        return view('trackingSoldadura_views.liberar', compact('operadores', 'soldaduras'));
     }
 
     /**
@@ -35,17 +33,21 @@ class LiberarSoldaduraController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'operador_id'   => 'required|exists:users,id',
+            'operador_id' => 'required|exists:users,id',
             'fecha_entrega' => 'required|date',
-            'soldadura_id'  => 'required|exists:soldaduras,id',
-            'cantidad'      => 'required|numeric|min:0.01',
+            'soldadura_id' => 'required|exists:soldadura_registro,id', // ahora apunta al registro
+            'cantidad' => 'required|numeric|min:0.01',
         ]);
 
+        // Traer el registro de soldadura seleccionado
+        $soldadura = RegistroSoldadura::findOrFail($request->soldadura_id);
+
         LiberacionSoldadura::create([
-            'operador_id'   => $request->operador_id,
+            'id_operador' => $request->operador_id,
             'fecha_entrega' => $request->fecha_entrega,
-            'soldadura_id'  => $request->soldadura_id,
-            'cantidad'      => $request->cantidad,
+            'nombre' => $soldadura->nombre,
+            'lote' => $soldadura->lote,
+            'cantidad' => $request->cantidad,
         ]);
 
         return redirect()

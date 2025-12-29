@@ -1,7 +1,9 @@
+@import "../layouts/partials/messages.css";
+
 /* Contenedor principal */
 .wrapper {
     max-width: 600px;
-    margin: 1rem auto; 
+    margin: 1rem auto;
     padding: 2.5rem 2rem;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 1.2rem;
@@ -56,6 +58,7 @@ form {
     border-radius: 0.55rem;
     border: 1px solid #ccc;
     font-size: 0.95rem;
+    background-color: #fafafa;
 }
 
 /* Selects (ventanitas desplegables) */
@@ -66,6 +69,13 @@ form {
     border: 1px solid #cfcfcf;
     background-color: #fafafa;
     cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Cambio de color al seleccionar valor en select */
+.form-select option:checked {
+    background-color: #03396610;
+    color: #000;
 }
 
 /* Focus inputs y selects */
@@ -100,7 +110,7 @@ form {
 .div-bttns button:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-    transform: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
 }
 
 /* Botón guardar */

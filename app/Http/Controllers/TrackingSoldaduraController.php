@@ -16,13 +16,10 @@ class TrackingSoldaduraController extends Controller
     // Manejo de formulario POST
     public function store(Request $request)
     {
-        switch ($request->accion) {
-            case 'registrar':
-                return redirect()->route('registrarSoldadura');
-            case 'liberar':
-                return redirect()->route('soldadura.liberar');
-            default:
-                return back()->withErrors(['accion' => 'Acción no válida']);
-        }
+        return match ($request->accion) {
+            'registrar' => redirect()->route('registrarSoldadura'),
+            'liberar' => redirect()->route('soldadura.liberar'),
+            default => back()->withErrors(['accion' => 'Acción no válida'])
+        };
     }
 }
