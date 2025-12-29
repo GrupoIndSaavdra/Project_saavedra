@@ -1,7 +1,7 @@
 /* Contenedor principal */
 .wrapper {
-    max-width: 600px;
-    margin: 10rem auto;
+   max-width: 600px;
+    margin: 11rem auto;
     padding: 2.5rem 2rem;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 1.2rem;
@@ -9,17 +9,21 @@
     text-align: center;
 }
 
+/* Formulario */
+.form,
+form {
+    width: 100%;
+}
 /* Logo */
 .lg-saavedra {
-    width: 190px;
+    width: 200px;
     margin-bottom: 1.2rem;
 }
-
 /* Título */
 .wrapper h2 {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
     font-weight: 600;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
     color: #033966;
 }
 
