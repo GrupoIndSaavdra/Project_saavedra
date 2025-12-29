@@ -11,12 +11,16 @@
     text-align: center;
 }
 
+/* Formulario */
+.form,
+form {
+    width: 100%;
+}
 /* Logo */
 .lg-saavedra {
     width: 200px;
     margin-bottom: 1.2rem;
 }
-
 /* Título */
 .wrapper h2 {
     font-size: 1.3rem;
