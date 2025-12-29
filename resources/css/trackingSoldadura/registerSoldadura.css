@@ -1,7 +1,7 @@
 /* Contenedor principal */
 .wrapper {
     max-width: 600px;
-    margin: 10rem auto;
+    margin: 1rem auto;
     padding: 2.5rem 2rem;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 1.2rem;
@@ -11,40 +11,66 @@
 
 /* Logo */
 .lg-saavedra {
-    width: 190px;
+    width: 200px;
     margin-bottom: 1.2rem;
 }
 
 /* Título */
 .wrapper h2 {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
     font-weight: 600;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
     color: #033966;
 }
 
-/* Inputs */
+/* === FORMULARIO === */
+
+/* Grupo de campo */
+.form,
+form {
+    width: 100%;
+}
+
+/* Grupo label + input */
+.mb-3 {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1.2rem;
+    text-align: left;
+}
+
+/* Labels encima del input */
 .form-label {
+    text-align: left;
+    display: block;
     font-weight: 500;
-    color: #333;
+    color: #033966;
     margin-bottom: 0.3rem;
 }
 
+/* Inputs */
 .form-control {
-    border-radius: 0.55rem;
+    width: 100%;
+    border-radius: 0.5rem;
     padding: 0.55rem 0.75rem;
+    border: 1px solid #cfcfcf;
     font-size: 0.95rem;
-    border: 1px solid #ccc;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background-color: #fafafa;
 }
 
+/* Focus */
 .form-control:focus {
     border-color: #033966;
-    box-shadow: 0 0 0 2px rgba(3, 57, 102, 0.2);
+    box-shadow: 0 0 0 2px rgba(3, 57, 102, 0.15);
+    outline: none;
 }
 
-/* Espaciado */
-.mb-3 {
-    margin-bottom: 1.1rem;
+/* Errores */
+.invalid-feedback {
+    font-size: 0.8rem;
+    margin-top: 0.15rem;
 }
 
 /* Botones */
@@ -53,17 +79,19 @@
 }
 
 .div-bttns button {
-    min-width: 180px;
-    padding: 0.6rem 1.3rem;
+    min-width: 170px;
+    margin: 0 1rem;
+    padding: 0.6rem 1.2rem 0.5rem 1.2rem;
     font-size: 1rem;
     font-weight: 500;
     border-radius: 0.6rem;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.5s ease-in-out;
 }
 
 .div-bttns button:hover {
-    transform: translateY(-4px);
+    transform: translateY(-5px);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
 }
 
 /* Botón guardar */
@@ -74,7 +102,9 @@
 }
 
 .btn-primary:hover {
-    background-color: #508dbf;
+    color: #fafafa;
+    background-color: #3da7fe;
+    transition: all 0.3s ease-in-out;
 }
 
 /* Responsive */
@@ -82,6 +112,10 @@
     .wrapper {
         margin: 2rem 1rem;
         padding: 2rem 1.5rem;
+    }
+
+    .div-bttns {
+        flex-direction: column;
     }
 
     .div-bttns button {

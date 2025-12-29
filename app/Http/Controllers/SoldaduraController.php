@@ -47,4 +47,6 @@ class SoldaduraController extends Controller
         $piece->estado = 2;
         $piece->save();
     }
+
+    
 }
