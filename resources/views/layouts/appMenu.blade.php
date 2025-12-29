@@ -13,7 +13,6 @@
         window.liberar = "{{ asset('images/Liberar.png') }}"
         window.rechazar = "{{ asset('images/Rechazar.png') }}"
         window.ojito = "{{ asset('images/ojito.png') }}"
-
         window.baseUrl = "{{ url('/') }}";
     </script>
 </head>

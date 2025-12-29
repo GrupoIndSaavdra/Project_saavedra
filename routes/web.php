@@ -40,7 +40,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WOController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TrackingSoldaduraController;
-
+use App\Http\Controllers\LiberarSoldaduraController;
+use App\Http\Controllers\RegistrarSoldaduraController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -79,7 +80,7 @@ Route::controller(UserController::class)->group(function () {
 
 //Grupo de ruta para el controlador MolduraController
 Route::controller(MoldingController::class)->group(function () {
-    Route::get('/createMolding', 'create')->name('createMolding'); //Vista registrar moldura  
+    Route::get('/createMolding', 'create')->name('createMolding'); //Vista registrar moldura
     Route::post('/createMolding/storeMolding', 'store')->name('storeMolding'); //Registrar moldura
     Route::get('/editMolding', 'edit')->name('editMolding'); //Vista editar moldura
     Route::post('/editMolding/update', 'update')->name('updateMolding'); //Actualizar moldura
@@ -160,27 +161,56 @@ Route::controller(MachinesController::class)->group(function () {
 });
 
 //Rutas para el controlador de ProgressPanelController
-Route::get('/panel-progreso', function () {
-    return view('progress'); // o el nombre de tu vista Blade
-})->name('panelProgreso');
+Route::get('/panel-progreso', fn() => view('wo_views.progressPanel_wo'))->name('panelProgreso');
 
-//Rutas para TrackingSoladuraController
-Route::get('/trackingSoldadura', function () {
-    return view('trackingSoldadura_views.trackingSoldadura');
-})->name('trackingSoldadura');
+/* ===========================
+   Tracking Soldadura
+=========================== */
 
-//Ruta para registrar las soldaduras
-Route::get('/trackingSoldadura/registrar', function () {
-    return view('trackingSoldadura_views.registrar');
-})->name('registrarSoldadura');
+// Dashboard principal
+Route::get('/trackingSoldadura', [TrackingSoldaduraController::class, 'index'])
+    ->name('trackingSoldadura');
 
+// Registrar soldaduras
+Route::get('/trackingSoldadura/registrar', [TrackingSoldaduraController::class, 'create'])
+    ->name('registrarSoldadura');
 
-
-/* RECIBIR EL FORMULARIO (POST) */
+// Guardar formulario de Tracking Soldadura (POST)
 Route::post('/trackingSoldadura', [TrackingSoldaduraController::class, 'store'])
     ->name('storeTrackingSoldadura');
 
+/* ===========================
+   Registrar Soldadura
+=========================== */
 
+Route::middleware(['auth'])->group(function () {
+    // Mostrar formulario de registro
+    Route::get('/trackingSoldadura/registrar', [RegistrarSoldaduraController::class, 'create'])
+        ->name('registrarSoldadura');
+
+    // Guardar registro
+    Route::post('/trackingSoldadura/registrar', [RegistrarSoldaduraController::class, 'store'])
+        ->name('storeRegistroSoldadura');
+});
+
+/* ===========================
+   Liberar Soldadura
+=========================== */
+
+Route::middleware(['auth'])->group(function () {
+
+    // Mostrar formulario de Liberar Soldadura
+    Route::get('/soldadura/liberar', [LiberarSoldaduraController::class, 'create'])
+        ->name('soldadura.liberar');
+
+    // Guardar liberación de Soldadura
+    Route::post('/soldadura/liberar', [LiberarSoldaduraController::class, 'store'])
+        ->name('soldadura.liberar.store');
+});
+
+/* ===========================
+   Utilidades / Check Time
+=========================== */
 Route::get('/check-time', function () {
     return [
         'PHP timezone' => date_default_timezone_get(),
