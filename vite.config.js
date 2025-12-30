@@ -76,6 +76,7 @@ export default defineConfig({
                 'resources/js/trackingSoldadura/registerSoldadura.js',
 
                 //Liberar soldadura
+                'resources/js/libs/html5-qrcode.min.js',
                 'resources/css/trackingSoldadura/liberarSoldadura.css',
                 'resources/js/trackingSoldadura/liberarSoldadura.js'
 
