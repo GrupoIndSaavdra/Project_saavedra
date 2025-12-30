@@ -14,12 +14,12 @@ class InitialUserSeeder extends Seeder
     public function run(): void
     {
         User::firstOrCreate(
-            ['matricula' => '12345'],
+            ['matricula' => '44444'],
             [
                 'nombre' => 'Master',
                 'a_paterno' => 'GIS',
                 'a_materno' => 'Saavedra',
-                'contrasena' => bcrypt('12345678'),
+                'contrasena' => bcrypt('GIS20250811'),
                 'perfil' => 3,
             ]
         );
