@@ -1626,7 +1626,7 @@ class ProcessProductionController extends Controller
             $tiempo = $tiempo->tiempo != 0 ? round(($workHrs / $tiempo->tiempo)) : 0;
             $meta->meta = str_contains($machine, '_') ? $tiempo * 2 : $tiempo; //Asignar la meta calculada
         } else {
-            $meta->meta = 0; //Si no se encuentra el tiempo, se asigna 0 a la meta
+           $meta->meta = 0; //Si no se encuentra el tiempo, se asigna 0 a la meta
         }
         $meta->save();
     }
