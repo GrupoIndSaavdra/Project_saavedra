@@ -68,17 +68,17 @@ export default defineConfig({
                 'resources/js/viewUsers.js',
 
                 //Soldadura
-                'resources/css/TrackingSoldadura/trackingSoldadura.css',
-                'resources/js/TrackingSoldadura/soldadura.js',
+                'resources/css/trackingSoldadura/trackingSoldadura.css',
+                'resources/js/TrackingSoldadura/registerSoldadura.js',
 
                 //Registrar soldadura
                 'resources/css/trackingSoldadura/registerSoldadura.css',
-                'resources/js/trackingSoldadura/registerSoldadura.js',
+                'resources/js/TrackingSoldadura/registerSoldadura.js',
 
                 //Liberar soldadura
                 'resources/js/libs/html5-qrcode.min.js',
                 'resources/css/trackingSoldadura/liberarSoldadura.css',
-                'resources/js/trackingSoldadura/liberarSoldadura.js'
+                'resources/js/TrackingSoldadura/liberarSoldadura.js'
 
             ],
             refresh: true,

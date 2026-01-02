@@ -4,7 +4,7 @@
     <title>Registrar Soldadura</title>
     @vite([
         'resources/css/trackingSoldadura/registerSoldadura.css',
-        'resources/js/trackingSoldadura/registerSoldadura.js'
+        'resources/js/TrackingSoldadura/registerSoldadura.js'
     ])
 @endsection
 
