@@ -158,29 +158,44 @@ function createFilters() {
                         select.appendChild(optionAll);
                     }
 
-                    window.filtersData[item].forEach((key) => {
-                        if (item == "operator") {
-                            if (key.matricula == window.selectedItems[item].matricula) {
-                                return;
+                    if (item == "machine") {
+                        // Generar 40 máquinas como en processProduction.js
+                        for (let i = 1; i <= 40; i++) {
+                            if (i == window.selectedItems[item] || (window.selectedItems[item].includes("_") && window.selectedItems[item] == `${i}_${i + 1}`)) {
+                                if (i == 1 || i == 25 || i == 27) {
+                                    i++; // Saltar la siguiente iteración para máquinas agrupadas
+                                }
+                                continue;
                             }
-                        } else {
-                            if (key == window.selectedItems[item]) {
-                                return;
+                            const option = document.createElement("option");
+                            if (i == 1 || i == 25 || i == 27) {
+                                option.value = `${i}_${i + 1}`;
+                                option.textContent = `Maquina ${i} y ${i + 1}`;
+                                i++;
+                            } else {
+                                option.value = `${i}`;
+                                option.textContent = `Maquina ${i}`;
                             }
+                            select.appendChild(option);
                         }
-                        const option = document.createElement("option");
-                        if (item == "machine") {
-                            option.value = key;
-                            if (String(key).includes("_")) {
-                                option.textContent = String(key).replace("_", " y ");
+                    } else {
+                        window.filtersData[item].forEach((key) => {
+                            if (item == "operator") {
+                                if (key.matricula == window.selectedItems[item].matricula) {
+                                    return;
+                                }
+                            } else {
+                                if (key == window.selectedItems[item]) {
+                                    return;
+                                }
                             }
-                        } else {
+                            const option = document.createElement("option");
                             option.value = item == "operator" ? key.matricula : key;
                             option.textContent =
                                 item == "operator" ? key.nombre + " " + key.a_paterno + " " + key.a_materno : key;
-                        }
-                        select.appendChild(option);
-                    });
+                            select.appendChild(option);
+                        });
+                    }
                     div.appendChild(select);
                 }
                 break;
