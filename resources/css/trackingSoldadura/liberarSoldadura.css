@@ -121,7 +121,7 @@ form {
 }
 
 .btn-primary:hover {
-    color: #fafafa;
+    color: #000000;
     background-color: #3da7fe;
     transition: all 0.3s ease-in-out;
 }
@@ -134,7 +134,7 @@ form {
 }
 
 .btn-secondary:hover {
-    color: #fafafa;
+    color: #000000;
     background-color: #1acd7a;
     transition: all 0.3s ease-in-out;
 }

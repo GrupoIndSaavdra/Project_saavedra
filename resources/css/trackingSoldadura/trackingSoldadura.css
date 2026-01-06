@@ -83,7 +83,7 @@ form {
     font-family: Poppins, sans-serif;
 }
 .btn-primary:hover {
-    color: #fafafa;
+    color: #000000;
     background-color: #3da7fe;
     transition: all 0.3s ease-in-out;
 }
@@ -96,7 +96,7 @@ form {
 }
 
 .btn-success:hover {
-    color: #fafafa;
+    color: #000000;
     background-color: #1acd7a;
     transition: all 0.3s ease-in-out;
 }

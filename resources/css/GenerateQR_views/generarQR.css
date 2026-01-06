@@ -1,113 +1,88 @@
-/* Estilos para el generador de QR */
+@import "../layouts/partials/messages.css";
+
+/* =====================================================
+   CONTENEDOR PRINCIPAL
+===================================================== */
 .wrapper {
     max-width: 600px;
-    margin: 0 auto;
-    padding: 2rem;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.lg-saavedra {
-    width: 120px;
-    height: auto;
-    margin-bottom: 1.5rem;
-}
-
-h2 {
-    color: #2c3e50;
-    font-weight: 600;
-    margin-bottom: 2rem;
+    margin: 2rem auto;
+    padding: 2.5rem 2rem;
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 1.2rem;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18);
     text-align: center;
+    animation: fadeIn 0.6s ease-out;
 }
 
+/* =====================================================
+   LOGOTIPO
+===================================================== */
+.lg-saavedra {
+    width: 180px;
+    margin-bottom: 1.3rem;
+}
+
+/* =====================================================
+   TÍTULO PRINCIPAL
+===================================================== */
+h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 1.8rem;
+    color: #1f3a5f;
+}
+
+/* =====================================================
+   FORMULARIO
+===================================================== */
+form {
+    width: 100%;
+}
+
+/* Grupo label + campo */
+.mb-3 {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1.2rem;
+}
+
+/* Etiquetas */
 .form-label {
     font-weight: 500;
-    color: #34495e;
-    margin-bottom: 0.5rem;
+    color: #1f3a5f;
 }
 
+/* Campos de entrada y selects */
 .form-control {
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    padding: 0.75rem;
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.6rem;
+    border: 1px solid #cfcfcf;
+    font-size: 0.95rem;
+    background-color: #f9f9f9;
     transition: all 0.3s ease;
 }
 
+/* Estado focus */
 .form-control:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    border-color: #1f3a5f;
+    box-shadow: 0 0 0 2px rgba(31, 58, 95, 0.15);
+    outline: none;
 }
 
-.btn-primary {
-    background: linear-gradient(135deg, #007bff, #0056b3);
-    border: none;
-    padding: 0.75rem 2rem;
-    border-radius: 25px;
-    font-weight: 500;
-    transition: all 0.3s ease;
+/* Validaciones */
+.is-invalid {
+    border-color: #b02a37;
 }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.4);
+.invalid-feedback {
+    font-size: 0.8rem;
 }
 
-.btn-success {
-    background: linear-gradient(135deg, #28a745, #1e7e34);
-    border: none;
-    padding: 0.5rem 1.5rem;
-    border-radius: 20px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-success:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
-}
-
-.btn-info {
-    background: linear-gradient(135deg, #17a2b8, #138496);
-    border: none;
-    padding: 0.5rem 1.5rem;
-    border-radius: 20px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-info:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
-}
-
-.btn-secondary {
-    background: linear-gradient(135deg, #6c757d, #545b62);
-    border: none;
-    padding: 0.75rem 2rem;
-    border-radius: 25px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-secondary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
-}
-
-.qr-container {
-    background: white;
-    padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    display: inline-block;
-    margin: 1rem 0;
-}
-
-.qr-container img {
-    border-radius: 10px;
-}
-
+/* =====================================================
+   CONTENEDOR DE BOTONES
+===================================================== */
 .div-bttns {
     margin-top: 2rem;
 }
@@ -116,12 +91,86 @@ h2 {
     gap: 0.5rem;
 }
 
-/* Estilos para iconos */
-.btn i {
-    margin-right: 0.5rem;
+/* Estilo base para botones */
+.btn {
+    padding: 0.6rem 1.4rem;
+    font-weight: 500;
+    border-radius: 0.6rem;
+    transition: all 0.3s ease-in-out;
 }
 
-/* Animaciones */
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+/* Botón principal: Generar QR */
+.btn-primary {
+    background-color: #033966;
+    color: #ffffff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #25476a;
+    color: #ffffff;
+}
+
+/* Botón secundario: Limpiar */
+.btn-secondary {
+    background-color: #033966;
+    color: #ffffff;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background-color: #25476a;
+    color: #ffffff;
+}
+
+/* SECCIÓN DEL QR GENERADO */
+.qr-container {
+    background: #ffffff;
+    padding: 1.6rem;
+    border-radius: 1rem;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+    display: inline-block;
+    margin: 1.2rem 0;
+}
+
+.qr-container svg,
+.qr-container img {
+    border-radius: 0.6rem;
+}
+
+/* Botón descargar QR */
+.btn-success {
+    background-color: #2f7d5c;
+    border: none;
+}
+
+.btn-success:hover {
+    background-color: #256b4f;
+    color: #ffffff;
+}
+
+/* Botón copiar texto */
+.btn-info {
+    background-color: #495057;
+    border: none;
+}
+
+.btn-info:hover {
+    background-color: #343a40;
+    color: #ffffff;
+}
+
+/* Iconos dentro de botones */
+.btn i {
+    margin-right: 0.4rem;
+}
+
+/* ANIMACIÓN DE ENTRADA */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -133,22 +182,28 @@ h2 {
     }
 }
 
-.wrapper {
-    animation: fadeIn 0.6s ease-out;
-}
-
-/* Responsive */
+/* DISEÑO RESPONSIVO */
 @media (max-width: 768px) {
     .wrapper {
-        margin: 1rem;
-        padding: 1.5rem;
+        margin: 1.5rem 1rem;
+        padding: 2rem 1.5rem;
     }
-    
+
     .lg-saavedra {
-        width: 100px;
+        width: 140px;
     }
-    
+
     h2 {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .div-bttns {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
     }
 }
