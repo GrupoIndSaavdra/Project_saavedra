@@ -29,7 +29,7 @@ function crearTabla(piezas, infoPiezas) {
                         break;
                     default:
                         td.textContent = pieza[key];
-                        if(key == "operator" || key == "observations" || key == "observacion_liberacion"){
+                        if (key == "operator" || key == "observations" || key == "observacion_liberacion") {
                             td.style.width = "600px";
                         }
                         break;
@@ -292,8 +292,8 @@ function createFilters() {
                     }
 
                     if (item == "machine") {
-                        // Generar 35 máquinas como en processProduction.js
-                        for (let i = 1; i <= 35; i++) {
+                        // Generar 40 máquinas como en processProduction.js
+                        for (let i = 1; i <= 40; i++) {
                             if (i == window.selectedItems[item] || (window.selectedItems[item].includes("_") && window.selectedItems[item] == `${i}_${i + 1}`)) {
                                 if (i == 1 || i == 25 || i == 27) {
                                     i++; // Saltar la siguiente iteración para máquinas agrupadas

@@ -88,9 +88,8 @@ function crearBotonVer(infoPiezas, i, usuarios) {
         nPiezas.push(infoPiezas[i][0][j]);
     }
     console.log(infoPiezas[i]);
-    let url = `${window.baseUrl}/pieces/${nPiezas}/${infoPiezas[i][1]}/${
-        document.getElementsByName("profile")[0].value
-    }`;
+    let url = `${window.baseUrl}/pieces/${nPiezas}/${infoPiezas[i][1]}/${document.getElementsByName("profile")[0].value
+        }`;
     a.href = url;
 
     const image = document.createElement("img");
@@ -159,8 +158,8 @@ function createFilters() {
                     }
 
                     if (item == "machine") {
-                        // Generar 35 máquinas como en processProduction.js
-                        for (let i = 1; i <= 35; i++) {
+                        // Generar 40 máquinas como en processProduction.js
+                        for (let i = 1; i <= 40; i++) {
                             if (i == window.selectedItems[item] || (window.selectedItems[item].includes("_") && window.selectedItems[item] == `${i}_${i + 1}`)) {
                                 if (i == 1 || i == 25 || i == 27) {
                                     i++; // Saltar la siguiente iteración para máquinas agrupadas
