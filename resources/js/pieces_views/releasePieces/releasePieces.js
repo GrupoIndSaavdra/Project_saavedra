@@ -29,7 +29,7 @@ function crearTabla(piezas, infoPiezas) {
                         break;
                     default:
                         td.textContent = pieza[key];
-                        if(key == "operator" || key == "observations" || key == "observacion_liberacion"){
+                        if (key == "operator" || key == "observations" || key == "observacion_liberacion") {
                             td.style.width = "600px";
                         }
                         break;

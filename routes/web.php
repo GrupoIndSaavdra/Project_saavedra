@@ -42,6 +42,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TrackingSoldaduraController;
 use App\Http\Controllers\LiberarSoldaduraController;
 use App\Http\Controllers\RegistrarSoldaduraController;
+use App\Http\Controllers\GenerarQRController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -206,6 +207,22 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/soldadura/liberar', [LiberarSoldaduraController::class, 'store'])
         ->name('soldadura.liberar.store');
 });
+
+/* ===========================
+   Generar QR
+=========================== */
+
+// Mostrar formulario para generar el QR
+Route::get('/generar-qr', [GenerarQRController::class, 'create'])
+    ->name('generarQR.create');
+
+// Procesar generación de QR
+Route::post('/generar-qr', [GenerarQRController::class, 'store'])
+    ->name('generarQR.store');
+
+// Descargar QR generado
+Route::get('/generar-qr/download', [GenerarQRController::class, 'download'])
+    ->name('generarQR.download');
 
 /* ===========================
    Utilidades / Check Time
