@@ -62,6 +62,7 @@
         machinesOccupied: @json(route('machinesOccupied')),
         logout: @json(route('logout')),
         trackingSoldadura: @json(route('trackingSoldadura')),
+        generarQR: @json(route('generarQR.create')),
     };
 </script>
 @isset($pieces_Released)
