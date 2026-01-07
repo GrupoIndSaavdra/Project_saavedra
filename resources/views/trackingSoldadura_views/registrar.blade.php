@@ -63,9 +63,17 @@
 
             <div class="div-bttns d-flex justify-content-center">
                 <button type="submit" id="btnGuardar" class="btn btn-primary" disabled>
-                    Guardar
+                    Guardar y Generar QR
                 </button>
             </div>
         </form>
     </div>
+    <script>
+        // Establecer fecha actual automáticamente
+        document.addEventListener('DOMContentLoaded', function () {
+            const fechaInput = document.getElementById('fecha_ingreso');
+            const today = new Date().toISOString().split('T')[0];
+            fechaInput.value = today;
+        });
+    </script>
 @endsection

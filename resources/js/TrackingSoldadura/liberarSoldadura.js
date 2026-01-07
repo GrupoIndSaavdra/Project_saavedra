@@ -91,69 +91,123 @@ function bloquearCampos() {
 }
 
 // ===============================
-// QR – lectura exitosa (solo valores en orden)
+// QR – lectura exitosa (detecta tipo de QR)
 // ===============================
 function onScanSuccess(decodedText) {
     try {
         const lines = decodedText.replace(/\r/g, "").split("\n");
         
-        if (lines.length < 4) throw new Error("QR incompleto - necesita 4 líneas");
-
-        const operadorId = lines[0].trim();
-        const soldaduraId = lines[1].trim();
-        const fecha = lines[2].trim();
-        const cantidad = lines[3].trim();
-
-        // Verificar que los datos estén disponibles
-        if (!window.operadores || window.operadores.length === 0) {
-            throw new Error('No hay operadores disponibles');
+        if (lines.length === 2) {
+            // QR de soldadura registrada (nombre y lote)
+            procesarQRSoldadura(lines);
+        } else if (lines.length === 4) {
+            // QR de liberación completo (operador, soldadura, fecha, cantidad)
+            procesarQRLiberacion(lines);
+        } else {
+            throw new Error("Formato de QR no reconocido");
         }
-        if (!window.soldaduras || window.soldaduras.length === 0) {
-            throw new Error('No hay soldaduras disponibles');
-        }
-
-        // Seleccionar operador y soldadura por ID
-        const operadorSelect = document.getElementById("operador_id_display");
-        const operadorEncontrado = window.operadores.find(op => op.id == operadorId);
-        
-        if (!operadorEncontrado) {
-            throw new Error(`Operador con ID ${operadorId} no encontrado`);
-        }
-        
-        operadorSelect.value = operadorId;
-        document.getElementById("operador_id").value = operadorId; // Campo hidden
-        operadorSelect.dispatchEvent(new Event('change'));
-
-        const soldaduraSelect = document.getElementById("soldadura_id_display");
-        const soldaduraEncontrada = window.soldaduras.find(sol => sol.id == soldaduraId);
-        
-        if (!soldaduraEncontrada) {
-            throw new Error(`Soldadura con ID ${soldaduraId} no encontrada`);
-        }
-        
-        soldaduraSelect.value = soldaduraId;
-        document.getElementById("soldadura_id").value = soldaduraId; // Campo hidden
-        soldaduraSelect.dispatchEvent(new Event('change'));
-
-        document.getElementById("fecha_entrega").value = fecha;
-        document.getElementById("cantidad").value = cantidad;
-
-        changeColorSelect(operadorSelect);
-        changeColorSelect(soldaduraSelect);
-
-        bloquearCampos();
-        actualizarBoton();
-
-        if (html5QrCode) {
-            html5QrCode.stop().then(() => html5QrCode.clear());
-        }
-        document.getElementById("qrModal").style.display = "none";
-
-        alert('QR procesado correctamente');
 
     } catch (e) {
         alert("Error procesando QR: " + e.message);
     }
+}
+
+// ===============================
+// Procesar QR de soldadura (solo nombre y lote)
+// ===============================
+function procesarQRSoldadura(lines) {
+    const nombre = lines[0].trim();
+    const lote = lines[1].trim();
+
+    if (!window.soldaduras || window.soldaduras.length === 0) {
+        throw new Error('No hay soldaduras disponibles');
+    }
+
+    // Buscar soldadura por nombre y lote
+    const soldaduraEncontrada = window.soldaduras.find(sol => 
+        sol.nombre.trim() === nombre && sol.lote.trim() === lote
+    );
+    
+    if (!soldaduraEncontrada) {
+        throw new Error(`Soldadura "${nombre}" con lote "${lote}" no encontrada`);
+    }
+    
+    // Solo completar el campo de soldadura
+    const soldaduraSelect = document.getElementById("soldadura_id_display");
+    soldaduraSelect.value = soldaduraEncontrada.id;
+    document.getElementById("soldadura_id").value = soldaduraEncontrada.id;
+    soldaduraSelect.dispatchEvent(new Event('change'));
+    
+    changeColorSelect(soldaduraSelect);
+    
+    // Bloquear solo el campo de soldadura
+    soldaduraSelect.disabled = true;
+    
+    actualizarBoton();
+
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => html5QrCode.clear());
+    }
+    document.getElementById("qrModal").style.display = "none";
+
+    alert(`Soldadura "${nombre}" - Lote "${lote}" seleccionada correctamente`);
+}
+
+// ===============================
+// Procesar QR de liberación completo
+// ===============================
+function procesarQRLiberacion(lines) {
+    const operadorId = lines[0].trim();
+    const soldaduraId = lines[1].trim();
+    const fecha = lines[2].trim();
+    const cantidad = lines[3].trim();
+
+    // Verificar que los datos estén disponibles
+    if (!window.operadores || window.operadores.length === 0) {
+        throw new Error('No hay operadores disponibles');
+    }
+    if (!window.soldaduras || window.soldaduras.length === 0) {
+        throw new Error('No hay soldaduras disponibles');
+    }
+
+    // Seleccionar operador y soldadura por ID
+    const operadorSelect = document.getElementById("operador_id_display");
+    const operadorEncontrado = window.operadores.find(op => op.id == operadorId);
+    
+    if (!operadorEncontrado) {
+        throw new Error(`Operador con ID ${operadorId} no encontrado`);
+    }
+    
+    operadorSelect.value = operadorId;
+    document.getElementById("operador_id").value = operadorId;
+    operadorSelect.dispatchEvent(new Event('change'));
+
+    const soldaduraSelect = document.getElementById("soldadura_id_display");
+    const soldaduraEncontrada = window.soldaduras.find(sol => sol.id == soldaduraId);
+    
+    if (!soldaduraEncontrada) {
+        throw new Error(`Soldadura con ID ${soldaduraId} no encontrada`);
+    }
+    
+    soldaduraSelect.value = soldaduraId;
+    document.getElementById("soldadura_id").value = soldaduraId;
+    soldaduraSelect.dispatchEvent(new Event('change'));
+
+    document.getElementById("fecha_entrega").value = fecha;
+    document.getElementById("cantidad").value = cantidad;
+
+    changeColorSelect(operadorSelect);
+    changeColorSelect(soldaduraSelect);
+
+    bloquearCampos();
+    actualizarBoton();
+
+    if (html5QrCode) {
+        html5QrCode.stop().then(() => html5QrCode.clear());
+    }
+    document.getElementById("qrModal").style.display = "none";
+
+    alert('QR de liberación procesado correctamente');
 }
 
 // ===============================

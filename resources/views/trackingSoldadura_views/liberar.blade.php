@@ -84,5 +84,12 @@
     <script>
         window.operadores = @json($operadores);
         window.soldaduras = @json($soldaduras);
+        
+        // Establecer fecha actual automáticamente
+        document.addEventListener('DOMContentLoaded', function() {
+            const fechaInput = document.getElementById('fecha_entrega');
+            const today = new Date().toISOString().split('T')[0];
+            fechaInput.value = today;
+        });
     </script>
 @endsection
