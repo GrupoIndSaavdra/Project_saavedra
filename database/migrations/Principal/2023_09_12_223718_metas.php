@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -22,7 +21,7 @@ return new class extends Migration
                 $table->integer('t_estandar')->nullable();
                 $table->float('meta')->nullable();
                 $table->float('resultado')->nullable();
-                $table->integer('maquina')->nullable();
+                $table->string('maquina')->nullable();
                 $table->unsignedBigInteger('id_clase')->nullable();
                 $table->unsignedBigInteger('id_proceso')->nullable();
                 $table->string('proceso');

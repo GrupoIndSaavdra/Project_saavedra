@@ -14,7 +14,7 @@ return new class extends Migration
         if (!Schema::hasTable('maquinas')) {
             Schema::create('maquinas', function (Blueprint $table) {
                 $table->id();
-                $table->integer('maquina');
+                $table->string('maquina', 50);
                 $table->string('proceso');
                 $table->unsignedBigInteger('id_meta');
                 $table->foreign('id_meta')->references('id')->on('metas');

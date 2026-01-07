@@ -81,12 +81,6 @@ export default defineConfig({
 
                 'resources/js/TrackingSoldadura/liberarSoldadura.js',
                 'resources/js/trackingSoldadura/liberarSoldadura.js',
-
-                //Generar QR
-                'resources/css/generateQR_views/generarQR.css',
-                'resources/js/GenerateQR_views/generarQR.js'
-
-
             ],
             refresh: true,
         }),

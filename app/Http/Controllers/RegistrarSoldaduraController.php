@@ -32,6 +32,7 @@ class RegistrarSoldaduraController extends Controller
             'kilos' => 'required|numeric|min:0.01',
         ]);
 
+        // Siempre crear un nuevo registro (QR individual)
         $soldadura = RegistroSoldadura::create([
             'fecha_ingreso' => $request->fecha_ingreso,
             'nombre' => $request->nombre,
@@ -49,9 +50,12 @@ class RegistrarSoldaduraController extends Controller
         $writer = new Writer($renderer);
         $qrString = $writer->writeString($textoQR);
 
-        // Asegurar que el directorio existe
+        // Asegurar que los directorios existen
         if (!Storage::disk('public')->exists('qr_codes')) {
             Storage::disk('public')->makeDirectory('qr_codes');
+        }
+        if (!Storage::disk('public')->exists('temp')) {
+            Storage::disk('public')->makeDirectory('temp');
         }
 
         // Guardar QR en storage
@@ -74,6 +78,14 @@ class RegistrarSoldaduraController extends Controller
 
         $pdfFilename = 'QR_Soldadura_' . $request->nombre . '_' . $request->lote . '_' . date('Y-m-d') . '.pdf';
 
-        return $pdf->download($pdfFilename);
+        // Guardar PDF temporalmente para descarga
+        $pdfPath = 'temp/' . $pdfFilename;
+        Storage::disk('public')->put($pdfPath, $pdf->output());
+
+        // Mensaje de éxito con enlace de descarga
+        return redirect()->route('registrarSoldadura')
+            ->with('success', 'Soldadura registrada y QR generado correctamente.')
+            ->with('download_link', Storage::url($pdfPath))
+            ->with('download_filename', $pdfFilename);
     }
 }

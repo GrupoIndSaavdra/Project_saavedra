@@ -19,6 +19,16 @@
         {{-- Alertas del sistema --}}
         @include('layouts.partials.messages')
 
+        {{-- Descarga automática del PDF --}}
+        @if(session('download_link'))
+            <a href="{{ session('download_link') }}" 
+               download="{{ session('download_filename') }}"
+               id="downloadLink" style="display:none;"></a>
+            <script>
+                document.getElementById('downloadLink').click();
+            </script>
+        @endif
+
         <form method="POST" action="{{ route('storeRegistroSoldadura') }}">
             @csrf
 

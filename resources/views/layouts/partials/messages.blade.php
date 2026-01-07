@@ -9,8 +9,8 @@
     </div>
 @endif
 
-@if (Session::get('success', false))
-    @php $data = Session::get('success') @endphp
+@if (session('success'))
+    @php $data = session('success') @endphp
     @if (is_array($data))
         @foreach ($data as $message)
             <div class="alert alert-success custom-alert">

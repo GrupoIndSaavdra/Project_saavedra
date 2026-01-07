@@ -5,6 +5,39 @@ let selects = {};
 let html5QrCode = null;
 
 // ===============================
+// Función para mostrar alertas temporales
+// ===============================
+function mostrarAlertaTemporal(mensaje, tipo = 'success') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${tipo} custom-alert`;
+    alertDiv.innerHTML = `
+        <button class="close-alert">&times;</button>
+        ${mensaje}
+    `;
+    
+    // Insertar donde están los mensajes del sistema
+    const messagesContainer = document.querySelector('.wrapper h2').nextElementSibling;
+    if (messagesContainer && messagesContainer.classList.contains('alert')) {
+        messagesContainer.parentNode.insertBefore(alertDiv, messagesContainer.nextSibling);
+    } else {
+        const h2 = document.querySelector('.wrapper h2');
+        h2.parentNode.insertBefore(alertDiv, h2.nextSibling);
+    }
+    
+    // Agregar funcionalidad al botón de cerrar
+    alertDiv.querySelector('.close-alert').addEventListener('click', function() {
+        alertDiv.remove();
+    });
+    
+    // Auto-remover después de 5 segundos
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}
+
+// ===============================
 // Estilos select
 // ===============================
 function changeColorSelect(selectElement) {
@@ -50,7 +83,8 @@ function crearSelect(selectId, opciones, placeholder, tipo) {
         if (tipo === "soldadura") {
             const nombre = (opcion.nombre ?? "").trim();
             const lote = opcion.lote ?? "";
-            const kilos = opcion.kilos ?? 0;
+            const kilos = opcion.kilos_totales ?? opcion.kilos ?? 0;
+            option.value = `${nombre}|${lote}`; // Cambiar para enviar nombre|lote
             option.text = `${nombre} - Lote: ${lote} (${kilos} kg disponibles)`;
         }
 
@@ -108,7 +142,7 @@ function onScanSuccess(decodedText) {
         }
 
     } catch (e) {
-        alert("Error procesando QR: " + e.message);
+        console.error("Error procesando QR:", e.message);
     }
 }
 
@@ -132,10 +166,11 @@ function procesarQRSoldadura(lines) {
         throw new Error(`Soldadura "${nombre}" con lote "${lote}" no encontrada`);
     }
     
-    // Solo completar el campo de soldadura
+    // Solo completar el campo de soldadura con formato nombre|lote
     const soldaduraSelect = document.getElementById("soldadura_id_display");
-    soldaduraSelect.value = soldaduraEncontrada.id;
-    document.getElementById("soldadura_id").value = soldaduraEncontrada.id;
+    const valorSoldadura = `${nombre}|${lote}`;
+    soldaduraSelect.value = valorSoldadura;
+    document.getElementById("soldadura_id").value = valorSoldadura;
     soldaduraSelect.dispatchEvent(new Event('change'));
     
     changeColorSelect(soldaduraSelect);
@@ -150,15 +185,17 @@ function procesarQRSoldadura(lines) {
     }
     document.getElementById("qrModal").style.display = "none";
 
-    alert(`Soldadura "${nombre}" - Lote "${lote}" seleccionada correctamente`);
+    // Mostrar alerta temporal de éxito
+    mostrarAlertaTemporal(`Soldadura "${nombre}" - Lote "${lote}" seleccionada correctamente`, 'success');
 }
 
 // ===============================
 // Procesar QR de liberación completo
 // ===============================
 function procesarQRLiberacion(lines) {
+    // Procesar QR de liberación completo (mantener funcionalidad existente)
     const operadorId = lines[0].trim();
-    const soldaduraId = lines[1].trim();
+    const nombreLote = lines[1].trim(); // Ahora puede ser "nombre|lote"
     const fecha = lines[2].trim();
     const cantidad = lines[3].trim();
 
@@ -206,8 +243,6 @@ function procesarQRLiberacion(lines) {
         html5QrCode.stop().then(() => html5QrCode.clear());
     }
     document.getElementById("qrModal").style.display = "none";
-
-    alert('QR de liberación procesado correctamente');
 }
 
 // ===============================
@@ -240,6 +275,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     contOperador.appendChild(selectOperador);
     contSoldadura.appendChild(selectSoldadura);
+
+    // Bloquear select de soldadura permanentemente
+    selectSoldadura.disabled = true;
 
     selects.operador = selectOperador;
     selects.soldadura = selectSoldadura;
