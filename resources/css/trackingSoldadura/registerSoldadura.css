@@ -90,6 +90,7 @@ form {
 /* Botón guardar */
 .btn-primary {
     background-color: #4080b4;
+    color: #000000;
     border: none;
 }
 
