@@ -1,6 +1,6 @@
 /* Contenedor principal */
 .wrapper {
-    max-width: 600px;
+    max-width: 700px;
     margin: 11rem auto;
     padding: 2.5rem 2rem;
     background: rgba(255, 255, 255, 0.95);
@@ -8,16 +8,19 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     text-align: center;
 }
+
 /* Formulario */
 .form,
 form {
     width: 100%;
 }
+
 /* Logo */
 .lg-saavedra {
     width: 200px;
     margin-bottom: 1.2rem;
 }
+
 /* Título */
 .wrapper h2 {
     font-size: 1.3rem;
@@ -25,6 +28,7 @@ form {
     margin-bottom: 1.2rem;
     color: #033966;
 }
+
 /* Campos*/
 /* .form-label {
     text-align: left;
@@ -60,31 +64,52 @@ form {
 /* Botones */
 .div-bttns {
     margin-top: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
 }
 
 .div-bttns button {
-    min-width: 170px;
-    margin: 0 1rem;
-    padding: 0.6rem 1.2rem 0.5rem 1.2rem;
-    font-size: 1rem;
+    flex: 1;
+    min-width: 180px;
+    max-width: 200px;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
     font-weight: 500;
     border-radius: 0.6rem;
     transition: all 0.5s ease-in-out;
 }
+
 .div-bttns button:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
     transform: all 0.3s ease-in-out;
 }
+
 /* botón registrar soldadura */
 .btn-primary {
     background-color: #4080b4;
     border: none;
     font-family: Poppins, sans-serif;
 }
+
 .btn-primary:hover {
     color: #000000;
     background-color: #3da7fe;
+    transition: all 0.3s ease-in-out;
+}
+
+/* botón generar qr */
+.btn-secondary {
+    background-color: #40b4b4;
+    border: none;
+    font-family: Poppins, sans-serif;
+}
+
+.btn-secondary:hover {
+    color: #000000;
+    background-color: #4ddcdc;
     transition: all 0.3s ease-in-out;
 }
 
@@ -92,7 +117,7 @@ form {
 .btn-success {
     background-color: #3ca976;
     border: none;
-     font-family: Poppins, sans-serif;
+    font-family: Poppins, sans-serif;
 }
 
 .btn-success:hover {
@@ -102,17 +127,21 @@ form {
 }
 
 /* Responsive */
-@media (max-width: 576px) {
-    .wrapper {
-        margin: 2rem 1rem;
-        padding: 2rem 1.5rem;
-    }
-
+@media (max-width: 768px) {
     .div-bttns {
         flex-direction: column;
+        align-items: center;
     }
 
     .div-bttns button {
         width: 100%;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 576px) {
+    .wrapper {
+        margin: 2rem 1rem;
+        padding: 2rem 1.5rem;
     }
 }

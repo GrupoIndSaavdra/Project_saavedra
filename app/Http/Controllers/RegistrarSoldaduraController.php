@@ -50,22 +50,10 @@ class RegistrarSoldaduraController extends Controller
         $writer = new Writer($renderer);
         $qrString = $writer->writeString($textoQR);
 
-        // Asegurar que los directorios existen
-        if (!Storage::disk('public')->exists('qr_codes')) {
-            Storage::disk('public')->makeDirectory('qr_codes');
-        }
-        if (!Storage::disk('public')->exists('temp')) {
-            Storage::disk('public')->makeDirectory('temp');
-        }
-
-        // Guardar QR en storage
-        $filename = 'qr_soldadura_' . $soldadura->id . '_' . time() . '.svg';
-        Storage::disk('public')->put('qr_codes/' . $filename, $qrString);
-
         // Convertir SVG a base64 para el PDF
         $qrBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrString);
 
-        // Generar PDF
+        // Generar PDF con la plantilla original
         $pdf = Pdf::loadView('trackingSoldadura_views.qr_soldadura_pdf', [
             'qrImage' => $qrBase64,
             'soldadura' => [
@@ -76,7 +64,7 @@ class RegistrarSoldaduraController extends Controller
             ]
         ]);
 
-        $pdfFilename = 'QR_Soldadura_' . $request->nombre . '_' . $request->lote . '_' . date('Y-m-d') . '.pdf';
+        $pdfFilename = 'QR_Lote_Soldadura_' . $request->nombre . '_' . $request->lote . '_' . date('Y-m-d') . '.pdf';
 
         // Guardar PDF temporalmente para descarga
         $pdfPath = 'temp/' . $pdfFilename;

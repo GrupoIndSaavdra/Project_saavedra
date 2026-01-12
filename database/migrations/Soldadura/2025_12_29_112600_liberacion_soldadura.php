@@ -27,6 +27,13 @@ return new class extends Migration {
 
                 // Cantidad entregada
                 $table->decimal('cantidad', 10, 2);
+                
+                // Referencia al QR generado (opcional)
+                $table->unsignedBigInteger('qr_generado_id')->nullable();
+                $table->foreign('qr_generado_id')->references('id')->on('soldadura_qr_generados')->onDelete('set null');
+                
+                // Estado de la liberación
+                $table->enum('estado', ['generado', 'liberado', 'cancelado'])->default('liberado');
 
                 $table->timestamps();
             });

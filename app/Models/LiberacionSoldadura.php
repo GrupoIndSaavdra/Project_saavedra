@@ -15,6 +15,20 @@ class LiberacionSoldadura extends Model
         'fecha_entrega',
         'nombre',
         'lote',
-        'cantidad'
+        'cantidad',
+        'qr_generado_id',
+        'estado'
     ];
+    
+    // Relación con QR generado
+    public function qrGenerado()
+    {
+        return $this->belongsTo(QRGeneradoSoldadura::class, 'qr_generado_id');
+    }
+    
+    // Relación con operador
+    public function operador()
+    {
+        return $this->belongsTo(User::class, 'id_operador');
+    }
 }

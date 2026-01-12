@@ -2,6 +2,7 @@
 
 @section('head')
     <title>Liberar Soldadura</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @vite([
         'resources/css/trackingSoldadura/liberarSoldadura.css',
@@ -18,7 +19,7 @@
     <div class="wrapper">
         <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="Logo Saavedra" />
 
-        <h2>Liberar Soldadura</h2>
+        <h2>Liberar Soldadura - Solo Escaneo</h2>
 
         {{-- Mensajes del sistema --}}
         @include('layouts.partials.messages')
@@ -32,38 +33,38 @@
 
             {{-- Operador --}}
             <div class="mb-3 text-start operador-container">
-                <label for="operador_id_display" class="form-label">Selecciona al operador</label>
+                <label for="operador_id_display" class="form-label">Información del operador (solo lectura)</label>
             </div>
 
             {{-- Fecha --}}
             <div class="mb-3 text-start">
-                <label for="fecha_entrega" class="form-label">Fecha de entrega al operador</label>
+                <label for="fecha_entrega" class="form-label">Fecha de entrega (solo lectura)</label>
                 <input type="date" id="fecha_entrega" name="fecha_entrega"
-                    class="form-control @error('fecha_entrega') is-invalid @enderror" required>
-                @error('fecha_entrega')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                    class="form-control" readonly>
             </div>
 
             {{-- Soldadura --}}
             <div class="mb-3 text-start soldadura-container">
-                <label for="soldadura_id" class="form-label">Selecciona el nombre y lote de la soldadura</label>
+                <label for="soldadura_id" class="form-label">Información de la soldadura (solo lectura)</label>
             </div>
 
             {{-- Cantidad --}}
             <div class="mb-3 text-start">
-                <label for="cantidad" class="form-label">Cantidad entregada al operador (kg)</label>
+                <label for="cantidad" class="form-label">Cantidad (solo lectura)</label>
                 <input type="number" step="0.01" min="0" id="cantidad" name="cantidad"
-                    class="form-control @error('cantidad') is-invalid @enderror" required>
-                @error('cantidad')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
+                    class="form-control" readonly>
             </div>
 
-            {{-- Botones --}}
+            {{-- Estado del QR --}}
+            <div class="mb-3 text-start">
+                <label for="estado_qr" class="form-label">Estado del QR</label>
+                <input type="text" id="estado_qr" name="estado_qr"
+                    class="form-control" readonly placeholder="Escanea un QR para ver su estado">
+            </div>
+
+            {{-- Botón --}}
             <div class="div-bttns d-flex gap-3 justify-content-center mt-4">
-                <button type="button" id="btnEscanear" class="btn btn-secondary">Escanear QR</button>
-                <button type="submit" id="btnGuardar" class="btn btn-primary" disabled>Guardar</button>
+                <button type="button" id="btnEscanear" class="btn btn-primary">Escanear QR para Liberar</button>
             </div>
         </form>
     </div>

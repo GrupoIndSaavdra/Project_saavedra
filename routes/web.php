@@ -42,6 +42,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TrackingSoldaduraController;
 use App\Http\Controllers\LiberarSoldaduraController;
 use App\Http\Controllers\RegistrarSoldaduraController;
+use App\Http\Controllers\GenerarQRSoldaduraController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -205,6 +206,25 @@ Route::middleware(['auth'])->group(function () {
     // Guardar liberación de Soldadura
     Route::post('/soldadura/liberar', [LiberarSoldaduraController::class, 'store'])
         ->name('soldadura.liberar.store');
+        
+    // Validar y procesar QR individual
+    Route::post('/soldadura/liberar/validar-qr', [LiberarSoldaduraController::class, 'liberarDesdeQR'])
+        ->name('soldadura.liberar.qr');
+});
+
+/* ===========================
+   Generar QR Soldadura
+=========================== */
+
+Route::middleware(['auth'])->group(function () {
+
+    // Mostrar formulario de Generar QR Soldadura
+    Route::get('/soldadura/generarQRSoldadura', [GenerarQRSoldaduraController::class, 'create'])
+        ->name('soldadura.generarQRSoldadura');
+
+    // Generar y descargar QRs de Soldadura
+    Route::post('/soldadura/generarQRSoldadura', [GenerarQRSoldaduraController::class, 'store'])
+        ->name('soldadura.generarQRSoldadura.store');
 });
 
 /* ===========================

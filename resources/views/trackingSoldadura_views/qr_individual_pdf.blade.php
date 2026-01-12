@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>QR Soldadura - Grupo Industrial Saavedra</title>
+    <title>QR Soldadura Individual - Grupo Industrial Saavedra</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -99,29 +99,39 @@
     <div class="container">
         <div class="header">
             <div class="title">GRUPO INDUSTRIAL SAAVEDRA</div>
-            <div class="subtitle">QR - Registro de Soldadura</div>
+            <div class="subtitle">QR - Soldadura Individual</div>
         </div>
 
         <div class="qr-container">
-            <img src="{{ $qrImage }}" alt="Código QR" style="width: 180px; height: 180px;">
+            <img src="{{ $qrs[0]['qr_image'] }}" alt="Código QR" style="width: 180px; height: 180px;">
         </div>
 
         <div class="info-section">
             <div class="info-row">
+                <span class="info-label">Operador:</span>
+                <span class="info-value">
+                    @if($operador)
+                        {{ $operador->matricula }} - {{ $operador->nombre }} {{ $operador->a_paterno }}
+                    @else
+                        Sin operador asignado
+                    @endif
+                </span>
+            </div>
+            <div class="info-row">
                 <span class="info-label">Soldadura:</span>
-                <span class="info-value">{{ $soldadura['nombre'] }}</span>
+                <span class="info-value">{{ $nombre }}</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Lote:</span>
-                <span class="info-value">{{ $soldadura['lote'] }}</span>
+                <span class="info-value">{{ $lote }}</span>
             </div>
             <div class="info-row">
-                <span class="info-label">Fecha Ingreso:</span>
-                <span class="info-value">{{ $soldadura['fecha_ingreso'] }}</span>
+                <span class="info-label">Fecha Generación:</span>
+                <span class="info-value">{{ $fecha }}</span>
             </div>
             <div class="info-row">
                 <span class="info-label">Kilos:</span>
-                <span class="info-value">{{ $soldadura['kilos'] }} kg</span>
+                <span class="info-value">{{ $qrs[0]['kilos'] }} kg</span>
             </div>
         </div>
 

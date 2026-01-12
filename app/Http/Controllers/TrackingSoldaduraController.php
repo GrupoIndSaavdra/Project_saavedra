@@ -19,6 +19,7 @@ class TrackingSoldaduraController extends Controller
         return match ($request->accion) {
             'registrar' => redirect()->route('registrarSoldadura'),
             'liberar' => redirect()->route('soldadura.liberar'),
+            'generar' => redirect()->route('soldadura.generarQRSoldadura'),
             default => back()->withErrors(['accion' => 'Acción no válida'])
         };
     }
