@@ -50,4 +50,9 @@ class User extends Authenticatable
     public function setPasswordAttribute($value){
         $this->attributes['contrasena'] = bcrypt($value);
     }
+
+    public function getNameAttribute()
+    {
+        return $this->nombre . ' ' . $this->a_paterno . ' ' . $this->a_materno;
+    }
 }
