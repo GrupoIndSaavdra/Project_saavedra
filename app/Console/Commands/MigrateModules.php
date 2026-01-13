@@ -30,11 +30,10 @@ class MigrateModules extends Command
      */
     public function handle()
     {
-        // // Borrar todas las tablas excepto 'users'
-        // $this->info("Truncating all tables except 'users'...");
-        // $this->truncateAllExceptUsers();
-        // $this->info("All tables truncated successfully, except 'users'.");
-
+        // Borrar todas las tablas excepto 'users'
+       $this->info("Truncating all tables except 'users'...");
+       $this->truncateAllExceptUsers();
+       $this->info("All tables truncated successfully, except 'users'.");
 
         //Correr todas las migraciones
         $this->info("Executing Principal Module Migration");
