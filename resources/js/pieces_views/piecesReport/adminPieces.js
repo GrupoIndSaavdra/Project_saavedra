@@ -88,9 +88,8 @@ function crearBotonVer(infoPiezas, i, usuarios) {
         nPiezas.push(infoPiezas[i][0][j]);
     }
     console.log(infoPiezas[i]);
-    let url = `${window.baseUrl}/pieces/${nPiezas}/${infoPiezas[i][1]}/${
-        document.getElementsByName("profile")[0].value
-    }`;
+    let url = `${window.baseUrl}/pieces/${nPiezas}/${infoPiezas[i][1]}/${document.getElementsByName("profile")[0].value
+        }`;
     a.href = url;
 
     const image = document.createElement("img");

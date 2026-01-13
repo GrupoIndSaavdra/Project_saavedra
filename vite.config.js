@@ -75,11 +75,14 @@ export default defineConfig({
                 'resources/css/trackingSoldadura/registerSoldadura.css',
                 'resources/js/TrackingSoldadura/registerSoldadura.js',
 
+                //Generar QR individual
+                'resources/js/TrackingSoldadura/generarQRSoldadura.js',
+                'resources/css/trackingSoldadura/generar.css',
+
                 //Liberar soldadura
                 'resources/js/libs/html5-qrcode.min.js',
                 'resources/css/trackingSoldadura/liberarSoldadura.css',
-                'resources/js/TrackingSoldadura/liberarSoldadura.js'
-
+                'resources/js/trackingSoldadura/liberarSoldadura.js',
             ],
             refresh: true,
         }),
