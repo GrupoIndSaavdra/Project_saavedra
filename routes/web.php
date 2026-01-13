@@ -165,66 +165,49 @@ Route::controller(MachinesController::class)->group(function () {
 Route::get('/panel-progreso', fn() => view('wo_views.progressPanel_wo'))->name('panelProgreso');
 
 /* ===========================
-   Tracking Soldadura
+   Tracking Soldadura - NUEVO SISTEMA
 =========================== */
-
-// Dashboard principal
-Route::get('/trackingSoldadura', [TrackingSoldaduraController::class, 'index'])
-    ->name('trackingSoldadura');
-
-// Registrar soldaduras
-Route::get('/trackingSoldadura/registrar', [TrackingSoldaduraController::class, 'create'])
-    ->name('registrarSoldadura');
-
-// Guardar formulario de Tracking Soldadura (POST)
-Route::post('/trackingSoldadura', [TrackingSoldaduraController::class, 'store'])
-    ->name('storeTrackingSoldadura');
 
 /* ===========================
-   Registrar Soldadura
+   1. Generar QR por Lote
 =========================== */
+use App\Http\Controllers\GenerarQRLoteController;
+use App\Http\Controllers\GenerarQRIndividualController;
+use App\Http\Controllers\LiberarQRPlantaController;
 
 Route::middleware(['auth'])->group(function () {
-    // Mostrar formulario de registro
-    Route::get('/trackingSoldadura/registrar', [RegistrarSoldaduraController::class, 'create'])
-        ->name('registrarSoldadura');
-
-    Route::post('/trackingSoldadura/registrar', [RegistrarSoldaduraController::class, 'store'])
-        ->name('storeRegistroSoldadura');
+    Route::get('/soldadura/generar-qr-lote', [GenerarQRLoteController::class, 'index'])
+        ->name('soldadura.generarQRLote');
+    
+    Route::post('/soldadura/generar-qr-lote', [GenerarQRLoteController::class, 'store'])
+        ->name('soldadura.generarQRLote.store');
 });
 
 /* ===========================
-   Liberar Soldadura
+   2. Generar QRs Individuales
 =========================== */
 
 Route::middleware(['auth'])->group(function () {
-
-    // Mostrar formulario de Liberar Soldadura
-    Route::get('/soldadura/liberar', [LiberarSoldaduraController::class, 'create'])
-        ->name('soldadura.liberar');
-
-    // Guardar liberación de Soldadura
-    Route::post('/soldadura/liberar', [LiberarSoldaduraController::class, 'store'])
-        ->name('soldadura.liberar.store');
-        
-    // Validar y procesar QR individual
-    Route::post('/soldadura/liberar/validar-qr', [LiberarSoldaduraController::class, 'liberarDesdeQR'])
-        ->name('soldadura.liberar.qr');
+    Route::get('/soldadura/generar-qr-individual', [GenerarQRIndividualController::class, 'index'])
+        ->name('soldadura.generarQRIndividual');
+    
+    Route::post('/soldadura/generar-qr-individual', [GenerarQRIndividualController::class, 'store'])
+        ->name('soldadura.generarQRIndividual.store');
 });
 
 /* ===========================
-   Generar QR Soldadura
+   3. Liberar QRs en Planta
 =========================== */
 
 Route::middleware(['auth'])->group(function () {
-
-    // Mostrar formulario de Generar QR Soldadura
-    Route::get('/soldadura/generarQRSoldadura', [GenerarQRSoldaduraController::class, 'create'])
-        ->name('soldadura.generarQRSoldadura');
-
-    // Generar y descargar QRs de Soldadura
-    Route::post('/soldadura/generarQRSoldadura', [GenerarQRSoldaduraController::class, 'store'])
-        ->name('soldadura.generarQRSoldadura.store');
+    Route::get('/soldadura/liberar-qr-planta', [LiberarQRPlantaController::class, 'index'])
+        ->name('soldadura.liberarQRPlanta');
+    
+    Route::post('/soldadura/liberar-qr-planta/escanear', [LiberarQRPlantaController::class, 'escanear'])
+        ->name('soldadura.liberarQRPlanta.escanear');
+    
+    Route::post('/soldadura/liberar-qr-planta/liberar', [LiberarQRPlantaController::class, 'liberar'])
+        ->name('soldadura.liberarQRPlanta.liberar');
 });
 
 /* ===========================

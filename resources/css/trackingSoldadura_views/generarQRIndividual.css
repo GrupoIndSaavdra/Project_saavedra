@@ -1,18 +1,12 @@
 /* Contenedor principal */
 .wrapper {
     max-width: 700px;
-    margin: 11rem auto;
+    margin: 1rem auto;
     padding: 2.5rem 2rem;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 1.2rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     text-align: center;
-}
-
-/* Formulario */
-.form,
-form {
-    width: 100%;
 }
 
 /* Logo */
@@ -29,14 +23,15 @@ form {
     color: #033966;
 }
 
-/* Campos*/
-/* .form-label {
+/* Campos de formulario */
+.form-label {
     text-align: left;
     display: block;
     font-weight: 500;
     color: #033966;
     margin-bottom: 0.3rem;
 }
+
 .form-control {
     width: 100%;
     border-radius: 0.5rem;
@@ -46,84 +41,73 @@ form {
     transition: border-color 0.3s, box-shadow 0.3s;
     background-color: #fafafa;
 }
+
 .form-control:focus {
     border-color: #033966;
     box-shadow: 0 0 0 2px rgba(3, 57, 102, 0.2);
     outline: none;
-} */
+}
 
-/* Espaciado entre inputs */
-/*.mb-3 {
+.mb-3 {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
     margin-bottom: 1.2rem;
     text-align: left;
-}*/
+}
+
+/* Alerta de advertencia */
+.alert-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+}
 
 /* Botones */
 .div-bttns {
     margin-top: 2rem;
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: 1rem;
     justify-content: center;
 }
 
-.div-bttns button {
-    flex: 1;
-    min-width: 180px;
-    max-width: 200px;
-    padding: 0.6rem 1rem;
+.btn {
+    padding: 0.6rem 1.5rem;
     font-size: 0.9rem;
     font-weight: 500;
     border-radius: 0.6rem;
-    transition: all 0.5s ease-in-out;
-}
-
-.div-bttns button:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-    transform: all 0.3s ease-in-out;
-}
-
-/* botón registrar soldadura */
-.btn-primary {
-    background-color: #4080b4;
     border: none;
     font-family: Poppins, sans-serif;
+    transition: all 0.3s ease-in-out;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+    background-color: #40b4b4;
+    color: white;
 }
 
 .btn-primary:hover {
+    background-color: #4ddcdc;
     color: #000000;
-    background-color: #3da7fe;
-    transition: all 0.3s ease-in-out;
 }
 
-/* botón generar qr */
 .btn-secondary {
-    background-color: #40b4b4;
-    border: none;
-    font-family: Poppins, sans-serif;
+    background-color: #6c757d;
+    color: white;
 }
 
 .btn-secondary:hover {
-    color: #000000;
-    background-color: #4ddcdc;
-    transition: all 0.3s ease-in-out;
-}
-
-/* botón liberar soldadura */
-.btn-success {
-    background-color: #3ca976;
-    border: none;
-    font-family: Poppins, sans-serif;
-}
-
-.btn-success:hover {
-    color: #000000;
-    background-color: #1acd7a;
-    transition: all 0.3s ease-in-out;
+    background-color: #5a6268;
 }
 
 /* Responsive */
@@ -133,13 +117,6 @@ form {
         align-items: center;
     }
 
-    .div-bttns button {
-        width: 100%;
-        max-width: 300px;
-    }
-}
-
-@media (max-width: 576px) {
     .wrapper {
         margin: 2rem 1rem;
         padding: 2rem 1.5rem;

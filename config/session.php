@@ -31,7 +31,11 @@ return [
     |
     */
 
+<<<<<<< HEAD
     'lifetime' => env('SESSION_LIFETIME', 1000),
+=======
+    'lifetime' => env('SESSION_LIFETIME', 3000),
+>>>>>>> acf65b21532bd06a17f17084f0e2e2b2bd3ced9f
 
     'expire_on_close' => false,
 
