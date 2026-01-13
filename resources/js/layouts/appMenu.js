@@ -240,17 +240,16 @@ function getRoutes(profile) {
                     title: "Orden de Trabajo",
                     routes: [
                         ["manageWO", "Modificar O.T"],
-
                     ],
                 },
                 {
-                    title: "Soldadura",
+                    title: "Tracking Soldadura",
                     routes: [
-                        ["trackingSoldadura", "Registro y entrega de soldadura"],
-                        ["generarQR", "Generar QR"]
+                        ["soldadura.generarQRLote", "Generar QR por Lote"],
+                        ["soldadura.generarQRIndividual", "Generar QRs Individuales (5Kg)"],
+                        ["soldadura.liberarQRPlanta", "Liberar QRs en Planta"]
                     ],
                 },
-
             ];
             break;
         default:

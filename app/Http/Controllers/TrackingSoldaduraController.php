@@ -7,18 +7,17 @@ use Illuminate\Http\Request;
 
 class TrackingSoldaduraController extends Controller
 {
-    // Dashboard principal
     public function index()
     {
         return view('trackingSoldadura_views.trackingSoldadura');
     }
 
-    // Manejo de formulario POST
     public function store(Request $request)
     {
         return match ($request->accion) {
-            'registrar' => redirect()->route('registrarSoldadura'),
-            'liberar' => redirect()->route('soldadura.liberar'),
+            'generar_lote' => redirect()->route('soldadura.generarQRLote'),
+            'generar_individual' => redirect()->route('soldadura.generarQRIndividual'),
+            'liberar_planta' => redirect()->route('soldadura.liberarQRPlanta'),
             default => back()->withErrors(['accion' => 'Acción no válida'])
         };
     }

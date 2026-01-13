@@ -1,11 +1,18 @@
 function actualizarBoton() {
     const btn = document.getElementById("btnGuardar");
-    const fecha = document.getElementById("fecha_ingreso").value;
-    const nombre = document.getElementById("nombre").value;
-    const lote = document.getElementById("lote").value;
-    const kilos = document.getElementById("kilos").value;
+    const fechaEl = document.getElementById("fecha_ingreso");
+    const nombreEl = document.getElementById("nombre");
+    const loteEl = document.getElementById("lote");
+    const kilosEl = document.getElementById("kilos");
 
-    btn.disabled = !(fecha && nombre && lote && kilos);
+    const fecha = fechaEl?.value || '';
+    const nombre = nombreEl?.value || '';
+    const lote = loteEl?.value || '';
+    const kilos = kilosEl?.value || '';
+
+    if (btn) {
+        btn.disabled = !(fecha && nombre && lote && kilos);
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
