@@ -243,7 +243,7 @@ function getRoutes(profile) {
                     ],
                 },
                 {
-                    title: "Tracking Soldadura",
+                    title: "Soldadura",
                     routes: [
                         ["soldadura.generarQRLote", "Generar QR por Lote"],
                         ["soldadura.generarQRIndividual", "Generar QRs Individuales (5Kg)"],
