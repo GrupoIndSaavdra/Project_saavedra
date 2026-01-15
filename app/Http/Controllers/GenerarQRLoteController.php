@@ -18,19 +18,21 @@ class GenerarQRLoteController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'lote' => 'required|string|max:255',
-            'kilos_totales' => 'required|numeric|min:0.01',
+            'peso_total' => 'required|numeric|min:5',
             'numero_factura' => 'required|string|max:255',
+        ], [
+            'peso_total.min' => 'El peso total debe ser al menos 5 kg',
         ]);
 
-        $idUnico = SoldaduraLote::generarIdUnico($request->nombre, $request->lote);
+        $matricula = SoldaduraLote::generarMatricula($request->nombre, $request->lote);
 
         $lote = SoldaduraLote::create([
-            'id_unico' => $idUnico,
-            'fecha_ingreso' => now()->toDateString(),
+            'matricula' => $matricula,
             'nombre' => $request->nombre,
             'lote' => $request->lote,
-            'kilos_totales' => $request->kilos_totales,
+            'peso_total_kg' => $request->peso_total,
             'numero_factura' => $request->numero_factura,
+            'fecha_ingreso' => now()->toDateString(),
         ]);
 
         return $this->generarPDF($lote);
@@ -39,19 +41,17 @@ class GenerarQRLoteController extends Controller
     private function generarPDF($lote)
     {
         $qrContent = json_encode([
-            'id_unico' => $lote->id_unico,
+            'tipo' => 'lote',
+            'id' => $lote->id,
+            'matricula' => $lote->matricula,
             'nombre' => $lote->nombre,
             'lote' => $lote->lote,
-            'kilos_totales' => $lote->kilos_totales,
+            'peso_total_kg' => $lote->peso_total_kg,
             'numero_factura' => $lote->numero_factura,
-            'tipo' => 'lote'
         ]);
-
-        // Usar URL del QR directamente en el PDF
-        $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($qrContent);
 
         $pdf = Pdf::loadView('trackingSoldadura_views.qr_lote_pdf', compact('lote', 'qrContent'));
         
-        return $pdf->download('QR_Lote_' . $lote->id_unico . '.pdf');
+        return $pdf->download('QR_Lote_' . $lote->matricula . '.pdf');
     }
 }

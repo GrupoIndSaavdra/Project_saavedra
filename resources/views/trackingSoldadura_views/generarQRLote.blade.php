@@ -27,8 +27,10 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label">Kilos Totales</label>
-                <input type="number" step="0.01" name="kilos_totales" class="form-control" value="{{ old('kilos_totales') }}" required>
+                <label class="form-label">Peso Total (kg)</label>
+                <input type="number" step="0.01" min="5" name="peso_total" class="form-control"
+                    value="{{ old('peso_total') }}" required>
+                <small class="form-text text-muted">Mínimo 5 kg para generar al menos un bote</small>
             </div>
 
             <div class="mb-3">

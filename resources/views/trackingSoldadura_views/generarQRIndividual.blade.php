@@ -22,8 +22,8 @@
                     <option value="">Seleccione un lote...</option>
                     @foreach($lotes as $lote)
                         <option value="{{ $lote->id }}">
-                            {{ $lote->nombre }} - {{ $lote->lote }} 
-                            ({{ $lote->kilos_totales }}kg - {{ floor($lote->kilos_totales / 5) }} botes)
+                            {{ $lote->nombre }} - {{ $lote->lote }} - Factura: {{ $lote->numero_factura }}
+                            ({{ $lote->peso_total_kg }}kg - {{ $lote->cantidadBotesEsperados() }} botes)
                         </option>
                     @endforeach
                 </select>

@@ -38,7 +38,7 @@
     padding: 0.55rem 0.75rem;
     border: 1px solid #cfcfcf;
     font-size: 0.95rem;
-    transition: border-color 0.3s, box-shadow 0.3s;
+    transition: all 0.3s ease-in-out;
     background-color: #fafafa;
 }
 

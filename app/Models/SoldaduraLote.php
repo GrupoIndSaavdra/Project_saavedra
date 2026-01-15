@@ -12,43 +12,55 @@ class SoldaduraLote extends Model
     protected $table = 'soldadura_lotes';
 
     protected $fillable = [
-        'id_unico',
-        'fecha_ingreso',
+        'matricula',
         'nombre',
         'lote',
-        'kilos_totales',
         'numero_factura',
+        'peso_total_kg',
+        'fecha_ingreso',
         'botes_generados',
-        'estado'
     ];
 
     protected $casts = [
         'fecha_ingreso' => 'date',
-        'kilos_totales' => 'decimal:2',
+        'peso_total_kg' => 'decimal:2',
+        'botes_generados' => 'integer',
     ];
 
+    // Relaciones
     public function botes()
     {
-        return $this->hasMany(SoldaduraBoteIndividual::class, 'lote_id');
+        return $this->hasMany(SoldaduraBote::class, 'lote_id');
     }
 
-    public static function generarIdUnico($nombre, $lote)
+    // Métodos auxiliares
+    public static function generarMatricula($nombre, $lote)
     {
-        do {
-            $fecha = now()->format('dm');
-            $hora = now()->format('Hi');
-            $nombreCorto = strtoupper(substr($nombre, 0, 2));
-            $loteCorto = strtoupper(substr($lote, 0, 2));
-            
-            $idUnico = $fecha . $hora . $nombreCorto . $loteCorto;
-            
-            // Si ya existe, agregar segundos para hacerlo único
-            if (self::where('id_unico', $idUnico)->exists()) {
-                $segundos = now()->format('s');
-                $idUnico = $fecha . $hora . $segundos . $nombreCorto . $loteCorto;
-            }
-        } while (self::where('id_unico', $idUnico)->exists());
+        $fecha = now()->format('dmy'); // Día, Mes, Año (2 dígitos)
+        $hora = now()->format('Hi'); // Hora y minutos
+        $nombreCorto = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $nombre), 0, 3));
+        $loteCorto = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $lote), 0, 3));
         
-        return $idUnico;
+        $matricula = "{$fecha}{$hora}{$nombreCorto}{$loteCorto}";
+        
+        // Si existe, agregar segundos
+        $contador = 1;
+        $matriculaOriginal = $matricula;
+        while (self::where('matricula', $matricula)->exists()) {
+            $matricula = $matriculaOriginal . str_pad($contador, 2, '0', STR_PAD_LEFT);
+            $contador++;
+        }
+        
+        return $matricula;
+    }
+
+    public function cantidadBotesEsperados()
+    {
+        return (int) floor($this->peso_total_kg / 5);
+    }
+
+    public function botesGeneradosCompletados()
+    {
+        return $this->botes_generados >= $this->cantidadBotesEsperados();
     }
 }

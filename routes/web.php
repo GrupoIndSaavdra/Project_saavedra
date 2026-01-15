@@ -178,7 +178,7 @@ use App\Http\Controllers\LiberarQRPlantaController;
 Route::middleware(['auth'])->group(function () {
     Route::get('/soldadura/generar-qr-lote', [GenerarQRLoteController::class, 'index'])
         ->name('soldadura.generarQRLote');
-    
+
     Route::post('/soldadura/generar-qr-lote', [GenerarQRLoteController::class, 'store'])
         ->name('soldadura.generarQRLote.store');
 });
@@ -190,22 +190,37 @@ Route::middleware(['auth'])->group(function () {
 Route::middleware(['auth'])->group(function () {
     Route::get('/soldadura/generar-qr-individual', [GenerarQRIndividualController::class, 'index'])
         ->name('soldadura.generarQRIndividual');
-    
+
     Route::post('/soldadura/generar-qr-individual', [GenerarQRIndividualController::class, 'store'])
         ->name('soldadura.generarQRIndividual.store');
 });
 
 /* ===========================
-   3. Liberar QRs en Planta
+   3. Recepción de Soldadura en Planta (ENTRADA)
+=========================== */
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/soldadura/recepcion-planta', [LiberarQRPlantaController::class, 'indexRecepcion'])
+        ->name('soldadura.recepcionPlanta');
+
+    Route::post('/soldadura/recepcion-planta/escanear', [LiberarQRPlantaController::class, 'escanearRecepcion'])
+        ->name('soldadura.recepcionPlanta.escanear');
+
+    Route::post('/soldadura/recepcion-planta/confirmar', [LiberarQRPlantaController::class, 'confirmarRecepcion'])
+        ->name('soldadura.recepcionPlanta.confirmar');
+});
+
+/* ===========================
+   4. Liberar Soldadura a Operadores (SALIDA)
 =========================== */
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/soldadura/liberar-qr-planta', [LiberarQRPlantaController::class, 'index'])
         ->name('soldadura.liberarQRPlanta');
-    
+
     Route::post('/soldadura/liberar-qr-planta/escanear', [LiberarQRPlantaController::class, 'escanear'])
         ->name('soldadura.liberarQRPlanta.escanear');
-    
+
     Route::post('/soldadura/liberar-qr-planta/liberar', [LiberarQRPlantaController::class, 'liberar'])
         ->name('soldadura.liberarQRPlanta.liberar');
 });

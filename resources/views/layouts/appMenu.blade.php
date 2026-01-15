@@ -20,22 +20,22 @@
 <body style="@yield('background-body')">
     <header>
         @auth
-        <!--Menu-->
-        <button class="open-menu">
-            <img class="icon" src="{{ asset('images/icono.png') }}">
-        </button>
-        <div class="filter-opacity">
-            <nav class="nav" id="nav">
-                <ul class="nav-list"></ul>
-                <a class="btn-close-session" href="{{ route('logout') }}">Cerrar sesión</a>
-                <input type="hidden" value="{{ auth()->user()->perfil }}" id="profile">
-            </nav>
-        </div>
+            <!--Menu-->
+            <button class="open-menu">
+                <img class="icon" src="{{ asset('images/icono.png') }}">
+            </button>
+            <div class="filter-opacity">
+                <nav class="nav" id="nav">
+                    <ul class="nav-list"></ul>
+                    <a class="btn-close-session" href="{{ route('logout') }}">Cerrar sesión</a>
+                    <input type="hidden" value="{{ auth()->user()->perfil }}" id="profile">
+                </nav>
+            </div>
 
-        <!--Texto central-->
-        <span class="text-header">GRUPO INDUSTRIAL SAAVEDRA</span>
-        <!--Logo Saavedra-->
-        <img src="{!! asset('images/lg_saavedra.png') !!}" alt="logo" class="logo">
+            <!--Texto central-->
+            <span class="text-header">GRUPO INDUSTRIAL SAAVEDRA</span>
+            <!--Logo Saavedra-->
+            <img src="{!! asset('images/lg_saavedra.png') !!}" alt="logo" class="logo">
         @endauth
     </header>
     @yield('content')
@@ -63,14 +63,15 @@
         logout: @json(route('logout')),
         'soldadura.generarQRLote': @json(route('soldadura.generarQRLote')),
         'soldadura.generarQRIndividual': @json(route('soldadura.generarQRIndividual')),
+        'soldadura.recepcionPlanta': @json(route('soldadura.recepcionPlanta')),
         'soldadura.liberarQRPlanta': @json(route('soldadura.liberarQRPlanta')),
     };
 </script>
 @isset($pieces_Released)
-<script>
-    window.pieces_Released = @json(auth()->user()->perfil) == 4 ? @json($pieces_Released) : [];
-    window.info_Pieces = @json(auth()->user()->perfil) == 4 ? @json($info_Pieces) : [];
-</script>
+    <script>
+        window.pieces_Released = @json(auth()->user()->perfil) == 4 ? @json($pieces_Released) : [];
+        window.info_Pieces = @json(auth()->user()->perfil) == 4 ? @json($info_Pieces) : [];
+    </script>
 @endisset
 
 </html>

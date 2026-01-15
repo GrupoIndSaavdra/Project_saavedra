@@ -3,15 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\SoldaduraLote;
-use App\Models\SoldaduraBoteIndividual;
+use App\Models\SoldaduraBote;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\DB;
 
 class GenerarQRIndividualController extends Controller
 {
     public function index()
     {
-        $lotes = SoldaduraLote::where('botes_generados', 0)->get();
+        // Obtener lotes que no han generado todos sus botes
+        $lotes = SoldaduraLote::whereColumn('botes_generados', '<', DB::raw('FLOOR(peso_total_kg / 5)'))
+                    ->orWhere('botes_generados', 0)
+                    ->orderBy('fecha_ingreso', 'desc')
+                    ->get();
+        
         return view('trackingSoldadura_views.generarQRIndividual', compact('lotes'));
     }
 
@@ -23,27 +29,29 @@ class GenerarQRIndividualController extends Controller
 
         $lote = SoldaduraLote::findOrFail($request->lote_id);
         
-        $numeroBotes = floor($lote->kilos_totales / 5);
+        // Verificar si ya se generaron los botes
+        if ($lote->botesGeneradosCompletados()) {
+            return back()->withErrors(['lote_id' => 'Este lote ya tiene todos sus botes generados.']);
+        }
+        
+        $cantidadBotes = $lote->cantidadBotesEsperados();
         
         $botes = [];
-        for ($i = 1; $i <= $numeroBotes; $i++) {
-            $idUnicoBote = SoldaduraBoteIndividual::generarIdUnico($lote->id_unico, $i);
+        for ($i = 1; $i <= $cantidadBotes; $i++) {
+            $matricula = SoldaduraBote::generarMatricula($lote->matricula, $i);
             
-            $bote = SoldaduraBoteIndividual::create([
-                'id_unico' => $idUnicoBote,
+            $bote = SoldaduraBote::create([
                 'lote_id' => $lote->id,
-                'nombre' => $lote->nombre,
-                'lote' => $lote->lote,
-                'peso' => 5.00,
-                'numero_factura' => $lote->numero_factura,
+                'matricula' => $matricula,
                 'numero_bote' => $i,
-                'estado' => 'en_camino'
+                'peso_kg' => 5.00,
+                'estado' => 'en_transito',
             ]);
             
             $botes[] = $bote;
         }
 
-        $lote->update(['botes_generados' => $numeroBotes]);
+        $lote->update(['botes_generados' => $cantidadBotes]);
 
         return $this->generarPDF($botes, $lote);
     }
@@ -54,26 +62,21 @@ class GenerarQRIndividualController extends Controller
         
         foreach ($botes as $bote) {
             $qrContent = json_encode([
-                'id_unico' => $bote->id_unico,
-                'nombre' => $bote->nombre,
-                'lote' => $bote->lote,
-                'peso' => $bote->peso,
+                'tipo' => 'bote',
+                'id' => $bote->id,
+                'matricula' => $bote->matricula,
+                'lote_id' => $bote->lote_id,
                 'numero_bote' => $bote->numero_bote,
-                'estado' => $bote->estado,
-                'tipo' => 'bote_individual'
             ]);
-
-            $qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($qrContent);
 
             $qrCodes[] = [
                 'bote' => $bote,
-                'qrUrl' => $qrUrl,
                 'qrContent' => $qrContent
             ];
         }
 
         $pdf = Pdf::loadView('trackingSoldadura_views.qr_individuales_pdf', compact('qrCodes', 'lote'));
         
-        return $pdf->download('QR_Individuales_' . $lote->id_unico . '.pdf');
+        return $pdf->download('QR_Botes_' . $lote->matricula . '.pdf');
     }
 }

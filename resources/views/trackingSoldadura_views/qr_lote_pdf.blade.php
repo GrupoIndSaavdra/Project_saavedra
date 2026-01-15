@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>QR Lote - {{ $lote->id_unico }}</title>
+    <title>QR Lote - {{ $lote->matricula }}</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         body { 
@@ -71,13 +71,13 @@
         <div class="qr-container">
             <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&format=svg&data={{ urlencode($qrContent) }}" 
                  alt="QR Code" style="width: 160px; height: 160px;">
-            <p style="font-size: 10px; margin-top: 5px; font-weight: 700;">ID: {{ $lote->id_unico }}</p>
+            <p style="font-size: 10px; margin-top: 5px; font-weight: 700;">Matrícula: {{ $lote->matricula }}</p>
         </div>
 
         <table class="info-table">
             <tr>
-                <th>ID Único</th>
-                <td>{{ $lote->id_unico }}</td>
+                <th>Matrícula</th>
+                <td>{{ $lote->matricula }}</td>
             </tr>
             <tr>
                 <th>Soldadura</th>
@@ -88,20 +88,20 @@
                 <td>{{ $lote->lote }}</td>
             </tr>
             <tr>
-                <th>Kilos Totales</th>
-                <td>{{ $lote->kilos_totales }} kg</td>
+                <th>Peso Total</th>
+                <td>{{ $lote->peso_total_kg }} kg</td>
             </tr>
             <tr>
                 <th>Factura</th>
                 <td>{{ $lote->numero_factura }}</td>
             </tr>
             <tr>
-                <th>Fecha</th>
+                <th>Fecha Ingreso</th>
                 <td>{{ $lote->fecha_ingreso->format('d/m/Y') }}</td>
             </tr>
             <tr>
                 <th>Botes (5kg c/u)</th>
-                <td>{{ floor($lote->kilos_totales / 5) }} botes</td>
+                <td>{{ $lote->cantidadBotesEsperados() }} botes</td>
             </tr>
         </table>
 

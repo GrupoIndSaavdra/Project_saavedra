@@ -1,9 +1,9 @@
 /* Contenedor principal */
 .wrapper {
-    max-width: 900px;
+    max-width: 850px;
     margin: 1rem auto;
     padding: 2.5rem 2rem;
-    background-color: rgba(255, 255, 255, 0.97);
+    background: rgba(255, 255, 255, 0.97);
     border-radius: 1.2rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
     text-align: center;
@@ -34,24 +34,13 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background-color: #28a745;
+    background-color: #17a2b8;
     color: white;
     padding: 0.6rem 1.2rem;
     border-radius: 2rem;
     margin-bottom: 1.5rem;
     font-size: 0.9rem;
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-.info-badge.badge-success {
-    background-color: #28a745;
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-.info-badge.badge-warning {
-    background-color: #ffc107;
-    color: #212529;
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
 }
 
 .badge-icon {
@@ -82,8 +71,8 @@
 }
 
 .form-control:focus {
-    border-color: #28a745;
-    box-shadow: 0 0 0 2px rgba(40, 167, 69, 0.2);
+    border-color: #17a2b8;
+    box-shadow: 0 0 0 2px rgba(23, 162, 184, 0.2);
     outline: none;
 }
 
@@ -94,9 +83,9 @@
     color: #495057;
 }
 
-.estado-planta {
-    background-color: #d4edda !important;
-    color: #155724 !important;
+.estado-transito {
+    background-color: #fff3cd !important;
+    color: #856404 !important;
     font-weight: 600;
 }
 
@@ -115,7 +104,6 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     overflow: hidden;
     text-align: left;
-    margin-bottom: 1rem;
 }
 
 .card-header {
@@ -123,8 +111,7 @@
     font-weight: 600;
 }
 
-.card-header h4,
-.card-header h5 {
+.card-header h4 {
     margin: 0;
     font-size: 1rem;
 }
@@ -133,29 +120,14 @@
     padding: 1.2rem;
 }
 
-.bg-success {
+.bg-info {
     color: white !important;
-    background-color: #28a745 !important;
+    background-color: #138496 !important;
 }
 
 .bg-primary {
     color: white !important;
     background-color: #0056b3 !important;
-}
-
-.bg-warning {
-    color: rgb(0, 0, 0) !important;
-    background-color: #ffc107 !important;
-}
-
-.bg-secondary {
-    color: white !important;
-    background-color: #6c757d !important;
-}
-
-.bg-info {
-    color: white !important;
-    background-color: #17a2b8 !important;
 }
 
 /* Row y columnas */
@@ -191,69 +163,14 @@
     margin-bottom: 0.5rem;
 }
 
-.alert-warning {
-    background-color: #fff3cd;
-    border: 1px solid #ffeeba;
-    color: #856404;
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    margin: 1rem 0;
-    text-align: left;
-}
-
-.alert-warning strong {
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-.alert-warning p {
-    margin-bottom: 1rem;
-}
-
 /* Textarea */
 textarea.form-control {
     resize: vertical;
     min-height: 60px;
 }
 
-/* Tabla */
-.table-responsive {
-    overflow-x: auto;
-}
-
-.table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-}
-
-.table th,
-.table td {
-    padding: 0.5rem;
-    border-bottom: 1px solid #dee2e6;
-    text-align: left;
-}
-
-.table th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    color: #033966;
-}
-
-.table-hover tbody tr:hover {
-    background-color: #f1f3f5;
-}
-
-.table code {
-    background-color: #e9ecef;
-    padding: 0.2rem 0.4rem;
-    border-radius: 0.25rem;
-    font-size: 0.8rem;
-}
-
 /* Botones */
 .div-bttns {
-    padding: 0.6rem 1.5rem;
     margin-top: 2rem;
     display: flex;
     gap: 1rem;
@@ -284,12 +201,12 @@ textarea.form-control {
 }
 
 .btn-primary {
-    background-color: #28a745;
+    background-color: #17a2b8;
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #218838;
+    background-color: #138496;
     color: white;
 }
 
@@ -310,21 +227,6 @@ textarea.form-control {
 
 .btn-secondary:hover {
     background-color: #5a6268;
-}
-
-.btn-info {
-    background-color: #17a2b8;
-    color: white;
-}
-
-.btn-info:hover {
-    background-color: #138496;
-    color: white;
-}
-
-.btn-sm {
-    padding: 0.4rem 1rem;
-    font-size: 0.8rem;
 }
 
 /* Texto de ayuda */
@@ -354,9 +256,5 @@ textarea.form-control {
     .info-badge {
         font-size: 0.85rem;
         padding: 0.5rem 1rem;
-    }
-
-    .table {
-        font-size: 0.75rem;
     }
 }
