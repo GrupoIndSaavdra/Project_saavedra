@@ -121,6 +121,9 @@ Route::controller(ProcessProductionController::class)->group(function () {
     Route::post('/processProduction/storePiece', 'storePiece')->name('storePiece'); //Ruta para almacenar una pieza
     Route::post('/processProduction/selectAssembly', 'selectAssembly')->name('selectAssembly'); //Ruta para almacenar una pieza
     Route::post('/processProduction/editPieces', 'editPieces')->name('editPieces'); //Ruta para editar las piezas registradas
+    Route::post('/processProduction/verifyQualityPassword', 'verifyQualityPassword')->name('verifyQualityPassword'); //Ruta para verificar contraseña de calidad
+    Route::post('/processProduction/releasePieces', 'releasePieces')->name('releasePieces'); //Ruta para liberar piezas
+    Route::post('/processProduction/getPiecesForRelease', 'getPiecesForRelease')->name('getPiecesForRelease'); //Ruta para obtener piezas para liberación
 });
 
 //Ruta para ver el progreso de los procesos

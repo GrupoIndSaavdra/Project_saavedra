@@ -11,35 +11,45 @@ body {
     background-attachment: fixed;
     background-repeat: no-repeat;
 }
+
 .container-meta {
     position: relative;
     display: flex;
     justify-content: space-between;
 }
+
 /* Estilos del div buscador */
 .principal-data {
     width: 25%;
     padding: 1em;
     box-sizing: border-box;
 }
+
 .form-pricipal-data {
     width: 100%;
     display: flex;
     flex-direction: column;
 }
+
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas iguales */
-    gap: 1em; /* Espacio entre columnas y filas */
+    grid-template-columns: repeat(2, 1fr);
+    /* 2 columnas iguales */
+    gap: 1em;
+    /* Espacio entre columnas y filas */
 }
+
 .form-grid-one {
-    grid-template-columns: repeat(1, 1fr); /* 1 columna */
+    grid-template-columns: repeat(1, 1fr);
+    /* 1 columna */
 }
+
 .form-group {
     display: flex;
     flex-direction: column;
     align-items: center;
 }
+
 .form-control {
     width: 100%;
     border-radius: 5px;
@@ -52,20 +62,25 @@ body {
     border: 5px solid #033966d4;
     color: #ffffff;
 }
+
 td {
     position: relative;
 }
+
 .form-label {
     font-size: 1em;
     font-weight: 700;
     color: #033966;
 }
+
 .full-width {
     grid-column: 1 / -1;
 }
+
 .normal-width {
     grid-column: 1 / 2;
 }
+
 .normal-input {
     border: 5px solid #033966d4;
     border-radius: 5px;
@@ -77,9 +92,11 @@ td {
     color: #000;
     cursor: auto;
 }
+
 .form-group select {
     font-size: 1em;
 }
+
 .btn-submit {
     opacity: 0;
     width: 100%;
@@ -93,10 +110,12 @@ td {
     transition: 0.3s ease;
     margin-top: 1em;
 }
+
 .btn-submit:hover {
     transform: scale(1.1);
     transition: 0.3s ease;
 }
+
 .btn-cancel {
     position: absolute;
     background: #9c0300;
@@ -110,10 +129,12 @@ td {
     transition: 0.3s ease;
     margin: 1em;
 }
+
 .btn-cancel:hover {
     transform: scale(1.1);
     transition: 0.3s ease;
 }
+
 p {
     margin: 2em;
     color: #f00;
@@ -133,6 +154,7 @@ p {
     flex-direction: column;
     align-items: center;
 }
+
 .form-verified-password {
     width: 100%;
     display: flex;
@@ -140,6 +162,7 @@ p {
     align-items: center;
     padding: 1.5em 10em;
 }
+
 .img-edit {
     position: absolute;
     top: 1em;
@@ -148,10 +171,12 @@ p {
     cursor: pointer;
     transition: all 0.2s ease;
 }
+
 .img-edit:hover {
     transform: scale(1.1);
     transition: 0.2s ease;
 }
+
 .input-password {
     font-size: 1em;
     padding: 0.2em;
@@ -159,6 +184,7 @@ p {
     cursor: text;
     margin-right: 1em;
 }
+
 .btn-submit-password {
     background: #033966;
     color: #ffffff;
@@ -197,6 +223,7 @@ p {
     padding: 0.5em;
     text-align: center;
 }
+
 .table-meta input {
     width: 100%;
     border: none;
@@ -207,6 +234,7 @@ p {
     color: #000000;
     cursor: auto;
 }
+
 .warning-pieces {
     width: 80%;
     font-size: 1em;
@@ -225,21 +253,25 @@ p {
     box-sizing: border-box;
     padding: 20px;
 }
+
 .operator-name {
     margin-bottom: 1em;
     font-weight: 700;
 }
+
 .operator-name input {
     font-size: 1em;
     width: 100%;
     padding: 5px;
 }
+
 .table-code {
     width: 100%;
     border: #033966d4 solid 5px;
     font-size: 1em;
     border-radius: 10px;
 }
+
 .table-code th {
     background: #fff;
     color: #000;
@@ -255,6 +287,7 @@ p {
     flex-direction: column;
     align-items: center;
 }
+
 .label-table {
     display: flex;
     justify-content: center;
@@ -264,6 +297,7 @@ p {
     text-transform: uppercase;
     color: #033966;
 }
+
 .scrollable-table {
     position: relative;
     margin-top: 2em;
@@ -275,9 +309,11 @@ p {
     flex-direction: column;
     transition: opacity 0.5s ease, transform 0.5s ease;
 }
+
 .max-height-table {
     height: 50vh;
 }
+
 .table {
     border-collapse: collapse;
     border: 2px solid #032c00cc;
@@ -305,6 +341,7 @@ p {
     font-size: 1.1em;
     background: #03396610;
 }
+
 .table td {
     width: 200px;
     height: 50px;
@@ -313,12 +350,15 @@ p {
     font-weight: 700;
     border: 3px solid #033966;
 }
+
 .input-medio {
     width: 50%;
 }
+
 .input {
     width: 100%;
 }
+
 td textarea {
     text-align: center;
     width: 100%;
@@ -327,6 +367,7 @@ td textarea {
     box-sizing: border-box;
     font-size: 1.1em;
 }
+
 td select {
     text-align: center;
     width: 100%;
@@ -334,10 +375,12 @@ td select {
     box-sizing: border-box;
     font-size: 1.1em;
 }
+
 .div-btn {
     display: flex;
     justify-content: end;
 }
+
 .btn-finishReport {
     opacity: 0;
     background: #9c0300;
@@ -355,6 +398,7 @@ td select {
     transform: scale(1.1);
     transition: all 0.3s ease;
 }
+
 .btn-savePiece {
     background: #033966;
     color: #ffffff;
@@ -366,10 +410,12 @@ td select {
     transition: 0.3s ease;
     margin: 2em 0;
 }
+
 .btn-savePiece:hover {
     transform: scale(1.1);
     transition: 0.3s ease;
 }
+
 .select-pieces {
     text-align: center;
     background: #404040;
@@ -401,9 +447,11 @@ td select {
     text-align: center;
     background: #0000003a;
     backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(8px); /* Safari */
+    -webkit-backdrop-filter: blur(8px);
+    /* Safari */
     z-index: 1;
 }
+
 .alert-NoCotas {
     display: flex;
     justify-content: center;
@@ -417,6 +465,7 @@ td select {
     border-radius: 10px;
     font-weight: 800;
 }
+
 .div-cerrar {
     width: 3em;
     margin-left: 95%;
@@ -441,11 +490,13 @@ td select {
     width: 15em;
     padding: 10px;
 }
+
 .label-alert {
     font-size: 1.1em;
     font-weight: 700;
     margin-bottom: 1em;
 }
+
 .btn-acept {
     background: #9c0300;
     color: #ffffff;
@@ -457,6 +508,7 @@ td select {
     cursor: pointer;
     transition: 0.3s ease;
 }
+
 .label-noCotas {
     display: flex;
     justify-content: center;
@@ -478,20 +530,249 @@ td select {
 .div-editPieces {
     position: absolute;
     display: flex;
-    right: 8em;
+    right: 7em;
     bottom: 0;
     box-sizing: border-box;
     height: 3em;
 }
+
 .form-verifyPassword {
     width: 100%;
 }
+
 .img-editPieces {
     cursor: pointer;
     transition: 0.2s ease;
     border: none;
     margin-left: 3em;
 }
+
 .img-editPieces:hover {
     transform: scale(1.1);
+}
+
+/* Botón de verificación de calidad */
+.div-qualityCheck {
+    position: absolute;
+    display: flex;
+    right: 12em;
+    bottom: 0;
+    box-sizing: border-box;
+    height: 3em;
+}
+
+.form-verifyQualityPassword {
+    width: 100%;
+}
+
+.img-qualityCheck {
+    cursor: pointer;
+    transition: 0.2s ease;
+    border: none;
+    margin-left: 1em;
+    height: 100%;
+}
+
+.img-qualityCheck:hover {
+    transform: scale(1.1);
+}
+
+.btn-quality {
+    background: #2e7d32;
+}
+
+.btn-quality:hover {
+    background: #1b5e20;
+}
+
+/* Modal de liberación de piezas */
+.quality-release-modal {
+    background: #fff;
+    border-radius: 10px;
+    padding: 2em;
+    max-width: 95%;
+    width: 1200px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-title {
+    text-align: center;
+    color: #033966;
+    margin-bottom: 1em;
+    font-size: 1.5em;
+}
+
+/* Leyenda de colores */
+.color-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1em;
+    margin-bottom: 1.5em;
+    padding: 1em;
+    background: #f5f5f5;
+    border-radius: 8px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.9em;
+}
+
+.color-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid #333;
+}
+
+/* Tabla de liberación */
+.release-table-container {
+    max-height: 50vh;
+    overflow-y: auto;
+    margin-bottom: 1.5em;
+    border: 2px solid #033966;
+    border-radius: 8px;
+}
+
+.release-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.release-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.release-table th {
+    background: #033966;
+    color: #fff;
+    padding: 1em 0.5em;
+    text-align: center;
+    font-weight: 600;
+    border: 1px solid #022a4d;
+}
+
+.release-table td {
+    padding: 0.8em 0.5em;
+    text-align: center;
+    border: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.piece-row {
+    transition: background-color 0.3s ease;
+}
+
+.piece-row:hover {
+    filter: brightness(0.95);
+}
+
+.piece-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.action-select {
+    padding: 0.5em;
+    border-radius: 5px;
+    border: 2px solid #033966;
+    font-size: 0.9em;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.comments-input {
+    width: 100%;
+    min-width: 150px;
+    padding: 0.5em;
+    border: 2px solid #033966;
+    border-radius: 5px;
+    font-size: 0.9em;
+    resize: vertical;
+}
+
+/* Botones del modal */
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 2em;
+    margin-top: 1em;
+}
+
+.btn-cancel-release {
+    background: #9c0300;
+    color: #fff;
+    padding: 1em 2em;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel-release:hover {
+    background: #7a0200;
+    transform: scale(1.05);
+}
+
+.btn-accept-release {
+    background: #2e7d32;
+    color: #fff;
+    padding: 1em 2em;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-accept-release:hover {
+    background: #1b5e20;
+    transform: scale(1.05);
+}
+
+/* Formulario de liberación */
+.form-release-pieces {
+    width: 100%;
+}
+
+/* Información del usuario de calidad */
+.quality-user-info {
+    text-align: center;
+    color: #2e7d32;
+    font-size: 1.1em;
+    margin-bottom: 1em;
+    padding: 0.5em;
+    background: #e8f5e9;
+    border-radius: 5px;
+}
+
+/* Responsive para modal */
+@media (max-width: 768px) {
+    .quality-release-modal {
+        width: 95%;
+        padding: 1em;
+    }
+
+    .release-table-container {
+        max-height: 40vh;
+    }
+
+    .button-container {
+        flex-direction: column;
+        gap: 1em;
+    }
+
+    .btn-cancel-release,
+    .btn-accept-release {
+        width: 100%;
+    }
 }

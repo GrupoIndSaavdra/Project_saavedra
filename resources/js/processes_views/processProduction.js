@@ -806,6 +806,363 @@ function insertButtonEditPieces() {
     };
 }
 
+// Botón de verificación de calidad para liberación de piezas
+function insertButtonQualityCheck() {
+    let div = document.createElement("div");
+    div.className = "div-qualityCheck";
+
+    let img = document.createElement("img");
+    img.src = window.imgQualityCheck;
+    img.className = "img-qualityCheck";
+    img.alt = "Liberación de calidad";
+    img.title = "Liberación de piezas por calidad";
+    div.appendChild(img);
+    document.querySelector(".container-meta").appendChild(div);
+
+    // Agregar evento onclick a la imagen
+    img.onclick = function () {
+        if (!document.querySelector(".form-verifyQualityPassword")) {
+            document.querySelector("body").appendChild(createDivOpacity());
+
+            div.style.width = "40%";
+
+            // Crear formulario que manejará la verificación via AJAX
+            let form = document.createElement("form");
+            form.className = "form-verifyQualityPassword";
+            form.onsubmit = function (e) {
+                e.preventDefault();
+                verifyQualityPasswordAjax(form);
+            };
+
+            let input_meta = document.createElement("input");
+            input_meta.type = "hidden";
+            input_meta.name = "meta";
+            input_meta.value = window.arrayData["meta"].id;
+
+            let form_group_password = createInputPasswordQuality();
+            form.appendChild(form_group_password);
+            form.appendChild(input_meta);
+
+            img.before(form);
+            div.style.zIndex = "1000";
+            img.src = window.back;
+        } else {
+            div.querySelector(".form-verifyQualityPassword").remove();
+            div.style.width = "auto";
+            div.style.zIndex = "1";
+            let div_opacity = document.getElementById("div-opacity");
+            if (div_opacity) {
+                div_opacity.remove();
+            }
+            img.src = window.imgQualityCheck;
+        }
+    };
+}
+
+// Verificar contraseña de calidad mediante AJAX
+function verifyQualityPasswordAjax(form) {
+    const formData = new FormData(form);
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+
+    fetch(window.baseUrl + "/processProduction/verifyQualityPassword", {
+        method: "POST",
+        headers: {
+            "X-CSRF-TOKEN": csrfToken,
+            "Accept": "application/json"
+        },
+        body: formData
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Cerrar el formulario de contraseña
+                let divQuality = document.querySelector(".div-qualityCheck");
+                if (divQuality) {
+                    let formPassword = divQuality.querySelector(".form-verifyQualityPassword");
+                    if (formPassword) {
+                        formPassword.remove();
+                    }
+                    divQuality.style.width = "auto";
+                    divQuality.style.zIndex = "1";
+                    let imgQuality = divQuality.querySelector(".img-qualityCheck");
+                    if (imgQuality) {
+                        imgQuality.src = window.imgQualityCheck;
+                    }
+                }
+
+                // Cerrar el div de opacidad actual
+                let div_opacity = document.getElementById("div-opacity");
+                if (div_opacity) {
+                    div_opacity.remove();
+                }
+
+                // Mostrar el modal de liberación de piezas
+                showQualityReleaseModal(data.pieces, data.qualityUser);
+            } else {
+                alert(data.message || "Contraseña incorrecta");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("Error al verificar la contraseña. Intente de nuevo.");
+        });
+}
+
+function createInputPasswordQuality() {
+    // Creación de input para contraseña de calidad
+    let form_group = document.createElement("div");
+    form_group.className = "form-group-password";
+    form_group.style.width = "100%";
+    form_group.style.zIndex = "1000";
+
+    let inputPassword = document.createElement("input");
+    inputPassword.type = "password";
+    inputPassword.name = "passwordQuality";
+    inputPassword.placeholder = "Contraseña de calidad";
+    inputPassword.className = "normal-input input-password";
+    inputPassword.required = true;
+
+    // Creación de botón de submit
+    let submit = document.createElement("button");
+    submit.type = "submit";
+    submit.className = "btn-submit-password btn-quality";
+    submit.textContent = "Verificar";
+    form_group.appendChild(inputPassword);
+    form_group.appendChild(submit);
+
+    return form_group;
+}
+
+// Función para mostrar el modal de liberación de piezas
+function showQualityReleaseModal(piecesData, qualityUserName = "") {
+    let body = document.querySelector("body");
+    body.appendChild(createDivOpacity());
+
+    let modalContainer = document.createElement("div");
+    modalContainer.className = "quality-release-modal";
+
+    // Título del modal
+    let title = document.createElement("h2");
+    title.className = "modal-title";
+    title.textContent = "Liberación de Piezas - Control de Calidad";
+    modalContainer.appendChild(title);
+
+    // Mostrar nombre del usuario de calidad
+    if (qualityUserName) {
+        let qualityInfo = document.createElement("p");
+        qualityInfo.className = "quality-user-info";
+        qualityInfo.innerHTML = `<strong>Inspector de Calidad:</strong> ${qualityUserName}`;
+        modalContainer.appendChild(qualityInfo);
+    }
+
+    // Leyenda de colores
+    let legendContainer = document.createElement("div");
+    legendContainer.className = "color-legend";
+    let colorsArray = {
+        "#79BFED": "Liberado",
+        "#FF6B6B": "Rechazado",
+        "#90EE90": "Buena sin liberación",
+        "#DDA0DD": "Mala sin liberación",
+        "#FFD700": "Incompleto"
+    };
+    for (let color in colorsArray) {
+        let legendItem = document.createElement("div");
+        legendItem.className = "legend-item";
+        let colorBox = document.createElement("span");
+        colorBox.className = "color-box";
+        colorBox.style.backgroundColor = color;
+        let colorLabel = document.createElement("span");
+        colorLabel.textContent = colorsArray[color];
+        legendItem.appendChild(colorBox);
+        legendItem.appendChild(colorLabel);
+        legendContainer.appendChild(legendItem);
+    }
+    modalContainer.appendChild(legendContainer);
+
+    // Crear formulario
+    let form = createForm("/processProduction/releasePieces");
+    form.className = "form-release-pieces";
+
+    // Input oculto para meta
+    let inputMeta = document.createElement("input");
+    inputMeta.type = "hidden";
+    inputMeta.name = "meta";
+    inputMeta.value = window.arrayData["meta"].id;
+    form.appendChild(inputMeta);
+
+    // Contenedor de tabla scrolleable
+    let tableContainer = document.createElement("div");
+    tableContainer.className = "release-table-container";
+
+    // Crear tabla
+    let table = document.createElement("table");
+    table.className = "release-table";
+
+    // Encabezado de tabla
+    let thead = document.createElement("thead");
+    let headerRow = document.createElement("tr");
+    let headers = ["Seleccionar", "No. Pieza/Juego", "Proceso", "Error", "Estado Actual", "Acción", "Comentarios"];
+    headers.forEach(headerText => {
+        let th = document.createElement("th");
+        th.textContent = headerText;
+        headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Cuerpo de tabla
+    let tbody = document.createElement("tbody");
+    if (piecesData && piecesData.length > 0) {
+        piecesData.forEach((piece, index) => {
+            let row = document.createElement("tr");
+            row.className = "piece-row";
+            row.style.backgroundColor = getColorByStatus(piece.liberacion, piece.error);
+
+            // Checkbox
+            let tdCheckbox = document.createElement("td");
+            let checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.name = `pieces[${index}][selected]`;
+            checkbox.value = piece.id;
+            checkbox.className = "piece-checkbox";
+            tdCheckbox.appendChild(checkbox);
+            row.appendChild(tdCheckbox);
+
+            // No. Pieza
+            let tdPiece = document.createElement("td");
+            tdPiece.textContent = piece.n_pieza;
+            row.appendChild(tdPiece);
+
+            // Input oculto para id de pieza
+            let inputPieceId = document.createElement("input");
+            inputPieceId.type = "hidden";
+            inputPieceId.name = `pieces[${index}][id]`;
+            inputPieceId.value = piece.id;
+            row.appendChild(inputPieceId);
+
+            // Proceso
+            let tdProcess = document.createElement("td");
+            tdProcess.textContent = piece.proceso;
+            row.appendChild(tdProcess);
+
+            // Error
+            let tdError = document.createElement("td");
+            tdError.textContent = piece.error || "Ninguno";
+            row.appendChild(tdError);
+
+            // Estado actual
+            let tdStatus = document.createElement("td");
+            tdStatus.textContent = getStatusText(piece.liberacion);
+            row.appendChild(tdStatus);
+
+            // Acción (select)
+            let tdAction = document.createElement("td");
+            let selectAction = document.createElement("select");
+            selectAction.name = `pieces[${index}][action]`;
+            selectAction.className = "action-select";
+            let optionNone = document.createElement("option");
+            optionNone.value = "";
+            optionNone.textContent = "Sin cambio";
+            selectAction.appendChild(optionNone);
+            let optionRelease = document.createElement("option");
+            optionRelease.value = "1";
+            optionRelease.textContent = "Liberar";
+            selectAction.appendChild(optionRelease);
+            let optionReject = document.createElement("option");
+            optionReject.value = "2";
+            optionReject.textContent = "Rechazar";
+            selectAction.appendChild(optionReject);
+            tdAction.appendChild(selectAction);
+            row.appendChild(tdAction);
+
+            // Comentarios
+            let tdComments = document.createElement("td");
+            let inputComments = document.createElement("textarea");
+            inputComments.name = `pieces[${index}][comments]`;
+            inputComments.className = "comments-input";
+            inputComments.placeholder = "Observaciones...";
+            inputComments.rows = 2;
+            tdComments.appendChild(inputComments);
+            row.appendChild(tdComments);
+
+            tbody.appendChild(row);
+        });
+    } else {
+        let row = document.createElement("tr");
+        let td = document.createElement("td");
+        td.colSpan = 7;
+        td.textContent = "No hay piezas registradas para liberar";
+        td.style.textAlign = "center";
+        td.style.padding = "2em";
+        row.appendChild(td);
+        tbody.appendChild(row);
+    }
+    table.appendChild(tbody);
+    tableContainer.appendChild(table);
+    form.appendChild(tableContainer);
+
+    // Botones de acción
+    let buttonContainer = document.createElement("div");
+    buttonContainer.className = "button-container";
+
+    let btnCancel = document.createElement("button");
+    btnCancel.type = "button";
+    btnCancel.className = "btn-cancel-release";
+    btnCancel.textContent = "Cancelar";
+    btnCancel.onclick = function () {
+        closeQualityModal();
+    };
+    buttonContainer.appendChild(btnCancel);
+
+    let btnAccept = document.createElement("button");
+    btnAccept.type = "submit";
+    btnAccept.className = "btn-accept-release";
+    btnAccept.textContent = "Guardar Liberaciones";
+    buttonContainer.appendChild(btnAccept);
+
+    form.appendChild(buttonContainer);
+    modalContainer.appendChild(form);
+
+    let divOpacity = document.getElementById("div-opacity");
+    divOpacity.appendChild(modalContainer);
+}
+
+function getColorByStatus(liberacion, error) {
+    if (liberacion === 1) return "#79BFED"; // Liberado - Azul
+    if (liberacion === 2) return "#FF6B6B"; // Rechazado - Rojo
+    if (error === "Ninguno" && liberacion === 0) return "#90EE90"; // Buena sin liberación - Verde
+    if (error !== "Ninguno" && liberacion === 0) return "#DDA0DD"; // Mala sin liberación - Morado
+    return "#FFD700"; // Incompleto - Amarillo
+}
+
+function getStatusText(liberacion) {
+    switch (liberacion) {
+        case 1:
+            return "Liberado";
+        case 2:
+            return "Rechazado";
+        default:
+            return "Sin liberar";
+    }
+}
+
+function closeQualityModal() {
+    let divOpacity = document.getElementById("div-opacity");
+    if (divOpacity) {
+        divOpacity.remove();
+    }
+    // Restaurar el botón de calidad
+    let divQuality = document.querySelector(".div-qualityCheck");
+    if (divQuality) {
+        divQuality.style.width = "auto";
+        divQuality.style.zIndex = "1";
+        let imgQuality = divQuality.querySelector(".img-qualityCheck");
+        if (imgQuality) {
+            imgQuality.src = window.imgQualityCheck;
+        }
+    }
+}
+
 //Ejecucion del script
 //Evitar doble click en el submit
 document.addEventListener("submit", (e) => {
@@ -854,6 +1211,7 @@ if (window.arrayData) {
         enableTable(); // Habilitar la tabla de piezas
         if (window.arrayData["machinedPiecesInMeta"] && window.arrayData["machinedPiecesInMeta"].length > 0) {
             insertButtonEditPieces(); // Insertar botón para editar piezas
+            insertButtonQualityCheck(); // Insertar botón para liberación de calidad
         }
     }
 } else {

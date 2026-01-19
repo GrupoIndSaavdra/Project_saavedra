@@ -38,8 +38,8 @@ class ProcessProductionController extends Controller
                 $classes = $this->classController->getClasses($workOrder);
                 if (count($classes) > 0) {
                     foreach ($classes as $key => $class) {
-                        if($class->finalizada == 0){
-                            if(!array_key_exists($workOrder->id, $workOrders)){
+                        if ($class->finalizada == 0) {
+                            if (!array_key_exists($workOrder->id, $workOrders)) {
                                 $workOrders[$workOrder->id] = array();
                                 $molding = Moldura::find($workOrder->id_moldura);
                                 $workOrders[$workOrder->id]['moldura'] = $molding ? $molding->nombre : 'Moldura no encontrada';
@@ -1087,7 +1087,8 @@ class ProcessProductionController extends Controller
     public function verifyPiece($halfPiece)
     {
         if ($halfPiece) {
-            if (($halfPiece->error == "Ninguno" && $halfPiece->liberacion == 0) ||
+            if (
+                ($halfPiece->error == "Ninguno" && $halfPiece->liberacion == 0) ||
                 ($halfPiece->error != "Ninguno" && $halfPiece->liberacion == 1) ||
                 ($halfPiece->error == "Ninguno" && $halfPiece->liberacion == 1)
             ) {
@@ -1626,7 +1627,7 @@ class ProcessProductionController extends Controller
             $tiempo = $tiempo->tiempo != 0 ? round(($workHrs / $tiempo->tiempo)) : 0;
             $meta->meta = str_contains($machine, '_') ? $tiempo * 2 : $tiempo; //Asignar la meta calculada
         } else {
-           $meta->meta = 0; //Si no se encuentra el tiempo, se asigna 0 a la meta
+            $meta->meta = 0; //Si no se encuentra el tiempo, se asigna 0 a la meta
         }
         $meta->save();
     }
@@ -1708,5 +1709,152 @@ class ProcessProductionController extends Controller
             default:
                 return $process;
         }
+    }
+
+    /**
+     * Validar contraseña de usuario de calidad (perfil 4)
+     */
+    public function validatePasswordQuality($passwordEntered)
+    {
+        if ($passwordEntered) {
+            $users = User::all();
+            foreach ($users as $user) {
+                if ($user->perfil == 4) { // Solo verificar usuarios de calidad
+                    if (Hash::check($passwordEntered, $user->contrasena)) {
+                        return $user; // Retornar el usuario de calidad
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Verificar contraseña de calidad y retornar datos de piezas para liberación
+     */
+    public function verifyQualityPassword(Request $request)
+    {
+        $password = $request->input('passwordQuality');
+        $qualityUser = $this->validatePasswordQuality($password);
+
+        if ($qualityUser) {
+            $meta = Metas::find($request->meta);
+            if (!$meta) {
+                return redirect()->back()->with('error', 'Meta no encontrada');
+            }
+
+            // Obtener las piezas del operador para esta meta
+            $pieces = Pieza::where('id_clase', $meta->id_clase)
+                ->where('id_operador', $meta->id_usuario)
+                ->where('proceso', $meta->proceso)
+                ->get();
+
+            // Guardar el usuario de calidad en sesión para usarlo después
+            session(['quality_user' => $qualityUser->matricula]);
+
+            // Retornar JSON con los datos de las piezas
+            return response()->json([
+                'success' => true,
+                'message' => 'Contraseña correcta. Acceso a liberación de piezas.',
+                'pieces' => $pieces,
+                'qualityUser' => $qualityUser->nombre . ' ' . $qualityUser->a_paterno . ' ' . $qualityUser->a_materno
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Contraseña incorrecta. Solo personal de calidad puede acceder.'
+        ], 401);
+    }
+
+    /**
+     * Procesar la liberación de piezas
+     */
+    public function releasePieces(Request $request)
+    {
+        $meta = Metas::find($request->meta);
+        if (!$meta) {
+            return redirect()->back()->with('error', 'Meta no encontrada');
+        }
+
+        $qualityUserMatricula = session('quality_user');
+        if (!$qualityUserMatricula) {
+            return redirect()->back()->with('error', 'Sesión de calidad expirada. Por favor, vuelva a autenticarse.');
+        }
+
+        $pieces = $request->input('pieces', []);
+        $releasedCount = 0;
+        $rejectedCount = 0;
+
+        foreach ($pieces as $pieceData) {
+            // Solo procesar si hay una acción seleccionada
+            if (!empty($pieceData['action']) && !empty($pieceData['id'])) {
+                $piece = Pieza::find($pieceData['id']);
+                if ($piece) {
+                    $action = intval($pieceData['action']);
+                    $comments = $pieceData['comments'] ?? '';
+
+                    // Actualizar el estado de liberación
+                    $piece->liberacion = $action; // 1 = Liberado, 2 = Rechazado
+                    $piece->fecha_liberacion = now();
+                    $piece->user_liberacion = $qualityUserMatricula;
+                    $piece->observacion_liberacion = $comments;
+                    $piece->save();
+
+                    if ($action == 1) {
+                        $releasedCount++;
+                    } else if ($action == 2) {
+                        $rejectedCount++;
+                    }
+                }
+            }
+        }
+
+        // Limpiar la sesión de calidad
+        session()->forget('quality_user');
+
+        $message = "Proceso completado. ";
+        if ($releasedCount > 0) {
+            $message .= "Piezas liberadas: {$releasedCount}. ";
+        }
+        if ($rejectedCount > 0) {
+            $message .= "Piezas rechazadas: {$rejectedCount}.";
+        }
+        if ($releasedCount == 0 && $rejectedCount == 0) {
+            $message = "No se realizaron cambios en las piezas.";
+        }
+
+        return redirect()->route('showReportFormat', [
+            'meta' => $meta->id,
+            'process' => $meta->proceso,
+            'edit' => 0
+        ])->with('success', $message);
+    }
+
+    /**
+     * Obtener piezas para liberación (API endpoint)
+     */
+    public function getPiecesForRelease(Request $request)
+    {
+        $metaId = $request->input('meta');
+        $meta = Metas::find($metaId);
+
+        if (!$meta) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Meta no encontrada'
+            ], 404);
+        }
+
+        // Obtener las piezas del operador para esta meta
+        $pieces = Pieza::where('id_clase', $meta->id_clase)
+            ->where('id_operador', $meta->id_usuario)
+            ->where('proceso', $meta->proceso)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'pieces' => $pieces
+        ]);
     }
 }
