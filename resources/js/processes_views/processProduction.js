@@ -154,7 +154,8 @@ function createInputs() {
             optionEmpty.value = "";
             optionEmpty.textContent = "Selecciona una opción";
             input.appendChild(optionEmpty);
-            for (let i = 1; i <= 40; i++) {
+            // Generar 45 máquinas
+            for (let i = 1; i <= 45; i++) {
                 let option = document.createElement("option");
                 if (i == 1 || i == 25 || i == 27) {
                     option.value = `${i}_${i + 1}`;
