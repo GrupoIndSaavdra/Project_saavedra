@@ -446,8 +446,8 @@ td select {
     align-items: center;
     text-align: center;
     background: #0000003a;
-    backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(5px);
     /* Safari */
     z-index: 1;
 }
@@ -578,11 +578,11 @@ td select {
 }
 
 .btn-quality {
-    background: #2e7d32;
+    background: #033966;
 }
 
 .btn-quality:hover {
-    background: #1b5e20;
+    background: #033966;
 }
 
 /* Modal de liberación de piezas */
