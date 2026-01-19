@@ -34,14 +34,13 @@
         }
 
         .qr-grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
+            with: 100%;
         }
 
         .qr-item {
-            width: 45%;
-            margin: 5px 0;
+            width: 48%;
+            float: left;
+            margin: 1%;
             border: 1px solid #333;
             padding: 8px;
             text-align: center;
@@ -101,10 +100,6 @@
 
     <div class="qr-grid">
         @foreach($qrCodes as $index => $item)
-            @if($index > 0 && $index % 4 == 0)
-                <div class="page-break"></div>
-            @endif
-
             <div class="qr-item">
                 <h4>GIS - BOTE #{{ $item['bote']->numero_bote }}</h4>
                 <div style="text-align: center; margin: 5px 0;">
@@ -133,6 +128,13 @@
                     </table>
                 </div>
             </div>
+            @if($index % 2 == 1)
+                <div style="clear: both;"></div>
+            @endif
+
+            @if($index > 0 && $index % 8 == 7)
+                <div class="page-break"></div>
+            @endif
         @endforeach
     </div>
 
