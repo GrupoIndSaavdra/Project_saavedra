@@ -1,0 +1,441 @@
+/* ========================================
+   VISTA DE VERIFICACIÓN
+======================================== */
+.wrapper-verificacion {
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    text-align: center;
+}
+
+.wrapper-verificacion .lg-saavedra {
+    width: 180px;
+    margin-bottom: 1.5rem;
+}
+
+.verificacion-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1rem;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.icon-lock {
+    color: #033966;
+    margin-bottom: 1rem;
+}
+
+.verificacion-card h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #033966;
+    margin-bottom: 0.5rem;
+}
+
+.verificacion-card .descripcion {
+    color: #555;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.form-verificacion {
+    text-align: left;
+}
+
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-group label {
+    display: block;
+    font-weight: 600;
+    color: #033966;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.input-group .form-control {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 2px solid #ddd;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.input-group .form-control:focus {
+    border-color: #033966;
+    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
+    outline: none;
+}
+
+.btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* ========================================
+   VISTA DE LISTA DE LOTES
+======================================== */
+.wrapper-lista {
+    max-width: 1300px;
+    margin: 1rem auto;
+    padding: 1.5rem;
+}
+
+.header-lista {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1rem 1.5rem;
+    border-radius: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.lg-saavedra-small {
+    width: 100px;
+}
+
+.header-info {
+    flex: 1;
+    margin-left: 1.5rem;
+}
+
+.header-info h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #033966;
+    margin: 0;
+}
+
+.header-info .subtitulo {
+    color: #666;
+    font-size: 0.85rem;
+    margin: 0.25rem 0 0 0;
+}
+
+.btn-cerrar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Tabla de lotes */
+.tabla-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.tabla-lotes {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.tabla-lotes thead {
+    background: linear-gradient(135deg, #033966 0%, #0a5a9c 100%);
+}
+
+.tabla-lotes thead th {
+    color: white;
+    font-weight: 600;
+    padding: 1rem 0.75rem;
+    text-align: left;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tabla-lotes tbody tr {
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+}
+
+.tabla-lotes tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.tabla-lotes tbody tr:last-child {
+    border-bottom: none;
+}
+
+.tabla-lotes tbody td {
+    padding: 1rem 0.75rem;
+    color: #333;
+    vertical-align: middle;
+}
+
+.tabla-lotes .matricula {
+    font-weight: 700;
+    color: #033966;
+    font-family: 'Courier New', monospace;
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.badge-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* Botones de acciones */
+.acciones {
+    min-width: 280px;
+}
+
+.btn-acciones {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-qr-lote,
+.btn-qr-individuales {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-qr-lote {
+    background-color: #23547b;
+    color: white;
+}
+
+.btn-qr-lote:hover {
+    background-color: #3da7fe;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(64, 128, 180, 0.4);
+    color: white;
+}
+
+.btn-qr-individuales {
+    background-color: #206a31;
+    color: white;
+}
+
+.btn-qr-individuales:hover {
+    background-color: #34ce57;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+    color: white;
+}
+
+.btn-disabled {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* Alerta vacío */
+.alert-vacio {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1rem;
+    padding: 3rem;
+    text-align: center;
+    color: #666;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.alert-vacio svg {
+    color: #17a2b8;
+    margin-bottom: 1rem;
+}
+
+.alert-vacio p {
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* Footer */
+.footer-lista {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+/* ========================================
+   BOTONES GENERALES
+======================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary {
+    background-color: #0a5a9c;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #033966;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    color: white;
+}
+
+.btn-danger {
+    background-color: #b40718;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #ff0019;
+    color: white;
+}
+
+/* ========================================
+   MENSAJES
+======================================== */
+.alert {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.alert-danger,
+.alert-error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+@media (max-width: 1200px) {
+    .wrapper-lista {
+        margin: 0.5rem;
+        padding: 1rem;
+    }
+
+    .tabla-lotes {
+        font-size: 0.8rem;
+    }
+
+    .tabla-lotes thead th,
+    .tabla-lotes tbody td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .header-lista {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .header-info {
+        order: 3;
+        width: 100%;
+        margin-left: 0;
+        text-align: center;
+    }
+
+    .tabla-container {
+        overflow-x: auto;
+    }
+
+    .tabla-lotes {
+        min-width: 900px;
+    }
+}
+
+@media (max-width: 768px) {
+    .wrapper-verificacion {
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    .verificacion-card {
+        padding: 1.5rem;
+    }
+
+    .lg-saavedra-small {
+        width: 80px;
+    }
+
+    .header-info h2 {
+        font-size: 1.1rem;
+    }
+
+    .btn-cerrar span {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .wrapper-verificacion .lg-saavedra {
+        width: 140px;
+    }
+
+    .verificacion-card h2 {
+        font-size: 1.2rem;
+    }
+
+    .btn-acciones {
+        flex-direction: column;
+    }
+}

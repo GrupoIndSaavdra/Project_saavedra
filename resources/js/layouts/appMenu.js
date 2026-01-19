@@ -248,7 +248,8 @@ function getRoutes(profile) {
                         ["soldadura.generarQRLote", "Generar QR por Lote"],
                         ["soldadura.generarQRIndividual", "Generar QRs Individuales (5Kg)"],
                         ["soldadura.recepcionPlanta", "Recepción en Planta (Entrada)"],
-                        ["soldadura.liberarQRPlanta", "Liberar a Operadores (Salida)"]
+                        ["soldadura.liberarQRPlanta", "Liberar a Operadores (Salida)"],
+                        ["soldadura.regenerarQR", "Regenerar QRs (Admin)"]
                     ],
                 },
             ];

@@ -229,6 +229,37 @@ Route::middleware(['auth'])->group(function () {
 });
 
 /* ===========================
+   5. Regenerar QRs - Solo Administradores
+=========================== */
+use App\Http\Controllers\RegenerarQRController;
+
+Route::middleware(['auth'])->group(function () {
+    // Vista de verificación de contraseña
+    Route::get('/soldadura/regenerar-qr', [RegenerarQRController::class, 'index'])
+        ->name('soldadura.regenerarQR');
+
+    // Verificar contraseña de administrador
+    Route::post('/soldadura/regenerar-qr/verificar', [RegenerarQRController::class, 'verificarAcceso'])
+        ->name('soldadura.regenerarQR.verificar');
+
+    // Lista de lotes (después de verificación)
+    Route::get('/soldadura/regenerar-qr/lista', [RegenerarQRController::class, 'listaLotes'])
+        ->name('soldadura.regenerarQR.lista');
+
+    // Descargar QR de lote
+    Route::get('/soldadura/regenerar-qr/lote/{loteId}', [RegenerarQRController::class, 'regenerarQRLote'])
+        ->name('soldadura.regenerarQRLote.descargar');
+
+    // Descargar QRs individuales
+    Route::get('/soldadura/regenerar-qr/individuales/{loteId}', [RegenerarQRController::class, 'regenerarQRIndividuales'])
+        ->name('soldadura.regenerarQRIndividuales.descargar');
+
+    // Cerrar sesión de administrador
+    Route::get('/soldadura/regenerar-qr/cerrar', [RegenerarQRController::class, 'cerrarSesion'])
+        ->name('soldadura.regenerarQR.cerrar');
+});
+
+/* ===========================
    Utilidades / Check Time
 =========================== */
 Route::get('/check-time', function () {
