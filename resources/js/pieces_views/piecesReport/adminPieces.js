@@ -186,7 +186,17 @@ function createFilters() {
                             select.appendChild(option);
                         }
                     } else {
-                        window.filtersData[item].forEach((key) => {
+                        // Ordenar operadores alfabéticamente si es el filtro de operador
+                        let dataToIterate = window.filtersData[item];
+                        if (item == "operator") {
+                            dataToIterate = [...window.filtersData[item]].sort((a, b) => {
+                                const nameA = `${a.nombre} ${a.a_paterno} ${a.a_materno}`.toLowerCase();
+                                const nameB = `${b.nombre} ${b.a_paterno} ${b.a_materno}`.toLowerCase();
+                                return nameA.localeCompare(nameB);
+                            });
+                        }
+
+                        dataToIterate.forEach((key) => {
                             if (item == "operator") {
                                 if (key.matricula == window.selectedItems[item].matricula) {
                                     return;

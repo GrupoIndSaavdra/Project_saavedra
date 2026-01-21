@@ -45,18 +45,26 @@ function crearTabla(piezas, infoPiezas) {
 }
 function asignColorTr(status, error) {
     switch (status) {
-        case 0:
-            if (error.includes("Incompleto")) {
-                return "#FFFF99";
-            } else if (error == "Ninguno") {
-                return "#ACF980A8";
-            } else {
-                return "#E59CFF";
-            }
         case 1:
-            return "#79BFED";
+            return "#79BFED"; // Liberado - Azul
         case 2:
-            return "#EC7063";
+            return "#FF6B6B"; // Rechazado - Rojo
+        case 3:
+            return "#90EE90"; // Buena sin liberación - Verde
+        case 4:
+            return "#DDA0DD"; // Mala sin liberación - Morado
+        case 5:
+            return "#FFD700"; // Incompleto - Amarillo
+        case 0:
+        default:
+            // Lógica legacy para compatibilidad con piezas antiguas
+            if (error.includes("Incompleto")) {
+                return "#FFD700"; // Incompleto - Amarillo
+            } else if (error == "Ninguno") {
+                return "#90EE90"; // Buena sin liberación - Verde
+            } else {
+                return "#DDA0DD"; // Mala sin liberación - Morado
+            }
     }
 }
 function orderedArray(array) {
