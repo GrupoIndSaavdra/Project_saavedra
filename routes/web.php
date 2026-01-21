@@ -144,6 +144,9 @@ Route::controller(PzasGeneralesController::class)->group(function () {
 
     Route::get('/piezasMaquina', 'showVistaMaquina')->name('vistaPzasMaquina'); //Ruta para la vista de piezas por maquina
     Route::post('/piezasMaquina', 'showMachinesProcess')->name('showMachinesProcess'); //Ruta para ver los procesos de las maquinas
+
+    Route::post('/pieces/verifyAdminPassword', 'verifyAdminPassword')->name('verifyAdminPassword'); //Ruta para verificar contraseña de administrador
+    Route::post('/pieces/getSoldaduraExtraInfo', 'getSoldaduraExtraInfo')->name('getSoldaduraExtraInfo'); //Ruta para obtener información extra de Soldadura
 });
 
 //Grupo de rutas para el controlador PzasLiberadasController

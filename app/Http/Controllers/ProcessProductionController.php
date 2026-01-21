@@ -1047,7 +1047,7 @@ class ProcessProductionController extends Controller
                         if ($halfPiece2 == null) { // Si aun no existe la otra mitad
                             $total += $this->verifyPiece($halfPiece) ? 0.5 : 0;
                         } else {
-                            //Verificar si las dos piezas estan bien para contarlo en la meta                            
+                            //Verificar si las dos piezas estan bien para contarlo en la meta
                             $correct = 0;
                             if ($halfPiece->id_operador == $halfPiece2->id_operador) {
                                 $correct += $this->verifyPiece($halfPiece) ? 0.5 : 0;
@@ -1087,11 +1087,17 @@ class ProcessProductionController extends Controller
     public function verifyPiece($halfPiece)
     {
         if ($halfPiece) {
-            if (
-                ($halfPiece->error == "Ninguno" && $halfPiece->liberacion == 0) ||
-                ($halfPiece->error != "Ninguno" && $halfPiece->liberacion == 1) ||
-                ($halfPiece->error == "Ninguno" && $halfPiece->liberacion == 1)
-            ) {
+            // Verificar si la pieza está en un estado válido para continuar al siguiente proceso
+            // Estados válidos:
+            // - liberacion = 1 (Liberado): Pieza aprobada por calidad
+            // - liberacion = 3 (Buena sin liberación): Pieza correcta sin liberación formal
+            // - liberacion = 0 con error = "Ninguno": Lógica legacy para piezas sin inspección
+
+            if ($halfPiece->liberacion == 1 || $halfPiece->liberacion == 3) {
+                // Pieza liberada o buena sin liberación
+                return true;
+            } elseif ($halfPiece->liberacion == 0 && $halfPiece->error == "Ninguno") {
+                // Lógica legacy: pieza sin liberación pero sin errores
                 return true;
             }
         }
@@ -1115,9 +1121,13 @@ class ProcessProductionController extends Controller
                 $releasedPiece = Pieza::where("id_clase", $meta->id_clase)->where('proceso', $meta->proceso)->where("n_pieza", $nPiece)->first();
                 if ($releasedPiece) { //Verificar si la pieza esta inspeccionada (sin liberación, liberada, rechazada)
                     $color = match ($releasedPiece->liberacion) {
-                        0 => $color, //Sin liberación
-                        1 => '#79BFED', // Liberada
-                        2 => '#EC7063', // Rechazada
+                        0 => $color, //Sin liberación (mantiene color basado en error)
+                        1 => '#79BFED', // Liberada - Azul
+                        2 => '#FF6B6B', // Rechazada - Rojo
+                        3 => '#90EE90', // Buena sin liberación - Verde
+                        4 => '#DDA0DD', // Mala sin liberación - Morado
+                        5 => '#FFD700', // Incompleto - Amarillo
+                        default => $color
                     };
                 }
                 $machinedPieces[$key] = [
@@ -1783,8 +1793,15 @@ class ProcessProductionController extends Controller
         }
 
         $pieces = $request->input('pieces', []);
-        $releasedCount = 0;
-        $rejectedCount = 0;
+
+        // Contadores para cada tipo de estado
+        $statusCounts = [
+            1 => 0, // Liberado
+            2 => 0, // Rechazado
+            3 => 0, // Buena sin liberación
+            4 => 0, // Mala sin liberación
+            5 => 0  // Incompleto
+        ];
 
         foreach ($pieces as $pieceData) {
             // Solo procesar si hay una acción seleccionada
@@ -1794,17 +1811,17 @@ class ProcessProductionController extends Controller
                     $action = intval($pieceData['action']);
                     $comments = $pieceData['comments'] ?? '';
 
-                    // Actualizar el estado de liberación
-                    $piece->liberacion = $action; // 1 = Liberado, 2 = Rechazado
-                    $piece->fecha_liberacion = now();
-                    $piece->user_liberacion = $qualityUserMatricula;
-                    $piece->observacion_liberacion = $comments;
-                    $piece->save();
+                    // Validar que el valor de acción esté en el rango permitido (1-5)
+                    if ($action >= 1 && $action <= 5) {
+                        // Actualizar el estado de liberación
+                        $piece->liberacion = $action;
+                        $piece->fecha_liberacion = now();
+                        $piece->user_liberacion = $qualityUserMatricula;
+                        $piece->observacion_liberacion = $comments;
+                        $piece->save();
 
-                    if ($action == 1) {
-                        $releasedCount++;
-                    } else if ($action == 2) {
-                        $rejectedCount++;
+                        // Incrementar el contador correspondiente
+                        $statusCounts[$action]++;
                     }
                 }
             }
@@ -1813,14 +1830,25 @@ class ProcessProductionController extends Controller
         // Limpiar la sesión de calidad
         session()->forget('quality_user');
 
-        $message = "Proceso completado. ";
-        if ($releasedCount > 0) {
-            $message .= "Piezas liberadas: {$releasedCount}. ";
+        // Construir mensaje de éxito con todos los estados procesados
+        $statusMessages = [];
+        $statusLabels = [
+            1 => 'Liberadas',
+            2 => 'Rechazadas',
+            3 => 'Buenas sin liberación',
+            4 => 'Malas sin liberación',
+            5 => 'Incompletas'
+        ];
+
+        foreach ($statusCounts as $status => $count) {
+            if ($count > 0) {
+                $statusMessages[] = "{$statusLabels[$status]}: {$count}";
+            }
         }
-        if ($rejectedCount > 0) {
-            $message .= "Piezas rechazadas: {$rejectedCount}.";
-        }
-        if ($releasedCount == 0 && $rejectedCount == 0) {
+
+        if (count($statusMessages) > 0) {
+            $message = "Proceso completado. Piezas " . implode(', ', $statusMessages) . ".";
+        } else {
             $message = "No se realizaron cambios en las piezas.";
         }
 

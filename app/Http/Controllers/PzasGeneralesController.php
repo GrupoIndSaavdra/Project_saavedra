@@ -87,6 +87,7 @@ use App\Models\SoldaduraPTA_pza;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 //Clase para el control de las piezas generales
 class PzasGeneralesController extends Controller
@@ -181,7 +182,7 @@ class PzasGeneralesController extends Controller
         $array = Pieza::all();
         $array = $this->saveInArray($array);
         if (count($array) > 0) {
-            $positionsArray = array("workOrder" => 0, "class" => "className",  "operator" => 2, "machine" => 3, "process" => 4, "error" => 5, "dateFrom" => 6, "dateTo" => 6);
+            $positionsArray = array("workOrder" => 0, "class" => "className", "operator" => 2, "machine" => 3, "process" => 4, "error" => 5, "dateFrom" => 6, "dateTo" => 6);
             foreach ($piecesData as $key => $value) {
                 $dateField = false;
                 if ($key != "action") {
@@ -278,13 +279,13 @@ class PzasGeneralesController extends Controller
         foreach ($finishedClasess as $finishedClass) {
             array_push($arrayFClasses, $finishedClass->id);
         }
-        
+
         $array = array();
         $juegosGuardados = array();
         $contador = 0;
         $mitad = false;
         foreach ($arrayP as $item) {
-            if(in_array($item->id_clase, $arrayFClasses)){
+            if (in_array($item->id_clase, $arrayFClasses)) {
                 continue;
             }
             $band = false;
@@ -1576,6 +1577,83 @@ class PzasGeneralesController extends Controller
                 return "Operacion Equipo";
             case "embudoCM":
                 return "Embudo CM";
+        }
+    }
+
+    /**
+     * Verificar contraseña de administrador (perfil == 1)
+     */
+    public function verifyAdminPassword(Request $request)
+    {
+        $password = $request->input('passwordAdmin');
+
+        if ($password) {
+            $users = User::all();
+            foreach ($users as $user) {
+                if ($user->perfil == 1) { // Solo verificar usuarios administradores
+                    if (\Hash::check($password, $user->contrasena)) {
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Contraseña correcta. Acceso autorizado.',
+                            'adminUser' => $user->nombre . ' ' . $user->a_paterno . ' ' . $user->a_materno
+                        ]);
+                    }
+                }
+            }
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Contraseña incorrecta. Solo personal administrativo puede acceder.'
+        ], 401);
+    }
+
+    /**
+     * Obtener información extra de piezas en proceso de Soldadura
+     */
+    public function getSoldaduraExtraInfo(Request $request)
+    {
+        try {
+            // Obtener todas las piezas del proceso Soldadura
+            $soldaduraPieces = Soldadura_pza::all();
+
+            $piecesData = [];
+
+            foreach ($soldaduraPieces as $piece) {
+                // Obtener información del proceso
+                $proceso = Soldadura::find($piece->id_proceso);
+
+                if ($proceso) {
+                    // Extraer información de la clase y OT del id_proceso
+                    // Formato: Soldadura_NombreClase_IdOT
+                    $processIdParts = explode('_', $proceso->id_proceso);
+                    $className = isset($processIdParts[1]) ? $processIdParts[1] : 'N/A';
+                    $workOrderId = isset($processIdParts[2]) ? $processIdParts[2] : 'N/A';
+
+                    $piecesData[] = [
+                        'n_juego' => $piece->n_juego ?? 'N/A',
+                        'clase' => $className,
+                        'orden_trabajo' => $workOrderId,
+                        'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
+                        'temperatura_precalentado' => $piece->temperatura_precalentado ?? 'N/A',
+                        'tiempo_aplicacion' => $piece->tiempo_aplicacion ?? 'N/A',
+                        'tipo_soldadura' => $piece->tipo_soldadura ?? 'N/A',
+                        'lote' => $piece->lote ?? 'N/A',
+                    ];
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'pieces' => $piecesData,
+                'total' => count($piecesData)
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener información de Soldadura: ' . $e->getMessage()
+            ], 500);
         }
     }
 }

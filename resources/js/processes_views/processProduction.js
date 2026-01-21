@@ -1001,7 +1001,7 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
     // Encabezado de tabla
     let thead = document.createElement("thead");
     let headerRow = document.createElement("tr");
-    let headers = ["Seleccionar", "No. Pieza/Juego", "Proceso", "Error", "Estado Actual", "Acción", "Comentarios"];
+    let headers = ["No. Pieza/Juego", "Proceso", "Error", "Estado Actual", "Acción", "Comentarios"];
     headers.forEach(headerText => {
         let th = document.createElement("th");
         th.textContent = headerText;
@@ -1017,16 +1017,6 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
             let row = document.createElement("tr");
             row.className = "piece-row";
             row.style.backgroundColor = getColorByStatus(piece.liberacion, piece.error);
-
-            // Checkbox
-            let tdCheckbox = document.createElement("td");
-            let checkbox = document.createElement("input");
-            checkbox.type = "checkbox";
-            checkbox.name = `pieces[${index}][selected]`;
-            checkbox.value = piece.id;
-            checkbox.className = "piece-checkbox";
-            tdCheckbox.appendChild(checkbox);
-            row.appendChild(tdCheckbox);
 
             // No. Pieza
             let tdPiece = document.createElement("td");
@@ -1060,18 +1050,40 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
             let selectAction = document.createElement("select");
             selectAction.name = `pieces[${index}][action]`;
             selectAction.className = "action-select";
-            let optionNone = document.createElement("option");
-            optionNone.value = "";
-            optionNone.textContent = "Sin cambio";
-            selectAction.appendChild(optionNone);
-            let optionRelease = document.createElement("option");
-            optionRelease.value = "1";
-            optionRelease.textContent = "Liberar";
-            selectAction.appendChild(optionRelease);
-            let optionReject = document.createElement("option");
-            optionReject.value = "2";
-            optionReject.textContent = "Rechazar";
-            selectAction.appendChild(optionReject);
+
+            // Opciones de acción con sus valores y colores correspondientes
+            let options = [
+                { value: "", text: "Sin cambio", color: "" },
+                { value: "1", text: "Liberar", color: "#79BFED" },
+                { value: "2", text: "Rechazar", color: "#FF6B6B" },
+                { value: "3", text: "Buena sin liberación", color: "#90EE90" },
+                { value: "4", text: "Mala sin liberación", color: "#DDA0DD" },
+                { value: "5", text: "Incompleto", color: "#FFD700" }
+            ];
+
+            options.forEach(opt => {
+                let option = document.createElement("option");
+                option.value = opt.value;
+                option.textContent = opt.text;
+                option.setAttribute("data-color", opt.color);
+                selectAction.appendChild(option);
+            });
+
+            // Evento para cambiar el color del select según la opción seleccionada
+            selectAction.addEventListener("change", function () {
+                let selectedOption = this.options[this.selectedIndex];
+                let color = selectedOption.getAttribute("data-color");
+                if (color) {
+                    this.style.backgroundColor = color;
+                    this.style.color = "#000";
+                    this.style.fontWeight = "bold";
+                } else {
+                    this.style.backgroundColor = "";
+                    this.style.color = "";
+                    this.style.fontWeight = "";
+                }
+            });
+
             tdAction.appendChild(selectAction);
             row.appendChild(tdAction);
 
@@ -1090,7 +1102,7 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
     } else {
         let row = document.createElement("tr");
         let td = document.createElement("td");
-        td.colSpan = 7;
+        td.colSpan = 6;
         td.textContent = "No hay piezas registradas para liberar";
         td.style.textAlign = "center";
         td.style.padding = "2em";
