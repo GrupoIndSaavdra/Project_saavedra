@@ -57,6 +57,7 @@ class PzasLiberadasController extends Controller
             "error" => $request->error,
             "dateFrom" => $request->dateFrom,
             "dateTo" => $request->dateTo,
+            "n_juego" => $request->n_juego,
             "action" => $request->input("action"),
         );
         return $this->showPieces($this->controladorPzas->search($datosPiezas, "quality"));
@@ -103,6 +104,7 @@ class PzasLiberadasController extends Controller
             "error" => $extraRequest[5],
             "dateFrom" => $extraRequest[6],
             "dateTo" => $extraRequest[7],
+            "n_juego" => $extraRequest[8],
             "action" => null,
         );
         return $this->showPieces($this->controladorPzas->search($datosPiezas, 'quality'));

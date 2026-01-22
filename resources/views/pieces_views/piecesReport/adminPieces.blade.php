@@ -29,14 +29,14 @@
                 }
 
                 /* .generar_pdf {
-                                                                    width: 10%;
-                                                                    height: 10%;
-                                                                }
+                                                                                        width: 10%;
+                                                                                        height: 10%;
+                                                                                    }
 
-                                                                form {
-                                                                    overflow: hidden;
-                                                                    width: 100%;
-                                                                } */
+                                                                                    form {
+                                                                                        overflow: hidden;
+                                                                                        width: 100%;
+                                                                                    } */
 
                 .icono-liberar,
                 .icono-rechazar {
@@ -122,8 +122,8 @@
         </table>
     </div>
     <script>
-        let pieces = @json($pieces);
-        let infoPiezas = @json($infoPieces);
+        window.pieces = @json($pieces);
+        window.infoPiezas = @json($infoPieces);
         window.piecesData = @json($piecesData);
         window.selectedItems = @json($selectedItems);
         window.filtersData = @json($filtersData);

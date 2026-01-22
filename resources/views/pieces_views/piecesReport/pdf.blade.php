@@ -94,12 +94,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <?php $colorsArray = ["Azul" => "Liberado", "Rojo" => "Rechazado", "Verde" => "Buena sin liberacion/rechazo", "Morado" => "Mala sin liberacion/rechazo", "Amarillo" => "Incompleto"]; ?>
+                    <?php
+                    $colorsArray = ['Azul' => 'Liberado', 'Rojo' => 'Rechazado', 'Verde' => 'Buena sin liberacion/rechazo', 'Morado' => 'Mala sin liberacion/rechazo', 'Amarillo' => 'Incompleto'];
+                    $colorStyles = [
+                        'Azul' => 'background-color: #79BFED; color: black; font-weight: bold;',
+                        'Rojo' => 'background-color: #FF6B6B; color: black; font-weight: bold;',
+                        'Verde' => 'background-color: #90EE90; color: black; font-weight: bold;',
+                        'Morado' => 'background-color: #DDA0DD; color: black; font-weight: bold;',
+                        'Amarillo' => 'background-color: #FFD700; color: black; font-weight: bold;',
+                    ];
+                    ?>
                     @foreach ($colorsArray as $key => $colorArray)
-                    <tr>
-                        <td>{{$key}}</td>
-                        <td>{{$colorArray}}</td>
-                    </tr>
+                        <tr>
+                            <td style="{{ $colorStyles[$key] }}">{{ $key }}</td>
+                            <td>{{ $colorArray }}</td>
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
@@ -107,14 +116,15 @@
         <div class="filters">
             <h2>Filtros aplicados</h2>
             <?php $titles = [
-                "workOrder" => "Orden de trabajo",
-                "class" => "Clase",
-                "operator" => "Operador",
-                "machine" => "Maquina",
-                "process" => "Proceso",
-                "error" => "Error",
-                "dateFrom" => "Desde",
-                "dateTo" => "Hasta",
+                'workOrder' => 'Orden de trabajo',
+                'class' => 'Clase',
+                'operator' => 'Operador',
+                'machine' => 'Maquina',
+                'process' => 'Proceso',
+                'error' => 'Error',
+                'dateFrom' => 'Desde',
+                'dateTo' => 'Hasta',
+                'n_juego' => 'N# Pieza',
             ];
             ?>
             <table class="table-filters">
@@ -129,14 +139,14 @@
                 <tbody>
                     <!--Valores de los filtros-->
                     @foreach ($selectedItems as $key => $filter)
-                    <tr>
-                        <td>{{ $titles[$key] }}</td>
-                        @if ($key == "operator" && $filter != "Todos")
-                        <td>{{$filter->nombre}} {{$filter->a_paterno}} {{$filter->a_materno}}</td>
-                        @else
-                        <td>{{ $filter }}</td>
-                        @endif
-                    </tr>
+                        <tr>
+                            <td>{{ $titles[$key] }}</td>
+                            @if ($key == 'operator' && $filter != 'Todos')
+                                <td>{{ $filter->nombre }} {{ $filter->a_paterno }} {{ $filter->a_materno }}</td>
+                            @else
+                                <td>{{ $filter }}</td>
+                            @endif
+                        </tr>
                     @endforeach
 
                 </tbody>
@@ -162,31 +172,31 @@
                 <!--Definicion del color de la columna con respecto a sus liberaciones y errores-->
                 <?php
                 $colorColumn;
-                $indexLiberation = $pieces[$i][4] == "Operacion Equipo" ? 10 : 9;
-                $indexError = $pieces[$i][4] == "Operacion Equipo" ? 6 : 5;
+                $indexLiberation = $pieces[$i][4] == 'Operacion Equipo' ? 10 : 9;
+                $indexError = $pieces[$i][4] == 'Operacion Equipo' ? 6 : 5;
                 switch (true) {
                     case $pieces[$i][9] == 1:
-                        $colorColumn = "#79BFED"; // Azul
+                        $colorColumn = '#79BFED'; // Azul
                         break;
                     case $pieces[$i][9] == 2:
-                        $colorColumn = "#EC7063"; // Rojo
+                        $colorColumn = '#EC7063'; // Rojo
                         break;
                     case $pieces[$i][9] == 0:
                         $colorColumn = match ($pieces[$i][5]) {
-                            "Incompleto" => "#FFFF99", // Amarillo
-                            "Ninguno" => "#ACF980A8", // Verde
-                            default => "#E59CFF" // Morado
+                            'Incompleto' => '#FFFF99', // Amarillo
+                            'Ninguno' => '#ACF980A8', // Verde
+                            default => '#E59CFF', // Morado
                         };
                         break;
                 }
                 ?>
 
-                <tr style="background-color: {{$colorColumn}}">
+                <tr style="background-color: {{ $colorColumn }}">
                     @for ($j = 1; $j < count($pieces[$i]) - 6; $j++)
                         <td>{{ $pieces[$i][$j] }}</td>
                     @endfor
                 </tr>
-                @endfor
+            @endfor
         </tbody>
     </table>
     </div>

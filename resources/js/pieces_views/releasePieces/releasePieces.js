@@ -247,7 +247,7 @@ function crearBotonVer(infoPiezas, i, usuarios) {
     return a;
 }
 function obtenerRequest() {
-    let names = ["workOrder", "class", "operator", "machine", "process", "error", "dateFrom", "dateTo"];
+    let names = ["workOrder", "class", "operator", "machine", "process", "error", "dateFrom", "dateTo", "n_juego"];
     let request = [];
     for (let i = 0; i < names.length; i++) {
         let value = document.getElementsByName(names[i])[0].value.replaceAll("/", "_");
@@ -256,8 +256,18 @@ function obtenerRequest() {
     return request;
 }
 function createFilters() {
-    let titles = ["Orden de trabajo", "Clase", "Operador", "Maquina", "Proceso", "Error", "Desde", "Hasta"];
-    Object.keys(window.selectedItems).forEach((item, index) => {
+    let titles = {
+        workOrder: "Orden de trabajo",
+        class: "Clase",
+        operator: "Operador",
+        machine: "Maquina",
+        process: "Proceso",
+        error: "Error",
+        dateFrom: "Desde",
+        dateTo: "Hasta",
+        n_juego: "N# Pieza/Juego"
+    };
+    Object.keys(window.selectedItems).forEach((item) => {
         let div = document.createElement("div");
         div.className = "filter";
 
@@ -272,7 +282,7 @@ function createFilters() {
                 div.appendChild(input);
                 break;
             default:
-                if (item != "action") {
+                if (item != "action" && item != "n_juego") {
                     const select = document.createElement("select");
                     select.className = "select-filter";
                     select.name = item;
@@ -342,13 +352,56 @@ function createFilters() {
                 break;
         }
         //Agregar label
-        if (item != "action") {
+        if (item != "action" && item != "n_juego") {
             let label = document.createElement("label");
-            label.textContent = titles[index] + ": ";
+            label.textContent = titles[item] + ": ";
             div.appendChild(label);
             document.querySelector(".filters").appendChild(div);
         }
     });
+
+    // ============================================
+    // NUEVO FILTRO: N# Pieza/Juego
+    // ============================================
+    let divGame = document.createElement("div");
+    divGame.className = "filter";
+
+    // Crear select
+    let selectGame = document.createElement("select");
+    selectGame.className = "select-filter";
+    selectGame.name = "n_juego";
+    selectGame.id = "n_juego_filter";
+    selectGame.disabled = true; // Deshabilitado por defecto
+
+    // Opción por defecto
+    let defaultOption = document.createElement("option");
+    defaultOption.value = "Todos";
+    defaultOption.textContent = "Todos";
+    selectGame.appendChild(defaultOption);
+
+    // Si viene en selectedItems, ponerle el valor
+    if (window.selectedItems && window.selectedItems.n_juego) {
+        selectGame.disabled = false;
+        if (window.selectedItems.n_juego !== "Todos") {
+            let selectedOpt = document.createElement("option");
+            selectedOpt.value = window.selectedItems.n_juego;
+            selectedOpt.textContent = window.selectedItems.n_juego;
+            selectedOpt.selected = true;
+            selectGame.appendChild(selectedOpt);
+        }
+    }
+
+    divGame.appendChild(selectGame);
+
+    let labelGame = document.createElement("label");
+    labelGame.textContent = "N# Pieza: ";
+    divGame.appendChild(labelGame);
+
+    document.querySelector(".filters").appendChild(divGame);
+
+    // Lógica de activación
+    setupGameFilterLogic();
+
     if (Object.keys(window.selectedItems).length > 0) {
         let button = document.createElement("button");
         button.textContent = "Buscar";
@@ -383,3 +436,150 @@ if (window.pieces.length > 0) {
     crearTabla(window.pieces, window.infoPieces);
 }
 const pdf = document.getElementById("pdf");
+
+/**
+ * Lógica para el filtro de N# Pieza/Juego
+ */
+function setupGameFilterLogic() {
+    // releasePieces usa "workOrder" y "class"
+    const otSelect = document.querySelector('select[name="workOrder"]');
+    const classSelect = document.querySelector('select[name="class"]');
+    const gameSelect = document.getElementById("n_juego_filter");
+
+    function checkEnableGameFilter() {
+        if (!otSelect || !classSelect || !gameSelect) return;
+
+        const otVal = otSelect.value;
+        const classVal = classSelect.value;
+
+        if (otVal && otVal !== "Todos" && classVal && classVal !== "Todos") {
+            gameSelect.disabled = false;
+            // Cargar juegos
+            loadAvailableGames(otVal, classVal, gameSelect);
+        } else {
+            gameSelect.disabled = true;
+            gameSelect.value = "Todos";
+            while (gameSelect.options.length > 1) {
+                gameSelect.remove(1);
+            }
+        }
+    }
+
+    if (otSelect) otSelect.addEventListener("change", checkEnableGameFilter);
+    if (classSelect) classSelect.addEventListener("change", checkEnableGameFilter);
+
+    // Chequeo inicial
+    checkEnableGameFilter();
+}
+
+/**
+ * Cargar juegos disponibles
+ */
+function loadAvailableGames(ot, clase, selectElement) {
+    // Limpiar opciones existentes (excepto "Todos")
+    while (selectElement.options.length > 1) {
+        selectElement.remove(1);
+    }
+
+    console.log("=== loadAvailableGames DEBUG ===");
+    console.log("OT:", ot, "Clase:", clase);
+    console.log("window.pieces exists:", !!window.pieces);
+    console.log("window.pieces length:", window.pieces?.length);
+
+    // Estrategia 1: Intentar usar datos locales primero
+    let gamesLoaded = false;
+
+    if (window.pieces && window.pieces.length > 0) {
+        const games = new Set();
+
+        window.pieces.forEach((p, index) => {
+            if (index < 3) { // Log solo las primeras 3 piezas
+                console.log(`Piece ${index}:`, {
+                    ot: p[0],
+                    className: p.className,
+                    noAssembly: p[1]
+                });
+            }
+
+            // p[0] es OT, p.className es Clase, p[1] es JUEGO (noAssembly)
+            if (p[0] && p.className && p[1]) {
+                const pieceOT = String(p[0]).trim();
+                const pieceClass = String(p.className).trim();
+
+                // Extraer solo el número del OT (antes del " - ")
+                const selectedOT = String(ot).includes(" - ")
+                    ? String(ot).split(" - ")[0].trim()
+                    : String(ot).trim();
+                const selectedClass = String(clase).trim();
+
+                if (pieceOT === selectedOT && pieceClass === selectedClass) {
+                    games.add(p[1]);
+                }
+            }
+        });
+
+        console.log("Games found:", Array.from(games));
+
+        if (games.size > 0) {
+            // Ordenar y agregar opciones
+            const sortedGames = Array.from(games).sort();
+            sortedGames.forEach(game => {
+                let opt = document.createElement("option");
+                opt.value = game;
+                opt.textContent = game;
+                if (window.selectedItems && window.selectedItems.n_juego == game) {
+                    opt.selected = true;
+                }
+                selectElement.appendChild(opt);
+            });
+            gamesLoaded = true;
+            console.log("Games loaded from local data successfully");
+        } else {
+            console.log("No games matched for OT:", ot, "Class:", clase);
+        }
+    } else {
+        console.log("window.pieces is empty or undefined");
+    }
+
+    // Estrategia 2: Si no hay datos locales, intentar AJAX
+    if (!gamesLoaded) {
+        console.log("Attempting AJAX load...");
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+
+        if (csrfToken) {
+            fetch(window.baseUrl + "/getGamesFromOT", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({ ot: ot, class: clase })
+            })
+                .then(response => {
+                    if (response.ok) return response.json();
+                    throw new Error("Network response was not ok");
+                })
+                .then(data => {
+                    console.log("AJAX response:", data);
+                    if (data && Array.isArray(data)) {
+                        data.forEach(game => {
+                            let opt = document.createElement("option");
+                            opt.value = game;
+                            opt.textContent = game;
+                            if (window.selectedItems && window.selectedItems.n_juego == game) {
+                                opt.selected = true;
+                            }
+                            selectElement.appendChild(opt);
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.log("AJAX failed:", err);
+                });
+        }
+    }
+}
+
+
+

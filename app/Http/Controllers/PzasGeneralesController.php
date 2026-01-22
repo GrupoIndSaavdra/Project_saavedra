@@ -172,6 +172,7 @@ class PzasGeneralesController extends Controller
             "error" => $request->error,
             "dateFrom" => $request->dateFrom,
             "dateTo" => $request->dateTo,
+            "n_juego" => $request->n_juego,
             "action" => $request->input("action"),
         );
         return $this->search($datosPiezas, 'admin');
@@ -182,7 +183,7 @@ class PzasGeneralesController extends Controller
         $array = Pieza::all();
         $array = $this->saveInArray($array);
         if (count($array) > 0) {
-            $positionsArray = array("workOrder" => 0, "class" => "className", "operator" => 2, "machine" => 3, "process" => 4, "error" => 5, "dateFrom" => 6, "dateTo" => 6);
+            $positionsArray = array("workOrder" => 0, "class" => "className", "operator" => 2, "machine" => 3, "process" => 4, "error" => 5, "dateFrom" => 6, "dateTo" => 6, "n_juego" => 1);
             foreach ($piecesData as $key => $value) {
                 $dateField = false;
                 if ($key != "action") {

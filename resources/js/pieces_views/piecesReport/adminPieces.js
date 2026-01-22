@@ -108,7 +108,7 @@ function crearBotonVer(infoPiezas, i, usuarios) {
     return a;
 }
 function obtenerRequest() {
-    let names = ["ot", "clase", "operador", "maquina", "proceso", "error", "fecha"];
+    let names = ["workOrder", "class", "operator", "machine", "process", "error", "dateFrom", "dateTo", "n_juego"];
     let request = [];
     for (let i = 0; i < names.length; i++) {
         let value = document.getElementsByName(names[i])[0].value;
@@ -117,8 +117,18 @@ function obtenerRequest() {
     return request;
 }
 function createFilters() {
-    let titles = ["Orden de trabajo", "Clase", "Operador", "Maquina", "Proceso", "Error", "Desde", "Hasta"];
-    Object.keys(window.selectedItems).forEach((item, index) => {
+    let titles = {
+        workOrder: "Orden de trabajo",
+        class: "Clase",
+        operator: "Operador",
+        machine: "Maquina",
+        process: "Proceso",
+        error: "Error",
+        dateFrom: "Desde",
+        dateTo: "Hasta",
+        n_juego: "N# Pieza/Juego"
+    };
+    Object.keys(window.selectedItems).forEach((item) => {
         let div = document.createElement("div");
         div.className = "filter";
 
@@ -133,7 +143,7 @@ function createFilters() {
                 div.appendChild(input);
                 break;
             default:
-                if (item != "action") {
+                if (item != "action" && item != "n_juego") {
                     const select = document.createElement("select");
                     select.className = "select-filter";
                     select.name = item;
@@ -168,7 +178,11 @@ function createFilters() {
                     if (item == "machine") {
                         // Generar 45 máquinas como en processProduction.js
                         for (let i = 1; i <= 45; i++) {
-                            if (i == window.selectedItems[item] || (window.selectedItems[item].includes("_") && window.selectedItems[item] == `${i}_${i + 1}`)) {
+                            if (
+                                i == window.selectedItems[item] ||
+                                (window.selectedItems[item].includes("_") &&
+                                    window.selectedItems[item] == `${i}_${i + 1}`)
+                            ) {
                                 if (i == 1 || i == 25 || i == 27) {
                                     i++; // Saltar la siguiente iteración para máquinas agrupadas
                                 }
@@ -218,13 +232,60 @@ function createFilters() {
                 break;
         }
         //Agregar label
-        if (item != "action") {
+        if (item != "action" && item != "n_juego") {
             let label = document.createElement("label");
-            label.textContent = titles[index] + ": ";
+            label.textContent = titles[item] + ": ";
             div.appendChild(label);
             document.querySelector(".filters").appendChild(div);
         }
     });
+
+    // ============================================
+    // NUEVO FILTRO: N# Pieza/Juego
+    // ============================================
+    let divGame = document.createElement("div");
+    divGame.className = "filter";
+
+    // Crear select
+    let selectGame = document.createElement("select");
+    selectGame.className = "select-filter";
+    selectGame.name = "n_juego";
+    selectGame.id = "n_juego_filter";
+    selectGame.disabled = true; // Deshabilitado por defecto
+
+    // Opción por defecto
+    let defaultOption = document.createElement("option");
+    defaultOption.value = "Todos";
+    defaultOption.textContent = "Todos";
+    selectGame.appendChild(defaultOption);
+
+    // Si viene en selectedItems, ponerle el valor
+    if (window.selectedItems && window.selectedItems.n_juego) {
+        // Si ya hay un valor seleccionado, habilitarlo y añadir la opción
+        selectGame.disabled = false;
+        // La opción seleccionada se agregará dinámicamente o se mantiene el texto si es input,
+        // pero como es select, asumimos que "Todos" o el valor específico se manejan.
+        // Para simplificar: Si hay valor, lo ponemos temporalmente como opción única hasta recargar
+        if (window.selectedItems.n_juego !== "Todos") {
+            let selectedOpt = document.createElement("option");
+            selectedOpt.value = window.selectedItems.n_juego;
+            selectedOpt.textContent = window.selectedItems.n_juego;
+            selectedOpt.selected = true;
+            selectGame.appendChild(selectedOpt);
+        }
+    }
+
+    divGame.appendChild(selectGame);
+
+    let labelGame = document.createElement("label");
+    labelGame.textContent = "N# Pieza: ";
+    divGame.appendChild(labelGame);
+
+    document.querySelector(".filters").appendChild(divGame);
+
+    // Lógica de activación
+    setupGameFilterLogic();
+
     if (Object.keys(window.selectedItems).length > 0) {
         let button = document.createElement("button");
         button.textContent = "Buscar";
@@ -278,7 +339,7 @@ function initializeSoldaduraFeature() {
         checkProcessAndShowButton(processSelect.value);
 
         // Agregar listener para cambios
-        processSelect.addEventListener('change', function () {
+        processSelect.addEventListener("change", function () {
             currentSelectedProcess = this.value;
             checkProcessAndShowButton(this.value);
         });
@@ -414,14 +475,16 @@ function showAdminVerification() {
     btnCancel.type = "button";
     btnCancel.textContent = "Cancelar";
     btnCancel.className = "btn-cancel-soldadura";
-    btnCancel.style.cssText = "padding: 10px 20px; background: #ccc; border: none; border-radius: 4px; cursor: pointer;";
+    btnCancel.style.cssText =
+        "padding: 10px 20px; background: #ccc; border: none; border-radius: 4px; cursor: pointer;";
     btnCancel.addEventListener("click", closeSoldaduraModal);
 
     const btnVerify = document.createElement("button");
     btnVerify.type = "submit";
     btnVerify.textContent = "Verificar";
     btnVerify.className = "btn-submit-password";
-    btnVerify.style.cssText = "padding: 10px 20px; background: #033966; color: white; border: none; border-radius: 4px; cursor: pointer;";
+    btnVerify.style.cssText =
+        "padding: 10px 20px; background: #033966; color: white; border: none; border-radius: 4px; cursor: pointer;";
 
     buttonGroup.appendChild(btnCancel);
     buttonGroup.appendChild(btnVerify);
@@ -448,18 +511,18 @@ function verifyAdminPasswordAjax(password) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
 
     const formData = new FormData();
-    formData.append('passwordAdmin', password);
+    formData.append("passwordAdmin", password);
 
     fetch(window.baseUrl + "/pieces/verifyAdminPassword", {
         method: "POST",
         headers: {
             "X-CSRF-TOKEN": csrfToken,
-            "Accept": "application/json"
+            Accept: "application/json",
         },
-        body: formData
+        body: formData,
     })
-        .then(response => response.json())
-        .then(data => {
+        .then((response) => response.json())
+        .then((data) => {
             if (data.success) {
                 closeSoldaduraModal();
                 getSoldaduraExtraInfo();
@@ -467,7 +530,7 @@ function verifyAdminPasswordAjax(password) {
                 alert(data.message || "Contraseña incorrecta");
             }
         })
-        .catch(error => {
+        .catch((error) => {
             console.error("Error:", error);
             alert("Error al verificar la contraseña. Intente de nuevo.");
         });
@@ -483,18 +546,18 @@ function getSoldaduraExtraInfo() {
         method: "POST",
         headers: {
             "X-CSRF-TOKEN": csrfToken,
-            "Accept": "application/json"
-        }
+            Accept: "application/json",
+        },
     })
-        .then(response => response.json())
-        .then(data => {
+        .then((response) => response.json())
+        .then((data) => {
             if (data.success) {
                 showSoldaduraExtraInfoTable(data.pieces);
             } else {
                 alert(data.message || "Error al obtener información");
             }
         })
-        .catch(error => {
+        .catch((error) => {
             console.error("Error:", error);
             alert("Error al obtener información de Soldadura.");
         });
@@ -563,8 +626,17 @@ function showSoldaduraExtraInfoTable(pieces) {
         const headerRow = document.createElement("tr");
         headerRow.style.cssText = "background-color: #033966; color: white;";
 
-        const headers = ["N° Juego", "Clase", "OT", "Peso por Pieza", "Temp. Precalentado", "Tiempo Aplicación", "Tipo Soldadura", "Lote"];
-        headers.forEach(headerText => {
+        const headers = [
+            "N° Juego",
+            "Clase",
+            "OT",
+            "Peso por Pieza",
+            "Temp. Precalentado",
+            "Tiempo Aplicación",
+            "Tipo Soldadura",
+            "Lote",
+        ];
+        headers.forEach((headerText) => {
             const th = document.createElement("th");
             th.textContent = headerText;
             th.style.cssText = "padding: 12px 8px; text-align: left; border: 1px solid #ddd;";
@@ -588,10 +660,10 @@ function showSoldaduraExtraInfoTable(pieces) {
                 piece.temperatura_precalentado,
                 piece.tiempo_aplicacion,
                 piece.tipo_soldadura,
-                piece.lote
+                piece.lote,
             ];
 
-            fields.forEach(fieldValue => {
+            fields.forEach((fieldValue) => {
                 const td = document.createElement("td");
                 td.textContent = fieldValue;
                 td.style.cssText = "padding: 10px 8px; border: 1px solid #ddd;";
@@ -609,7 +681,8 @@ function showSoldaduraExtraInfoTable(pieces) {
     // Botón cerrar
     const btnClose = document.createElement("button");
     btnClose.textContent = "Cerrar";
-    btnClose.style.cssText = "padding: 10px 20px; background: #033966; color: white; border: none; border-radius: 4px; cursor: pointer; float: right;";
+    btnClose.style.cssText =
+        "padding: 10px 20px; background: #033966; color: white; border: none; border-radius: 4px; cursor: pointer; float: right;";
     btnClose.addEventListener("click", closeSoldaduraModal);
     modalContainer.appendChild(btnClose);
 
@@ -621,7 +694,8 @@ function showSoldaduraExtraInfoTable(pieces) {
  * Cerrar modal de Soldadura
  */
 function closeSoldaduraModal() {
-    const divOpacity = document.getElementById("div-opacity-soldadura") || document.getElementById("div-opacity-soldadura-table");
+    const divOpacity =
+        document.getElementById("div-opacity-soldadura") || document.getElementById("div-opacity-soldadura-table");
     if (divOpacity) {
         divOpacity.remove();
     }
@@ -630,3 +704,146 @@ function closeSoldaduraModal() {
 
 // Inicializar la funcionalidad cuando se carga la página
 initializeSoldaduraFeature();
+
+/**
+ * Lógica para el filtro de N# Pieza/Juego
+ */
+function setupGameFilterLogic() {
+    const otSelect = document.querySelector('select[name="workOrder"]');
+    const classSelect = document.querySelector('select[name="class"]');
+    const gameSelect = document.getElementById("n_juego_filter");
+
+    function checkEnableGameFilter() {
+        if (!otSelect || !classSelect || !gameSelect) return;
+
+        const otVal = otSelect.value;
+        const classVal = classSelect.value;
+
+        if (otVal && otVal !== "Todos" && classVal && classVal !== "Todos") {
+            gameSelect.disabled = false;
+            // Aquí se podría disparar la carga de juegos disponibles
+            loadAvailableGames(otVal, classVal, gameSelect);
+        } else {
+            gameSelect.disabled = true;
+            gameSelect.value = "Todos";
+            // Limpiar opciones extra
+            while (gameSelect.options.length > 1) {
+                gameSelect.remove(1);
+            }
+        }
+    }
+
+    if (otSelect) otSelect.addEventListener("change", checkEnableGameFilter);
+    if (classSelect) classSelect.addEventListener("change", checkEnableGameFilter);
+
+    // Chequeo inicial
+    checkEnableGameFilter();
+}
+
+/**
+ * Cargar juegos disponibles (Simulación o AJAX)
+ */
+function loadAvailableGames(ot, clase, selectElement) {
+    // Limpiar opciones existentes (excepto "Todos")
+    while (selectElement.options.length > 1) {
+        selectElement.remove(1);
+    }
+
+    console.log("=== loadAvailableGames DEBUG ===");
+    console.log("OT:", ot, "Clase:", clase);
+    console.log("window.pieces exists:", !!window.pieces);
+    console.log("window.pieces length:", window.pieces?.length);
+
+    // Estrategia 1: Intentar usar datos locales primero
+    let gamesLoaded = false;
+
+    if (window.pieces && window.pieces.length > 0) {
+        const games = new Set();
+
+        window.pieces.forEach((p, index) => {
+            if (index < 3) {
+                // Log solo las primeras 3 piezas para no saturar consola
+                console.log(`Piece ${index}:`, {
+                    ot: p[0],
+                    className: p.className,
+                    noAssembly: p[1],
+                });
+            }
+
+            // p[0] es OT, p.className es Clase, p[1] es JUEGO (noAssembly)
+            if (p[0] && p.className && p[1]) {
+                const pieceOT = String(p[0]).trim();
+                const pieceClass = String(p.className).trim();
+
+                // Extraer solo el número del OT (antes del " - ")
+                const selectedOT = String(ot).includes(" - ") ? String(ot).split(" - ")[0].trim() : String(ot).trim();
+                const selectedClass = String(clase).trim();
+
+                if (pieceOT === selectedOT && pieceClass === selectedClass) {
+                    games.add(p[1]);
+                }
+            }
+        });
+
+        console.log("Games found:", Array.from(games));
+
+        if (games.size > 0) {
+            // Ordenar y agregar opciones
+            const sortedGames = Array.from(games).sort();
+            sortedGames.forEach((game) => {
+                let opt = document.createElement("option");
+                opt.value = game;
+                opt.textContent = game;
+                if (window.selectedItems && window.selectedItems.n_juego == game) {
+                    opt.selected = true;
+                }
+                selectElement.appendChild(opt);
+            });
+            gamesLoaded = true;
+            console.log("Games loaded from local data successfully");
+        } else {
+            console.log("No games matched for OT:", ot, "Class:", clase);
+        }
+    } else {
+        console.log("window.pieces is empty or undefined");
+    }
+
+    // Estrategia 2: Si no hay datos locales, intentar AJAX
+    if (!gamesLoaded) {
+        console.log("Attempting AJAX load...");
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+
+        if (csrfToken) {
+            fetch(window.baseUrl + "/getGamesFromOT", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": csrfToken,
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({ ot: ot, class: clase }),
+            })
+                .then((response) => {
+                    if (response.ok) return response.json();
+                    throw new Error("Network response was not ok");
+                })
+                .then((data) => {
+                    console.log("AJAX response:", data);
+                    if (data && Array.isArray(data)) {
+                        data.forEach((game) => {
+                            let opt = document.createElement("option");
+                            opt.value = game;
+                            opt.textContent = game;
+                            if (window.selectedItems && window.selectedItems.n_juego == game) {
+                                opt.selected = true;
+                            }
+                            selectElement.appendChild(opt);
+                        });
+                    }
+                })
+                .catch((err) => {
+                    console.log("AJAX failed:", err);
+                });
+        }
+    }
+}
