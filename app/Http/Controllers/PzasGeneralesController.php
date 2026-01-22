@@ -132,7 +132,32 @@ class PzasGeneralesController extends Controller
                 return [false, $pieces, $piecesData, $infoPieces, $selectedItems, $filtersData];
             }
             $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
-            return $pdf->download('Reporte de piezas.pdf');
+
+            // Generar nombre del archivo
+            $filename = $this->generatePdfFilename($selectedItems, "Piezas");
+            return $pdf->download($filename);
+        }
+    }
+
+    public function generatePdfFilename($selectedItems, $reportType)
+    {
+        $parts = [];
+        $date = date('d-m-Y');
+
+        if (isset($selectedItems['workOrder']) && $selectedItems['workOrder'] !== 'Todos') {
+            $parts[] = $selectedItems['workOrder'];
+        }
+        if (isset($selectedItems['class']) && $selectedItems['class'] !== 'Todos') {
+            $parts[] = $selectedItems['class'];
+        }
+        if (isset($selectedItems['process']) && $selectedItems['process'] !== 'Todos') {
+            $parts[] = $selectedItems['process'];
+        }
+
+        if (count($parts) > 0) {
+            return implode(' - ', $parts) . " - " . $date . ".pdf";
+        } else {
+            return "Reporte de " . $reportType . " General - " . $date . ".pdf";
         }
     }
     public function getFiltersInfo()

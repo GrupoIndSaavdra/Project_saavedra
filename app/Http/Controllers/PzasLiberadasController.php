@@ -78,7 +78,10 @@ class PzasLiberadasController extends Controller
             return view('pieces_views.releasePieces.pzasLiberar', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'pieces_Released', 'info_Pieces'));
         } else {
             $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'profile'));
-            return $pdf->download('Reporte de piezas.pdf');
+
+            // Generar nombre del archivo
+            $filename = $this->controladorPzas->generatePdfFilename($selectedItems, "Liberacion");
+            return $pdf->download($filename);
         }
     }
     public function liberar_rechazar(Request $request) //Función para liberar o rechazar piezas
