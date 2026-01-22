@@ -284,6 +284,11 @@ class PzasGeneralesController extends Controller
                         }
                     }
                     break;
+                case ($posicion == 1): // Filtrado exacto para n_juego
+                    if ($elementoArray == $elemento) {
+                        array_push($array, $arrayP[$i]);
+                    }
+                    break;
                 case strpos($elementoArray, $elemento) !== false: // Si el campo de la pieza coincide con el elemento filtrado
                     if ($elemento == "Soldadura") {
                         if ($arrayP[$i][$posicion] === $elemento) {
