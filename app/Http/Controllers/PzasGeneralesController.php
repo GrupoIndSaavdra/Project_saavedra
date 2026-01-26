@@ -1805,7 +1805,6 @@ class PzasGeneralesController extends Controller
                         'clase' => $className,
                         'orden_trabajo' => $workOrderId,
                         'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
-                        'tiempo_aplicacion' => $piece->tiempo_aplicacion ?? 'N/A',
                         'tipo_soldadura' => $piece->tipo_soldadura ?? 'N/A',
                         'lote' => $piece->lote ?? 'N/A',
                         'observaciones' => $piece->observaciones ?? '',
@@ -1813,9 +1812,69 @@ class PzasGeneralesController extends Controller
                 }
             }
 
+            // Construir nombre de archivo dinámico basado en filtros
+            $filenameParts = ['Reporte_Soldadura'];
+
+            // Agregar OT si está filtrado
+            if (isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '') {
+                $otValue = $filters['workOrder'];
+                // Si tiene formato "123 - Descripción", extraer solo el número
+                if (strpos($otValue, ' - ') !== false) {
+                    $otValue = explode(' - ', $otValue)[0];
+                }
+                $filenameParts[] = 'OT' . $otValue;
+            }
+
+            // Agregar Clase si está filtrada
+            if (isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '') {
+                $filenameParts[] = 'Clase_' . $filters['class'];
+            }
+
+            // Agregar Operador si está filtrado
+            if (isset($filters['operator']) && $filters['operator'] !== 'Todos' && $filters['operator'] !== '') {
+                $operatorMatricula = is_array($filters['operator']) ? $filters['operator']['matricula'] : $filters['operator'];
+                $operator = User::where('matricula', $operatorMatricula)->first();
+                if ($operator) {
+                    $operatorName = $operator->nombre . '_' . $operator->a_paterno;
+                    // Limpiar caracteres especiales del nombre
+                    $operatorName = preg_replace('/[^A-Za-z0-9_]/', '', $operatorName);
+                    $filenameParts[] = 'Op_' . $operatorName;
+                }
+            }
+
+            // Agregar Máquina si está filtrada
+            if (isset($filters['machine']) && $filters['machine'] !== 'Todos' && $filters['machine'] !== '') {
+                $machineValue = str_replace('_', 'y', $filters['machine']);
+                $filenameParts[] = 'Maq' . $machineValue;
+            }
+
+            // Agregar N# Juego si está filtrado
+            if (isset($filters['n_juego']) && $filters['n_juego'] !== 'Todos' && $filters['n_juego'] !== '') {
+                $filenameParts[] = 'Juego' . $filters['n_juego'];
+            }
+
+            // Agregar rango de fechas si están filtradas
+            if (isset($filters['dateFrom']) && $filters['dateFrom'] !== '' && $filters['dateFrom'] !== 'Todos') {
+                $dateFrom = date('d-m-Y', strtotime($filters['dateFrom']));
+                if (isset($filters['dateTo']) && $filters['dateTo'] !== '' && $filters['dateTo'] !== 'Todos') {
+                    $dateTo = date('d-m-Y', strtotime($filters['dateTo']));
+                    $filenameParts[] = $dateFrom . '_a_' . $dateTo;
+                } else {
+                    $filenameParts[] = 'Desde_' . $dateFrom;
+                }
+            } elseif (isset($filters['dateTo']) && $filters['dateTo'] !== '' && $filters['dateTo'] !== 'Todos') {
+                $dateTo = date('d-m-Y', strtotime($filters['dateTo']));
+                $filenameParts[] = 'Hasta_' . $dateTo;
+            } else {
+                // Si no hay filtro de fecha, agregar la fecha actual
+                $filenameParts[] = date('d-m-Y');
+            }
+
+            // Unir todas las partes con guiones bajos
+            $filename = implode('_', $filenameParts) . '.pdf';
+
             $pdf = Pdf::loadView('pieces_views.piecesReport.soldaduraExtraInfoPdf', compact('piecesData'));
-            $date = date('d-m-Y');
-            return $pdf->download("Reporte_Soldadura_Extra_Info_" . $date . ".pdf");
+            return $pdf->download($filename);
 
         } catch (\Exception $e) {
             return back()->with('error', 'Error al generar el PDF: ' . $e->getMessage());

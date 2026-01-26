@@ -139,7 +139,7 @@ Route::controller(TiemposProduccionController::class)->group(function () {
 //Grupo de rutas para el controlador PzasGeneralesController
 Route::controller(PzasGeneralesController::class)->group(function () {
     Route::get('/pieces', 'showPiecesReport_view')->name('showPiecesReport_view'); //Ruta para la vista general de piezas
-    Route::post('/pieces/search', 'getPiecesRequest')->name('searchPieces'); //Ruta para el controlador de piezas generales
+    Route::match(['get', 'post'], '/pieces/search', 'getPiecesRequest')->name('searchPieces'); //Ruta para el controlador de piezas generales
     Route::get('/pieces/{pieces}/{process}/{profile}', 'showPiece')->name('chosenPiece'); //Vista de la pieza elegida
 
     Route::get('/piezasMaquina', 'showVistaMaquina')->name('vistaPzasMaquina'); //Ruta para la vista de piezas por maquina

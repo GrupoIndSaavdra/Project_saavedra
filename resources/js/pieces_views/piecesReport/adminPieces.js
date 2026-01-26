@@ -634,7 +634,6 @@ function showSoldaduraExtraInfoTable(pieces) {
             "Clase",
             "OT",
             "Peso por Pieza",
-            "Tiempo Aplicación",
             "Tipo Soldadura",
             "Lote",
             "Observaciones",
@@ -661,7 +660,6 @@ function showSoldaduraExtraInfoTable(pieces) {
                 piece.clase,
                 piece.orden_trabajo,
                 piece.peso_pieza,
-                piece.tiempo_aplicacion,
                 piece.tipo_soldadura,
                 piece.lote,
                 piece.observaciones,
@@ -688,15 +686,34 @@ function showSoldaduraExtraInfoTable(pieces) {
 
     // Botón descargar PDF
     const btnDownload = document.createElement("button");
+    btnDownload.type = "button"; // Prevenir submit del formulario
     btnDownload.textContent = "Descargar PDF";
     btnDownload.style.cssText =
         "padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;";
     btnDownload.addEventListener("click", () => {
+        console.log("=== PDF Download Debug ===");
+        console.log("window.selectedItems:", window.selectedItems);
+
         // Construir query string con los filtros actuales, excluyendo 'action'
         const filters = { ...(window.selectedItems || {}) };
         delete filters.action; // Eliminar el parámetro 'action' que causa conflictos de ruta
+
+        // Si el operador es un objeto, extraer solo la matrícula
+        if (filters.operator && typeof filters.operator === 'object') {
+            console.log("Operator is object:", filters.operator);
+            filters.operator = filters.operator.matricula;
+        }
+
+        console.log("Filters after processing:", filters);
+
         const params = new URLSearchParams(filters).toString();
-        window.location.href = window.baseUrl + "/pieces/downloadSoldaduraExtraInfoPDF?" + params;
+        const downloadUrl = window.baseUrl + "/pieces/downloadSoldaduraExtraInfoPDF?" + params;
+
+        console.log("Download URL:", downloadUrl);
+        console.log("Params:", params);
+
+        // Usar window.open en lugar de window.location.href para mejor manejo de errores
+        window.open(downloadUrl, '_blank');
     });
 
     // Botón cerrar
