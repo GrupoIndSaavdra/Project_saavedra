@@ -628,6 +628,7 @@ function showSoldaduraExtraInfoTable(pieces) {
 
         const headers = [
             "N° Juego",
+            "Operador",
             "Clase",
             "OT",
             "Peso por Pieza",
@@ -654,6 +655,7 @@ function showSoldaduraExtraInfoTable(pieces) {
 
             const fields = [
                 piece.n_juego,
+                piece.operador,
                 piece.clase,
                 piece.orden_trabajo,
                 piece.peso_pieza,
@@ -678,13 +680,29 @@ function showSoldaduraExtraInfoTable(pieces) {
         modalContainer.appendChild(tableContainer);
     }
 
+    // Botones de acción
+    const buttonsContainer = document.createElement("div");
+    buttonsContainer.style.cssText = "display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;";
+
+    // Botón descargar PDF
+    const btnDownload = document.createElement("button");
+    btnDownload.textContent = "Descargar PDF";
+    btnDownload.style.cssText =
+        "padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;";
+    btnDownload.addEventListener("click", () => {
+        window.location.href = window.baseUrl + "/pieces/downloadSoldaduraExtraInfoPDF";
+    });
+
     // Botón cerrar
     const btnClose = document.createElement("button");
     btnClose.textContent = "Cerrar";
     btnClose.style.cssText =
-        "padding: 10px 20px; background: #033966; color: white; border: none; border-radius: 4px; cursor: pointer; float: right;";
+        "padding: 10px 20px; background: #033966; color: white; border: none; border-radius: 4px; cursor: pointer;";
     btnClose.addEventListener("click", closeSoldaduraModal);
-    modalContainer.appendChild(btnClose);
+
+    buttonsContainer.appendChild(btnDownload);
+    buttonsContainer.appendChild(btnClose);
+    modalContainer.appendChild(buttonsContainer);
 
     divOpacity.appendChild(modalContainer);
     document.body.appendChild(divOpacity);

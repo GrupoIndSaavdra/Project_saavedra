@@ -1654,6 +1654,17 @@ class PzasGeneralesController extends Controller
                 // Obtener información del proceso
                 $proceso = Soldadura::find($piece->id_proceso);
 
+                // Obtener la meta asociada para sacar el operador
+                $meta = Metas::find($piece->id_meta);
+                $operatorName = 'N/A';
+
+                if ($meta) {
+                    $operator = User::where('matricula', $meta->id_usuario)->first();
+                    if ($operator) {
+                        $operatorName = $operator->nombre . ' ' . $operator->a_paterno . ' ' . $operator->a_materno;
+                    }
+                }
+
                 if ($proceso) {
                     // Extraer información de la clase y OT del id_proceso
                     // Formato: Soldadura_NombreClase_IdOT
@@ -1663,6 +1674,7 @@ class PzasGeneralesController extends Controller
 
                     $piecesData[] = [
                         'n_juego' => $piece->n_juego ?? 'N/A',
+                        'operador' => $operatorName,
                         'clase' => $className,
                         'orden_trabajo' => $workOrderId,
                         'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
@@ -1685,6 +1697,60 @@ class PzasGeneralesController extends Controller
                 'success' => false,
                 'message' => 'Error al obtener información de Soldadura: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Descargar PDF de información extra de Soldadura
+     */
+    public function downloadSoldaduraExtraInfoPDF()
+    {
+        try {
+            // Reutilizar la lógica de obtención de datos
+            // NOTA: Para no duplicar código, lo ideal sería extraer la lógica a una función privada,
+            // pero por simplicidad y siguiendo el patrón actual, repetiré la obtención básica o
+            // simularé la llamada si fuera necesario. Aquí haré la consulta directa.
+
+            $soldaduraPieces = Soldadura_pza::all();
+            $piecesData = [];
+
+            foreach ($soldaduraPieces as $piece) {
+                $proceso = Soldadura::find($piece->id_proceso);
+                $meta = Metas::find($piece->id_meta);
+                $operatorName = 'N/A';
+
+                if ($meta) {
+                    $operator = User::where('matricula', $meta->id_usuario)->first();
+                    if ($operator) {
+                        $operatorName = $operator->nombre . ' ' . $operator->a_paterno . ' ' . $operator->a_materno;
+                    }
+                }
+
+                if ($proceso) {
+                    $processIdParts = explode('_', $proceso->id_proceso);
+                    $className = isset($processIdParts[1]) ? $processIdParts[1] : 'N/A';
+                    $workOrderId = isset($processIdParts[2]) ? $processIdParts[2] : 'N/A';
+
+                    $piecesData[] = [
+                        'n_juego' => $piece->n_juego ?? 'N/A',
+                        'operador' => $operatorName,
+                        'clase' => $className,
+                        'orden_trabajo' => $workOrderId,
+                        'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
+                        'temperatura_precalentado' => $piece->temperatura_precalentado ?? 'N/A',
+                        'tiempo_aplicacion' => $piece->tiempo_aplicacion ?? 'N/A',
+                        'tipo_soldadura' => $piece->tipo_soldadura ?? 'N/A',
+                        'lote' => $piece->lote ?? 'N/A',
+                    ];
+                }
+            }
+
+            $pdf = Pdf::loadView('pieces_views.piecesReport.soldaduraExtraInfoPdf', compact('piecesData'));
+            $date = date('d-m-Y');
+            return $pdf->download("Reporte_Soldadura_Extra_Info_" . $date . ".pdf");
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al generar el PDF: ' . $e->getMessage());
         }
     }
 }
