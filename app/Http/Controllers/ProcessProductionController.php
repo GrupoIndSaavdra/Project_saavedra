@@ -952,7 +952,6 @@ class ProcessProductionController extends Controller
                             $piece->error = 'Maquinado';
                             $piece->correcto = 0;
                         } else if (($correct == 0 && $piece->error == 'Fundicion') || ($correct == 1 && $piece->error == 'Fundicion')) {
-                            $piece->error = $piece->error;
                             $piece->correcto = 0;
                         } else {
                             $piece->error = 'Ninguno';
@@ -1804,24 +1803,41 @@ class ProcessProductionController extends Controller
         ];
 
         foreach ($pieces as $pieceData) {
-            // Solo procesar si hay una acción seleccionada
-            if (!empty($pieceData['action']) && !empty($pieceData['id'])) {
-                $piece = Pieza::find($pieceData['id']);
-                if ($piece) {
-                    $action = intval($pieceData['action']);
-                    $comments = $pieceData['comments'] ?? '';
+            // Verificar si es un juego completo (tiene múltiples IDs)
+            $isSet = isset($pieceData['isSet']) && $pieceData['isSet'] == '1';
+            $pieceIds = [];
 
-                    // Validar que el valor de acción esté en el rango permitido (1-5)
-                    if ($action >= 1 && $action <= 5) {
-                        // Actualizar el estado de liberación
-                        $piece->liberacion = $action;
-                        $piece->fecha_liberacion = now();
-                        $piece->user_liberacion = $qualityUserMatricula;
-                        $piece->observacion_liberacion = $comments;
-                        $piece->save();
+            if ($isSet && isset($pieceData['ids'])) {
+                // Es un juego completo, obtener todos los IDs
+                $pieceIds = array_values($pieceData['ids']);
+            } elseif (!empty($pieceData['id'])) {
+                // Es una pieza individual (formato antiguo para compatibilidad)
+                $pieceIds = [$pieceData['id']];
+            } elseif (isset($pieceData['ids']) && is_array($pieceData['ids'])) {
+                // Formato nuevo pero pieza individual
+                $pieceIds = array_values($pieceData['ids']);
+            }
 
-                        // Incrementar el contador correspondiente
-                        $statusCounts[$action]++;
+            // Procesar cada pieza del grupo (o la pieza individual)
+            if (!empty($pieceData['action']) && !empty($pieceIds)) {
+                foreach ($pieceIds as $pieceId) {
+                    $piece = Pieza::find($pieceId);
+                    if ($piece) {
+                        $action = intval($pieceData['action']);
+                        $comments = $pieceData['comments'] ?? '';
+
+                        // Validar que el valor de acción esté en el rango permitido (1-5)
+                        if ($action >= 1 && $action <= 5) {
+                            // Actualizar el estado de liberación
+                            $piece->liberacion = $action;
+                            $piece->fecha_liberacion = now();
+                            $piece->user_liberacion = $qualityUserMatricula;
+                            $piece->observacion_liberacion = $comments;
+                            $piece->save();
+
+                            // Incrementar el contador correspondiente
+                            $statusCounts[$action]++;
+                        }
                     }
                 }
             }

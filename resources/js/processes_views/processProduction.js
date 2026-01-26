@@ -933,6 +933,114 @@ function createInputPasswordQuality() {
     return form_group;
 }
 
+// Función para agrupar piezas por juego (M y H se convierten en J)
+function groupPiecesBySet(piecesData) {
+    let grouped = [];
+    let processedIndices = new Set();
+
+    for (let i = 0; i < piecesData.length; i++) {
+        if (processedIndices.has(i)) continue;
+
+        let piece = piecesData[i];
+        let pieceNumber = piece.n_pieza;
+
+        // Verificar si la pieza termina en M o H
+        let matchM = pieceNumber.match(/^(\d+)M$/);
+        let matchH = pieceNumber.match(/^(\d+)H$/);
+
+        if (matchM) {
+            // Buscar la pieza H correspondiente
+            let baseNumber = matchM[1];
+            let hPieceIndex = piecesData.findIndex((p, idx) =>
+                idx > i && p.n_pieza === `${baseNumber}H` && !processedIndices.has(idx)
+            );
+
+            if (hPieceIndex !== -1) {
+                // Encontramos ambas mitades, crear un juego
+                grouped.push({
+                    displayName: `${baseNumber}J`,
+                    isSet: true,
+                    pieces: [piece, piecesData[hPieceIndex]]
+                });
+                processedIndices.add(i);
+                processedIndices.add(hPieceIndex);
+            } else {
+                // Solo tenemos la mitad M
+                grouped.push({
+                    displayName: pieceNumber,
+                    isSet: false,
+                    pieces: [piece]
+                });
+                processedIndices.add(i);
+            }
+        } else if (matchH) {
+            // Buscar la pieza M correspondiente
+            let baseNumber = matchH[1];
+            let mPieceIndex = piecesData.findIndex((p, idx) =>
+                idx > i && p.n_pieza === `${baseNumber}M` && !processedIndices.has(idx)
+            );
+
+            if (mPieceIndex !== -1) {
+                // Encontramos ambas mitades, crear un juego
+                grouped.push({
+                    displayName: `${baseNumber}J`,
+                    isSet: true,
+                    pieces: [piecesData[mPieceIndex], piece]
+                });
+                processedIndices.add(i);
+                processedIndices.add(mPieceIndex);
+            } else {
+                // Solo tenemos la mitad H
+                grouped.push({
+                    displayName: pieceNumber,
+                    isSet: false,
+                    pieces: [piece]
+                });
+                processedIndices.add(i);
+            }
+        } else {
+            // No es una pieza M o H, mantenerla como está
+            grouped.push({
+                displayName: pieceNumber,
+                isSet: false,
+                pieces: [piece]
+            });
+            processedIndices.add(i);
+        }
+    }
+
+    return grouped;
+}
+
+// Función para obtener el color de un juego completo
+function getColorForSet(pieces) {
+    // Si todas las piezas están liberadas
+    if (pieces.every(p => p.liberacion === 1)) return "#79BFED"; // Azul
+
+    // Si alguna está rechazada
+    if (pieces.some(p => p.liberacion === 2)) return "#FF6B6B"; // Rojo
+
+    // Si todas están sin error y sin liberar
+    if (pieces.every(p => (p.error === "Ninguno" || !p.error) && p.liberacion === 0)) return "#90EE90"; // Verde
+
+    // Si alguna tiene error y no está liberada
+    if (pieces.some(p => p.error !== "Ninguno" && p.error && p.liberacion === 0)) return "#DDA0DD"; // Morado
+
+    return "#FFD700"; // Amarillo (incompleto)
+}
+
+// Función para obtener el estado más restrictivo de un juego
+function getMostRestrictiveStatus(pieces) {
+    // Si alguna está rechazada, el juego está rechazado
+    if (pieces.some(p => p.liberacion === 2)) return "Rechazado";
+
+    // Si todas están liberadas, el juego está liberado
+    if (pieces.every(p => p.liberacion === 1)) return "Liberado";
+
+    // Si hay una mezcla, está sin liberar
+    return "Sin liberar";
+}
+
 // Función para mostrar el modal de liberación de piezas
 function showQualityReleaseModal(piecesData, qualityUserName = "") {
     let body = document.querySelector("body");
@@ -963,7 +1071,7 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
         "#FF6B6B": "Rechazado",
         "#FFD700": "Incompleto",
         "#DDA0DD": "Liberación pendiente",
-        
+
 
     };
     for (let color in colorsArray) {
@@ -1070,36 +1178,58 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
     }
 
     if (piecesData && piecesData.length > 0) {
-        piecesData.forEach((piece, index) => {
+        // Agrupar piezas: si existen "M" y "H" del mismo número, crear un "J"
+        let groupedPieces = groupPiecesBySet(piecesData);
+
+        groupedPieces.forEach((pieceGroup, index) => {
             let row = document.createElement("tr");
             row.className = "piece-row";
-            row.style.backgroundColor = getColorByStatus(piece.liberacion, piece.error);
 
-            // No. Pieza
+            // Determinar el color basado en el estado de las piezas del grupo
+            let groupColor = pieceGroup.isSet
+                ? getColorForSet(pieceGroup.pieces)
+                : getColorByStatus(pieceGroup.pieces[0].liberacion, pieceGroup.pieces[0].error);
+
+            row.style.backgroundColor = groupColor;
+
+            // No. Pieza (mostrar "J" si es un juego completo)
             let tdPiece = document.createElement("td");
-            tdPiece.textContent = piece.n_pieza;
+            tdPiece.textContent = pieceGroup.displayName;
             row.appendChild(tdPiece);
 
-            // Input oculto para id de pieza
-            let inputPieceId = document.createElement("input");
-            inputPieceId.type = "hidden";
-            inputPieceId.name = `pieces[${index}][id]`;
-            inputPieceId.value = piece.id;
-            row.appendChild(inputPieceId);
+            // Inputs ocultos para id(s) de pieza(s)
+            pieceGroup.pieces.forEach((piece, pieceIdx) => {
+                let inputPieceId = document.createElement("input");
+                inputPieceId.type = "hidden";
+                inputPieceId.name = `pieces[${index}][ids][${pieceIdx}]`;
+                inputPieceId.value = piece.id;
+                row.appendChild(inputPieceId);
+            });
+
+            // Input para indicar si es un juego completo
+            let inputIsSet = document.createElement("input");
+            inputIsSet.type = "hidden";
+            inputIsSet.name = `pieces[${index}][isSet]`;
+            inputIsSet.value = pieceGroup.isSet ? "1" : "0";
+            row.appendChild(inputIsSet);
 
             // Proceso
             let tdProcess = document.createElement("td");
-            tdProcess.textContent = piece.proceso;
+            tdProcess.textContent = pieceGroup.pieces[0].proceso;
             row.appendChild(tdProcess);
 
-            // Error
+            // Error (mostrar errores de todas las piezas del grupo)
             let tdError = document.createElement("td");
-            tdError.textContent = piece.error || "Ninguno";
+            let errors = pieceGroup.pieces.map(p => p.error || "Ninguno").filter((v, i, a) => a.indexOf(v) === i);
+            tdError.textContent = errors.join(", ");
             row.appendChild(tdError);
 
-            // Estado actual
+            // Estado actual (mostrar el estado más restrictivo)
             let tdStatus = document.createElement("td");
-            tdStatus.textContent = getStatusText(piece.liberacion);
+            let statusText = pieceGroup.isSet
+                ? getMostRestrictiveStatus(pieceGroup.pieces)
+                : getStatusText(pieceGroup.pieces[0].liberacion);
+            tdStatus.textContent = statusText;
             row.appendChild(tdStatus);
 
             // Acción (select)
@@ -1110,6 +1240,7 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
 
             // Opciones de acción con sus valores y colores correspondientes
             let options = [
+                { value: "", text: "Selecciona una accion", color: "" },
                 { value: "1", text: "Liberar", color: "#79BFED" },
                 { value: "2", text: "Rechazar", color: "#FF6B6B" },
                 { value: "5", text: "Incompleto", color: "#FFD700" }
