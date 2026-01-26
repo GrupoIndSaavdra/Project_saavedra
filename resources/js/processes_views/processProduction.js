@@ -336,7 +336,7 @@ function createInputPassword() {
     let inputPassword = document.createElement("input");
     inputPassword.type = "password";
     inputPassword.name = "passwordAdmin";
-    inputPassword.placeholder = "Contraseña de administrador";
+    inputPassword.placeholder = "Password Admin";
     inputPassword.className = "normal-input input-password";
     inputPassword.required = true;
 
@@ -918,7 +918,7 @@ function createInputPasswordQuality() {
     let inputPassword = document.createElement("input");
     inputPassword.type = "password";
     inputPassword.name = "passwordQuality";
-    inputPassword.placeholder = "Contraseña de calidad";
+    inputPassword.placeholder = "Password Quality";
     inputPassword.className = "normal-input input-password";
     inputPassword.required = true;
 
@@ -944,14 +944,14 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
     // Título del modal
     let title = document.createElement("h2");
     title.className = "modal-title";
-    title.textContent = "Liberación de Piezas - Control de Calidad";
+    title.textContent = "Liberación de piezas";
     modalContainer.appendChild(title);
 
     // Mostrar nombre del usuario de calidad
     if (qualityUserName) {
-        let qualityInfo = document.createElement("p");
+        let qualityInfo = document.createElement("h2");
         qualityInfo.className = "quality-user-info";
-        qualityInfo.innerHTML = `<strong>Inspector de Calidad:</strong> ${qualityUserName}`;
+        qualityInfo.innerHTML = `Inspector de Calidad: ${qualityUserName}`;
         modalContainer.appendChild(qualityInfo);
     }
 
@@ -961,9 +961,10 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
     let colorsArray = {
         "#79BFED": "Liberado",
         "#FF6B6B": "Rechazado",
-        "#90EE90": "Buena sin liberación",
-        "#DDA0DD": "Mala sin liberación",
-        "#FFD700": "Incompleto"
+        "#FFD700": "Incompleto",
+        "#DDA0DD": "Liberación pendiente",
+        
+
     };
     for (let color in colorsArray) {
         let legendItem = document.createElement("div");
@@ -1109,11 +1110,8 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
 
             // Opciones de acción con sus valores y colores correspondientes
             let options = [
-                { value: "", text: "Sin cambio", color: "" },
                 { value: "1", text: "Liberar", color: "#79BFED" },
                 { value: "2", text: "Rechazar", color: "#FF6B6B" },
-                { value: "3", text: "Buena sin liberación", color: "#90EE90" },
-                { value: "4", text: "Mala sin liberación", color: "#DDA0DD" },
                 { value: "5", text: "Incompleto", color: "#FFD700" }
             ];
 
@@ -1159,7 +1157,7 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
         let row = document.createElement("tr");
         let td = document.createElement("td");
         td.colSpan = 6;
-        td.textContent = "No hay piezas registradas para liberar";
+        td.textContent = "El operador no cuenta con piezas para liberar en este turno y proceso.";
         td.style.textAlign = "center";
         td.style.padding = "2em";
         row.appendChild(td);

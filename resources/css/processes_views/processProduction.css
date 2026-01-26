@@ -610,9 +610,13 @@ td select {
     flex-wrap: wrap;
     justify-content: center;
     gap: 1em;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 56%;
     margin-bottom: 1.5em;
     padding: 1em;
-    background: #f5f5f5;
+    background: #4a494928;
     border-radius: 8px;
 }
 
@@ -710,10 +714,10 @@ td select {
 .btn-cancel-release {
     background: #9c0300;
     color: #fff;
-    padding: 1em 2em;
+    padding: 0.7em 1em;
     border: none;
     border-radius: 8px;
-    font-size: 1.1em;
+    font-size: 1em;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -726,10 +730,10 @@ td select {
 .btn-accept-release {
     background: #2e7d32;
     color: #fff;
-    padding: 1em 2em;
+    padding: 0.7em 1em;
     border: none;
     border-radius: 8px;
-    font-size: 1.1em;
+    font-size: 1em;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -749,9 +753,8 @@ td select {
     text-align: center;
     color: #2e7d32;
     font-size: 1.1em;
-    margin-bottom: 1em;
-    padding: 0.5em;
-    background: #e8f5e9;
+    margin-top: -12px;
+    margin-bottom: 0.5em;
     border-radius: 5px;
 }
 
