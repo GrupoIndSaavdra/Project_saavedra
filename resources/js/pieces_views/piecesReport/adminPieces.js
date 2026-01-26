@@ -546,8 +546,10 @@ function getSoldaduraExtraInfo() {
         method: "POST",
         headers: {
             "X-CSRF-TOKEN": csrfToken,
+            "Content-Type": "application/json",
             Accept: "application/json",
         },
+        body: JSON.stringify(window.selectedItems || {})
     })
         .then((response) => response.json())
         .then((data) => {
@@ -632,10 +634,10 @@ function showSoldaduraExtraInfoTable(pieces) {
             "Clase",
             "OT",
             "Peso por Pieza",
-            "Temp. Precalentado",
             "Tiempo Aplicación",
             "Tipo Soldadura",
             "Lote",
+            "Observaciones",
         ];
         headers.forEach((headerText) => {
             const th = document.createElement("th");
@@ -659,10 +661,10 @@ function showSoldaduraExtraInfoTable(pieces) {
                 piece.clase,
                 piece.orden_trabajo,
                 piece.peso_pieza,
-                piece.temperatura_precalentado,
                 piece.tiempo_aplicacion,
                 piece.tipo_soldadura,
                 piece.lote,
+                piece.observaciones,
             ];
 
             fields.forEach((fieldValue) => {
@@ -690,7 +692,11 @@ function showSoldaduraExtraInfoTable(pieces) {
     btnDownload.style.cssText =
         "padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;";
     btnDownload.addEventListener("click", () => {
-        window.location.href = window.baseUrl + "/pieces/downloadSoldaduraExtraInfoPDF";
+        // Construir query string con los filtros actuales, excluyendo 'action'
+        const filters = { ...(window.selectedItems || {}) };
+        delete filters.action; // Eliminar el parámetro 'action' que causa conflictos de ruta
+        const params = new URLSearchParams(filters).toString();
+        window.location.href = window.baseUrl + "/pieces/downloadSoldaduraExtraInfoPDF?" + params;
     });
 
     // Botón cerrar

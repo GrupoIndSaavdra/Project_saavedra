@@ -883,7 +883,6 @@ class PzasGeneralesController extends Controller
         } else {
             $piecesInfo = $pieceInfo;
         }
-        $profile = $profile;
 
         //Obtener el nombre del operador
         $operadores = array();
@@ -952,9 +951,9 @@ class PzasGeneralesController extends Controller
     {
         if ($this->retornarOTs() != 0) {
             $arregloOT = $this->retornarOTs();
-            return view('processesAdmin.Maquinas.maquinas', compact('arregloOT'));
+            return view('machines_views.maquinas', compact('arregloOT'));
         } else {
-            return view('processesAdmin.Maquinas.maquinas');
+            return view('machines_views.maquinas');
         }
     }
     public function showMachinesProcess(Request $request)
@@ -1559,7 +1558,7 @@ class PzasGeneralesController extends Controller
             $contador++;
         }
         array_splice($procesos, 0, 2);
-        return view('processesAdmin.Maquinas.vistaProcesos', compact('procesos', 'ot', 'clase'));
+        return view('machines_views.vistaProcesos', compact('procesos', 'ot', 'clase'));
     }
     public function nombreProceso($proceso)
     {
@@ -1612,6 +1611,74 @@ class PzasGeneralesController extends Controller
     }
 
     /**
+     * Helper para aplicar filtros a Soldadura
+     */
+    private function applySoldaduraFilters($filters)
+    {
+        $query = Soldadura_pza::query();
+
+        // 1. Filtro por n_juego
+        if (isset($filters['n_juego']) && $filters['n_juego'] !== 'Todos' && $filters['n_juego'] !== '') {
+            $query->where('n_juego', $filters['n_juego']);
+        }
+
+        // 2. Filtro por fechas (dateFrom, dateTo)
+        if (isset($filters['dateFrom']) && $filters['dateFrom'] !== '' && $filters['dateFrom'] !== 'Todos') {
+            $query->where('soldadura_pza.created_at', '>=', $filters['dateFrom'] . " 00:00:00");
+        }
+        if (isset($filters['dateTo']) && $filters['dateTo'] !== '' && $filters['dateTo'] !== 'Todos') {
+            $query->where('soldadura_pza.created_at', '<=', $filters['dateTo'] . " 23:59:59");
+        }
+
+        // 3. Filtro por Operador o Maquina (requiere join con metas)
+        $needsMetaJoin = false;
+        if (
+            (isset($filters['operator']) && $filters['operator'] !== 'Todos' && $filters['operator'] !== '') ||
+            (isset($filters['machine']) && $filters['machine'] !== 'Todos' && $filters['machine'] !== '')
+        ) {
+
+            $query->join('metas', 'soldadura_pza.id_meta', '=', 'metas.id');
+            $needsMetaJoin = true;
+
+            if (isset($filters['operator']) && $filters['operator'] !== 'Todos' && $filters['operator'] !== '') {
+                $matricula = is_array($filters['operator']) ? $filters['operator']['matricula'] : $filters['operator'];
+                $query->where('metas.id_usuario', $matricula);
+            }
+
+            if (isset($filters['machine']) && $filters['machine'] !== 'Todos' && $filters['machine'] !== '') {
+                $query->where('metas.maquina', $filters['machine']);
+            }
+        }
+
+        // 4. Filtro por OT o Clase (usando join con soldadura)
+        $needsSoldaduraJoin = false;
+        if (
+            (isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '') ||
+            (isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '')
+        ) {
+
+            $query->join('soldadura', 'soldadura_pza.id_proceso', '=', 'soldadura.id');
+            $needsSoldaduraJoin = true;
+
+            if (isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '') {
+                $otId = strpos($filters['workOrder'], ' - ') !== false
+                    ? explode(' - ', $filters['workOrder'])[0]
+                    : $filters['workOrder'];
+                $query->where('soldadura.id_proceso', 'LIKE', '%_' . $otId);
+            }
+
+            if (isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '') {
+                $query->where('soldadura.id_proceso', 'LIKE', 'Soldadura_' . $filters['class'] . '_%');
+            }
+        }
+
+        // Seleccionar solo las columnas de soldadura_pza para evitar conflictos
+        $query->select('soldadura_pza.*');
+
+        return $query->get();
+    }
+
+    /**
      * Verificar contraseña de administrador (perfil == 1)
      */
     public function verifyAdminPassword(Request $request)
@@ -1622,7 +1689,7 @@ class PzasGeneralesController extends Controller
             $users = User::all();
             foreach ($users as $user) {
                 if ($user->perfil == 1) { // Solo verificar usuarios administradores
-                    if (\Hash::check($password, $user->contrasena)) {
+                    if (Hash::check($password, $user->contrasena)) {
                         return response()->json([
                             'success' => true,
                             'message' => 'Contraseña correcta. Acceso autorizado.',
@@ -1645,8 +1712,11 @@ class PzasGeneralesController extends Controller
     public function getSoldaduraExtraInfo(Request $request)
     {
         try {
-            // Obtener todas las piezas del proceso Soldadura
-            $soldaduraPieces = Soldadura_pza::all();
+            // Recibir filtros del cuerpo de la petición
+            $filters = $request->all();
+
+            // Obtener piezas filtradas
+            $soldaduraPieces = $this->applySoldaduraFilters($filters);
 
             $piecesData = [];
 
@@ -1678,10 +1748,10 @@ class PzasGeneralesController extends Controller
                         'clase' => $className,
                         'orden_trabajo' => $workOrderId,
                         'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
-                        'temperatura_precalentado' => $piece->temperatura_precalentado ?? 'N/A',
                         'tiempo_aplicacion' => $piece->tiempo_aplicacion ?? 'N/A',
                         'tipo_soldadura' => $piece->tipo_soldadura ?? 'N/A',
                         'lote' => $piece->lote ?? 'N/A',
+                        'observaciones' => $piece->observaciones ?? '',
                     ];
                 }
             }
@@ -1703,15 +1773,13 @@ class PzasGeneralesController extends Controller
     /**
      * Descargar PDF de información extra de Soldadura
      */
-    public function downloadSoldaduraExtraInfoPDF()
+    public function downloadSoldaduraExtraInfoPDF(Request $request)
     {
         try {
-            // Reutilizar la lógica de obtención de datos
-            // NOTA: Para no duplicar código, lo ideal sería extraer la lógica a una función privada,
-            // pero por simplicidad y siguiendo el patrón actual, repetiré la obtención básica o
-            // simularé la llamada si fuera necesario. Aquí haré la consulta directa.
+            // Recibir filtros del query string
+            $filters = $request->all();
 
-            $soldaduraPieces = Soldadura_pza::all();
+            $soldaduraPieces = $this->applySoldaduraFilters($filters);
             $piecesData = [];
 
             foreach ($soldaduraPieces as $piece) {
@@ -1737,10 +1805,10 @@ class PzasGeneralesController extends Controller
                         'clase' => $className,
                         'orden_trabajo' => $workOrderId,
                         'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
-                        'temperatura_precalentado' => $piece->temperatura_precalentado ?? 'N/A',
                         'tiempo_aplicacion' => $piece->tiempo_aplicacion ?? 'N/A',
                         'tipo_soldadura' => $piece->tipo_soldadura ?? 'N/A',
                         'lote' => $piece->lote ?? 'N/A',
+                        'observaciones' => $piece->observaciones ?? '',
                     ];
                 }
             }

@@ -71,7 +71,8 @@ class ProcessProductionController extends Controller
                 break;
             case "Obturador":
             case "Fondo":
-                $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+            case "Corona":
+                $processesInOrder = ["cepillado", "desbaste_exterior"];
                 break;
             default:
                 $processesInOrder = [];
@@ -1152,6 +1153,9 @@ class ProcessProductionController extends Controller
             case "Obturador":
             case "Fondo":
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                break;
+            case "Corona":
+                $processesInOrder = ["cepillado", "desbaste_exterior"];
                 break;
             default:
                 $processesInOrder = [];

@@ -9,6 +9,7 @@ function createSelects(labelText, className) {
     let select = document.createElement("select");
     select.className = `form-control ${className}`;
     select.name = className;
+    select.id = className;
     if (className === "workOrder") {
         modifySelects(window.workOrders, select, labelText);
     } else {
@@ -149,6 +150,7 @@ function createInputs() {
         if (element === "Maquina") {
             input = document.createElement("select");
             input.className = "form-control normal-input";
+            input.id = arrayNames[arrayTimes.indexOf(element)];
 
             let optionEmpty = document.createElement("option");
             optionEmpty.value = "";
@@ -175,6 +177,7 @@ function createInputs() {
                 Fecha: "date",
             }[element];
             input.className = "form-control normal-input";
+            input.id = arrayNames[arrayTimes.indexOf(element)];
         }
         input.required = true;
         input.name = arrayNames[arrayTimes.indexOf(element)];
@@ -182,7 +185,7 @@ function createInputs() {
         let label = document.createElement("label");
         label.textContent = element;
         label.className = "form-label";
-        label.setAttribute("for", "processName");
+        label.setAttribute("for", arrayNames[arrayTimes.indexOf(element)]);
 
         form_group.appendChild(input);
         form_group.appendChild(label);
@@ -228,6 +231,7 @@ function createInputsWithValue(values, valuesEnabled = []) {
         ) {
             let input = document.createElement("input");
             input.name = key;
+            input.id = key;
             if (valuesEnabled.includes(key)) {
                 input.type = {
                     startTime: "time",
@@ -259,7 +263,7 @@ function createInputsWithValue(values, valuesEnabled = []) {
             let label = document.createElement("label");
             label.textContent = arrayKeyNames[key];
             label.className = "form-label";
-            label.setAttribute("for", "processName");
+            label.setAttribute("for", key);
 
             form_group.appendChild(input);
             form_group.appendChild(label);
