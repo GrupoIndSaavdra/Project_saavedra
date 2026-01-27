@@ -17,7 +17,7 @@
 
 /* Título */
 .wrapper h2 {
-    font-size: 1.3rem;
+font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 1.2rem;
     color: #033966;
@@ -27,8 +27,9 @@
 .form-label {
     text-align: left;
     display: block;
-    font-weight: 500;
+    font-weight: 600;
     color: #033966;
+    font-size: 1.1rem;
     margin-bottom: 0.3rem;
 }
 
@@ -38,6 +39,7 @@
     padding: 0.55rem 0.75rem;
     border: 1px solid #cfcfcf;
     font-size: 0.95rem;
+    font-family: Poppins;
     transition: all 0.3s ease-in-out;
     background-color: #fafafa;
 }
@@ -92,22 +94,24 @@
 }
 
 .btn-primary {
-    background-color: #40b4b4;
+    background-color: #033966;
+    color: #000000;
+    border: none;
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #4ddcdc;
-    color: #000000;
+    background-color: #033966;
+    color: #ffffff;
 }
 
 .btn-secondary {
-    background-color: #6c757d;
+    background-color: #0a8504;
     color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #5a6268;
+    background-color: #0a8504;
 }
 
 /* Responsive */

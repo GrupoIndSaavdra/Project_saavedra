@@ -17,7 +17,7 @@
 
 /* Título */
 .wrapper h2 {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 1.2rem;
     color: #033966;
@@ -27,8 +27,9 @@
 .form-label {
     text-align: left;
     display: block;
-    font-weight: 500;
+    font-weight: 600;
     color: #033966;
+    font-size: 1.1rem;
     margin-bottom: 0.3rem;
 }
 
@@ -82,24 +83,24 @@
 }
 
 .btn-primary {
-    background-color: #4080b4;
+    background-color: #033966;
     color: #000000;
     border: none;
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #3da7fe;
-    color: #000000;
+    background-color: #033966;
+    color: #ffffff;
 }
 
 .btn-secondary {
-    background-color: #6c757d;
+    background-color: #0a8504;
     color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #5a6268;
+    background-color: #0a8504;
 }
 
 /* Responsive */

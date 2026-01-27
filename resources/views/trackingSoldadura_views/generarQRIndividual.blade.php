@@ -1,7 +1,7 @@
 @extends('layouts.appMenu')
 
 @section('head')
-    <title>Generar QRs Individuales</title>
+    <title>QRs Botes</title>
     @vite(['resources/css/trackingSoldadura_views/generarQRIndividual.css'])
 @endsection
 
@@ -10,14 +10,14 @@
 @section('content')
     <div class="wrapper">
         <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
-        <h2>Generar QRs Individuales (5Kg)</h2>
+        <h2>QRs de Botes</h2>
 
         <form action="{{ route('soldadura.generarQRIndividual.store') }}" method="POST">
             @csrf
             @include('layouts.partials.messages')
 
             <div class="mb-3">
-                <label class="form-label">Seleccionar Lote</label>
+                <label class="form-label">Selecciona el Lote</label>
                 <select name="lote_id" class="form-control" required>
                     <option value="">Seleccione un lote...</option>
                     @foreach($lotes as $lote)

@@ -12,7 +12,7 @@
 /* Logo */
 .lg-saavedra {
     width: 180px;
-    margin-bottom: 1rem;
+    margin-bottom: -0.2rem;
 }
 
 /* Título */
@@ -34,13 +34,14 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background-color: #17a2b8;
-    color: white;
+    background-color: #0a8504be;
+    color: rgb(0, 0, 0);
     padding: 0.6rem 1.2rem;
     border-radius: 2rem;
     margin-bottom: 1.5rem;
-    font-size: 0.9rem;
-    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+    font-size: 1rem;
+    font-family: Poppins;
+    box-shadow: 0 4px 12px rgba(118, 131, 133, 0.968);
 }
 
 .badge-icon {
@@ -49,15 +50,17 @@
 
 .badge-text strong {
     font-weight: 700;
+
 }
 
 /* Campos de formulario */
 .form-label {
     text-align: left;
     display: block;
-    font-weight: 500;
+    font-weight: 600;
     color: #033966;
-    margin-bottom: 0.3rem;
+    font-size: 1.1rem;
+    margin-bottom: -0.3rem;
 }
 
 .form-control {
@@ -66,6 +69,7 @@
     padding: 0.55rem 0.75rem;
     border: 1px solid #cfcfcf;
     font-size: 0.95rem;
+    font-family: Poppins;
     transition: all 0.3s ease-in-out;
     background-color: #fafafa;
 }
@@ -80,12 +84,13 @@
 .readonly-field {
     background-color: #e9ecef !important;
     font-weight: 500;
-    color: #495057;
+    color: #000000;
+    margin-top: -0.3rem;
 }
 
 .estado-transito {
-    background-color: #fff3cd !important;
-    color: #856404 !important;
+    background-color: #e9cc6ba1 !important;
+    color: #060606 !important;
     font-weight: 600;
 }
 
@@ -122,12 +127,12 @@
 
 .bg-info {
     color: white !important;
-    background-color: #138496 !important;
+    background-color: #033966 !important;
 }
 
 .bg-primary {
-    color: white !important;
-    background-color: #0056b3 !important;
+    color: rgb(0, 0, 0) !important;
+    background-color: #0a8504cf !important;
 }
 
 /* Row y columnas */
@@ -179,16 +184,14 @@ textarea.form-control {
 
 .btn {
     padding: 0.6rem 1.5rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 500;
     border-radius: 0.6rem;
     border: none;
     font-family: Poppins, sans-serif;
     transition: all 0.3s ease-in-out;
     text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
+    display: inline-block;
 }
 
 .btn:hover {
@@ -201,32 +204,34 @@ textarea.form-control {
 }
 
 .btn-primary {
-    background-color: #17a2b8;
+    background-color: #033966;
+    color: #000000;
+    border: none;
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #138496;
-    color: white;
+    background-color: #033966;
+    color: #ffffff;
 }
 
 .btn-success {
-    background-color: #28a745;
+    background-color: #0a8504;
     color: white;
 }
 
 .btn-success:hover {
-    background-color: #218838;
+    background-color: #0a8504;
     color: white;
 }
 
 .btn-secondary {
-    background-color: #6c757d;
+    background-color: #0a8504;
     color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #5a6268;
+    background-color: #0a8504;
 }
 
 /* Texto de ayuda */

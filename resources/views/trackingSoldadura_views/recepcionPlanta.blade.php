@@ -26,10 +26,7 @@
                 <div class="mb-3">
                     <label class="form-label">Escanear QR del Bote</label>
                     <input type="text" name="qr_content" id="qr_content" class="form-control"
-                        placeholder="Escanee el código QR con el lector..." autofocus required>
-                    <small class="form-text text-muted">
-                        Coloque el cursor en este campo y escanee el código QR con el dispositivo.
-                    </small>
+                        placeholder="Coloque el cursor en este campo y escanee el código QR con el dispositivo." autofocus required>
                 </div>
 
                 <div class="div-bttns">
@@ -85,7 +82,7 @@
 
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Datos del Receptor (Almacén)</h4>
+                        <h4 class="mb-0">Datos del Receptor</h4>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -97,9 +94,6 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <small class="form-text text-muted">
-                                Solo personal de almacén puede registrar la recepción.
-                            </small>
                         </div>
 
                         <div class="mb-3">

@@ -1,7 +1,7 @@
 @extends('layouts.appMenu')
 
 @section('head')
-    <title>Generar QR por Lote</title>
+    <title>QR por Lote</title>
     @vite(['resources/css/trackingSoldadura_views/generarQRLote.css'])
 @endsection
 
@@ -10,7 +10,7 @@
 @section('content')
     <div class="wrapper">
         <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
-        <h2>Generar QR por Lote</h2>
+        <h2>Generación de QR por Lote</h2>
 
         <form action="{{ route('soldadura.generarQRLote.store') }}" method="POST">
             @csrf
