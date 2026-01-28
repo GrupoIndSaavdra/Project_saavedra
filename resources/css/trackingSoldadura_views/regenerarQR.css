@@ -92,6 +92,10 @@
     background: rgba(255, 255, 255, 0.95);
     padding: 1rem 1.5rem;
     border-radius: 1rem;
+    width: 50%;
+    left: 100%;
+    right: 50%;
+    transform: translateX(50%);
     margin-bottom: 1.5rem;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
@@ -113,9 +117,10 @@
 }
 
 .header-info .subtitulo {
-    color: #666;
-    font-size: 0.85rem;
+    color: #000000;
+    font-size: 1rem;
     margin: 0.25rem 0 0 0;
+    font-family: Poppins;
 }
 
 .btn-cerrar {
@@ -128,6 +133,7 @@
 .tabla-container {
     background: rgba(255, 255, 255, 0.95);
     border-radius: 1rem;
+    font-family: Poppins;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
@@ -136,15 +142,18 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9rem;
+    font-family: Poppins;
 }
 
 .tabla-lotes thead {
     background: linear-gradient(135deg, #033966 0%, #0a5a9c 100%);
+    font-family: Poppins;
 }
 
 .tabla-lotes thead th {
     color: white;
     font-weight: 600;
+    font-family: Poppins;
     padding: 1rem 0.75rem;
     text-align: left;
     font-size: 0.85rem;
@@ -154,26 +163,31 @@
 
 .tabla-lotes tbody tr {
     border-bottom: 1px solid #eee;
+    font-family: Poppins;
     transition: background-color 0.2s;
 }
 
 .tabla-lotes tbody tr:hover {
+    font-family: Poppins;
     background-color: #f8f9fa;
 }
 
 .tabla-lotes tbody tr:last-child {
     border-bottom: none;
+    font-family: Poppins;
 }
 
 .tabla-lotes tbody td {
     padding: 1rem 0.75rem;
     color: #333;
+    font-family: Poppins;
     vertical-align: middle;
 }
 
 .tabla-lotes .matricula {
     font-weight: 700;
     color: #033966;
+    font-family: Poppins;
     font-family: 'Courier New', monospace;
 }
 
@@ -187,13 +201,13 @@
 }
 
 .badge-success {
-    background-color: #d4edda;
-    color: #155724;
+    background-color: #0a8504;
+    color: #000000;
 }
 
 .badge-warning {
-    background-color: #fff3cd;
-    color: #856404;
+    background-color: #b40718;
+    color: #020202;
 }
 
 /* Botones de acciones */
@@ -223,24 +237,24 @@
 }
 
 .btn-qr-lote {
-    background-color: #23547b;
+    background-color:  #033966;
     color: white;
 }
 
 .btn-qr-lote:hover {
-    background-color: #3da7fe;
+    background-color: #033966;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(64, 128, 180, 0.4);
     color: white;
 }
 
 .btn-qr-individuales {
-    background-color: #206a31;
+    background-color: #0a8504;
     color: white;
 }
 
 .btn-qr-individuales:hover {
-    background-color: #34ce57;
+    background-color: #0a8504;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
     color: white;
@@ -254,8 +268,8 @@
     border-radius: 0.5rem;
     font-size: 0.8rem;
     font-weight: 600;
-    background-color: #e9ecef;
-    color: #6c757d;
+    background-color: #b40718;
+    color: #000000;
     cursor: not-allowed;
 }
 
@@ -310,22 +324,22 @@
 }
 
 .btn-primary {
-    background-color: #0a5a9c;
+    background-color:  #033966;
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #033966;
+    background-color:  #033966;
     color: white;
 }
 
 .btn-secondary {
-    background: #6c757d;
+    background: #9c0300;
     color: white;
 }
 
 .btn-secondary:hover {
-    background: #5a6268;
+    background: #9c0300;
     color: white;
 }
 

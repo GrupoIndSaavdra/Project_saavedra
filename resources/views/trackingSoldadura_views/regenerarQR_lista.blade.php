@@ -10,7 +10,6 @@
 @section('content')
     <div class="wrapper-lista">
         <div class="header-lista">
-            <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra-small" alt="" />
             <div class="header-info">
                 <h2>Regenerar QRs de Soldadura</h2>
                 <p class="subtitulo">Selecciona un lote para descargar sus QRs</p>
@@ -21,7 +20,7 @@
                     <path
                         d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
                 </svg>
-                Cerrar Sesión Admin
+                Cerrar Sesión
             </a>
         </div>
 
@@ -41,10 +40,10 @@
                 <table class="tabla-lotes">
                     <thead>
                         <tr>
-                            <th>Matrícula</th>
+                            <th>ID bote</th>
                             <th>Soldadura</th>
                             <th>Lote</th>
-                            <th>Peso Total</th>
+                            <th>Peso (lote)</th>
                             <th>Factura</th>
                             <th>Fecha Ingreso</th>
                             <th>Botes Generados</th>
@@ -116,7 +115,7 @@
             </div>
         @endif
 
-        <div class="footer-lista">
+        <!-- <div class="footer-lista">
             <a href="{{ route('home') }}" class="btn btn-secondary">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                     <path fill-rule="evenodd"
@@ -124,6 +123,6 @@
                 </svg>
                 Volver al Inicio
             </a>
-        </div>
+        </div> -->
     </div>
 @endsection
