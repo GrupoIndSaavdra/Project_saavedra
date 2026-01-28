@@ -1,7 +1,7 @@
 @extends('layouts.appMenu')
 
 @section('head')
-    <title>Liberar Soldadura a Operadores</title>
+    <title>Entrega de Soldadura</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/trackingSoldadura_views/liberarQRPlanta.css'])
 @endsection
@@ -11,7 +11,7 @@
 @section('content')
     <div class="wrapper">
         <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
-        <h2>Liberar Soldadura a Operadores</h2>
+        <h2>Entrega de Soldadura</h2>
         <p class="subtitle">Entrega de botes de soldadura a operadores de planta</p>
 
         {{-- Contador de botes disponibles --}}
@@ -24,8 +24,7 @@
 
             @if(($botesEnPlanta ?? 0) == 0)
                 <div class="alert alert-warning">
-                    <strong>⚠️ Sin botes disponibles ⚠️</strong>
-                    <p>No hay botes de soldadura disponibles en planta para liberar. Primero debe registrar la recepción de botes.
+                    <p>⚠️No hay botes de soldadura disponibles en planta para liberar⚠️
                     </p>
                     <a href="{{ route('soldadura.recepcionPlanta') }}" class="btn btn-info btn-sm">
                         Ir a Recepción de Soldadura
@@ -37,10 +36,7 @@
                     <div class="mb-3">
                         <label class="form-label">Escanear QR del Bote</label>
                         <input type="text" name="qr_content" id="qr_content" class="form-control"
-                            placeholder="Escanee el código QR con el lector..." autofocus required>
-                        <small class="form-text text-muted">
-                            Coloque el cursor en este campo y escanee el código QR con el dispositivo lector.
-                        </small>
+                            placeholder="Coloque el cursor en este campo y escanee el código QR con el dispositivo lector." autofocus required>
                     </div>
 
                     <div class="div-bttns">
@@ -57,7 +53,7 @@
                 @if(isset($botesDisponibles) && $botesDisponibles->count() > 0)
                     <div class="card mt-4">
                         <div class="card-header bg-secondary text-white">
-                            <h5 class="mb-0">Botes Disponibles para Liberar</h5>
+                            <h5 class="mb-0">Botes disponibles</h5>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -130,7 +126,7 @@
 
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0">Datos del Receptor (personal de planta)</h4>
+                        <h4 class="mb-0">Datos del Receptor (Soldador)</h4>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -151,7 +147,7 @@
 
                 <div class="card mb-4">
                     <div class="card-header bg-warning text-dark">
-                        <h4 class="mb-0">Datos del Remitente (almacén)</h4>
+                        <h4 class="mb-0">Datos del Remitente </h4>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -180,7 +176,7 @@
                     <button type="submit" class="btn btn-success">
                         Liberar Bote al Operador
                     </button>
-                    <a href="{{ route('soldadura.liberarQRPlanta') }}" class="btn btn-secondary">
+                    <a href="{{ route('soldadura.liberarQRPlanta') }}" class="btn btn-secondarys">
                         Escanear Otro QR
                     </a>
                 </div>

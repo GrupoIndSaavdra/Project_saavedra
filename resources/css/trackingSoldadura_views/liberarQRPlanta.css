@@ -49,8 +49,10 @@
 }
 
 .info-badge.badge-warning {
-    background-color: #ffc107;
-    color: #212529;
+    background-color: #ff0707;
+    color: #ffffff;
+    font-family: Poppins;
+    font-size: 1.1rem;
     box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
 }
 
@@ -66,9 +68,10 @@
 .form-label {
     text-align: left;
     display: block;
-    font-weight: 500;
+    font-weight: 600;
     color: #033966;
-    margin-bottom: 0.3rem;
+    font-size: 1.1rem;
+    margin-bottom: -0.3rem;
 }
 
 .form-control {
@@ -77,6 +80,7 @@
     padding: 0.55rem 0.75rem;
     border: 1px solid #cfcfcf;
     font-size: 0.95rem;
+    font-family: Poppins;
     transition: all 0.3s ease-in-out;
     background-color: #fafafa;
 }
@@ -140,6 +144,7 @@
 
 .bg-primary {
     color: white !important;
+    font-family: Poppins;
     background-color: #0056b3 !important;
 }
 
@@ -150,7 +155,8 @@
 
 .bg-secondary {
     color: white !important;
-    background-color: #6c757d !important;
+    font-family: Poppins;
+    background-color: #000000 !important;
 }
 
 .bg-info {
@@ -192,9 +198,9 @@
 }
 
 .alert-warning {
-    background-color: #fff3cd;
+    background-color: #ff0707c3;
     border: 1px solid #ffeeba;
-    color: #856404;
+    color: #0b0b0b;
     padding: 1.5rem;
     border-radius: 0.5rem;
     margin: 1rem 0;
@@ -266,7 +272,7 @@ textarea.form-control {
     font-weight: 500;
     border-radius: 0.6rem;
     border: none;
-    font-family: Poppins, sans-serif;
+    font-family: Poppins;
     transition: all 0.3s ease-in-out;
     text-decoration: none;
     display: inline-flex;
@@ -284,17 +290,18 @@ textarea.form-control {
 }
 
 .btn-primary {
-    background-color: #28a745;
+    background-color: #033966;
+    color: #000000;
+    border: none;
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #218838;
-    color: white;
+    background-color: #033966;
+    color: #ffffff;
 }
-
 .btn-success {
-    background-color: #28a745;
+     background-color: #0a8504;
     color: white;
 }
 
@@ -304,27 +311,35 @@ textarea.form-control {
 }
 
 .btn-secondary {
-    background-color: #6c757d;
+    background-color: #0a8504;
     color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #5a6268;
+    background-color: #0a8504;
 }
 
-.btn-info {
-    background-color: #17a2b8;
+.btn-secondarys {
+    background-color: #033966;
     color: white;
+}
+.btn-secondarys:hover {
+    background-color: #033966;
+}
+.btn-info {
+    background-color: #033966;
+    color: white;
+    font-family: Poppins;
+    font-size: 1rem;
 }
 
 .btn-info:hover {
-    background-color: #138496;
+    background-color: #033966;
     color: white;
 }
 
 .btn-sm {
     padding: 0.4rem 1rem;
-    font-size: 0.8rem;
 }
 
 /* Texto de ayuda */
@@ -332,6 +347,15 @@ textarea.form-control {
     font-size: 0.8rem;
     color: #6c757d;
     margin-top: 0.25rem;
+}
+#qr_content {
+    font-family: Poppins;
+}
+p{
+    font-family: Poppins;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
 }
 
 /* Responsive */

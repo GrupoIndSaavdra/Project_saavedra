@@ -1,7 +1,7 @@
 @extends('layouts.appMenu')
 
 @section('head')
-    <title>Regenerar QRs - Verificación</title>
+    <title>Regenerar QRs</title>
     @vite(['resources/css/trackingSoldadura_views/regenerarQR.css'])
 @endsection
 
@@ -9,8 +9,6 @@
 
 @section('content')
     <div class="wrapper-verificacion">
-        <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
-
         <div class="verificacion-card">
             <div class="icon-lock">
                 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" viewBox="0 0 16 16">
@@ -22,7 +20,6 @@
             <h2>Acceso Restringido</h2>
             <p class="descripcion">
                 Esta sección permite regenerar QRs de soldadura perdidos o eliminados.
-                <br><strong>Solo administradores</strong> pueden acceder.
             </p>
 
             @include('layouts.partials.messages')
@@ -32,7 +29,7 @@
                 <div class="input-group">
                     <label for="password_admin">Contraseña de Administrador</label>
                     <input type="password" name="password_admin" id="password_admin" class="form-control"
-                        placeholder="Ingresa tu contraseña" required autofocus>
+                        placeholder="Password Admin" required autofocus>
                 </div>
 
                 <div class="btn-group">

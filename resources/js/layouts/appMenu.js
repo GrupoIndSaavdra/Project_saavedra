@@ -246,10 +246,10 @@ function getRoutes(profile) {
                     title: "Soldadura",
                     routes: [
                         ["soldadura.generarQRLote", "Generar QR por Lote"],
-                        ["soldadura.generarQRIndividual", "Generar QRs Individuales (5Kg)"],
-                        ["soldadura.recepcionPlanta", "Recepción en Planta (Entrada)"],
-                        ["soldadura.liberarQRPlanta", "Liberar a Operadores (Salida)"],
-                        ["soldadura.regenerarQR", "Regenerar QRs (Admin)"]
+                        ["soldadura.generarQRIndividual", "Generar QRs Botes"],
+                        ["soldadura.recepcionPlanta", "Registrar entrada de Soldadura"],
+                        ["soldadura.liberarQRPlanta", "Entrega de Soldadura a Planta"],
+                        ["soldadura.regenerarQR", "Regenerar QRs"]
                     ],
                 },
             ];
