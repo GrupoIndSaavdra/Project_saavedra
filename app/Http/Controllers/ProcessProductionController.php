@@ -70,7 +70,11 @@ class ProcessProductionController extends Controller
                 $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
                 break;
             case "Obturador":
+                $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                break;
             case "Fondo":
+                $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                break;
             case "Corona":
                 $processesInOrder = ["cepillado", "desbaste_exterior"];
                 break;
@@ -1151,6 +1155,8 @@ class ProcessProductionController extends Controller
                 $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
                 break;
             case "Obturador":
+                $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                break;
             case "Fondo":
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
