@@ -1776,23 +1776,75 @@ class ProcessProductionController extends Controller
         if ($qualityUser) {
             $meta = Metas::find($request->meta);
             if (!$meta) {
-                return redirect()->back()->with('error', 'Meta no encontrada');
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Meta no encontrada'
+                ], 404);
             }
 
-            // Obtener las piezas del operador para esta meta
-            $pieces = Pieza::where('id_clase', $meta->id_clase)
-                ->where('id_operador', $meta->id_usuario)
-                ->where('proceso', $meta->proceso)
+
+            // Obtener el modelo de piezas específico del proceso
+            $processString = str_contains($meta->proceso, "Operacion Equipo")
+                ? $this->getSub_Process($meta->proceso, 0)
+                : $meta->proceso;
+
+            try {
+                $modelPiecesProcess = $this->get_ModelProcessPieces($processString);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Proceso no soportado para liberación de calidad'
+                ], 400);
+            }
+
+            // Obtener piezas del proceso específico filtradas por id_meta
+            $processPieces = $modelPiecesProcess::where('id_meta', $meta->id)
+                ->where('estado', 2) // Solo piezas maquinadas
+                ->orderBy('created_at', 'asc') // Ordenar por fecha de creación
                 ->get();
+
+            // Obtener información de liberación de la tabla Pieza
+            $piecesWithReleaseInfo = [];
+            foreach ($processPieces as $processPiece) {
+                $nPiece = $processPiece->n_pieza ?? $processPiece->n_juego;
+                $releasedPiece = Pieza::where('id_clase', $meta->id_clase)
+                    ->where('proceso', $meta->proceso)
+                    ->where('n_pieza', $nPiece)
+                    ->first();
+
+                // Determinar el error
+                $error = 'Ninguno';
+                if ($meta->proceso == "Copiado") {
+                    if ($processPiece->error_cilindrado !== "Ninguno" || $processPiece->error_cavidades !== "Ninguno") {
+                        $error = trim($processPiece->error_cilindrado . ' ' . $processPiece->error_cavidades);
+                    }
+                } else {
+                    $error = $processPiece->error ?? 'Ninguno';
+                }
+
+                $piecesWithReleaseInfo[] = [
+                    'id' => $releasedPiece ? $releasedPiece->id : null,
+                    'n_pieza' => $nPiece,
+                    'proceso' => $meta->proceso,
+                    'error' => $error,
+                    'liberacion' => $releasedPiece ? $releasedPiece->liberacion : 0,
+                    'operator' => $meta->id_usuario,
+                    'operator_id' => $meta->id_usuario,
+                    'created_at' => $processPiece->created_at,
+                ];
+            }
+
+            // Agrupar piezas en juegos completos
+            $completeSets = $this->groupPiecesIntoCompleteSets($piecesWithReleaseInfo);
 
             // Guardar el usuario de calidad en sesión para usarlo después
             session(['quality_user' => $qualityUser->matricula]);
 
-            // Retornar JSON con los datos de las piezas
+            // Retornar JSON con los datos de los juegos completos
             return response()->json([
                 'success' => true,
                 'message' => 'Contraseña correcta. Acceso a liberación de piezas.',
-                'pieces' => $pieces,
+                'pieces' => $completeSets,
                 'qualityUser' => $qualityUser->nombre . ' ' . $qualityUser->a_paterno . ' ' . $qualityUser->a_materno
             ]);
         }
@@ -1802,6 +1854,95 @@ class ProcessProductionController extends Controller
             'message' => 'Contraseña incorrecta. Solo personal de calidad puede acceder.'
         ], 401);
     }
+
+    /**
+     * Agrupar piezas en juegos completos (M + H = J)
+     * Solo retorna juegos completos, ignora piezas sueltas
+     */
+    private function groupPiecesIntoCompleteSets($pieces)
+    {
+        $completeSets = [];
+        $processedIndices = [];
+
+        for ($i = 0; $i < count($pieces); $i++) {
+            // Saltar si ya fue procesada
+            if (in_array($i, $processedIndices)) {
+                continue;
+            }
+
+            $piece = $pieces[$i];
+            $pieceNumber = $piece['n_pieza'];
+
+            // Verificar si la pieza termina en M o H
+            if (preg_match('/^(\d+)M$/', $pieceNumber, $matchM)) {
+                // Buscar la pieza H correspondiente
+                $baseNumber = $matchM[1];
+                $hPieceIndex = null;
+
+                for ($j = $i + 1; $j < count($pieces); $j++) {
+                    if (in_array($j, $processedIndices)) {
+                        continue;
+                    }
+                    if ($pieces[$j]['n_pieza'] === "{$baseNumber}H") {
+                        $hPieceIndex = $j;
+                        break;
+                    }
+                }
+
+                if ($hPieceIndex !== null) {
+                    // Encontramos ambas mitades, crear un juego
+                    $completeSets[] = [
+                        'displayName' => "{$baseNumber}J",
+                        'isSet' => true,
+                        'pieces' => [$piece, $pieces[$hPieceIndex]]
+                    ];
+                    $processedIndices[] = $i;
+                    $processedIndices[] = $hPieceIndex;
+                }
+                // Si no hay H correspondiente, ignorar la pieza M (no se agrega)
+            } elseif (preg_match('/^(\d+)H$/', $pieceNumber, $matchH)) {
+                // Buscar la pieza M correspondiente
+                $baseNumber = $matchH[1];
+                $mPieceIndex = null;
+
+                for ($j = $i + 1; $j < count($pieces); $j++) {
+                    if (in_array($j, $processedIndices)) {
+                        continue;
+                    }
+                    if ($pieces[$j]['n_pieza'] === "{$baseNumber}M") {
+                        $mPieceIndex = $j;
+                        break;
+                    }
+                }
+
+                if ($mPieceIndex !== null) {
+                    // Encontramos ambas mitades, crear un juego (M primero, H segundo)
+                    $completeSets[] = [
+                        'displayName' => "{$baseNumber}J",
+                        'isSet' => true,
+                        'pieces' => [$pieces[$mPieceIndex], $piece]
+                    ];
+                    $processedIndices[] = $i;
+                    $processedIndices[] = $mPieceIndex;
+                }
+                // Si no hay M correspondiente, ignorar la pieza H (no se agrega)
+            } else {
+                // No es una pieza M o H, podría ser un juego completo (NJ)
+                // En este caso, agregarlo como está
+                if ($piece['id']) {
+                    $completeSets[] = [
+                        'displayName' => $pieceNumber,
+                        'isSet' => false,
+                        'pieces' => [$piece]
+                    ];
+                    $processedIndices[] = $i;
+                }
+            }
+        }
+
+        return $completeSets;
+    }
+
 
     /**
      * Procesar la liberación de piezas

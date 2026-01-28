@@ -937,85 +937,6 @@ function createInputPasswordQuality() {
     return form_group;
 }
 
-// Función para agrupar piezas por juego (M y H se convierten en J)
-function groupPiecesBySet(piecesData) {
-    let grouped = [];
-    let processedIndices = new Set();
-
-    for (let i = 0; i < piecesData.length; i++) {
-        if (processedIndices.has(i)) continue;
-
-        let piece = piecesData[i];
-        let pieceNumber = piece.n_pieza;
-
-        // Verificar si la pieza termina en M o H
-        let matchM = pieceNumber.match(/^(\d+)M$/);
-        let matchH = pieceNumber.match(/^(\d+)H$/);
-
-        if (matchM) {
-            // Buscar la pieza H correspondiente
-            let baseNumber = matchM[1];
-            let hPieceIndex = piecesData.findIndex((p, idx) =>
-                idx > i && p.n_pieza === `${baseNumber}H` && !processedIndices.has(idx)
-            );
-
-            if (hPieceIndex !== -1) {
-                // Encontramos ambas mitades, crear un juego
-                grouped.push({
-                    displayName: `${baseNumber}J`,
-                    isSet: true,
-                    pieces: [piece, piecesData[hPieceIndex]]
-                });
-                processedIndices.add(i);
-                processedIndices.add(hPieceIndex);
-            } else {
-                // Solo tenemos la mitad M
-                grouped.push({
-                    displayName: pieceNumber,
-                    isSet: false,
-                    pieces: [piece]
-                });
-                processedIndices.add(i);
-            }
-        } else if (matchH) {
-            // Buscar la pieza M correspondiente
-            let baseNumber = matchH[1];
-            let mPieceIndex = piecesData.findIndex((p, idx) =>
-                idx > i && p.n_pieza === `${baseNumber}M` && !processedIndices.has(idx)
-            );
-
-            if (mPieceIndex !== -1) {
-                // Encontramos ambas mitades, crear un juego
-                grouped.push({
-                    displayName: `${baseNumber}J`,
-                    isSet: true,
-                    pieces: [piecesData[mPieceIndex], piece]
-                });
-                processedIndices.add(i);
-                processedIndices.add(mPieceIndex);
-            } else {
-                // Solo tenemos la mitad H
-                grouped.push({
-                    displayName: pieceNumber,
-                    isSet: false,
-                    pieces: [piece]
-                });
-                processedIndices.add(i);
-            }
-        } else {
-            // No es una pieza M o H, mantenerla como está
-            grouped.push({
-                displayName: pieceNumber,
-                isSet: false,
-                pieces: [piece]
-            });
-            processedIndices.add(i);
-        }
-    }
-
-    return grouped;
-}
-
 // Función para obtener el color de un juego completo
 function getColorForSet(pieces) {
     // Si todas las piezas están liberadas
@@ -1126,66 +1047,10 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
     // Cuerpo de tabla
     let tbody = document.createElement("tbody");
 
-    // Filtrar piezas por turno y fecha
+    // El backend ya filtra por id_meta y agrupa en juegos completos
+    // piecesData ya viene filtrado y agrupado desde el backend
     if (piecesData && piecesData.length > 0) {
-        // Obtener fechas límite del turno
-        let shiftDate = window.arrayData["date"];
-        // Eliminamos referencia estricta a startTime/endTime para el filtro,
-        // pero mantenemos referencias si se usaran (aunque ya no para el filtro estricto)
-        // en su lugar usamos un filtro por Día completo.
-
-        let currentOperator = window.arrayData["operator"];
-        let currentOperatorId = window.arrayData["operator_id"];
-
-        // Construir nombre del proceso actual para comparación
-        let currentProcess = window.arrayData["subprocess"]
-            ? `${window.arrayData["process"]}_${window.arrayData["subprocess"]}`
-            : window.arrayData["process"];
-
-        // Filtrar y reasignar a piecesData
-        piecesData = piecesData.filter(piece => {
-            if (!piece.created_at) return true;
-
-            // 1. Filtro por Fecha (Coincidir Día)
-            let pieceDateObj = new Date(piece.created_at);
-            // Usamos la fecha del formulario 'shiftDate' (YYYY-MM-DD)
-            // Parseamos como fecha local (T00:00:00) para comparar dia/mes/año
-            let checkDate = new Date(shiftDate + "T00:00:00");
-
-            let dateMatch = (
-                pieceDateObj.getFullYear() === checkDate.getFullYear() &&
-                pieceDateObj.getMonth() === checkDate.getMonth() &&
-                pieceDateObj.getDate() === checkDate.getDate()
-            );
-
-            // 2. Filtro por Operador
-            let operatorMatch = true;
-            if (currentOperator || currentOperatorId) {
-                if (currentOperatorId && piece.operator_id) {
-                    operatorMatch = (piece.operator_id == currentOperatorId);
-                } else if (currentOperator && piece.operator) {
-                    operatorMatch = (piece.operator == currentOperator);
-                } else if (currentOperator && piece.usuario) {
-                    operatorMatch = (piece.usuario == currentOperator);
-                }
-            }
-
-            // 3. Filtro por Proceso
-            let processMatch = true;
-            if (piece.proceso && currentProcess) {
-                // Comparación directa
-                processMatch = piece.proceso === currentProcess;
-            }
-
-            return dateMatch && operatorMatch && processMatch;
-        });
-    }
-
-    if (piecesData && piecesData.length > 0) {
-        // Agrupar piezas: si existen "M" y "H" del mismo número, crear un "J"
-        let groupedPieces = groupPiecesBySet(piecesData);
-
-        groupedPieces.forEach((pieceGroup, index) => {
+        piecesData.forEach((pieceGroup, index) => {
             let row = document.createElement("tr");
             row.className = "piece-row";
 
@@ -1292,7 +1157,7 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
         let row = document.createElement("tr");
         let td = document.createElement("td");
         td.colSpan = 6;
-        td.textContent = "El operador no cuenta con piezas para liberar en este turno y proceso.";
+        td.textContent = "No hay juegos completos disponibles para liberar en este reporte.";
         td.style.textAlign = "center";
         td.style.padding = "2em";
         row.appendChild(td);
