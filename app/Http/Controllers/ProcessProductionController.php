@@ -104,30 +104,40 @@ class ProcessProductionController extends Controller
 
     public function showReportFormat($meta, $process, $edit)
     {
-        $this->updateMeta($meta); // Actualizar la meta del operador
-        $workOrders = $this->show(true); // Obtener el array de órdenes de trabajo disponibles para registrar piezas
+        $this->updateMeta($meta);
+        $workOrders = $this->show(true);
 
-        $meta = Metas::find($meta); // Obtener meta actualizada para encontrar los valores siguientes
+        $meta = Metas::find($meta);
 
         $machine = Maquinas::where('id_meta', $meta->id)->first();
         if (!$machine) {
             return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
-        // Obtener orden de trabajo junto con la moldura asociada
+
+        $class = Clase::find($meta->id_clase);
+        $edit = $edit != 0 ? $edit : false;
+
+        $arrayData = $this->prepareReportData($meta, $class, $edit);
+        $piecesData = $this->get_ArrayPieces($meta->proceso, $class, $meta);
+        $pieceToBeUsed = $this->get_pieceToBeUsed($meta->proceso, $piecesData['availableAssemblies'], $meta, $class);
+
+        return view('processes_views.processProduction_view', compact('arrayData', 'workOrders', 'pieceToBeUsed'));
+    }
+
+    /**
+     * Prepare all data needed for the report view
+     */
+    private function prepareReportData($meta, $class, $edit)
+    {
         $workOrder = Orden_trabajo::find($meta->id_ot);
         $molding = Moldura::find($workOrder->id_moldura);
 
-        $class = Clase::find($meta->id_clase); // Obtener clase de la meta
-        $edit = $edit != 0 ? $edit : false; // Verificar si se está editando
-
-        // Obtener cadena de proceso y subproceso (Si existe)
         $process = $this->getSub_Process($meta->proceso, 0);
         $subprocess = $this->getSub_Process($meta->proceso, 1);
-        $piecesData = $this->get_ArrayPieces($meta->proceso, $class, $meta); // Obtener datos de las piezas
+        $piecesData = $this->get_ArrayPieces($meta->proceso, $class, $meta);
 
-        // Asignar los valores a un array que se enviara a la vista
-        $arrayData = [
-            'operator' => auth()->user()->matricula . ' - ' . auth()->user()->a_paterno . ' ' . auth()->user()->a_materno . ' ' . auth()->user()->nombre,
+        return [
+            'operator' => $this->getOperatorName(),
             'workOrder' => $workOrder->id . ' - ' . $molding->nombre,
             'class' => Clase::where('id_ot', $meta->id_ot)->where('id', $meta->id_clase)->first()->nombre,
             'process' => $process,
@@ -145,8 +155,15 @@ class ProcessProductionController extends Controller
             'availableAssemblies' => $piecesData['availableAssemblies'],
             'cNominals' => $this->saveCNominals($class, $process, $subprocess),
         ];
-        $pieceToBeUsed = $this->get_pieceToBeUsed($meta->proceso, $piecesData['availableAssemblies'], $meta, $class); // Obtener la pieza a utilizar en la interfaz del reporte
-        return view('processes_views.processProduction_view', compact('arrayData', 'workOrders', 'pieceToBeUsed')); // Redireccionar a la vista del reporte con los datos
+    }
+
+    /**
+     * Get formatted operator name
+     */
+    private function getOperatorName()
+    {
+        $user = auth()->user();
+        return $user->matricula . ' - ' . $user->a_paterno . ' ' . $user->a_materno . ' ' . $user->nombre;
     }
     public function get_pieceToBeUsed($processName, $availableAssemblies, $meta, $class)
     {
