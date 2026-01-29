@@ -131,6 +131,12 @@ class PzasGeneralesController extends Controller
             if ($profile == 'quality') {
                 return [false, $pieces, $piecesData, $infoPieces, $selectedItems, $filtersData];
             }
+
+            // Configuración para generación de PDFs grandes
+            @ini_set('max_execution_time', '300'); // 5 minutos
+            @ini_set('memory_limit', '512M'); // Aumentar memoria disponible
+            @set_time_limit(300);
+
             $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
 
             // Generar nombre del archivo

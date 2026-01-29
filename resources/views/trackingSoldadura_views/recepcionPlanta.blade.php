@@ -6,7 +6,7 @@
     @vite(['resources/css/trackingSoldadura_views/recepcionPlanta.css'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
 
 @section('content')
     <div class="wrapper">
@@ -18,7 +18,7 @@
             <span class="badge-text">Botes actualmente en planta: <strong>{{ $botesEnPlanta ?? 0 }}</strong></span>
         </div>
 
-        @if(!isset($bote))
+        @if (!isset($bote))
             @include('layouts.partials.messages')
 
             <form action="{{ route('soldadura.recepcionPlanta.escanear') }}" method="POST" id="qrForm">
@@ -26,7 +26,8 @@
                 <div class="mb-3">
                     <label class="form-label">Escanear QR del Bote</label>
                     <input type="text" name="qr_content" id="qr_content" class="form-control"
-                        placeholder="Coloque el cursor en este campo y escanee el código QR con el dispositivo." autofocus required>
+                        placeholder="Coloque el cursor en este campo y escanee el código QR con el dispositivo." autofocus
+                        required>
                 </div>
 
                 <div class="div-bttns">
@@ -47,7 +48,8 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Matrícula del Bote</label>
-                            <input type="text" class="form-control readonly-field" value="{{ $bote->matricula }}" readonly>
+                            <input type="text" class="form-control readonly-field" value="{{ $bote->matricula }}"
+                                readonly>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Tipo de Soldadura</label>
@@ -56,16 +58,19 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Número de Lote</label>
-                            <input type="text" class="form-control readonly-field" value="{{ $bote->numero_lote }}" readonly>
+                            <input type="text" class="form-control readonly-field" value="{{ $bote->numero_lote }}"
+                                readonly>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Peso del Bote</label>
-                            <input type="text" class="form-control readonly-field" value="{{ $bote->peso_kg }} kg" readonly>
+                            <input type="text" class="form-control readonly-field" value="{{ $bote->peso_kg }} kg"
+                                readonly>
                         </div>
                         {{-- NO se muestra el número de factura por seguridad --}}
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Número de Bote</label>
-                            <input type="text" class="form-control readonly-field" value="#{{ $bote->numero_bote }}" readonly>
+                            <input type="text" class="form-control readonly-field" value="#{{ $bote->numero_bote }}"
+                                readonly>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Estado Actual</label>
@@ -86,14 +91,25 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <select name="recibido_por" class="form-control" required>
-                                <option value="">Seleccione quien recibe el bote...</option>
-                                @foreach($almacenistas as $almacenista)
-                                    <option value="{{ $almacenista->id }}">
-                                        {{ $almacenista->name }} ({{ $almacenista->matricula }})
+                            <label class="form-label">Quien recibe el bote</label>
+                            <select name="recibido_por" class="form-control readonly-field" disabled>
+                                @if ($currentUser)
+                                    <option value="{{ $currentUser->id }}" selected>
+                                        {{ $currentUser->name }} ({{ $currentUser->matricula }})
                                     </option>
+                                @else
+                                    <option value="">Usuario no identificado</option>
+                                @endif
+                                @foreach ($almacenistas as $almacenista)
+                                    @if (!$currentUser || $almacenista->id !== $currentUser->id)
+                                        <option value="{{ $almacenista->id }}">
+                                            {{ $almacenista->name }} ({{ $almacenista->matricula }})
+                                        </option>
+                                    @endif
                                 @endforeach
                             </select>
+                            {{-- Campo oculto para enviar el valor ya que el select está deshabilitado --}}
+                            <input type="hidden" name="recibido_por" value="{{ $currentUser->id ?? '' }}">
                         </div>
 
                         <div class="mb-3">
@@ -118,7 +134,7 @@
 
     <script>
         // Auto-submit cuando el lector de QR termina de escanear (detecta Enter)
-        document.getElementById('qr_content')?.addEventListener('keypress', function (e) {
+        document.getElementById('qr_content')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 if (this.value.trim() !== '') {

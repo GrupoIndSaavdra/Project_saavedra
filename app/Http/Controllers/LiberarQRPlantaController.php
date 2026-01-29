@@ -14,7 +14,7 @@ class LiberarQRPlantaController extends Controller
     /**
      * Parsea el contenido del QR que puede venir con caracteres especiales
      * del lector de códigos de barras/QR
-     * 
+     *
      * Ejemplo de entrada problemática: "¨[tipo[Ñ[bote[,[id[Ñ2,[matricula[Ñ[1401261534ALLTBS'002[,[lote?id[Ñ1,"
      * Formato esperado JSON: {"tipo":"bote","id":2,"matricula":"1401261534ALLTBS-002","lote_id":1}
      */
@@ -107,8 +107,9 @@ class LiberarQRPlantaController extends Controller
     {
         $almacenistas = User::where('perfil', '5')->get(); // Perfil 5 = Almacén
         $botesEnPlanta = SoldaduraBote::where('estado', 'en_planta')->count();
+        $currentUser = auth()->user(); // Usuario autenticado actual
 
-        return view('trackingSoldadura_views.recepcionPlanta', compact('almacenistas', 'botesEnPlanta'));
+        return view('trackingSoldadura_views.recepcionPlanta', compact('almacenistas', 'botesEnPlanta', 'currentUser'));
     }
 
     public function escanearRecepcion(Request $request)
@@ -145,8 +146,9 @@ class LiberarQRPlantaController extends Controller
 
             $almacenistas = User::where('perfil', '5')->get();
             $botesEnPlanta = SoldaduraBote::where('estado', 'en_planta')->count();
+            $currentUser = auth()->user(); // Usuario autenticado actual
 
-            return view('trackingSoldadura_views.recepcionPlanta', compact('bote', 'almacenistas', 'botesEnPlanta'));
+            return view('trackingSoldadura_views.recepcionPlanta', compact('bote', 'almacenistas', 'botesEnPlanta', 'currentUser'));
 
         } catch (\Exception $e) {
             return back()->withErrors(['qr_content' => 'Error al procesar el QR: ' . $e->getMessage()]);
@@ -199,8 +201,9 @@ class LiberarQRPlantaController extends Controller
         $botesDisponibles = SoldaduraBote::where('estado', 'en_planta')
             ->with('lote')
             ->get();
+        $currentUser = auth()->user(); // Usuario autenticado actual
 
-        return view('trackingSoldadura_views.liberarQRPlanta', compact('operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles'));
+        return view('trackingSoldadura_views.liberarQRPlanta', compact('operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles', 'currentUser'));
     }
 
     public function escanear(Request $request)
@@ -243,8 +246,9 @@ class LiberarQRPlantaController extends Controller
             $botesDisponibles = SoldaduraBote::where('estado', 'en_planta')
                 ->with('lote')
                 ->get();
+            $currentUser = auth()->user(); // Usuario autenticado actual
 
-            return view('trackingSoldadura_views.liberarQRPlanta', compact('bote', 'operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles'));
+            return view('trackingSoldadura_views.liberarQRPlanta', compact('bote', 'operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles', 'currentUser'));
 
         } catch (\Exception $e) {
             return back()->withErrors(['qr_content' => 'Error al procesar el QR: ' . $e->getMessage()]);

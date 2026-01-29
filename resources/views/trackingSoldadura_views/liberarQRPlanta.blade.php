@@ -6,7 +6,7 @@
     @vite(['resources/css/trackingSoldadura_views/liberarQRPlanta.css'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
 
 @section('content')
     <div class="wrapper">
@@ -19,10 +19,10 @@
             <span class="badge-text">Botes disponibles en planta: <strong>{{ $botesEnPlanta ?? 0 }}</strong></span>
         </div>
 
-        @if(!isset($bote))
+        @if (!isset($bote))
             @include('layouts.partials.messages')
 
-            @if(($botesEnPlanta ?? 0) == 0)
+            @if (($botesEnPlanta ?? 0) == 0)
                 <div class="alert alert-warning">
                     <p>⚠️No hay botes de soldadura disponibles en planta para liberar⚠️
                     </p>
@@ -36,7 +36,8 @@
                     <div class="mb-3">
                         <label class="form-label">Escanear QR del Bote</label>
                         <input type="text" name="qr_content" id="qr_content" class="form-control"
-                            placeholder="Coloque el cursor en este campo y escanee el código QR con el dispositivo lector." autofocus required>
+                            placeholder="Coloque el cursor en este campo y escanee el código QR con el dispositivo lector."
+                            autofocus required>
                     </div>
 
                     <div class="div-bttns">
@@ -50,7 +51,7 @@
                 </form>
 
                 {{-- Lista de botes disponibles --}}
-                @if(isset($botesDisponibles) && $botesDisponibles->count() > 0)
+                @if (isset($botesDisponibles) && $botesDisponibles->count() > 0)
                     <div class="card mt-4">
                         <div class="card-header bg-secondary text-white">
                             <h5 class="mb-0">Botes disponibles</h5>
@@ -67,7 +68,7 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach($botesDisponibles as $boteDisp)
+                                        @foreach ($botesDisponibles as $boteDisp)
                                             <tr>
                                                 <td><code>{{ $boteDisp->matricula }}</code></td>
                                                 <td>{{ $boteDisp->nombre_soldadura }}</td>
@@ -91,7 +92,8 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Matrícula del Bote</label>
-                            <input type="text" class="form-control readonly-field" value="{{ $bote->matricula }}" readonly>
+                            <input type="text" class="form-control readonly-field" value="{{ $bote->matricula }}"
+                                readonly>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Tipo de Soldadura</label>
@@ -100,16 +102,19 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Número de Lote</label>
-                            <input type="text" class="form-control readonly-field" value="{{ $bote->numero_lote }}" readonly>
+                            <input type="text" class="form-control readonly-field" value="{{ $bote->numero_lote }}"
+                                readonly>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Peso del Bote</label>
-                            <input type="text" class="form-control readonly-field" value="{{ $bote->peso_kg }} kg" readonly>
+                            <input type="text" class="form-control readonly-field" value="{{ $bote->peso_kg }} kg"
+                                readonly>
                         </div>
                         {{-- NO se muestra el número de factura por seguridad --}}
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Número de Bote</label>
-                            <input type="text" class="form-control readonly-field" value="#{{ $bote->numero_bote }}" readonly>
+                            <input type="text" class="form-control readonly-field" value="#{{ $bote->numero_bote }}"
+                                readonly>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-bold">Estado Actual</label>
@@ -132,7 +137,7 @@
                         <div class="mb-3">
                             <select name="operador_id" class="form-control" required>
                                 <option value="">Seleccione el operador que recibirá el bote...</option>
-                                @foreach($operadores as $operador)
+                                @foreach ($operadores as $operador)
                                     <option value="{{ $operador->id }}">
                                         {{ $operador->name }} ({{ $operador->matricula }})
                                     </option>
@@ -151,14 +156,27 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <select name="liberador_id" class="form-control" required>
-                                <option value="">Seleccione quien entrega el bote...</option>
-                                @foreach($almacenistas as $almacenista)
-                                    <option value="{{ $almacenista->id }}">
-                                        {{ $almacenista->name }} ({{ $almacenista->matricula }})
+                            <label class="form-label">Quien entrega el bote</label>
+                            <select name="liberador_id" class="form-control" {{ $currentUser ? 'disabled' : 'required' }}>
+                                @if ($currentUser)
+                                    <option value="{{ $currentUser->id }}" selected>
+                                        {{ $currentUser->name }} ({{ $currentUser->matricula }})
                                     </option>
+                                @else
+                                    <option value="">Seleccione quien entrega el bote...</option>
+                                @endif
+                                @foreach ($almacenistas as $almacenista)
+                                    @if (!$currentUser || $almacenista->id !== $currentUser->id)
+                                        <option value="{{ $almacenista->id }}">
+                                            {{ $almacenista->name }} ({{ $almacenista->matricula }})
+                                        </option>
+                                    @endif
                                 @endforeach
                             </select>
+                            {{-- Campo oculto para enviar el valor si hay usuario (ya que disabled no envía) --}}
+                            @if ($currentUser)
+                                <input type="hidden" name="liberador_id" value="{{ $currentUser->id }}">
+                            @endif
                             <small class="form-text text-muted">
                                 Solo personal de almacén puede liberar soldadura.
                             </small>
@@ -186,7 +204,7 @@
 
     <script>
         // Auto-submit cuando el lector de QR termina de escanear (detecta Enter)
-        document.getElementById('qr_content')?.addEventListener('keypress', function (e) {
+        document.getElementById('qr_content')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 if (this.value.trim() !== '') {

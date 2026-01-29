@@ -77,6 +77,11 @@ class PzasLiberadasController extends Controller
         if ($toView) {
             return view('pieces_views.releasePieces.pzasLiberar', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'pieces_Released', 'info_Pieces'));
         } else {
+            // Configuración para generación de PDFs grandes
+            @ini_set('max_execution_time', '300'); // 5 minutos
+            @ini_set('memory_limit', '512M'); // Aumentar memoria disponible
+            @set_time_limit(300);
+
             $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'profile'));
 
             // Generar nombre del archivo
