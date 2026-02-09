@@ -36,15 +36,22 @@ class Dashboard {
                 let section = document.createElement("section");
                 section.className = "section";
                 let className = Object.keys(workOrder["classes"])[indexClass];
-                let headerSection = this.generateHeaderofWorkOrder( wOrderName, workOrder["molding"], className, classArray);
+                let headerSection = this.generateHeaderofWorkOrder(wOrderName, workOrder["molding"], className, classArray);
                 let processesSection = document.createElement("div");
                 processesSection.className = "processes-section";
-            
+
                 Object.values(classArray["processes"]).forEach((processesArray, indexProcess) => {
                     let processName = Object.keys(classArray["processes"])[indexProcess]
                     let previousProcess = classArray["processes"][Object.keys(classArray["processes"])[indexProcess - 1]];
                     let limitPieces = previousProcess ? previousProcess["pieces"]["good"] : classArray["pieces"];
-                    processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces, classArray["pieces"]));
+
+                    // Obtener datos de tiempo para este proceso si existen
+                    let timeData = null;
+                    if (classArray["time_data"] && classArray["time_data"][processName]) {
+                        timeData = classArray["time_data"][processName];
+                    }
+
+                    processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces, classArray["pieces"], timeData));
                 });
                 section.appendChild(headerSection);
                 section.appendChild(processesSection);
@@ -125,7 +132,7 @@ class Dashboard {
         }
         return completedPieces;
     }
-    generateProcessSection(processesArray, processName, limitPieces, pedido) {
+    generateProcessSection(processesArray, processName, limitPieces, pedido, timeData = null) {
         let processSection = document.createElement("div");
         processSection.className = "process-section";
 
@@ -159,11 +166,106 @@ class Dashboard {
             processSection.appendChild(progressBar);
         }
 
-        //Agregar evento al div de progreso
+        // ========== AGREGAR DATOS DE TIEMPO SI EXISTEN ==========
+        if (timeData) {
+            let timeDataSection = this.renderTimeData(timeData);
+            processSection.appendChild(timeDataSection);
+        }
+
+        //Agregar evento al div de progreso para mostrar piezas malas
         processSection.addEventListener("click", () => {
             this.generateDivBadPieces(processName, processesArray["piecesBadData"]);
         });
         return processSection;
+    }
+
+    /**
+     * Renderizar datos de tiempo de producción dentro de una tarjeta de proceso
+     * @param {Object} timeData - Datos de tiempo del proceso
+     * @returns {HTMLElement} Sección con datos de tiempo formateados
+     */
+    renderTimeData(timeData) {
+        let timeSection = document.createElement("div");
+        timeSection.className = "process-time-data";
+
+        // Separador visual
+        let separator = document.createElement("hr");
+        separator.style.border = "none";
+        separator.style.borderTop = "1px solid rgba(255, 255, 255, 0.2)";
+        separator.style.margin = "10px 0";
+        timeSection.appendChild(separator);
+
+        // Hora inicio → fin (duración)
+        if (timeData.hora_inicio && timeData.hora_fin) {
+            let timelineRow = document.createElement("div");
+            timelineRow.className = "time-info-row";
+            timelineRow.innerHTML = `⏱ ${timeData.hora_inicio} → ${timeData.hora_fin} (${timeData.duracion_horas.toFixed(1)}h)`;
+            timeSection.appendChild(timelineRow);
+        }
+
+        // Utilización con barra visual
+        if (timeData.utilizacion !== undefined) {
+            let utilizacionLabel = document.createElement("div");
+            utilizacionLabel.className = "time-info-row";
+            utilizacionLabel.innerHTML = `📊 Utilización: ${timeData.utilizacion}%`;
+            timeSection.appendChild(utilizacionLabel);
+
+            // Barra de utilización
+            let utilizacionBarContainer = document.createElement("div");
+            utilizacionBarContainer.className = "time-utilization-bar-container";
+            utilizacionBarContainer.style.width = "100%";
+            utilizacionBarContainer.style.height = "8px";
+            utilizacionBarContainer.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+            utilizacionBarContainer.style.borderRadius = "4px";
+            utilizacionBarContainer.style.overflow = "hidden";
+            utilizacionBarContainer.style.marginTop = "5px";
+
+            let utilizacionBar = document.createElement("div");
+            utilizacionBar.className = "time-utilization-bar";
+            utilizacionBar.style.width = `${timeData.utilizacion}%`;
+            utilizacionBar.style.height = "100%";
+            utilizacionBar.style.backgroundColor = timeData.utilizacion >= 80 ? "#4CAF50" : timeData.utilizacion >= 50 ? "#FFC107" : "#FF5722";
+            utilizacionBar.style.transition = "width 0.3s ease";
+
+            utilizacionBarContainer.appendChild(utilizacionBar);
+            timeSection.appendChild(utilizacionBarContainer);
+        }
+
+        // Tiempos muertos
+        if (timeData.tiempo_muerto_horas !== undefined && timeData.tiempo_muerto_horas > 0) {
+            let deadTimeRow = document.createElement("div");
+            deadTimeRow.className = "time-info-row";
+            deadTimeRow.innerHTML = `⏸ ${timeData.tiempo_muerto_horas.toFixed(1)}h muertos`;
+            deadTimeRow.style.marginTop = "5px";
+            timeSection.appendChild(deadTimeRow);
+        }
+
+        // Tasa de producción
+        if (timeData.tasa_produccion && timeData.tasa_produccion !== 'N/A') {
+            let rateRow = document.createElement("div");
+            rateRow.className = "time-info-row";
+            rateRow.innerHTML = `🚀 ${timeData.tasa_produccion}`;
+            rateRow.style.marginTop = "5px";
+            timeSection.appendChild(rateRow);
+        }
+
+        // Badge de cuello de botella
+        if (timeData.es_cuello_botella) {
+            let bottleneckBadge = document.createElement("div");
+            bottleneckBadge.className = "bottleneck-indicator";
+            bottleneckBadge.innerHTML = "⚠️ Cuello de botella";
+            bottleneckBadge.style.marginTop = "8px";
+            bottleneckBadge.style.padding = "4px 8px";
+            bottleneckBadge.style.backgroundColor = "#FF5722";
+            bottleneckBadge.style.color = "#fff";
+            bottleneckBadge.style.borderRadius = "4px";
+            bottleneckBadge.style.fontSize = "0.85em";
+            bottleneckBadge.style.fontWeight = "bold";
+            bottleneckBadge.style.textAlign = "center";
+            timeSection.appendChild(bottleneckBadge);
+        }
+
+        return timeSection;
     }
     generateDivBadPieces(processName, badPieces) {
         //Creacion del div de opacidad de fondo
@@ -236,13 +338,13 @@ class Dashboard {
                 let pieceData =
                     processName == "Operacion Equipo"
                         ? [
-                              piece["piece"],
-                              piece["setNumber"],
-                              piece["operator"],
-                              piece["process"],
-                              piece["operation"],
-                              piece["error"],
-                          ]
+                            piece["piece"],
+                            piece["setNumber"],
+                            piece["operator"],
+                            piece["process"],
+                            piece["operation"],
+                            piece["error"],
+                        ]
                         : [piece["piece"], piece["setNumber"], piece["operator"], piece["process"], piece["error"]];
                 pieceData.forEach((data) => {
                     let td = document.createElement("td");
@@ -300,6 +402,8 @@ if (Object.keys(wOrderArray).length > 0) {
         return closest;
     }
 
+    // Auto-scroll desactivado para evitar comportamiento no deseado
+    /*
     window.addEventListener("scroll", () => {
         if (scrollTimeout) {
             clearTimeout(scrollTimeout);
@@ -313,7 +417,9 @@ if (Object.keys(wOrderArray).length > 0) {
             }
         }, 200);
     });
-} else {
+    */
+}
+else {
     let body = document.querySelector("body");
     let noDataMessage = document.createElement("h2");
     noDataMessage.className = "no-data-message";

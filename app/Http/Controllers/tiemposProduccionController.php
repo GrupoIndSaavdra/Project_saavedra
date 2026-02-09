@@ -348,6 +348,7 @@ class tiemposProduccionController extends Controller
             'Embudo CM' => 'embudoCM',
             'Soldadura' => 'soldadura',
             'Soldadura PTA' => 'soldaduraPTA',
+            default => strtolower(str_replace(' ', '_', $processName)),
         };
         return $process;
     }
@@ -357,19 +358,27 @@ class tiemposProduccionController extends Controller
         $process = match ($processName) {
             'cepillado' => 'Cepillado',
             'desbaste' => 'Desbaste Exterior',
+            'desbaste_exterior' => 'Desbaste Exterior',
             'revLaterales' => 'Revision Laterales',
+            'revision_laterales' => 'Revision Laterales',
             'primeraOpeSoldadura' => 'Primera Operacion',
+            'pOperacion' => 'Primera Operacion',
             'barrenoManiobra' => 'Barreno Maniobra',
+            'barreno_maniobra' => 'Barreno Maniobra',
             'segundaOpeSoldadura' => 'Segunda Operacion',
+            'sOperacion' => 'Segunda Operacion',
             'rectificado' => 'Rectificado',
             'asentado' => 'Asentado',
             'revCalificado' => 'Calificado',
+            'calificado' => 'Calificado',
             'acabadoBombillo' => 'Acabado Bombillo',
             'acabadoMolde' => 'Acabado Molde',
             'barrenoProfundidad' => 'Barreno Profundidad',
+            'barreno_profundidad' => 'Barreno Profundidad',
             'cavidades' => 'Cavidades',
             'copiado' => 'Copiado',
             'offset' => 'Off Set',
+            'offSet' => 'Off Set',
             'palomas' => 'Palomas',
             'rebajes' => 'Rebajes',
             'grabado' => 'Grabado',
@@ -379,6 +388,7 @@ class tiemposProduccionController extends Controller
             'embudoCM' => 'Embudo CM',
             'soldadura' => 'Soldadura',
             'soldaduraPTA' => 'Soldadura PTA',
+            default => ucwords(str_replace('_', ' ', $processName)),
         };
         return $process;
     }
@@ -463,7 +473,7 @@ class tiemposProduccionController extends Controller
         $tiempoProduccionRestante = ($cantidadPiezas - 1) / $tasaCuelloBotella;
         $tiempoTotalMinutos = $tiempoPrimeraPiezaTotal + $tiempoProduccionRestante;
 
-        // PASO 6: Simular el flujo proceso por proceso para obtener detalles y tiempos muertos
+        // PASO 6: Simular el flujo proceso  por proceso para obtener detalles y tiempos muertos
         $detalleProcesos = [];
 
         foreach ($procesosConTasas as $i => $proceso) {

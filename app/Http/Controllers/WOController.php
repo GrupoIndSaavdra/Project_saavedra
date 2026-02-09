@@ -16,6 +16,7 @@ use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class WOController extends Controller
 {
@@ -220,6 +221,7 @@ class WOController extends Controller
         }
     }
 
+
     public function showViewPiecesInProgress()
     {
         //Obtener las ordenes de trabajo que aun siguen en progreso, es decir, que tienen clases que no han sido finalizadas.
@@ -240,12 +242,82 @@ class WOController extends Controller
                             $wOInProgress[$workOrder->id]['classes'] = array();
                         }
                         $this->insertClassesData($wOInProgress[$workOrder->id]['classes'], $class);
+
+                        // ========== CALCULAR TIEMPOS POR PROCESO ==========
+                        $className = $class->nombre;
+                        $timeData = $this->calcularTiemposPorProceso($class);
+
+                        if ($timeData !== null) {
+                            $wOInProgress[$workOrder->id]['classes'][$className]['time_data'] = $timeData;
+                        }
                     }
                 }
             }
         }
+
         [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
         return view('pieces_views.piecesInProgress_view', compact('wOInProgress', 'pieces_Released', 'info_Pieces'));
+    }
+
+    /**
+     * Calcular tiempos de producción por proceso para una clase
+     *
+     * @param Clase $clase
+     * @return array|null Array indexado por nombre de proceso con datos de tiempo
+     */
+    private function calcularTiemposPorProceso($clase)
+    {
+        try {
+            // Instanciar el controlador de tiempos
+            $tiemposController = new tiemposProduccionController();
+
+            // Calcular tiempos de producción
+            $resultado = $tiemposController->calcularTiempoProduccionPorClase(
+                $clase,
+                $clase->piezas
+            );
+
+            if (!isset($resultado['datos_ui'])) {
+                return null;
+            }
+
+            $datosUI = $resultado['datos_ui'];
+            $timeDataByProcess = [];
+
+            // Extraer datos de línea de tiempo por proceso
+            if (isset($datosUI['linea_tiempo_procesos'])) {
+                foreach ($datosUI['linea_tiempo_procesos'] as $proceso) {
+                    $processName = $proceso['nombre'];
+
+                    $timeDataByProcess[$processName] = [
+                        'hora_inicio' => isset($proceso['hora_inicio']) ? \Carbon\Carbon::parse($proceso['hora_inicio'])->format('H:i') : 'N/A',
+                        'hora_fin' => isset($proceso['hora_fin']) ? \Carbon\Carbon::parse($proceso['hora_fin'])->format('H:i') : 'N/A',
+                        'duracion_horas' => $proceso['duracion_horas'] ?? 0,
+                        'utilizacion' => (int) str_replace('%', '', $proceso['utilizacion'] ?? '0'),
+                        'tiempo_muerto_horas' => $proceso['tiempo_muerto_horas'] ?? 0,
+                        'es_cuello_botella' => $proceso['es_cuello_botella'] ?? false,
+                        'tasa_produccion' => isset($datosUI['indicadores_clave']['ritmo_sistema']) ? $datosUI['indicadores_clave']['ritmo_sistema'] : 'N/A'
+                    ];
+                }
+            }
+
+            // Si también hay datos de estado por proceso, agregar tasa específica
+            if (isset($datosUI['estado_por_proceso'])) {
+                foreach ($datosUI['estado_por_proceso'] as $proceso) {
+                    $processName = $proceso['nombre'];
+                    if (isset($timeDataByProcess[$processName])) {
+                        $timeDataByProcess[$processName]['tasa_produccion'] = $proceso['tasa_produccion'] ?? $timeDataByProcess[$processName]['tasa_produccion'];
+                    }
+                }
+            }
+
+            return $timeDataByProcess;
+
+        } catch (\Exception $e) {
+            // Si hay error en el cálculo, retornar null
+            Log::error('Error calculando tiempos por proceso para clase ' . $clase->id . ': ' . $e->getMessage());
+            return null;
+        }
     }
     public function getStringDate($date, $time)
     {
@@ -503,7 +575,7 @@ class WOController extends Controller
         //Obtener el numero de juego
         preg_match('/^\d+/', $piece->n_pieza, $n_juego);
         $array["setNumber"] = $n_juego[0] . "J";
-        $array["operator"] = $operador->nombre . " " . $operador->a_paterno . " "  . $operador->a_materno;
+        $array["operator"] = $operador->nombre . " " . $operador->a_paterno . " " . $operador->a_materno;
         $array["process"] = $piece->proceso;
         $array["operation"] = $operation;
         $array["error"] = $rechazada ? $rechazada : $piece->error; //Si la pieza no tiene ningun error pero esta rechazada
