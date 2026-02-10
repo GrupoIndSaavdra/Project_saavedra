@@ -69,7 +69,7 @@ class ProcessesController extends Controller
                 $classes = $this->classController->getClasses($workOrder);
                 //Filtrar clases no finalizadas
                 foreach ($classes as $key => $item) {
-                    if($item->finalizada != 0){
+                    if ($item->finalizada != 0) {
                         unset($classes[$key]);
                     }
                 }
@@ -83,7 +83,7 @@ class ProcessesController extends Controller
                         if ($processes) {
                             $workOrders[$workOrderTxt][$class->nombre] = array();
                             foreach ($processes->getAttributes() as $process => $valor) {
-                                if (($process != "id" && $process != "id_clase" && $process != "soldadura" && $process != "soldaduraPTA" && $process != "rectificado" && $process != "asentado") && $valor != 0) {
+                                if (($process != "id" && $process != "id_clase") && $valor != 0) {
                                     $process = $this->convertProcessToString($process);
                                     $workOrders[$workOrderTxt][$class->nombre][$process] = array();
                                     if ($process == "Operacion Equipo") {
@@ -283,6 +283,10 @@ class ProcessesController extends Controller
             'Rebajes' => $this->rebajes($id_process, $request),
             'Operacion Equipo' => $this->pySOpeSoldadura($id_process, $request),
             'Embudo CM' => $this->embudoCM($id_process, $request),
+            'Soldadura' => $this->soldadura($id_process, $request),
+            'Soldadura PTA' => $this->soldaduraPTA($id_process, $request),
+            'Rectificado' => $this->rectificado($id_process, $request),
+            'Asentado' => $this->asentado($id_process, $request),
         };
         $this->updatePieces($workOrderId, $request->class, $request->process, $request->subProcess ?? null, $request->operation ?? null);
         return redirect()->to('cNominals')->with('success', 'Datos de ' . $request->process . ' guardados correctamente.');
@@ -434,7 +438,7 @@ class ProcessesController extends Controller
         $tolerance->radiof_mordaza1 = $request->tole_radiof_mordaza1;
         $tolerance->radiof_mordaza2 = $request->tole_radiof_mordaza2;
         $tolerance->radiof_mayor1 = $request->tole_radiof_mayor1;
-        $tolerance->radiof_mayor2  = $request->tole_radiof_mayor2;
+        $tolerance->radiof_mayor2 = $request->tole_radiof_mayor2;
         $tolerance->radiof_sufridera1 = $request->tole_radiof_sufridera1;
         $tolerance->radiof_sufridera2 = $request->tole_radiof_sufridera2;
         $tolerance->profuFinal_CFC1 = $request->tole_profuFinal_CFC1;
@@ -490,7 +494,7 @@ class ProcessesController extends Controller
         $tolerance->diametro_mordaza1 = $request->tole_diametro_mordaza1;
         $tolerance->diametro_mordaza2 = $request->tole_diametro_mordaza2;
         $tolerance->diametro_ceja1 = $request->tole_diametro_ceja1;
-        $tolerance->diametro_ceja2  = $request->tole_diametro_ceja2;
+        $tolerance->diametro_ceja2 = $request->tole_diametro_ceja2;
         $tolerance->diametro_sufrideraExtra1 = $request->tole_diametro_sufrideraExtra1;
         $tolerance->diametro_sufrideraExtra2 = $request->tole_diametro_sufrideraExtra2;
         $tolerance->simetria_ceja1 = $request->tole_simetria_ceja1;
@@ -526,7 +530,7 @@ class ProcessesController extends Controller
         $tolerance->desfasamiento_entrada1 = $request->tole_desfasamiento_entrada1;
         $tolerance->desfasamiento_entrada2 = $request->tole_desfasamiento_entrada2;
         $tolerance->desfasamiento_salida1 = $request->tole_desfasamiento_salida1;
-        $tolerance->desfasamiento_salida2  = $request->tole_desfasamiento_salida2;
+        $tolerance->desfasamiento_salida2 = $request->tole_desfasamiento_salida2;
         $tolerance->ancho_simetriaEntrada1 = $request->tole_ancho_simetriaEntrada1;
         $tolerance->ancho_simetriaEntrada2 = $request->tole_ancho_simetriaEntrada2;
         $tolerance->ancho_simetriaSalida1 = $request->tole_ancho_simetriaSalida1;
@@ -566,7 +570,7 @@ class ProcessesController extends Controller
         $tolerance->diametro1 = $request->tole_diametro1;
         $tolerance->profundidad1 = $request->tole_profundidad1;
         $tolerance->diametro2 = $request->tole_diametro2;
-        $tolerance->profundidad2  = $request->tole_profundidad2;
+        $tolerance->profundidad2 = $request->tole_profundidad2;
         $tolerance->diametro3 = $request->tole_diametro3;
         $tolerance->profundidad3 = $request->tole_profundidad3;
         $tolerance->diametroSoldadura = $request->tole_diametroSoldadura;
@@ -632,7 +636,7 @@ class ProcessesController extends Controller
         $tolerance->diametro1 = $request->tole_diametro1;
         $tolerance->profundidad1 = $request->tole_profundidad1;
         $tolerance->diametro2 = $request->tole_diametro2;
-        $tolerance->profundidad2  = $request->tole_profundidad2;
+        $tolerance->profundidad2 = $request->tole_profundidad2;
         $tolerance->diametro3 = $request->tole_diametro3;
         $tolerance->profundidad3 = $request->tole_profundidad3;
         $tolerance->diametroSoldadura = $request->tole_diametroSoldadura;
@@ -672,7 +676,7 @@ class ProcessesController extends Controller
         $tolerance->diametro_ceja1 = $request->tole_diametro_ceja1;
         $tolerance->diametro_ceja2 = $request->tole_diametro_ceja2;
         $tolerance->diametro_sufridera1 = $request->tole_diametro_sufridera1;
-        $tolerance->diametro_sufridera2  = $request->tole_diametro_sufridera2;
+        $tolerance->diametro_sufridera2 = $request->tole_diametro_sufridera2;
         $tolerance->altura_sufridera1 = $request->tole_altura_sufridera1;
         $tolerance->altura_sufridera2 = $request->tole_altura_sufridera2;
         $tolerance->diametro_conexion1 = $request->tole_diametro_conexion1;
@@ -750,6 +754,22 @@ class ProcessesController extends Controller
 
         $cNominal->save();
         $tolerance->save();
+    }
+    public function soldadura($id_proceso, $request)
+    {
+        // No hay tabla de cotas nominales para soldadura
+    }
+    public function soldaduraPTA($id_proceso, $request)
+    {
+        // No hay tabla de cotas nominales para soldadura PTA
+    }
+    public function rectificado($id_proceso, $request)
+    {
+        // No hay tabla de cotas nominales para rectificado
+    }
+    public function asentado($id_proceso, $request)
+    {
+        // No hay tabla de cotas nominales para asentado
     }
     public function acabadoMolde($id_proceso, $request)
     {
@@ -834,7 +854,7 @@ class ProcessesController extends Controller
         $tolerance->broca1 = $request->tole_broca1;
         $tolerance->tiempo1 = $request->tole_tiempo1;
         $tolerance->broca2 = $request->tole_broca2;
-        $tolerance->tiempo2  = $request->tole_tiempo2;
+        $tolerance->tiempo2 = $request->tole_tiempo2;
         $tolerance->broca3 = $request->tole_broca3;
         $tolerance->tiempo3 = $request->tole_tiempo3;
         $tolerance->entrada = $request->tole_entrada;
@@ -871,7 +891,7 @@ class ProcessesController extends Controller
         $tolerance->altura = $request->tole_altura;
         $tolerance->alturaCandado1 = $request->tole_alturaCandado1;
         $tolerance->alturaCandado2 = $request->tole_alturaCandado2;
-        $tolerance->alturaAsientoObturador1  = $request->tole_alturaAsientoObturador1;
+        $tolerance->alturaAsientoObturador1 = $request->tole_alturaAsientoObturador1;
         $tolerance->alturaAsientoObturador2 = $request->tole_alturaAsientoObturador2;
         $tolerance->profundidadSoldadura1 = $request->tole_profundidadSoldadura1;
         $tolerance->profundidadSoldadura2 = $request->tole_profundidadSoldadura2;
@@ -1065,7 +1085,8 @@ class ProcessesController extends Controller
         $tolerance->rebaje1 = $request->tole_rebaje1;
         $tolerance->rebaje2 = $request->tole_rebaje2;
         $tolerance->rebaje3 = $request->tole_rebaje3;
-        $tolerance->profundidad_bordonio = $request->tole_profundidad_bordonio;;
+        $tolerance->profundidad_bordonio = $request->tole_profundidad_bordonio;
+        ;
         $tolerance->vena1 = $request->tole_vena1;
         $tolerance->vena2 = $request->tole_vena2;
         $tolerance->simetria = $request->tole_simetria;

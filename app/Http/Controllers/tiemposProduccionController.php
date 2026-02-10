@@ -112,7 +112,17 @@ class tiemposProduccionController extends Controller
             // };
             case "Corona":
                 return match ($class->tamanio) {
-                    'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Soldadura' => 30, 'Soldadura PTA' => 15],
+                    'Chico', 'Mediano', 'Grande' => [
+                        'Cepillado' => 35,
+                        'Desbaste Exterior' => 26,
+                        'Primera Operacion' => 24,
+                        'Segunda Operacion' => 24,
+                        'Soldadura' => 30,
+                        'Soldadura PTA' => 15,
+                        'Rectificado' => 12,
+                        'Asentado' => 20,
+                        'Calificado' => 22
+                    ],
                     default => null,
                 };
             default:
@@ -231,7 +241,7 @@ class tiemposProduccionController extends Controller
                 return array("operacionEquipo", "soldadura", "soldaduraPTA");
                 break;
             case "Corona":
-                return array("cepillado", "desbaste_exterior");
+                return array("cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado");
             case "Plato":
                 return array("operacionEquipo", "barreno_profundidad", "soldaduraPTA");
             case "Embudo":

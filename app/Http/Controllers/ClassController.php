@@ -107,7 +107,7 @@ class ClassController extends Controller
         //Establecer los tiempos de producción
         $controllerProductionTime = new tiemposProduccionController();
         $controllerProductionTime->setProductionTimes($class);
-        
+
         //Actualizar las metas que tengan relacion con la clase
         $goals = Metas::where('id_clase', $class->id)->get();
         if (count($goals) > 0) {
@@ -179,7 +179,7 @@ class ClassController extends Controller
                 $processNames = array("soldadura", "soldaduraPTA", "operacionEquipo"); //Asigno los procesos.
                 break;
             case "Corona":
-                $processNames = array("cepillado", "desbaste_exterior");
+                $processNames = array("cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado");
                 break;
             case "Plato":
                 $processNames = array("operacionEquipo", "barreno_profundidad");
@@ -260,8 +260,11 @@ class ClassController extends Controller
 
         if (isset($processDates)) {
             //Guardar unicamente la fecha de termino
-            $class->fecha_termino = $processDates->fecha_fin->format('Y-m-d');
-            $class->hora_termino = $processDates->fecha_fin->format('H:i:s');
+            $fechaFin = $processDates->fecha_fin instanceof DateTime
+                ? $processDates->fecha_fin
+                : new DateTime($processDates->fecha_fin);
+            $class->fecha_termino = $fechaFin->format('Y-m-d');
+            $class->hora_termino = $fechaFin->format('H:i:s');
         } else {
             $class->fecha_termino = null;
             $class->hora_termino = null;
@@ -332,7 +335,7 @@ class ClassController extends Controller
                     $piecesProcesses = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                     break;
                 case "Corona":
-                    $piecesProcesses = ["cepillado", "desbaste"];
+                    $piecesProcesses = ["cepillado", "desbaste", "primeraOpeSoldadura", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado"];
                     break;
                 case "Plato":
                     $piecesProcesses = ["operacionEquipo", "barrenoProfundidad", "soldaduraPTA"];
@@ -434,7 +437,7 @@ class ClassController extends Controller
     public function convertMachiningDaysToHours($diasMaq)
     {
         $MachiningTime = $diasMaq * 16;
-        $hrsMach = (int)$MachiningTime;
+        $hrsMach = (int) $MachiningTime;
         $mntsMach = round($MachiningTime - $hrsMach, 2) * 100;
         if ($mntsMach >= 60) {
             $hrsMach++;
@@ -490,7 +493,7 @@ class ClassController extends Controller
                 $procesos = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Corona":
-                $procesos = ["cepillado", "desbaste"];
+                $procesos = ["cepillado", "desbaste", "primeraOpeSoldadura", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado"];
                 break;
             case "Plato":
                 $procesos = ["operacionEquipo", "barreno_profundidad"];

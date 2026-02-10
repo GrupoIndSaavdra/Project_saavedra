@@ -76,7 +76,7 @@ class ProcessProductionController extends Controller
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Corona":
-                $processesInOrder = ["cepillado", "desbaste_exterior"];
+                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
                 break;
             default:
                 $processesInOrder = [];
@@ -1178,7 +1178,7 @@ class ProcessProductionController extends Controller
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Corona":
-                $processesInOrder = ["cepillado", "desbaste_exterior"];
+                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
                 break;
             default:
                 $processesInOrder = [];
