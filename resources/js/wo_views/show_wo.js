@@ -887,6 +887,12 @@ function automateCheckbox(checkbox, machineInput, operationName, markedProcesses
                 if (edit) {
                     machineInput.disabled = false;
                 }
+            } else if (edit) {
+                // Si estamos editando y el proceso no está en markedProcesses,
+                // dejarlo desmarcado pero habilitado para poder agregarlo
+                machineInput.disabled = false;
+                machineInput.style.backgroundColor = "white";
+                machineInput.style.border = "1px solid #000000";
             }
         }
     }
