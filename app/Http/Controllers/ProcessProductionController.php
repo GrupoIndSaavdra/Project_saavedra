@@ -118,6 +118,9 @@ class ProcessProductionController extends Controller
         $edit = $edit != 0 ? $edit : false;
 
         $arrayData = $this->prepareReportData($meta, $class, $edit);
+        if (isset($arrayData['error'])) {
+            return redirect()->route('processProduction')->with('error', $arrayData['error']);
+        }
         $piecesData = $this->get_ArrayPieces($meta->proceso, $class, $meta);
         $pieceToBeUsed = $this->get_pieceToBeUsed($meta->proceso, $piecesData['availableAssemblies'], $meta, $class);
 
@@ -130,6 +133,11 @@ class ProcessProductionController extends Controller
     private function prepareReportData($meta, $class, $edit)
     {
         $workOrder = Orden_trabajo::find($meta->id_ot);
+        if (!$workOrder) {
+            return [
+                'error' => 'Orden de trabajo no encontrada',
+            ];
+        }
         $molding = Moldura::find($workOrder->id_moldura);
 
         $process = $this->getSub_Process($meta->proceso, 0);

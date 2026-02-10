@@ -75,8 +75,10 @@ class ProcessesController extends Controller
                 }
 
                 if (count($classes) > 0) {
+                    if (!$workOrder)
+                        continue;
                     $molding = Moldura::where('id', $workOrder->id_moldura)->first();
-                    $workOrderTxt = $workOrder->id . " - " . $molding->nombre;
+                    $workOrderTxt = $workOrder->id . " - " . ($molding ? $molding->nombre : 'Sin Moldura');
                     $workOrders[$workOrderTxt] = array();
                     foreach ($classes as $class) {
                         $processes = Procesos::where('id_clase', $class->id)->first();

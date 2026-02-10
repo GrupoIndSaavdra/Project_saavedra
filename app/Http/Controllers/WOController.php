@@ -81,6 +81,9 @@ class WOController extends Controller
     public function show($workOrder)
     {
         $workOrder = Orden_trabajo::find($workOrder);
+        if (!$workOrder) {
+            return redirect()->route('manageWO')->with('error', 'Orden de trabajo no encontrada.');
+        }
         $molding = Moldura::find($workOrder->id_moldura);
 
         //Se obtienen las clases de la Orden de trabajo
@@ -112,6 +115,9 @@ class WOController extends Controller
     public function generatePDF($idWOrder)
     {
         $workOrder = Orden_trabajo::find($idWOrder);
+        if (!$workOrder) {
+            return redirect()->route('manageWO')->with('error', 'Orden de trabajo no encontrada.');
+        }
         $molding = Moldura::find($workOrder->id_moldura);
 
         $classes = $this->classController->getClasses($workOrder);
