@@ -30,16 +30,39 @@ class ClassController extends Controller
         if ($classes != null) {
             $processes = [];
             foreach ($classes as $class) {
+                // Determinar los procesos disponibles según el tipo de clase
+                $availableProcesses = [];
+                switch ($class->nombre) {
+                    case "Bombillo":
+                    case "Molde":
+                        $availableProcesses = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                        break;
+                    case "Obturador":
+                    case "Fondo":
+                        $availableProcesses = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                        break;
+                    case "Corona":
+                        $availableProcesses = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
+                        break;
+                    case "Plato":
+                        $availableProcesses = ["operacionEquipo", "barreno_profundidad"];
+                        break;
+                    case "Embudo":
+                        $availableProcesses = ["operacionEquipo", "embudoCM"];
+                        break;
+                }
+
+                // Obtener los procesos guardados en la base de datos
                 $process = Procesos::where('id_clase', $class->id)->first();
-                if ($process) {
-                    // Obtener los campos donde el valor es igual a 1
-                    foreach ($process->getAttributes() as $campo => $valor) { //Se recorren los campos del registro.
-                        if ($campo != "id" && $campo != "id_clase") {
-                            if ($valor != 0) {
-                                $processes[$class->id][$campo] = $valor;
-                            }
-                        }
+
+                // Retornar todos los procesos disponibles con sus valores actuales
+                // Si el proceso existe en la BD, usar su valor; si no, usar 0
+                foreach ($availableProcesses as $processName) {
+                    if ($process && isset($process->$processName) && $process->$processName != 0) {
+                        $processes[$class->id][$processName] = $process->$processName;
                     }
+                    // No incluir procesos con valor 0 para mantener compatibilidad con el frontend
+                    // El frontend mostrará todos los procesos disponibles basándose en el nombre de la clase
                 }
             }
             return $processes;
