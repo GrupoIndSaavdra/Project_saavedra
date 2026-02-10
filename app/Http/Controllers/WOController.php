@@ -226,14 +226,23 @@ class WOController extends Controller
     {
         //Obtener las ordenes de trabajo que aun siguen en progreso, es decir, que tienen clases que no han sido finalizadas.
         $wOInProgress = array();
-        $workOrders = Orden_trabajo::all();
+
+        // ========== OPTIMIZACIÓN: Eager Loading para evitar N+1 queries ==========
+        // Cargar work orders con sus clases no finalizadas y procesos en una sola consulta
+        $workOrders = Orden_trabajo::with(['moldura'])->get();
+
         foreach ($workOrders as $workOrder) {
             //Obtener las clases que pertenecen a la orden de trabajo y que no han sido finalizadas.
-            $classes = Clase::where('id_ot', $workOrder->id)->where('finalizada', 0)->get();
+            // Eager load de procesos para evitar consultas adicionales
+            $classes = Clase::where('id_ot', $workOrder->id)
+                ->where('finalizada', 0)
+                ->with(['procesos'])
+                ->get();
+
             if (count($classes) > 0) {
                 foreach ($classes as $index => $class) {
                     //Verificar si ya se asignaron procesos a la clase
-                    $process = Procesos::where('id_clase', $class->id)->first();
+                    $process = $class->procesos->first();
                     if ($process) {
                         if ($index == 0) {
                             $wOInProgress[$workOrder->id] = array();
@@ -289,24 +298,61 @@ class WOController extends Controller
                 foreach ($datosUI['linea_tiempo_procesos'] as $proceso) {
                     $processName = $proceso['nombre'];
 
+                    // ========== VALIDACIÓN: Prevenir división por cero ==========
+                    $duracionHoras = $proceso['duracion_horas'] ?? 0;
+                    $utilizacion = (int) str_replace('%', '', $proceso['utilizacion'] ?? '0');
+
+                    // Validar que duracion_horas no sea cero antes de usarlo en cálculos
+                    if ($duracionHoras <= 0) {
+                        $duracionHoras = 0;
+                    }
+
                     $timeDataByProcess[$processName] = [
                         'hora_inicio' => isset($proceso['hora_inicio']) ? \Carbon\Carbon::parse($proceso['hora_inicio'])->format('H:i') : 'N/A',
                         'hora_fin' => isset($proceso['hora_fin']) ? \Carbon\Carbon::parse($proceso['hora_fin'])->format('H:i') : 'N/A',
-                        'duracion_horas' => $proceso['duracion_horas'] ?? 0,
-                        'utilizacion' => (int) str_replace('%', '', $proceso['utilizacion'] ?? '0'),
+                        'duracion_horas' => $duracionHoras,
+                        'utilizacion' => $utilizacion,
                         'tiempo_muerto_horas' => $proceso['tiempo_muerto_horas'] ?? 0,
                         'es_cuello_botella' => $proceso['es_cuello_botella'] ?? false,
-                        'tasa_produccion' => isset($datosUI['indicadores_clave']['ritmo_sistema']) ? $datosUI['indicadores_clave']['ritmo_sistema'] : 'N/A'
+                        'tasa_produccion' => isset($datosUI['indicadores_clave']['ritmo_sistema']) ? $datosUI['indicadores_clave']['ritmo_sistema'] : 'N/A',
+                        'tendencia' => null // Preparado para futuras mejoras de tendencia
                     ];
                 }
             }
 
-            // Si también hay datos de estado por proceso, agregar tasa específica
+            // Si también hay datos de estado por proceso, agregar tasa específica y tendencia
             if (isset($datosUI['estado_por_proceso'])) {
                 foreach ($datosUI['estado_por_proceso'] as $proceso) {
                     $processName = $proceso['nombre'];
                     if (isset($timeDataByProcess[$processName])) {
-                        $timeDataByProcess[$processName]['tasa_produccion'] = $proceso['tasa_produccion'] ?? $timeDataByProcess[$processName]['tasa_produccion'];
+                        $tasaActual = $proceso['tasa_produccion'] ?? $timeDataByProcess[$processName]['tasa_produccion'];
+                        $timeDataByProcess[$processName]['tasa_produccion'] = $tasaActual;
+
+                        // ========== CÁLCULO DE TENDENCIA ==========
+                        // Extraer tasa esperada o histórica si está disponible
+                        if (isset($proceso['tasa_esperada']) && $tasaActual !== 'N/A') {
+                            $tasaEsperada = $proceso['tasa_esperada'];
+                            // Extraer valores numéricos de las tasas
+                            preg_match('/([0-9.]+)/', $tasaActual, $matchesActual);
+                            preg_match('/([0-9.]+)/', $tasaEsperada, $matchesEsperada);
+
+                            if (!empty($matchesActual) && !empty($matchesEsperada)) {
+                                $valorActual = floatval($matchesActual[1]);
+                                $valorEsperado = floatval($matchesEsperada[1]);
+
+                                // Evitar división por cero
+                                if ($valorEsperado > 0) {
+                                    $diferencia = $valorActual - $valorEsperado;
+                                    $porcentajeCambio = (($diferencia / $valorEsperado) * 100);
+
+                                    $timeDataByProcess[$processName]['tendencia'] = [
+                                        'cambio' => $diferencia,
+                                        'porcentaje' => round($porcentajeCambio, 1),
+                                        'direccion' => $diferencia > 0 ? 'up' : ($diferencia < 0 ? 'down' : 'stable')
+                                    ];
+                                }
+                            }
+                        }
                     }
                 }
             }

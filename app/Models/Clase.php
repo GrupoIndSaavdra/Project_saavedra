@@ -18,4 +18,10 @@ class Clase extends Model
         'finalizada',
     ];
     public $timestamps = false;
+
+    // Relación con Procesos para eager loading
+    public function procesos()
+    {
+        return $this->hasMany(Procesos::class, 'id_clase');
+    }
 }

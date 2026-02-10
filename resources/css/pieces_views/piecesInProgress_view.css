@@ -257,10 +257,29 @@ header {
     margin-top: 5px;
 }
 
+/* ========== ANIMACIÓN SUAVE PARA BARRA DE UTILIZACIÓN ========== */
 .time-utilization-bar {
     height: 100%;
-    transition: width 0.3s ease;
+    transition: width 0.8s ease-out, background-color 0.3s ease;
     border-radius: 4px;
+}
+
+/* ========== ANIMACIÓN DE PULSO PARA CUELLO DE BOTELLA ========== */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    50% {
+        transform: scale(1.03);
+        box-shadow: 0 4px 8px rgba(255, 87, 34, 0.6);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
 }
 
 .bottleneck-indicator {
@@ -273,7 +292,9 @@ header {
     font-weight: bold;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    animation: pulse 2s infinite;
 }
+
 
 .opacity-div {
     position: fixed;
