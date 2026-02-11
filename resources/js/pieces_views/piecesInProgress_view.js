@@ -36,10 +36,10 @@ class Dashboard {
                 let section = document.createElement("section");
                 section.className = "section";
                 let className = Object.keys(workOrder["classes"])[indexClass];
-                let headerSection = this.generateHeaderofWorkOrder( wOrderName, workOrder["molding"], className, classArray);
+                let headerSection = this.generateHeaderofWorkOrder(wOrderName, workOrder["molding"], className, classArray);
                 let processesSection = document.createElement("div");
                 processesSection.className = "processes-section";
-            
+
                 Object.values(classArray["processes"]).forEach((processesArray, indexProcess) => {
                     let processName = Object.keys(classArray["processes"])[indexProcess]
                     let previousProcess = classArray["processes"][Object.keys(classArray["processes"])[indexProcess - 1]];
@@ -105,6 +105,9 @@ class Dashboard {
 
     getCompletedPieces(classArray) {
         //Obtener las piezas del ultimo proceso de la clase
+        if (!classArray["processes"] || Object.keys(classArray["processes"]).length === 0) {
+            return 0;
+        }
         let completedPieces;
         let lastProcess = Object.keys(classArray["processes"])[Object.keys(classArray["processes"]).length - 1];
         if (lastProcess == "Soldadura PTA" || lastProcess == "Soldadura") {
@@ -236,13 +239,13 @@ class Dashboard {
                 let pieceData =
                     processName == "Operacion Equipo"
                         ? [
-                              piece["piece"],
-                              piece["setNumber"],
-                              piece["operator"],
-                              piece["process"],
-                              piece["operation"],
-                              piece["error"],
-                          ]
+                            piece["piece"],
+                            piece["setNumber"],
+                            piece["operator"],
+                            piece["process"],
+                            piece["operation"],
+                            piece["error"],
+                        ]
                         : [piece["piece"], piece["setNumber"], piece["operator"], piece["process"], piece["error"]];
                 pieceData.forEach((data) => {
                     let td = document.createElement("td");
