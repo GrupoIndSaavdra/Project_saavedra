@@ -80,9 +80,6 @@ class WOController extends Controller
     public function show($workOrder)
     {
         $workOrder = Orden_trabajo::find($workOrder);
-        if (!$workOrder) {
-            return redirect()->route('manageWO')->with('error', 'Orden de trabajo no encontrada.');
-        }
         $molding = Moldura::find($workOrder->id_moldura);
 
         //Se obtienen las clases de la Orden de trabajo
@@ -114,9 +111,6 @@ class WOController extends Controller
     public function generatePDF($idWOrder)
     {
         $workOrder = Orden_trabajo::find($idWOrder);
-        if (!$workOrder) {
-            return redirect()->route('manageWO')->with('error', 'Orden de trabajo no encontrada.');
-        }
         $molding = Moldura::find($workOrder->id_moldura);
 
         $classes = $this->classController->getClasses($workOrder);
@@ -231,16 +225,13 @@ class WOController extends Controller
         //Obtener las ordenes de trabajo que aun siguen en progreso, es decir, que tienen clases que no han sido finalizadas.
         $wOInProgress = array();
         $workOrders = Orden_trabajo::all();
-
         foreach ($workOrders as $workOrder) {
             //Obtener las clases que pertenecen a la orden de trabajo y que no han sido finalizadas.
             $classes = Clase::where('id_ot', $workOrder->id)->where('finalizada', 0)->get();
-
             if (count($classes) > 0) {
                 foreach ($classes as $index => $class) {
                     //Verificar si ya se asignaron procesos a la clase
                     $process = Procesos::where('id_clase', $class->id)->first();
-
                     if ($process) {
                         if ($index == 0) {
                             $wOInProgress[$workOrder->id] = array();
@@ -253,11 +244,9 @@ class WOController extends Controller
                 }
             }
         }
-
         [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
         return view('pieces_views.piecesInProgress_view', compact('wOInProgress', 'pieces_Released', 'info_Pieces'));
     }
-
     public function getStringDate($date, $time)
     {
         $formattedDate = new DateTime($date);
@@ -514,7 +503,7 @@ class WOController extends Controller
         //Obtener el numero de juego
         preg_match('/^\d+/', $piece->n_pieza, $n_juego);
         $array["setNumber"] = $n_juego[0] . "J";
-        $array["operator"] = $operador->nombre . " " . $operador->a_paterno . " " . $operador->a_materno;
+        $array["operator"] = $operador->nombre . " " . $operador->a_paterno . " "  . $operador->a_materno;
         $array["process"] = $piece->proceso;
         $array["operation"] = $operation;
         $array["error"] = $rechazada ? $rechazada : $piece->error; //Si la pieza no tiene ningun error pero esta rechazada

@@ -36,22 +36,15 @@ class Dashboard {
                 let section = document.createElement("section");
                 section.className = "section";
                 let className = Object.keys(workOrder["classes"])[indexClass];
-                let headerSection = this.generateHeaderofWorkOrder(wOrderName, workOrder["molding"], className, classArray);
+                let headerSection = this.generateHeaderofWorkOrder( wOrderName, workOrder["molding"], className, classArray);
                 let processesSection = document.createElement("div");
                 processesSection.className = "processes-section";
-
+            
                 Object.values(classArray["processes"]).forEach((processesArray, indexProcess) => {
                     let processName = Object.keys(classArray["processes"])[indexProcess]
                     let previousProcess = classArray["processes"][Object.keys(classArray["processes"])[indexProcess - 1]];
                     let limitPieces = previousProcess ? previousProcess["pieces"]["good"] : classArray["pieces"];
-
-                    // Obtener datos de tiempo para este proceso si existen
-                    let timeData = null;
-                    if (classArray["time_data"] && classArray["time_data"][processName]) {
-                        timeData = classArray["time_data"][processName];
-                    }
-
-                    processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces, classArray["pieces"], timeData));
+                    processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces, classArray["pieces"]));
                 });
                 section.appendChild(headerSection);
                 section.appendChild(processesSection);
@@ -132,7 +125,7 @@ class Dashboard {
         }
         return completedPieces;
     }
-    generateProcessSection(processesArray, processName, limitPieces, pedido, timeData = null) {
+    generateProcessSection(processesArray, processName, limitPieces, pedido) {
         let processSection = document.createElement("div");
         processSection.className = "process-section";
 
@@ -166,13 +159,12 @@ class Dashboard {
             processSection.appendChild(progressBar);
         }
 
-        //Agregar evento al div de progreso para mostrar piezas malas
+        //Agregar evento al div de progreso
         processSection.addEventListener("click", () => {
             this.generateDivBadPieces(processName, processesArray["piecesBadData"]);
         });
         return processSection;
     }
-
     generateDivBadPieces(processName, badPieces) {
         //Creacion del div de opacidad de fondo
         let div = document.createElement("div");
@@ -244,13 +236,13 @@ class Dashboard {
                 let pieceData =
                     processName == "Operacion Equipo"
                         ? [
-                            piece["piece"],
-                            piece["setNumber"],
-                            piece["operator"],
-                            piece["process"],
-                            piece["operation"],
-                            piece["error"],
-                        ]
+                              piece["piece"],
+                              piece["setNumber"],
+                              piece["operator"],
+                              piece["process"],
+                              piece["operation"],
+                              piece["error"],
+                          ]
                         : [piece["piece"], piece["setNumber"], piece["operator"], piece["process"], piece["error"]];
                 pieceData.forEach((data) => {
                     let td = document.createElement("td");
@@ -321,8 +313,7 @@ if (Object.keys(wOrderArray).length > 0) {
             }
         }, 200);
     });
-}
-else {
+} else {
     let body = document.querySelector("body");
     let noDataMessage = document.createElement("h2");
     noDataMessage.className = "no-data-message";

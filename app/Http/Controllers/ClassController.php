@@ -30,39 +30,16 @@ class ClassController extends Controller
         if ($classes != null) {
             $processes = [];
             foreach ($classes as $class) {
-                // Determinar los procesos disponibles según el tipo de clase
-                $availableProcesses = [];
-                switch ($class->nombre) {
-                    case "Bombillo":
-                    case "Molde":
-                        $availableProcesses = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
-                        break;
-                    case "Obturador":
-                    case "Fondo":
-                        $availableProcesses = ["operacionEquipo", "soldadura", "soldaduraPTA"];
-                        break;
-                    case "Corona":
-                        $availableProcesses = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
-                        break;
-                    case "Plato":
-                        $availableProcesses = ["operacionEquipo", "barreno_profundidad"];
-                        break;
-                    case "Embudo":
-                        $availableProcesses = ["operacionEquipo", "embudoCM"];
-                        break;
-                }
-
-                // Obtener los procesos guardados en la base de datos
                 $process = Procesos::where('id_clase', $class->id)->first();
-
-                // Retornar todos los procesos disponibles con sus valores actuales
-                // Si el proceso existe en la BD, usar su valor; si no, usar 0
-                foreach ($availableProcesses as $processName) {
-                    if ($process && isset($process->$processName) && $process->$processName != 0) {
-                        $processes[$class->id][$processName] = $process->$processName;
+                if ($process) {
+                    // Obtener los campos donde el valor es igual a 1
+                    foreach ($process->getAttributes() as $campo => $valor) { //Se recorren los campos del registro.
+                        if ($campo != "id" && $campo != "id_clase") {
+                            if ($valor != 0) {
+                                $processes[$class->id][$campo] = $valor;
+                            }
+                        }
                     }
-                    // No incluir procesos con valor 0 para mantener compatibilidad con el frontend
-                    // El frontend mostrará todos los procesos disponibles basándose en el nombre de la clase
                 }
             }
             return $processes;
@@ -130,7 +107,7 @@ class ClassController extends Controller
         //Establecer los tiempos de producción
         $controllerProductionTime = new tiemposProduccionController();
         $controllerProductionTime->setProductionTimes($class);
-
+        
         //Actualizar las metas que tengan relacion con la clase
         $goals = Metas::where('id_clase', $class->id)->get();
         if (count($goals) > 0) {
@@ -202,7 +179,7 @@ class ClassController extends Controller
                 $processNames = array("soldadura", "soldaduraPTA", "operacionEquipo"); //Asigno los procesos.
                 break;
             case "Corona":
-                $processNames = array("cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado");
+                $processNames = array("cepillado", "desbaste_exterior");
                 break;
             case "Plato":
                 $processNames = array("operacionEquipo", "barreno_profundidad");
@@ -283,11 +260,8 @@ class ClassController extends Controller
 
         if (isset($processDates)) {
             //Guardar unicamente la fecha de termino
-            $fechaFin = $processDates->fecha_fin instanceof DateTime
-                ? $processDates->fecha_fin
-                : new DateTime($processDates->fecha_fin);
-            $class->fecha_termino = $fechaFin->format('Y-m-d');
-            $class->hora_termino = $fechaFin->format('H:i:s');
+            $class->fecha_termino = $processDates->fecha_fin->format('Y-m-d');
+            $class->hora_termino = $processDates->fecha_fin->format('H:i:s');
         } else {
             $class->fecha_termino = null;
             $class->hora_termino = null;
@@ -358,7 +332,7 @@ class ClassController extends Controller
                     $piecesProcesses = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                     break;
                 case "Corona":
-                    $piecesProcesses = ["cepillado", "desbaste", "primeraOpeSoldadura", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado"];
+                    $piecesProcesses = ["cepillado", "desbaste"];
                     break;
                 case "Plato":
                     $piecesProcesses = ["operacionEquipo", "barrenoProfundidad", "soldaduraPTA"];
@@ -460,7 +434,7 @@ class ClassController extends Controller
     public function convertMachiningDaysToHours($diasMaq)
     {
         $MachiningTime = $diasMaq * 16;
-        $hrsMach = (int) $MachiningTime;
+        $hrsMach = (int)$MachiningTime;
         $mntsMach = round($MachiningTime - $hrsMach, 2) * 100;
         if ($mntsMach >= 60) {
             $hrsMach++;
@@ -516,7 +490,7 @@ class ClassController extends Controller
                 $procesos = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Corona":
-                $procesos = ["cepillado", "desbaste", "primeraOpeSoldadura", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado"];
+                $procesos = ["cepillado", "desbaste"];
                 break;
             case "Plato":
                 $procesos = ["operacionEquipo", "barreno_profundidad"];

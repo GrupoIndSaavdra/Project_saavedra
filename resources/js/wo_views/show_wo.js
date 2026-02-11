@@ -352,7 +352,7 @@ function createTableClasses(classes) {
         for (let field in classArray) {
             //Se recorren los campos de cada clase
             switch (
-            field //Switch para insertar los campos correspondientes en la tabla
+                field //Switch para insertar los campos correspondientes en la tabla
             ) {
                 case "nombre":
                 case "tamanio":
@@ -703,28 +703,8 @@ function get_operationsArray(className) {
             operationsArray = ["operacionEquipo", "soldadura", "soldaduraPTA"];
             break;
         case "Corona":
-            operations = [
-                "Cepillado",
-                "Desbaste exterior",
-                "1ra Operación",
-                "2da Operación",
-                "Soldadura",
-                "Soldadura PTA",
-                "Rectificado",
-                "Asentado",
-                "Calificado"
-            ];
-            operationsArray = [
-                "cepillado",
-                "desbaste_exterior",
-                "pOperacion",
-                "sOperacion",
-                "soldadura",
-                "soldaduraPTA",
-                "rectificado",
-                "asentado",
-                "calificado"
-            ];
+            operations = ["Cepillado", "Desbaste exterior"];
+            operationsArray = ["cepillado", "desbaste_exterior"];
             break;
         case "Plato":
             operations = ["1ra y 2da Operación Equipo", "Barreno de Profundidad"];
@@ -887,12 +867,6 @@ function automateCheckbox(checkbox, machineInput, operationName, markedProcesses
                 if (edit) {
                     machineInput.disabled = false;
                 }
-            } else if (edit) {
-                // Si estamos editando y el proceso no está en markedProcesses,
-                // dejarlo desmarcado pero habilitado para poder agregarlo
-                machineInput.disabled = false;
-                machineInput.style.backgroundColor = "white";
-                machineInput.style.border = "1px solid #000000";
             }
         }
     }

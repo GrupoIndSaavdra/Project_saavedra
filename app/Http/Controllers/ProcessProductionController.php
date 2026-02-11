@@ -76,7 +76,7 @@ class ProcessProductionController extends Controller
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Corona":
-                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
+                $processesInOrder = ["cepillado", "desbaste_exterior"];
                 break;
             default:
                 $processesInOrder = [];
@@ -118,9 +118,6 @@ class ProcessProductionController extends Controller
         $edit = $edit != 0 ? $edit : false;
 
         $arrayData = $this->prepareReportData($meta, $class, $edit);
-        if (isset($arrayData['error'])) {
-            return redirect()->route('processProduction')->with('error', $arrayData['error']);
-        }
         $piecesData = $this->get_ArrayPieces($meta->proceso, $class, $meta);
         $pieceToBeUsed = $this->get_pieceToBeUsed($meta->proceso, $piecesData['availableAssemblies'], $meta, $class);
 
@@ -133,11 +130,6 @@ class ProcessProductionController extends Controller
     private function prepareReportData($meta, $class, $edit)
     {
         $workOrder = Orden_trabajo::find($meta->id_ot);
-        if (!$workOrder) {
-            return [
-                'error' => 'Orden de trabajo no encontrada',
-            ];
-        }
         $molding = Moldura::find($workOrder->id_moldura);
 
         $process = $this->getSub_Process($meta->proceso, 0);
@@ -339,7 +331,7 @@ class ProcessProductionController extends Controller
         if ($passwordEntered) {
             $users = User::all();
             foreach ($users as $user) {
-                if ($user->perfil == 1 || $user->perfil == 4 || $user->perfil == 3) { // Verificar si el usuario es admin o calidad o superadmin
+                if ($user->perfil == 1 || $user->perfil == 4) { // Verificar si el usuario es admin o calidad o superadmin
                     if (Hash::check($passwordEntered, $user->contrasena)) {
                         return true; // Contraseña correcta
                     }
@@ -1186,7 +1178,7 @@ class ProcessProductionController extends Controller
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Corona":
-                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
+                $processesInOrder = ["cepillado", "desbaste_exterior"];
                 break;
             default:
                 $processesInOrder = [];
@@ -1763,9 +1755,9 @@ class ProcessProductionController extends Controller
         if ($passwordEntered) {
             $users = User::all();
             foreach ($users as $user) {
-                if ($user->perfil == 4 || $user->perfil == 1 || $user->perfil == 3) { // Permitir calidad (4), admin (1) y master (3)
+                if ($user->perfil == 4) { // Solo verificar usuarios de calidad
                     if (Hash::check($passwordEntered, $user->contrasena)) {
-                        return $user; // Retornar el usuario de calidad/admin/master
+                        return $user; // Retornar el usuario de calidad
                     }
                 }
             }
@@ -1935,9 +1927,9 @@ class ProcessProductionController extends Controller
                 }
                 // Si no hay M correspondiente, ignorar la pieza H (no se agrega)
             } else {
-                // No es una pieza M o H, podría ser un juego completo (NJ) o una pieza individual
+                // No es una pieza M o H, podría ser un juego completo (NJ)
                 // En este caso, agregarlo como está
-                if (isset($piece['id'])) {
+                if ($piece['id']) {
                     $completeSets[] = [
                         'displayName' => $pieceNumber,
                         'isSet' => false,

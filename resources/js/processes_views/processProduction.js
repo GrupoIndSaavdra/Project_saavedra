@@ -876,12 +876,7 @@ function verifyQualityPasswordAjax(form) {
         },
         body: formData
     })
-        .then(response => {
-            if (!response.ok) {
-                return response.text().then(text => { throw new Error(text) })
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
             if (data.success) {
                 // Cerrar el formulario de contraseña
@@ -905,20 +900,15 @@ function verifyQualityPasswordAjax(form) {
                     div_opacity.remove();
                 }
 
-                if (data.pieces) {
-                    // Mostrar el modal de liberación de piezas
-                    showQualityReleaseModal(data.pieces, data.qualityUser);
-                } else {
-                    console.error("Error: No se recibieron piezas para liberar.");
-                    alert("Error: No se pudieron cargar las piezas. Intente de nuevo.");
-                }
+                // Mostrar el modal de liberación de piezas
+                showQualityReleaseModal(data.pieces, data.qualityUser);
             } else {
                 alert(data.message || "Contraseña incorrecta");
             }
         })
         .catch(error => {
-            console.error("Error en petición de verificación:", error);
-            alert("Ocurrió un error al verificar la contraseña. Revise la consola para más detalles.");
+            console.error("Error:", error);
+            alert("Error al verificar la contraseña. Intente de nuevo.");
         });
 }
 

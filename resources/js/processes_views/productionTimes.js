@@ -2,10 +2,10 @@
 //     inicializarVariables();
 // });
 document.addEventListener("DOMContentLoaded", function () {
-    if (workOrders.length !== 0) {
+    if (workOrders.length !== 0){
         insertSelects(workOrders);
         let selectClass = document.querySelector(".class");
-    } else {
+    }else {
         let div = document.querySelector(".search");
         let label = document.createElement("label");
         label.className = "form-label";
@@ -105,13 +105,13 @@ function inicializarVariables(select) {
     if (select.value != 0) {
         switch (select.value) {
             case "Bombillo":
-                procesos = ["Cepillado", "Desbaste-exterior", "Laterales", "1ra-Operación", "Barreno-Maniobra", "2da-Operación", "Soldadura", "Soldadura-PTA", "Rectificado", "Asentado", "Calificado", "Acabado-Bombillo", "Barreno-Profundidad", "Cavidades", "Copiado", "OffSet", "Palomas", "Rebajes"];
+            procesos = ["Cepillado","Desbaste-exterior","Laterales","1ra-Operación","Barreno-Maniobra","2da-Operación","Soldadura","Soldadura-PTA","Rectificado","Asentado","Calificado","Acabado-Bombillo","Barreno-Profundidad","Cavidades","Copiado","OffSet","Palomas","Rebajes"];
 
-                procesosDB = ["cepillado", "desbaste", "revLaterales", "primeraOpeSoldadura", "barrenoManiobra", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoBombillo", "barrenoProfundidad", "cavidades", "copiado", "offset", "palomas", "rebajes"];
+            procesosDB = ["cepillado","desbaste","revLaterales","primeraOpeSoldadura","barrenoManiobra","segundaOpeSoldadura","soldadura","soldaduraPTA","rectificado","asentado","revCalificado","acabadoBombillo","barrenoProfundidad","cavidades","copiado","offset","palomas","rebajes"];
                 break;
             case "Molde":
-                procesos = ["Cepillado", "Desbaste-exterior", "Laterales", "1ra-Operación", "Barreno-Maniobra", "2da-Operación", "Soldadura", "Soldadura-PTA", "Rectificado", "Asentado", "Calificado", "Acabado-Molde", "Barreno-Profundidad", "Cavidades", "Copiado", "OffSet", "Palomas", "Rebajes"];
-                procesosDB = ["cepillado", "desbaste", "revLaterales", "primeraOpeSoldadura", "barrenoManiobra", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoMolde", "barrenoProfundidad", "cavidades", "copiado", "offset", "palomas", "rebajes"];
+            procesos = ["Cepillado","Desbaste-exterior","Laterales","1ra-Operación","Barreno-Maniobra","2da-Operación","Soldadura","Soldadura-PTA","Rectificado","Asentado","Calificado","Acabado-Molde","Barreno-Profundidad","Cavidades","Copiado","OffSet","Palomas","Rebajes"];
+            procesosDB = ["cepillado","desbaste","revLaterales","primeraOpeSoldadura","barrenoManiobra","segundaOpeSoldadura","soldadura","soldaduraPTA","rectificado","asentado","revCalificado","acabadoMolde","barrenoProfundidad","cavidades","copiado","offset","palomas","rebajes"];
                 break;
             case "Obturador":
             case "Fondo":
@@ -119,8 +119,8 @@ function inicializarVariables(select) {
                 procesosDB = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Corona":
-                procesos = ["Cepillado", "Desbaste-exterior", "1ra-Operación", "2da-Operación", "Soldadura", "Soldadura-PTA", "Rectificado", "Asentado", "Calificado"];
-                procesosDB = ["cepillado", "desbaste", "primeraOpeSoldadura", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado"];
+                procesos = ["Cepillado", "Desbaste-exterior"];
+                procesosDB = ["cepillado", "desbaste"];
                 break;
             case "Plato":
                 procesos = ["Operacion-Equipo", "Barreno-Profundidad"];
@@ -133,13 +133,13 @@ function inicializarVariables(select) {
             default:
                 break;
         }
-        crearTabla(procesos, procesosDB, encabezados, tabla, boton, workOrders[document.querySelector(".workOrder").value][select.value], select.value, form);
+        crearTabla( procesos, procesosDB, encabezados, tabla, boton, workOrders[document.querySelector(".workOrder").value][select.value], select.value, form);
     } else {
         eliminarTabla(tabla, boton);
     }
 }
 //prettier-ignore
-function crearTabla(procesos, procesosDB, encabezados, tabla, boton, workOrders, clase, form) {
+function crearTabla( procesos, procesosDB, encabezados, tabla, boton, workOrders, clase, form) {
     eliminarTabla(tabla, boton);
     let div_table = document.createElement("div");
     div_table.className = "div-table";
@@ -164,7 +164,7 @@ function crearTabla(procesos, procesosDB, encabezados, tabla, boton, workOrders,
     table.appendChild(encabezadosT);
 
     //Crear filas
-    if (procesos.length > 0) {
+    if(procesos.length > 0) {
         for (let proceso in procesos) {
             let contador = 1;
             let fila = document.createElement("tr");
@@ -178,7 +178,7 @@ function crearTabla(procesos, procesosDB, encabezados, tabla, boton, workOrders,
                     let input = document.createElement("input");
                     input.type = "number";
                     input.className = "celdas";
-
+    
                     //Mandar la seleccion del select a la ruta para identificar la clase
                     input.name = `${procesosDB[proceso]}`;
                     let valorInput = 0;
@@ -198,7 +198,7 @@ function crearTabla(procesos, procesosDB, encabezados, tabla, boton, workOrders,
         }
         div_table.appendChild(table);
         div_table.appendChild(btn);
-    } else {
+    }else{
         let label = document.createElement("label");
         label.innerHTML = "No hay tiempos de produccion definidos para esta clase.";
         div_table.appendChild(label);
