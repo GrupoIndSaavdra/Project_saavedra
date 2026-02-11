@@ -243,8 +243,8 @@ class tiemposProduccionController extends Controller
 
         //Guardar unicamente la fecha de termino
         $clase = Clase::find($clase[0]->id);
-        $clase->fecha_termino = Carbon::parse($procesoFechas->fecha_fin)->format('Y-m-d');
-        $clase->hora_termino = Carbon::parse($procesoFechas->fecha_fin)->format('H:i:s');
+        $clase->fecha_termino = $procesoFechas->fecha_fin->format('Y-m-d');
+        $clase->hora_termino = $procesoFechas->fecha_fin->format('H:i:s');
         // echo $clase->nombre;
         // echo $clase->fecha_termino;
         // echo $clase->hora_termino;
