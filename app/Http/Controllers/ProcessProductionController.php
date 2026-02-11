@@ -1935,9 +1935,9 @@ class ProcessProductionController extends Controller
                 }
                 // Si no hay M correspondiente, ignorar la pieza H (no se agrega)
             } else {
-                // No es una pieza M o H, podría ser un juego completo (NJ)
+                // No es una pieza M o H, podría ser un juego completo (NJ) o una pieza individual
                 // En este caso, agregarlo como está
-                if ($piece['id']) {
+                if (isset($piece['id'])) {
                     $completeSets[] = [
                         'displayName' => $pieceNumber,
                         'isSet' => false,
