@@ -1753,12 +1753,10 @@ class ProcessProductionController extends Controller
     public function validatePasswordQuality($passwordEntered)
     {
         if ($passwordEntered) {
-            $users = User::all();
+            $users = User::where('perfil', 4)->get();
             foreach ($users as $user) {
-                if ($user->perfil == 4) { // Solo verificar usuarios de calidad
-                    if (Hash::check($passwordEntered, $user->contrasena)) {
-                        return $user; // Retornar el usuario de calidad
-                    }
+                if (Hash::check($passwordEntered, $user->contrasena)) {
+                    return $user; // Retornar el usuario de calidad
                 }
             }
         }
@@ -1852,7 +1850,7 @@ class ProcessProductionController extends Controller
         return response()->json([
             'success' => false,
             'message' => 'Contraseña incorrecta. Solo personal de calidad puede acceder.'
-        ], 401);
+        ], 200);
     }
 
     /**
