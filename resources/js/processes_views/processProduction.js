@@ -928,9 +928,29 @@ function createInputPasswordQuality() {
 
     // Creación de botón de submit
     let submit = document.createElement("button");
-    submit.type = "submit";
+    submit.type = "button";
     submit.className = "btn-submit-password btn-quality";
     submit.textContent = "Verificar";
+
+    submit.addEventListener("click", function (e) {
+        e.preventDefault();
+        let form = submit.closest("form");
+        if (form) {
+            // Llamar directamente a la función de verificación
+            // ya que el onsubmit no se disparará automáticamente con type="button"
+            if (typeof verifyQualityPasswordAjax === 'function') {
+                verifyQualityPasswordAjax(form);
+            }
+        }
+    });
+
+    inputPassword.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            submit.click();
+        }
+    });
+
     form_group.appendChild(inputPassword);
     form_group.appendChild(submit);
 
