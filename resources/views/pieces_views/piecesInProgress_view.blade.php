@@ -27,12 +27,6 @@
         </div>
     @endif
 
-    {{-- Nota informativa --}}
-    <div
-        style="position: fixed; bottom: 10px; right: 10px; background: rgba(3, 57, 102, 0.9); color: #fff; padding: 10px 15px; border-radius: 8px; font-size: 0.85em; max-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1000;">
-        ℹ️ Los datos de tiempo son estimaciones iniciales, no seguimiento en tiempo real.
-    </div>
-
     {{-- El JavaScript renderizará las secciones de órdenes de trabajo y procesos --}}
     <script>
         window.wOInProgress = @json($wOInProgress);

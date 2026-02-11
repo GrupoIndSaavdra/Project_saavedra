@@ -18,10 +18,4 @@ class Orden_trabajo extends Model
         'hora_inicio',
         'hora_termino',
     ];
-
-    // Relación con Moldura para eager loading
-    public function moldura()
-    {
-        return $this->belongsTo(Moldura::class, 'id_moldura');
-    }
 }

@@ -166,12 +166,6 @@ class Dashboard {
             processSection.appendChild(progressBar);
         }
 
-        // ========== AGREGAR DATOS DE TIEMPO SI EXISTEN ==========
-        if (timeData) {
-            let timeDataSection = this.renderTimeData(timeData);
-            processSection.appendChild(timeDataSection);
-        }
-
         //Agregar evento al div de progreso para mostrar piezas malas
         processSection.addEventListener("click", () => {
             this.generateDivBadPieces(processName, processesArray["piecesBadData"]);
@@ -179,130 +173,6 @@ class Dashboard {
         return processSection;
     }
 
-    /**
-     * Renderizar datos de tiempo de producción dentro de una tarjeta de proceso
-     * @param {Object} timeData - Datos de tiempo del proceso
-     * @returns {HTMLElement} Sección con datos de tiempo formateados
-     */
-    renderTimeData(timeData) {
-        let timeSection = document.createElement("div");
-        timeSection.className = "process-time-data";
-
-        // Separador visual
-        let separator = document.createElement("hr");
-        separator.style.border = "none";
-        separator.style.borderTop = "1px solid rgba(255, 255, 255, 0.2)";
-        separator.style.margin = "10px 0";
-        timeSection.appendChild(separator);
-
-        // Hora inicio → fin (duración)
-        if (timeData.hora_inicio && timeData.hora_fin) {
-            let timelineRow = document.createElement("div");
-            timelineRow.className = "time-info-row";
-            timelineRow.innerHTML = `⏱ ${timeData.hora_inicio} → ${timeData.hora_fin} (${timeData.duracion_horas.toFixed(1)}h)`;
-            timeSection.appendChild(timelineRow);
-        }
-
-        // ========== VALIDACIÓN VISUAL: Utilización con barra o mensaje ==========
-        if (timeData.utilizacion !== undefined) {
-            let utilizacionLabel = document.createElement("div");
-            utilizacionLabel.className = "time-info-row";
-            utilizacionLabel.innerHTML = `📊 Utilización: ${timeData.utilizacion}%`;
-            timeSection.appendChild(utilizacionLabel);
-
-            // Si utilización es 0, mostrar mensaje en lugar de barra vacía
-            if (timeData.utilizacion === 0) {
-                let noDataMessage = document.createElement("div");
-                noDataMessage.className = "time-info-row";
-                noDataMessage.style.marginTop = "5px";
-                noDataMessage.style.padding = "8px";
-                noDataMessage.style.backgroundColor = "rgba(255, 152, 0, 0.2)";
-                noDataMessage.style.borderRadius = "4px";
-                noDataMessage.style.fontSize = "0.85em";
-                noDataMessage.style.fontStyle = "italic";
-                noDataMessage.style.color = "#FFA726";
-                noDataMessage.innerHTML = "⏳ Esperando datos de producción";
-                timeSection.appendChild(noDataMessage);
-            } else {
-                // Barra de utilización (solo si hay datos)
-                let utilizacionBarContainer = document.createElement("div");
-                utilizacionBarContainer.className = "time-utilization-bar-container";
-                utilizacionBarContainer.style.width = "100%";
-                utilizacionBarContainer.style.height = "8px";
-                utilizacionBarContainer.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
-                utilizacionBarContainer.style.borderRadius = "4px";
-                utilizacionBarContainer.style.overflow = "hidden";
-                utilizacionBarContainer.style.marginTop = "5px";
-
-                let utilizacionBar = document.createElement("div");
-                utilizacionBar.className = "time-utilization-bar";
-                // Iniciar en 0 para animar
-                utilizacionBar.style.width = "0%";
-                utilizacionBar.style.height = "100%";
-                utilizacionBar.style.backgroundColor = timeData.utilizacion >= 80 ? "#4CAF50" : timeData.utilizacion >= 50 ? "#FFC107" : "#FF5722";
-                utilizacionBar.style.transition = "width 0.8s ease-out";
-
-                utilizacionBarContainer.appendChild(utilizacionBar);
-                timeSection.appendChild(utilizacionBarContainer);
-
-                // Animar la barra después de un pequeño delay
-                setTimeout(() => {
-                    utilizacionBar.style.width = `${timeData.utilizacion}%`;
-                }, 50);
-            }
-        }
-
-        // ========== TOOLTIP: Tiempos muertos con explicación ==========
-        if (timeData.tiempo_muerto_horas !== undefined && timeData.tiempo_muerto_horas > 0) {
-            let deadTimeRow = document.createElement("div");
-            deadTimeRow.className = "time-info-row";
-            deadTimeRow.innerHTML = `⏸ ${timeData.tiempo_muerto_horas.toFixed(1)}h muertos`;
-            deadTimeRow.style.marginTop = "5px";
-            deadTimeRow.style.cursor = "help";
-            // Agregar tooltip explicativo
-            deadTimeRow.title = "Estimación basada en el flujo de producción actual. No incluye tiempo real de paradas.";
-            timeSection.appendChild(deadTimeRow);
-        }
-
-        // ========== INDICADOR DE TENDENCIA: Tasa de producción con cambios ==========
-        if (timeData.tasa_produccion && timeData.tasa_produccion !== 'N/A') {
-            let rateRow = document.createElement("div");
-            rateRow.className = "time-info-row";
-            rateRow.style.marginTop = "5px";
-
-            // Construir el texto con tendencia si está disponible
-            let rateText = `🚀 ${timeData.tasa_produccion}`;
-
-            if (timeData.tendencia && timeData.tendencia.direccion !== 'stable') {
-                const arrow = timeData.tendencia.direccion === 'up' ? '🔺' : '🔻';
-                const signo = timeData.tendencia.cambio > 0 ? '+' : '';
-                const color = timeData.tendencia.direccion === 'up' ? '#4CAF50' : '#FF5722';
-
-                rateText += ` <span style="color: ${color}; font-weight: bold;">(${arrow}${signo}${timeData.tendencia.cambio.toFixed(1)} pzs/h, ${signo}${timeData.tendencia.porcentaje}%)</span>`;
-            }
-
-            rateRow.innerHTML = rateText;
-            timeSection.appendChild(rateRow);
-        }
-
-        // Badge de cuello de botella con animación de pulso
-        if (timeData.es_cuello_botella) {
-            let bottleneckBadge = document.createElement("div");
-            bottleneckBadge.className = "bottleneck-indicator";
-            bottleneckBadge.innerHTML = "⚠️ Cuello de botella";
-            bottleneckBadge.style.marginTop = "8px";
-            bottleneckBadge.style.padding = "4px 8px";
-            bottleneckBadge.style.backgroundColor = "#FF5722";
-            bottleneckBadge.style.color = "#fff";
-            bottleneckBadge.style.borderRadius = "4px";
-            bottleneckBadge.style.fontSize = "0.85em";
-            bottleneckBadge.style.fontWeight = "bold";
-            bottleneckBadge.style.textAlign = "center";
-            timeSection.appendChild(bottleneckBadge);
-        }
-
-        return timeSection;
-    }
     generateDivBadPieces(processName, badPieces) {
         //Creacion del div de opacidad de fondo
         let div = document.createElement("div");
@@ -438,8 +308,6 @@ if (Object.keys(wOrderArray).length > 0) {
         return closest;
     }
 
-    // Auto-scroll desactivado para evitar comportamiento no deseado
-    /*
     window.addEventListener("scroll", () => {
         if (scrollTimeout) {
             clearTimeout(scrollTimeout);
@@ -453,7 +321,6 @@ if (Object.keys(wOrderArray).length > 0) {
             }
         }, 200);
     });
-    */
 }
 else {
     let body = document.querySelector("body");
