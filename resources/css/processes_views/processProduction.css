@@ -251,11 +251,11 @@ p {
 .div-table-code {
     width: 25%;
     box-sizing: border-box;
-    padding: 20px;
+    padding: 10px;
 }
 
 .operator-name {
-    margin-bottom: 1em;
+    margin-bottom: 0.5em;
     font-weight: 700;
 }
 
@@ -300,14 +300,14 @@ p {
 
 .scrollable-table {
     position: relative;
-    margin-top: 2em;
+    margin-top: 2.5em;
     border-radius: 10px;
     width: 90%;
     height: 30vh;
     overflow-x: auto;
     display: flex;
     flex-direction: column;
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    transition: all 0.5s ease;
 }
 
 .max-height-table {
@@ -319,7 +319,7 @@ p {
     border: 2px solid #032c00cc;
     background: #fff;
     width: max-content;
-    margin: 10px;
+    margin: 0px;
     width: 300%;
     box-shadow: 0 0 10px rgba(0, 0, 0);
 }
@@ -531,7 +531,7 @@ td select {
     position: absolute;
     display: flex;
     right: 7em;
-    bottom: 0;
+    bottom: -2em;
     box-sizing: border-box;
     height: 3em;
 }
@@ -542,7 +542,7 @@ td select {
 
 .img-editPieces {
     cursor: pointer;
-    transition: 0.2s ease;
+    transition: all 0.2s ease;
     border: none;
     margin-left: 3em;
 }
@@ -556,7 +556,7 @@ td select {
     position: absolute;
     display: flex;
     right: 12em;
-    bottom: 0;
+    bottom: -2em;
     box-sizing: border-box;
     height: 3em;
 }
@@ -567,7 +567,7 @@ td select {
 
 .img-qualityCheck {
     cursor: pointer;
-    transition: 0.2s ease;
+    transition: all 0.2s ease;
     border: none;
     margin-left: 1em;
     height: 100%;
@@ -778,4 +778,86 @@ td select {
     .btn-accept-release {
         width: 100%;
     }
+}
+
+/* Historical Progress Cards Styles */
+.historical-indicator-container {
+    width: 100%;
+    background-color: transparent; /* Changed from white to transparent to show through */
+    padding: 10px;
+}
+
+.historical-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #033966;
+    border: 5px solid #033966;
+    margin-bottom: 10px;
+    text-align: center;
+    background: #fff;
+    padding: 5px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.process-section {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 10px;
+    background: #404040bb;
+    box-shadow: #000 0px 0px 5px;
+    color: #fff;
+    font-size: 0.9em;
+    transition: 0.2s all;
+}
+
+.process-section:hover {
+    background: #033966;
+    transform: scale(1.02);
+}
+
+.process-title {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.progress-bar {
+    position: relative;
+    width: 100%;
+    height: 18px;
+    background-color: #f3f3f3;
+    border-radius: 9px;
+    overflow: hidden;
+    margin: 4px 0;
+}
+
+.progress {
+    height: 100%;
+}
+
+.good-progress {
+    background: linear-gradient(to right, #9ff390, #0a8504);
+}
+
+.bad-progress {
+    background: linear-gradient(to right, #f38080, #9c0303);
+}
+
+.progress-percentage {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    color: #000;
+    font-weight: 700;
+    font-size: 0.85em;
+    line-height: 18px;
 }

@@ -154,6 +154,7 @@ class ProcessProductionController extends Controller
             'machinedPiecesInMeta' => $piecesData['machinedPiecesInMeta'],
             'availableAssemblies' => $piecesData['availableAssemblies'],
             'cNominals' => $this->saveCNominals($class, $process, $subprocess),
+            'history' => $this->getProcessHistory($class),
         ];
     }
 
@@ -2066,5 +2067,137 @@ class ProcessProductionController extends Controller
             'success' => true,
             'pieces' => $pieces
         ]);
+    }
+
+    public function getProcessHistory($class)
+    {
+        $processes = array();
+        $orderedProcesses = $this->setOrderedProcess($class);
+
+        if ($orderedProcesses) {
+            foreach ($orderedProcesses as $processName) {
+                $processes[$processName] = array();
+                $piecesBadData = array();
+                $processes[$processName]['pieces'] = $this->getPieces($class, $processName, $piecesBadData);
+                $processes[$processName]['piecesBadData'] = $piecesBadData;
+            }
+        }
+        return $processes;
+    }
+
+    public function getPieces($class, $processName, &$piecesBadData)
+    {
+        $setStoredParts = array();
+        $piecesArray = array();
+        $piecesArray["good"] = array();
+        $piecesArray["bad"] = array();
+        $piecesArray["total"] = 0;
+
+        $processNamesArray = [$processName];
+
+        foreach ($processNamesArray as $processName) {
+            $pieces = Pieza::where("proceso", $processName)->where('id_clase', $class->id)->get();
+
+            if (count($pieces) > 0) {
+                foreach ($pieces as $piece) {
+                    if (substr($piece->n_pieza, -1, 1) != "J") {
+                        $pares = true;
+                        preg_match('/^\d+/', $piece->n_pieza, $noSet);
+                        if (isset($noSet[0])) {
+                            $noSet = $noSet[0];
+                            if (!in_array($noSet, $setStoredParts)) {
+                                array_push($setStoredParts, $noSet);
+
+                                $pFemale = Pieza::where("n_pieza", $noSet . "H")->where('id_clase', $class->id)->where('proceso', $processName)->first();
+                                $pMale = Pieza::where("n_pieza", $noSet . "M")->where('id_clase', $class->id)->where('proceso', $processName)->first();
+
+                                if ($pFemale && $pMale) {
+                                    if ($pFemale->liberacion == 0) {
+                                        if ($pFemale->error == "Ninguno" && $pMale->error == "Ninguno") {
+                                            array_push($piecesArray["good"], $pFemale, $pMale);
+                                        } else {
+                                            array_push($piecesArray["bad"], $pFemale, $pMale);
+                                            if ($pFemale->error != "Ninguno")
+                                                array_push($piecesBadData, $this->getBadPiecesData($pFemale));
+                                            if ($pMale->error != "Ninguno")
+                                                array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                        }
+                                    } else if ($pFemale->liberacion == 1) {
+                                        array_push($piecesArray["good"], $pFemale, $pMale);
+                                    } else {
+                                        array_push($piecesArray["bad"], $pFemale, $pMale);
+                                        if ($pFemale->error != "Ninguno") {
+                                            array_push($piecesBadData, $this->getBadPiecesData($pFemale));
+                                        } else {
+                                            array_push($piecesBadData, $this->getBadPiecesData($pFemale, "Rechazada"));
+                                        }
+                                        if ($pMale->error != "Ninguno") {
+                                            array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                        } else {
+                                            array_push($piecesBadData, $this->getBadPiecesData($pMale, "Rechazada"));
+                                        }
+                                    }
+                                } else {
+                                    $imcompletePiece = $pFemale ? $pFemale : $pMale;
+                                    if ($imcompletePiece && $imcompletePiece->liberacion == 2) {
+                                        array_push($piecesArray["bad"], $imcompletePiece, $imcompletePiece);
+                                        array_push($piecesBadData, $this->getBadPiecesData($imcompletePiece, "Rechazada"));
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        $pares = false;
+                        if ($piece->liberacion == 0) {
+                            if ($piece->error == "Ninguno") {
+                                array_push($piecesArray["good"], $piece);
+                            } else {
+                                array_push($piecesArray["bad"], $piece);
+                                array_push($piecesBadData, $this->getBadPiecesData($piece));
+                            }
+                        } else if ($piece->liberacion == 1) {
+                            array_push($piecesArray["good"], $piece);
+                        } else {
+                            array_push($piecesArray["bad"], $piece);
+                            if ($piece->error != "Ninguno") {
+                                array_push($piecesBadData, $this->getBadPiecesData($piece));
+                            } else {
+                                array_push($piecesBadData, $this->getBadPiecesData($piece, "Rechazada"));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (isset($pares)) {
+            if ($pares) {
+                $piecesArray["good"] = count($piecesArray["good"]) != 0 ? count($piecesArray["good"]) / 2 : 0;
+                $piecesArray["bad"] = count($piecesArray["bad"]) != 0 ? count($piecesArray["bad"]) / 2 : 0;
+            } else {
+                $piecesArray["good"] = count($piecesArray["good"]);
+                $piecesArray["bad"] = count($piecesArray["bad"]);
+            }
+            $piecesArray["total"] = $piecesArray["good"] + $piecesArray["bad"];
+        } else {
+            $piecesArray["good"] = 0;
+            $piecesArray["bad"] = 0;
+            $piecesArray["total"] = 0;
+        }
+        return $piecesArray;
+    }
+
+    public function getBadPiecesData($piece, $rechazada = null, $operation = "- - - ")
+    {
+        $array = array();
+        $operador = User::where('matricula', $piece->id_operador)->first();
+        $array["piece"] = $piece->n_pieza;
+        preg_match('/^\d+/', $piece->n_pieza, $n_juego);
+        $array["setNumber"] = isset($n_juego[0]) ? $n_juego[0] . "J" : $piece->n_pieza;
+        $array["operator"] = $operador ? ($operador->nombre . " " . $operador->a_paterno . " " . $operador->a_materno) : "Desconocido";
+        $array["process"] = $piece->proceso;
+        $array["operation"] = $operation;
+        $array["error"] = $rechazada ? $rechazada : $piece->error;
+        return $array;
     }
 }

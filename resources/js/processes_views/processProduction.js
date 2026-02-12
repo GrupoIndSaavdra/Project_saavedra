@@ -226,6 +226,7 @@ function createInputsWithValue(values, valuesEnabled = []) {
             key != "machinedPiecesInMeta" &&
             key != "numberPieces" &&
             key != "availableAssemblies" &&
+            key != "history" &&
             value != null &&
             value !== ""
         ) {
@@ -431,6 +432,11 @@ function createTable() {
         }
     }
     body.appendChild(form);
+
+    // Insertar tabla historica si hay datos
+    if (window.arrayData && window.arrayData["history"]) {
+        createHistoricalTable(window.arrayData["history"]);
+    }
 }
 function createForm(route) {
     //Creacion del formulario
@@ -637,6 +643,8 @@ function enableTable() {
         disabledInputsTable(table);
     }
     redirectToEndTable();
+
+
 }
 function disabledInputsTable(table) {
     if (table) {
@@ -1288,5 +1296,108 @@ if (window.arrayData) {
         //Si aun no existen Ordenes de Trabajo disponibles mostrar Div de alerta
         let body = document.querySelector("body");
         body.appendChild(showDivAlert("Aun no hay ordenes de trabajo disponibles", false));
+    }
+}
+
+function createHistoricalTable(history) {
+    // Evitar duplicados si ya existe
+    let existingIndicator = document.querySelector(".historical-indicator-container");
+    if (existingIndicator) {
+        existingIndicator.remove();
+    }
+
+    if (!history || Object.keys(history).length === 0) return;
+
+    let container = document.createElement("div");
+    container.className = "historical-indicator-container";
+
+    let title = document.createElement("div");
+    title.className = "historical-title";
+    title.innerText = "Progreso de Piezas";
+    container.appendChild(title);
+
+    let consignmentPieces = window.arrayData.consignmentPieces || 0;
+
+    // Determine current process name to filter history
+    let currentProcessName = window.arrayData.process;
+    if (window.arrayData.subprocess) {
+        currentProcessName += "_" + window.arrayData.subprocess;
+    }
+
+    // Normalize process name to match history keys (e.g., Soldadura y Soldadura PTA)
+    if (currentProcessName === "Soldadura" || currentProcessName === "Soldadura PTA") {
+        currentProcessName = "Soldadura y Soldadura PTA";
+    }
+
+    // Find the matching process in history
+    let processData = history[currentProcessName];
+
+    if (processData) {
+        let processSection = document.createElement("div");
+        processSection.className = "process-section";
+
+        let processTitle = document.createElement("h3");
+        processTitle.className = "process-title";
+        processTitle.innerText = currentProcessName;
+        processSection.appendChild(processTitle);
+
+        let pieces = [processData.pieces.good, processData.pieces.bad];
+        for (let i = 0; i < pieces.length; i++) {
+            // Crear barra de progreso
+            let progressBar = document.createElement("div");
+            progressBar.className = "progress-bar";
+
+            let progress = document.createElement("div");
+            progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
+
+            let percentage = consignmentPieces > 0 ? (pieces[i] * 100) / consignmentPieces : 0;
+            progress.style.width = `${Math.min(percentage, 100)}%`;
+
+            let formattedPercentage = percentage != 0 ? percentage.toFixed(1) : 0;
+            let percentageLabel = document.createElement("div");
+            percentageLabel.className = "progress-percentage";
+            percentageLabel.innerText = pieces[i] == 1 ? `${formattedPercentage}% ${pieces[i]} pieza` : `${formattedPercentage}% ${pieces[i]} piezas`;
+
+            progressBar.appendChild(progress);
+            progressBar.appendChild(percentageLabel);
+            processSection.appendChild(progressBar);
+        }
+
+        container.appendChild(processSection);
+    } else {
+        let processSection = document.createElement("div");
+        processSection.className = "process-section";
+
+        let processTitle = document.createElement("h3");
+        processTitle.className = "process-title";
+        processTitle.innerText = currentProcessName;
+        processSection.appendChild(processTitle);
+
+        // Render empty bars
+        let pieces = [0, 0];
+        for (let i = 0; i < pieces.length; i++) {
+            // Crear barra de progreso
+            let progressBar = document.createElement("div");
+            progressBar.className = "progress-bar";
+
+            let progress = document.createElement("div");
+            progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
+            progress.style.width = `0%`;
+
+            let percentageLabel = document.createElement("div");
+            percentageLabel.className = "progress-percentage";
+            percentageLabel.innerText = `0% 0 piezas`;
+
+            progressBar.appendChild(progress);
+            progressBar.appendChild(percentageLabel);
+            processSection.appendChild(progressBar);
+        }
+        container.appendChild(processSection);
+    }
+
+    // Insertar después de la tabla de metadatos (Código/Versión)
+    let targetContainer = document.querySelector(".div-table-code");
+    if (targetContainer) {
+        targetContainer.appendChild(container);
     }
 }
