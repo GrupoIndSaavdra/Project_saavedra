@@ -240,6 +240,7 @@ function getRoutes(profile) {
                     title: "Orden de Trabajo",
                     routes: [
                         ["manageWO", "Modificar O.T"],
+                        ["piecesInProgress", "Piezas en progreso"],
                     ],
                 },
                 {
