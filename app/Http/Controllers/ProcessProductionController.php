@@ -1286,10 +1286,15 @@ class ProcessProductionController extends Controller
         if ($process == "cavidades") {
             // Forzar a que Cavidades mire hacia atrás al mismo proceso que Barreno Profundidad
             // En la lista: ... acabadoMolde, barreno_profundidad, cavidades ...
-            // Queremos que Cavidades -> acabadoMolde (o el que esté antes de barreno)
             // barreno_profundidad es el índice X. cavidades es X+1.
             // previous de cavidades por defecto es barreno. Queremos el anterior a ese.
-            $previousProcess = $processesInOrder[array_search($process, $processesInOrder) - 2];
+
+            $currentIndex = array_search($process, $processesInOrder);
+            if ($currentIndex >= 2) {
+                $previousProcess = $processesInOrder[$currentIndex - 2];
+            } else {
+                $previousProcess = null;
+            }
         }
 
         if ($process == "operacionEquipo") {

@@ -23,5 +23,8 @@ class Cavidades_tolerancia extends Model
         'profundidad2_3',
         'diametro1_3',
         'diametro2_3',
+        'altura1',
+        'altura2',
+        'altura3',
     ];
 }

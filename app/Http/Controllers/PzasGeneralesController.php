@@ -612,7 +612,14 @@ class PzasGeneralesController extends Controller
                 $pieceInfo = array();
                 $pieces = explode(",", $pieces);
                 foreach ($pieces as $piece) {
-                    array_push($pieceInfo, Pza_cepillado::where('id_pza', $piece)->first());
+                    $pza = Pza_cepillado::where('id_pza', $piece)->first();
+                    if ($pza) {
+                        array_push($pieceInfo, $pza);
+                    }
+                }
+
+                if (empty($pieceInfo)) {
+                    return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
                 }
                 //Obtener Cotas nominales y tolerancias
                 $id_process = Cepillado::find($pieceInfo[0]->id_proceso);

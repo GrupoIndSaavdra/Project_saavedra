@@ -104,26 +104,26 @@ export class Process {
         // console.log(this.nameProcess);
         switch (this.nameProcess) {
             case "Cepillado":
-                this.tableTitles = !this.tablePieces ? 
-                ["", "Radio final de mordaza", "Radio final mayor", "Radio final de sufridera", "Profundidad final conexión Fondo/Corona", "Profundidad final mitad de Molde/Bombillo", "Profundidad final Pico/Conexión de obturador", "Ensamble", "Distancia de barreno de alineación", "Profundidad de barreno de alineación Hembra", "Profundidad de barreno de alineación Macho", "Altura de vena Hembra", "Altura de vena Macho", "Ancho de vena", "Laterales", "PIN"]
-                : ["", "Radio final de mordaza", "Radio final mayor", "Radio final de sufridera", "Profundidad final conexión Fondo/Corona", "Profundidad final mitad de Molde/Bombillo", "Profundidad final Pico/Conexión de obturador", "Acetato B/M", "Ensamble", "Distancia de barreno de alineación", "Profundidad de barreno de alineación Hembra", "Profundidad de barreno de alineación Macho", "Altura de vena Hembra", "Altura de vena Macho", "Ancho de vena", "Laterales", "PIN"];
+                this.tableTitles = !this.tablePieces ?
+                    ["", "Radio final de mordaza", "Radio final mayor", "Radio final de sufridera", "Profundidad final conexión Fondo/Corona", "Profundidad final mitad de Molde/Bombillo", "Profundidad final Pico/Conexión de obturador", "Ensamble", "Distancia de barreno de alineación", "Profundidad de barreno de alineación Hembra", "Profundidad de barreno de alineación Macho", "Altura de vena Hembra", "Altura de vena Macho", "Ancho de vena", "Laterales", "PIN"]
+                    : ["", "Radio final de mordaza", "Radio final mayor", "Radio final de sufridera", "Profundidad final conexión Fondo/Corona", "Profundidad final mitad de Molde/Bombillo", "Profundidad final Pico/Conexión de obturador", "Acetato B/M", "Ensamble", "Distancia de barreno de alineación", "Profundidad de barreno de alineación Hembra", "Profundidad de barreno de alineación Macho", "Altura de vena Hembra", "Altura de vena Macho", "Ancho de vena", "Laterales", "PIN"];
 
                 // Divisiones de la tabla (Comienza a contar desde 0)
                 divisionsCNomi = !this.tablePieces ? [15] : [16];
-                divisionsTole = !this.tablePieces ? [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29] 
-                : [1, 3, 5, 7, 9, 11, 14, 16, 18, 20, 22, 24, 26, 28, 30];
+                divisionsTole = !this.tablePieces ? [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29]
+                    : [1, 3, 5, 7, 9, 11, 14, 16, 18, 20, 22, 24, 26, 28, 30];
 
                 positionSelects = [
                     [7, 17],
                     [["Bien", "Mal"], ["Ninguno", "Fundicion"]]
                 ];
 
-                fields = !this.tablePieces ? ["id", "radiof_mordaza", "radiof_mayor", "radiof_sufridera", "profuFinal_CFC", "profuFinal_mitadMB", "profuFinal_PCO", "ensamble", "distancia_barrenoAli", "profu_barrenoAliHembra", "profu_barrenoAliMacho", "altura_venaHembra", "altura_venaMacho", "ancho_vena", "laterales", "pin"] 
-                : ["id", "radiof_mordaza", "radiof_mayor", "radiof_sufridera", "profuFinal_CFC", "profuFinal_mitadMB", "profuFinal_PCO", "acetato_MB", "ensamble", "distancia_barrenoAli", "profu_barrenoAliHembra", "profu_barrenoAliMacho", "altura_venaHembra", "altura_venaMacho", "ancho_vena", "laterales", "pin"];
+                fields = !this.tablePieces ? ["id", "radiof_mordaza", "radiof_mayor", "radiof_sufridera", "profuFinal_CFC", "profuFinal_mitadMB", "profuFinal_PCO", "ensamble", "distancia_barrenoAli", "profu_barrenoAliHembra", "profu_barrenoAliMacho", "altura_venaHembra", "altura_venaMacho", "ancho_vena", "laterales", "pin"]
+                    : ["id", "radiof_mordaza", "radiof_mayor", "radiof_sufridera", "profuFinal_CFC", "profuFinal_mitadMB", "profuFinal_PCO", "acetato_MB", "ensamble", "distancia_barrenoAli", "profu_barrenoAliHembra", "profu_barrenoAliMacho", "altura_venaHembra", "altura_venaMacho", "ancho_vena", "laterales", "pin"];
                 break;
 
             case "Desbaste Exterior":
-                this.tableTitles = [ "", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera/Extra", "Simetría ceja", "Simetría Mordaza", "Altura de ceja", "Altura sufridera"];
+                this.tableTitles = ["", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera/Extra", "Simetría ceja", "Simetría Mordaza", "Altura de ceja", "Altura sufridera"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [1, 3, 5, 7, 9, 11, 13];
@@ -137,21 +137,21 @@ export class Process {
                 break;
 
             case "Revision Laterales":
-                this.tableTitles = ["","Desfasamiento Entrada","Desfasamiento Salida","Ancho de simetria Entrada","Ancho de simetria Salida","Angulo de corte"];
-                
+                this.tableTitles = ["", "Desfasamiento Entrada", "Desfasamiento Salida", "Ancho de simetria Entrada", "Ancho de simetria Salida", "Angulo de corte"];
+
                 divisionsCNomi = [null];
                 divisionsTole = [1, 3, 5, 7, 9];
-                
+
                 positionSelects = [
                     [6],
                     [["Ninguno", "Fundicion"]]
                 ];
 
-                fields = [ "id", "desfasamiento_entrada", "desfasamiento_salida", "ancho_simetriaEntrada", "ancho_simetriaSalida", "angulo_corte"];
+                fields = ["id", "desfasamiento_entrada", "desfasamiento_salida", "ancho_simetriaEntrada", "ancho_simetriaSalida", "angulo_corte"];
                 break;
 
             case "Primera Operacion": //Proceso de primera operacion
-                this.tableTitles = [ "", "Diametro 1", "Profundidad 1 ", "Diametro 2", "Profundidad 2", "Diametro 3", "Profunfidad 3", "Diametro de soldadura", "Profundidad de soldadura", "Diametro de barreno", "Simetria línea de partida", "Perno de alineación", "Simetría a 90°"];
+                this.tableTitles = ["", "Diametro 1", "Profundidad 1 ", "Diametro 2", "Profundidad 2", "Diametro 3", "Profunfidad 3", "Diametro de soldadura", "Profundidad de soldadura", "Diametro de barreno", "Simetria línea de partida", "Perno de alineación", "Simetría a 90°"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [9, 11];
@@ -165,11 +165,11 @@ export class Process {
                 break;
 
             case "Barreno Maniobra": //Proceso de barreno maniobra
-                this.tableTitles = !this.tablePieces ? [ "", "Profundidad de Barreno", "Diametro de machuelo"] : [ "", "Profundidad de Barreno", "Diametro de machuelo", "Acetato B/M"];
+                this.tableTitles = !this.tablePieces ? ["", "Profundidad de Barreno", "Diametro de machuelo"] : ["", "Profundidad de Barreno", "Diametro de machuelo", "Acetato B/M"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [1, 3];
-                
+
                 positionSelects = [
                     [3, 4],
                     [["Bien", "Mal"], ["Ninguno", "Fundicion"]]
@@ -179,7 +179,7 @@ export class Process {
                 break;
 
             case "Segunda Operacion": //Proceso de segunda operacion
-                this.tableTitles = [ "", "Diametro 1", "Profundidad 1 ", "Diametro 2", "Profundidad 2", "Diametro 3", "Profunfidad 3", "Diametro de soldadura", "Profundidad de soldadura", "Altura total", "Simetría a 90°", "Simetria línea de partida"];
+                this.tableTitles = ["", "Diametro 1", "Profundidad 1 ", "Diametro 2", "Profundidad 2", "Diametro 3", "Profunfidad 3", "Diametro de soldadura", "Profundidad de soldadura", "Altura total", "Simetría a 90°", "Simetria línea de partida"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [9, 11];
@@ -193,7 +193,7 @@ export class Process {
                 break;
 
             case "Soldadura PTA": //Proceso de soldadura PTA
-                this.tableTitles = [ "Pieza", "Temperatura de precalentado", "Temperatura en dispositivo", "Limpieza"];
+                this.tableTitles = ["Pieza", "Temperatura de precalentado", "Temperatura en dispositivo", "Limpieza"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [null];
@@ -206,7 +206,7 @@ export class Process {
                 fields = ["id", "temp_calentado", "temp_dispositivo", "limpieza"];
                 break;
             case "Soldadura": //Proceso de soldadura
-                this.tableTitles = [ "Pieza", "Peso por pieza", "Temperatura de precalentado °", "Tiempo de aplicacion", "Tipo de soldadura", "Lote"];
+                this.tableTitles = ["Pieza", "Peso por pieza", "Temperatura de precalentado °", "Tiempo de aplicacion", "Tipo de soldadura", "Lote"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [null];
@@ -219,7 +219,7 @@ export class Process {
                 fields = ["id", "pesoxpieza", "temperatura_precalentado", "tiempo_aplicacion", "tipo_soldadura", "lote"];
                 break;
             case "Rectificado": //Proceso de rectificado
-                this.tableTitles = [ "Pieza", "Cumple"];
+                this.tableTitles = ["Pieza", "Cumple"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [null];
@@ -232,20 +232,20 @@ export class Process {
                 fields = ["id", "cumple"];
                 break;
             case "Asentado": //Proceso de asentado
-                this.tableTitles = [ "Pieza", "Sin juego", "Sin luz"];
-                
+                this.tableTitles = ["Pieza", "Sin juego", "Sin luz"];
+
                 divisionsCNomi = [null];
                 divisionsTole = [null];
-                
+
                 positionSelects = [
                     [1, 2, 3],
                     [["✔", "X"], ["✔", "X"], ["Ninguno", "Fundicion"]]
                 ];
-                
+
                 fields = ["id", "sin_juego", "sin_luz"];
                 break;
             case "Calificado":
-                this.tableTitles = [ "", "Diametro de ceja", "Diametro de sufridera", "Altura de sufridera", "Diametro de conexion", "Altura de conexion", "Diametro de caja", "Altura de caja", "Altura total", "Simetria"];
+                this.tableTitles = ["", "Diametro de ceja", "Diametro de sufridera", "Altura de sufridera", "Diametro de conexion", "Altura de conexion", "Diametro de caja", "Altura de caja", "Altura total", "Simetria"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [1, 3, 5, 7, 9, 11, 13, 15, 17];
@@ -258,7 +258,7 @@ export class Process {
                 fields = ["id", "diametro_ceja", "diametro_sufridera", "altura_sufridera", "diametro_conexion", "altura_conexion", "diametro_caja", "altura_caja", "altura_total", "simetria"];
                 break;
             case "Acabado Bombillo":
-                this.tableTitles = !this.tablePieces ? [ "", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Diametro Boca", "Diametro Asiento Corona", "Diametro llanta", "Diametro caja corona", "Profundidad corona", "Angulo de 30", "Profundidad caja corona", "Simetria" ] : [ "", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Gauge ceja", "Gauge corona", "Gauge llanta", "Altura total", "Diametro Boca", "Diametro Asiento Corona", "Diametro llanta", "Diametro caja corona", "Profundidad corona", "Angulo de 30", "Profundidad caja corona", "Simetria" ];
+                this.tableTitles = !this.tablePieces ? ["", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Diametro Boca", "Diametro Asiento Corona", "Diametro llanta", "Diametro caja corona", "Profundidad corona", "Angulo de 30", "Profundidad caja corona", "Simetria"] : ["", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Gauge ceja", "Gauge corona", "Gauge llanta", "Altura total", "Diametro Boca", "Diametro Asiento Corona", "Diametro llanta", "Diametro caja corona", "Profundidad corona", "Angulo de 30", "Profundidad caja corona", "Simetria"];
 
                 divisionsCNomi = [null];
                 divisionsTole = !this.tablePieces ? [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27] : [1, 3, 5, 7, 9, 11, 17, 19, 21, 23, 25, 27, 29, 31];
@@ -272,7 +272,7 @@ export class Process {
                 break;
 
             case "Acabado Molde":
-                this.tableTitles = !this.tablePieces ? [ "", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Diametro Conexion Fondo", "Diametro llanta", "Diametro Caja Fondo", "Altura Conexion Fondo", "Profundidad Llanta", "Profundidad Caja Fondo", "Simetria"] : [ "", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Gauje ceja", "Altura total", "Diametro Conexion Fondo", "Diametro llanta", "Diametro Caja Fondo", "Altura Conexion Fondo", "Profundidad Llanta", "Profundidad Caja Fondo", "Simetria"];
+                this.tableTitles = !this.tablePieces ? ["", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Diametro Conexion Fondo", "Diametro llanta", "Diametro Caja Fondo", "Altura Conexion Fondo", "Profundidad Llanta", "Profundidad Caja Fondo", "Simetria"] : ["", "Diametro de mordaza", "Diametro de ceja", "Diametro de sufridera", "Altura de mordaza", "Altura de ceja", "Altura de sufridera", "Gauje ceja", "Altura total", "Diametro Conexion Fondo", "Diametro llanta", "Diametro Caja Fondo", "Altura Conexion Fondo", "Profundidad Llanta", "Profundidad Caja Fondo", "Simetria"];
 
                 divisionsCNomi = [null];
                 divisionsTole = !this.tablePieces ? [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25] : [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25, 27];
@@ -284,8 +284,8 @@ export class Process {
                 fields = !this.tablePieces ? ["id", "diametro_mordaza", "diametro_ceja", "diametro_sufridera", "altura_mordaza", "altura_ceja", "altura_sufridera", "diametro_conexion_fondo", "diametro_llanta", "diametro_caja_fondo", "altura_conexion_fondo", "profundidad_llanta", "profundidad_caja_fondo", "simetria"] : ["id", "diametro_mordaza", "diametro_ceja", "diametro_sufridera", "altura_mordaza", "altura_ceja", "altura_sufridera", "gauge_ceja", "altura_total", "diametro_conexion_fondo", "diametro_llanta", "diametro_caja_fondo", "altura_conexion_fondo", "profundidad_llanta", "profundidad_caja_fondo", "simetria"];
                 break;
             case "Barreno Profundidad":
-                this.tableTitles = [ "", "Broca 1", "Tiempo 1", "Broca 2", "Tiempo2", "Broca3", "Tiempo3", "Entrada / Salida", "Diametro de arrastre 1", "Diametro de arrastre 2", "Diametro de arrastre 3" ];
-    
+                this.tableTitles = ["", "Broca 1", "Tiempo 1", "Broca 2", "Tiempo2", "Broca3", "Tiempo3", "Entrada / Salida", "Diametro de arrastre 1", "Diametro de arrastre 2", "Diametro de arrastre 3"];
+
                 divisionsCNomi = [null];
                 divisionsTole = [7];
 
@@ -325,7 +325,7 @@ export class Process {
 
                     fields = ["id", "diametro1_cilindrado", "profundidad1_cilindrado", "diametro2_cilindrado", "profundidad2_cilindrado", "diametro_sufridera", "diametro_ranura", "profundidad_ranura", "profundidad_sufridera", "altura_total"];
                 } else {
-                    this.tableTitles = [ "", "Diametro 1", "Profundidad 1", "Diametro 2", "Profundidad 2", "Diametro 3", "Profundidad 3", "Diametro 4", "Profundidad 4", " VOLUMEN" ];
+                    this.tableTitles = ["", "Diametro 1", "Profundidad 1", "Diametro 2", "Profundidad 2", "Diametro 3", "Profundidad 3", "Diametro 4", "Profundidad 4", " VOLUMEN"];
 
                     divisionsCNomi = [null];
                     divisionsTole = [null];
@@ -353,7 +353,7 @@ export class Process {
                 fields = ["id", "anchoRanura", "profuTaconHembra", "profuTaconMacho", "simetriaHembra", "simetriaMacho", "anchoTacon", "barrenoLateralHembra", "barrenoLateralMacho", "alturaTaconInicial", "alturaTaconIntermedia"];
                 break;
             case "Palomas": //Proceso de palomas
-                this.tableTitles = [ "", "Ancho de Paloma", "Grueso de Paloma", "Profundidad de Paloma", "Rebaje de llanta" ];
+                this.tableTitles = ["", "Ancho de Paloma", "Grueso de Paloma", "Profundidad de Paloma", "Rebaje de llanta"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [null];
@@ -365,9 +365,9 @@ export class Process {
 
                 fields = ["id", "anchoPaloma", "gruesoPaloma", "profundidadPaloma", "rebajeLlanta"];
                 break;
-    
+
             case "Rebajes": //Proceso de Rebajes
-                this.tableTitles = [ "", "Rebaje 1", "Rebaje 2", "Rebaje 3", "Profundidad de Bordonio", "Vena 1", "Vena 2", "Simetria" ];
+                this.tableTitles = ["", "Rebaje 1", "Rebaje 2", "Rebaje 3", "Profundidad de Bordonio", "Vena 1", "Vena 2", "Simetria"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [null];
@@ -379,8 +379,8 @@ export class Process {
 
                 fields = ["id", "rebaje1", "rebaje2", "rebaje3", "profundidad_bordonio", "vena1", "vena2", "simetria"];
                 break;
-                
-                // Procesos no comunes
+
+            // Procesos no comunes
             case "Embudo CM":
                 this.tableTitles = ["", "Conexion de linea de partida", "Conexión 90G", "Altura de conexión", "Diametro de embudo"];
 
@@ -390,7 +390,7 @@ export class Process {
                 fields = ["id", "conexion_lineaPartida", "conexion_90G", "altura_conexion", "diametro_embudo"];
                 break;
             case "Operacion Equipo":
-                this.tableTitles = [ "", "Altura", "ø Altura de candado", "Altura asiento obturador", "ø Profundidad de soldadura", "ø de PushUp"];
+                this.tableTitles = ["", "Altura", "ø Altura de candado", "Altura asiento obturador", "ø Profundidad de soldadura", "ø de PushUp"];
 
                 divisionsCNomi = [2, 4, 6];
                 divisionsTole = [2, 4, 6];
@@ -403,16 +403,16 @@ export class Process {
                 fields = ["id", "altura", "alturaCandado", "alturaAsientoObturador", "profundidadSoldadura", "pushUp"];
                 break;
         }
-        
-        if(this.tablePieces){ // Agregar campos de error y observaciones si la tabla es la de piezas
-            if(this.nameProcess == "Cavidades" || this.nameProcess == "Off Set"){
+
+        if (this.tablePieces) { // Agregar campos de error y observaciones si la tabla es la de piezas
+            if (this.nameProcess == "Cavidades" || this.nameProcess == "Off Set") {
                 this.tableTitles[1].push("Error", "Observaciones");
             } else {
                 this.tableTitles.push("Error", "Observaciones");
             }
 
-            if(this.nameProcess == "Copiado"){
-                if(this.subprocess == "Cilindrado"){
+            if (this.nameProcess == "Copiado") {
+                if (this.subprocess == "Cilindrado") {
                     fields = fields !== null ? [...fields, "error_cilindrado", "observaciones_cilindrado"] : null;
                 } else {
                     fields = fields !== null ? [...fields, "error_cavidades", "observaciones_cavidades"] : null;
@@ -423,7 +423,7 @@ export class Process {
         }
 
         values = fields !== null ? this.getValues(fields, divisionsCNomi, divisionsTole) : null;
-        if(values != null){
+        if (values != null) {
             return this.crearTabla(values[0], divisionsCNomi, divisionsTole, values[1], divisionsTitles, fields, positionSelects);
         }
         return this.crearTabla(null, divisionsCNomi, divisionsTole, null, divisionsTitles);
@@ -433,65 +433,139 @@ export class Process {
         // Crear tabla
         const table = document.createElement("table"); // Crear tabla
         table.className = this.nameProcess != "Copiado" ? "table" : `table ${this.subprocess}`; // Agregar clase a la tabla
-        
+
 
         for (let i = 0; i < 5; i++) {
-            if(names == null && i > 0){
+            if (names == null && i > 0) {
                 return table;
             }
             let tr;
             switch (i) {
                 case 0: // Crear columnas de titulos
-                let titles = this.tableTitles.length > 2 ? [this.tableTitles] : this.tableTitles;
-                titles.forEach((array, indexArray) => {
-                    tr = document.createElement("tr");
-                    tr.className = "table-row-title";
-                    array.forEach((title, index) => {
-                        let th = document.createElement("th");
-                        th.className = "table-title";
-                        th.innerHTML = title;
-                        if (index == 0) {
-                            th.style = "width:300px;";
-                        }else if(title == "Observaciones"){
-                            th.style = "width:500px;";
-                        }
-                        if(indexArray == 0 && divisionsTitles.length > 0){
-                            if(titles.length > 1){
-                                if (divisionsTitles.includes(index)) {
-                                    th.colSpan = 2;
+                    let titles = this.tableTitles.length > 2 ? [this.tableTitles] : this.tableTitles;
+                    titles.forEach((array, indexArray) => {
+                        tr = document.createElement("tr");
+                        tr.className = "table-row-title";
+                        array.forEach((title, index) => {
+                            let th = document.createElement("th");
+                            th.className = "table-title";
+                            th.innerHTML = title;
+                            if (index == 0) {
+                                th.style = "width:300px;";
+                            } else if (title == "Observaciones") {
+                                th.style = "width:500px;";
+                            }
+
+                            if (this.nameProcess == "Cavidades" && title.includes("Altura")) {
+                                const indexAltura = title.split(" ")[1];
+
+                                if (!this.tablePieces) {
+                                    let input = document.createElement("input");
+                                    input.type = "number";
+                                    input.step = "any";
+                                    input.name = `cNomi_altura${indexAltura}`;
+                                    input.placeholder = "Ref";
+
+                                    // Estilos Modernos
+                                    Object.assign(input.style, {
+                                        width: "85px",
+                                        marginLeft: "10px",
+                                        textAlign: "center",
+                                        border: "1px solid #dee2e6",
+                                        borderRadius: "6px",
+                                        padding: "4px 8px",
+                                        fontSize: "0.85rem",
+                                        color: "#495057",
+                                        backgroundColor: "#f8f9fa",
+                                        transition: "all 0.2s ease-in-out",
+                                        outline: "none",
+                                        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.075)"
+                                    });
+
+                                    // Eventos de Interacción
+                                    input.onfocus = () => {
+                                        input.style.borderColor = "#80bdff";
+                                        input.style.backgroundColor = "#fff";
+                                        input.style.boxShadow = "0 0 0 0.2rem rgba(0,123,255,.25)";
+                                    };
+                                    input.onblur = () => {
+                                        input.style.borderColor = "#dee2e6";
+                                        input.style.backgroundColor = "#f8f9fa";
+                                        input.style.boxShadow = "inset 0 1px 2px rgba(0,0,0,0.075)";
+                                    };
+
+                                    // Persistencia de datos
+                                    input.addEventListener('input', (e) => {
+                                        if (!this.cNomiData) this.cNomiData = {};
+                                        this.cNomiData[`altura${indexAltura}`] = e.target.value;
+                                    });
+
+                                    if (this.cNomiData && this.cNomiData[`altura${indexAltura}`]) {
+                                        input.value = this.cNomiData[`altura${indexAltura}`];
+                                    }
+                                    th.appendChild(input);
+
+                                } else {
+                                    // Modo lectura: Badge estilizado
+                                    if (this.cNomiData && this.cNomiData[`altura${indexAltura}`]) {
+                                        const val = this.cNomiData[`altura${indexAltura}`];
+                                        th.innerHTML += `
+                                        <div style="margin-top: 6px;">
+                                            <span style="
+                                                display: inline-flex;
+                                                align-items: center;
+                                                padding: 2px 12px;
+                                                background: #f1f3f5;
+                                                border-radius: 50px;
+                                                font-size: 11px;
+                                                color: #495057;
+                                                border: 1px solid #dee2e6;
+                                                font-weight: 500;
+                                            ">
+                                                <strong style="color: #007bff; margin-right: 5px;">REF</strong> ${val} mm
+                                            </span>
+                                        </div>`;
+                                    }
                                 }
                             }
-                        }
-                        tr.appendChild(th);
+
+                            if (indexArray == 0 && divisionsTitles.length > 0) {
+                                if (titles.length > 1) {
+                                    if (divisionsTitles.includes(index)) {
+                                        th.colSpan = 2;
+                                    }
+                                }
+                            }
+                            tr.appendChild(th);
+                        });
+                        table.appendChild(tr); //Agregar fila a la tabla.
                     });
-                    table.appendChild(tr); //Agregar fila a la tabla.
-                });
-                break;
-                    
+                    break;
+
                 // Crear columnas de cNominal y tolerancias
                 case 1:
                 case 2:
-                    if(this.nameProcess != "Soldadura" && this.nameProcess != "Asentado" && this.nameProcess != "Rectificado" && this.nameProcess != "Soldadura PTA"){
+                    if (this.nameProcess != "Soldadura" && this.nameProcess != "Asentado" && this.nameProcess != "Rectificado" && this.nameProcess != "Soldadura PTA") {
                         tr = document.createElement("tr");
                         tr.className = "table-row-cNominals";
                         let divisions = i == 1 ? divisionsCNomi : divisionsTole;
-    
-                        for(let x=0; x < names[i - 1].length; x++) {
+
+                        for (let x = 0; x < names[i - 1].length; x++) {
                             const td = document.createElement("td");
-                            if (x != 0){
-                                if(divisions.includes(x)){
+                            if (x != 0) {
+                                if (divisions.includes(x)) {
                                     for (let j = 0; j < 2; j++) {
                                         let sign = j == 0 ? "+" : "-";
                                         if (values) {
-                                            if(i == 2){
-                                                if(names[i - 1][x].includes("pin")){
-                                                    if(!this.tablePieces){
+                                            if (i == 2) {
+                                                if (names[i - 1][x].includes("pin")) {
+                                                    if (!this.tablePieces) {
                                                         td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${values[i - 1][x]}`));
                                                     } else {
                                                         td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `+-${values[i - 1][x]}`));
                                                     }
                                                 } else {
-                                                    if(!this.tablePieces){
+                                                    if (!this.tablePieces) {
                                                         td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${values[i - 1][x]}`));
                                                     } else {
                                                         td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${sign}${values[i - 1][x]}`));
@@ -500,17 +574,17 @@ export class Process {
                                             } else {
                                                 td.appendChild(this.crearInputs("input-medio", names[i - 1][x], values[i - 1][x]));
                                             }
-                                        }else {
+                                        } else {
                                             td.appendChild(this.crearInputs("input-medio", names[i - 1][x], null));
                                         }
                                         if (j != 1) {
                                             x++;
                                         }
                                     }
-                                }else {
-                                    if(values) {
-                                        if(i == 2 && values[i - 1][x] != null){
-                                            if(!this.tablePieces){
+                                } else {
+                                    if (values) {
+                                        if (i == 2 && values[i - 1][x] != null) {
+                                            if (!this.tablePieces) {
                                                 td.appendChild(this.crearInputs("input", names[i - 1][x], `${values[i - 1][x]}`));
                                             } else {
                                                 td.appendChild(this.crearInputs("input", names[i - 1][x], `+-${values[i - 1][x]}`));
@@ -518,11 +592,11 @@ export class Process {
                                         } else {
                                             td.appendChild(this.crearInputs("input", names[i - 1][x], values[i - 1][x]));
                                         }
-                                    }else {
+                                    } else {
                                         td.appendChild(this.crearInputs("input", names[i - 1][x], null));
                                     }
                                 }
-                            }else {
+                            } else {
                                 td.innerHTML = names[i - 1][x];
                             }
                             tr.appendChild(td);
@@ -531,22 +605,22 @@ export class Process {
                     }
                     break;
                 case 3://Crear inputs de las piezas e input de la pieza a utilizar si es que existe
-                    if(this.piecesData.length > 0){ // Crear inputs inhabilitados de las piezas maquinadas en la meta
-                        let divisions = this.nameProcess == "Operacion Equipo" ? [2, 3, 4]: divisionsCNomi;
+                    if (this.piecesData.length > 0) { // Crear inputs inhabilitados de las piezas maquinadas en la meta
+                        let divisions = this.nameProcess == "Operacion Equipo" ? [2, 3, 4] : divisionsCNomi;
                         this.piecesData.forEach((piece, index) => { // Recorrer cada una de las piezas
                             let tr = document.createElement("tr");
-                            for(let i=0; i < fields.length; i++){ // Recorrer las medidas de la pieza
+                            for (let i = 0; i < fields.length; i++) { // Recorrer las medidas de la pieza
                                 const td = document.createElement("td");
-                                if(fields[i] !=  "id"){
-                                    if(divisions.includes(i)){
+                                if (fields[i] != "id") {
+                                    if (divisions.includes(i)) {
                                         for (let j = 0; j < 2; j++) {
                                             td.appendChild(this.crearInputs("input-medio", fields[i] + (j + 1), piece.piece[fields[i] + (j + 1)], this.dataType(piece.piece[fields[i] + (j + 1)])));
-                                            if(!this.edit){
+                                            if (!this.edit) {
                                                 td.style.backgroundColor = piece.color;
                                             }
                                         }
-                                    }else {
-                                        if(this.edit){
+                                    } else {
+                                        if (this.edit) {
                                             if (positionSelects[0].includes(i)) {
                                                 td.appendChild(
                                                     this.createSelects(
@@ -575,7 +649,7 @@ export class Process {
                                                 }
                                             }
                                         } else {
-                                            if(fields[i] == "entradaSalida" && this.nameProcess == "Barreno Profundidad"){
+                                            if (fields[i] == "entradaSalida" && this.nameProcess == "Barreno Profundidad") {
                                                 td.appendChild(this.crearInputs("input-medio", "entrada", piece.piece["entrada"], this.dataType(piece.piece["entrada"])));
                                                 td.appendChild(this.crearInputs("input-medio", "salida", piece.piece["salida"], this.dataType(piece.piece["salida"])));
                                             } else {
@@ -585,14 +659,14 @@ export class Process {
                                         }
                                     }
                                     tr.appendChild(td);
-                                }else {
+                                } else {
                                     let noPiece = piece.piece.n_pieza ? piece.piece.n_pieza.slice(0, - 1) : piece.piece.n_juego.slice(0, -1);
                                     let letterPiece = piece.piece.n_pieza ? piece.piece.n_pieza[piece.piece.n_pieza.length - 1] : piece.piece.n_juego[piece.piece.n_juego.length - 1];
                                     td.innerHTML = {
                                         "H": noPiece + " HEMBRA",
                                         "M": noPiece + " MACHO",
                                     }[letterPiece] || noPiece + " JUEGO";
-                                    if(!this.edit){
+                                    if (!this.edit) {
                                         td.style.backgroundColor = piece.color;
                                     } else {
                                         let inptHiddn_id = document.createElement("input");
@@ -609,14 +683,14 @@ export class Process {
                     }
                     break;
                 case 4:
-                if(this.pieceToBeUsed){ // Crear input de la pieza a utilizar
-                    // console.log("Crear input de la pieza a utilizar: " + this.pieceToBeUsed.n_pieza);
-                    // console.log("Crear input del juego a utilizar: " + this.pieceToBeUsed.n_juego);
-                    if(!this.edit){
-                        this.createPieceToBeUsed(tr, fields, divisionsCNomi, positionSelects, table);
+                    if (this.pieceToBeUsed) { // Crear input de la pieza a utilizar
+                        // console.log("Crear input de la pieza a utilizar: " + this.pieceToBeUsed.n_pieza);
+                        // console.log("Crear input del juego a utilizar: " + this.pieceToBeUsed.n_juego);
+                        if (!this.edit) {
+                            this.createPieceToBeUsed(tr, fields, divisionsCNomi, positionSelects, table);
+                        }
                     }
-                }
-                break;
+                    break;
             }
         }
         return table;
@@ -628,7 +702,7 @@ export class Process {
             const td = document.createElement("td");
             if (x != 0) {
                 if (divisions.includes(x)) {
-                    
+
                     //Crear los dos inputs e insertarlos en el mismo td
                     for (let j = 0; j < 2; j++) {
                         td.appendChild(

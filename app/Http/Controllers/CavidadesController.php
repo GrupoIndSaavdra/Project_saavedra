@@ -24,6 +24,9 @@ class CavidadesController extends Controller
                 'diametro2',
                 'profundidad3',
                 'diametro3',
+                'altura1',
+                'altura2',
+                'altura3',
                 'acetatoBM',
                 'observaciones',
             ];
@@ -44,6 +47,9 @@ class CavidadesController extends Controller
                 'diametro2',
                 'profundidad3',
                 'diametro3',
+                'altura1',
+                'altura2',
+                'altura3',
                 'acetatoBM',
                 'observaciones',
             ]));

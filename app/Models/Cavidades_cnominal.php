@@ -17,5 +17,8 @@ class Cavidades_cnominal extends Model
         'diametro2',
         'profundidad3',
         'diametro3',
+        'altura1',
+        'altura2',
+        'altura3',
     ];
 }
