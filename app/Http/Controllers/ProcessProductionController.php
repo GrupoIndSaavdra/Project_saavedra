@@ -249,6 +249,27 @@ class ProcessProductionController extends Controller
                 //Verificar que haya piezas registradas en el proceso anterior
                 $previousProcess = $this->convertProcessToString($this->get_previousProcess($class, $processName));
                 $previousProcess = $previousProcess == "operacionEquipo" ? "Operacion Equipo_2 operacion" : $previousProcess;
+
+                // Modificación para el Gateway de Copiado (Requiere Barreno Profundidad y Cavidades)
+                if ($processString == "Copiado") {
+                    $requiredProcesses = ["Barreno Profundidad", "Cavidades"];
+                    foreach ($requiredProcesses as $reqProc) {
+                        $modelReqPieces = $this->get_ModelProcessPieces($reqProc);
+                        $reqProcessId = str_replace(" ", "_", $reqProc) . "_" . $class->nombre . "_" . $class->id_ot;
+                        $reqProcessDB = $this->get_ModelProcess($reqProc)::where('id_proceso', $reqProcessId)->first();
+
+                        if ($reqProcessDB) {
+                            $finishedPieces = $modelReqPieces::where('id_proceso', $reqProcessDB->id)->where('estado', 2)->exists();
+                            if (!$finishedPieces) {
+                                return "NoPreviousPieces";
+                            }
+                        } else {
+                            return "NoPreviousPieces";
+                        }
+                    }
+                    return null; // Si ambos tienen piezas, permitimos continuar (el usuario seleccionará pieza manualmente)
+                }
+
                 if ($previousProcess) {
                     $specialProcess = ["Soldadura", "Soldadura PTA", "Desbaste Exterior", "Revision Laterales"];
                     if (in_array($previousProcess, $specialProcess)) {
@@ -804,14 +825,18 @@ class ProcessProductionController extends Controller
 
         //Calcular piezas restantes por maquinar y devolver las que estan disponibles
         $previousProcess = $this->convertProcessToString($this->get_previousProcess($class, $process));
+
         if ($previousProcess == "Desbaste Exterior" || $previousProcess == "Revision Laterales") {
             [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_LateralesOrDesbaste($process, $previousProcess, $class);
         } else if ($previousProcess == "Soldadura PTA" || $previousProcess == "Soldadura") {
             [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_Soldaduras($process, $class);
+        } else if ($process == "Copiado") {
+            [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_BarrenoCavidades($process, $class);
         } else {
             $previousProcess = $previousProcess == "operacionEquipo" ? "Operacion Equipo_2 operacion" : $previousProcess;
             [$availableAssemblies, $remainingPieces] = $this->get_RemainingPieces($process, $previousProcess, $class);
         }
+
         if ($process == "Soldadura" || $process == "Soldadura PTA") {
             $reverseProcess = $process == "Soldadura" ? "Soldadura PTA" : "Soldadura";
             $this->get_FilteredPiecesSoldadura_SoldaduraPTA($reverseProcess, $class, $availableAssemblies, $remainingPieces);
@@ -825,6 +850,63 @@ class ProcessProductionController extends Controller
             'remainingPieces' => $remainingPieces,
         ];
         return $arrayData;
+    }
+    public function getRemainingPieces_BarrenoCavidades($process, $class)
+    {
+        $remainingPieces = 0;
+        $availableAssemblies = array();
+
+        // Obtener las piezas maquinadas de Barreno Profundidad y Cavidades
+        $processes = ["Barreno Profundidad", "Cavidades"];
+        $goodPieces = [];
+
+        foreach ($processes as $procName) {
+            $id_process = str_replace(' ', '_', $procName) . "_" . $class->nombre . "_" . $class->id_ot;
+            $modelProcess = $this->get_ModelProcess($procName);
+            $processDB = $modelProcess::where('id_proceso', $id_process)->first();
+
+            if ($processDB) {
+                // Obtener piezas maquinadas (estado 2)
+                $modelPiecesProcess = $this->get_ModelProcessPieces($procName);
+                $pieces = $modelPiecesProcess::where('id_proceso', $processDB->id)->where('estado', 2)->get();
+
+                foreach ($pieces as $piece) {
+                    $pieceName = $piece->n_pieza ?: $piece->n_juego; // Puede ser por pieza o juego
+                    // Verificar si está correcta/liberada
+                    $fullPiece = Pieza::where('n_pieza', $pieceName)
+                        ->where('proceso', $procName)
+                        ->where('id_clase', $class->id)
+                        ->first();
+
+                    if ($this->verifyPiece($fullPiece)) {
+                        // Almacenar como buena para este proceso
+                        $goodPieces[$procName][] = $pieceName;
+                    }
+                }
+            }
+        }
+
+        // Intersección: Piezas que están buenas en AMBOS procesos
+        $commonPieces = [];
+        if (isset($goodPieces["Barreno Profundidad"]) && isset($goodPieces["Cavidades"])) {
+            $commonPieces = array_intersect($goodPieces["Barreno Profundidad"], $goodPieces["Cavidades"]);
+        }
+
+        // Ahora filtrar las que ya están ocupadas o terminadas en Copiado
+        [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($process, $class); // Copiado
+
+        foreach ($commonPieces as $pieceName) {
+            // Verificar si ya está en Copiado
+            // Nota: Copiado usa piezas individuales, no juegos? El código original sugiere cNominals para Copiado.
+            // Asumimos comportamiento estándar: verificar si ya está ocupada o maquinada.
+
+            if (!in_array($pieceName, $occupiedAssemblies) && !in_array($pieceName, $machinedPieces)) {
+                $remainingPieces++;
+                $availableAssemblies[] = $pieceName;
+            }
+        }
+
+        return [$availableAssemblies, $remainingPieces];
     }
     public function getRemainingPieces_Soldaduras($process, $class)
     {
@@ -1199,6 +1281,17 @@ class ProcessProductionController extends Controller
         //Obtener el proceso anterior al actual
         $positionActualProcess = array_search($process, $processesInOrder);
         $previousProcess = $positionActualProcess !== 0 ? $processesInOrder[array_search($process, $processesInOrder) - 1] : null;
+
+        // Modificación para procesos paralelos (Barreno Profundidad y Cavidades)
+        if ($process == "cavidades") {
+            // Forzar a que Cavidades mire hacia atrás al mismo proceso que Barreno Profundidad
+            // En la lista: ... acabadoMolde, barreno_profundidad, cavidades ...
+            // Queremos que Cavidades -> acabadoMolde (o el que esté antes de barreno)
+            // barreno_profundidad es el índice X. cavidades es X+1.
+            // previous de cavidades por defecto es barreno. Queremos el anterior a ese.
+            $previousProcess = $processesInOrder[array_search($process, $processesInOrder) - 2];
+        }
+
         if ($process == "operacionEquipo") {
             $subOperation = $this->getSub_Process($processName, 1);
             if ($subOperation[0] == "2") {
@@ -2075,11 +2168,23 @@ class ProcessProductionController extends Controller
         $orderedProcesses = $this->setOrderedProcess($class);
 
         if ($orderedProcesses) {
+            $soldaduraIncluded = false;
             foreach ($orderedProcesses as $processName) {
-                $processes[$processName] = array();
+                // Modificación para agrupar Soldadura y Soldadura PTA
+                if ($processName == "Soldadura" || $processName == "Soldadura PTA") {
+                    if ($soldaduraIncluded) {
+                        continue;
+                    }
+                    $processNameKey = "Soldadura y Soldadura PTA";
+                    $soldaduraIncluded = true;
+                } else {
+                    $processNameKey = $processName;
+                }
+
+                $processes[$processNameKey] = array();
                 $piecesBadData = array();
-                $processes[$processName]['pieces'] = $this->getPieces($class, $processName, $piecesBadData);
-                $processes[$processName]['piecesBadData'] = $piecesBadData;
+                $processes[$processNameKey]['pieces'] = $this->getPieces($class, $processNameKey, $piecesBadData);
+                $processes[$processNameKey]['piecesBadData'] = $piecesBadData;
             }
         }
         return $processes;
@@ -2093,7 +2198,7 @@ class ProcessProductionController extends Controller
         $piecesArray["bad"] = array();
         $piecesArray["total"] = 0;
 
-        $processNamesArray = [$processName];
+        $processNamesArray = $processName == "Soldadura y Soldadura PTA" ? ["Soldadura", "Soldadura PTA"] : [$processName];
 
         foreach ($processNamesArray as $processName) {
             $pieces = Pieza::where("proceso", $processName)->where('id_clase', $class->id)->get();

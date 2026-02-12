@@ -127,7 +127,7 @@ td {
     font-size: 1em;
     cursor: pointer;
     transition: 0.3s ease;
-    margin: 1em;
+    margin: -2em;
 }
 
 .btn-cancel:hover {
@@ -302,7 +302,7 @@ p {
     position: relative;
     margin-top: 2.5em;
     border-radius: 10px;
-    width: 90%;
+    width: 99%;
     height: 30vh;
     overflow-x: auto;
     display: flex;
@@ -320,7 +320,7 @@ p {
     background: #fff;
     width: max-content;
     margin: 0px;
-    width: 300%;
+    width: 250%;
     box-shadow: 0 0 10px rgba(0, 0, 0);
 }
 
@@ -712,7 +712,7 @@ td select {
 }
 
 .btn-cancel-release {
-    background: #9c0300;
+    background: #00659c;
     color: #fff;
     padding: 0.7em 1em;
     border: none;
