@@ -195,7 +195,7 @@
                         ];
 
                         cNomiPosiciones = [null]; // Posiciones de los inputs de c.nominal
-                        tolePosiciones = [null]; // Posiciones de los inputs de tolerancias
+                        tolePosiciones = []; // Posiciones de los inputs de tolerancias (todas simétricas)
                         piezaPosiciones = [null];
 
                         nombres = ['n_juego', 'pesoxpieza', 'temperatura_precalentado', 'tiempo_aplicacion',
@@ -370,7 +370,7 @@
                             ];
 
                             cNomiPosiciones = [null]; // Posiciones de los inputs de c.nominal
-                            tolePosiciones = [null]; // Posiciones de los inputs de tolerancias
+                            tolePosiciones = []; // Posiciones de los inputs de tolerancias (todas simétricas)
                             piezaPosiciones = [null];
 
                             nombresCnomi = ['id', 'diametro1_cilindrado', 'profundidad1_cilindrado',
@@ -393,7 +393,7 @@
                             ];
 
                             cNomiPosiciones = [null]; // Posiciones de los inputs de c.nominal
-                            tolePosiciones = [null]; // Posiciones de los inputs de tolerancias
+                            tolePosiciones = []; // Posiciones de los inputs de tolerancias (todas simétricas)
                             piezaPosiciones = [null];
 
                             nombresCnomi = ['id', 'diametro1_cavidades', 'profundidad1_cavidades',
@@ -417,7 +417,7 @@
                         ];
 
                         cNomiPosiciones = [null]; // Posiciones de los inputs de c.nominal
-                        tolePosiciones = [null]; // Posiciones de los inputs de tolerancias
+                        tolePosiciones = []; // Posiciones de los inputs de tolerancias (todas simétricas)
                         piezaPosiciones = [null];
 
                         nombresCnomi = ['id', 'anchoPaloma', 'gruesoPaloma', 'profundidadPaloma', 'rebajeLlanta'];
@@ -433,7 +433,7 @@
                         ];
 
                         cNomiPosiciones = [null]; // Posiciones de los inputs de c.nominal
-                        tolePosiciones = [null]; // Posiciones de los inputs de tolerancias
+                        tolePosiciones = []; // Posiciones de los inputs de tolerancias (todas simétricas)
                         piezaPosiciones = [null];
 
                         nombresCnomi = ['id', 'rebaje1', 'rebaje2', 'rebaje3', 'profundidad_bordonio', 'vena1', 'vena2',
@@ -473,7 +473,7 @@
                         ];
 
                         cNomiPosiciones = [null]; // Posiciones de los inputs de c.nominal
-                        tolePosiciones = [null]; // Posiciones de los inputs de tolerancias
+                        tolePosiciones = []; // Posiciones de los inputs de tolerancias (todas simétricas)
                         piezaPosiciones = [null];
 
                         nombresCnomi = ['id', 'conexion_lineaPartida', 'conexion_90G', 'altura_conexion',
@@ -1028,28 +1028,153 @@
                                 <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}" disabled>
                                 </td>
                                 @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
+                                    @php
+                                        // Altura1 validation (symmetric tolerance)
+                                        $altura1_error = false;
+                                        if (isset($cNominal->altura1) && isset($tolerance->altura1)) {
+                                            $upper = $cNominal->altura1 + $tolerance->altura1;
+                                            $lower = $cNominal->altura1 - $tolerance->altura1;
+                                            $altura1_error =
+                                                ($pieceInfo['altura1'] ?? 0) < $lower ||
+                                                ($pieceInfo['altura1'] ?? 0) > $upper;
+                                        }
+
+                                        // Altura2 validation (symmetric tolerance)
+                                        $altura2_error = false;
+                                        if (isset($cNominal->altura2) && isset($tolerance->altura2)) {
+                                            $upper = $cNominal->altura2 + $tolerance->altura2;
+                                            $lower = $cNominal->altura2 - $tolerance->altura2;
+                                            $altura2_error =
+                                                ($pieceInfo['altura2'] ?? 0) < $lower ||
+                                                ($pieceInfo['altura2'] ?? 0) > $upper;
+                                        }
+
+                                        // Altura3 validation (symmetric tolerance)
+                                        $altura3_error = false;
+                                        if (isset($cNominal->altura3) && isset($tolerance->altura3)) {
+                                            $upper = $cNominal->altura3 + $tolerance->altura3;
+                                            $lower = $cNominal->altura3 - $tolerance->altura3;
+                                            $altura3_error =
+                                                ($pieceInfo['altura3'] ?? 0) < $lower ||
+                                                ($pieceInfo['altura3'] ?? 0) > $upper;
+                                        }
+                                    @endphp
                                     <td colspan="2"><input type="number" class="input"
                                             value="{{ $pieceInfo['altura1'] ?? '' }}" step="any" inputmode="decimal"
-                                            disabled></td>
+                                            style="{{ $altura1_error ? 'border: 3px solid red;' : '' }}" disabled></td>
                                     <td colspan="2"><input type="number" class="input"
                                             value="{{ $pieceInfo['altura2'] ?? '' }}" step="any" inputmode="decimal"
-                                            disabled></td>
+                                            style="{{ $altura2_error ? 'border: 3px solid red;' : '' }}" disabled></td>
                                     <td colspan="2"><input type="number" class="input"
                                             value="{{ $pieceInfo['altura3'] ?? '' }}" step="any" inputmode="decimal"
-                                            disabled></td>
+                                            style="{{ $altura3_error ? 'border: 3px solid red;' : '' }}" disabled></td>
                                 @else
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['profundidad1'] }}"
-                                            step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['diametro1'] }}"
-                                            step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['profundidad2'] }}"
-                                            step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['diametro2'] }}"
-                                            step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['profundidad3'] }}"
-                                            step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['diametro3'] }}"
-                                            step="any" inputmode="decimal" disabled></td>
+                                    @php
+                                        // Profundidad1 validation
+                                        $prof1_error = false;
+                                        if (
+                                            isset($cNominal->profundidad1) &&
+                                            isset($tolerance->profundidad1_1) &&
+                                            isset($tolerance->profundidad2_1)
+                                        ) {
+                                            $upper = $cNominal->profundidad1 + $tolerance->profundidad1_1;
+                                            $lower = $cNominal->profundidad1 - $tolerance->profundidad2_1;
+                                            $prof1_error =
+                                                $pieceInfo['profundidad1'] < $lower ||
+                                                $pieceInfo['profundidad1'] > $upper;
+                                        }
+
+                                        // Diametro1 validation
+                                        $diam1_error = false;
+                                        if (
+                                            isset($cNominal->diametro1) &&
+                                            isset($tolerance->diametro1_1) &&
+                                            isset($tolerance->diametro2_1)
+                                        ) {
+                                            $upper = $cNominal->diametro1 + $tolerance->diametro1_1;
+                                            $lower = $cNominal->diametro1 - $tolerance->diametro2_1;
+                                            $diam1_error =
+                                                $pieceInfo['diametro1'] < $lower || $pieceInfo['diametro1'] > $upper;
+                                        }
+
+                                        // Profundidad2 validation
+                                        $prof2_error = false;
+                                        if (
+                                            isset($cNominal->profundidad2) &&
+                                            isset($tolerance->profundidad1_2) &&
+                                            isset($tolerance->profundidad2_2)
+                                        ) {
+                                            $upper = $cNominal->profundidad2 + $tolerance->profundidad1_2;
+                                            $lower = $cNominal->profundidad2 - $tolerance->profundidad2_2;
+                                            $prof2_error =
+                                                $pieceInfo['profundidad2'] < $lower ||
+                                                $pieceInfo['profundidad2'] > $upper;
+                                        }
+
+                                        // Diametro2 validation
+                                        $diam2_error = false;
+                                        if (
+                                            isset($cNominal->diametro2) &&
+                                            isset($tolerance->diametro1_2) &&
+                                            isset($tolerance->diametro2_2)
+                                        ) {
+                                            $upper = $cNominal->diametro2 + $tolerance->diametro1_2;
+                                            $lower = $cNominal->diametro2 - $tolerance->diametro2_2;
+                                            $diam2_error =
+                                                $pieceInfo['diametro2'] < $lower || $pieceInfo['diametro2'] > $upper;
+                                        }
+
+                                        // Profundidad3 validation
+                                        $prof3_error = false;
+                                        if (
+                                            isset($cNominal->profundidad3) &&
+                                            isset($tolerance->profundidad1_3) &&
+                                            isset($tolerance->profundidad2_3)
+                                        ) {
+                                            $upper = $cNominal->profundidad3 + $tolerance->profundidad1_3;
+                                            $lower = $cNominal->profundidad3 - $tolerance->profundidad2_3;
+                                            $prof3_error =
+                                                $pieceInfo['profundidad3'] < $lower ||
+                                                $pieceInfo['profundidad3'] > $upper;
+                                        }
+
+                                        // Diametro3 validation
+                                        $diam3_error = false;
+                                        if (
+                                            isset($cNominal->diametro3) &&
+                                            isset($tolerance->diametro1_3) &&
+                                            isset($tolerance->diametro2_3)
+                                        ) {
+                                            $upper = $cNominal->diametro3 + $tolerance->diametro1_3;
+                                            $lower = $cNominal->diametro3 - $tolerance->diametro2_3;
+                                            $diam3_error =
+                                                $pieceInfo['diametro3'] < $lower || $pieceInfo['diametro3'] > $upper;
+                                        }
+                                    @endphp
+                                    <td><input type="number" class="input"
+                                            style="{{ $prof1_error ? 'border: 3px solid red;' : '' }}"
+                                            value="{{ $pieceInfo['profundidad1'] }}" step="any" inputmode="decimal"
+                                            disabled></td>
+                                    <td><input type="number" class="input"
+                                            style="{{ $diam1_error ? 'border: 3px solid red;' : '' }}"
+                                            value="{{ $pieceInfo['diametro1'] }}" step="any" inputmode="decimal"
+                                            disabled></td>
+                                    <td><input type="number" class="input"
+                                            style="{{ $prof2_error ? 'border: 3px solid red;' : '' }}"
+                                            value="{{ $pieceInfo['profundidad2'] }}" step="any" inputmode="decimal"
+                                            disabled></td>
+                                    <td><input type="number" class="input"
+                                            style="{{ $diam2_error ? 'border: 3px solid red;' : '' }}"
+                                            value="{{ $pieceInfo['diametro2'] }}" step="any" inputmode="decimal"
+                                            disabled></td>
+                                    <td><input type="number" class="input"
+                                            style="{{ $prof3_error ? 'border: 3px solid red;' : '' }}"
+                                            value="{{ $pieceInfo['profundidad3'] }}" step="any" inputmode="decimal"
+                                            disabled></td>
+                                    <td><input type="number" class="input"
+                                            style="{{ $diam3_error ? 'border: 3px solid red;' : '' }}"
+                                            value="{{ $pieceInfo['diametro3'] }}" step="any" inputmode="decimal"
+                                            disabled></td>
                                 @endif
                                 <td><input type="text" class="input" value="{{ $pieceInfo['acetatoBM'] }}" disabled>
                                 </td>
@@ -1154,95 +1279,6 @@
                                         disabled></td>
                                 <td><input type="text" class="input"
                                         value="{{ $pieceInfo['observaciones_cilindrado'] }}" disabled></td>
-                            </tr>
-                        @endforeach
-                    </table>
-                    <table border="1" class="tabla3">
-                        <label class="title-subproceso"> C A V I D A D E S</label>
-                        <tr>
-                            <th class="t-title" style="width:150px">#PZ</th>
-                            <th class="t-title">Diametro 1</th>
-                            <th class="t-title">Profundidad 1</th>
-                            <th class="t-title">Diametro 2</th>
-                            <th class="t-title">Profundidad 2</th>
-                            <th class="t-title">Diametro 3</th>
-                            <th class="t-title">Profundidad 3</th>
-                            <th class="t-title">Diametro 4 </th>
-                            <th class="t-title">Profundidad 4</th>
-                            <th class="t-title">Volumen</th>
-                            <th class="t-title" style="width:200px">Error</th><br>
-                            <th class="t-title" style="width:700px">Observaciones</th>
-                        </tr>
-                        <tr>
-                            <td>C.Nominal.</td>
-                            <td><input type="number" class="input" value="{{ $cNominal->diametro1_cavidades }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->profundidad1_cavidades }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->diametro2_cavidades }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->profundidad2_cavidades }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->diametro3 }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->profundidad3 }}" disabled>
-                            </td>
-                            <td><input type="number" class="input" value="{{ $cNominal->diametro4 }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->profundidad4 }}" disabled>
-                            </td>
-                            <td><input type="number" class="input" value="{{ $cNominal->volumen }}" disabled></td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td> Tolerancias. </td>
-                            <td><input type="number" class="input" value="{{ $tolerance->diametro1_cavidades }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->profundidad1_cavidades }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->diametro2_cavidades }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->profundidad2_cavidades }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->diametro3 }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->profundidad3 }}" disabled>
-                            </td>
-                            <td><input type="number" class="input" value="{{ $tolerance->diametro4 }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->profundidad4 }}" disabled>
-                            </td>
-                            <td><input type="number" class="input" value="{{ $tolerance->volumen }}" disabled></td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                        @foreach ($piecesInfo as $pieceInfo)
-                            <tr>
-                                <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input"
-                                        value="{{ $pieceInfo['diametro1_cavidades'] }}" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input"
-                                        value="{{ $pieceInfo['profundidad1_cavidades'] }}" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input"
-                                        value="{{ $pieceInfo['diametro2_cavidades'] }}" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input"
-                                        value="{{ $pieceInfo['profundidad2_cavidades'] }}" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro3'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['profundidad3'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro4'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['profundidad4'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['volumen'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="text" class="input" value="{{ $pieceInfo['error_cavidades'] }}"
-                                        disabled></td>
-                                <td><input type="text" class="input"
-                                        value="{{ $pieceInfo['observaciones_cavidades'] }}" disabled></td>
                             </tr>
                         @endforeach
                     </table>
