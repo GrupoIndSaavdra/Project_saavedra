@@ -297,7 +297,7 @@ export class Process {
                 fields = ["id", "broca1", "tiempo1", "broca2", "tiempo2", "broca3", "tiempo3", "entradaSalida", "diametro_arrastre1", "diametro_arrastre2", "diametro_arrastre3"];
                 break;
             case "Cavidades":
-                this.tableTitles = !this.tablePieces ? [["#PZ", "Altura 1", "Altura 2", "Altura 3"], ["", "Profundidad", "Diametro", "Profundidad", "Diametro", "Profundidad", "Diametro"]] : [["#PZ", "Altura 1", "Altura 2", "Altura 3"], ["", "Profundidad", "Diametro", "Profundidad", "Diametro", "Profundidad", "Diametro", "Acetato B/M"]];
+                this.tableTitles = !this.tablePieces ? [["#PZ", "Altura 1", "Altura 2", "Altura 3"], ["", "Profundidad", "Diametro", "Profundidad", "Diametro", "Profundidad", "Diametro"]] : [["#PZ", "Altura 1", "Altura 2", "Altura 3", ""], ["", "Profundidad", "Diametro", "Profundidad", "Diametro", "Profundidad", "Diametro", "Acetato B/M"]];
 
                 divisionsTitles = [1, 2, 3];
                 divisionsCNomi = [null];
@@ -406,6 +406,7 @@ export class Process {
 
         if (this.tablePieces) { // Agregar campos de error y observaciones si la tabla es la de piezas
             if (this.nameProcess == "Cavidades" || this.nameProcess == "Off Set") {
+                this.tableTitles[0].push("", "");
                 this.tableTitles[1].push("Error", "Observaciones");
             } else {
                 this.tableTitles.push("Error", "Observaciones");
