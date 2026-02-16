@@ -626,7 +626,7 @@
                                         for (let k = 0; k < 2; k++) { // Crear inputs
                                             if (valoresCNomi != null && valoresTole != null) {
                                                 error = this.getError(valoresPieza[j][p], p, valoresCNomi, valoresTole,
-                                                    tolePosiciones, cNomiPosiciones);
+                                                    tolePosiciones, cNomiPosiciones, piezaPosiciones);
                                             }
                                             td.appendChild(this.crearInputs('input-medio', valoresPieza[j][p],
                                                 error)); // Crear inputs
@@ -639,7 +639,7 @@
                                             // console.log(valoresPieza[j][p]);
                                             if (valoresCNomi != null && valoresTole != null) {
                                                 error = this.getError(valoresPieza[j][p], p, valoresCNomi, valoresTole,
-                                                    tolePosiciones, cNomiPosiciones);
+                                                    tolePosiciones, cNomiPosiciones, piezaPosiciones);
                                             }
                                             // console.log(error);
                                         }
@@ -670,54 +670,41 @@
                 }
                 return input; // Retornar input
             }
-            getError(valorPieza, posicion, valoresCnomi, valoresTole, tolePosiciones, cNomiPosiciones) {
-                let posicionesTole = [];
-                for (let i = 0; i < valoresTole.length; i++) {
-                    posicionesTole.push(i);
-                    if (tolePosiciones.includes(i)) {
-                        i++;
+            getError(valorPieza, posicion, valoresCnomi, valoresTole, tolePosiciones, cNomiPosiciones, piezaPosiciones) {
+                let currentTolIndex = 0;
+                for (let i = 0; i < posicion; i++) {
+                    if (piezaPosiciones != null && piezaPosiciones.includes(i)) {
+                        currentTolIndex++;
+                    } else if (piezaPosiciones != null && piezaPosiciones.includes(i - 1)) {
+                        currentTolIndex++;
+                    } else {
+                        if (tolePosiciones != null && tolePosiciones.includes(currentTolIndex)) {
+                            currentTolIndex = currentTolIndex + 2;
+                        } else {
+                            currentTolIndex++;
+                        }
                     }
                 }
                 let error = false;
-                if (cNomiPosiciones.includes(posicion) || cNomiPosiciones.includes(posicion - 1)) {
-                    if (cNomiPosiciones.includes(posicion - 1)) {
-                        if (parseFloat(valorPieza) < parseFloat(parseFloat(valoresCnomi[posicion]) - parseFloat(
-                                valoresTole[posicionesTole[posicion - 1]] + 1)).toFixed(3) || parseFloat(valorPieza) >
-                            parseFloat(parseFloat(valoresCnomi[posicion]) + parseFloat(valoresTole[posicionesTole[
-                                posicion - 1]] + 1)).toFixed(3)) {
-                            error = true;
-                        }
-                    }
-                    if (parseFloat(valorPieza) < parseFloat(parseFloat(valoresCnomi[posicion]) - parseFloat(valoresTole[
-                            posicionesTole[posicion]])).toFixed(3) || parseFloat(valorPieza) > parseFloat(parseFloat(
-                            valoresCnomi[posicion]) + parseFloat(valoresTole[posicionesTole[posicion]])).toFixed(3)) {
+                // Todas las validaciones usan tolerancias asimétricas:
+                // currentTolIndex = tolerancia superior (+)
+                // currentTolIndex + 1 = tolerancia inferior (-)
+                if (tolePosiciones != null && tolePosiciones.includes(currentTolIndex)) {
+                    // Caso: Rango de tolerancia (dos valores: superior e inferior)
+                    let limiteInferior = parseFloat(valoresCnomi[posicion]) - parseFloat(valoresTole[currentTolIndex +
+                        1]);
+                    let limiteSuperior = parseFloat(valoresCnomi[posicion]) + parseFloat(valoresTole[currentTolIndex]);
+                    if (parseFloat(valorPieza) < parseFloat(limiteInferior).toFixed(3) || parseFloat(valorPieza) >
+                        parseFloat(limiteSuperior).toFixed(3)) {
                         error = true;
                     }
                 } else {
-                    if (tolePosiciones.includes(posicionesTole[posicion])) {
-                        for (let i = 0; i < 2; i++) {
-                            if (i == 0) {
-                                if (parseFloat(valorPieza) > parseFloat(parseFloat(valoresCnomi[posicion]) + parseFloat(
-                                        valoresTole[posicionesTole[posicion]])).toFixed(3)) {
-                                    error = true;
-                                }
-                            } else {
-                                if (parseFloat(valorPieza) < parseFloat(parseFloat(valoresCnomi[posicion]) - parseFloat(
-                                        valoresTole[posicionesTole[posicion] + 1])).toFixed(3)) {
-                                    error = true;
-                                }
-                            }
-                        }
-                    } else {
-                        // console.log(parseFloat(valoresTole[posicion]).toFixed(3));
-                        // if (parseFloat(valorPieza) < parseFloat(parseFloat(valoresCnomi[posicion]) - parseFloat(valoresTole[posicionesTole[posicion]])).toFixed(3) || parseFloat(valorPieza) > parseFloat(parseFloat(valoresCnomi[posicion]) + parseFloat(valoresTole[posicionesTole[posicion]])).toFixed(3)) {
-                        //     error = true;
-                        // }
-                        if (parseFloat(valorPieza) < parseFloat(parseFloat(valoresCnomi[posicion]) - parseFloat(
-                                valoresTole[posicion])).toFixed(3) || parseFloat(valorPieza) > parseFloat(parseFloat(
-                                valoresCnomi[posicion]) + parseFloat(valoresTole[posicion])).toFixed(3)) {
-                            error = true;
-                        }
+                    // Caso: Tolerancia simétrica (un solo valor usado como +/-)
+                    let limiteInferior = parseFloat(valoresCnomi[posicion]) - parseFloat(valoresTole[currentTolIndex]);
+                    let limiteSuperior = parseFloat(valoresCnomi[posicion]) + parseFloat(valoresTole[currentTolIndex]);
+                    if (parseFloat(valorPieza) < parseFloat(limiteInferior).toFixed(3) || parseFloat(valorPieza) >
+                        parseFloat(limiteSuperior).toFixed(3)) {
+                        error = true;
                     }
                 }
                 return error;
