@@ -831,7 +831,7 @@
                             <th class="t-title" style="width:150px; border:none;">#PZ</th>
                             <th class="t-title" colspan="2">
                                 Altura 1
-                                @if (isset($cNominal->altura1))
+                                @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
                                     <div style="margin-top: 6px;">
                                         <span
                                             style="
@@ -849,11 +849,29 @@
                                             {{ $cNominal->altura1 }} mm
                                         </span>
                                     </div>
+                                @elseif (isset($cNominal->profundidad1))
+                                    <div style="margin-top: 6px;">
+                                        <span
+                                            style="
+                                    display: inline-flex;
+                                    align-items: center;
+                                    padding: 2px 12px;
+                                    background: #f1f3f5;
+                                    border-radius: 50px;
+                                    font-size: 11px;
+                                    color: #495057;
+                                    border: 1px solid #dee2e6;
+                                    font-weight: 500;
+                                ">
+                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                            {{ $cNominal->profundidad1 }} mm
+                                        </span>
+                                    </div>
                                 @endif
                             </th>
                             <th class="t-title" colspan="2">
                                 Altura 2
-                                @if (isset($cNominal->altura2))
+                                @if (isset($cNominal->altura2) && !isset($cNominal->profundidad1))
                                     <div style="margin-top: 6px;">
                                         <span
                                             style="
@@ -871,11 +889,29 @@
                                             {{ $cNominal->altura2 }} mm
                                         </span>
                                     </div>
+                                @elseif (isset($cNominal->profundidad2))
+                                    <div style="margin-top: 6px;">
+                                        <span
+                                            style="
+                                    display: inline-flex;
+                                    align-items: center;
+                                    padding: 2px 12px;
+                                    background: #f1f3f5;
+                                    border-radius: 50px;
+                                    font-size: 11px;
+                                    color: #495057;
+                                    border: 1px solid #dee2e6;
+                                    font-weight: 500;
+                                ">
+                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                            {{ $cNominal->profundidad2 }} mm
+                                        </span>
+                                    </div>
                                 @endif
                             </th>
                             <th class="t-title" colspan="2">
                                 Altura 3
-                                @if (isset($cNominal->altura3))
+                                @if (isset($cNominal->altura3) && !isset($cNominal->profundidad1))
                                     <div style="margin-top: 6px;">
                                         <span
                                             style="
@@ -893,6 +929,24 @@
                                             {{ $cNominal->altura3 }} mm
                                         </span>
                                     </div>
+                                @elseif (isset($cNominal->profundidad3))
+                                    <div style="margin-top: 6px;">
+                                        <span
+                                            style="
+                                    display: inline-flex;
+                                    align-items: center;
+                                    padding: 2px 12px;
+                                    background: #f1f3f5;
+                                    border-radius: 50px;
+                                    font-size: 11px;
+                                    color: #495057;
+                                    border: 1px solid #dee2e6;
+                                    font-weight: 500;
+                                ">
+                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                            {{ $cNominal->profundidad3 }} mm
+                                        </span>
+                                    </div>
                                 @endif
                             </th>
                             <th class="t-title"></th>
@@ -900,7 +954,7 @@
                         </tr>
                         <tr>
                             <th class="t-title" style="border:none;"></th>
-                            @if (isset($cNominal->altura1))
+                            @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
                                 <th colspan="2">Altura</th>
                                 <th colspan="2">Altura</th>
                                 <th colspan="2">Altura</th>
@@ -918,7 +972,7 @@
                         </tr>
                         <tr>
                             <td>C.Nominal</td>
-                            @if (isset($cNominal->altura1))
+                            @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
                                 <td colspan="2"><input type="number" value="{{ $cNominal->altura1 }}" class="input"
                                         step="any" inputmode="decimal" disabled></td>
                                 <td colspan="2"><input type="number" value="{{ $cNominal->altura2 }}" class="input"
@@ -932,8 +986,8 @@
                                         inputmode="decimal" disabled></td>
                                 <td><input type="number" value="{{ $cNominal->profundidad2 }}" class="input"
                                         step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $cNominal->diametro2 }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
+                                <td><input type="number" value="{{ $cNominal->diametro2 }}" class="input"
+                                        step="any" inputmode="decimal" disabled></td>
                                 <td><input type="number" value="{{ $cNominal->profundidad3 }}" class="input"
                                         step="any" inputmode="decimal" disabled></td>
                                 <td><input type="number" value="{{ $cNominal->diametro3 }}" class="input"
@@ -945,7 +999,7 @@
                         </tr>
                         <tr>
                             <td> Tolerancias </td>
-                            @if (isset($cNominal->altura1))
+                            @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
                                 <td colspan="2"><input type="number" value="{{ $tolerance->altura1 }}"
                                         class="input-medio" step="any" inputmode="decimal" disabled></td>
                                 <td colspan="2"><input type="number" value="{{ $tolerance->altura2 }}"
@@ -986,7 +1040,7 @@
                             <tr>
                                 <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}" disabled>
                                 </td>
-                                @if (isset($cNominal->altura1))
+                                @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
                                     <td colspan="2"><input type="number" class="input"
                                             value="{{ $pieceInfo['altura1'] ?? '' }}" step="any" inputmode="decimal"
                                             disabled></td>
@@ -1176,8 +1230,9 @@
                             <tr>
                                 <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}"
                                         step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro1_cavidades'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" class="input"
+                                        value="{{ $pieceInfo['diametro1_cavidades'] }}" step="any"
+                                        inputmode="decimal" disabled></td>
                                 <td><input type="number" class="input"
                                         value="{{ $pieceInfo['profundidad1_cavidades'] }}" step="any"
                                         inputmode="decimal" disabled></td>

@@ -141,6 +141,7 @@ Route::controller(PzasGeneralesController::class)->group(function () {
     Route::get('/pieces', 'showPiecesReport_view')->name('showPiecesReport_view'); //Ruta para la vista general de piezas
     Route::match(['get', 'post'], '/pieces/search', 'getPiecesRequest')->name('searchPieces'); //Ruta para el controlador de piezas generales
     Route::get('/pieces/{pieces}/{process}/{profile}', 'showPiece')->name('chosenPiece'); //Vista de la pieza elegida
+    Route::post('/getGamesFromOT', 'getGamesFromOT')->name('getGamesFromOT'); //Ruta para obtener juegos de una OT
 
     Route::get('/piezasMaquina', 'showVistaMaquina')->name('vistaPzasMaquina'); //Ruta para la vista de piezas por maquina
     Route::post('/piezasMaquina', 'showMachinesProcess')->name('showMachinesProcess'); //Ruta para ver los procesos de las maquinas

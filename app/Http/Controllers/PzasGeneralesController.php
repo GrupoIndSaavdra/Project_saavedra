@@ -604,6 +604,53 @@ class PzasGeneralesController extends Controller
             $contador++;
         }
     }
+    public function getGamesFromOT(Request $request)
+    {
+        $otStr = $request->input('ot');
+        $className = $request->input('class');
+
+        // Extract ID OT
+        $otId = $otStr;
+        if (str_contains($otStr, ' - ')) {
+            $parts = explode(' - ', $otStr);
+            $otId = $parts[0];
+        }
+
+        // Find Class ID
+        $clase = Clase::where('nombre', $className)->first();
+        if (!$clase) {
+            return response()->json([]);
+        }
+
+        // Search pieces
+        $piezas = Pieza::where('id_ot', $otId)
+            ->where('id_clase', $clase->id)
+            ->select('n_pieza', 'n_juego')
+            ->get();
+
+        $games = [];
+
+        foreach ($piezas as $pza) {
+            if ($pza->n_juego) {
+                // If it has n_juego, use it directly
+                $games[] = $pza->n_juego;
+            } elseif ($pza->n_pieza) {
+                // If it is n_pieza (e.g., 1H, 1M), convert to game (e.g., 1J)
+                $numero = $this->getPiezaNumber($pza->n_pieza);
+                if (substr($pza->n_pieza, -1) == "H" || substr($pza->n_pieza, -1) == "M") {
+                    $games[] = $numero . "J";
+                } else {
+                    $games[] = $pza->n_pieza;
+                }
+            }
+        }
+
+        // Remove duplicates and sort
+        $games = array_unique($games);
+        sort($games);
+
+        return response()->json(array_values($games));
+    }
 
     public function showPiece($pieces, $process, $profile)
     {
@@ -790,7 +837,7 @@ class PzasGeneralesController extends Controller
                 $id_process = Cavidades::find($pieceInfo[0]->id_proceso);
                 $cNominal = Cavidades_cnominal::where('id_proceso', $id_process->id_proceso)->first();
                 $tolerance = Cavidades_tolerancia::where('id_proceso', $id_process->id_proceso)->first();
-                $proceso = 'Cavidades';
+                $process = 'Cavidades';
                 break;
             case 'Copiado':
                 //Obtener informacion de la pieza elegida
