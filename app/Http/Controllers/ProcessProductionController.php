@@ -76,7 +76,10 @@ class ProcessProductionController extends Controller
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Corona":
-                $processesInOrder = ["cepillado", "desbaste_exterior"];
+                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo"];
+                break;
+            case "Plato":
+                $processesInOrder = ["operacionEquipo", "embudoCM"];
                 break;
             default:
                 $processesInOrder = [];
@@ -1119,6 +1122,7 @@ class ProcessProductionController extends Controller
             'Off Set' => new OffSetController(),
             'Palomas' => new PalomasController(),
             'Rebajes' => new RebajesController(),
+            'Embudo CM' => new EmbudoCMController(),
 
             'Operacion Equipo' => new PySOpeSoldaduraController(),
         };
@@ -1261,7 +1265,10 @@ class ProcessProductionController extends Controller
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Corona":
-                $processesInOrder = ["cepillado", "desbaste_exterior"];
+                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo"];
+                break;
+            case "Plato":
+                $processesInOrder = ["operacionEquipo", "embudoCM"];
                 break;
             default:
                 $processesInOrder = [];
@@ -2182,6 +2189,16 @@ class ProcessProductionController extends Controller
                     }
                     $processNameKey = "Soldadura y Soldadura PTA";
                     $soldaduraIncluded = true;
+                } elseif ($processName == "Operacion Equipo") {
+                    // Split Operacion Equipo into its subprocesses
+                    $subprocesses = ["Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion"];
+                    foreach ($subprocesses as $subprocess) {
+                        $processes[$subprocess] = array();
+                        $piecesBadData = array();
+                        $processes[$subprocess]['pieces'] = $this->getPieces($class, $subprocess, $piecesBadData);
+                        $processes[$subprocess]['piecesBadData'] = $piecesBadData;
+                    }
+                    continue; // Skip the main "Operacion Equipo" key
                 } else {
                     $processNameKey = $processName;
                 }

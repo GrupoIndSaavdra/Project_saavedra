@@ -352,7 +352,7 @@ function createTableClasses(classes) {
         for (let field in classArray) {
             //Se recorren los campos de cada clase
             switch (
-                field //Switch para insertar los campos correspondientes en la tabla
+            field //Switch para insertar los campos correspondientes en la tabla
             ) {
                 case "nombre":
                 case "tamanio":
@@ -703,12 +703,12 @@ function get_operationsArray(className) {
             operationsArray = ["operacionEquipo", "soldadura", "soldaduraPTA"];
             break;
         case "Corona":
-            operations = ["Cepillado", "Desbaste exterior"];
-            operationsArray = ["cepillado", "desbaste_exterior"];
+            operations = ["Cepillado", "Desbaste exterior", "1ra Operacion", "2da Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado", "Acabado Bombillo"];
+            operationsArray = ["Cepillado", "Desbaste exterior", "Primera Operacion", "Segunda Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado", "Acabado Bombillo"];
             break;
         case "Plato":
-            operations = ["1ra y 2da Operación Equipo", "Barreno de Profundidad"];
-            operationsArray = ["operacionEquipo", "barreno_profundidad"];
+            operations = ["1ra y 2da Operación Equipo", "Embudo C.M."];
+            operationsArray = ["operacionEquipo", "embudoCM"];
             break;
         case "Embudo":
             operations = ["1ra y 2da Operación Equipo", "Embudo C.M."];

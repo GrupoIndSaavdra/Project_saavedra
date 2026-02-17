@@ -162,12 +162,17 @@ class WOController extends Controller
         switch ($class->nombre) {
             case "Bombillo":
             case "Molde":
-            case 'Corona':
                 $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                break;
+            case 'Corona':
+                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo"];
                 break;
             case "Obturador":
             case "Fondo":
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                break;
+            case "Plato":
+                $processesInOrder = ["operacionEquipo", "embudoCM"];
                 break;
             default:
                 $processesInOrder = [];
@@ -503,7 +508,7 @@ class WOController extends Controller
         //Obtener el numero de juego
         preg_match('/^\d+/', $piece->n_pieza, $n_juego);
         $array["setNumber"] = $n_juego[0] . "J";
-        $array["operator"] = $operador->nombre . " " . $operador->a_paterno . " "  . $operador->a_materno;
+        $array["operator"] = $operador->nombre . " " . $operador->a_paterno . " " . $operador->a_materno;
         $array["process"] = $piece->proceso;
         $array["operation"] = $operation;
         $array["error"] = $rechazada ? $rechazada : $piece->error; //Si la pieza no tiene ningun error pero esta rechazada

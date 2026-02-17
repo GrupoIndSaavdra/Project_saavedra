@@ -483,8 +483,13 @@ function insertPrincipalVariables(form) {
     }
 }
 function insertTableOnForm(cNominals, tolerances, scrollableTable, form, subprocess = null) {
+    let processName = window.arrayData["process"];
+    if (processName.includes("Operacion Equipo")) {
+        processName = "Operacion Equipo";
+    }
+
     let process = new Process(
-        window.arrayData["process"],
+        processName,
         subprocess,
         cNominals,
         tolerances,
@@ -1329,8 +1334,12 @@ function createHistoricalTable(history) {
         currentProcessName = "Soldadura y Soldadura PTA";
     }
 
+    // Fix for "Operacion Equipo" which might have suffixes like "_1 operacion" in the frontend
+    // but is keyed as "Operacion Equipo" in the backend history
+    let lookupName = currentProcessName;
+
     // Find the matching process in history
-    let processData = history[currentProcessName];
+    let processData = history[lookupName];
 
     if (processData) {
         let processSection = document.createElement("div");
@@ -1338,7 +1347,7 @@ function createHistoricalTable(history) {
 
         let processTitle = document.createElement("h3");
         processTitle.className = "process-title";
-        processTitle.innerText = currentProcessName;
+        processTitle.innerText = currentProcessName; // Keep the specific name for the title
         processSection.appendChild(processTitle);
 
         let pieces = [processData.pieces.good, processData.pieces.bad];

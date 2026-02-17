@@ -97,7 +97,7 @@ class EmbudoCMController extends Controller
             if ($id_opeEquipo1 && $id_opeEquipo2) {
                 $pzasOpeEquipo1 = PySOpeSoldadura_pza::where('id_proceso', $id_opeEquipo1->id)->where('estado', 2)->get();
                 $pzasRestantes = $this->piezasRestantes($clase, $pzasEmbudoCM, $pzasOpeEquipo1, $id_opeEquipo2->id, 'Operacion equipo');
-            }else{
+            } else {
                 $pzasRestantes = 0;
             }
         }
@@ -114,10 +114,10 @@ class EmbudoCMController extends Controller
                 $piezaExistente->estado = 2;
                 $piezaExistente->save();
 
-                if ($this->compararDatosPieza($piezaExistente, $cNominal, $tolerancia) == 0 && $request->error == 0) {
+                if ($this->comparePieceData($piezaExistente, $cNominal, $tolerancia) == 0 && $request->error == 0) {
                     $piezaExistente->error = 'Maquinado';
                     $piezaExistente->correcto = 0;
-                } else if (($this->compararDatosPieza($piezaExistente, $cNominal, $tolerancia) == 0 && $request->error == 'Fundicion') || ($this->compararDatosPieza($piezaExistente, $cNominal, $tolerancia) == 1 && $request->error == 'Fundicion')) {
+                } else if (($this->comparePieceData($piezaExistente, $cNominal, $tolerancia) == 0 && $request->error == 'Fundicion') || ($this->comparePieceData($piezaExistente, $cNominal, $tolerancia) == 1 && $request->error == 'Fundicion')) {
                     $piezaExistente->error = $request->error;
                     $piezaExistente->correcto = 0;
                 } else {
@@ -188,10 +188,10 @@ class EmbudoCMController extends Controller
             $pzasCreadas = EmbudoCM_pza::where('id_proceso', $id_proceso->id)->where('estado', 2)->where('id_meta', $meta->id)->get(); //Obtención de todas las piezas creadas.
             for ($i = 0; $i < count($pzasCreadas); $i++) { //Recorro las piezas creadas.
                 //Actualiza el estado correcto de la pieza.
-                if ($this->compararDatosPieza($pzasCreadas[$i], $cNominal, $tolerancia) == 0 && ($pzasCreadas[$i]->error == 'Maquinado' || $pzasCreadas[$i]->error == 'Ninguno')) {
+                if ($this->comparePieceData($pzasCreadas[$i], $cNominal, $tolerancia) == 0 && ($pzasCreadas[$i]->error == 'Maquinado' || $pzasCreadas[$i]->error == 'Ninguno')) {
                     $pzasCreadas[$i]->error = 'Maquinado';
                     $pzasCreadas[$i]->correcto = 0;
-                } else if (($this->compararDatosPieza($pzasCreadas[$i], $cNominal, $tolerancia) == 0 && $pzasCreadas[$i]->error == 'Fundicion') || ($this->compararDatosPieza($pzasCreadas[$i], $cNominal, $tolerancia) == 1 && $pzasCreadas[$i]->error == 'Fundicion')) {
+                } else if (($this->comparePieceData($pzasCreadas[$i], $cNominal, $tolerancia) == 0 && $pzasCreadas[$i]->error == 'Fundicion') || ($this->comparePieceData($pzasCreadas[$i], $cNominal, $tolerancia) == 1 && $pzasCreadas[$i]->error == 'Fundicion')) {
                     $pzasCreadas[$i]->error = 'Fundicion';
                     $pzasCreadas[$i]->correcto = 0;
                 } else {
@@ -241,6 +241,50 @@ class EmbudoCMController extends Controller
         }
     }
 
+    public function storePiece($request, $cNominal, $tolerance, $index)
+    {
+        if ($index !== null) {
+            $piece = EmbudoCM_pza::find($request->piece[$index]);
+
+            // Crear arreglo de datos por índice
+            $fields = ['conexion_lineaPartida', 'conexion_90G', 'altura_conexion', 'diametro_embudo', 'observaciones'];
+
+            $data = array();
+            foreach ($fields as $field) {
+                $data[$field] = $request->$field[$index] ?? null;
+            }
+            $piece->fill($data);
+            $error = $request->error[$index];
+        } else {
+            $piece = EmbudoCM_pza::find($request->piece);
+            //Guardar los datos de la pieza
+            $piece->fill($request->only([
+                'conexion_lineaPartida',
+                'conexion_90G',
+                'altura_conexion',
+                'diametro_embudo',
+                'observaciones',
+            ]));
+
+            $error = $request->error;
+        }
+
+        $piece->estado = 2;
+        //Verificar si las medidas de la pieza estan correctas
+        $correct = $this->comparePieceData($piece, $cNominal, $tolerance);
+        if ($correct == 0 && ($error == "Ninguno" || $error == "Maquinado")) {
+            $piece->error = 'Maquinado';
+            $piece->correcto = 0;
+        } else if (($correct == 0 && $error == 'Fundicion') || ($correct == 1 && $error == 'Fundicion')) {
+            $piece->error = $error;
+            $piece->correcto = 0;
+        } else {
+            $piece->error = 'Ninguno';
+            $piece->correcto = 1;
+        }
+        $piece->save();
+    }
+
     public function piezasRestantes($clase, $pzasProcesoA, $pzasProcesoB, $id_procesoC, $procesoName)
     {
         $pzasProcesos = 0;
@@ -263,7 +307,7 @@ class EmbudoCMController extends Controller
         return $pzasRestantes;
     }
 
-    public function compararDatosPieza($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
+    public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
         if ($pieza->conexion_lineaPartida > ($cNominal->conexion_lineaPartida + $tolerancia->conexion_lineaPartida) || $pieza->conexion_lineaPartida < ($cNominal->conexion_lineaPartida - $tolerancia->conexion_lineaPartida) || $pieza->conexion_90G > ($cNominal->conexion_90G + $tolerancia->conexion_90G) || $pieza->conexion_90G < ($cNominal->conexion_90G - $tolerancia->conexion_90G) || $pieza->altura_conexion > ($cNominal->altura_conexion + $tolerancia->altura_conexion) || $pieza->altura_conexion < ($cNominal->altura_conexion - $tolerancia->altura_conexion) || $pieza->diametro_embudo > ($cNominal->diametro_embudo + $tolerancia->diametro_embudo) || $pieza->diametro_embudo < ($cNominal->diametro_embudo - $tolerancia->diametro_embudo)) {
             return 0; //Si los datos de la pieza son diferentes a los nominales y de tolerancia, se retorna 0.
@@ -318,10 +362,10 @@ class EmbudoCMController extends Controller
                     $piezaExistente->save();
 
                     //Acrualiza el estado correcto de la pieza.
-                    if ($this->compararDatosPieza($piezaExistente, $cNominal, $tolerancia) == 0 && ($request->error[$i] == "Ninguno" || $request->error[$i] == "Maquinado")) {
+                    if ($this->comparePieceData($piezaExistente, $cNominal, $tolerancia) == 0 && ($request->error[$i] == "Ninguno" || $request->error[$i] == "Maquinado")) {
                         $piezaExistente->error = 'Maquinado';
                         $piezaExistente->correcto = 0;
-                    } else if (($this->compararDatosPieza($piezaExistente, $cNominal, $tolerancia) == 0 && $request->error[$i] == 'Fundicion') || ($this->compararDatosPieza($piezaExistente, $cNominal, $tolerancia) == 1 && $request->error[$i] == 'Fundicion')) {
+                    } else if (($this->comparePieceData($piezaExistente, $cNominal, $tolerancia) == 0 && $request->error[$i] == 'Fundicion') || ($this->comparePieceData($piezaExistente, $cNominal, $tolerancia) == 1 && $request->error[$i] == 'Fundicion')) {
                         $piezaExistente->error = $request->error[$i];
                         $piezaExistente->correcto = 0;
                     } else {

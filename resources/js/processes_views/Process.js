@@ -387,6 +387,11 @@ export class Process {
                 divisionsCNomi = [null];
                 divisionsTole = [null];
 
+                positionSelects = [
+                    [5],
+                    [["Ninguno", "Fundicion"]]
+                ];
+
                 fields = ["id", "conexion_lineaPartida", "conexion_90G", "altura_conexion", "diametro_embudo"];
                 break;
             case "Operacion Equipo":

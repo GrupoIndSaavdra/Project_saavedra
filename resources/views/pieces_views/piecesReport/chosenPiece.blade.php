@@ -446,6 +446,30 @@
                             'simetria', 'error', 'observaciones'
                         ];
                         break;
+
+                    case "Acabado Bombillo": // Proceso de Acabado Bombillo
+                         titulos = ['No.Pieza', 'Diametro de mordaza', 'Diametro de ceja', 'Diametro de sufridera', 'Altura de mordaza', 'Altura de ceja',
+                            'Altura de sufridera', 'Diametro de boca', 'Diametro de asiento de corona', 'Diametro de llanta', 'Diametro de caja corona',
+                            'Profundidad de corona', 'Angulo a 30°', 'Profundidad de caja corona', 'Simetria', 'Error', 'Observaciones'];
+
+                        cNomiPosiciones = [null];
+                        tolePosiciones = [1, 3, 5, 7, 9, 11, 13]; // Ajustar segun corresponda, asumo similar a otros procesos
+                        piezaPosiciones = [null];
+
+                        nombresCnomi = ['id', 'diametro_mordaza', 'diametro_ceja', 'diametro_sufridera', 'altura_mordaza', 'altura_ceja', 'altura_sufridera',
+                            'diametro_boca', 'diametro_asiento_corona', 'diametro_llanta', 'diametro_caja_corona', 'profundidad_corona', 'angulo_30',
+                            'profundidad_caja_corona', 'simetria'];
+
+                        nombresTole = ['id', 'diametro_mordaza1', 'diametro_mordaza2', 'diametro_ceja1', 'diametro_ceja2', 'diametro_sufridera1', 'diametro_sufridera2',
+                            'altura_mordaza1', 'altura_mordaza2', 'altura_ceja1', 'altura_ceja2', 'altura_sufridera1', 'altura_sufridera2',
+                            'diametro_boca1', 'diametro_boca2', 'diametro_asiento_corona1', 'diametro_asiento_corona2', 'diametro_llanta1', 'diametro_llanta2',
+                            'diametro_caja_corona1', 'diametro_caja_corona2', 'profundidad_corona1', 'profundidad_corona2', 'angulo_30_1', 'angulo_30_2',
+                            'profundidad_caja_corona1', 'profundidad_caja_corona2', 'simetria1', 'simetria2'];
+
+                        nombres = ['n_pieza', 'diametro_mordaza', 'diametro_ceja', 'diametro_sufridera', 'altura_mordaza', 'altura_ceja', 'altura_sufridera',
+                            'diametro_boca', 'diametro_asiento_corona', 'diametro_llanta', 'diametro_caja_corona', 'profundidad_corona', 'angulo_30',
+                            'profundidad_caja_corona', 'simetria', 'error', 'observaciones'];
+                        break;
                     case "Operacion Equipo_1 operacion": //Proceso de operacion equipo 1 operacion
                     case "Operacion Equipo_2 operacion": //Proceso de operacion equipo 2 operacion
                         titulos = ['No. Pieza', 'Altura', 'ø  Altura de candado', 'Altura asiento obturador',

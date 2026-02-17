@@ -84,11 +84,19 @@ class tiemposProduccionController extends Controller
                 };
             case "Obturador":
             case "Fondo":
-            case "Plato":
             case "Embudo":
-            case "Corona":
                 return match ($class->tamanio) {
                     'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Soldadura' => 30, 'Soldadura PTA' => 15],
+                    default => null,
+                };
+            case "Corona":
+                return match ($class->tamanio) {
+                    'Chico', 'Mediano', 'Grande' => ['Cepillado' => 35, 'Desbaste Exterior' => 26, 'Primera Operacion' => 24, 'Segunda Operacion' => 24, 'Soldadura' => 24, 'Soldadura PTA' => 24, 'Rectificado' => 12, 'Asentado' => 20, 'Calificado' => 22, 'Acabado Bombillo' => 15],
+                    default => null,
+                };
+            case "Plato":
+                return match ($class->tamanio) {
+                    'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Embudo CM' => 24],
                     default => null,
                 };
             default:
@@ -205,9 +213,9 @@ class tiemposProduccionController extends Controller
                 return array("operacionEquipo", "soldadura", "soldaduraPTA");
                 break;
             case "Corona":
-                return array("cepillado", "desbaste_exterior");
+                return array("cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo");
             case "Plato":
-                return array("operacionEquipo", "barreno_profundidad", "soldaduraPTA");
+                return array("operacionEquipo", "embudoCM");
             case "Embudo":
                 return array("operacionEquipo", "embudoCM");
             default:
