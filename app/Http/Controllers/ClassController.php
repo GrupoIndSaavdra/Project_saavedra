@@ -184,8 +184,12 @@ class ClassController extends Controller
             case "Plato":
                 $processNames = array("operacionEquipo", "embudoCM");
                 break;
+                break;
             case "Embudo":
                 $processNames = array("operacionEquipo", "embudoCM");
+                break;
+            case "Cabeza de Soplo":
+                $processNames = array("primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo");
                 break;
         }
 
@@ -214,7 +218,9 @@ class ClassController extends Controller
                 'rebajes',
                 'grabado',
                 'operacionEquipo',
-                'embudoCM'
+                'embudoCM',
+                'primeraOperacionCabezaSoplo',
+                'segundaOperacionCabezaSoplo'
             ];
             foreach ($fields as $field) {
                 $process->$field = 0;
@@ -339,6 +345,9 @@ class ClassController extends Controller
                     break;
                 case "Embudo":
                     $piecesProcesses = ["operacionEquipo", "embudoCM"];
+                    break;
+                case "Cabeza de Soplo":
+                    $piecesProcesses = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
                     break;
             }
 
@@ -497,6 +506,9 @@ class ClassController extends Controller
                 break;
             case "Embudo":
                 $procesos = ["operacionEquipo", "embudoCM"];
+                break;
+            case "Cabeza de Soplo":
+                $procesos = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
                 break;
             default:
                 $procesos = [];

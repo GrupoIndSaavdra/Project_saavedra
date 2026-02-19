@@ -81,6 +81,12 @@ class ProcessProductionController extends Controller
             case "Plato":
                 $processesInOrder = ["operacionEquipo", "embudoCM"];
                 break;
+            case "Embudo":
+                $processesInOrder = ["operacionEquipo", "embudoCM"];
+                break;
+            case "Cabeza de Soplo":
+                $processesInOrder = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+                break;
             default:
                 $processesInOrder = [];
                 break;
@@ -1032,7 +1038,7 @@ class ProcessProductionController extends Controller
 
             if ($piecesInMeta->count() > 0) { // Si hay piezas registradas
                 //Actualizar las piezas del proceso
-                $controllerProcess = $this->get_ControllerProcess($process); // Obtener el controlador del proceso
+                $controllerProcess = $this->get_ControllerProcess($process, $class); // Obtener el controlador del proceso
 
                 [$cNominalModel, $toleranceModel] = $this->getModelProcessCNominal_Tolerance($process); // Obtener los modelos de las Cotas nominales y Tolerancias del proceso
                 $cNominal = $cNominalModel::where('id_proceso', $processId)->first();
@@ -1100,8 +1106,16 @@ class ProcessProductionController extends Controller
             }
         }
     }
-    public function get_ControllerProcess($process)
+    public function get_ControllerProcess($process, $class = null)
     {
+        if ($class && $class->nombre == 'Cabeza de Soplo') {
+            return match ($process) {
+                'Primera Operacion Cabeza Soplo' => new PrimeraOperacionCabezaSoploController(),
+                'Segunda Operacion Cabeza Soplo' => new SegundaOperacionCabezaSoploController(),
+                default => null, // Should not happen for this class if configured correctly
+            };
+        }
+
         return match ($process) {
             'Cepillado' => new CepilladoController(),
             'Desbaste Exterior' => new DesbasteExteriorController(),
@@ -1125,6 +1139,8 @@ class ProcessProductionController extends Controller
             'Embudo CM' => new EmbudoCMController(),
 
             'Operacion Equipo' => new PySOpeSoldaduraController(),
+            'Primera Operacion Cabeza Soplo' => new PrimeraOperacionCabezaSoploController(),
+            'Segunda Operacion Cabeza Soplo' => new SegundaOperacionCabezaSoploController(),
         };
     }
 
@@ -1270,6 +1286,9 @@ class ProcessProductionController extends Controller
             case "Plato":
                 $processesInOrder = ["operacionEquipo", "embudoCM"];
                 break;
+            case "Cabeza de Soplo":
+                $processesInOrder = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+                break;
             default:
                 $processesInOrder = [];
                 break;
@@ -1287,7 +1306,12 @@ class ProcessProductionController extends Controller
 
         //Obtener el proceso anterior al actual
         $positionActualProcess = array_search($process, $processesInOrder);
-        $previousProcess = $positionActualProcess !== 0 ? $processesInOrder[array_search($process, $processesInOrder) - 1] : null;
+
+        if ($positionActualProcess === false) {
+            return null;
+        }
+
+        $previousProcess = $positionActualProcess !== 0 ? $processesInOrder[$positionActualProcess - 1] : null;
 
         // Modificación para procesos paralelos (Barreno Profundidad y Cavidades)
         if ($process == "cavidades") {
@@ -1347,6 +1371,8 @@ class ProcessProductionController extends Controller
             'Embudo CM' => 'embudoCM',
             'Soldadura' => 'soldadura',
             'Soldadura PTA' => 'soldaduraPTA',
+            'Primera Operacion Cabeza Soplo' => 'primeraOperacionCabezaSoplo',
+            'Segunda Operacion Cabeza Soplo' => 'segundaOperacionCabezaSoplo',
         };
         return $process;
     }
@@ -1658,6 +1684,8 @@ class ProcessProductionController extends Controller
             'Embudo CM' => "EmbudoCM",
             'Soldadura' => "Soldadura",
             'Soldadura PTA' => "SoldaduraPTA",
+            'Primera Operacion Cabeza Soplo' => "PrimeraOperacionCabezaSoplo",
+            'Segunda Operacion Cabeza Soplo' => "SegundaOperacionCabezaSoplo",
         };
         return "App\Models\\" . $modelProcess;
     }
@@ -1682,6 +1710,8 @@ class ProcessProductionController extends Controller
             'Grabado' => "Grabado_cnominal", // No existe, crearlo
             'Operacion Equipo' => "PySOpeSoldadura_cnominal",
             'Embudo CM' => "EmbudoCM_cnominal",
+            'Primera Operacion Cabeza Soplo' => "PrimeraOperacionCabezaSoplo_cnominal",
+            'Segunda Operacion Cabeza Soplo' => "SegundaOperacionCabezaSoplo_cnominal",
         };
         $cNominal = "App\Models\\" . $cNominal;
 
@@ -1704,6 +1734,8 @@ class ProcessProductionController extends Controller
             'Grabado' => "Grabado_tolerancia", // No existe, crearlo
             'Operacion Equipo' => "PySOpeSoldadura_tolerancia",
             'Embudo CM' => "EmbudoCM_tolerancias",
+            'Primera Operacion Cabeza Soplo' => "PrimeraOperacionCabezaSoplo_tolerancia",
+            'Segunda Operacion Cabeza Soplo' => "SegundaOperacionCabezaSoplo_tolerancia",
         };
         $tolerance = "App\Models\\" . $tolerance;
 
@@ -1734,6 +1766,8 @@ class ProcessProductionController extends Controller
             'Embudo CM' => "EmbudoCM_pza",
             'Soldadura' => "Soldadura_pza",
             'Soldadura PTA' => "SoldaduraPTA_pza",
+            'Primera Operacion Cabeza Soplo' => "PrimeraOperacionCabezaSoplo_pza",
+            'Segunda Operacion Cabeza Soplo' => "SegundaOperacionCabezaSoplo_pza",
         };
         return "App\Models\\" . $modelProcess;
     }
@@ -1783,6 +1817,8 @@ class ProcessProductionController extends Controller
             'Primera Operacion' => 'primeraOpeSoldadura',
             'Barreno Maniobra' => 'barrenoManiobra',
             'Segunda Operacion' => 'segundaOpeSoldadura',
+            'Primera Operacion Cabeza Soplo' => 'primeraOperacionCabezaSoplo',
+            'Segunda Operacion Cabeza Soplo' => 'segundaOperacionCabezaSoplo',
             'Rectificado' => 'rectificado',
             'Asentado' => 'asentado',
             'Calificado' => 'revCalificado',
@@ -1830,6 +1866,10 @@ class ProcessProductionController extends Controller
                 return "Acabado Molde";
             case "barreno_profundidad":
                 return "Barreno Profundidad";
+            case "primeraOperacionCabezaSoplo":
+                return "Primera Operacion Cabeza Soplo";
+            case "segundaOperacionCabezaSoplo":
+                return "Segunda Operacion Cabeza Soplo";
             case "cavidades":
                 return "Cavidades";
             case "copiado":

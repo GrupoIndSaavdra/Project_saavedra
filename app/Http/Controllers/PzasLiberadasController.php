@@ -17,6 +17,7 @@ use App\Models\OffSet_pza;
 use App\Models\Palomas_pza;
 use App\Models\Pieza;
 use App\Models\PrimeraOpeSoldadura_pza;
+use App\Models\PrimeraOperacionCabezaSoplo_pza;
 use App\Models\PySOpeSoldadura_pza;
 use App\Models\Pza_cepillado;
 use App\Models\Rebajes_pza;
@@ -24,6 +25,7 @@ use App\Models\Rectificado_pza;
 use App\Models\revCalificado_pza;
 use App\Models\RevLaterales_pza;
 use App\Models\SegundaOpeSoldadura_pza;
+use App\Models\SegundaOperacionCabezaSoplo_pza;
 use App\Models\Soldadura_pza;
 use App\Models\SoldaduraPTA_pza;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -297,6 +299,22 @@ class PzasLiberadasController extends Controller
                     array_push($pieza, $p);
                 }
                 $piezas = EmbudoCM_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                break;
+            case "Primera Operacion Cabeza Soplo":
+                $pieza = array();
+                foreach ($juego as $pza) {
+                    $p = PrimeraOperacionCabezaSoplo_pza::where('id_pza', $pza)->first();
+                    array_push($pieza, $p);
+                }
+                $piezas = PrimeraOperacionCabezaSoplo_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                break;
+            case "Segunda Operacion Cabeza Soplo":
+                $pieza = array();
+                foreach ($juego as $pza) {
+                    $p = SegundaOperacionCabezaSoplo_pza::where('id_pza', $pza)->first();
+                    array_push($pieza, $p);
+                }
+                $piezas = SegundaOperacionCabezaSoplo_pza::where('id_meta', $pieza[0]->id_meta)->get();
                 break;
         }
         //Algoritmo para liberar 5 juegos despues de que se libere uno

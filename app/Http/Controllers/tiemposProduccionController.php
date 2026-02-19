@@ -99,6 +99,13 @@ class tiemposProduccionController extends Controller
                     'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Embudo CM' => 24],
                     default => null,
                 };
+            case "Cabeza de Soplo":
+                return match ($class->tamanio) {
+                    'Chico' => ['Primera Operacion Cabeza Soplo' => 24, 'Segunda Operacion Cabeza Soplo' => 24],
+                    'Mediano' => ['Primera Operacion Cabeza Soplo' => 28, 'Segunda Operacion Cabeza Soplo' => 28],
+                    'Grande' => ['Primera Operacion Cabeza Soplo' => 32, 'Segunda Operacion Cabeza Soplo' => 32],
+                    default => null,
+                };
             default:
                 return null;
         }
@@ -218,6 +225,8 @@ class tiemposProduccionController extends Controller
                 return array("operacionEquipo", "embudoCM");
             case "Embudo":
                 return array("operacionEquipo", "embudoCM");
+            case "Cabeza de Soplo":
+                return array("primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo");
             default:
                 return;
         }
@@ -330,6 +339,8 @@ class tiemposProduccionController extends Controller
             'Embudo CM' => 'embudoCM',
             'Soldadura' => 'soldadura',
             'Soldadura PTA' => 'soldaduraPTA',
+            'Primera Operacion Cabeza Soplo' => 'primeraOperacionCabezaSoplo',
+            'Segunda Operacion Cabeza Soplo' => 'segundaOperacionCabezaSoplo',
         };
         return $process;
     }
@@ -361,6 +372,8 @@ class tiemposProduccionController extends Controller
             'embudoCM' => 'Embudo CM',
             'soldadura' => 'Soldadura',
             'soldaduraPTA' => 'Soldadura PTA',
+            'primeraOperacionCabezaSoplo' => 'Primera Operacion Cabeza Soplo',
+            'segundaOperacionCabezaSoplo' => 'Segunda Operacion Cabeza Soplo',
         };
         return $process;
     }

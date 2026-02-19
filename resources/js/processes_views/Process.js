@@ -407,6 +407,32 @@ export class Process {
 
                 fields = ["id", "altura", "alturaCandado", "alturaAsientoObturador", "profundidadSoldadura", "pushUp"];
                 break;
+            case "Primera Operacion Cabeza Soplo":
+                this.tableTitles = ["", "Diametro Exterior", "Longitud", "Diametro Candado", "Longitud Candado"];
+
+                divisionsCNomi = [null];
+                divisionsTole = [1, 2, 3, 4];
+
+                positionSelects = [
+                    [5],
+                    [["Ninguno", "Fundicion"]]
+                ];
+
+                fields = ["id", "diametro_exterior", "longitud", "diametro_candado", "longitud_candado"];
+                break;
+            case "Segunda Operacion Cabeza Soplo":
+                this.tableTitles = ["", "Diametro Exterior", "Longitud", "Diametro Candado", "Longitud Candado"];
+
+                divisionsCNomi = [null];
+                divisionsTole = [1, 2, 3, 4];
+
+                positionSelects = [
+                    [5],
+                    [["Ninguno", "Fundicion"]]
+                ];
+
+                fields = ["id", "diametro_exterior", "longitud", "diametro_candado", "longitud_candado"];
+                break;
         }
 
         if (this.tablePieces) { // Agregar campos de error y observaciones si la tabla es la de piezas

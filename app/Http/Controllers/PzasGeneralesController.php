@@ -56,6 +56,10 @@ use App\Models\PrimeraOpeSoldadura;
 use App\Models\PrimeraOpeSoldadura_cnominal;
 use App\Models\PrimeraOpeSoldadura_pza;
 use App\Models\PrimeraOpeSoldadura_tolerancia;
+use App\Models\PrimeraOperacionCabezaSoplo;
+use App\Models\PrimeraOperacionCabezaSoplo_cnominal;
+use App\Models\PrimeraOperacionCabezaSoplo_pza;
+use App\Models\PrimeraOperacionCabezaSoplo_tolerancia;
 use App\Models\Procesos;
 use App\Models\PySOpeSoldadura;
 use App\Models\PySOpeSoldadura_cnominal;
@@ -80,6 +84,10 @@ use App\Models\SegundaOpeSoldadura;
 use App\Models\SegundaOpeSoldadura_cnominal;
 use App\Models\SegundaOpeSoldadura_pza;
 use App\Models\SegundaOpeSoldadura_tolerancia;
+use App\Models\SegundaOperacionCabezaSoplo;
+use App\Models\SegundaOperacionCabezaSoplo_cnominal;
+use App\Models\SegundaOperacionCabezaSoplo_pza;
+use App\Models\SegundaOperacionCabezaSoplo_tolerancia;
 use App\Models\Soldadura;
 use App\Models\Soldadura_pza;
 use App\Models\SoldaduraPTA;
@@ -585,6 +593,16 @@ class PzasGeneralesController extends Controller
                     $id_proceso = EmbudoCM::where('id_proceso', $id_proceso)->first();
                     $infoPiezas[$contador][1] = 'Embudo CM';
                     break;
+                case 'Primera Operacion Cabeza Soplo':
+                    $id_proceso = 'Primera_Operacion_Cabeza_Soplo_' . $clase . "_" . $pieza[0];
+                    $id_proceso = PrimeraOperacionCabezaSoplo::where('id_proceso', $id_proceso)->first();
+                    $infoPiezas[$contador][1] = 'Primera Operacion Cabeza Soplo';
+                    break;
+                case 'Segunda Operacion Cabeza Soplo':
+                    $id_proceso = 'Segunda_Operacion_Cabeza_Soplo_' . $clase . "_" . $pieza[0];
+                    $id_proceso = SegundaOperacionCabezaSoplo::where('id_proceso', $id_proceso)->first();
+                    $infoPiezas[$contador][1] = 'Segunda Operacion Cabeza Soplo';
+                    break;
             }
             if (end($pieza) == "mitad") {
                 //Guardar el numero de pieza
@@ -917,6 +935,32 @@ class PzasGeneralesController extends Controller
                 $cNominal = EmbudoCM_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $tolerance = EmbudoCM_tolerancias::where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $process = 'Embudo CM';
+                break;
+            case 'Primera Operacion Cabeza Soplo':
+                //Obtener informacion de la pieza elegida
+                $pieceInfo = array();
+                $pieces = explode(",", $pieces);
+                foreach ($pieces as $piece) {
+                    array_push($pieceInfo, PrimeraOperacionCabezaSoplo_pza::where('id_pza', $piece)->first());
+                }
+                //Obtener Cotas nominales y tolerancias
+                $id_process = PrimeraOperacionCabezaSoplo::find($pieceInfo[0]->id_proceso);
+                $cNominal = PrimeraOperacionCabezaSoplo_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
+                $tolerance = PrimeraOperacionCabezaSoplo_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
+                $process = 'Primera Operacion Cabeza Soplo';
+                break;
+            case 'Segunda Operacion Cabeza Soplo':
+                //Obtener informacion de la pieza elegida
+                $pieceInfo = array();
+                $pieces = explode(",", $pieces);
+                foreach ($pieces as $piece) {
+                    array_push($pieceInfo, SegundaOperacionCabezaSoplo_pza::where('id_pza', $piece)->first());
+                }
+                //Obtener Cotas nominales y tolerancias
+                $id_process = SegundaOperacionCabezaSoplo::find($pieceInfo[0]->id_proceso);
+                $cNominal = SegundaOperacionCabezaSoplo_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
+                $tolerance = SegundaOperacionCabezaSoplo_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
+                $process = 'Segunda Operacion Cabeza Soplo';
                 break;
         }
         // Obtener meta para obtener la ot y la clase
@@ -1667,6 +1711,10 @@ class PzasGeneralesController extends Controller
                 return "Operacion Equipo";
             case "embudoCM":
                 return "Embudo CM";
+            case "primeraOperacionCabezaSoplo":
+                return "Primera Operacion Cabeza Soplo";
+            case "segundaOperacionCabezaSoplo":
+                return "Segunda Operacion Cabeza Soplo";
         }
     }
 

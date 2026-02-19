@@ -174,6 +174,9 @@ class WOController extends Controller
             case "Plato":
                 $processesInOrder = ["operacionEquipo", "embudoCM"];
                 break;
+            case "Cabeza de Soplo":
+                $processesInOrder = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+                break;
             default:
                 $processesInOrder = [];
                 break;
@@ -337,6 +340,10 @@ class WOController extends Controller
                 return "Operación Equipo";
             case "embudoCM":
                 return "Embudo CM";
+            case "primeraOperacionCabezaSoplo":
+                return "Primera Operacion Cabeza Soplo";
+            case "segundaOperacionCabezaSoplo":
+                return "Segunda Operacion Cabeza Soplo";
         }
     }
     function finishOrder(Request $request)
