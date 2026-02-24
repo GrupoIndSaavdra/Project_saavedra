@@ -769,10 +769,17 @@ class PzasGeneralesController extends Controller
                 $process = 'Soldadura';
                 break;
             case 'Soldadura PTA':
-                //Obtener informacion de la pieza elegida
-                $pieceInfo = SoldaduraPTA_pza::where('id_pza', $pieces)->first();
-                //Obtener Cotas nominales y tolerancias
-                $id_process = SoldaduraPTA::find($pieceInfo->id_proceso);
+                // Obtener la primera pieza para localizar el proceso padre
+                $unaPieza = SoldaduraPTA_pza::where('id_pza', $pieces)->first();
+                // Obtener TODAS las sub-filas del proceso padre (las 3 por cada pieza M/H)
+                $id_process = SoldaduraPTA::find($unaPieza->id_proceso);
+                $pieceInfo = SoldaduraPTA_pza::where('id_proceso', $id_process->id)
+                    ->where('estado', 2)
+                    ->orderBy('n_pieza')
+                    ->orderByRaw("FIELD(tipo_medida, 'D_Conexion_pico', 'D_Conexion_obt', 'Perfilado')")
+                    ->get();
+                // Pasar colección agrupada para el partial Blade
+                $piezasGroup = $pieceInfo->groupBy('n_pieza');
                 $cNominal = 0;
                 $tolerance = 0;
                 $process = 'Soldadura PTA';
@@ -1015,7 +1022,8 @@ class PzasGeneralesController extends Controller
             array_push($operadores[0], $pieceInfo->n_juego);
             array_push($operadores[0], $this->getNameOperador($meta->id_usuario));
         }
-        return view('pieces_views.piecesReport.chosenPiece', compact('process', 'piecesInfo', 'cNominal', 'tolerance', 'ot', 'clase', 'profile', 'operadores'));
+        $piezasGroup = $piezasGroup ?? null;
+        return view('pieces_views.piecesReport.chosenPiece', compact('process', 'piecesInfo', 'cNominal', 'tolerance', 'ot', 'clase', 'profile', 'operadores', 'piezasGroup'));
     }
 
     public function getOperadores($ot)

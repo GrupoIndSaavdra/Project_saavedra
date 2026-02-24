@@ -227,6 +227,7 @@ function createInputsWithValue(values, valuesEnabled = []) {
             key != "numberPieces" &&
             key != "availableAssemblies" &&
             key != "history" &&
+            key != "ptaTableHtml" &&
             value != null &&
             value !== ""
         ) {
@@ -413,9 +414,22 @@ function createTable() {
     } else {
         const processesNoCotas = ["Soldadura", "Soldadura PTA", "Asentado", "Rectificado"];
         if (processesNoCotas.includes(window.arrayData["process"])) {
-            let table = insertTableOnForm(null, null, scrollableTable, form);
-            //Insertar boton de ELEGIR o GUARDAR
-            insertButton_saveOrChoose(form, table);
+            // Soldadura PTA tiene su propia tabla pre-renderizada por el servidor (rowspans)
+            if (window.arrayData["process"] === "Soldadura PTA" && window.ptaTableHtml) {
+                // Inyectar la tabla pre-renderizada con rowspans
+                let ptaContainer = document.createElement("div");
+                ptaContainer.className = "scrollable-table";
+                ptaContainer.innerHTML = window.ptaTableHtml;
+                form.appendChild(ptaContainer);
+
+                // El formulario de captura de PTA ya está incluido en el partial Blade
+                // Solo agregar el botón de guardar/elegir si hay una pieza activa
+                insertButton_saveOrChoose(form, ptaContainer);
+            } else {
+                let table = insertTableOnForm(null, null, scrollableTable, form);
+                //Insertar boton de ELEGIR o GUARDAR
+                insertButton_saveOrChoose(form, table);
+            }
         } else {
             //Mostrar DIV de alerta para Cotas No disponibles
             let div = document.createElement("div");

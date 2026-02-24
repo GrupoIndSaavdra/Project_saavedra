@@ -88,6 +88,11 @@
         <script>
             window.arrayData = @json($arrayData);
             window.pieceToBeUsed = @json($pieceToBeUsed);
+            @if (!empty($arrayData['ptaTableHtml']))
+                window.ptaTableHtml = @json($arrayData['ptaTableHtml']);
+            @else
+                window.ptaTableHtml = null;
+            @endif
         </script>
     @endisset
 @endsection

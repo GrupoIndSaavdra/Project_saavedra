@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -19,6 +18,7 @@ return new class extends Migration
                 $table->unsignedBigInteger('id_proceso');
                 $table->integer('estado')->default(0);
                 $table->string('n_juego');
+                $table->string('n_pieza')->nullable();   // ej: '1M', '1H' — identificador por mitad
                 $table->decimal('temp_calentado', 8, 3)->nullable();
                 $table->decimal('temp_dispositivo', 8, 3)->nullable();
                 $table->char('limpieza')->nullable();

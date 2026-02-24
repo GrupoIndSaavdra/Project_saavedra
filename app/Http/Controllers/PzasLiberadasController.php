@@ -322,6 +322,14 @@ class PzasLiberadasController extends Controller
         //     $piezas = $pieza;
         // }
         $piezas = $pieza;
+
+        // Evitar múltiples registros por una misma pieza (ej. Soldadura PTA tiene 3 sub-records por pieza M/H)
+        if (!empty($piezas)) {
+            $piezas = collect($piezas)->unique(function ($item) {
+                return $item->n_pieza ?? $item->n_juego;
+            })->values()->all();
+        }
+
         return $piezas;
     }
     public function liberarPiezas($piezas, $proceso, $buena, $observacion)

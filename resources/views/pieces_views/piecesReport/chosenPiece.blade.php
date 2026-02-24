@@ -448,7 +448,7 @@
                         break;
 
                     case "Acabado Bombillo": // Proceso de Acabado Bombillo
-                         titulos = ['No.Pieza', 'Diametro de mordaza', 'Diametro de ceja', 'Diametro de sufridera', 'Altura de mordaza', 'Altura de ceja',
+                        titulos = ['No.Pieza', 'Diametro de mordaza', 'Diametro de ceja', 'Diametro de sufridera', 'Altura de mordaza', 'Altura de ceja',
                             'Altura de sufridera', 'Diametro de boca', 'Diametro de asiento de corona', 'Diametro de llanta', 'Diametro de caja corona',
                             'Profundidad de corona', 'Angulo a 30°', 'Profundidad de caja corona', 'Simetria', 'Error', 'Observaciones'];
 
@@ -590,7 +590,7 @@
                                     const td = document.createElement('td'); // Crear columna
                                     if (j != 0) { //Si no es la primera columna.
                                         if (cNomiPosiciones.includes(
-                                                j)) { //Si la posición esta en el array de posiciones.
+                                            j)) { //Si la posición esta en el array de posiciones.
                                             for (let k = 0; k < 2; k++) { // Crear inputs
                                                 //Valores de c nominal
                                                 td.appendChild(this.crearInputs('input-medio', valoresCNomi[
@@ -620,7 +620,7 @@
                                     const td = document.createElement('td'); // Crear columna
                                     if (j != 0) { //Si no es la primera columna
                                         if (tolePosiciones.includes(
-                                                j)) { // Si la posicion esta en el array de posiciones
+                                            j)) { // Si la posicion esta en el array de posiciones
                                             for (let k = 0; k < 2; k++) { // Crear inputs
                                                 td.appendChild(this.crearInputs('input-medio', valoresTole[
                                                     j])); // Crear inputs
@@ -646,7 +646,7 @@
                                     let error = false;
                                     const td = document.createElement('td'); // Crear celda
                                     if (piezaPosiciones.includes(
-                                            p)) { // Si la posicion esta en el array de posiciones de la pieza
+                                        p)) { // Si la posicion esta en el array de posiciones de la pieza
                                         for (let k = 0; k < 2; k++) { // Crear inputs
                                             if (valoresCNomi != null && valoresTole != null) {
                                                 error = this.getError(valoresPieza[j][p], p, valoresCNomi, valoresTole,
@@ -844,36 +844,34 @@
                                 Altura 1
                                 @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
                                     <div style="margin-top: 6px;">
-                                        <span
-                                            style="
-                                    display: inline-flex;
-                                    align-items: center;
-                                    padding: 2px 12px;
-                                    background: #f1f3f5;
-                                    border-radius: 50px;
-                                    font-size: 11px;
-                                    color: #495057;
-                                    border: 1px solid #dee2e6;
-                                    font-weight: 500;
-                                ">
+                                        <span style="
+                                                display: inline-flex;
+                                                align-items: center;
+                                                padding: 2px 12px;
+                                                background: #f1f3f5;
+                                                border-radius: 50px;
+                                                font-size: 11px;
+                                                color: #495057;
+                                                border: 1px solid #dee2e6;
+                                                font-weight: 500;
+                                            ">
                                             <strong style="color: #007bff; margin-right: 5px;">REF</strong>
                                             {{ $cNominal->altura1 }} mm
                                         </span>
                                     </div>
                                 @elseif (isset($cNominal->profundidad1))
                                     <div style="margin-top: 6px;">
-                                        <span
-                                            style="
-                                    display: inline-flex;
-                                    align-items: center;
-                                    padding: 2px 12px;
-                                    background: #f1f3f5;
-                                    border-radius: 50px;
-                                    font-size: 11px;
-                                    color: #495057;
-                                    border: 1px solid #dee2e6;
-                                    font-weight: 500;
-                                ">
+                                        <span style="
+                                                display: inline-flex;
+                                                align-items: center;
+                                                padding: 2px 12px;
+                                                background: #f1f3f5;
+                                                border-radius: 50px;
+                                                font-size: 11px;
+                                                color: #495057;
+                                                border: 1px solid #dee2e6;
+                                                font-weight: 500;
+                                            ">
                                             <strong style="color: #007bff; margin-right: 5px;">REF</strong>
                                             {{ $cNominal->profundidad1 }} mm
                                         </span>
@@ -884,36 +882,34 @@
                                 Altura 2
                                 @if (isset($cNominal->altura2) && !isset($cNominal->profundidad1))
                                     <div style="margin-top: 6px;">
-                                        <span
-                                            style="
-                                    display: inline-flex;
-                                    align-items: center;
-                                    padding: 2px 12px;
-                                    background: #f1f3f5;
-                                    border-radius: 50px;
-                                    font-size: 11px;
-                                    color: #495057;
-                                    border: 1px solid #dee2e6;
-                                    font-weight: 500;
-                                ">
+                                        <span style="
+                                                display: inline-flex;
+                                                align-items: center;
+                                                padding: 2px 12px;
+                                                background: #f1f3f5;
+                                                border-radius: 50px;
+                                                font-size: 11px;
+                                                color: #495057;
+                                                border: 1px solid #dee2e6;
+                                                font-weight: 500;
+                                            ">
                                             <strong style="color: #007bff; margin-right: 5px;">REF</strong>
                                             {{ $cNominal->altura2 }} mm
                                         </span>
                                     </div>
                                 @elseif (isset($cNominal->profundidad2))
                                     <div style="margin-top: 6px;">
-                                        <span
-                                            style="
-                                    display: inline-flex;
-                                    align-items: center;
-                                    padding: 2px 12px;
-                                    background: #f1f3f5;
-                                    border-radius: 50px;
-                                    font-size: 11px;
-                                    color: #495057;
-                                    border: 1px solid #dee2e6;
-                                    font-weight: 500;
-                                ">
+                                        <span style="
+                                                display: inline-flex;
+                                                align-items: center;
+                                                padding: 2px 12px;
+                                                background: #f1f3f5;
+                                                border-radius: 50px;
+                                                font-size: 11px;
+                                                color: #495057;
+                                                border: 1px solid #dee2e6;
+                                                font-weight: 500;
+                                            ">
                                             <strong style="color: #007bff; margin-right: 5px;">REF</strong>
                                             {{ $cNominal->profundidad2 }} mm
                                         </span>
@@ -924,36 +920,34 @@
                                 Altura 3
                                 @if (isset($cNominal->altura3) && !isset($cNominal->profundidad1))
                                     <div style="margin-top: 6px;">
-                                        <span
-                                            style="
-                                    display: inline-flex;
-                                    align-items: center;
-                                    padding: 2px 12px;
-                                    background: #f1f3f5;
-                                    border-radius: 50px;
-                                    font-size: 11px;
-                                    color: #495057;
-                                    border: 1px solid #dee2e6;
-                                    font-weight: 500;
-                                ">
+                                        <span style="
+                                                display: inline-flex;
+                                                align-items: center;
+                                                padding: 2px 12px;
+                                                background: #f1f3f5;
+                                                border-radius: 50px;
+                                                font-size: 11px;
+                                                color: #495057;
+                                                border: 1px solid #dee2e6;
+                                                font-weight: 500;
+                                            ">
                                             <strong style="color: #007bff; margin-right: 5px;">REF</strong>
                                             {{ $cNominal->altura3 }} mm
                                         </span>
                                     </div>
                                 @elseif (isset($cNominal->profundidad3))
                                     <div style="margin-top: 6px;">
-                                        <span
-                                            style="
-                                    display: inline-flex;
-                                    align-items: center;
-                                    padding: 2px 12px;
-                                    background: #f1f3f5;
-                                    border-radius: 50px;
-                                    font-size: 11px;
-                                    color: #495057;
-                                    border: 1px solid #dee2e6;
-                                    font-weight: 500;
-                                ">
+                                        <span style="
+                                                display: inline-flex;
+                                                align-items: center;
+                                                padding: 2px 12px;
+                                                background: #f1f3f5;
+                                                border-radius: 50px;
+                                                font-size: 11px;
+                                                color: #495057;
+                                                border: 1px solid #dee2e6;
+                                                font-weight: 500;
+                                            ">
                                             <strong style="color: #007bff; margin-right: 5px;">REF</strong>
                                             {{ $cNominal->profundidad3 }} mm
                                         </span>
@@ -984,25 +978,25 @@
                         <tr>
                             <td>C.Nominal</td>
                             @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
-                                <td colspan="2"><input type="number" value="{{ $cNominal->altura1 }}" class="input"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td colspan="2"><input type="number" value="{{ $cNominal->altura2 }}" class="input"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td colspan="2"><input type="number" value="{{ $cNominal->altura3 }}" class="input"
-                                        step="any" inputmode="decimal" disabled></td>
+                                <td colspan="2"><input type="number" value="{{ $cNominal->altura1 }}" class="input" step="any"
+                                        inputmode="decimal" disabled></td>
+                                <td colspan="2"><input type="number" value="{{ $cNominal->altura2 }}" class="input" step="any"
+                                        inputmode="decimal" disabled></td>
+                                <td colspan="2"><input type="number" value="{{ $cNominal->altura3 }}" class="input" step="any"
+                                        inputmode="decimal" disabled></td>
                             @else
-                                <td><input type="number" value="{{ $cNominal->profundidad1 }}" class="input"
-                                        step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" value="{{ $cNominal->profundidad1 }}" class="input" step="any"
+                                        inputmode="decimal" disabled></td>
                                 <td><input type="number" value="{{ $cNominal->diametro1 }}" class="input" step="any"
                                         inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $cNominal->profundidad2 }}" class="input"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $cNominal->diametro2 }}" class="input"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $cNominal->profundidad3 }}" class="input"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $cNominal->diametro3 }}" class="input"
-                                        step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" value="{{ $cNominal->profundidad2 }}" class="input" step="any"
+                                        inputmode="decimal" disabled></td>
+                                <td><input type="number" value="{{ $cNominal->diametro2 }}" class="input" step="any"
+                                        inputmode="decimal" disabled></td>
+                                <td><input type="number" value="{{ $cNominal->profundidad3 }}" class="input" step="any"
+                                        inputmode="decimal" disabled></td>
+                                <td><input type="number" value="{{ $cNominal->diametro3 }}" class="input" step="any"
+                                        inputmode="decimal" disabled></td>
                             @endif
                             <td><input type="number" class="input" disabled></td>
                             <td><input type="number" class="input" disabled></td>
@@ -1011,37 +1005,31 @@
                         <tr>
                             <td> Tolerancias </td>
                             @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
-                                <td colspan="2"><input type="number" value="{{ $tolerance->altura1 }}"
-                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
-                                <td colspan="2"><input type="number" value="{{ $tolerance->altura2 }}"
-                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
-                                <td colspan="2"><input type="number" value="{{ $tolerance->altura3 }}"
-                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
+                                <td colspan="2"><input type="number" value="{{ $tolerance->altura1 }}" class="input-medio"
+                                        step="any" inputmode="decimal" disabled></td>
+                                <td colspan="2"><input type="number" value="{{ $tolerance->altura2 }}" class="input-medio"
+                                        step="any" inputmode="decimal" disabled></td>
+                                <td colspan="2"><input type="number" value="{{ $tolerance->altura3 }}" class="input-medio"
+                                        step="any" inputmode="decimal" disabled></td>
                             @else
-                                <td><input type="number" value="{{ $tolerance->profundidad1_1 }}" class="input-medio"
-                                        step="any" inputmode="decimal" disabled><input type="number"
-                                        value="{{ $tolerance->profundidad2_1 }}" class="input-medio" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $tolerance->diametro1_1 }}" class="input-medio"
-                                        step="any" inputmode="decimal" disabled><input type="number"
-                                        value="{{ $tolerance->diametro2_1 }}" class="input-medio" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $tolerance->profundidad1_2 }}" class="input-medio"
-                                        step="any" inputmode="decimal" disabled><input type="number"
-                                        value="{{ $tolerance->profundidad2_2 }}" class="input-medio" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $tolerance->diametro1_2 }}" class="input-medio"
-                                        step="any" inputmode="decimal" disabled><input type="number"
-                                        value="{{ $tolerance->diametro2_2 }}" class="input-medio" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $tolerance->profundidad1_3 }}" class="input-medio"
-                                        step="any" inputmode="decimal" disabled><input type="number"
-                                        value="{{ $tolerance->profundidad2_3 }}" class="input-medio" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $tolerance->diametro1_3 }}" class="input-medio"
-                                        step="any" inputmode="decimal" disabled><input type="number"
-                                        value="{{ $tolerance->diametro2_3 }}" class="input-medio" step="any"
-                                        inputmode="decimal" disabled></td>
+                                <td><input type="number" value="{{ $tolerance->profundidad1_1 }}" class="input-medio" step="any"
+                                        inputmode="decimal" disabled><input type="number" value="{{ $tolerance->profundidad2_1 }}"
+                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" value="{{ $tolerance->diametro1_1 }}" class="input-medio" step="any"
+                                        inputmode="decimal" disabled><input type="number" value="{{ $tolerance->diametro2_1 }}"
+                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" value="{{ $tolerance->profundidad1_2 }}" class="input-medio" step="any"
+                                        inputmode="decimal" disabled><input type="number" value="{{ $tolerance->profundidad2_2 }}"
+                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" value="{{ $tolerance->diametro1_2 }}" class="input-medio" step="any"
+                                        inputmode="decimal" disabled><input type="number" value="{{ $tolerance->diametro2_2 }}"
+                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" value="{{ $tolerance->profundidad1_3 }}" class="input-medio" step="any"
+                                        inputmode="decimal" disabled><input type="number" value="{{ $tolerance->profundidad2_3 }}"
+                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" value="{{ $tolerance->diametro1_3 }}" class="input-medio" step="any"
+                                        inputmode="decimal" disabled><input type="number" value="{{ $tolerance->diametro2_3 }}"
+                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
                             @endif
                             <td><input type="number" class="input" disabled></td>
                             <td><input type="number" class="input" disabled></td>
@@ -1083,15 +1071,15 @@
                                                 ($pieceInfo['altura3'] ?? 0) > $upper;
                                         }
                                     @endphp
-                                    <td colspan="2"><input type="number" class="input"
-                                            value="{{ $pieceInfo['altura1'] ?? '' }}" step="any" inputmode="decimal"
-                                            style="{{ $altura1_error ? 'border: 3px solid red;' : '' }}" disabled></td>
-                                    <td colspan="2"><input type="number" class="input"
-                                            value="{{ $pieceInfo['altura2'] ?? '' }}" step="any" inputmode="decimal"
-                                            style="{{ $altura2_error ? 'border: 3px solid red;' : '' }}" disabled></td>
-                                    <td colspan="2"><input type="number" class="input"
-                                            value="{{ $pieceInfo['altura3'] ?? '' }}" step="any" inputmode="decimal"
-                                            style="{{ $altura3_error ? 'border: 3px solid red;' : '' }}" disabled></td>
+                                    <td colspan="2"><input type="number" class="input" value="{{ $pieceInfo['altura1'] ?? '' }}"
+                                            step="any" inputmode="decimal" style="{{ $altura1_error ? 'border: 3px solid red;' : '' }}"
+                                            disabled></td>
+                                    <td colspan="2"><input type="number" class="input" value="{{ $pieceInfo['altura2'] ?? '' }}"
+                                            step="any" inputmode="decimal" style="{{ $altura2_error ? 'border: 3px solid red;' : '' }}"
+                                            disabled></td>
+                                    <td colspan="2"><input type="number" class="input" value="{{ $pieceInfo['altura3'] ?? '' }}"
+                                            step="any" inputmode="decimal" style="{{ $altura3_error ? 'border: 3px solid red;' : '' }}"
+                                            disabled></td>
                                 @else
                                     @php
                                         // Profundidad1 validation
@@ -1175,37 +1163,24 @@
                                                 $pieceInfo['diametro3'] < $lower || $pieceInfo['diametro3'] > $upper;
                                         }
                                     @endphp
-                                    <td><input type="number" class="input"
-                                            style="{{ $prof1_error ? 'border: 3px solid red;' : '' }}"
-                                            value="{{ $pieceInfo['profundidad1'] }}" step="any" inputmode="decimal"
-                                            disabled></td>
-                                    <td><input type="number" class="input"
-                                            style="{{ $diam1_error ? 'border: 3px solid red;' : '' }}"
-                                            value="{{ $pieceInfo['diametro1'] }}" step="any" inputmode="decimal"
-                                            disabled></td>
-                                    <td><input type="number" class="input"
-                                            style="{{ $prof2_error ? 'border: 3px solid red;' : '' }}"
-                                            value="{{ $pieceInfo['profundidad2'] }}" step="any" inputmode="decimal"
-                                            disabled></td>
-                                    <td><input type="number" class="input"
-                                            style="{{ $diam2_error ? 'border: 3px solid red;' : '' }}"
-                                            value="{{ $pieceInfo['diametro2'] }}" step="any" inputmode="decimal"
-                                            disabled></td>
-                                    <td><input type="number" class="input"
-                                            style="{{ $prof3_error ? 'border: 3px solid red;' : '' }}"
-                                            value="{{ $pieceInfo['profundidad3'] }}" step="any" inputmode="decimal"
-                                            disabled></td>
-                                    <td><input type="number" class="input"
-                                            style="{{ $diam3_error ? 'border: 3px solid red;' : '' }}"
-                                            value="{{ $pieceInfo['diametro3'] }}" step="any" inputmode="decimal"
-                                            disabled></td>
+                                    <td><input type="number" class="input" style="{{ $prof1_error ? 'border: 3px solid red;' : '' }}"
+                                            value="{{ $pieceInfo['profundidad1'] }}" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" style="{{ $diam1_error ? 'border: 3px solid red;' : '' }}"
+                                            value="{{ $pieceInfo['diametro1'] }}" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" style="{{ $prof2_error ? 'border: 3px solid red;' : '' }}"
+                                            value="{{ $pieceInfo['profundidad2'] }}" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" style="{{ $diam2_error ? 'border: 3px solid red;' : '' }}"
+                                            value="{{ $pieceInfo['diametro2'] }}" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" style="{{ $prof3_error ? 'border: 3px solid red;' : '' }}"
+                                            value="{{ $pieceInfo['profundidad3'] }}" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" style="{{ $diam3_error ? 'border: 3px solid red;' : '' }}"
+                                            value="{{ $pieceInfo['diametro3'] }}" step="any" inputmode="decimal" disabled></td>
                                 @endif
                                 <td><input type="text" class="input" value="{{ $pieceInfo['acetatoBM'] }}" disabled>
                                 </td>
                                 <td><input type="text" class="input" value="{{ $pieceInfo['error'] }}" disabled>
                                 </td>
-                                <td><input type="text" class="input" value="{{ $pieceInfo['observaciones'] }}"
-                                        disabled></td>
+                                <td><input type="text" class="input" value="{{ $pieceInfo['observaciones'] }}" disabled></td>
                             </tr>
                         @endforeach
                     </table>
@@ -1228,22 +1203,17 @@
                         </tr>
                         <tr>
                             <td>C.Nominal.</td>
-                            <td><input type="number" class="input" value="{{ $cNominal->diametro1_cilindrado }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->profundidad1_cilindrado }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->diametro2_cilindrado }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->profundidad2_cilindrado }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->diametro_sufridera }}"
-                                    disabled></td>
+                            <td><input type="number" class="input" value="{{ $cNominal->diametro1_cilindrado }}" disabled></td>
+                            <td><input type="number" class="input" value="{{ $cNominal->profundidad1_cilindrado }}" disabled>
+                            </td>
+                            <td><input type="number" class="input" value="{{ $cNominal->diametro2_cilindrado }}" disabled></td>
+                            <td><input type="number" class="input" value="{{ $cNominal->profundidad2_cilindrado }}" disabled>
+                            </td>
+                            <td><input type="number" class="input" value="{{ $cNominal->diametro_sufridera }}" disabled></td>
                             <td><input type="number" class="input" value="{{ $cNominal->diametro_ranura }}" disabled>
                             </td>
-                            <td><input type="number" class="input" value="{{ $cNominal->profundidad_ranura }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->profundidad_sufridera }}"
-                                    disabled></td>
+                            <td><input type="number" class="input" value="{{ $cNominal->profundidad_ranura }}" disabled></td>
+                            <td><input type="number" class="input" value="{{ $cNominal->profundidad_sufridera }}" disabled></td>
                             <td><input type="number" class="input" value="{{ $cNominal->altura_total }}" disabled>
                             </td>
                             <td></td>
@@ -1251,22 +1221,18 @@
                         </tr>
                         <tr>
                             <td> Tolerancias. </td>
-                            <td><input type="number" class="input" value="{{ $tolerance->diametro1_cilindrado }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->profundidad1_cilindrado }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->diametro2_cilindrado }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->profundidad2_cilindrado }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->diametro_sufridera }}"
-                                    disabled></td>
+                            <td><input type="number" class="input" value="{{ $tolerance->diametro1_cilindrado }}" disabled></td>
+                            <td><input type="number" class="input" value="{{ $tolerance->profundidad1_cilindrado }}" disabled>
+                            </td>
+                            <td><input type="number" class="input" value="{{ $tolerance->diametro2_cilindrado }}" disabled></td>
+                            <td><input type="number" class="input" value="{{ $tolerance->profundidad2_cilindrado }}" disabled>
+                            </td>
+                            <td><input type="number" class="input" value="{{ $tolerance->diametro_sufridera }}" disabled></td>
                             <td><input type="number" class="input" value="{{ $tolerance->diametro_ranura }}" disabled>
                             </td>
-                            <td><input type="number" class="input" value="{{ $tolerance->profundidad_ranura }}"
-                                    disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->profundidad_sufridera }}"
-                                    disabled></td>
+                            <td><input type="number" class="input" value="{{ $tolerance->profundidad_ranura }}" disabled></td>
+                            <td><input type="number" class="input" value="{{ $tolerance->profundidad_sufridera }}" disabled>
+                            </td>
                             <td><input type="number" class="input" value="{{ $tolerance->altura_total }}" disabled>
                             </td>
                             <td></td>
@@ -1274,35 +1240,29 @@
                         </tr>
                         @foreach ($piecesInfo as $pieceInfo)
                             <tr>
-                                <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input"
-                                        value="{{ $pieceInfo['diametro1_cilindrado'] }}" step="any"
+                                <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}" step="any"
                                         inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input"
-                                        value="{{ $pieceInfo['profundidad1_cilindrado'] }}" step="any"
+                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro1_cilindrado'] }}" step="any"
                                         inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input"
-                                        value="{{ $pieceInfo['diametro2_cilindrado'] }}" step="any"
+                                <td><input type="number" class="input" value="{{ $pieceInfo['profundidad1_cilindrado'] }}"
+                                        step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro2_cilindrado'] }}" step="any"
                                         inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input"
-                                        value="{{ $pieceInfo['profundidad2_cilindrado'] }}" step="any"
+                                <td><input type="number" class="input" value="{{ $pieceInfo['profundidad2_cilindrado'] }}"
+                                        step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro_sufridera'] }}" step="any"
                                         inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro_sufridera'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro_ranura'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['profundidad_ranura'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input"
-                                        value="{{ $pieceInfo['profundidad_sufridera'] }}" step="any"
+                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro_ranura'] }}" step="any"
                                         inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['altura_total'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="text" class="input" value="{{ $pieceInfo['error_cilindrado'] }}"
-                                        disabled></td>
-                                <td><input type="text" class="input"
-                                        value="{{ $pieceInfo['observaciones_cilindrado'] }}" disabled></td>
+                                <td><input type="number" class="input" value="{{ $pieceInfo['profundidad_ranura'] }}" step="any"
+                                        inputmode="decimal" disabled></td>
+                                <td><input type="number" class="input" value="{{ $pieceInfo['profundidad_sufridera'] }}" step="any"
+                                        inputmode="decimal" disabled></td>
+                                <td><input type="number" class="input" value="{{ $pieceInfo['altura_total'] }}" step="any"
+                                        inputmode="decimal" disabled></td>
+                                <td><input type="text" class="input" value="{{ $pieceInfo['error_cilindrado'] }}" disabled></td>
+                                <td><input type="text" class="input" value="{{ $pieceInfo['observaciones_cilindrado'] }}" disabled>
+                                </td>
                             </tr>
                         @endforeach
                     </table>
@@ -1344,18 +1304,14 @@
                                 <td>C.Nominal</td>
                                 <td><input type="number" name="cNomi_anchoRanura" value="{{ $cNominal->anchoRanura }}"
                                         class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="cNomi_profuTaconHembra"
-                                        value="{{ $cNominal->profuTaconHembra }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" name="cNomi_profuTaconMacho"
-                                        value="{{ $cNominal->profuTaconMacho }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" name="cNomi_simetriaHembra"
-                                        value="{{ $cNominal->simetriaHembra }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" name="cNomi_simetriaMacho"
-                                        value="{{ $cNominal->simetriaMacho }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
+                                <td><input type="number" name="cNomi_profuTaconHembra" value="{{ $cNominal->profuTaconHembra }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" name="cNomi_profuTaconMacho" value="{{ $cNominal->profuTaconMacho }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" name="cNomi_simetriaHembra" value="{{ $cNominal->simetriaHembra }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" name="cNomi_simetriaMacho" value="{{ $cNominal->simetriaMacho }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
                                 <td><input type="number" name="cNomi_anchoTacon" value="{{ $cNominal->anchoTacon }}"
                                         class="input" step="any" inputmode="decimal" disabled></td>
                                 <td><input type="number" name="cNomi_barrenoLateralHembra"
@@ -1365,8 +1321,8 @@
                                         value="{{ $cNominal->barrenoLateralMacho }}" class="input" step="any"
                                         inputmode="decimal" disabled></td>
                                 <td><input type="number" name="cNomi_alturaTaconInicial"
-                                        value="{{ $cNominal->alturaTaconInicial }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
+                                        value="{{ $cNominal->alturaTaconInicial }}" class="input" step="any" inputmode="decimal"
+                                        disabled></td>
                                 <td><input type="number" name="cNomi_alturaTaconIntermedia"
                                         value="{{ $cNominal->alturaTaconIntermedia }}" class="input" step="any"
                                         inputmode="decimal" disabled></td>
@@ -1377,18 +1333,14 @@
                                 <td> Tolerancias </td>
                                 <td><input type="number" name="tole_anchoRanura" value="{{ $tolerance->anchoRanura }}"
                                         class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_profuTaconHembra"
-                                        value="{{ $tolerance->profuTaconHembra }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_profuTaconMacho"
-                                        value="{{ $tolerance->profuTaconMacho }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_simetriaHembra"
-                                        value="{{ $tolerance->simetriaHembra }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_simetriaMacho"
-                                        value="{{ $tolerance->simetriaMacho }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
+                                <td><input type="number" name="tole_profuTaconHembra" value="{{ $tolerance->profuTaconHembra }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" name="tole_profuTaconMacho" value="{{ $tolerance->profuTaconMacho }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" name="tole_simetriaHembra" value="{{ $tolerance->simetriaHembra }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
+                                <td><input type="number" name="tole_simetriaMacho" value="{{ $tolerance->simetriaMacho }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
                                 <td><input type="number" name="tole_anchoTacon" value="{{ $tolerance->anchoTacon }}"
                                         class="input" step="any" inputmode="decimal" disabled></td>
                                 <td><input type="number" name="tole_barrenoLateralHembra"
@@ -1408,47 +1360,49 @@
                             </tr>
                             @foreach ($piecesInfo as $pieceInfo)
                                 <tr>
-                                    <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}"
-                                            disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['anchoRanura'] }}"
+                                    <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['anchoRanura'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['profuTaconHembra'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['profuTaconMacho'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['simetriaHembra'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['simetriaMacho'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['anchoTacon'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['barrenoLateralHembra'] }}"
                                             step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input"
-                                            value="{{ $pieceInfo['profuTaconHembra'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input"
-                                            value="{{ $pieceInfo['profuTaconMacho'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['simetriaHembra'] }}"
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['barrenoLateralMacho'] }}"
                                             step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['simetriaMacho'] }}"
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['alturaTaconInicial'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['alturaTaconIntermedia'] }}"
                                             step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['anchoTacon'] }}"
-                                            step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input"
-                                            value="{{ $pieceInfo['barrenoLateralHembra'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input"
-                                            value="{{ $pieceInfo['barrenoLateralMacho'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input"
-                                            value="{{ $pieceInfo['alturaTaconInicial'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input"
-                                            value="{{ $pieceInfo['alturaTaconIntermedia'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="text" class="input" value="{{ $pieceInfo['error'] }}"
-                                            disabled></td>
-                                    <td><input type="text" class="input" value="{{ $pieceInfo['observaciones'] }}"
-                                            disabled></td>
+                                    <td><input type="text" class="input" value="{{ $pieceInfo['error'] }}" disabled></td>
+                                    <td><input type="text" class="input" value="{{ $pieceInfo['observaciones'] }}" disabled></td>
                                 </tr>
                             @endforeach
                     </table>
+                @elseif ($process == 'Soldadura PTA')
+                    {{--
+                    Tabla especial de Soldadura PTA con estructura de 3 sub-filas por pieza.
+                    El partial recibe $piezasGroup ya agrupado por n_pieza desde el controlador.
+                    Se usa en modo 'reporte' (sin inputs, solo lectura).
+                    --}}
+                    @include('processes_views.soldaduraPTA_table_partial', [
+                        'piezas' => $piecesInfo,
+                        'piezasGroup' => $piezasGroup ?? collect(),
+                        'modo' => 'reporte',
+                    ])
                 @else
                     <script>
                         document.getElementById('scrollabe-table').appendChild(process.crearProceso()); //Agregar tabla al div.
                     </script>
                 @endif
+                </div>
             </div>
-        </div>
-    </body>
+        </body>
 @endsection
