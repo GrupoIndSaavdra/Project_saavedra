@@ -48,5 +48,5 @@ class SoldaduraController extends Controller
         $piece->save();
     }
 
-    
+
 }

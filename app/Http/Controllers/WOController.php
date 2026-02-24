@@ -492,14 +492,28 @@ class WOController extends Controller
             }
         }
         if (isset($pares)) {
-            if ($pares) {
-                $piecesArray["good"] = count($piecesArray["good"]) != 0 ? count($piecesArray["good"]) / 2 : 0;
-                $piecesArray["bad"] = count($piecesArray["bad"]) != 0 ? count($piecesArray["bad"]) / 2 : 0;
-            } else {
-                $piecesArray["good"] = count($piecesArray["good"]);
-                $piecesArray["bad"] = count($piecesArray["bad"]);
+            // Contar las piezas en base a si son juegos completos o mitades
+            $goodCount = 0;
+            foreach ($piecesArray["good"] as $p) {
+                if (substr($p->n_pieza, -1) == "J") {
+                    $goodCount += 1;
+                } else {
+                    $goodCount += 0.5;
+                }
             }
-            $piecesArray["total"] = $piecesArray["good"] + $piecesArray["bad"];
+
+            $badCount = 0;
+            foreach ($piecesArray["bad"] as $p) {
+                if (substr($p->n_pieza, -1) == "J") {
+                    $badCount += 1;
+                } else {
+                    $badCount += 0.5;
+                }
+            }
+
+            $piecesArray["good"] = $goodCount;
+            $piecesArray["bad"] = $badCount;
+            $piecesArray["total"] = $goodCount + $badCount;
         } else {
             $piecesArray["good"] = 0;
             $piecesArray["bad"] = 0;

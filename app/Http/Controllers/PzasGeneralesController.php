@@ -761,19 +761,54 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Soldadura':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = Soldadura_pza::where('id_pza', $pieces)->first();
+                $piecesArray = explode(",", $pieces);
+                $pieceInfo = array();
+                foreach ($piecesArray as $pza) {
+                    $p = Soldadura_pza::where('id_pza', $pza)->first();
+                    if ($p) {
+                        array_push($pieceInfo, $p);
+                    }
+                }
+                if (count($pieceInfo) == 0)
+                    return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
                 //Obtener Cotas nominales y tolerancias
-                $id_process = Soldadura::find($pieceInfo->id_proceso);
+                $id_process = Soldadura::find($pieceInfo[0]->id_proceso);
                 $cNominal = 0;
                 $tolerance = 0;
                 $process = 'Soldadura';
                 break;
             case 'Soldadura PTA':
                 // Obtener la primera pieza para localizar el proceso padre
-                $unaPieza = SoldaduraPTA_pza::where('id_pza', $pieces)->first();
-                // Obtener TODAS las sub-filas del proceso padre (las 3 por cada pieza M/H)
+                $piecesArray = explode(",", $pieces);
+                $unaPieza = null;
+                $n_piezas_solicitadas = [];
+                foreach ($piecesArray as $pza) {
+                    preg_match('/^(\d+[a-zA-Z]*)(\d+)$/', $pza, $matches);
+                    if (count($matches) == 3) {
+                        $n_pieza = $matches[1];
+                        $id_proceso = $matches[2];
+                        $n_piezas_solicitadas[] = $n_pieza;
+                        if (!$unaPieza) {
+                            $unaPieza = SoldaduraPTA_pza::where('n_pieza', $n_pieza)->where('id_proceso', $id_proceso)->first();
+                        }
+                    } else {
+                        $p = SoldaduraPTA_pza::where('id_pza', $pza)->first();
+                        if ($p) {
+                            $n_piezas_solicitadas[] = $p->n_pieza;
+                            if (!$unaPieza)
+                                $unaPieza = $p;
+                        }
+                    }
+                }
+
+                if (!$unaPieza) {
+                    return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
+                }
+
+                // Obtener SOLO las sub-filas de las piezas solicitadas (las 3 por cada pieza M/H)
                 $id_process = SoldaduraPTA::find($unaPieza->id_proceso);
                 $pieceInfo = SoldaduraPTA_pza::where('id_proceso', $id_process->id)
+                    ->whereIn('n_pieza', $n_piezas_solicitadas)
                     ->where('estado', 2)
                     ->orderBy('n_pieza')
                     ->orderByRaw("FIELD(tipo_medida, 'D_Conexion_pico', 'D_Conexion_obt', 'Perfilado')")
@@ -786,18 +821,36 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Rectificado':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = Rectificado_pza::where('id_pza', $pieces)->first();
+                $piecesArray = explode(",", $pieces);
+                $pieceInfo = array();
+                foreach ($piecesArray as $pza) {
+                    $p = Rectificado_pza::where('id_pza', $pza)->first();
+                    if ($p) {
+                        array_push($pieceInfo, $p);
+                    }
+                }
+                if (count($pieceInfo) == 0)
+                    return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
                 //Obtener Cotas nominales y tolerancias
-                $id_process = Rectificado::find($pieceInfo->id_proceso);
+                $id_process = Rectificado::find($pieceInfo[0]->id_proceso);
                 $cNominal = 0;
                 $tolerance = 0;
                 $process = 'Rectificado';
                 break;
             case 'Asentado':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = Asentado_pza::where('id_pza', $pieces)->first();
+                $piecesArray = explode(",", $pieces);
+                $pieceInfo = array();
+                foreach ($piecesArray as $pza) {
+                    $p = Asentado_pza::where('id_pza', $pza)->first();
+                    if ($p) {
+                        array_push($pieceInfo, $p);
+                    }
+                }
+                if (count($pieceInfo) == 0)
+                    return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
                 //Obtener Cotas nominales y tolerancias
-                $id_process = Asentado::find($pieceInfo->id_proceso);
+                $id_process = Asentado::find($pieceInfo[0]->id_proceso);
                 $cNominal = 0;
                 $tolerance = 0;
                 $process = 'Asentado';
@@ -971,7 +1024,7 @@ class PzasGeneralesController extends Controller
                 break;
         }
         // Obtener meta para obtener la ot y la clase
-        if (is_array($pieceInfo)) { //Si el juego es mitad
+        if (is_array($pieceInfo) || $pieceInfo instanceof \Illuminate\Support\Collection) { //Si el juego es mitad o coleccion (Soldadura PTA)
             $meta = Metas::find($pieceInfo[0]->id_meta);
         } else { //Si no es mitad
             $meta = Metas::find($pieceInfo->id_meta);
@@ -982,7 +1035,7 @@ class PzasGeneralesController extends Controller
         if ($process != 'Asentado') {
             $piecesInfo = array();
             //Si el juego es mitad
-            if (is_array($pieceInfo)) {
+            if (is_array($pieceInfo) || $pieceInfo instanceof \Illuminate\Support\Collection) {
                 $contador = 0;
                 foreach ($pieceInfo as $pza) {
                     $piecesInfo[$contador] = $pza->toArray();
@@ -997,30 +1050,30 @@ class PzasGeneralesController extends Controller
 
         //Obtener el nombre del operador
         $operadores = array();
+        $vistos = array(); // Para evitar duplicados por pieza + operador
         if (is_array($piecesInfo)) {
             $contador = 0;
             foreach ($piecesInfo as $pza) {
                 //Obtener la meta para obtener el id del operador
                 $meta = Metas::find($pza['id_meta']);
+                $nombreOp = $this->getNameOperador($meta->id_usuario);
+                $nPieza = array_key_exists("n_pieza", $pza) ? $pza["n_pieza"] : $pza["n_juego"];
 
-                //Obtener el nombre del operador
-                if (!in_array($this->getNameOperador($meta->id_usuario), $operadores)) {
+                // Identificador único para este par pieza-operador
+                $hash = $nPieza . '|' . $nombreOp;
+
+                if (!in_array($hash, $vistos)) {
                     //Guardar el nombre del operador
-                    $operadores[$contador] = array();
-                    if (!array_key_exists("n_pieza", $pza)) {
-                        array_push($operadores[$contador], $pza["n_juego"]);
-                    } else {
-                        array_push($operadores[$contador], $pza["n_pieza"]);
-                    }
-                    array_push($operadores[$contador], $this->getNameOperador($meta->id_usuario));
+                    $operadores[$contador] = array($nPieza, $nombreOp);
+                    $vistos[] = $hash;
                     $contador++;
                 }
             }
         } else {
             $meta = Metas::find($piecesInfo->id_meta);
-            $operadores[0] = array();
-            array_push($operadores[0], $pieceInfo->n_juego);
-            array_push($operadores[0], $this->getNameOperador($meta->id_usuario));
+            $nPieza = $pieceInfo->n_juego;
+            $nombreOp = $this->getNameOperador($meta->id_usuario);
+            $operadores[0] = array($nPieza, $nombreOp);
         }
         $piezasGroup = $piezasGroup ?? null;
         return view('pieces_views.piecesReport.chosenPiece', compact('process', 'piecesInfo', 'cNominal', 'tolerance', 'ot', 'clase', 'profile', 'operadores', 'piezasGroup'));

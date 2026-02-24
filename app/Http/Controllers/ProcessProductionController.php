@@ -155,6 +155,16 @@ class ProcessProductionController extends Controller
 
             $piezasGroupHistory = $rawHistoryPieces->groupBy('n_pieza');
 
+            // Construir mapa de liberación por n_pieza (para colorear filas históricas)
+            $ptaLiberacion = [];
+            foreach ($piezasGroupHistory->keys() as $nPieza) {
+                $piezaDB = \App\Models\Pieza::where('n_pieza', $nPieza)
+                    ->where('proceso', 'Soldadura PTA')
+                    ->where('id_clase', $class->id)
+                    ->first();
+                $ptaLiberacion[$nPieza] = $piezaDB ? (int) $piezaDB->liberacion : null;
+            }
+
             // Piezas activas (estado=1, meta actual) — modo captura
             $processIdString = str_replace(' ', '_', 'Soldadura PTA') . '_' . $class->nombre . '_' . $class->id_ot;
             $ptaProcessDB = \App\Models\SoldaduraPTA::where('id_proceso', $processIdString)->first();
@@ -182,6 +192,7 @@ class ProcessProductionController extends Controller
                 'piezasGroup' => $piezasGroupHistory,
                 'piezasGroupActivas' => $piezasGroupActivas,
                 'modo' => ($edit == 2) ? 'captura' : 'reporte',
+                'ptaLiberacion' => $ptaLiberacion,
             ])->render();
         }
 
@@ -1281,16 +1292,19 @@ class ProcessProductionController extends Controller
 
             $usedAssemblies = array();
             foreach ($arrayPiecesInMeta as $piece) {
+                // Obtener el número de pieza o juego (Soldadura normal solo tiene n_juego)
+                $nPiece = $piece["piece"]->n_pieza ? $piece["piece"]->n_pieza : $piece["piece"]->n_juego;
+
                 //Verificar si la pieza se registra por mitad o por juego
-                $char = substr($piece["piece"]->n_pieza, -1) ? substr($piece["piece"]->n_pieza, -1) : "J";
+                $char = substr($nPiece, -1) ? substr($nPiece, -1) : "J";
                 if ($char == "J") {
                     $total += $piece["color"] == "#ACF980A8" || $piece["color"] == "#79BFED" ? 1 : 0;
                 } else {
                     $badPieces = 0;
                     // Extraer el numero de pieza
-                    $noAssembly = substr($piece["piece"]->n_pieza, 0, -1);
+                    $noAssembly = substr($nPiece, 0, -1);
                     // Encontrar la primera mitad del juego en la tabla Piezas
-                    $halfPiece = Pieza::where('id_clase', $class->id)->where('proceso', $process)->where("n_pieza", $piece["piece"]->n_pieza)->first();
+                    $halfPiece = Pieza::where('id_clase', $class->id)->where('proceso', $process)->where("n_pieza", $nPiece)->first();
 
                     //Verificar si ese juego aun no ha sido contado
                     if (!in_array($noAssembly, $usedAssemblies)) {
@@ -2473,14 +2487,28 @@ class ProcessProductionController extends Controller
         }
 
         if (isset($pares)) {
-            if ($pares) {
-                $piecesArray["good"] = count($piecesArray["good"]) != 0 ? count($piecesArray["good"]) / 2 : 0;
-                $piecesArray["bad"] = count($piecesArray["bad"]) != 0 ? count($piecesArray["bad"]) / 2 : 0;
-            } else {
-                $piecesArray["good"] = count($piecesArray["good"]);
-                $piecesArray["bad"] = count($piecesArray["bad"]);
+            // Contar las piezas en base a si son juegos completos o mitades
+            $goodCount = 0;
+            foreach ($piecesArray["good"] as $p) {
+                if (substr($p->n_pieza, -1) == "J") {
+                    $goodCount += 1;
+                } else {
+                    $goodCount += 0.5;
+                }
             }
-            $piecesArray["total"] = $piecesArray["good"] + $piecesArray["bad"];
+
+            $badCount = 0;
+            foreach ($piecesArray["bad"] as $p) {
+                if (substr($p->n_pieza, -1) == "J") {
+                    $badCount += 1;
+                } else {
+                    $badCount += 0.5;
+                }
+            }
+
+            $piecesArray["good"] = $goodCount;
+            $piecesArray["bad"] = $badCount;
+            $piecesArray["total"] = $goodCount + $badCount;
         } else {
             $piecesArray["good"] = 0;
             $piecesArray["bad"] = 0;

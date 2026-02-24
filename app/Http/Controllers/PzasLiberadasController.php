@@ -183,10 +183,24 @@ class PzasLiberadasController extends Controller
             case "Soldadura PTA":
                 $pieza = array();
                 foreach ($juego as $pza) {
-                    $p = SoldaduraPTA_pza::where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
+                    preg_match('/^(\d+[a-zA-Z]*)(\d+)$/', $pza, $matches);
+                    if (count($matches) == 3) {
+                        $n_pieza = $matches[1];
+                        $id_proceso = $matches[2];
+                        $p = SoldaduraPTA_pza::where('n_pieza', $n_pieza)->where('id_proceso', $id_proceso)->first();
+                    } else {
+                        $p = SoldaduraPTA_pza::where('id_pza', $pza)->first();
+                    }
+
+                    if ($p) {
+                        array_push($pieza, $p);
+                    }
                 }
-                $piezas = SoldaduraPTA_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                if (count($pieza) > 0) {
+                    $piezas = SoldaduraPTA_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                } else {
+                    $piezas = array();
+                }
                 break;
             case "Rectificado":
                 $pieza = array();

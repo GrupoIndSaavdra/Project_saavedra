@@ -24,7 +24,6 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
     .pta-table-wrapper {
         position: relative;
-        margin-top: 2em;
         border-radius: 10px;
         width: 100%;
         overflow-x: auto;
@@ -35,7 +34,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
         border-collapse: collapse;
         background: #fff;
         width: max-content;
-        min-width: 100%;
+        min-width: 200%;
         font-family: "Poppins", sans-serif;
     }
 
@@ -54,14 +53,14 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
     /* — Celdas del cuerpo — */
     .pta-table tbody td {
-        width: 140px;
-        height: 50px;
+        width: 200px;
+        height: 60px;
         text-align: center;
-        font-size: 1.1em;
+        font-size: 1.2em;
         font-weight: 700;
         border: 3px solid #033966;
         vertical-align: middle;
-        padding: 0;
+        padding: 5px;
     }
 
     /* Primer fila del grupo (D.Conn pico): separador grueso entre piezas */
@@ -139,6 +138,28 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
     /* Defecto */
     .defecto-none { color: #555; }
     .defecto-fund { color: #e67e22; font-weight: 700; }
+
+    /* ── Colores de liberación por fila de pieza ──────────────────────────────
+       Misma paleta que las piezas normales (Bombillo, Molde, etc.)
+    ─────────────────────────────────────────────────────────────────────────── */
+    .pta-table tbody tr.pta-row-ok         td { background-color: #ACF980A8 !important; }
+    .pta-table tbody tr.pta-row-error      td { background-color: #EC7063   !important; }
+    .pta-table tbody tr.pta-row-liberada   td { background-color: #79BFED   !important; }
+    .pta-table tbody tr.pta-row-rechazada  td { background-color: #FF6B6B   !important; }
+    .pta-table tbody tr.pta-row-buena      td { background-color: #90EE90   !important; }
+    .pta-table tbody tr.pta-row-mala       td { background-color: #DDA0DD   !important; }
+    .pta-table tbody tr.pta-row-incompleta td { background-color: #FFD700   !important; }
+
+    /* La celda td-pieza (nº pieza) refleja también el color de liberación */
+    .pta-table tbody tr.pta-row-ok         td.td-pieza { background-color: #6abf41 !important; color:#fff !important; }
+    .pta-table tbody tr.pta-row-error      td.td-pieza { background-color: #c0392b !important; color:#fff !important; }
+    .pta-table tbody tr.pta-row-liberada   td.td-pieza { background-color: #2980b9 !important; color:#fff !important; }
+    .pta-table tbody tr.pta-row-rechazada  td.td-pieza { background-color: #c0392b !important; color:#fff !important; }
+    .pta-table tbody tr.pta-row-buena      td.td-pieza { background-color: #27ae60 !important; color:#fff !important; }
+    .pta-table tbody tr.pta-row-mala       td.td-pieza { background-color: #8e44ad !important; color:#fff !important; }
+    .pta-table tbody tr.pta-row-incompleta td.td-pieza { background-color: #d4ac0d !important; color:#fff !important; }
+    /* Sin información de liberación — celda pieza con el azul original */
+    .pta-table tbody tr.pta-row-sin-lib    td.td-pieza { background-color: #033966 !important; color:#fff !important; }
 
     /* Separador "CAPTURA EN CURSO" */
     .pta-captura-header td {
@@ -243,6 +264,11 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         ? $piezas->groupBy('n_pieza')
                         : collect();
                 }
+
+                // Fallback para mapa de liberación (cuando el partial se llama sin él)
+                if (!isset($ptaLiberacion)) {
+                    $ptaLiberacion = [];
+                }
             @endphp
 
             @forelse ($piezasGroup as $nPieza => $subFilas)
@@ -261,6 +287,29 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                     }
                     // La fila portadora del precalentamiento (siempre D_Conexion_pico)
                     $filaPrecal = $filasPorTipo['D_Conexion_pico'] ?? null;
+
+                    // ── Determinar clase de color por liberación (igual que en piezas normales) ──
+                    $liberacionValor = $ptaLiberacion[$nPieza] ?? null;
+                    $defectoVal      = $filaPrecal?->defecto_pta ?? 'Ninguno';
+
+                    if ($liberacionValor === 1) {
+                        $claseColor = 'pta-row-liberada';  // Azul  — liberada por calidad
+                    } elseif ($liberacionValor === 2) {
+                        $claseColor = 'pta-row-rechazada'; // Rojo  — rechazada por calidad
+                    } elseif ($liberacionValor === 3) {
+                        $claseColor = 'pta-row-buena';     // Verde claro — buena sin liberación
+                    } elseif ($liberacionValor === 4) {
+                        $claseColor = 'pta-row-mala';      // Morado — mala sin liberación
+                    } elseif ($liberacionValor === 5) {
+                        $claseColor = 'pta-row-incompleta';// Amarillo — incompleta
+                    } elseif ($liberacionValor === 0 || $liberacionValor === null) {
+                        // Sin liberación formal: color basado en defecto
+                        $claseColor = ($defectoVal === 'Ninguno' || !$defectoVal)
+                            ? 'pta-row-ok'    // Verde — OK sin liberar
+                            : 'pta-row-error';// Rojo  — con defecto sin liberar
+                    } else {
+                        $claseColor = 'pta-row-sin-lib';
+                    }
                 @endphp
 
                 @foreach ($tiposOrden as $loopIndex => $tipo)
@@ -272,7 +321,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             $claseFila .= ' fila-primera';
                     @endphp
 
-                    <tr class="{{ $claseFila }}">
+                    <tr class="{{ $claseFila }} {{ $claseColor }}">
 
                         {{-- ── Columna NÚMERO: solo en la primera sub-fila, rowspan=3 ── --}}
                         @if ($esPrimera)
@@ -524,7 +573,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             $keyA = $filaA?->id ?? ('new_' . $nPiezaA . '_' . $tipoA);
                         @endphp
 
-                        <tr style="background:#fff5d4; border-top: {{ $esPrimeraA ? '2px solid #e6a800' : '1px solid #ccc' }};">
+                        <tr style="background:#ffffff; border-top: {{ $esPrimeraA ? '2px solid #e6a800' : '1px solid #ccc' }};">
 
                             {{-- Número pieza — rowspan=3, solo primera sub-fila --}}
                             @if ($esPrimeraA)
