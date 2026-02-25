@@ -998,28 +998,62 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Primera Operacion Cabeza Soplo':
                 //Obtener informacion de la pieza elegida
+                $piecesArray = explode(",", $pieces);
                 $pieceInfo = array();
-                $pieces = explode(",", $pieces);
-                foreach ($pieces as $piece) {
-                    array_push($pieceInfo, PrimeraOperacionCabezaSoplo_pza::where('id_pza', $piece)->first());
+                foreach ($piecesArray as $pza) {
+                    $p = PrimeraOperacionCabezaSoplo_pza::where('id_pza', $pza)->first();
+                    if ($p) {
+                        array_push($pieceInfo, $p);
+                    }
                 }
+                if (count($pieceInfo) == 0)
+                    return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
+
                 //Obtener Cotas nominales y tolerancias
                 $id_process = PrimeraOperacionCabezaSoplo::find($pieceInfo[0]->id_proceso);
-                $cNominal = PrimeraOperacionCabezaSoplo_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $tolerance = PrimeraOperacionCabezaSoplo_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
+                $cNominal = null;
+                $tolerance = null;
+                if ($id_process) {
+                    $cnRecord = PrimeraOperacionCabezaSoplo_cnominal::where('id_proceso', $id_process->id_proceso)
+                        ->select('id', 'diametro_exterior', 'longitud', 'diametro_candado', 'longitud_candado')
+                        ->first();
+                    $cNominal = $cnRecord ? $cnRecord->toArray() : null;
+
+                    $tolRecord = PrimeraOperacionCabezaSoplo_tolerancia::where('id_proceso', $id_process->id_proceso)
+                        ->select('id', 'diametro_exterior1', 'diametro_exterior2', 'longitud1', 'longitud2', 'diametro_candado1', 'diametro_candado2', 'longitud_candado1', 'longitud_candado2')
+                        ->first();
+                    $tolerance = $tolRecord ? $tolRecord->toArray() : null;
+                }
                 $process = 'Primera Operacion Cabeza Soplo';
                 break;
             case 'Segunda Operacion Cabeza Soplo':
                 //Obtener informacion de la pieza elegida
+                $piecesArray = explode(",", $pieces);
                 $pieceInfo = array();
-                $pieces = explode(",", $pieces);
-                foreach ($pieces as $piece) {
-                    array_push($pieceInfo, SegundaOperacionCabezaSoplo_pza::where('id_pza', $piece)->first());
+                foreach ($piecesArray as $pza) {
+                    $p = SegundaOperacionCabezaSoplo_pza::where('id_pza', $pza)->first();
+                    if ($p) {
+                        array_push($pieceInfo, $p);
+                    }
                 }
+                if (count($pieceInfo) == 0)
+                    return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
+
                 //Obtener Cotas nominales y tolerancias
                 $id_process = SegundaOperacionCabezaSoplo::find($pieceInfo[0]->id_proceso);
-                $cNominal = SegundaOperacionCabezaSoplo_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $tolerance = SegundaOperacionCabezaSoplo_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
+                $cNominal = null;
+                $tolerance = null;
+                if ($id_process) {
+                    $cnRecord = SegundaOperacionCabezaSoplo_cnominal::where('id_proceso', $id_process->id_proceso)
+                        ->select('id', 'diametro_exterior', 'longitud', 'diametro_candado', 'longitud_candado')
+                        ->first();
+                    $cNominal = $cnRecord ? $cnRecord->toArray() : null;
+
+                    $tolRecord = SegundaOperacionCabezaSoplo_tolerancia::where('id_proceso', $id_process->id_proceso)
+                        ->select('id', 'diametro_exterior1', 'diametro_exterior2', 'longitud1', 'longitud2', 'diametro_candado1', 'diametro_candado2', 'longitud_candado1', 'longitud_candado2')
+                        ->first();
+                    $tolerance = $tolRecord ? $tolRecord->toArray() : null;
+                }
                 $process = 'Segunda Operacion Cabeza Soplo';
                 break;
         }

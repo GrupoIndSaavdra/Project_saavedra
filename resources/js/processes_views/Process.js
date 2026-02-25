@@ -411,7 +411,7 @@ export class Process {
                 this.tableTitles = ["", "Diametro Exterior", "Longitud", "Diametro Candado", "Longitud Candado"];
 
                 divisionsCNomi = [null];
-                divisionsTole = [1, 2, 3, 4];
+                divisionsTole = [1, 3, 5, 7];
 
                 positionSelects = [
                     [5],
@@ -424,7 +424,7 @@ export class Process {
                 this.tableTitles = ["", "Diametro Exterior", "Longitud", "Diametro Candado", "Longitud Candado"];
 
                 divisionsCNomi = [null];
-                divisionsTole = [1, 2, 3, 4];
+                divisionsTole = [1, 3, 5, 7];
 
                 positionSelects = [
                     [5],

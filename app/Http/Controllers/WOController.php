@@ -10,8 +10,6 @@ use App\Models\Moldura;
 use App\Models\Orden_trabajo;
 use App\Models\Pieza;
 use App\Models\Procesos;
-use App\Models\PySOpeSoldadura;
-use App\Models\PySOpeSoldadura_pza;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use DateTime;

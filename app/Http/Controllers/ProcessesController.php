@@ -1153,8 +1153,10 @@ class ProcessesController extends Controller
     {
         $cNominal = PrimeraOperacionCabezaSoplo_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = PrimeraOperacionCabezaSoplo_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new PrimeraOperacionCabezaSoplo_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new PrimeraOperacionCabezaSoplo_tolerancia();
         }
 
@@ -1184,8 +1186,10 @@ class ProcessesController extends Controller
     {
         $cNominal = SegundaOperacionCabezaSoplo_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = SegundaOperacionCabezaSoplo_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new SegundaOperacionCabezaSoplo_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new SegundaOperacionCabezaSoplo_tolerancia();
         }
 

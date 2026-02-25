@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\SegundaOperacionCabezaSoplo_pza;
-use Illuminate\Support\Facades\Log;
-
 class SegundaOperacionCabezaSoploController extends Controller
 {
     public function __construct()
@@ -16,12 +14,12 @@ class SegundaOperacionCabezaSoploController extends Controller
         if ($index !== null) {
             $piece = SegundaOperacionCabezaSoplo_pza::find($request->piece[$index]);
 
-            // Crear arreglo de datos por índice
+            // Crear arreglo de datos por ï¿½ndice
             $fields = [
-            'diametro_exterior',
-            'longitud',
-            'diametro_candado',
-            'longitud_candado',
+                'diametro_exterior',
+                'longitud',
+                'diametro_candado',
+                'longitud_candado',
                 'observaciones',
             ];
 
@@ -68,7 +66,7 @@ class SegundaOperacionCabezaSoploController extends Controller
             'longitud_candado'
         ];
 
-        $epsilon = 0.000001; // tolerancia mínima para errores de redondeo
+        $epsilon = 0.000001; // tolerancia mï¿½nima para errores de redondeo
 
         foreach ($campos as $campo) {
             $valorPiece = (float) $pieza->$campo;

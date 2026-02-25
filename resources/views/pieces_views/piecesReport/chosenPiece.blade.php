@@ -510,899 +510,916 @@
                             'diametro_embudo', 'error', 'observaciones'
                         ];
                         break;
-                    default:
-                        return 'No se encontro el proceso'; //Retorna el mensaje de que el proceso no existe
-                }
-                //Almacenar valores
-                valoresCnomi = this.almacenarCNomiAndTole(nombresCnomi, this.valoresCnomi);
-                valoresTole = this.almacenarCNomiAndTole(nombresTole, this.valoresTole);
-                valoresPieza = this.almacenarPieza(nombres);
+                    case "Primera Operacion Cabeza Soplo":
+                    case "Segunda Operacion Cabeza Soplo":
+                        titulos = ['No. Pieza', 'Diámetro Exterior', 'Longitud', 'Diámetro Candado', 'Longitud Candado', 'Error', 'Observaciones'];
 
-                return this.crearTabla(titulos, cNomiPosiciones, tolePosiciones, piezaPosiciones, valoresCnomi,
-                    valoresTole, valoresPieza); // Crear tabla
-            }
+                        cNomiPosiciones = [null];
+                        tolePosiciones = [1, 2, 3, 4];
+                        piezaPosiciones = [null];
 
-            almacenarCNomiAndTole(nombres, valoresReales) {
-                let valores = [];
-                //Insertar valores
-                if (valoresReales != 0) {
-                    for (let i = 0; i < nombres.length; i++) {
-                        if (valoresReales[nombres[i]] == undefined) {
-                            valores.push('');
-                        } else {
-                            valores.push(valoresReales[nombres[i]]);
-                        }
-                    }
-                    //Insertar espacios vacios
-                    for (let i = 0; i < 2; i++) {
-                        valores.push('');
-                    }
-                } else {
-                    valores = null;
-                }
-                return valores;
-            }
-
-            almacenarPieza(nombres) {
-                let valores = [];
-                for (let i = 0; i < this.valoresPieza.length; i++) {
-                    valores.push([]);
-                    for (let j = 0; j < nombres.length; j++) {
-                        let valueTest = this.valoresPieza[i]['correcto'] != null ? this.valoresPieza[i]['correcto'] :
-                            this.valoresPieza[i]['error'];
-                        if (valueTest == null && j != 0) {
-                            valores[i].push('----');
-                        } else {
-                            valores[i].push(this.valoresPieza[i][nombres[j]]);
-                        }
-                    }
-                }
-                return valores;
-            }
-
-            crearTabla(titulos, cNomiPosiciones, tolePosiciones, piezaPosiciones, valoresCNomi, valoresTole,
-                valoresPieza) { // Crear tabla
-                const table = document.createElement('table'); // Crear tabla
-                table.className = 'tabla3';
-
-                for (let i = 0; i < 4; i++) { // Crear filas
-                    const tr = document.createElement('tr'); // Crear fila
-                    switch (i) { // Crear columnas
-                        case 0: // Crear columnas de titulos
-                            for (let j = 0; j < titulos.length; j++) { // Crear columnas
-                                const th = document.createElement('th'); // Crear columna
-                                th.className = 't-title'; // Agregar clase a la columna
-                                if (j == 0) { // Si es la primera columna
-                                    th.style = "width:150px;"; // Agregar estilo a la columna
-                                }
-                                if (titulos[j] == 'Observaciones') {
-                                    th.style = "width:1050px;"; // Agregar estilo a la columna
-                                }
-                                th.innerHTML = titulos[j]; // Agregar texto a la columna
-                                tr.appendChild(th); // Agregar columna a la fila
-                            }
-                            table.appendChild(tr); //Agregar fila a la tabla.
-                            break;
-
-                        case 1: // Crear columnas de cNominal
-                            if (valoresCNomi != null) {
-                                for (let j = 0; j < valoresCNomi.length; j++) { // Crear columnas
-                                    const td = document.createElement('td'); // Crear columna
-                                    if (j != 0) { //Si no es la primera columna.
-                                        if (cNomiPosiciones.includes(
-                                            j)) { //Si la posición esta en el array de posiciones.
-                                            for (let k = 0; k < 2; k++) { // Crear inputs
-                                                //Valores de c nominal
-                                                td.appendChild(this.crearInputs('input-medio', valoresCNomi[
-                                                    j])); // Crear inputs
-                                                if (k != 1) {
-                                                    j++; //Aumentar j
-                                                }
-                                            }
-                                        } else {
-                                            td.appendChild(this.crearInputs('input', valoresCNomi[j])); // Crear inputs
-                                        }
-                                    } else {
-                                        td.innerHTML = 'C.Nominal'; //Agregar texto a la columna.
-                                    }
-                                    tr.appendChild(td); //Agregar columna a la fila.
-                                }
-                            }
-                            table.appendChild(tr); //Agregar fila a la tabla.
-                            break;
-
-                        case 2: // Crear columnas de tolerancias
-                            if (valoresTole != null) {
-                                for (let j = 0; j < valoresTole.length; j++) { // Crear columnas
-                                    if (j == valoresTole.length) {
-                                        break;
-                                    }
-                                    const td = document.createElement('td'); // Crear columna
-                                    if (j != 0) { //Si no es la primera columna
-                                        if (tolePosiciones.includes(
-                                            j)) { // Si la posicion esta en el array de posiciones
-                                            for (let k = 0; k < 2; k++) { // Crear inputs
-                                                td.appendChild(this.crearInputs('input-medio', valoresTole[
-                                                    j])); // Crear inputs
-                                                if (k != 1) { //Si no es el segundo input.
-                                                    j++; // Aumentar j
-                                                }
-                                            }
-                                        } else {
-                                            td.appendChild(this.crearInputs('input', valoresTole[j])); // Crear inputs
-                                        }
-                                    } else {
-                                        td.innerHTML = 'Tolerancias'; // Agregar texto a la columna
-                                    }
-                                    tr.appendChild(td); // Agregar columna a la fila
-                                }
-                            }
-                            table.appendChild(tr); //Agregar fila a la tabla.
-                            break;
-                        case 3: // Crear columnas de pieza
-                            for (let j = 0; j < valoresPieza.length; j++) { // Crear columnas
-                                let tr = document.createElement('tr'); // Crear fila
-                                for (let p = 0; p < valoresPieza[j].length; p++) {
-                                    let error = false;
-                                    const td = document.createElement('td'); // Crear celda
-                                    if (piezaPosiciones.includes(
-                                        p)) { // Si la posicion esta en el array de posiciones de la pieza
-                                        for (let k = 0; k < 2; k++) { // Crear inputs
-                                            if (valoresCNomi != null && valoresTole != null) {
-                                                error = this.getError(valoresPieza[j][p], p, valoresCNomi, valoresTole,
-                                                    tolePosiciones, cNomiPosiciones, piezaPosiciones);
-                                            }
-                                            td.appendChild(this.crearInputs('input-medio', valoresPieza[j][p],
-                                                error)); // Crear inputs
-                                            if (k != 1) { //Si no es el segundo input.
-                                                p++; // Aumentar p
-                                            }
-                                        }
-                                    } else {
-                                        if (p != 0) {
-                                            // console.log(valoresPieza[j][p]);
-                                            if (valoresCNomi != null && valoresTole != null) {
-                                                error = this.getError(valoresPieza[j][p], p, valoresCNomi, valoresTole,
-                                                    tolePosiciones, cNomiPosiciones, piezaPosiciones);
-                                            }
-                                            // console.log(error);
-                                        }
-                                        td.appendChild(this.crearInputs('input', valoresPieza[j][p],
-                                            error)); // Crear inputs
-                                    }
-                                    tr.appendChild(td); // Agregar columna a la fila
-                                }
-                                table.appendChild(tr); //Agregar fila a la tabla
-                            }
-                            break;
-                    }
-                }
-                return table; // Retornar tabla.
-            }
-            crearInputs(className, valor, error) { // Crear inputs
-                let input = document.createElement('input'); // Crear input
-                input.className = className; // Agregar clase al input
-                input.type = 'text'; // Agregar tipo al input
-                input.step = 'any'; // Agregar step al input
-                input.inputMode = "decimal"; // Agregar inputMode al input
-                input.value = valor; // Agregar valor al input
-                input.disabled = 'true';
-                if (error != undefined) {
-                    if (error === true) {
-                        input.style = 'border: 3px solid red;';
-                    }
-                }
-                return input; // Retornar input
-            }
-            getError(valorPieza, posicion, valoresCnomi, valoresTole, tolePosiciones, cNomiPosiciones, piezaPosiciones) {
-                let currentTolIndex = 0;
-                for (let i = 0; i < posicion; i++) {
-                    if (piezaPosiciones != null && piezaPosiciones.includes(i)) {
-                        currentTolIndex++;
-                    } else if (piezaPosiciones != null && piezaPosiciones.includes(i - 1)) {
-                        currentTolIndex++;
-                    } else {
-                        if (tolePosiciones != null && tolePosiciones.includes(currentTolIndex)) {
-                            currentTolIndex = currentTolIndex + 2;
-                        } else {
-                            currentTolIndex++;
-                        }
-                    }
-                }
-                let error = false;
-                // Todas las validaciones usan tolerancias asimétricas:
-                // currentTolIndex = tolerancia superior (+)
-                // currentTolIndex + 1 = tolerancia inferior (-)
-                if (tolePosiciones != null && tolePosiciones.includes(currentTolIndex)) {
-                    // Caso: Rango de tolerancia (dos valores: superior e inferior)
-                    let limiteInferior = parseFloat(valoresCnomi[posicion]) - parseFloat(valoresTole[currentTolIndex +
-                        1]);
-                    let limiteSuperior = parseFloat(valoresCnomi[posicion]) + parseFloat(valoresTole[currentTolIndex]);
-                    if (parseFloat(valorPieza) < parseFloat(limiteInferior).toFixed(3) || parseFloat(valorPieza) >
-                        parseFloat(limiteSuperior).toFixed(3)) {
-                        error = true;
-                    }
-                } else {
-                    // Caso: Tolerancia simétrica (un solo valor usado como +/-)
-                    let limiteInferior = parseFloat(valoresCnomi[posicion]) - parseFloat(valoresTole[currentTolIndex]);
-                    let limiteSuperior = parseFloat(valoresCnomi[posicion]) + parseFloat(valoresTole[currentTolIndex]);
-                    if (parseFloat(valorPieza) < parseFloat(limiteInferior).toFixed(3) || parseFloat(valorPieza) >
-                        parseFloat(limiteSuperior).toFixed(3)) {
-                        error = true;
-                    }
-                }
-                return error;
-            }
-
-            convertirObjectToArray(obj) {
-                let array = [];
-                for (let i = 0; i < obj.length; i++) {
-                    array.push(Object.values(obj[i]));
-                }
-                return array;
-            }
-            crearTablaOperadores(operadores) {
-                const table = document.createElement('table');
-                table.className = "tablaOperadores";
-                table.style.borderCollapse = 'collapse'; // Colapsar los bordes de las celdas
-                table.style.border = '1px solid black';
-
-
-                const tbody = document.createElement('tbody');
-                for (let i = 0; i < (operadores.length + 1); i++) {
-                    const tr = document.createElement('tr');
-                    switch (i) {
-                        case 0:
-                            const th1 = document.createElement('th');
-                            th1.textContent = "No. Pieza";
-                            const th2 = document.createElement('th');
-                            th2.textContent = "Operador";
-                            tr.appendChild(th1);
-                            tr.appendChild(th2);
-                            th1.style.border = '1px solid black';
-                            th2.style.border = '1px solid black';
-
-                            break;
-
+                        nombresCnomi = ['id', 'diametro_exterior', 'longitud', 'diametro_candado', 'longitud_candado', null, null];
+                        nombresTole = ['id', 'diametro_exterior1', 'diametro_exterior2', 'longitud1', 'longitud2',
+                            'diametro_candado1', 'diametro_candado2', 'longitud_candado1', 'longitud_candado2', null, null
+                        ];
+                        nombres = ['n_pieza', 'diametro_exterior', 'longitud', 'diametro_candado', 'longitud_candado', 'error', 'observaciones'];
+                        break;
                         default:
-                            for (let j = 0; j < operadores[i - 1].length; j++) {
-                                const td = document.createElement('td');
-                                td.textContent = operadores[i - 1][j];
-                                tr.appendChild(td);
-                            }
-                            tr.querySelectorAll('td').forEach(td => {
-                                td.style.border = '1px solid black';
-
-                                tr.appendChild(td);
-                            });
-                            break;
+                            return 'No se encontro el proceso'; //Retorna el mensaje de que el proceso no existe
                     }
-                    tr.style.border = '1px solid black';
-                    tbody.appendChild(tr);
+                    //Almacenar valores
+                    valoresCnomi = this.almacenarCNomiAndTole(nombresCnomi, this.valoresCnomi);
+                    valoresTole = this.almacenarCNomiAndTole(nombresTole, this.valoresTole);
+                    valoresPieza = this.almacenarPieza(nombres);
+
+                    return this.crearTabla(titulos, cNomiPosiciones, tolePosiciones, piezaPosiciones, valoresCnomi,
+                        valoresTole, valoresPieza); // Crear tabla
                 }
-                table.appendChild(tbody);
-                return table;
+
+                almacenarCNomiAndTole(nombres, valoresReales) {
+                    let valores = [];
+                    //Insertar valores
+                    if (valoresReales != null) {
+                        for (let i = 0; i < nombres.length; i++) {
+                            if (valoresReales[nombres[i]] == undefined) {
+                                valores.push('');
+                            } else {
+                                valores.push(valoresReales[nombres[i]]);
+                            }
+                        }
+                        //Insertar espacios vacios
+                        for (let i = 0; i < 2; i++) {
+                            valores.push('');
+                        }
+                    } else {
+                        valores = null;
+                    }
+                    return valores;
+                }
+
+                almacenarPieza(nombres) {
+                    let valores = [];
+                    for (let i = 0; i < this.valoresPieza.length; i++) {
+                        valores.push([]);
+                        for (let j = 0; j < nombres.length; j++) {
+                            let valueTest = this.valoresPieza[i]['correcto'] != null ? this.valoresPieza[i]['correcto'] :
+                                this.valoresPieza[i]['error'];
+                            if (valueTest == null && j != 0) {
+                                valores[i].push('----');
+                            } else {
+                                valores[i].push(this.valoresPieza[i][nombres[j]]);
+                            }
+                        }
+                    }
+                    return valores;
+                }
+
+                crearTabla(titulos, cNomiPosiciones, tolePosiciones, piezaPosiciones, valoresCNomi, valoresTole,
+                    valoresPieza) { // Crear tabla
+                    const table = document.createElement('table'); // Crear tabla
+                    table.className = 'tabla3';
+
+                    for (let i = 0; i < 4; i++) { // Crear filas
+                        const tr = document.createElement('tr'); // Crear fila
+                        switch (i) { // Crear columnas
+                            case 0: // Crear columnas de titulos
+                                for (let j = 0; j < titulos.length; j++) { // Crear columnas
+                                    const th = document.createElement('th'); // Crear columna
+                                    th.className = 't-title'; // Agregar clase a la columna
+                                    if (j == 0) { // Si es la primera columna
+                                        th.style = "width:150px;"; // Agregar estilo a la columna
+                                    }
+                                    if (titulos[j] == 'Observaciones') {
+                                        th.style = "width:1050px;"; // Agregar estilo a la columna
+                                    }
+                                    th.innerHTML = titulos[j]; // Agregar texto a la columna
+                                    tr.appendChild(th); // Agregar columna a la fila
+                                }
+                                table.appendChild(tr); //Agregar fila a la tabla.
+                                break;
+
+                            case 1: // Crear columnas de cNominal
+                                if (valoresCNomi != null) {
+                                    let nomiDataIndex = 0;
+                                    for (let j = 0; j < titulos.length; j++) { // Iteramos sobre las COLUMNAS reales
+                                        const td = document.createElement('td');
+                                        if (j != 0) {
+                                            if (cNomiPosiciones != null && cNomiPosiciones.includes(j)) {
+                                                for (let k = 0; k < 2; k++) {
+                                                    td.appendChild(this.crearInputs('input-medio', valoresCNomi[
+                                                        nomiDataIndex])); // Crear inputs
+                                                    nomiDataIndex++;
+                                                }
+                                            } else {
+                                                td.appendChild(this.crearInputs('input', valoresCNomi[
+                                                    nomiDataIndex])); // Crear inputs
+                                                nomiDataIndex++;
+                                            }
+                                        } else {
+                                            td.innerHTML = 'C.Nominal';
+                                            nomiDataIndex++;
+                                        }
+                                        tr.appendChild(td);
+                                    }
+                                }
+                                table.appendChild(tr); //Agregar fila a la tabla.
+                                break;
+
+                            case 2: // Crear columnas de tolerancias
+                                if (valoresTole != null) {
+                                    let toleDataIndex = 0;
+                                    for (let j = 0; j < titulos.length; j++) {
+                                        const td = document.createElement('td');
+                                        if (j != 0) {
+                                            if (tolePosiciones != null && tolePosiciones.includes(j)) {
+                                                for (let k = 0; k < 2; k++) {
+                                                    td.appendChild(this.crearInputs('input-medio', valoresTole[
+                                                        toleDataIndex])); // Crear inputs
+                                                    toleDataIndex++;
+                                                }
+                                            } else {
+                                                td.appendChild(this.crearInputs('input', valoresTole[
+                                                    toleDataIndex])); // Crear inputs
+                                                toleDataIndex++;
+                                            }
+                                        } else {
+                                            td.innerHTML = 'Tolerancias';
+                                            toleDataIndex++;
+                                        }
+                                        tr.appendChild(td);
+                                    }
+                                }
+                                table.appendChild(tr); //Agregar fila a la tabla.
+                                break;
+                            case 3: // Crear columnas de pieza
+                                for (let j = 0; j < valoresPieza.length; j++) {
+                                    let tr = document.createElement('tr');
+                                    let piezaDataIndex = 0;
+                                    for (let p = 0; p < titulos.length; p++) {
+                                        let error = false;
+                                        const td = document.createElement('td');
+                                        if (p != 0) {
+                                            if (piezaPosiciones != null && piezaPosiciones.includes(p)) {
+                                                for (let k = 0; k < 2; k++) {
+                                                    if (valoresCNomi != null && valoresTole != null) {
+                                                        error = this.getError(valoresPieza[j][piezaDataIndex], p,
+                                                            valoresCNomi, valoresTole, tolePosiciones,
+                                                            cNomiPosiciones, piezaPosiciones);
+                                                    }
+                                                    td.appendChild(this.crearInputs('input-medio',
+                                                        valoresPieza[j][piezaDataIndex], error));
+                                                    piezaDataIndex++;
+                                                }
+                                            } else {
+                                                if (valoresCNomi != null && valoresTole != null) {
+                                                    error = this.getError(valoresPieza[j][piezaDataIndex], p,
+                                                        valoresCNomi, valoresTole, tolePosiciones,
+                                                        cNomiPosiciones, piezaPosiciones);
+                                                }
+                                                td.appendChild(this.crearInputs('input', valoresPieza[j][
+                                                    piezaDataIndex
+                                                ], error));
+                                                piezaDataIndex++;
+                                            }
+                                        } else {
+                                            td.appendChild(this.crearInputs('input', valoresPieza[j][
+                                                piezaDataIndex
+                                            ]));
+                                            piezaDataIndex++;
+                                        }
+                                        tr.appendChild(td);
+                                    }
+                                    table.appendChild(tr);
+                                }
+                                break;
+                        }
+                    }
+                    return table; // Retornar tabla.
+                }
+                crearInputs(className, valor, error) { // Crear inputs
+                    let input = document.createElement('input'); // Crear input
+                    input.className = className; // Agregar clase al input
+                    input.type = 'text'; // Agregar tipo al input
+                    input.step = 'any'; // Agregar step al input
+                    input.inputMode = "decimal"; // Agregar inputMode al input
+                    input.value = (valor === undefined || valor === null) ? "" : valor; // Agregar valor al input
+                    input.disabled = 'true';
+                    if (error != undefined) {
+                        if (error === true) {
+                            input.style = 'border: 3px solid red;';
+                        }
+                    }
+                    return input; // Retornar input
+                }
+                getError(valorPieza, posicion, valoresCnomi, valoresTole, tolePosiciones, cNomiPosiciones, piezaPosiciones) {
+                    let currentTolIndex = 0;
+                    for (let i = 0; i < posicion; i++) {
+                        if (piezaPosiciones != null && piezaPosiciones.includes(i)) {
+                            currentTolIndex++;
+                        } else if (piezaPosiciones != null && piezaPosiciones.includes(i - 1)) {
+                            currentTolIndex++;
+                        } else {
+                            if (tolePosiciones != null && tolePosiciones.includes(i)) {
+                                currentTolIndex = currentTolIndex + 2;
+                            } else {
+                                currentTolIndex++;
+                            }
+                        }
+                    }
+                    let error = false;
+                    // Todas las validaciones usan tolerancias asimétricas:
+                    // currentTolIndex = tolerancia superior (+)
+                    // currentTolIndex + 1 = tolerancia inferior (-)
+                    if (tolePosiciones != null && tolePosiciones.includes(posicion)) {
+                        // Caso: Rango de tolerancia (dos valores: superior e inferior)
+                        let limiteInferior = parseFloat(valoresCnomi[posicion]) - parseFloat(valoresTole[currentTolIndex +
+                            1]);
+                        let limiteSuperior = parseFloat(valoresCnomi[posicion]) + parseFloat(valoresTole[currentTolIndex]);
+                        if (parseFloat(valorPieza) < parseFloat(limiteInferior).toFixed(3) || parseFloat(valorPieza) >
+                            parseFloat(limiteSuperior).toFixed(3)) {
+                            error = true;
+                        }
+                    } else {
+                        // Caso: Tolerancia simétrica (un solo valor usado como +/-)
+                        let limiteInferior = parseFloat(valoresCnomi[posicion]) - parseFloat(valoresTole[currentTolIndex]);
+                        let limiteSuperior = parseFloat(valoresCnomi[posicion]) + parseFloat(valoresTole[currentTolIndex]);
+                        if (parseFloat(valorPieza) < parseFloat(limiteInferior).toFixed(3) || parseFloat(valorPieza) >
+                            parseFloat(limiteSuperior).toFixed(3)) {
+                            error = true;
+                        }
+                    }
+                    return error;
+                }
+
+                convertirObjectToArray(obj) {
+                    let array = [];
+                    for (let i = 0; i < obj.length; i++) {
+                        array.push(Object.values(obj[i]));
+                    }
+                    return array;
+                }
+                crearTablaOperadores(operadores) {
+                    const table = document.createElement('table');
+                    table.className = "tablaOperadores";
+                    table.style.borderCollapse = 'collapse'; // Colapsar los bordes de las celdas
+                    table.style.border = '1px solid black';
+
+
+                    const tbody = document.createElement('tbody');
+                    for (let i = 0; i < (operadores.length + 1); i++) {
+                        const tr = document.createElement('tr');
+                        switch (i) {
+                            case 0:
+                                const th1 = document.createElement('th');
+                                th1.textContent = "No. Pieza";
+                                const th2 = document.createElement('th');
+                                th2.textContent = "Operador";
+                                tr.appendChild(th1);
+                                tr.appendChild(th2);
+                                th1.style.border = '1px solid black';
+                                th2.style.border = '1px solid black';
+
+                                break;
+
+                            default:
+                                for (let j = 0; j < operadores[i - 1].length; j++) {
+                                    const td = document.createElement('td');
+                                    td.textContent = operadores[i - 1][j];
+                                    tr.appendChild(td);
+                                }
+                                tr.querySelectorAll('td').forEach(td => {
+                                    td.style.border = '1px solid black';
+
+                                    tr.appendChild(td);
+                                });
+                                break;
+                        }
+                        tr.style.border = '1px solid black';
+                        tbody.appendChild(tr);
+                    }
+                    table.appendChild(tbody);
+                    return table;
+                }
             }
-        }
-    </script>
-    @if ($process == 'Soldadura' || $process == 'Soldadura PTA' || $process == 'Rectificado' || $process == 'Palomas')
-        <style>
-            .tabla3 {
-                width: 130%;
-            }
-        </style>
-    @endif
-    @if ($process == 'Copiado')
-        <style>
-            .scrollabe-table {
-                height: 500px;
-            }
-        </style>
-    @endif
+        </script>
+        @if ($process == 'Soldadura' || $process == 'Soldadura PTA' || $process == 'Rectificado' || $process == 'Palomas')
+            <style>
+                .tabla3 {
+                    width: 130%;
+                }
+            </style>
+        @endif
+        @if ($process == 'Copiado')
+            <style>
+                .scrollabe-table {
+                    height: 500px;
+                }
+            </style>
+        @endif
 
-    <body background="{{ asset('images/fondoLogin.jpg') }}">
+        <body background="{{ asset('images/fondoLogin.jpg') }}">
 
-        <div class="container" id="container">
+            <div class="container" id="container">
 
-            <a href="javascript:history.back()"" class=" btn-regresar">Regresar</a>
+                <a href="javascript:history.back()"" class=" btn-regresar">Regresar</a>
 
-            <script>
-                let process = new Proceso(@json($process), @json($cNominal), @json($tolerance),
-                    @json($piecesInfo)); // Crear el proceso
-                document.getElementById('container').appendChild(process.crearTablaOperadores(
-                    @json($operadores))); // Crear tabla de operadores
-            </script>
-            @csrf
-            <div class="titles">
-                <label class="title">{{ $ot }}</label>
-                <label class="title">{{ $clase }} - {{ $process }}</label>
-            </div>
-            <div class="scrollabe-table" id="scrollabe-table">
-                @if ($process == 'Asentado')
-                    <table border="1" class="tabla3" style="width: 100%;">
-                        <tr>
-                            <th class="t-title" style="width:150px">#PZ</th>
-                            <th class="t-title">Sin juego</th>
-                            <th class="t-title">Sin luz</th>
-                            <th class="t-title">Error</th>
-                            <th class="t-title" style="width:700px">Observaciones</th>
-                        </tr>
-                        <tr>
-                            <td><input type="text" class="input" value="{{ $piecesInfo->n_juego }}" disabled></td>
-                            <td><input type="text" class="input" value="{{ $piecesInfo->sin_juego }}" disabled></td>
-                            <td><input type="text" class="input" value="{{ $piecesInfo->sin_luz }}" disabled></td>
-                            <td><input type="text" class="input" value="{{ $piecesInfo->error }}" disabled /></td>
-                            <td><input type="text" class="input" value="{{ $piecesInfo->observaciones }}" disabled />
-                            </td>
-                        </tr>
-                    </table>
-                @elseif ($process == 'Cavidades')
-                    <table class="tabla3">
-                        <tr>
-                            <th class="t-title" style="width:150px; border:none;">#PZ</th>
-                            <th class="t-title" colspan="2">
-                                Altura 1
-                                @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
-                                    <div style="margin-top: 6px;">
-                                        <span style="
-                                                display: inline-flex;
-                                                align-items: center;
-                                                padding: 2px 12px;
-                                                background: #f1f3f5;
-                                                border-radius: 50px;
-                                                font-size: 11px;
-                                                color: #495057;
-                                                border: 1px solid #dee2e6;
-                                                font-weight: 500;
-                                            ">
-                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
-                                            {{ $cNominal->altura1 }} mm
-                                        </span>
-                                    </div>
-                                @elseif (isset($cNominal->profundidad1))
-                                    <div style="margin-top: 6px;">
-                                        <span style="
-                                                display: inline-flex;
-                                                align-items: center;
-                                                padding: 2px 12px;
-                                                background: #f1f3f5;
-                                                border-radius: 50px;
-                                                font-size: 11px;
-                                                color: #495057;
-                                                border: 1px solid #dee2e6;
-                                                font-weight: 500;
-                                            ">
-                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
-                                            {{ $cNominal->profundidad1 }} mm
-                                        </span>
-                                    </div>
-                                @endif
-                            </th>
-                            <th class="t-title" colspan="2">
-                                Altura 2
-                                @if (isset($cNominal->altura2) && !isset($cNominal->profundidad1))
-                                    <div style="margin-top: 6px;">
-                                        <span style="
-                                                display: inline-flex;
-                                                align-items: center;
-                                                padding: 2px 12px;
-                                                background: #f1f3f5;
-                                                border-radius: 50px;
-                                                font-size: 11px;
-                                                color: #495057;
-                                                border: 1px solid #dee2e6;
-                                                font-weight: 500;
-                                            ">
-                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
-                                            {{ $cNominal->altura2 }} mm
-                                        </span>
-                                    </div>
-                                @elseif (isset($cNominal->profundidad2))
-                                    <div style="margin-top: 6px;">
-                                        <span style="
-                                                display: inline-flex;
-                                                align-items: center;
-                                                padding: 2px 12px;
-                                                background: #f1f3f5;
-                                                border-radius: 50px;
-                                                font-size: 11px;
-                                                color: #495057;
-                                                border: 1px solid #dee2e6;
-                                                font-weight: 500;
-                                            ">
-                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
-                                            {{ $cNominal->profundidad2 }} mm
-                                        </span>
-                                    </div>
-                                @endif
-                            </th>
-                            <th class="t-title" colspan="2">
-                                Altura 3
-                                @if (isset($cNominal->altura3) && !isset($cNominal->profundidad1))
-                                    <div style="margin-top: 6px;">
-                                        <span style="
-                                                display: inline-flex;
-                                                align-items: center;
-                                                padding: 2px 12px;
-                                                background: #f1f3f5;
-                                                border-radius: 50px;
-                                                font-size: 11px;
-                                                color: #495057;
-                                                border: 1px solid #dee2e6;
-                                                font-weight: 500;
-                                            ">
-                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
-                                            {{ $cNominal->altura3 }} mm
-                                        </span>
-                                    </div>
-                                @elseif (isset($cNominal->profundidad3))
-                                    <div style="margin-top: 6px;">
-                                        <span style="
-                                                display: inline-flex;
-                                                align-items: center;
-                                                padding: 2px 12px;
-                                                background: #f1f3f5;
-                                                border-radius: 50px;
-                                                font-size: 11px;
-                                                color: #495057;
-                                                border: 1px solid #dee2e6;
-                                                font-weight: 500;
-                                            ">
-                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
-                                            {{ $cNominal->profundidad3 }} mm
-                                        </span>
-                                    </div>
-                                @endif
-                            </th>
-                            <th class="t-title"></th>
-                            <th class="t-title" colspan="2"></th>
-                        </tr>
-                        <tr>
-                            <th class="t-title" style="border:none;"></th>
-                            @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
-                                <th colspan="2">Altura</th>
-                                <th colspan="2">Altura</th>
-                                <th colspan="2">Altura</th>
-                            @else
-                                <th>Profundidad</th>
-                                <th>Diametro</th>
-                                <th>Profundidad</th>
-                                <th>Diametro</th>
-                                <th>Profundidad</th>
-                                <th>Diametro</th>
-                            @endif
-                            <th>Acetato B/M</th>
-                            <th>Error</th>
-                            <th style="width: 1000px;">Observaciones</th>
-                        </tr>
-                        <tr>
-                            <td>C.Nominal</td>
-                            @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
-                                <td colspan="2"><input type="number" value="{{ $cNominal->altura1 }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td colspan="2"><input type="number" value="{{ $cNominal->altura2 }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td colspan="2"><input type="number" value="{{ $cNominal->altura3 }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                            @else
-                                <td><input type="number" value="{{ $cNominal->profundidad1 }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $cNominal->diametro1 }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $cNominal->profundidad2 }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $cNominal->diametro2 }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $cNominal->profundidad3 }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $cNominal->diametro3 }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                            @endif
-                            <td><input type="number" class="input" disabled></td>
-                            <td><input type="number" class="input" disabled></td>
-                            <td><input type="number" class="input" disabled></td>
-                        </tr>
-                        <tr>
-                            <td> Tolerancias </td>
-                            @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
-                                <td colspan="2"><input type="number" value="{{ $tolerance->altura1 }}" class="input-medio"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td colspan="2"><input type="number" value="{{ $tolerance->altura2 }}" class="input-medio"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td colspan="2"><input type="number" value="{{ $tolerance->altura3 }}" class="input-medio"
-                                        step="any" inputmode="decimal" disabled></td>
-                            @else
-                                <td><input type="number" value="{{ $tolerance->profundidad1_1 }}" class="input-medio" step="any"
-                                        inputmode="decimal" disabled><input type="number" value="{{ $tolerance->profundidad2_1 }}"
-                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $tolerance->diametro1_1 }}" class="input-medio" step="any"
-                                        inputmode="decimal" disabled><input type="number" value="{{ $tolerance->diametro2_1 }}"
-                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $tolerance->profundidad1_2 }}" class="input-medio" step="any"
-                                        inputmode="decimal" disabled><input type="number" value="{{ $tolerance->profundidad2_2 }}"
-                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $tolerance->diametro1_2 }}" class="input-medio" step="any"
-                                        inputmode="decimal" disabled><input type="number" value="{{ $tolerance->diametro2_2 }}"
-                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $tolerance->profundidad1_3 }}" class="input-medio" step="any"
-                                        inputmode="decimal" disabled><input type="number" value="{{ $tolerance->profundidad2_3 }}"
-                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" value="{{ $tolerance->diametro1_3 }}" class="input-medio" step="any"
-                                        inputmode="decimal" disabled><input type="number" value="{{ $tolerance->diametro2_3 }}"
-                                        class="input-medio" step="any" inputmode="decimal" disabled></td>
-                            @endif
-                            <td><input type="number" class="input" disabled></td>
-                            <td><input type="number" class="input" disabled></td>
-                            <td><input type="number" class="input" disabled></td>
-                        </tr>
-                        @foreach ($piecesInfo as $pieceInfo)
+                <script>
+                    let process = new Proceso(@json($process), @json($cNominal), @json($tolerance),
+                        @json($piecesInfo)); // Crear el proceso
+                    document.getElementById('container').appendChild(process.crearTablaOperadores(
+                        @json($operadores))); // Crear tabla de operadores
+                </script>
+                @csrf
+                <div class="titles">
+                    <label class="title">{{ $ot }}</label>
+                    <label class="title">{{ $clase }} - {{ $process }}</label>
+                </div>
+                <div class="scrollabe-table" id="scrollabe-table">
+                    @if ($process == 'Asentado')
+                        <table border="1" class="tabla3" style="width: 100%;">
                             <tr>
-                                <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}" disabled>
-                                </td>
-                                @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
-                                    @php
-                                        // Altura1 validation (symmetric tolerance)
-                                        $altura1_error = false;
-                                        if (isset($cNominal->altura1) && isset($tolerance->altura1)) {
-                                            $upper = $cNominal->altura1 + $tolerance->altura1;
-                                            $lower = $cNominal->altura1 - $tolerance->altura1;
-                                            $altura1_error =
-                                                ($pieceInfo['altura1'] ?? 0) < $lower ||
-                                                ($pieceInfo['altura1'] ?? 0) > $upper;
-                                        }
-
-                                        // Altura2 validation (symmetric tolerance)
-                                        $altura2_error = false;
-                                        if (isset($cNominal->altura2) && isset($tolerance->altura2)) {
-                                            $upper = $cNominal->altura2 + $tolerance->altura2;
-                                            $lower = $cNominal->altura2 - $tolerance->altura2;
-                                            $altura2_error =
-                                                ($pieceInfo['altura2'] ?? 0) < $lower ||
-                                                ($pieceInfo['altura2'] ?? 0) > $upper;
-                                        }
-
-                                        // Altura3 validation (symmetric tolerance)
-                                        $altura3_error = false;
-                                        if (isset($cNominal->altura3) && isset($tolerance->altura3)) {
-                                            $upper = $cNominal->altura3 + $tolerance->altura3;
-                                            $lower = $cNominal->altura3 - $tolerance->altura3;
-                                            $altura3_error =
-                                                ($pieceInfo['altura3'] ?? 0) < $lower ||
-                                                ($pieceInfo['altura3'] ?? 0) > $upper;
-                                        }
-                                    @endphp
-                                    <td colspan="2"><input type="number" class="input" value="{{ $pieceInfo['altura1'] ?? '' }}"
-                                            step="any" inputmode="decimal" style="{{ $altura1_error ? 'border: 3px solid red;' : '' }}"
-                                            disabled></td>
-                                    <td colspan="2"><input type="number" class="input" value="{{ $pieceInfo['altura2'] ?? '' }}"
-                                            step="any" inputmode="decimal" style="{{ $altura2_error ? 'border: 3px solid red;' : '' }}"
-                                            disabled></td>
-                                    <td colspan="2"><input type="number" class="input" value="{{ $pieceInfo['altura3'] ?? '' }}"
-                                            step="any" inputmode="decimal" style="{{ $altura3_error ? 'border: 3px solid red;' : '' }}"
-                                            disabled></td>
-                                @else
-                                    @php
-                                        // Profundidad1 validation
-                                        $prof1_error = false;
-                                        if (
-                                            isset($cNominal->profundidad1) &&
-                                            isset($tolerance->profundidad1_1) &&
-                                            isset($tolerance->profundidad2_1)
-                                        ) {
-                                            $upper = $cNominal->profundidad1 + $tolerance->profundidad1_1;
-                                            $lower = $cNominal->profundidad1 - $tolerance->profundidad2_1;
-                                            $prof1_error =
-                                                $pieceInfo['profundidad1'] < $lower ||
-                                                $pieceInfo['profundidad1'] > $upper;
-                                        }
-
-                                        // Diametro1 validation
-                                        $diam1_error = false;
-                                        if (
-                                            isset($cNominal->diametro1) &&
-                                            isset($tolerance->diametro1_1) &&
-                                            isset($tolerance->diametro2_1)
-                                        ) {
-                                            $upper = $cNominal->diametro1 + $tolerance->diametro1_1;
-                                            $lower = $cNominal->diametro1 - $tolerance->diametro2_1;
-                                            $diam1_error =
-                                                $pieceInfo['diametro1'] < $lower || $pieceInfo['diametro1'] > $upper;
-                                        }
-
-                                        // Profundidad2 validation
-                                        $prof2_error = false;
-                                        if (
-                                            isset($cNominal->profundidad2) &&
-                                            isset($tolerance->profundidad1_2) &&
-                                            isset($tolerance->profundidad2_2)
-                                        ) {
-                                            $upper = $cNominal->profundidad2 + $tolerance->profundidad1_2;
-                                            $lower = $cNominal->profundidad2 - $tolerance->profundidad2_2;
-                                            $prof2_error =
-                                                $pieceInfo['profundidad2'] < $lower ||
-                                                $pieceInfo['profundidad2'] > $upper;
-                                        }
-
-                                        // Diametro2 validation
-                                        $diam2_error = false;
-                                        if (
-                                            isset($cNominal->diametro2) &&
-                                            isset($tolerance->diametro1_2) &&
-                                            isset($tolerance->diametro2_2)
-                                        ) {
-                                            $upper = $cNominal->diametro2 + $tolerance->diametro1_2;
-                                            $lower = $cNominal->diametro2 - $tolerance->diametro2_2;
-                                            $diam2_error =
-                                                $pieceInfo['diametro2'] < $lower || $pieceInfo['diametro2'] > $upper;
-                                        }
-
-                                        // Profundidad3 validation
-                                        $prof3_error = false;
-                                        if (
-                                            isset($cNominal->profundidad3) &&
-                                            isset($tolerance->profundidad1_3) &&
-                                            isset($tolerance->profundidad2_3)
-                                        ) {
-                                            $upper = $cNominal->profundidad3 + $tolerance->profundidad1_3;
-                                            $lower = $cNominal->profundidad3 - $tolerance->profundidad2_3;
-                                            $prof3_error =
-                                                $pieceInfo['profundidad3'] < $lower ||
-                                                $pieceInfo['profundidad3'] > $upper;
-                                        }
-
-                                        // Diametro3 validation
-                                        $diam3_error = false;
-                                        if (
-                                            isset($cNominal->diametro3) &&
-                                            isset($tolerance->diametro1_3) &&
-                                            isset($tolerance->diametro2_3)
-                                        ) {
-                                            $upper = $cNominal->diametro3 + $tolerance->diametro1_3;
-                                            $lower = $cNominal->diametro3 - $tolerance->diametro2_3;
-                                            $diam3_error =
-                                                $pieceInfo['diametro3'] < $lower || $pieceInfo['diametro3'] > $upper;
-                                        }
-                                    @endphp
-                                    <td><input type="number" class="input" style="{{ $prof1_error ? 'border: 3px solid red;' : '' }}"
-                                            value="{{ $pieceInfo['profundidad1'] }}" step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" style="{{ $diam1_error ? 'border: 3px solid red;' : '' }}"
-                                            value="{{ $pieceInfo['diametro1'] }}" step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" style="{{ $prof2_error ? 'border: 3px solid red;' : '' }}"
-                                            value="{{ $pieceInfo['profundidad2'] }}" step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" style="{{ $diam2_error ? 'border: 3px solid red;' : '' }}"
-                                            value="{{ $pieceInfo['diametro2'] }}" step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" style="{{ $prof3_error ? 'border: 3px solid red;' : '' }}"
-                                            value="{{ $pieceInfo['profundidad3'] }}" step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" style="{{ $diam3_error ? 'border: 3px solid red;' : '' }}"
-                                            value="{{ $pieceInfo['diametro3'] }}" step="any" inputmode="decimal" disabled></td>
-                                @endif
-                                <td><input type="text" class="input" value="{{ $pieceInfo['acetatoBM'] }}" disabled>
-                                </td>
-                                <td><input type="text" class="input" value="{{ $pieceInfo['error'] }}" disabled>
-                                </td>
-                                <td><input type="text" class="input" value="{{ $pieceInfo['observaciones'] }}" disabled></td>
+                                <th class="t-title" style="width:150px">#PZ</th>
+                                <th class="t-title">Sin juego</th>
+                                <th class="t-title">Sin luz</th>
+                                <th class="t-title">Error</th>
+                                <th class="t-title" style="width:700px">Observaciones</th>
                             </tr>
-                        @endforeach
-                    </table>
-                @elseif ($process == 'Copiado')
-                    <table border="1" class="tabla3">
-                        <label class="title-subproceso"> C I L I N D R A D O</label>
-                        <tr>
-                            <th class="t-title" style="width:150px">#PZ</th>
-                            <th class="t-title">Diametro 1</th>
-                            <th class="t-title">Profundidad 1</th>
-                            <th class="t-title">Diametro 2</th>
-                            <th class="t-title">Profundidad 2</th>
-                            <th class="t-title">Diametro de sufridera</th>
-                            <th class="t-title">Diametro de ranura</th>
-                            <th class="t-title">Profundidad de ranura</th>
-                            <th class="t-title">Profundidad de sufridera</th>
-                            <th class="t-title">Altura total</th>
-                            <th class="t-title" style="width:200px">Error</th><br>
-                            <th class="t-title" style="width:700px">Observaciones</th>
-                        </tr>
-                        <tr>
-                            <td>C.Nominal.</td>
-                            <td><input type="number" class="input" value="{{ $cNominal->diametro1_cilindrado }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->profundidad1_cilindrado }}" disabled>
-                            </td>
-                            <td><input type="number" class="input" value="{{ $cNominal->diametro2_cilindrado }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->profundidad2_cilindrado }}" disabled>
-                            </td>
-                            <td><input type="number" class="input" value="{{ $cNominal->diametro_sufridera }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->diametro_ranura }}" disabled>
-                            </td>
-                            <td><input type="number" class="input" value="{{ $cNominal->profundidad_ranura }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->profundidad_sufridera }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $cNominal->altura_total }}" disabled>
-                            </td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                        <tr>
-                            <td> Tolerancias. </td>
-                            <td><input type="number" class="input" value="{{ $tolerance->diametro1_cilindrado }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->profundidad1_cilindrado }}" disabled>
-                            </td>
-                            <td><input type="number" class="input" value="{{ $tolerance->diametro2_cilindrado }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->profundidad2_cilindrado }}" disabled>
-                            </td>
-                            <td><input type="number" class="input" value="{{ $tolerance->diametro_sufridera }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->diametro_ranura }}" disabled>
-                            </td>
-                            <td><input type="number" class="input" value="{{ $tolerance->profundidad_ranura }}" disabled></td>
-                            <td><input type="number" class="input" value="{{ $tolerance->profundidad_sufridera }}" disabled>
-                            </td>
-                            <td><input type="number" class="input" value="{{ $tolerance->altura_total }}" disabled>
-                            </td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                        @foreach ($piecesInfo as $pieceInfo)
                             <tr>
-                                <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro1_cilindrado'] }}" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['profundidad1_cilindrado'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro2_cilindrado'] }}" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['profundidad2_cilindrado'] }}"
-                                        step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro_sufridera'] }}" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['diametro_ranura'] }}" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['profundidad_ranura'] }}" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['profundidad_sufridera'] }}" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" class="input" value="{{ $pieceInfo['altura_total'] }}" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="text" class="input" value="{{ $pieceInfo['error_cilindrado'] }}" disabled></td>
-                                <td><input type="text" class="input" value="{{ $pieceInfo['observaciones_cilindrado'] }}" disabled>
+                                <td><input type="text" class="input" value="{{ $piecesInfo->n_juego }}" disabled></td>
+                                <td><input type="text" class="input" value="{{ $piecesInfo->sin_juego }}" disabled></td>
+                                <td><input type="text" class="input" value="{{ $piecesInfo->sin_luz }}" disabled></td>
+                                <td><input type="text" class="input" value="{{ $piecesInfo->error }}" disabled /></td>
+                                <td><input type="text" class="input" value="{{ $piecesInfo->observaciones }}" disabled />
                                 </td>
                             </tr>
-                        @endforeach
-                    </table>
-                @elseif($process == 'Off Set')
-                    <table border="1" class="tabla3">
-                        <>
+                        </table>
+                    @elseif ($process == 'Cavidades')
+                        <table class="tabla3">
                             <tr>
                                 <th class="t-title" style="width:150px; border:none;">#PZ</th>
-                                <th class="t-title" colspan="1" style="width:200px; border-bottom:none;">Ancho de
-                                    altura</th>
-                                <th class="t-title" colspan="2">Profundidad de tacon</th>
-                                <th class="t-title" colspan="2">Simetría</th>
-                                <th class="t-title" colspan="1" style="width:200px; border-bottom:none;">Ancho del
-                                    tacon</th>
-                                <th class="t-title" colspan="2">Barreno Lateral</th>
-                                <th class="t-title" colspan="1" style="width:200px; border-bottom:none;">Altura tacon
-                                    inicial</th>
-                                <th class="t-title" colspan="1" style="width:200px; border-bottom:none;">Altura tacon
-                                    intermedia</th>
-                                <th class="t-title" style="width:200px; border-bottom:none;">Error</th>
-                                <th class="t-title" style="width:700px; border-bottom:none;">Observaciones</th>
+                                <th class="t-title" colspan="2">
+                                    Altura 1
+                                    @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
+                                        <div style="margin-top: 6px;">
+                                            <span style="
+                                                                                display: inline-flex;
+                                                                                align-items: center;
+                                                                                padding: 2px 12px;
+                                                                                background: #f1f3f5;
+                                                                                border-radius: 50px;
+                                                                                font-size: 11px;
+                                                                                color: #495057;
+                                                                                border: 1px solid #dee2e6;
+                                                                                font-weight: 500;
+                                                                            ">
+                                                <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                                {{ $cNominal->altura1 }} mm
+                                            </span>
+                                        </div>
+                                    @elseif (isset($cNominal->profundidad1))
+                                        <div style="margin-top: 6px;">
+                                            <span style="
+                                                                                display: inline-flex;
+                                                                                align-items: center;
+                                                                                padding: 2px 12px;
+                                                                                background: #f1f3f5;
+                                                                                border-radius: 50px;
+                                                                                font-size: 11px;
+                                                                                color: #495057;
+                                                                                border: 1px solid #dee2e6;
+                                                                                font-weight: 500;
+                                                                            ">
+                                                <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                                {{ $cNominal->profundidad1 }} mm
+                                            </span>
+                                        </div>
+                                    @endif
+                                </th>
+                                <th class="t-title" colspan="2">
+                                    Altura 2
+                                    @if (isset($cNominal->altura2) && !isset($cNominal->profundidad1))
+                                        <div style="margin-top: 6px;">
+                                            <span style="
+                                                                                display: inline-flex;
+                                                                                align-items: center;
+                                                                                padding: 2px 12px;
+                                                                                background: #f1f3f5;
+                                                                                border-radius: 50px;
+                                                                                font-size: 11px;
+                                                                                color: #495057;
+                                                                                border: 1px solid #dee2e6;
+                                                                                font-weight: 500;
+                                                                            ">
+                                                <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                                {{ $cNominal->altura2 }} mm
+                                            </span>
+                                        </div>
+                                    @elseif (isset($cNominal->profundidad2))
+                                        <div style="margin-top: 6px;">
+                                            <span style="
+                                                                                display: inline-flex;
+                                                                                align-items: center;
+                                                                                padding: 2px 12px;
+                                                                                background: #f1f3f5;
+                                                                                border-radius: 50px;
+                                                                                font-size: 11px;
+                                                                                color: #495057;
+                                                                                border: 1px solid #dee2e6;
+                                                                                font-weight: 500;
+                                                                            ">
+                                                <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                                {{ $cNominal->profundidad2 }} mm
+                                            </span>
+                                        </div>
+                                    @endif
+                                </th>
+                                <th class="t-title" colspan="2">
+                                    Altura 3
+                                    @if (isset($cNominal->altura3) && !isset($cNominal->profundidad1))
+                                        <div style="margin-top: 6px;">
+                                            <span style="
+                                                                                display: inline-flex;
+                                                                                align-items: center;
+                                                                                padding: 2px 12px;
+                                                                                background: #f1f3f5;
+                                                                                border-radius: 50px;
+                                                                                font-size: 11px;
+                                                                                color: #495057;
+                                                                                border: 1px solid #dee2e6;
+                                                                                font-weight: 500;
+                                                                            ">
+                                                <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                                {{ $cNominal->altura3 }} mm
+                                            </span>
+                                        </div>
+                                    @elseif (isset($cNominal->profundidad3))
+                                        <div style="margin-top: 6px;">
+                                            <span style="
+                                                                                display: inline-flex;
+                                                                                align-items: center;
+                                                                                padding: 2px 12px;
+                                                                                background: #f1f3f5;
+                                                                                border-radius: 50px;
+                                                                                font-size: 11px;
+                                                                                color: #495057;
+                                                                                border: 1px solid #dee2e6;
+                                                                                font-weight: 500;
+                                                                            ">
+                                                <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                                {{ $cNominal->profundidad3 }} mm
+                                            </span>
+                                        </div>
+                                    @endif
+                                </th>
+                                <th class="t-title"></th>
+                                <th class="t-title" colspan="2"></th>
                             </tr>
                             <tr>
                                 <th class="t-title" style="border:none;"></th>
-                                <th style="border-bottom:none; border-top:none;"></th>
-                                <th>Hembra</th>
-                                <th>Macho</th>
-                                <th>Hembra</th>
-                                <th>Macho</th>
-                                <th style="border-bottom:none; border-top:none;"></th>
-                                <th>Hembra</th>
-                                <th>Macho</th>
-                                <th style="border-bottom:none; border-top:none;"></th>
-                                <th style="border-bottom:none; border-top:none;"></th>
-                                <th style="border-bottom:none; border-top:none;"></th>
-                                <th style="border-bottom:none; border-top:none;"></th>
+                                @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
+                                    <th colspan="2">Altura</th>
+                                    <th colspan="2">Altura</th>
+                                    <th colspan="2">Altura</th>
+                                @else
+                                    <th>Profundidad</th>
+                                    <th>Diametro</th>
+                                    <th>Profundidad</th>
+                                    <th>Diametro</th>
+                                    <th>Profundidad</th>
+                                    <th>Diametro</th>
+                                @endif
+                                <th>Acetato B/M</th>
+                                <th>Error</th>
+                                <th style="width: 1000px;">Observaciones</th>
                             </tr>
                             <tr>
                                 <td>C.Nominal</td>
-                                <td><input type="number" name="cNomi_anchoRanura" value="{{ $cNominal->anchoRanura }}"
-                                        class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="cNomi_profuTaconHembra" value="{{ $cNominal->profuTaconHembra }}"
-                                        class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="cNomi_profuTaconMacho" value="{{ $cNominal->profuTaconMacho }}"
-                                        class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="cNomi_simetriaHembra" value="{{ $cNominal->simetriaHembra }}"
-                                        class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="cNomi_simetriaMacho" value="{{ $cNominal->simetriaMacho }}"
-                                        class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="cNomi_anchoTacon" value="{{ $cNominal->anchoTacon }}"
-                                        class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="cNomi_barrenoLateralHembra"
-                                        value="{{ $cNominal->barrenoLateralHembra }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" name="cNomi_barrenoLateralMacho"
-                                        value="{{ $cNominal->barrenoLateralMacho }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" name="cNomi_alturaTaconInicial"
-                                        value="{{ $cNominal->alturaTaconInicial }}" class="input" step="any" inputmode="decimal"
-                                        disabled></td>
-                                <td><input type="number" name="cNomi_alturaTaconIntermedia"
-                                        value="{{ $cNominal->alturaTaconIntermedia }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
+                                @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
+                                    <td colspan="2"><input type="number" value="{{ $cNominal->altura1 }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td colspan="2"><input type="number" value="{{ $cNominal->altura2 }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td colspan="2"><input type="number" value="{{ $cNominal->altura3 }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                @else
+                                    <td><input type="number" value="{{ $cNominal->profundidad1 }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" value="{{ $cNominal->diametro1 }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" value="{{ $cNominal->profundidad2 }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" value="{{ $cNominal->diametro2 }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" value="{{ $cNominal->profundidad3 }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" value="{{ $cNominal->diametro3 }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                @endif
+                                <td><input type="number" class="input" disabled></td>
                                 <td><input type="number" class="input" disabled></td>
                                 <td><input type="number" class="input" disabled></td>
                             </tr>
                             <tr>
                                 <td> Tolerancias </td>
-                                <td><input type="number" name="tole_anchoRanura" value="{{ $tolerance->anchoRanura }}"
-                                        class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_profuTaconHembra" value="{{ $tolerance->profuTaconHembra }}"
-                                        class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_profuTaconMacho" value="{{ $tolerance->profuTaconMacho }}"
-                                        class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_simetriaHembra" value="{{ $tolerance->simetriaHembra }}"
-                                        class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_simetriaMacho" value="{{ $tolerance->simetriaMacho }}"
-                                        class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_anchoTacon" value="{{ $tolerance->anchoTacon }}"
-                                        class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_barrenoLateralHembra"
-                                        value="{{ $tolerance->barrenoLateralHembra }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_barrenoLateralMacho"
-                                        value="{{ $tolerance->barrenoLateralMacho }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_alturaTaconInicial"
-                                        value="{{ $tolerance->alturaTaconInicial }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
-                                <td><input type="number" name="tole_alturaTaconIntermedia"
-                                        value="{{ $tolerance->alturaTaconIntermedia }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
+                                @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
+                                    <td colspan="2"><input type="number" value="{{ $tolerance->altura1 }}" class="input-medio"
+                                            step="any" inputmode="decimal" disabled></td>
+                                    <td colspan="2"><input type="number" value="{{ $tolerance->altura2 }}" class="input-medio"
+                                            step="any" inputmode="decimal" disabled></td>
+                                    <td colspan="2"><input type="number" value="{{ $tolerance->altura3 }}" class="input-medio"
+                                            step="any" inputmode="decimal" disabled></td>
+                                @else
+                                    <td><input type="number" value="{{ $tolerance->profundidad1_1 }}" class="input-medio" step="any"
+                                            inputmode="decimal" disabled><input type="number" value="{{ $tolerance->profundidad2_1 }}"
+                                            class="input-medio" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" value="{{ $tolerance->diametro1_1 }}" class="input-medio" step="any"
+                                            inputmode="decimal" disabled><input type="number" value="{{ $tolerance->diametro2_1 }}"
+                                            class="input-medio" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" value="{{ $tolerance->profundidad1_2 }}" class="input-medio" step="any"
+                                            inputmode="decimal" disabled><input type="number" value="{{ $tolerance->profundidad2_2 }}"
+                                            class="input-medio" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" value="{{ $tolerance->diametro1_2 }}" class="input-medio" step="any"
+                                            inputmode="decimal" disabled><input type="number" value="{{ $tolerance->diametro2_2 }}"
+                                            class="input-medio" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" value="{{ $tolerance->profundidad1_3 }}" class="input-medio" step="any"
+                                            inputmode="decimal" disabled><input type="number" value="{{ $tolerance->profundidad2_3 }}"
+                                            class="input-medio" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" value="{{ $tolerance->diametro1_3 }}" class="input-medio" step="any"
+                                            inputmode="decimal" disabled><input type="number" value="{{ $tolerance->diametro2_3 }}"
+                                            class="input-medio" step="any" inputmode="decimal" disabled></td>
+                                @endif
+                                <td><input type="number" class="input" disabled></td>
                                 <td><input type="number" class="input" disabled></td>
                                 <td><input type="number" class="input" disabled></td>
                             </tr>
                             @foreach ($piecesInfo as $pieceInfo)
                                 <tr>
-                                    <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['anchoRanura'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['profuTaconHembra'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['profuTaconMacho'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['simetriaHembra'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['simetriaMacho'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['anchoTacon'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['barrenoLateralHembra'] }}"
-                                            step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['barrenoLateralMacho'] }}"
-                                            step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['alturaTaconInicial'] }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['alturaTaconIntermedia'] }}"
-                                            step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="text" class="input" value="{{ $pieceInfo['error'] }}" disabled></td>
+                                    <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}" disabled>
+                                    </td>
+                                    @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
+                                        @php
+                                            // Altura1 validation (symmetric tolerance)
+                                            $altura1_error = false;
+                                            if (isset($cNominal->altura1) && isset($tolerance->altura1)) {
+                                                $upper = $cNominal->altura1 + $tolerance->altura1;
+                                                $lower = $cNominal->altura1 - $tolerance->altura1;
+                                                $altura1_error =
+                                                    ($pieceInfo['altura1'] ?? 0) < $lower ||
+                                                    ($pieceInfo['altura1'] ?? 0) > $upper;
+                                            }
+
+                                            // Altura2 validation (symmetric tolerance)
+                                            $altura2_error = false;
+                                            if (isset($cNominal->altura2) && isset($tolerance->altura2)) {
+                                                $upper = $cNominal->altura2 + $tolerance->altura2;
+                                                $lower = $cNominal->altura2 - $tolerance->altura2;
+                                                $altura2_error =
+                                                    ($pieceInfo['altura2'] ?? 0) < $lower ||
+                                                    ($pieceInfo['altura2'] ?? 0) > $upper;
+                                            }
+
+                                            // Altura3 validation (symmetric tolerance)
+                                            $altura3_error = false;
+                                            if (isset($cNominal->altura3) && isset($tolerance->altura3)) {
+                                                $upper = $cNominal->altura3 + $tolerance->altura3;
+                                                $lower = $cNominal->altura3 - $tolerance->altura3;
+                                                $altura3_error =
+                                                    ($pieceInfo['altura3'] ?? 0) < $lower ||
+                                                    ($pieceInfo['altura3'] ?? 0) > $upper;
+                                            }
+                                        @endphp
+                                        <td colspan="2"><input type="number" class="input" value="{{ $pieceInfo['altura1'] ?? '' }}"
+                                                step="any" inputmode="decimal" style="{{ $altura1_error ? 'border: 3px solid red;' : '' }}"
+                                                disabled></td>
+                                        <td colspan="2"><input type="number" class="input" value="{{ $pieceInfo['altura2'] ?? '' }}"
+                                                step="any" inputmode="decimal" style="{{ $altura2_error ? 'border: 3px solid red;' : '' }}"
+                                                disabled></td>
+                                        <td colspan="2"><input type="number" class="input" value="{{ $pieceInfo['altura3'] ?? '' }}"
+                                                step="any" inputmode="decimal" style="{{ $altura3_error ? 'border: 3px solid red;' : '' }}"
+                                                disabled></td>
+                                    @else
+                                        @php
+                                            // Profundidad1 validation
+                                            $prof1_error = false;
+                                            if (
+                                                isset($cNominal->profundidad1) &&
+                                                isset($tolerance->profundidad1_1) &&
+                                                isset($tolerance->profundidad2_1)
+                                            ) {
+                                                $upper = $cNominal->profundidad1 + $tolerance->profundidad1_1;
+                                                $lower = $cNominal->profundidad1 - $tolerance->profundidad2_1;
+                                                $prof1_error =
+                                                    $pieceInfo['profundidad1'] < $lower ||
+                                                    $pieceInfo['profundidad1'] > $upper;
+                                            }
+
+                                            // Diametro1 validation
+                                            $diam1_error = false;
+                                            if (
+                                                isset($cNominal->diametro1) &&
+                                                isset($tolerance->diametro1_1) &&
+                                                isset($tolerance->diametro2_1)
+                                            ) {
+                                                $upper = $cNominal->diametro1 + $tolerance->diametro1_1;
+                                                $lower = $cNominal->diametro1 - $tolerance->diametro2_1;
+                                                $diam1_error =
+                                                    $pieceInfo['diametro1'] < $lower || $pieceInfo['diametro1'] > $upper;
+                                            }
+
+                                            // Profundidad2 validation
+                                            $prof2_error = false;
+                                            if (
+                                                isset($cNominal->profundidad2) &&
+                                                isset($tolerance->profundidad1_2) &&
+                                                isset($tolerance->profundidad2_2)
+                                            ) {
+                                                $upper = $cNominal->profundidad2 + $tolerance->profundidad1_2;
+                                                $lower = $cNominal->profundidad2 - $tolerance->profundidad2_2;
+                                                $prof2_error =
+                                                    $pieceInfo['profundidad2'] < $lower ||
+                                                    $pieceInfo['profundidad2'] > $upper;
+                                            }
+
+                                            // Diametro2 validation
+                                            $diam2_error = false;
+                                            if (
+                                                isset($cNominal->diametro2) &&
+                                                isset($tolerance->diametro1_2) &&
+                                                isset($tolerance->diametro2_2)
+                                            ) {
+                                                $upper = $cNominal->diametro2 + $tolerance->diametro1_2;
+                                                $lower = $cNominal->diametro2 - $tolerance->diametro2_2;
+                                                $diam2_error =
+                                                    $pieceInfo['diametro2'] < $lower || $pieceInfo['diametro2'] > $upper;
+                                            }
+
+                                            // Profundidad3 validation
+                                            $prof3_error = false;
+                                            if (
+                                                isset($cNominal->profundidad3) &&
+                                                isset($tolerance->profundidad1_3) &&
+                                                isset($tolerance->profundidad2_3)
+                                            ) {
+                                                $upper = $cNominal->profundidad3 + $tolerance->profundidad1_3;
+                                                $lower = $cNominal->profundidad3 - $tolerance->profundidad2_3;
+                                                $prof3_error =
+                                                    $pieceInfo['profundidad3'] < $lower ||
+                                                    $pieceInfo['profundidad3'] > $upper;
+                                            }
+
+                                            // Diametro3 validation
+                                            $diam3_error = false;
+                                            if (
+                                                isset($cNominal->diametro3) &&
+                                                isset($tolerance->diametro1_3) &&
+                                                isset($tolerance->diametro2_3)
+                                            ) {
+                                                $upper = $cNominal->diametro3 + $tolerance->diametro1_3;
+                                                $lower = $cNominal->diametro3 - $tolerance->diametro2_3;
+                                                $diam3_error =
+                                                    $pieceInfo['diametro3'] < $lower || $pieceInfo['diametro3'] > $upper;
+                                            }
+                                        @endphp
+                                        <td><input type="number" class="input" style="{{ $prof1_error ? 'border: 3px solid red;' : '' }}"
+                                                value="{{ $pieceInfo['profundidad1'] }}" step="any" inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" style="{{ $diam1_error ? 'border: 3px solid red;' : '' }}"
+                                                value="{{ $pieceInfo['diametro1'] }}" step="any" inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" style="{{ $prof2_error ? 'border: 3px solid red;' : '' }}"
+                                                value="{{ $pieceInfo['profundidad2'] }}" step="any" inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" style="{{ $diam2_error ? 'border: 3px solid red;' : '' }}"
+                                                value="{{ $pieceInfo['diametro2'] }}" step="any" inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" style="{{ $prof3_error ? 'border: 3px solid red;' : '' }}"
+                                                value="{{ $pieceInfo['profundidad3'] }}" step="any" inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" style="{{ $diam3_error ? 'border: 3px solid red;' : '' }}"
+                                                value="{{ $pieceInfo['diametro3'] }}" step="any" inputmode="decimal" disabled></td>
+                                    @endif
+                                    <td><input type="text" class="input" value="{{ $pieceInfo['acetatoBM'] }}" disabled>
+                                    </td>
+                                    <td><input type="text" class="input" value="{{ $pieceInfo['error'] }}" disabled>
+                                    </td>
                                     <td><input type="text" class="input" value="{{ $pieceInfo['observaciones'] }}" disabled></td>
                                 </tr>
                             @endforeach
-                    </table>
-                @elseif ($process == 'Soldadura PTA')
-                    {{--
-                    Tabla especial de Soldadura PTA con estructura de 3 sub-filas por pieza.
-                    El partial recibe $piezasGroup ya agrupado por n_pieza desde el controlador.
-                    Se usa en modo 'reporte' (sin inputs, solo lectura).
-                    --}}
-                    @include('processes_views.soldaduraPTA_table_partial', [
-                        'piezas' => $piecesInfo,
-                        'piezasGroup' => $piezasGroup ?? collect(),
-                        'modo' => 'reporte',
-                    ])
-                @else
-                    <script>
-                        document.getElementById('scrollabe-table').appendChild(process.crearProceso()); //Agregar tabla al div.
-                    </script>
-                @endif
-                </div>
-            </div>
-        </body>
+                        </table>
+                    @elseif ($process == 'Copiado')
+                        <table border="1" class="tabla3">
+                            <label class="title-subproceso"> C I L I N D R A D O</label>
+                            <tr>
+                                <th class="t-title" style="width:150px">#PZ</th>
+                                <th class="t-title">Diametro 1</th>
+                                <th class="t-title">Profundidad 1</th>
+                                <th class="t-title">Diametro 2</th>
+                                <th class="t-title">Profundidad 2</th>
+                                <th class="t-title">Diametro de sufridera</th>
+                                <th class="t-title">Diametro de ranura</th>
+                                <th class="t-title">Profundidad de ranura</th>
+                                <th class="t-title">Profundidad de sufridera</th>
+                                <th class="t-title">Altura total</th>
+                                <th class="t-title" style="width:200px">Error</th><br>
+                                <th class="t-title" style="width:700px">Observaciones</th>
+                            </tr>
+                            <tr>
+                                <td>C.Nominal.</td>
+                                <td><input type="number" class="input" value="{{ $cNominal->diametro1_cilindrado }}" disabled></td>
+                                <td><input type="number" class="input" value="{{ $cNominal->profundidad1_cilindrado }}" disabled>
+                                </td>
+                                <td><input type="number" class="input" value="{{ $cNominal->diametro2_cilindrado }}" disabled></td>
+                                <td><input type="number" class="input" value="{{ $cNominal->profundidad2_cilindrado }}" disabled>
+                                </td>
+                                <td><input type="number" class="input" value="{{ $cNominal->diametro_sufridera }}" disabled></td>
+                                <td><input type="number" class="input" value="{{ $cNominal->diametro_ranura }}" disabled>
+                                </td>
+                                <td><input type="number" class="input" value="{{ $cNominal->profundidad_ranura }}" disabled></td>
+                                <td><input type="number" class="input" value="{{ $cNominal->profundidad_sufridera }}" disabled></td>
+                                <td><input type="number" class="input" value="{{ $cNominal->altura_total }}" disabled>
+                                </td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td> Tolerancias. </td>
+                                <td><input type="number" class="input" value="{{ $tolerance->diametro1_cilindrado }}" disabled></td>
+                                <td><input type="number" class="input" value="{{ $tolerance->profundidad1_cilindrado }}" disabled>
+                                </td>
+                                <td><input type="number" class="input" value="{{ $tolerance->diametro2_cilindrado }}" disabled></td>
+                                <td><input type="number" class="input" value="{{ $tolerance->profundidad2_cilindrado }}" disabled>
+                                </td>
+                                <td><input type="number" class="input" value="{{ $tolerance->diametro_sufridera }}" disabled></td>
+                                <td><input type="number" class="input" value="{{ $tolerance->diametro_ranura }}" disabled>
+                                </td>
+                                <td><input type="number" class="input" value="{{ $tolerance->profundidad_ranura }}" disabled></td>
+                                <td><input type="number" class="input" value="{{ $tolerance->profundidad_sufridera }}" disabled>
+                                </td>
+                                <td><input type="number" class="input" value="{{ $tolerance->altura_total }}" disabled>
+                                </td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                            @foreach ($piecesInfo as $pieceInfo)
+                                <tr>
+                                    <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['diametro1_cilindrado'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['profundidad1_cilindrado'] }}"
+                                            step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['diametro2_cilindrado'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['profundidad2_cilindrado'] }}"
+                                            step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['diametro_sufridera'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['diametro_ranura'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['profundidad_ranura'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['profundidad_sufridera'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" value="{{ $pieceInfo['altura_total'] }}" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="text" class="input" value="{{ $pieceInfo['error_cilindrado'] }}" disabled></td>
+                                    <td><input type="text" class="input" value="{{ $pieceInfo['observaciones_cilindrado'] }}" disabled>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </table>
+                    @elseif($process == 'Off Set')
+                        <table border="1" class="tabla3">
+                            <>
+                                <tr>
+                                    <th class="t-title" style="width:150px; border:none;">#PZ</th>
+                                    <th class="t-title" colspan="1" style="width:200px; border-bottom:none;">Ancho de
+                                        altura</th>
+                                    <th class="t-title" colspan="2">Profundidad de tacon</th>
+                                    <th class="t-title" colspan="2">Simetría</th>
+                                    <th class="t-title" colspan="1" style="width:200px; border-bottom:none;">Ancho del
+                                        tacon</th>
+                                    <th class="t-title" colspan="2">Barreno Lateral</th>
+                                    <th class="t-title" colspan="1" style="width:200px; border-bottom:none;">Altura tacon
+                                        inicial</th>
+                                    <th class="t-title" colspan="1" style="width:200px; border-bottom:none;">Altura tacon
+                                        intermedia</th>
+                                    <th class="t-title" style="width:200px; border-bottom:none;">Error</th>
+                                    <th class="t-title" style="width:700px; border-bottom:none;">Observaciones</th>
+                                </tr>
+                                <tr>
+                                    <th class="t-title" style="border:none;"></th>
+                                    <th style="border-bottom:none; border-top:none;"></th>
+                                    <th>Hembra</th>
+                                    <th>Macho</th>
+                                    <th>Hembra</th>
+                                    <th>Macho</th>
+                                    <th style="border-bottom:none; border-top:none;"></th>
+                                    <th>Hembra</th>
+                                    <th>Macho</th>
+                                    <th style="border-bottom:none; border-top:none;"></th>
+                                    <th style="border-bottom:none; border-top:none;"></th>
+                                    <th style="border-bottom:none; border-top:none;"></th>
+                                    <th style="border-bottom:none; border-top:none;"></th>
+                                </tr>
+                                <tr>
+                                    <td>C.Nominal</td>
+                                    <td><input type="number" name="cNomi_anchoRanura" value="{{ $cNominal->anchoRanura }}"
+                                            class="input" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="cNomi_profuTaconHembra" value="{{ $cNominal->profuTaconHembra }}"
+                                            class="input" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="cNomi_profuTaconMacho" value="{{ $cNominal->profuTaconMacho }}"
+                                            class="input" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="cNomi_simetriaHembra" value="{{ $cNominal->simetriaHembra }}"
+                                            class="input" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="cNomi_simetriaMacho" value="{{ $cNominal->simetriaMacho }}"
+                                            class="input" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="cNomi_anchoTacon" value="{{ $cNominal->anchoTacon }}"
+                                            class="input" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="cNomi_barrenoLateralHembra"
+                                            value="{{ $cNominal->barrenoLateralHembra }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="cNomi_barrenoLateralMacho"
+                                            value="{{ $cNominal->barrenoLateralMacho }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="cNomi_alturaTaconInicial"
+                                            value="{{ $cNominal->alturaTaconInicial }}" class="input" step="any" inputmode="decimal"
+                                            disabled></td>
+                                    <td><input type="number" name="cNomi_alturaTaconIntermedia"
+                                            value="{{ $cNominal->alturaTaconIntermedia }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" disabled></td>
+                                    <td><input type="number" class="input" disabled></td>
+                                </tr>
+                                <tr>
+                                    <td> Tolerancias </td>
+                                    <td><input type="number" name="tole_anchoRanura" value="{{ $tolerance->anchoRanura }}"
+                                            class="input" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="tole_profuTaconHembra" value="{{ $tolerance->profuTaconHembra }}"
+                                            class="input" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="tole_profuTaconMacho" value="{{ $tolerance->profuTaconMacho }}"
+                                            class="input" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="tole_simetriaHembra" value="{{ $tolerance->simetriaHembra }}"
+                                            class="input" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="tole_simetriaMacho" value="{{ $tolerance->simetriaMacho }}"
+                                            class="input" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="tole_anchoTacon" value="{{ $tolerance->anchoTacon }}"
+                                            class="input" step="any" inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="tole_barrenoLateralHembra"
+                                            value="{{ $tolerance->barrenoLateralHembra }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="tole_barrenoLateralMacho"
+                                            value="{{ $tolerance->barrenoLateralMacho }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="tole_alturaTaconInicial"
+                                            value="{{ $tolerance->alturaTaconInicial }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" name="tole_alturaTaconIntermedia"
+                                            value="{{ $tolerance->alturaTaconIntermedia }}" class="input" step="any"
+                                            inputmode="decimal" disabled></td>
+                                    <td><input type="number" class="input" disabled></td>
+                                    <td><input type="number" class="input" disabled></td>
+                                </tr>
+                                @foreach ($piecesInfo as $pieceInfo)
+                                    <tr>
+                                        <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}" disabled></td>
+                                        <td><input type="number" class="input" value="{{ $pieceInfo['anchoRanura'] }}" step="any"
+                                                inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" value="{{ $pieceInfo['profuTaconHembra'] }}" step="any"
+                                                inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" value="{{ $pieceInfo['profuTaconMacho'] }}" step="any"
+                                                inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" value="{{ $pieceInfo['simetriaHembra'] }}" step="any"
+                                                inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" value="{{ $pieceInfo['simetriaMacho'] }}" step="any"
+                                                inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" value="{{ $pieceInfo['anchoTacon'] }}" step="any"
+                                                inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" value="{{ $pieceInfo['barrenoLateralHembra'] }}"
+                                                step="any" inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" value="{{ $pieceInfo['barrenoLateralMacho'] }}"
+                                                step="any" inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" value="{{ $pieceInfo['alturaTaconInicial'] }}" step="any"
+                                                inputmode="decimal" disabled></td>
+                                        <td><input type="number" class="input" value="{{ $pieceInfo['alturaTaconIntermedia'] }}"
+                                                step="any" inputmode="decimal" disabled></td>
+                                        <td><input type="text" class="input" value="{{ $pieceInfo['error'] }}" disabled></td>
+                                        <td><input type="text" class="input" value="{{ $pieceInfo['observaciones'] }}" disabled></td>
+                                    </tr>
+                                @endforeach
+                        </table>
+                    @elseif ($process == 'Soldadura PTA')
+                        {{--
+                        Tabla especial de Soldadura PTA con estructura de 3 sub-filas por pieza.
+                        El partial recibe $piezasGroup ya agrupado por n_pieza desde el controlador.
+                        Se usa en modo 'reporte' (sin inputs, solo lectura).
+                        --}}
+                        @include('processes_views.soldaduraPTA_table_partial', [
+                            'piezas' => $piecesInfo,
+                            'piezasGroup' => $piezasGroup ?? collect(),
+                            'modo' => 'reporte',
+                        ])
+                    @else
+                        <script>
+                            document.getElementById('scrollabe-table').appendChild(process.crearProceso()); //Agregar tabla al div.
+                        </script>
+                    @endif
+                                </div>
+                            </div>
+                        </body>
 @endsection
