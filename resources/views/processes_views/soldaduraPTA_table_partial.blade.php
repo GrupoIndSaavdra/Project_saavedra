@@ -211,8 +211,10 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
             {{-- FILA 1: Cabeceras principales --}}
             <tr>
                 <th rowspan="2">Número<br>(M/H)</th>
-                <th rowspan="2">Medida</th>
-                <th rowspan="2">Valor</th>
+
+                {{-- Bloque Concepto --}}
+                <th colspan="2" style="background:#055a9e;">Concepto</th>
+
                 <th rowspan="2">VL</th>
                 <th rowspan="2">T. de P.</th>
                 <th rowspan="2">Precal.<br>(°C)</th>
@@ -230,6 +232,10 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                 <th rowspan="2">Observaciones</th>
             </tr>
             <tr>
+                {{-- Sub-cabeceras Concepto --}}
+                <th>Medida</th>
+                <th>Valor</th>
+
                 {{-- Sub-cabeceras Soldadura --}}
                 <th>Inicial</th>
                 <th>Aplicada</th>

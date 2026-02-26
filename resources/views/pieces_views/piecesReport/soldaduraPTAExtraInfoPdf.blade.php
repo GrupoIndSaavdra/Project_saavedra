@@ -143,13 +143,21 @@
         <thead>
             <tr>
                 <th rowspan="2">N°<br>Pieza</th>
-                <th rowspan="2">Medida</th>
-                <th rowspan="2">Valor</th>
+
+                {{-- Bloque Concepto --}}
+                <th colspan="2" class="sub-header">Concepto</th>
+
                 <th rowspan="2">VL</th>
                 <th rowspan="2">T.P.</th>
                 <th rowspan="2">Precal.<br>(°C)</th>
+
+                {{-- Bloque Soldadura --}}
                 <th colspan="3" class="sub-header">Soldadura</th>
+
+                {{-- Bloque Corriente --}}
                 <th colspan="3" class="sub-header">Corriente</th>
+
+
                 <th rowspan="2">Gas<br>Ar.</th>
                 <th rowspan="2">Vel.<br>Cal.</th>
                 <th rowspan="2">Resultado</th>
@@ -157,9 +165,16 @@
                 <th rowspan="2">Observaciones</th>
             </tr>
             <tr>
+                {{-- Sub-cabeceras Concepto --}}
+                <th class="sub-header">Medida</th>
+                <th class="sub-header">Valor</th>
+
+                {{-- Sub-cabeceras Soldadura --}}
                 <th class="sub-header">Inic.</th>
                 <th class="sub-header">Aplic.</th>
                 <th class="sub-header">Final</th>
+
+                {{-- Sub-cabeceras Corriente --}}
                 <th class="sub-header">Inic.</th>
                 <th class="sub-header">Aplic.</th>
                 <th class="sub-header">Final</th>

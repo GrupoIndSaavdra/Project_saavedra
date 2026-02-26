@@ -596,13 +596,18 @@ class ProcessProductionController extends Controller
                     // Obtener el proceso anterior
                     $previousProcess = $this->convertProcessToString($this->get_previousProcess($class, $request->input('process')));
                     if ($previousProcess == "Desbaste Exterior" || $previousProcess == "Revision Laterales") {
-                        [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_LateralesOrDesbaste($processString, $previousProcess, $class);
-                        if (!in_array($request->input('selectedAssembly'), $availableAssemblies)) {
-                            // Si el juego seleccionado esta disponible, se crea la pieza
-                            $param = "error";
-                            $message = 'El juego ' . $noAssembly . ' no está disponible. Por favor, elija otro juego.';
-                            return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->input('process'), "edit" => 0])->with($param, $message);
-                        }
+                        [$availableAssemblies, $remainingPieces, $totalGood] = $this->getRemainingPieces_LateralesOrDesbaste($processString, $previousProcess, $class);
+                    } else if ($previousProcess == "Soldadura PTA" || $previousProcess == "Soldadura") {
+                        [$availableAssemblies, $remainingPieces, $totalGood] = $this->getRemainingPieces_Soldaduras($processString, $class);
+                    } else {
+                        $previousProcess = $previousProcess == "operacionEquipo" ? "Operacion Equipo_2 operacion" : $previousProcess;
+                        [$availableAssemblies, $remainingPieces, $totalGood] = $this->get_RemainingPieces($processString, $previousProcess, $class);
+                    }
+
+                    if (!in_array($request->input('selectedAssembly'), $availableAssemblies)) {
+                        $param = "error";
+                        $message = 'El juego ' . $noAssembly . ' no está disponible. Por favor, elija otro juego de la lista.';
+                        return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->input('process'), "edit" => 0])->with($param, $message);
                     }
 
                     //Creación de piezas
@@ -951,14 +956,14 @@ class ProcessProductionController extends Controller
         $previousProcess = $this->convertProcessToString($this->get_previousProcess($class, $process));
 
         if ($previousProcess == "Desbaste Exterior" || $previousProcess == "Revision Laterales") {
-            [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_LateralesOrDesbaste($process, $previousProcess, $class);
+            [$availableAssemblies, $remainingPieces, $totalGood] = $this->getRemainingPieces_LateralesOrDesbaste($process, $previousProcess, $class);
         } else if ($previousProcess == "Soldadura PTA" || $previousProcess == "Soldadura") {
-            [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_Soldaduras($process, $class);
+            [$availableAssemblies, $remainingPieces, $totalGood] = $this->getRemainingPieces_Soldaduras($process, $class);
         } else if ($process == "Copiado") {
-            [$availableAssemblies, $remainingPieces] = $this->getRemainingPieces_BarrenoCavidades($process, $class);
+            [$availableAssemblies, $remainingPieces, $totalGood] = $this->getRemainingPieces_BarrenoCavidades($process, $class);
         } else {
             $previousProcess = $previousProcess == "operacionEquipo" ? "Operacion Equipo_2 operacion" : $previousProcess;
-            [$availableAssemblies, $remainingPieces] = $this->get_RemainingPieces($process, $previousProcess, $class);
+            [$availableAssemblies, $remainingPieces, $totalGood] = $this->get_RemainingPieces($process, $previousProcess, $class);
         }
 
         if ($process == "Soldadura" || $process == "Soldadura PTA") {
@@ -968,7 +973,7 @@ class ProcessProductionController extends Controller
 
         // Asignar los valores en el array
         $arrayData = [
-            'consignmentPieces' => $consignmentPieces,
+            'consignmentPieces' => $previousProcess ? $totalGood : $consignmentPieces,
             'machinedPiecesInMeta' => $machinedPiecesInMeta,
             'availableAssemblies' => $availableAssemblies,
             'remainingPieces' => $remainingPieces,
@@ -978,6 +983,7 @@ class ProcessProductionController extends Controller
     public function getRemainingPieces_BarrenoCavidades($process, $class)
     {
         $remainingPieces = 0;
+        $totalGood = 0;
         $availableAssemblies = array();
 
         // Obtener las piezas maquinadas de Barreno Profundidad y Cavidades
@@ -1016,27 +1022,28 @@ class ProcessProductionController extends Controller
             $commonPieces = array_intersect($goodPieces["Barreno Profundidad"], $goodPieces["Cavidades"]);
         }
 
+        $totalGood = count($commonPieces);
+
         // Ahora filtrar las que ya están ocupadas o terminadas en Copiado
         [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($process, $class); // Copiado
 
         foreach ($commonPieces as $pieceName) {
-            // Verificar si ya está en Copiado
-            // Nota: Copiado usa piezas individuales, no juegos? El código original sugiere cNominals para Copiado.
-            // Asumimos comportamiento estándar: verificar si ya está ocupada o maquinada.
-
-            if (!in_array($pieceName, $occupiedAssemblies) && !in_array($pieceName, $machinedPieces)) {
+            // Unicamente pasan las que no han sido maquinadas. Las ocupadas aún cuentan como restantes.
+            if (!in_array($pieceName, $machinedPieces)) {
                 $remainingPieces++;
-                $availableAssemblies[] = $pieceName;
+                if (!in_array($pieceName, $occupiedAssemblies)) {
+                    $availableAssemblies[] = $pieceName;
+                }
             }
         }
 
-        return [$availableAssemblies, $remainingPieces];
+        return [$availableAssemblies, $remainingPieces, $totalGood];
     }
     public function getRemainingPieces_Soldaduras($process, $class)
     {
         //Obtener los juegos buenos maquinados en Soldadura y Soldadura PTA
         $processes = ["Soldadura", "Soldadura PTA"];
-        $availableAssemblies = [];
+        $goodAvailableAssemblies = [];
         $halvesTracker = []; // Array auxiliar para llevar el registro de mitades de Soldadura PTA
 
         foreach ($processes as $processArray) {
@@ -1056,8 +1063,8 @@ class ProcessProductionController extends Controller
 
                     if ($pieceLetter == 'J') {
                         // Es de Soldadura directa, se guarda como juego entero
-                        if (!in_array($piece, $availableAssemblies)) {
-                            $availableAssemblies[] = $piece;
+                        if (!in_array($piece, $goodAvailableAssemblies)) {
+                            $goodAvailableAssemblies[] = $piece;
                         }
                     } else if ($pieceLetter == 'M' || $pieceLetter == 'H') {
                         // Es de Soldadura PTA, se rige por mitades
@@ -1066,8 +1073,8 @@ class ProcessProductionController extends Controller
                         // Si ya tiene ambas mitades válidas, conformamos el juego
                         if (count(array_unique($halvesTracker[$noAssembly])) == 2) {
                             $juegoFormado = $noAssembly . "J";
-                            if (!in_array($juegoFormado, $availableAssemblies)) {
-                                $availableAssemblies[] = $juegoFormado;
+                            if (!in_array($juegoFormado, $goodAvailableAssemblies)) {
+                                $goodAvailableAssemblies[] = $juegoFormado;
                             }
                         }
                     }
@@ -1075,46 +1082,32 @@ class ProcessProductionController extends Controller
             }
         }
 
-        //Filtrar los juegos ocupados y maquinados
+        $totalGood = count($goodAvailableAssemblies);
+        $availableAssemblies = [];
         $remainingPieces = 0;
         //Filtrar los juegos que pasaron y los que se encuentran registrados en el proceso actual
         [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($process, $class); //Obtener las piezas maquinadas en el proceso actual
-        foreach ($availableAssemblies as $assembly) {
+        foreach ($goodAvailableAssemblies as $assembly) {
             if (!in_array($assembly, $occupiedAssemblies)) {
                 $remainingPieces++;
+                $availableAssemblies[] = $assembly;
             } else { // Si el juego ya esta ocupado en el proceso actual pero no ha sido maquinado
                 $processAssembly = ["Barreno Maniobra", "Soldadura", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Embudo CM"];
                 if (in_array($process, $processAssembly)) {
                     if (!in_array($assembly, $machinedPieces)) {
                         $remainingPieces += 1;
-                    } else {
-                        //Si ya esta maquinado eliminar del array de disponibles
-                        $key = array_search($assembly, $availableAssemblies);
-                        if ($key !== false) {
-                            unset($availableAssemblies[$key]);
-                            // Reindexar el array para evitar huecos en las claves
-                            $availableAssemblies = array_values($availableAssemblies);
-                        }
                     }
                 } else {
                     for ($i = 1; $i <= 2; $i++) {
                         $halfPiece = substr($assembly, 0, -1) . ($i == 1 ? "H" : "M");
                         if (!in_array($halfPiece, $machinedPieces)) {
                             $remainingPieces += 0.5;
-                        } else {
-                            //Si ya esta maquinado eliminar del array de disponibles
-                            $key = array_search($assembly, $availableAssemblies);
-                            if ($key !== false) {
-                                unset($availableAssemblies[$key]);
-                                // Reindexar el array para evitar huecos en las claves
-                                $availableAssemblies = array_values($availableAssemblies);
-                            }
                         }
                     }
                 }
             }
         }
-        return [$availableAssemblies, $remainingPieces];
+        return [$availableAssemblies, $remainingPieces, $totalGood];
     }
 
     public function get_FilteredPiecesSoldadura_SoldaduraPTA($reverseProcess, $class, &$availableAssemblies, &$remainingPieces)
@@ -1524,6 +1517,7 @@ class ProcessProductionController extends Controller
     public function getRemainingPieces_LateralesOrDesbaste($process, $previousProcess, $class)
     {
         $remainingPieces = 0;
+        $totalGood = 0;
         $availableAssemblies = array();
 
         // Obtener las piezas maquinadas de Desbaste y Revision Laterales y oragizarlas en arrays como buenas y malas
@@ -1594,6 +1588,9 @@ class ProcessProductionController extends Controller
                 }
             }
         }
+
+        $totalGood = count($goodAssemblies);
+
         //Filtrar los juegos que pasaron y los que se encuentran registrados en el proceso actual
         [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($process, $class); //Obtener las piezas maquinadas en el proceso actual
         foreach ($goodAssemblies as $assembly) {
@@ -1616,12 +1613,13 @@ class ProcessProductionController extends Controller
                 }
             }
         }
-        return [$availableAssemblies, $remainingPieces];
+        return [$availableAssemblies, $remainingPieces, $totalGood];
     }
     public function get_RemainingPieces($process, $previousProcess, $class)
     {
         $preProcessString = str_contains($previousProcess, "Operacion Equipo") ? "Operacion Equipo" : $previousProcess;
         $remainingPieces = 0;
+        $totalGood = 0;
         $availableAssemblies = array();
         if ($previousProcess != null) {
             //Obtener las piezas maquinadas que esten correctas o liberadas del proceso anterior
@@ -1681,6 +1679,7 @@ class ProcessProductionController extends Controller
                                 }
                                 if ($status > 1 && ($correct == 0 || $correct > 1)) { //Si las dos piezas estan correctas o liberadas contar el juego
                                     $remainingPieces++;
+                                    $totalGood++;
                                     array_push($availableAssemblies, $prePiece->n_juego);
                                 }
                             } else { // Si el juego es completo
@@ -1688,6 +1687,7 @@ class ProcessProductionController extends Controller
                                 $releasedPiece = $this->verifyPiece(Pieza::where('n_pieza', $assembly[0]->n_juego)->where('proceso', $previousProcess)->where('id_clase', $class->id)->first());
                                 if ($releasedPiece) {
                                     $remainingPieces++;
+                                    $totalGood++;
                                     array_push($availableAssemblies, $prePiece->n_juego);
                                 }
                             }
@@ -1695,33 +1695,41 @@ class ProcessProductionController extends Controller
                             // Verificar si en el proceso actual se registran por juego o por mitad
                             $processAssembly = ["Barreno Maniobra", "Soldadura", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Embudo CM"];
                             if (in_array($previousProcess, $processAssembly)) { // Si el proceso anterior se registran por juego
-                                $prePiece = $prePiece->n_juego;
-                                if (in_array($process, $processAssembly)) {
-                                    if (!in_array($prePiece, $machinedPieces)) {
-                                        $remainingPieces += 1; // Verificar si en el proceso actual se registran por juego o por mitad
-                                    }
-                                } else {
-                                    $noAssembly = substr($prePiece, 0, -1);
-                                    $halfLetter = substr($prePiece, -1) == "M" ? "H" : "M";
-                                    for ($i = 1; $i <= 2; $i++) {
-                                        $halfPiece = substr($prePiece, 0, -1) . ($i == 1 ? "H" : "M");
-                                        if (!in_array($halfPiece, $machinedPieces)) {
-                                            $remainingPieces += 0.5;
+                                $n_juego = $prePiece->n_juego;
+                                // Verificar si la pieza está correcta en el proceso anterior
+                                $releasedPiece = $this->verifyPiece(Pieza::where('n_pieza', $n_juego)->where('proceso', $previousProcess)->where('id_clase', $class->id)->first());
+                                if ($releasedPiece) {
+                                    $totalGood += 1;
+                                    if (in_array($process, $processAssembly)) {
+                                        if (!in_array($n_juego, $machinedPieces)) {
+                                            $remainingPieces += 1; // Verificar si en el proceso actual se registran por juego o por mitad
+                                        }
+                                    } else {
+                                        for ($i = 1; $i <= 2; $i++) {
+                                            $halfPiece = substr($n_juego, 0, -1) . ($i == 1 ? "H" : "M");
+                                            if (!in_array($halfPiece, $machinedPieces)) {
+                                                $remainingPieces += 0.5;
+                                            }
                                         }
                                     }
                                 }
                             } else { // Si el proceso anterior se registran por mitad
-                                $prePiece = $prePiece->n_pieza;
-                                if (in_array($process, $processAssembly)) {
-                                    $noAssembly = substr($prePiece, 0, -1);
-                                    $halfPiece = $noAssembly . "J";
-                                    if (!in_array($halfPiece, $machinedPieces)) {
-                                        array_push($countedAssemblies, $halfPiece);
-                                        $remainingPieces += 1; // Verificar si en el proceso actual se registran por juego o por mitad
-                                    }
-                                } else {
-                                    if (!in_array($prePiece, $machinedPieces)) {
-                                        $remainingPieces += 0.5; // Verificar si en el proceso actual se registran por juego o por mitad
+                                $n_pieza = $prePiece->n_pieza;
+                                // Verificar si la pieza está correcta en el proceso anterior
+                                $releasedPiece = $this->verifyPiece(Pieza::where('n_pieza', $n_pieza)->where('proceso', $previousProcess)->where('id_clase', $class->id)->first());
+                                if ($releasedPiece) {
+                                    $totalGood += 0.5;
+                                    if (in_array($process, $processAssembly)) {
+                                        $noAssembly = substr($n_pieza, 0, -1);
+                                        $halfPieceJ = $noAssembly . "J";
+                                        if (!in_array($halfPieceJ, $machinedPieces)) {
+                                            array_push($countedAssemblies, $halfPieceJ);
+                                            $remainingPieces += 1; // Verificar si en el proceso actual se registran por juego o por mitad
+                                        }
+                                    } else {
+                                        if (!in_array($n_pieza, $machinedPieces)) {
+                                            $remainingPieces += 0.5; // Verificar si en el proceso actual se registran por juego o por mitad
+                                        }
                                     }
                                 }
                             }
@@ -1735,6 +1743,7 @@ class ProcessProductionController extends Controller
 
             //Calcular las piezas restantes
             $remainingPieces = $consignamentPieces;
+            $totalGood = $consignamentPieces;
             if (count($machinedPieces) > 0) {
                 $letterPiece = substr($machinedPieces[0], -1);
                 foreach ($machinedPieces as $piece) {
@@ -1754,7 +1763,7 @@ class ProcessProductionController extends Controller
                 }
             }
         }
-        return [$availableAssemblies, $remainingPieces];
+        return [$availableAssemblies, $remainingPieces, $totalGood];
     }
 
     public function get_machinedPieces($processName, $class)

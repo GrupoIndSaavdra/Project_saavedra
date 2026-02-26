@@ -44,6 +44,7 @@ class Dashboard {
                     let processName = Object.keys(classArray["processes"])[indexProcess]
                     let previousProcess = classArray["processes"][Object.keys(classArray["processes"])[indexProcess - 1]];
                     let limitPieces = previousProcess ? previousProcess["pieces"]["good"] : classArray["pieces"];
+
                     processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces, classArray["pieces"]));
                 });
                 section.appendChild(headerSection);
@@ -137,6 +138,13 @@ class Dashboard {
         processTitle.innerHTML = processName;
         processSection.appendChild(processTitle);
 
+        let limitLabel = document.createElement("label");
+        limitLabel.className = "limit-label";
+        limitLabel.style.fontSize = "12px";
+        limitLabel.style.color = "#fff";
+        limitLabel.innerHTML = `Total disponible: ${limitPieces - processesArray["pieces"]["bad"]}`;
+        processSection.appendChild(limitLabel);
+
         let pieces = [processesArray["pieces"]["good"], processesArray["pieces"]["bad"]];
         for (let i = 0; i < pieces.length; i++) {
             //Crear barra de progreso
@@ -147,8 +155,7 @@ class Dashboard {
             let progress = document.createElement("div");
             progress.className = i == 0 ? "good-progress" : "bad-progress";
             progress.classList.add("progress");
-            let piecesNoRegistered = pedido - limitPieces;
-            let percentage = pieces[i] == 0 ? 0 : (pieces[i] * 100) / (limitPieces + piecesNoRegistered);
+            let percentage = pieces[i] == 0 ? 0 : (pieces[i] * 100) / limitPieces;
 
             progress.style.width = `${percentage}%`;
 
