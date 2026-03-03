@@ -202,6 +202,11 @@ function createFilters() {
                     } else {
                         // Ordenar operadores alfabéticamente si es el filtro de operador
                         let dataToIterate = window.filtersData[item];
+
+                        if (item == "class" && !dataToIterate.includes("Cabeza de Soplo")) {
+                            dataToIterate.push("Cabeza de Soplo");
+                        }
+
                         if (item == "operator") {
                             dataToIterate = [...window.filtersData[item]].sort((a, b) => {
                                 const nameA = `${a.nombre} ${a.a_paterno} ${a.a_materno}`.toLowerCase();
