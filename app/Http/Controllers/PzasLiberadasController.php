@@ -363,6 +363,24 @@ class PzasLiberadasController extends Controller
                 'user_liberacion' => auth()->user()->matricula,
                 'observacion_liberacion' => $observacion,
             ]);
+
+            // ── Para Soldadura PTA: liberar también la mitad contraria del par M/H ──
+            if ($proceso === 'Soldadura PTA') {
+                $ultimaLetra = substr($n_pieza, -1);
+                if ($ultimaLetra === 'H' || $ultimaLetra === 'M') {
+                    $partnerLetra = $ultimaLetra === 'H' ? 'M' : 'H';
+                    $partnerNPieza = substr($n_pieza, 0, -1) . $partnerLetra;
+                    Pieza::where('n_pieza', $partnerNPieza)
+                        ->where('id_clase', $meta->id_clase)
+                        ->where('proceso', $proceso)
+                        ->update([
+                            'liberacion' => 1,
+                            'fecha_liberacion' => date('Y-m-d H:i:s'),
+                            'user_liberacion' => auth()->user()->matricula,
+                            'observacion_liberacion' => $observacion,
+                        ]);
+                }
+            }
         }
 
         //Algoritmo para liberar 5 juegos despues de que se libere uno
@@ -435,6 +453,24 @@ class PzasLiberadasController extends Controller
                 'user_liberacion' => auth()->user()->matricula,
                 'observacion_liberacion' => $observacion,
             ]);
+
+            // ── Para Soldadura PTA: rechazar también la mitad contraria del par M/H ──
+            if ($proceso === 'Soldadura PTA') {
+                $ultimaLetra = substr($n_pieza, -1);
+                if ($ultimaLetra === 'H' || $ultimaLetra === 'M') {
+                    $partnerLetra = $ultimaLetra === 'H' ? 'M' : 'H';
+                    $partnerNPieza = substr($n_pieza, 0, -1) . $partnerLetra;
+                    Pieza::where('n_pieza', $partnerNPieza)
+                        ->where('id_clase', $meta->id_clase)
+                        ->where('proceso', $proceso)
+                        ->update([
+                            'liberacion' => 2,
+                            'fecha_liberacion' => date('Y-m-d H:i:s'),
+                            'user_liberacion' => auth()->user()->matricula,
+                            'observacion_liberacion' => $observacion,
+                        ]);
+                }
+            }
         }
     }
     public function juegosMalos($meta, $proceso)

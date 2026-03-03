@@ -1,0 +1,360 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\StorePtaResultadoRequest;
+use App\Models\Orden_trabajo;
+use App\Models\Pieza;
+use App\Models\PtaResultado;
+use App\Models\SoldaduraPTA;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class PtaResultsController extends Controller
+{
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // HELPERS PRIVADOS
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Verifica si una OT pasó por el proceso de Soldadura PTA.
+     * Se comprueba existencia de al menos un registro en la tabla soldaduraPTA.
+     */
+    private function pasoPorPTA(string $otId): bool
+    {
+        return SoldaduraPTA::where('id_ot', $otId)->exists();
+    }
+
+    /**
+     * Obtiene las piezas de una OT que pasaron por Soldadura PTA
+     * y están terminadas correctamente (error = 'Ninguno', no rechazadas).
+     */
+    private function getPiezasPTA(string $otId)
+    {
+        return Pieza::where('id_ot', $otId)
+            ->where('proceso', 'Soldadura PTA')
+            ->where('error', 'Ninguno')
+            ->where('liberacion', '!=', 2)
+            ->orderBy('n_pieza')
+            ->get();
+    }
+
+    /**
+     * Sube una imagen al disco public y devuelve la ruta relativa.
+     * Si ya existía una imagen anterior, la elimina.
+     */
+    private function subirImagen($file, ?string $rutaAnterior, string $prefijo): string
+    {
+        if ($rutaAnterior && Storage::disk('public')->exists($rutaAnterior)) {
+            Storage::disk('public')->delete($rutaAnterior);
+        }
+        $nombre = $prefijo . '_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        return $file->storeAs('pta_resultados', $nombre, 'public');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // PARTE 2: VISTA DE RESULTADOS — OPERADOR
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * GET admin/pta/results/{ot_id}
+     * Muestra el formulario de resultados de Soldadura PTA para una OT.
+     */
+    public function index(string $ot_id, Request $request)
+    {
+        $ot = Orden_trabajo::findOrFail($ot_id);
+
+        if (!$this->pasoPorPTA($ot_id)) {
+            return redirect()->back()->with('error', 'Esta OT no pasó por el proceso de Soldadura PTA.');
+        }
+
+        $piezas = $this->getPiezasPTA($ot_id);
+
+        if ($piezas->isEmpty()) {
+            return redirect()->back()->with('error', 'No hay piezas terminadas en Soldadura PTA para esta OT.');
+        }
+
+        // IDs de piezas que ya tienen resultado guardado (o liberado)
+        $resultadosGuardados = PtaResultado::where('ot_id', $ot_id)
+            ->pluck('pieza_id')
+            ->flip();  // flip() para buscar en O(1)
+
+        // Piezas que todavía no tienen resultado
+        $piezasPendientes = $piezas->filter(fn($p) => !isset($resultadosGuardados[$p->id]));
+
+        // Pieza actualmente seleccionada:
+        // 1. Si viene ?pieza_id en la URL, buscarla en pendientes o en todas
+        // 2. Si no, la primera pendiente
+        // 3. Si no hay pendientes (todas ya llenadas), mostrar la primera de todas
+        //    para que el usuario pueda revisar / editar resultados existentes
+        $piezaSeleccionadaId = $request->get('pieza_id');
+        $piezaSeleccionada = $piezasPendientes->firstWhere('id', $piezaSeleccionadaId)
+            ?? $piezas->firstWhere('id', $piezaSeleccionadaId)
+            ?? $piezasPendientes->first()
+            ?? $piezas->first();
+
+        // Todos los resultados de la OT para la tabla resumen (keyed by pieza_id)
+        $todosResultados = PtaResultado::where('ot_id', $ot_id)->get()->keyBy('pieza_id');
+
+        // Lista de OTs con PTA para el selector de OT
+        $otIds = SoldaduraPTA::distinct()->pluck('id_ot');
+        $otsConPTA = Orden_trabajo::whereIn('id', $otIds)->with('moldura')->orderBy('id')->get();
+
+        // Resultado ya guardado para la pieza seleccionada (por si se edita)
+        $resultado = PtaResultado::where('ot_id', $ot_id)
+            ->where('pieza_id', $piezaSeleccionada->id)
+            ->first();
+
+        return view('pta_views.results', compact(
+            'ot',
+            'otsConPTA',
+            'piezas',
+            'piezasPendientes',
+            'piezaSeleccionada',
+            'resultado',
+            'todosResultados'
+        ));
+    }
+
+    /**
+     * POST admin/pta/results/{ot_id}
+     * Guarda o actualiza el resultado de Soldadura PTA de una pieza.
+     */
+    public function store(StorePtaResultadoRequest $request, string $ot_id)
+    {
+        $ot = Orden_trabajo::findOrFail($ot_id);
+
+        $resultado = PtaResultado::firstOrNew([
+            'ot_id' => $ot_id,
+            'pieza_id' => $request->pieza_id,
+        ]);
+
+        $resultado->n_pieza = $request->n_pieza;
+        $resultado->resultado_pico_llenado = $request->resultado_pico_llenado;
+        $resultado->resultado_pico_soldadura = $request->resultado_pico_soldadura;
+        $resultado->resultado_conexion_llenado = $request->resultado_conexion_llenado;
+        $resultado->resultado_conexion_soldadura = $request->resultado_conexion_soldadura;
+        $resultado->resultado_perfilado_llenado = $request->resultado_perfilado_llenado;
+        $resultado->resultado_perfilado_soldadura = $request->resultado_perfilado_soldadura;
+
+        // Subir imágenes si se enviaron
+        if ($request->hasFile('imagen_pico_soldadura')) {
+            $resultado->imagen_pico_soldadura = $this->subirImagen(
+                $request->file('imagen_pico_soldadura'),
+                $resultado->imagen_pico_soldadura,
+                'pico_sold'
+            );
+        }
+        if ($request->hasFile('imagen_conexion_soldadura')) {
+            $resultado->imagen_conexion_soldadura = $this->subirImagen(
+                $request->file('imagen_conexion_soldadura'),
+                $resultado->imagen_conexion_soldadura,
+                'conexion_sold'
+            );
+        }
+        if ($request->hasFile('imagen_perfilado_soldadura')) {
+            $resultado->imagen_perfilado_soldadura = $this->subirImagen(
+                $request->file('imagen_perfilado_soldadura'),
+                $resultado->imagen_perfilado_soldadura,
+                'perfilado_sold'
+            );
+        }
+
+        $resultado->save();
+
+        return redirect()
+            ->route('pta.results', ['ot_id' => $ot_id, 'pieza_id' => $request->pieza_id])
+            ->with('success', 'Resultados guardados correctamente.');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // LIBERACIÓN POR ADMIN
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * PUT admin/pta/results/{id}/liberar
+     * Libera o revoca la liberación de un resultado por parte del administrador.
+     */
+    public function update(Request $request, int $id)
+    {
+        $resultado = PtaResultado::findOrFail($id);
+
+        $liberar = $request->boolean('liberar', true);
+
+        $resultado->liberado_por_admin = $liberar;
+        $resultado->liberado_por = $liberar ? auth()->id() : null;
+        $resultado->fecha_liberacion = $liberar ? now() : null;
+
+        // Si se libera, quitar cualquier rechazo previo
+        if ($liberar) {
+            $resultado->rechazado_por_admin = false;
+            $resultado->rechazado_por = null;
+            $resultado->fecha_rechazo = null;
+        }
+
+        $resultado->save();
+
+        $msg = $liberar ? 'Pieza liberada correctamente.' : 'Liberación revocada correctamente.';
+        return redirect()->back()->with('success', $msg);
+    }
+
+    /**
+     * PUT admin/pta/results/{id}/rechazar
+     * Rechaza o quita el rechazo de un resultado por parte del administrador.
+     */
+    public function rechazar(Request $request, int $id)
+    {
+        $resultado = PtaResultado::findOrFail($id);
+
+        $rechazar = $request->boolean('rechazar', true);
+
+        $resultado->rechazado_por_admin = $rechazar;
+        $resultado->rechazado_por = $rechazar ? auth()->id() : null;
+        $resultado->fecha_rechazo = $rechazar ? now() : null;
+
+        // Si se rechaza, quitar cualquier liberación previa
+        if ($rechazar) {
+            $resultado->liberado_por_admin = false;
+            $resultado->liberado_por = null;
+            $resultado->fecha_liberacion = null;
+        }
+
+        $resultado->save();
+
+        $msg = $rechazar ? 'Pieza rechazada por análisis.' : 'Rechazo quitado correctamente.';
+        return redirect()->back()->with('success', $msg);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // PARTE 4: ANÁLISIS ADMIN
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * GET admin/pta/analysis
+     * Vista de análisis para administradores: filtrar por OT y ver todos los resultados.
+     */
+    public function analysis(Request $request)
+    {
+        // Obtener todas las OTs que pasaron por PTA (tienen registro en soldaduraPTA)
+        $otIds = SoldaduraPTA::distinct()->pluck('id_ot');
+        $otsConPTA = Orden_trabajo::whereIn('id', $otIds)->with('moldura')->orderBy('id')->get();
+
+        $otSeleccionadaId = $request->get('ot_id');
+        $resultados = collect();
+        $piezasPTA = collect();
+        $ot = null;
+
+        if ($otSeleccionadaId) {
+            $ot = Orden_trabajo::find($otSeleccionadaId);
+            $piezasPTA = $this->getPiezasPTA($otSeleccionadaId);
+
+            // Cargar resultados con relaciones para no hacer N+1
+            $resultados = PtaResultado::where('ot_id', $otSeleccionadaId)
+                ->with(['pieza', 'liberador'])
+                ->get()
+                ->keyBy('pieza_id');
+        }
+
+        return view('pta_views.analysis', compact(
+            'otsConPTA',
+            'otSeleccionadaId',
+            'ot',
+            'piezasPTA',
+            'resultados'
+        ));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // MÉTODO AUXILIAR PARA OTRAS VISTAS (piecesInProgress)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * Construye los datos de la card PTA para una OT dada.
+     * Devuelve null si la OT no pasó por PTA.
+     *
+     * @return array|null [pasoPorPTA, totalPTA, liberadas] o null
+     */
+    public static function buildCardData(string $otId): ?array
+    {
+        // Solo mostrar si la OT pasó por PTA
+        if (!SoldaduraPTA::where('id_ot', $otId)->exists()) {
+            return null;
+        }
+
+
+
+        // Total de piezas que pasaron por PTA (buenas + malas, todas)
+        $totalPTA = Pieza::where('id_ot', $otId)
+            ->where('proceso', 'Soldadura PTA')
+            ->count();
+
+        // Piezas TERMINADAS correctamente: liberadas por Calidad (liberacion = 1)
+        $terminadas = Pieza::where('id_ot', $otId)
+            ->where('proceso', 'Soldadura PTA')
+            ->where('error', 'Ninguno')
+            ->where('liberacion', 1)
+            ->count();
+
+
+        // ── Clasificación de juegos completos ─────────────────────────────────
+        // Un juego se considera COMPLETO cuando AMBAS piezas (H y M) tienen registro
+        // en pta_resultados. Solo los juegos completos influyen en las barras.
+        // Estado mixto (ej: 5H=liberada, 5M=rechazada) → va a "sin liberar".
+
+        $allResultados = PtaResultado::where('pta_resultados.ot_id', $otId)
+            ->join('piezas', 'piezas.id', '=', 'pta_resultados.pieza_id')
+            ->where('piezas.error', 'Ninguno')
+            ->select(
+                'pta_resultados.liberado_por_admin',
+                'pta_resultados.rechazado_por_admin',
+                'piezas.n_pieza'
+            )
+            ->get();
+
+        // Agrupar por prefijo numérico (ej. "5" para 5H y 5M)
+        $byJuego = [];
+        foreach ($allResultados as $r) {
+            preg_match('/^\d+/', $r->n_pieza, $m);
+            $key = $m[0] ?? $r->n_pieza;
+            $byJuego[$key][] = $r;
+        }
+
+        $liberadas = 0;
+        $rechazadas = 0;
+        $sinLiberar = 0;
+
+        foreach ($byJuego as $piezasJuego) {
+            // Solo juegos COMPLETOS (ambas piezas H y M presentes)
+            if (count($piezasJuego) < 2)
+                continue;
+
+            $todoLiberado = collect($piezasJuego)->every(fn($p) => $p->liberado_por_admin);
+            $todoRechazado = collect($piezasJuego)->every(fn($p) => $p->rechazado_por_admin);
+
+            if ($todoLiberado) {
+                $liberadas++;
+            } elseif ($todoRechazado) {
+                $rechazadas++;
+            } else {
+                // Estado mixto o ambas pendientes → sin liberar
+                $sinLiberar++;
+            }
+        }
+
+        if ($totalPTA === 0)
+            return null;
+
+        return [
+            'totalPTA' => $totalPTA,    // total que pasó por el proceso
+            'terminadas' => $terminadas,  // terminadas sin error
+            'liberadas' => $liberadas,   // juegos completos con AMBAS piezas liberadas
+            'rechazadas' => $rechazadas,  // juegos completos con AMBAS piezas rechazadas
+            'sinLiberar' => $sinLiberar,  // juegos completos en estado mixto/pendiente
+        ];
+    }
+}

@@ -79,6 +79,11 @@ export default defineConfig({
                 'resources/js/libs/html5-qrcode.min.js',
                 'resources/css/trackingSoldadura_views/liberarQRPlanta.css',
                 'resources/js/trackingSoldadura/liberarSoldadura.js',
+
+                //Views PTA
+                'resources/css/processes_views/soldaduraPTA_table_partial.css',
+                'resources/css/pta_views/analysis.css',
+                'resources/css/pta_views/results.css',
             ],
             refresh: true,
         }),

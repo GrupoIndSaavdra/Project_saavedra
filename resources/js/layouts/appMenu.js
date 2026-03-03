@@ -184,6 +184,12 @@ function getRoutes(profile) {
                         ["show_panelWO", "Panel de progreso de O.T"],
                     ],
                 },
+                {
+                    title: "Soldadura PTA",
+                    routes: [
+                        ["pta.analysis", "Análisis de Resultados Sold. PTA"],
+                    ],
+                },
             ];
             break;
         case "2":

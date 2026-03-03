@@ -1,4 +1,284 @@
 let wOrderArray = window.wOInProgress;
+
+// ══════════════════════════════════════════════════════════
+// PTACardComponent — componente reactivo de la card PTA
+//
+// Estrategia de snapshot:
+//   El total inicial se congela con Object.freeze() en el
+//   constructor, garantizando que nunca pueda aumentar aunque
+//   el servidor devuelva un número mayor en futuras consultas.
+//
+// Anti-loops:
+//   El setInterval solo actualiza el DOM si el elemento raíz
+//   sigue montado (via `this.root.isConnected`). Al detectar
+//   count === 0 se cancela el intervalo y se elimina el nodo.
+// ══════════════════════════════════════════════════════════
+class PTACardComponent {
+    /**
+     * @param {string}  otId       - Identificador de la OT (ej. "OT-001")
+     * @param {object}  initialData - { totalPTA, terminadas, liberadas } del servidor
+     * @param {Element} container  - Elemento contenedor donde se monta la card
+     * @param {object}  classArray - classArray de la OT (para calcular piezas malas)
+     */
+    constructor(otId, initialData, container, classArray) {
+        // — Raw data del montaje inicial
+        const rawTotal = initialData.totalPTA || 0;
+        const totalJuegos = rawTotal > 0 ? Math.round(rawTotal / 2) : 0;
+
+        this.snapshot = totalJuegos > 0 ? Object.freeze({ total: totalJuegos }) : null;
+        this.otId = otId;
+        this.container = container;
+        this.classArray = classArray;
+        this._pollTimer = null;
+        this._busy = false;
+        this._mounted = false;   // true cuando el DOM ya está creado
+        this.root = null;
+
+        // Estado mutable
+        this.current = totalJuegos > 0 ? this._calcTerminadas(initialData, totalJuegos) : 0;
+        this.liberadas = initialData.liberadas || 0;
+        this.rechazadas = initialData.rechazadas || 0;
+        this.sinLiberar = initialData.sinLiberar || 0;
+
+        if (totalJuegos > 0) {
+            // Regla 1: hay piezas → montar inmediatamente y arrancar polling
+            this._mount();
+        }
+        // Siempre arrancar el polling (modo dormido si no hay piezas todavía)
+        this._startPolling();
+    }
+
+    // ── Calcula juegos terminados correctamente ───────────────
+    _calcTerminadas(data, totalJuegos) {
+        const liberadas = data.liberadas || 0;
+        // Re-usar la misma lógica del Dashboard para calcular terminadas
+        let terminadas = totalJuegos;
+        if (this.classArray) {
+            const soldKey = Object.keys(this.classArray["processes"]).find(k => k.includes("Soldadura PTA"));
+            if (soldKey) {
+                const badData = this.classArray["processes"][soldKey]["piecesBadData"] || [];
+                const ptaBadJuegos = new Set(
+                    badData.filter(p => p["process"] === "Soldadura PTA").map(p => p["setNumber"])
+                ).size;
+                terminadas = Math.max(0, totalJuegos - ptaBadJuegos);
+            }
+        }
+        return terminadas;
+    }
+
+    // ── Montaje del DOM (puede llamarse en diferido) ──────────────
+    _mount() {
+        if (this._mounted) return;
+        this.root = this._render();
+        this.container.appendChild(this.root);
+        this._mounted = true;
+    }
+
+    // ── Construye el DOM inicial ──────────────────────────────
+    _render() {
+        const section = document.createElement("div");
+        section.className = "process-section";
+        section.style.cursor = "pointer";
+        section.id = `pta-card-${this.otId}`;
+        section.title = "Ver resultados de Soldadura PTA";
+
+        const title = document.createElement("h3");
+        title.className = "process-title";
+        title.innerHTML = "Resultados Soldadura PTA";
+        section.appendChild(title);
+
+        // Etiqueta juegos terminados correctamente (solo texto, sin barra)
+        const label1 = this._buildLabel("label-term");
+        section.appendChild(label1);
+
+        // Label + Barra — Liberadas por admin (azul)
+        const bar2 = this._buildBar("bar-lib", "#dbeafe", "linear-gradient(to right, #90def3, #043885)");
+        section.appendChild(bar2);
+
+        // Label + Barra — Sin liberar / mixto (verde)
+        const bar4 = this._buildBar("bar-sin", "#e1fcc6", "linear-gradient(to right, #9ff390, #0a8504)");
+        section.appendChild(bar4);
+
+        // Label + Barra — Rechazados por análisis admin (rojo)
+        const bar3 = this._buildBar("bar-rej", "#fcc6c6", "linear-gradient(to right, #f38080, #9c0303)");
+        section.appendChild(bar3);
+
+        // Click: navegar a la vista de resultados
+        // (se registra ANTES de _updateBars para que un posible error
+        //  en la actualización de barras no bloquee la navegación)
+        section.addEventListener("click", () => {
+            const base = window.ptaResultsBaseUrl || (window.baseUrl + "/admin/pta/results");
+            window.location.href = `${base}/${this.otId}`;
+        });
+
+        // Actualizar valores iniciales (skip connection check, aún no está en DOM)
+        this._updateBars(section, true);
+
+        return section;
+    }
+
+    // ── Construye un label encima de la barra ─────────────────
+    _buildLabel(labelId) {
+        const label = document.createElement("div");
+        label.className = "pta-bar-label";
+        label.id = `${labelId}-${this.otId}`;
+        label.style.cssText = "font-size:12px;color:#fff;text-align:left;margin-top:4px;margin-bottom:2px;font-weight:600;";
+        return label;
+    }
+
+    // ── Construye una barra vacía con IDs predecibles ────────
+    // bgColor: color de fondo del contenedor; fillGradient: gradiente del fill
+    _buildBar(barId, bgColor = "#dbeafe", fillGradient = "linear-gradient(to right, #1d415e, #0060ae)") {
+        const wrap = document.createElement("div");
+        wrap.className = "progress-bar";
+        wrap.style.backgroundColor = bgColor;
+        wrap.id = `${barId}-${this.otId}`;
+
+        const fill = document.createElement("div");
+        // Usa la clase 'progress' para height:100% y agrega estilo azul inline
+        // No usamos good-progress para diferenciarlo visualmente de piezas buenas
+        fill.className = `pta-bar-fill ${barId}-fill progress`;
+        fill.style.background = fillGradient;
+        fill.style.width = "0%";
+        wrap.appendChild(fill);
+
+        const info = document.createElement("div");
+        info.className = "progress-percentage";
+        wrap.appendChild(info);
+
+        return wrap;
+    }
+
+    // ── Actualiza solo los elementos internos (sin re-render) ─
+    _updateBars(root, skipConnectionCheck) {
+        root = root || this.root;
+        if (!root) return;
+        if (!skipConnectionCheck && !root.isConnected) return;
+
+        const terminadas = this.current;
+
+        // Etiqueta terminadas (texto informativo, sin barra)
+        const labelT = root.querySelector(`#label-term-${this.otId}`);
+        if (labelT) labelT.textContent =
+            `Terminadas: ${terminadas} juego${terminadas !== 1 ? 's' : ''} correctos`;
+
+        // —— helper interno —————————————————————————————————
+        const setBar = (barId, labelId, count, labelText, countText) => {
+            const pct = terminadas > 0 ? Math.min(100, Math.round((count / terminadas) * 100)) : 0;
+            const wrap = root.querySelector(`#${barId}-${this.otId}`);
+            if (wrap) {
+                wrap.querySelector(".pta-bar-fill")?.style.setProperty("width", `${pct}%`);
+                const info = wrap.querySelector(".progress-percentage");
+                if (info) info.textContent = `${pct}% ${count}/${terminadas} ${countText}`;
+            }
+            const lbl = root.querySelector(`#${labelId}-${this.otId}`);
+            if (lbl) lbl.textContent = labelText;
+        };
+
+        // Barra liberadas (azul) — juegos completos con AMBAS piezas liberadas
+        setBar("bar-lib", "label-lib", this.liberadas,
+            `Liberados: ${this.liberadas}/${terminadas}`,
+            "juegos liberados"
+        );
+
+        // Barra sin liberar (verde) — juegos completos en estado mixto/pendiente
+        setBar("bar-sin", "label-sin", this.sinLiberar,
+            `Sin liberar: ${this.sinLiberar}/${terminadas}`,
+            "juegos sin liberar"
+        );
+
+        // Barra rechazados (rojo) — juegos completos con AMBAS piezas rechazadas
+        setBar("bar-rej", "label-rej", this.rechazadas,
+            `Rechazados: ${this.rechazadas}/${terminadas}`,
+            "juegos rechazados"
+        );
+    }
+
+    // ── Polling AJAX cada 10 s ───────────────────────────────
+    _startPolling() {
+        this._pollTimer = setInterval(() => this._poll(), 10_000);
+    }
+
+    async _poll() {
+        // Guard: petición en vuelo
+        if (this._busy) return;
+        // Guard extra: si el nodo ya fue montado, verificar que sigue conectado
+        if (this._mounted && this.root && !this.root.isConnected) return;
+        this._busy = true;
+
+        try {
+            const res = await fetch(`${window.baseUrl}/piecesInProgress/ptaCard/${this.otId}`);
+            if (!res.ok) return;
+
+            const data = await res.json();
+            const rawTotal = data.totalPTA || 0;
+            const totalJuegos = rawTotal > 0 ? Math.round(rawTotal / 2) : 0;
+
+            // ── Primera activación (modo dormido → con piezas) ────────────
+            if (!this._mounted && totalJuegos > 0) {
+                // Congelar el total en el primer tick con datos reales
+                this.snapshot = Object.freeze({ total: totalJuegos });
+                this.current = this._calcTerminadasFromData(data, totalJuegos);
+                this.liberadas = data.liberadas || 0;
+                this.rechazadas = data.rechazadas || 0;
+                this.sinLiberar = data.sinLiberar || 0;
+                this._mount();
+                return;
+            }
+
+            if (!this._mounted) return; // aún sin piezas, seguir esperando
+
+            // Regla 2: el total NUNCA aumenta — comparamos con el snapshot
+            const newTerminadas = Math.min(
+                this.snapshot.total,
+                this._calcTerminadasFromData(data, totalJuegos)
+            );
+            const newLiberadas = data.liberadas || 0;
+            const newRechazadas = data.rechazadas || 0;
+            const newSinLiberar = data.sinLiberar || 0;
+
+            // Detectar cambio real antes de tocar el DOM (evita re-renders innecesarios)
+            if (newTerminadas === this.current && newLiberadas === this.liberadas && newRechazadas === this.rechazadas && newSinLiberar === this.sinLiberar) return;
+
+            this.current = newTerminadas;
+            this.liberadas = newLiberadas;
+            this.rechazadas = newRechazadas;
+            this.sinLiberar = newSinLiberar;
+
+            // Regla 4: auto-desmontaje cuando el contador llega a 0
+            if (this.current === 0) {
+                this._destroy();
+                return;
+            }
+
+            // Regla 3: actualizar barras de forma quirúrgica
+            this._updateBars();
+        } catch (_) {
+            // Error de red — silencioso, el próximo tick reintenta
+        } finally {
+            this._busy = false;
+        }
+    }
+
+    // Helper para calcular terminadas a partir de datos crudos del AJAX
+    _calcTerminadasFromData(data, totalJuegos) {
+        // En el AJAX ya tenemos `terminadas` aunque aquí preferimos recalcular
+        // desde badData si está disponible; si no, confiamos en el valor del servidor.
+        return this.classArray
+            ? this._calcTerminadas(data, totalJuegos)
+            : Math.max(0, totalJuegos - (data.bad || 0));
+    }
+
+    // ── Destrucción limpia ───────────────────────────────────
+    _destroy() {
+        clearInterval(this._pollTimer);
+        this._pollTimer = null;
+        if (this.root && this.root.isConnected) {
+            this.root.remove();
+        }
+    }
+}
+
 class Dashboard {
     constructor(wOrderArray) {
         this.wOrderArray = wOrderArray;
@@ -27,7 +307,6 @@ class Dashboard {
         section.appendChild(divHeader);
         return section;
     }
-    //prettier-ignore
     createSections() {
         let body = document.querySelector("body");
         Object.values(this.wOrderArray).forEach((workOrder, indexWo) => {
@@ -47,6 +326,21 @@ class Dashboard {
 
                     processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces, classArray["pieces"]));
                 });
+
+                // ── Card PTA: instanciar SIEMPRE si la OT tiene Soldadura PTA ─
+                // Si aún no hay piezas (ptaData=null), el componente arrancará en modo
+                // dormido y se montará solo en cuanto el polling detecte la primera pieza.
+                const processKeys = Object.keys(classArray["processes"]);
+                if (processKeys.some(k => k.includes("Soldadura PTA"))) {
+                    let userProfile = document.getElementById("profile");
+                    if (userProfile && (userProfile.value == "1" || userProfile.value == "2")) {
+                        const ptaData = (window.ptaCardsData && window.ptaCardsData[wOrderName])
+                            ? window.ptaCardsData[wOrderName]
+                            : { totalPTA: 0, liberadas: 0 };
+                        this.generatePTASection(ptaData, wOrderName, classArray, processesSection);
+                    }
+                }
+
                 section.appendChild(headerSection);
                 section.appendChild(processesSection);
                 body.appendChild(section);
@@ -175,6 +469,13 @@ class Dashboard {
         });
         return processSection;
     }
+
+    // ── Card especial para Resultados de Soldadura PTA ──────────────────────
+    generatePTASection(ptaData, otId, classArray, container) {
+        // Monta el componente reactivo directamente en el container dado.
+        // El componente gestiona su propio ciclo de vida.
+        new PTACardComponent(otId, ptaData, container, classArray);
+    }
     generateDivBadPieces(processName, badPieces) {
         //Creacion del div de opacidad de fondo
         let div = document.createElement("div");
@@ -241,26 +542,60 @@ class Dashboard {
         //prettier-ignore
         let tbody = document.createElement("tbody");
         if (Object.keys(badPieces).length > 0) {
-            Object.values(badPieces).forEach((piece) => {
-                let row = document.createElement("tr");
-                let pieceData =
-                    processName == "Operacion Equipo"
-                        ? [
-                            piece["piece"],
-                            piece["setNumber"],
-                            piece["operator"],
-                            piece["process"],
-                            piece["operation"],
-                            piece["error"],
-                        ]
-                        : [piece["piece"], piece["setNumber"], piece["operator"], piece["process"], piece["error"]];
-                pieceData.forEach((data) => {
-                    let td = document.createElement("td");
-                    td.innerHTML = data;
-                    row.appendChild(td);
+            // Para Soldadura PTA, agrupar por número de juego (setNumber)
+            if (processName.includes("Soldadura PTA")) {
+                let setGroups = {};
+                Object.values(badPieces).forEach((piece) => {
+                    let key = piece["setNumber"];
+                    if (!setGroups[key]) {
+                        setGroups[key] = {
+                            pieces: [],
+                            setNumber: piece["setNumber"],
+                            operator: piece["operator"],
+                            process: piece["process"],
+                            error: piece["error"],
+                        };
+                    }
+                    setGroups[key].pieces.push(piece["piece"]);
                 });
-                tbody.appendChild(row);
-            });
+                Object.values(setGroups).forEach((group) => {
+                    let row = document.createElement("tr");
+                    let pieceData = [
+                        group.pieces.join(", "),
+                        group.setNumber,
+                        group.operator,
+                        group.process,
+                        group.error,
+                    ];
+                    pieceData.forEach((data) => {
+                        let td = document.createElement("td");
+                        td.innerHTML = data;
+                        row.appendChild(td);
+                    });
+                    tbody.appendChild(row);
+                });
+            } else {
+                Object.values(badPieces).forEach((piece) => {
+                    let row = document.createElement("tr");
+                    let pieceData =
+                        processName == "Operacion Equipo"
+                            ? [
+                                piece["piece"],
+                                piece["setNumber"],
+                                piece["operator"],
+                                piece["process"],
+                                piece["operation"],
+                                piece["error"],
+                            ]
+                            : [piece["piece"], piece["setNumber"], piece["operator"], piece["process"], piece["error"]];
+                    pieceData.forEach((data) => {
+                        let td = document.createElement("td");
+                        td.innerHTML = data;
+                        row.appendChild(td);
+                    });
+                    tbody.appendChild(row);
+                });
+            }
         } else {
             let row = document.createElement("tr");
             let td = document.createElement("td");
@@ -276,6 +611,9 @@ class Dashboard {
         return table;
     }
 }
+
+
+
 let div_opacity = document.querySelector(".div-opacity");
 if (div_opacity) {
     document.querySelector(".btn-cerrar").addEventListener("click", () => {
@@ -291,6 +629,9 @@ if (div_opacity) {
 if (Object.keys(wOrderArray).length > 0) {
     let dashboard = new Dashboard(wOrderArray);
     dashboard.createSections();
+
+
+
     const secciones = document.querySelectorAll("section");
     let scrollTimeout = null;
 
@@ -329,4 +670,5 @@ if (Object.keys(wOrderArray).length > 0) {
     noDataMessage.className = "no-data-message";
     noDataMessage.innerHTML = "No hay órdenes de trabajo en progreso.";
     body.appendChild(noDataMessage);
+
 }

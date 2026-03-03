@@ -11,6 +11,7 @@ use App\Models\Orden_trabajo;
 use App\Models\Pieza;
 use App\Models\Procesos;
 use App\Models\User;
+use App\Http\Controllers\PtaResultsController;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use DateTime;
 use Illuminate\Http\Request;
@@ -250,8 +251,37 @@ class WOController extends Controller
                 }
             }
         }
+
+        // ── Datos de cards PTA (para las OTs actualmente en progreso) ────────
+        // buildCardData devuelve null si la OT no tiene registros en SoldaduraPTA.
+        $ptaCardsData = [];
+        foreach (array_keys($wOInProgress) as $otId) {
+            $cardData = PtaResultsController::buildCardData((string) $otId);
+            if ($cardData !== null) {
+                $ptaCardsData[$otId] = $cardData;
+            }
+        }
+
         [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
-        return view('pieces_views.piecesInProgress_view', compact('wOInProgress', 'pieces_Released', 'info_Pieces'));
+        return view('pieces_views.piecesInProgress_view', compact(
+            'wOInProgress',
+            'pieces_Released',
+            'info_Pieces',
+            'ptaCardsData'
+        ));
+    }
+
+    /**
+     * AJAX: devuelve JSON con los datos actualizados de la card PTA para una OT.
+     * GET /piecesInProgress/ptaCard/{otId}
+     */
+    public function getPtaCardData(string $otId)
+    {
+        $data = PtaResultsController::buildCardData($otId);
+        if ($data === null) {
+            return response()->json(['error' => 'No PTA data'], 404);
+        }
+        return response()->json($data);
     }
     public function getStringDate($date, $time)
     {

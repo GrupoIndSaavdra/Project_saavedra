@@ -1,0 +1,347 @@
+/* ── Layout ──────────────────────────────────────────────── */
+.pta-analysis-wrapper {
+    width: 100%;
+    margin: 2rem auto;
+    padding: 0 1.5rem 3rem;
+}
+
+.pta-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
+    color: #fff;
+    border-radius: 12px;
+    padding: 1.4rem 1.8rem;
+    margin-bottom: 1.8rem;
+}
+
+.pta-header h2 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.pta-header p {
+    margin: 0;
+    opacity: 0.8;
+    font-size: 0.875rem;
+}
+
+/* ── Selector OT ─────────────────────────────────────────── */
+.pta-filter-card {
+    background: #f7f7f7;
+    border-radius: 10px;
+    padding: 1.2rem 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+}
+
+.pta-filter-card label {
+    font-weight: 600;
+    color: #1e3a5f;
+}
+
+.pta-filter-card select {
+    border: 2px solid #2d6a9f;
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
+    color: #1e3a5f;
+    background: #f0f7ff;
+    min-width: 200px;
+    transition: all 0.2s ease-in-out;
+}
+
+.pta-filter-card select:hover {
+    background: #cfe5ff;
+    border: 2px solid #1e3a5f;
+    transform: scale(1.03);
+}
+
+.btn-pta-filter {
+    background: #1e3a5f;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.45rem 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-pta-filter:hover {
+    background: #2d6a9f;
+    transform: scale(1.05);
+}
+
+/* ── Tabla de resultados ─────────────────────────────────── */
+.pta-results-table-wrap {
+    background: #f7f7f7;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    overflow-x: auto;
+}
+
+.pta-results-table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.pta-results-table-wrap thead th {
+    background: #1e3a5f;
+    color: #fff;
+    padding: 0.7rem 0.9rem;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.pta-results-table-wrap tbody td {
+    padding: 0.6rem 0.9rem;
+    border-bottom: 1px solid #e8eef5;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.pta-results-table-wrap tbody tr {
+    transition: all 0.2s ease-in-out;
+}
+
+.pta-results-table-wrap tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.pta-results-table-wrap tbody tr:hover {
+    background: #cfe5ff;
+}
+
+/* ── Badges resultado ────────────────────────────────────── */
+.badge-si {
+    background: #d4edda;
+    color: #155724;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.badge-no {
+    background: #f8d7da;
+    color: #721c24;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.badge-na {
+    background: #e2e3e5;
+    color: #383d41;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.badge-empty {
+    background: #fff3cd;
+    color: #856404;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 1rem;
+}
+
+/* ── Miniaturas imagen ───────────────────────────────────── */
+.btn-img-thumb {
+    background: #e8f0fe;
+    border: 1.5px solid #2d6a9f;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    color: #1e3a5f;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-img-thumb:hover {
+    background: #c8ddf8;
+    transform: scale(1.05);
+}
+
+/* ── Botón liberar ───────────────────────────────────────── */
+.btn-liberar-pta {
+    background: #1a7a45;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-liberar-pta:hover {
+    background: #0f9b16;
+    transform: scale(1.05);
+}
+
+.btn-rechazar-pta {
+    background: #9b1c1c;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-rechazar-pta:hover {
+    background: #c72c2c;
+    transform: scale(1.05);
+}
+
+.badge-liberada {
+    background: #d4edda;
+    color: #155724;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.badge-rechazada {
+    background: #f8d7da;
+    color: #721c24;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.badge-no-liberada {
+    background: #fff3cd;
+    color: #856404;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.8rem;
+}
+
+.acciones-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+/* ── Modal imagen ────────────────────────────────────────── */
+.pta-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+}
+
+.pta-modal-overlay.show {
+    display: flex;
+}
+
+.pta-modal-box {
+    background: #fff;
+    border-radius: 12px;
+    max-width: 85vw;
+    max-height: 85vh;
+    overflow: hidden;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+.pta-modal-header {
+    background: #1e3a5f;
+    color: #fff;
+    padding: 0.7rem 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pta-modal-header h5 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.btn-modal-close {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.pta-modal-body {
+    padding: 1rem;
+    overflow: auto;
+    text-align: center;
+}
+
+.pta-modal-body img {
+    max-width: 100%;
+    max-height: 70vh;
+    border-radius: 6px;
+}
+
+/* ── Alertas ─────────────────────────────────────────────── */
+.pta-alert {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition:
+        opacity 0.6s ease,
+        max-height 0.6s ease,
+        padding 0.6s ease,
+        margin 0.6s ease;
+    overflow: hidden;
+    max-height: 200px;
+}
+
+.pta-alert.fade-out {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.pta-alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.pta-alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* ── Sin registros ───────────────────────────────────────── */
+.pta-empty-state {
+    text-align: center;
+    padding: 2.5rem 1rem;
+    color: #6c757d;
+}
+
+.pta-empty-state span {
+    font-size: 2.5rem;
+}

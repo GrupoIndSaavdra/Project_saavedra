@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\PtaResultado;
 
 class Pieza extends Model
 {
@@ -54,5 +55,13 @@ class Pieza extends Model
     public function ordenTrabajo()
     {
         return $this->belongsTo(Orden_trabajo::class, 'id_ot');
+    }
+
+    /**
+     * Resultado de Soldadura PTA asociado a esta pieza
+     */
+    public function ptaResultado()
+    {
+        return $this->hasOne(PtaResultado::class, 'pieza_id');
     }
 }

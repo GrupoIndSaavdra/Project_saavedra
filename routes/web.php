@@ -38,6 +38,7 @@ use App\Http\Controllers\ProcessesController;
 use App\Http\Controllers\ProcessProductionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WOController;
+use App\Http\Controllers\PtaResultsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TrackingSoldaduraController;
 use App\Http\Controllers\LiberarSoldaduraController;
@@ -98,6 +99,7 @@ Route::controller(WOController::class)->group(function () {
     Route::get('/piecesInProgress', 'showViewPiecesInProgress')->name('showPiecesInProgress');
     Route::get('/finishOrder/{wOrderName}/{className}', 'finishOrder')->name('finishOrder'); //Finalizar pedido
     Route::get('/show_panelWO', 'show_panelWO')->name('show_panelWO');
+    Route::get('/piecesInProgress/ptaCard/{otId}', 'getPtaCardData')->name('ptaCardData'); // AJAX endpoint para card PTA
 });
 
 Route::controller(ClassController::class)->group(function () {
@@ -273,4 +275,29 @@ Route::get('/check-time', function () {
         'Laravel timezone' => config('app.timezone'),
         'Current time' => now()->toDateTimeString(),
     ];
+});
+
+/* ===========================
+   Resultados y Análisis Soldadura PTA
+=========================== */
+Route::middleware(['auth'])->prefix('admin/pta')->name('pta.')->group(function () {
+    // Vista formulario de resultados (operador / admin)
+    Route::get('/results/{ot_id}', [PtaResultsController::class, 'index'])
+        ->name('results');
+
+    // Guardar / actualizar resultados
+    Route::post('/results/{ot_id}', [PtaResultsController::class, 'store'])
+        ->name('results.store');
+
+    // Liberar o revocar liberación por administrador
+    Route::put('/results/{id}/liberar', [PtaResultsController::class, 'update'])
+        ->name('results.liberar');
+
+    // Rechazar o quitar rechazo por administrador
+    Route::put('/results/{id}/rechazar', [PtaResultsController::class, 'rechazar'])
+        ->name('results.rechazar');
+
+    // Análisis administrativo
+    Route::get('/analysis', [PtaResultsController::class, 'analysis'])
+        ->name('analysis');
 });

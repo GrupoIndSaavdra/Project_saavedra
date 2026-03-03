@@ -545,7 +545,7 @@ function insertButton_saveOrChoose(form, table) {
                 // Cambiar la ruta del formulario para seleccionar un juego y registralo
                 form.action = window.baseUrl + "/processProduction/selectAssembly";
 
-                insertAvaliablePiecesSelect(table); // Insertar select de piezas disponibles
+                insertAvaliablePiecesSelect(form); // Insertar select de piezas disponibles
 
                 // Crear botón de "Elegir pieza"
                 let btn = document.createElement("button");
@@ -571,7 +571,7 @@ function insertButton_saveOrChoose(form, table) {
         }
     }
 }
-function insertAvaliablePiecesSelect(table) {
+function insertAvaliablePiecesSelect(form) {
     let select = document.createElement("select");
     select.className = "select-pieces";
     select.name = "selectedAssembly";
@@ -593,12 +593,8 @@ function insertAvaliablePiecesSelect(table) {
         select.appendChild(option);
     });
 
-    // Insertar el select en la tabla
-    let tr = document.createElement("tr");
-    let td = document.createElement("td");
-    td.appendChild(select);
-    tr.appendChild(td);
-    table.appendChild(tr);
+    // Insertar el select directamente en el formulario (fuera de la tabla)
+    form.appendChild(select);
 }
 
 function createDivOpacity() {

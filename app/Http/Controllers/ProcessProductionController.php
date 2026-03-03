@@ -157,12 +157,64 @@ class ProcessProductionController extends Controller
 
             // Construir mapa de liberación por n_pieza (para colorear filas históricas)
             $ptaLiberacion = [];
+            $ptaDefecto = []; // guarda el defecto_pta normalizado por n_pieza
             foreach ($piezasGroupHistory->keys() as $nPieza) {
                 $piezaDB = \App\Models\Pieza::where('n_pieza', $nPieza)
                     ->where('proceso', 'Soldadura PTA')
                     ->where('id_clase', $class->id)
                     ->first();
                 $ptaLiberacion[$nPieza] = $piezaDB ? (int) $piezaDB->liberacion : null;
+
+                // Capturar defecto_pta del primer registro; normalizar null/"" a 'Ninguno'
+                $defectoDB = $piezasGroupHistory[$nPieza]->first();
+                $rawDefecto = $defectoDB?->defecto_pta;
+                $ptaDefecto[$nPieza] = ($rawDefecto && $rawDefecto !== 'Ninguno') ? $rawDefecto : 'Ninguno';
+            }
+
+            // ── Propagación de estado malo a la mitad contraria de cada par M/H ──────
+            // Si una mitad está rechazada (lib=2), mala (lib=4) o tiene defecto_pta,
+            // la otra mitad del mismo juego debe mostrar el mismo color rojo/malo.
+            // Se usa el sentinel -1 cuando el mal estado proviene solo del defecto
+            // (liberacion=0) para que la blade lo trate como pta-row-error.
+            $BAD_LIB_STATES = [2, 4]; // rechazada, mala sin liberación
+
+            // Helper: determina si una pieza es "mala"
+            $isBad = fn($nP) =>
+                in_array($ptaLiberacion[$nP], $BAD_LIB_STATES) ||
+                ($ptaDefecto[$nP] ?? 'Ninguno') !== 'Ninguno';
+
+            // Helper: obtiene el código de liberación a propagar al compañero
+            // Si el estado malo viene solo del defecto (lib=0), usamos -1 como sentinel
+            $badCode = fn($nP) =>
+                in_array($ptaLiberacion[$nP], $BAD_LIB_STATES)
+                ? $ptaLiberacion[$nP]  // rechazada(2) o mala(4) — propagar igual
+                : -1;                   // defecto sin liberación formal → sentinel rojo
+
+            $processed = [];
+            foreach (array_keys($ptaLiberacion) as $nPieza) {
+                if (in_array($nPieza, $processed)) {
+                    continue;
+                }
+                $lastChar = substr($nPieza, -1);
+                if ($lastChar !== 'M' && $lastChar !== 'H') {
+                    continue; // No es una mitad — no aplica
+                }
+                $partnerKey = substr($nPieza, 0, -1) . ($lastChar === 'M' ? 'H' : 'M');
+                if (!array_key_exists($partnerKey, $ptaLiberacion)) {
+                    continue; // La mitad contraria no está en el historial
+                }
+
+                $processed[] = $nPieza;
+                $processed[] = $partnerKey;
+
+                $thisIsBad = $isBad($nPieza);
+                $partnerIsBad = $isBad($partnerKey);
+
+                if ($thisIsBad && !$partnerIsBad) {
+                    $ptaLiberacion[$partnerKey] = $badCode($nPieza);
+                } elseif ($partnerIsBad && !$thisIsBad) {
+                    $ptaLiberacion[$nPieza] = $badCode($partnerKey);
+                }
             }
 
             // Piezas activas (estado=1, meta actual) — modo captura
@@ -524,14 +576,24 @@ class ProcessProductionController extends Controller
 
         if ($request->input('process') == "Soldadura PTA") {
             $defectos = $request->input('defecto_pta') ?? [];
+            $resultados = $request->input('resultado') ?? [];
             $hasFundicion = false;
+            $hasMal = false;
             foreach ($defectos as $defecto) {
                 if ($defecto === 'Fundición') {
                     $hasFundicion = true;
                     break;
                 }
             }
-            $error = $hasFundicion ? "Fundición" : "Ninguno";
+            foreach ($resultados as $resultado) {
+                if ($resultado === 'Mal') {
+                    $hasMal = true;
+                    break;
+                }
+            }
+            // Fundición es el defecto específico; "Mal" es el resultado general de error
+            $error = $hasFundicion ? "Fundición" : ($hasMal ? "Maquinado" : "Ninguno");
+
         } else if ($request->input('process') == "Copiado") {
             $hasMaquinado = $piece->error_cilindrado === "Maquinado" || $piece->error_cavidades === "Maquinado";
             $hasFundicion = $piece->error_cilindrado === "Fundicion" || $piece->error_cavidades === "Fundicion";
@@ -548,6 +610,57 @@ class ProcessProductionController extends Controller
         }
         $pieceInPiezas->error = $error;
         $pieceInPiezas->save();
+
+        // ── Soldadura PTA: propagar resultado malo a la mitad contraria (M↔H) ──────
+        // Si la pieza guardada tiene error (defecto_pta ≠ Ninguno), la mitad contraria
+        // del mismo juego se marca automáticamente como mala Y se cierra (estado=2)
+        // para que el sistema salte al siguiente juego en lugar de detenerse en ella.
+        if (
+            $request->input('process') === 'Soldadura PTA'
+            && $error !== 'Ninguno'
+            && $n_piece
+        ) {
+            $ultimaLetra = substr($n_piece, -1);
+            if ($ultimaLetra === 'H' || $ultimaLetra === 'M') {
+                $partnerLetra = $ultimaLetra === 'H' ? 'M' : 'H';
+                $partnerNPieza = substr($n_piece, 0, -1) . $partnerLetra;
+
+                // 1. Crear/actualizar entrada en piezas para la mitad contraria
+                $partnerEnPiezas = Pieza::where('id_clase', $class->id)
+                    ->where('proceso', 'Soldadura PTA')
+                    ->where('n_pieza', $partnerNPieza)
+                    ->first();
+                if (!$partnerEnPiezas) {
+                    $partnerEnPiezas = new Pieza();
+                    $partnerEnPiezas->id_ot = $class->id_ot;
+                    $partnerEnPiezas->id_clase = $class->id;
+                    $partnerEnPiezas->n_pieza = $partnerNPieza;
+                    $partnerEnPiezas->id_operador = $meta->id_usuario;
+                    $partnerEnPiezas->maquina = $meta->maquina;
+                    $partnerEnPiezas->proceso = 'Soldadura PTA';
+                }
+                $partnerEnPiezas->error = $error;
+                $partnerEnPiezas->save();
+
+                // 2. Marcar los registros soldaduraPTA_pza de la mitad contraria como
+                //    estado=2 (terminados) para que get_pieceToBeUsed los omita y el
+                //    sistema salte automáticamente al siguiente juego.
+                $processIdString = str_replace(' ', '_', 'Soldadura PTA')
+                    . '_' . $class->nombre . '_' . $class->id_ot;
+                $ptaProcessDB = \App\Models\SoldaduraPTA::where('id_proceso', $processIdString)->first();
+                if ($ptaProcessDB) {
+                    \App\Models\SoldaduraPTA_pza::where('id_proceso', $ptaProcessDB->id)
+                        ->where('n_pieza', $partnerNPieza)
+                        ->where('estado', 1) // solo filas activas/pendientes
+                        ->update([
+                            'estado' => 2,
+                            'resultado' => 'Mal',
+                            'defecto_pta' => $error,
+                            'error' => $error,
+                        ]);
+                }
+            }
+        }
     }
     public function selectAssembly(Request $request)
     {
@@ -1302,6 +1415,12 @@ class ProcessProductionController extends Controller
                     //Verificar si ese juego aun no ha sido contado
                     if (!in_array($noAssembly, $usedAssemblies)) {
                         array_push($usedAssemblies, $noAssembly);
+
+                        // Si la pieza no existe en la tabla piezas, omitir este juego
+                        if ($halfPiece === null) {
+                            continue;
+                        }
+
                         // Buscar la segunda mitad del juego
                         $halfLetter = substr($halfPiece->n_pieza, -1) == "M" ? "H" : "M";
                         $halfPiece2 = Pieza::where('id_clase', $class->id)->where('proceso', $process)->where("n_pieza", $noAssembly . $halfLetter)->first();

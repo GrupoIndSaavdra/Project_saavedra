@@ -66,6 +66,7 @@
         'soldadura.recepcionPlanta': @json(route('soldadura.recepcionPlanta')),
         'soldadura.liberarQRPlanta': @json(route('soldadura.liberarQRPlanta')),
         'soldadura.regenerarQR': @json(route('soldadura.regenerarQR')),
+        'pta.analysis': @json(route('pta.analysis')),
     };
 </script>
 @isset($pieces_Released)
