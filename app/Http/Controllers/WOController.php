@@ -164,13 +164,16 @@ class WOController extends Controller
                 $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
                 break;
             case 'Corona':
-                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo"];
+                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
                 break;
             case "Obturador":
             case "Fondo":
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Plato":
+                $processesInOrder = ["barreno_maniobra", "operacionEquipo"];
+                break;
+            case "Embudo":
                 $processesInOrder = ["operacionEquipo", "embudoCM"];
                 break;
             case "Cabeza de Soplo":
@@ -183,8 +186,19 @@ class WOController extends Controller
         //Ordenar array
         $soldaduraBand = false;
         if ($processesFounded) {
+            // Fallback: if all relevant processes are 0 (legacy data saved with wrong JS keys),
+            // treat all processes in the expected list as active.
+            $anyActive = false;
+            foreach ($processesInOrder as $p) {
+                if ($processesFounded[$p] != 0) {
+                    $anyActive = true;
+                    break;
+                }
+            }
+
             foreach ($processesInOrder as $process) {
-                if ($processesFounded[$process] != 0) {
+                $isActive = $anyActive ? ($processesFounded[$process] != 0) : true;
+                if ($isActive) {
                     if (str_contains($process, "soldadura") && $soldaduraBand) { // Verificar si soldadura o soldadura PTA ya fueron insertadas
                         continue;
                     }
@@ -211,6 +225,7 @@ class WOController extends Controller
             }
         }
         return $processes;
+
     }
     public function getDateEndFromProcess($process, $class)
     {

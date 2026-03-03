@@ -179,11 +179,10 @@ class ClassController extends Controller
                 $processNames = array("soldadura", "soldaduraPTA", "operacionEquipo"); //Asigno los procesos.
                 break;
             case "Corona":
-                $processNames = array("cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo");
+                $processNames = array("cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado");
                 break;
             case "Plato":
-                $processNames = array("operacionEquipo", "embudoCM");
-                break;
+                $processNames = array("barreno_maniobra", "operacionEquipo");
                 break;
             case "Embudo":
                 $processNames = array("operacionEquipo", "embudoCM");
@@ -338,10 +337,10 @@ class ClassController extends Controller
                     $piecesProcesses = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                     break;
                 case "Corona":
-                    $piecesProcesses = ["cepillado", "desbaste", "primeraOpeSoldadura", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoBombillo"];
+                    $piecesProcesses = ["cepillado", "desbaste", "primeraOpeSoldadura", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado"];
                     break;
                 case "Plato":
-                    $piecesProcesses = ["operacionEquipo", "embudoCM"];
+                    $piecesProcesses = ["barrenoManiobra", "operacionEquipo"];
                     break;
                 case "Embudo":
                     $piecesProcesses = ["operacionEquipo", "embudoCM"];
@@ -499,10 +498,10 @@ class ClassController extends Controller
                 $procesos = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Corona":
-                $procesos = ["cepillado", "desbaste", "primeraOpeSoldadura", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoBombillo"];
+                $procesos = ["cepillado", "desbaste", "primeraOpeSoldadura", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado"];
                 break;
             case "Plato":
-                $procesos = ["operacionEquipo", "embudoCM"];
+                $procesos = ["barrenoManiobra", "operacionEquipo"];
                 break;
             case "Embudo":
                 $procesos = ["operacionEquipo", "embudoCM"];

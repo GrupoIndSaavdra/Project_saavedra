@@ -42,8 +42,8 @@ use App\Models\PySOpeSoldadura_tolerancia;
 use App\Models\Pza_cepillado;
 use App\Models\Rebajes_cnominal;
 use App\Models\Rebajes_tolerancia;
-use App\Models\revCalificado_cnominal;
-use App\Models\revCalificado_tolerancia;
+use App\Models\RevCalificado_cnominal;
+use App\Models\RevCalificado_tolerancia;
 use App\Models\RevLaterales_cnominal;
 use App\Models\RevLaterales_tolerancia;
 use App\Models\SegundaOpeSoldadura_cnominal;
@@ -87,36 +87,39 @@ class ProcessesController extends Controller
                         if ($processes) {
                             $workOrders[$workOrderTxt][$class->nombre] = array();
                             foreach ($processes->getAttributes() as $process => $valor) {
-                                if (($process != "id" && $process != "id_clase" && $process != "soldadura" && $process != "soldaduraPTA" && $process != "rectificado" && $process != "asentado") && $valor != 0) {
-                                    $process = $this->convertProcessToString($process);
-                                    $workOrders[$workOrderTxt][$class->nombre][$process] = array();
-                                    if ($process == "Operacion Equipo") {
+                                if (($process != "id" && $process != "id_clase" && $process != "soldadura" && $process != "soldaduraPTA" && $process != "rectificado" && $process != "asentado" && $process != "grabado") && $valor != 0) {
+                                    $processString = $this->convertProcessToString($process);
+                                    if (!$processString) {
+                                        continue; // Skip fields with no C.Nominales form
+                                    }
+                                    $workOrders[$workOrderTxt][$class->nombre][$processString] = array();
+                                    if ($processString == "Operacion Equipo") {
                                         for ($i = 1; $i <= 2; $i++) {
-                                            $workOrders[$workOrderTxt][$class->nombre][$process][$i . ' operacion'] = array();
-                                            $data = $this->searchCNominals($class, $process, $i . ' operacion');
+                                            $workOrders[$workOrderTxt][$class->nombre][$processString][$i . ' operacion'] = array();
+                                            $data = $this->searchCNominals($class, $processString, $i . ' operacion');
                                             if ($data) {
                                                 foreach ($data as $key => $value) {
-                                                    $workOrders[$workOrderTxt][$class->nombre][$process][$i . ' operacion'][$key] = $value;
+                                                    $workOrders[$workOrderTxt][$class->nombre][$processString][$i . ' operacion'][$key] = $value;
                                                 }
                                             }
                                         }
-                                    } elseif ($process == "Copiado") {
+                                    } elseif ($processString == "Copiado") {
                                         $subProcesses = ["Cilindrado", "Cavidades"];
                                         foreach ($subProcesses as $subprocess) {
-                                            $workOrders[$workOrderTxt][$class->nombre][$process][$subprocess] = array();
-                                            $data = $this->searchCNominals($class, $process, $subprocess);
+                                            $workOrders[$workOrderTxt][$class->nombre][$processString][$subprocess] = array();
+                                            $data = $this->searchCNominals($class, $processString, $subprocess);
                                             if ($data) {
                                                 foreach ($data as $key => $value) {
-                                                    $workOrders[$workOrderTxt][$class->nombre][$process][$subprocess][$key] = $value;
+                                                    $workOrders[$workOrderTxt][$class->nombre][$processString][$subprocess][$key] = $value;
                                                 }
                                             }
                                         }
                                     } else {
                                         //Insertar cotas y tolerancias de cada proceso que no sea Copiado o 1 y 2 Operacion Equipo
-                                        $data = $this->searchCNominals($class, $process);
+                                        $data = $this->searchCNominals($class, $processString);
                                         if ($data) {
                                             foreach ($data as $key => $value) {
-                                                $workOrders[$workOrderTxt][$class->nombre][$process][$key] = $value;
+                                                $workOrders[$workOrderTxt][$class->nombre][$processString][$key] = $value;
                                             }
                                         }
                                     }
@@ -129,9 +132,61 @@ class ProcessesController extends Controller
         }
         $workOrders = count($workOrders) > 0 ? $workOrders : null;
 
+        // Fallback: if a class has empty processes (legacy data saved with wrong JS keys),
+        // populate the expected default list so the user can at least access the form.
+        if ($workOrders) {
+            foreach ($workOrders as $wot => $classes) {
+                foreach ($classes as $className => $procs) {
+                    if (empty($procs)) {
+                        $defaultProcesses = $this->getDefaultProcessesByClass($className);
+                        if ($defaultProcesses) {
+                            foreach ($defaultProcesses as $proc) {
+                                if ($proc === 'Operacion Equipo') {
+                                    $workOrders[$wot][$className][$proc] = [
+                                        '1 operacion' => [],
+                                        '2 operacion' => [],
+                                    ];
+                                } else {
+                                    $workOrders[$wot][$className][$proc] = [];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
         return view('processes_views.cNominals_view', compact('workOrders', 'pieces_Released', 'info_Pieces'));
     }
+    public function getDefaultProcessesByClass(string $className): ?array
+    {
+        return match ($className) {
+            'Bombillo', 'Molde' => [
+                'Cepillado',
+                'Desbaste Exterior',
+                'Revision Laterales',
+                'Primera Operacion',
+                'Barreno Maniobra',
+                'Segunda Operacion',
+                'Calificado',
+                'Acabado Bombillo',
+            ],
+            'Corona' => [
+                'Cepillado',
+                'Desbaste Exterior',
+                'Primera Operacion',
+                'Segunda Operacion',
+                'Calificado',
+            ],
+            'Fondo', 'Obturador' => ['Operacion Equipo'],
+            'Plato' => ['Barreno Maniobra', 'Operacion Equipo'],
+            'Embudo' => ['Operacion Equipo', 'Embudo CM'],
+            'Cabeza de Soplo' => ['Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'],
+            default => null,
+        };
+    }
+
     public function searchCNominals($class, $process, $subprocess = null)
     {
         switch ($process) {
@@ -433,6 +488,7 @@ class ProcessesController extends Controller
                 return "Grabado";
             case "operacionEquipo":
                 return "Operacion Equipo";
+            case "embudoCM":
                 return "Embudo CM";
             case "primeraOperacionCabezaSoplo":
                 return "Primera Operacion Cabeza Soplo";

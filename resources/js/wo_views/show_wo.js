@@ -703,12 +703,12 @@ function get_operationsArray(className) {
             operationsArray = ["operacionEquipo", "soldadura", "soldaduraPTA"];
             break;
         case "Corona":
-            operations = ["Cepillado", "Desbaste exterior", "1ra Operacion", "2da Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado", "Acabado Bombillo"];
-            operationsArray = ["Cepillado", "Desbaste exterior", "Primera Operacion", "Segunda Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado", "Acabado Bombillo"];
+            operations = ["Cepillado", "Desbaste exterior", "1ra Operacion", "2da Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado"];
+            operationsArray = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
             break;
         case "Plato":
-            operations = ["1ra y 2da Operación Equipo", "Embudo C.M."];
-            operationsArray = ["operacionEquipo", "embudoCM"];
+            operations = ["Barreno Maniobra", "1ra y 2da Operación Equipo"];
+            operationsArray = ["barreno_maniobra", "operacionEquipo"];
             break;
         case "Embudo":
             operations = ["1ra y 2da Operación Equipo", "Embudo C.M."];

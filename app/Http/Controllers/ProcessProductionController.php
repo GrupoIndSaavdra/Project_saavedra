@@ -76,10 +76,10 @@ class ProcessProductionController extends Controller
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Corona":
-                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo"];
+                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
                 break;
             case "Plato":
-                $processesInOrder = ["operacionEquipo", "embudoCM"];
+                $processesInOrder = ["barreno_maniobra", "operacionEquipo"];
                 break;
             case "Embudo":
                 $processesInOrder = ["operacionEquipo", "embudoCM"];
@@ -102,6 +102,28 @@ class ProcessProductionController extends Controller
         }
         // Reindexar el array para mantener los índices consecutivos
         $processesInOrder = array_values($processesInOrder);
+
+        // Fallback: if all processes are 0 in DB (legacy data), show all expected processes
+        if (empty($processesInOrder)) {
+            switch ($class->nombre) {
+                case "Bombillo":
+                case "Molde":
+                    $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde"];
+                    break;
+                case "Corona":
+                    $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
+                    break;
+                case "Plato":
+                    $processesInOrder = ["barreno_maniobra", "operacionEquipo"];
+                    break;
+                case "Embudo":
+                    $processesInOrder = ["operacionEquipo", "embudoCM"];
+                    break;
+                case "Cabeza de Soplo":
+                    $processesInOrder = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+                    break;
+            }
+        }
 
         // Convertir los procesos a su formato de nombre completo
         foreach ($processesInOrder as $key => $proc) {
@@ -1537,10 +1559,10 @@ class ProcessProductionController extends Controller
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
             case "Corona":
-                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo"];
+                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
                 break;
             case "Plato":
-                $processesInOrder = ["operacionEquipo", "embudoCM"];
+                $processesInOrder = ["barreno_maniobra", "operacionEquipo"];
                 break;
             case "Cabeza de Soplo":
                 $processesInOrder = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
@@ -1718,7 +1740,8 @@ class ProcessProductionController extends Controller
                 array_push($availableAssemblies, $assembly);
             } else { // Si el juego ya esta ocupado en el proceso actual pero no ha sido maquinado
                 $processAssembly = ["Barreno Maniobra", "Soldadura", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Embudo CM"];
-                if (in_array($process, $processAssembly)) {
+                $processForAssembly = str_contains($process, "Operacion Equipo") ? "Operacion Equipo" : $process;
+                if (in_array($processForAssembly, $processAssembly)) {
                     if (!in_array($assembly, $machinedPieces)) {
                         $remainingPieces += 1;
                     }
@@ -1736,6 +1759,9 @@ class ProcessProductionController extends Controller
     }
     public function get_RemainingPieces($process, $previousProcess, $class)
     {
+        // Normalize sub-process names for assembly-type checks
+        // "Operacion Equipo_1 operacion" / "Operacion Equipo_2 operacion" → "Operacion Equipo"
+        $processForCheck = str_contains($process, "Operacion Equipo") ? "Operacion Equipo" : $process;
         $preProcessString = str_contains($previousProcess, "Operacion Equipo") ? "Operacion Equipo" : $previousProcess;
         $remainingPieces = 0;
         $totalGood = 0;
@@ -1813,13 +1839,14 @@ class ProcessProductionController extends Controller
                         } else if (!in_array($prePiece->n_juego, $countedAssemblies)) {
                             // Verificar si en el proceso actual se registran por juego o por mitad
                             $processAssembly = ["Barreno Maniobra", "Soldadura", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Embudo CM"];
-                            if (in_array($previousProcess, $processAssembly)) { // Si el proceso anterior se registran por juego
+                            $previousProcessForCheck = str_contains($previousProcess, "Operacion Equipo") ? "Operacion Equipo" : $previousProcess;
+                            if (in_array($previousProcessForCheck, $processAssembly)) { // Si el proceso anterior se registran por juego
                                 $n_juego = $prePiece->n_juego;
                                 // Verificar si la pieza está correcta en el proceso anterior
                                 $releasedPiece = $this->verifyPiece(Pieza::where('n_pieza', $n_juego)->where('proceso', $previousProcess)->where('id_clase', $class->id)->first());
                                 if ($releasedPiece) {
                                     $totalGood += 1;
-                                    if (in_array($process, $processAssembly)) {
+                                    if (in_array($processForCheck, $processAssembly)) {
                                         if (!in_array($n_juego, $machinedPieces)) {
                                             $remainingPieces += 1; // Verificar si en el proceso actual se registran por juego o por mitad
                                         }
@@ -1838,7 +1865,7 @@ class ProcessProductionController extends Controller
                                 $releasedPiece = $this->verifyPiece(Pieza::where('n_pieza', $n_pieza)->where('proceso', $previousProcess)->where('id_clase', $class->id)->first());
                                 if ($releasedPiece) {
                                     $totalGood += 0.5;
-                                    if (in_array($process, $processAssembly)) {
+                                    if (in_array($processForCheck, $processAssembly)) {
                                         $noAssembly = substr($n_pieza, 0, -1);
                                         $halfPieceJ = $noAssembly . "J";
                                         if (!in_array($halfPieceJ, $machinedPieces)) {
@@ -1895,6 +1922,11 @@ class ProcessProductionController extends Controller
 
         //Si el proceso no existe crearlo para retornar las piezas
         if (!$processDB) {
+            // Guard: "Operacion Equipo" without a sub-process number cannot be inserted
+            // (operacion column would be empty). Return empty arrays instead.
+            if ($processString == "Operacion Equipo" && !str_contains($processName, "operacion")) {
+                return [[], []];
+            }
             $processDB = new $modelProcess();
             $processDB->id_proceso = $id_process_string;
             $processDB->id_ot = $class->id_ot;
