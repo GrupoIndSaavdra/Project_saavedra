@@ -91,17 +91,19 @@ class PTACardComponent {
         const label1 = this._buildLabel("label-term");
         section.appendChild(label1);
 
-        // Label + Barra — Liberadas por admin (azul)
-        const bar2 = this._buildBar("bar-lib", "#dbeafe", "linear-gradient(to right, #90def3, #043885)");
+        // Label + Barra — Sin liberar / mixto (AZUL)
+        const bar2 = this._buildBar("bar-sin", "#dbeafe", "linear-gradient(to right, #90bff3, #043885)");
         section.appendChild(bar2);
 
-        // Label + Barra — Sin liberar / mixto (verde)
-        const bar4 = this._buildBar("bar-sin", "#e1fcc6", "linear-gradient(to right, #9ff390, #0a8504)");
+        // Label + Barra — Liberados por admin (VERDE)
+        const bar4 = this._buildBar("bar-lib", "#e1fcc6", "linear-gradient(to right, #9ff390, #0a8504)");
         section.appendChild(bar4);
 
-        // Label + Barra — Rechazados por análisis admin (rojo)
-        const bar3 = this._buildBar("bar-rej", "#fcc6c6", "linear-gradient(to right, #f38080, #9c0303)");
-        section.appendChild(bar3);
+        // Label + Barra apilada — Juegos Totales (azul = sin liberar | verde = liberados)
+        const labelTot = this._buildLabel("label-tot");
+        section.appendChild(labelTot);
+        const barTot = this._buildStackedBar("bar-tot");
+        section.appendChild(barTot);
 
         // Click: navegar a la vista de resultados
         // (se registra ANTES de _updateBars para que un posible error
@@ -135,8 +137,6 @@ class PTACardComponent {
         wrap.id = `${barId}-${this.otId}`;
 
         const fill = document.createElement("div");
-        // Usa la clase 'progress' para height:100% y agrega estilo azul inline
-        // No usamos good-progress para diferenciarlo visualmente de piezas buenas
         fill.className = `pta-bar-fill ${barId}-fill progress`;
         fill.style.background = fillGradient;
         fill.style.width = "0%";
@@ -149,6 +149,41 @@ class PTACardComponent {
         return wrap;
     }
 
+    // ── Construye la barra apilada de Juegos Totales ──────────
+    // Siempre al 100%. Segmento izquierdo (violeta) = liberados,
+    // segmento derecho (naranja) = sin liberar. Conforme avanzan liberados
+    // el violeta crece y el naranja se reduce.
+    _buildStackedBar(barId) {
+        const wrap = document.createElement("div");
+        wrap.className = "progress-bar";
+        wrap.style.backgroundColor = "#e4d9f7"; // fondo suave si nada liberado
+        wrap.style.position = "relative";
+        wrap.style.overflow = "hidden";
+        wrap.id = `${barId}-${this.otId}`;
+
+        // Segmento VIOLETA: juegos liberados (crece desde la izquierda)
+        const fillLib = document.createElement("div");
+        fillLib.className = "pta-bar-fill progress";
+        fillLib.id = `${barId}-fill-lib-${this.otId}`;
+        fillLib.style.cssText = "background: linear-gradient(to right, #c084fc, #7c3aed); width:0%; position:absolute; left:0; top:0; height:100%; transition: width .5s ease;";
+        wrap.appendChild(fillLib);
+
+        // Segmento NARANJA: juegos sin liberar (lo que queda a la derecha)
+        const fillSin = document.createElement("div");
+        fillSin.className = "pta-bar-fill progress";
+        fillSin.id = `${barId}-fill-sin-${this.otId}`;
+        fillSin.style.cssText = "background: linear-gradient(to right, #ffb347, #e65c00); width:100%; position:absolute; right:0; top:0; height:100%; transition: width .5s ease;";
+        wrap.appendChild(fillSin);
+
+        const info = document.createElement("div");
+        info.className = "progress-percentage";
+        info.style.position = "relative";
+        info.style.zIndex = "1";
+        wrap.appendChild(info);
+
+        return wrap;
+    }
+
     // ── Actualiza solo los elementos internos (sin re-render) ─
     _updateBars(root, skipConnectionCheck) {
         root = root || this.root;
@@ -156,6 +191,10 @@ class PTACardComponent {
         if (!skipConnectionCheck && !root.isConnected) return;
 
         const terminadas = this.current;
+
+        // sinLiberar se calcula localmente: juegos terminados que aún no están liberados.
+        // Esto evita el bug donde el servidor devuelve 0 porque auto-libera al guardar.
+        const sinLiberar = Math.max(0, terminadas - this.liberadas - this.rechazadas);
 
         // Etiqueta terminadas (texto informativo, sin barra)
         const labelT = root.querySelector(`#label-term-${this.otId}`);
@@ -175,23 +214,37 @@ class PTACardComponent {
             if (lbl) lbl.textContent = labelText;
         };
 
-        // Barra liberadas (azul) — juegos completos con AMBAS piezas liberadas
+        // Barra sin liberar (AZUL) — calculado localmente
+        setBar("bar-sin", "label-sin", sinLiberar,
+            `Sin liberar: ${sinLiberar}/${terminadas}`,
+            "juegos sin liberar"
+        );
+
+        // Barra liberados (VERDE)
         setBar("bar-lib", "label-lib", this.liberadas,
             `Liberados: ${this.liberadas}/${terminadas}`,
             "juegos liberados"
         );
 
-        // Barra sin liberar (verde) — juegos completos en estado mixto/pendiente
-        setBar("bar-sin", "label-sin", this.sinLiberar,
-            `Sin liberar: ${this.sinLiberar}/${terminadas}`,
-            "juegos sin liberar"
-        );
+        // ── Barra apilada: Juegos Totales (siempre 100% llena) ──────────
+        // Violeta (liberados) crece desde la izquierda.
+        // Naranja (sin liberar) ocupa el resto hacia la derecha.
+        const pctLib = terminadas > 0 ? Math.min(100, Math.round((this.liberadas / terminadas) * 100)) : 0;
+        const pctSin = 100 - pctLib; // naranja = lo que queda
 
-        // Barra rechazados (rojo) — juegos completos con AMBAS piezas rechazadas
-        setBar("bar-rej", "label-rej", this.rechazadas,
-            `Rechazados: ${this.rechazadas}/${terminadas}`,
-            "juegos rechazados"
-        );
+        const barTot = root.querySelector(`#bar-tot-${this.otId}`);
+        const lblTot = root.querySelector(`#label-tot-${this.otId}`);
+        if (barTot) {
+            const fLib = barTot.querySelector(`#bar-tot-fill-lib-${this.otId}`);
+            const fSin = barTot.querySelector(`#bar-tot-fill-sin-${this.otId}`);
+            if (fLib) fLib.style.width = `${pctLib}%`;
+            if (fSin) fSin.style.width = `${pctSin}%`;
+            const info = barTot.querySelector(".progress-percentage");
+            if (info) info.textContent =
+                `${this.liberadas} liberados + ${sinLiberar} pendientes = ${terminadas} total`;
+        }
+        if (lblTot) lblTot.textContent =
+            `Juegos Totales: ${this.liberadas}/${terminadas} liberados`;
     }
 
     // ── Polling AJAX cada 10 s ───────────────────────────────

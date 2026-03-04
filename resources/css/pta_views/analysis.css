@@ -345,3 +345,42 @@
 .pta-empty-state span {
     font-size: 2.5rem;
 }
+
+/* ── Bloque y header por juego en datos técnicos ─────────────── */
+.pta-juego-block {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    margin-bottom: 1.8rem;
+}
+
+.pta-juego-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
+    color: #fff;
+    padding: 0.65rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.pta-juego-titulo {
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.pta-juego-piezas {
+    font-size: 0.82rem;
+    opacity: 0.85;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 1px 8px;
+}
+
+/* ── La tabla dentro de cada bloque de juego no lleva bordes redondeados ─── */
+.pta-juego-block .pta-table-wrapper {
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+}

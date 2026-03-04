@@ -13,15 +13,15 @@
         {{-- Header --}}
         <div class="pta-header">
             <h2>Análisis de Resultados Sold. PTA</h2>
-            <p>Vista administrativa — Visualización y liberación de resultados por OT</p>
+            <p>Vista administrativa — Visualización de resultados por OT</p>
         </div>
 
         {{-- Alertas --}}
         @if (session('success'))
-            <div class="pta-alert pta-alert-success">✅ {{ session('success') }}</div>
+            <div class="pta-alert pta-alert-success">&#10003; {{ session('success') }}</div>
         @endif
         @if (session('error'))
-            <div class="pta-alert pta-alert-error">❌ {{ session('error') }}</div>
+            <div class="pta-alert pta-alert-error">&#10007; {{ session('error') }}</div>
         @endif
 
         {{-- Filtro OT --}}
@@ -53,137 +53,160 @@
                     </div>
                 </div>
             @else
-                <div class="pta-results-table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Pieza</th>
-                                <th>Pico Llenado</th>
-                                <th>Pico Soldadura</th>
-                                <th>Conexión Llenado</th>
-                                <th>Conexión Soldadura</th>
-                                <th>Perfilado Llenado</th>
-                                <th>Perfilado Soldadura</th>
-                                <th>Img. Pico</th>
-                                <th>Img. Conexión</th>
-                                <th>Img. Perfilado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($piezasPTA as $pieza)
-                                @php $res = $resultados->get($pieza->id); @endphp
-                                <tr>
-                                    <td><strong>{{ $pieza->n_pieza }}</strong></td>
+                {{-- Agrupar piezasPTA por prefijo numérico (juego) --}}
+                @php
+                    $juegosPTA = [];
+                    foreach ($piezasPTA as $pieza) {
+                        preg_match('/^(\d+)/', $pieza->n_pieza, $m);
+                        $jNum = $m[1] ?? $pieza->n_pieza;
+                        $juegosPTA[$jNum][$pieza->n_pieza] = $pieza;
+                    }
+                    ksort($juegosPTA, SORT_NUMERIC);
+                @endphp
 
-                                    {{-- Resultados --}}
-                                    @php
-                                        $campos = [
-                                            $res->resultado_pico_llenado ?? null,
-                                            $res->resultado_pico_soldadura ?? null,
-                                            $res->resultado_conexion_llenado ?? null,
-                                            $res->resultado_conexion_soldadura ?? null,
-                                            $res->resultado_perfilado_llenado ?? null,
-                                            $res->resultado_perfilado_soldadura ?? null,
-                                        ];
-                                    @endphp
-                                    @foreach ($campos as $campo)
-                                        <td>
-                                            @if ($campo === 'Si')
-                                                <span class="badge-si">&#10003;</span>
-                                            @elseif ($campo === 'No')
-                                                <span class="badge-no">&#10007;</span>
-                                            @elseif ($campo === 'No Aplica')
-                                                <span class="badge-na">N/A</span>
-                                            @else
-                                                <span class="badge-empty">—</span>
-                                            @endif
-                                        </td>
-                                    @endforeach
+                <div class="pta-tech-section" style="margin-top:1.5rem;">
+                    <div class="pta-header" style="margin-bottom:1.5rem;">
+                        <h3 style="margin:0;">Resultados y Datos Técnicos — OT {{ $ot->id }}</h3>
+                        <p style="margin:0.2rem 0 0;opacity:.8;">Información detallada agrupada por juego</p>
+                    </div>
 
-                                    {{-- Imágenes --}}
-                                    <td>
-                                        @if ($res && $res->imagen_pico_soldadura)
-                                            <button type="button" class="btn-img-thumb"
-                                                onclick="openModal('{{ Storage::url($res->imagen_pico_soldadura) }}', 'Pico Soldadura - {{ $pieza->n_pieza }}')">
-                                                🖼️ Ver
-                                            </button>
-                                        @else
-                                            <span class="badge-empty">—</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if ($res && $res->imagen_conexion_soldadura)
-                                            <button type="button" class="btn-img-thumb"
-                                                onclick="openModal('{{ Storage::url($res->imagen_conexion_soldadura) }}', 'Conexión Soldadura - {{ $pieza->n_pieza }}')">
-                                                🖼️ Ver
-                                            </button>
-                                        @else
-                                            <span class="badge-empty">—</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if ($res && $res->imagen_perfilado_soldadura)
-                                            <button type="button" class="btn-img-thumb"
-                                                onclick="openModal('{{ Storage::url($res->imagen_perfilado_soldadura) }}', 'Perfilado Soldadura - {{ $pieza->n_pieza }}')">
-                                                🖼️ Ver
-                                            </button>
-                                        @else
-                                            <span class="badge-empty">—</span>
-                                        @endif
-                                    </td>
+                    @foreach ($juegosPTA as $jNum => $piezasDelJuegoObj)
+                        @php
+                            $piezasKeys    = array_keys($piezasDelJuegoObj);
+                            $piezasLabel   = implode(' / ', $piezasKeys);
 
-                                    {{-- Acciones: badge estado + botón Liberar + botón Rechazar --}}
-                                    <td>
-                                        <div class="acciones-cell">
-                                            @if ($res)
-                                                {{-- Badge de estado actual --}}
-                                                @if ($res->liberado_por_admin)
-                                                    <span class="badge-liberada">&#10003; Liberada &#10003;</span>
-                                                    <div style="font-size:.72rem;color:#6c757d;margin-bottom:2px;">
-                                                        {{ $res->liberador->nombre ?? 'Admin' }}<br>
-                                                        {{ $res->fecha_liberacion?->format('d/m/Y H:i') }}
-                                                    </div>
-                                                @elseif ($res->rechazado_por_admin)
-                                                    <span class="badge-rechazada">&#10007; Rechazada &#10007;</span>
-                                                    <div style="font-size:.72rem;color:#6c757d;margin-bottom:2px;">
-                                                        {{ $res->rechazador->nombre ?? 'Admin' }}<br>
-                                                        {{ $res->fecha_rechazo?->format('d/m/Y H:i') }}
-                                                    </div>
-                                                @else
-                                                    <span class="badge-no-liberada">Pendiente</span>
-                                                @endif
+                            $todasLiberadas = true;
+                            foreach ($piezasKeys as $_k) {
+                                $_pieza = $piezasPTA->firstWhere('n_pieza', $_k);
+                                if (!$_pieza) { $todasLiberadas = false; break; }
+                                $_res = $resultados->get($_pieza->id);
+                                if (!$_res || !$_res->liberado_por_admin) { $todasLiberadas = false; break; }
+                            }
 
-                                                {{-- Botón LIBERAR: visible cuando NO está liberada --}}
-                                                @if (!$res->liberado_por_admin)
-                                                    <form method="POST" action="{{ route('pta.results.liberar', ['id' => $res->id]) }}"
-                                                        onsubmit="return confirm('¿Confirmar liberación de pieza {{ $pieza->n_pieza }}?')">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        <input type="hidden" name="liberar" value="1">
-                                                        <button type="submit" class="btn-liberar-pta">&#10003; Liberar &#10003;</button>
-                                                    </form>
-                                                @endif
+                            $piezasDelJuegoTecnicos = [];
+                            if (isset($piezasGroup) && $piezasGroup->isNotEmpty()) {
+                                foreach ($piezasKeys as $_k) {
+                                    if ($piezasGroup->has($_k)) {
+                                        $piezasDelJuegoTecnicos[$_k] = $piezasGroup->get($_k);
+                                    }
+                                }
+                            }
+                        @endphp
 
-                                                {{-- Botón RECHAZAR: visible cuando NO está rechazada --}}
-                                                @if (!$res->rechazado_por_admin)
-                                                    <form method="POST" action="{{ route('pta.results.rechazar', ['id' => $res->id]) }}"
-                                                        onsubmit="return confirm('¿Confirmar rechazo de pieza {{ $pieza->n_pieza }}?')">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        <input type="hidden" name="rechazar" value="1">
-                                                        <button type="submit" class="btn-rechazar-pta">&#10007; Rechazar &#10007;</button>
-                                                    </form>
-                                                @endif
-                                            @else
-                                                <span class="badge-empty" style="font-size:.78rem;">Sin datos</span>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                        <div class="pta-juego-block" style="margin-bottom:2.5rem;">
+                            {{-- Header del juego --}}
+                            <div class="pta-juego-header">
+                                <span class="pta-juego-titulo">Juego {{ $jNum }}</span>
+                                <span class="pta-juego-piezas">{{ $piezasLabel }}</span>
+                                @if ($todasLiberadas)
+                                    <span class="badge-si" style="margin-left:auto;">✓ Juego Liberado</span>
+                                @elseif (count($piezasDelJuegoObj) < 2)
+                                    <span class="badge-na" style="margin-left:auto;">Incompleto</span>
+                                @else
+                                    <span class="badge-empty" style="margin-left:auto;">Pendiente</span>
+                                @endif
+                            </div>
+
+                            {{-- 1. Tabla General de Resultados e Imágenes --}}
+                            <div class="pta-results-table-wrap" style="border-radius:0; box-shadow:none; margin:0; border-bottom:2px solid #ddd;">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Pieza</th>
+                                            <th>Pico Llenado</th>
+                                            <th>Pico Soldadura</th>
+                                            <th>Conexión Llenado</th>
+                                            <th>Conexión Soldadura</th>
+                                            <th>Perfilado Llenado</th>
+                                            <th>Perfilado Soldadura</th>
+                                            <th>Img. Pico</th>
+                                            <th>Img. Conexión</th>
+                                            <th>Img. Perfilado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($piezasDelJuegoObj as $pieza)
+                                            @php $res = $resultados->get($pieza->id); @endphp
+                                            <tr>
+                                                <td><strong>{{ $pieza->n_pieza }}</strong></td>
+
+                                                {{-- Resultados --}}
+                                                @php
+                                                    $campos = [
+                                                        $res->resultado_pico_llenado ?? null,
+                                                        $res->resultado_pico_soldadura ?? null,
+                                                        $res->resultado_conexion_llenado ?? null,
+                                                        $res->resultado_conexion_soldadura ?? null,
+                                                        $res->resultado_perfilado_llenado ?? null,
+                                                        $res->resultado_perfilado_soldadura ?? null,
+                                                    ];
+                                                @endphp
+                                                @foreach ($campos as $campo)
+                                                    <td>
+                                                        @if ($campo === 'Si')
+                                                            <span class="badge-si">&#10003;</span>
+                                                        @elseif ($campo === 'No')
+                                                            <span class="badge-no">&#10007;</span>
+                                                        @elseif ($campo === 'No Aplica')
+                                                            <span class="badge-na">N/A</span>
+                                                        @else
+                                                            <span class="badge-empty">—</span>
+                                                        @endif
+                                                    </td>
+                                                @endforeach
+
+                                                {{-- Imágenes --}}
+                                                <td>
+                                                    @if ($res && $res->imagen_pico_soldadura)
+                                                        <button type="button" class="btn-img-thumb"
+                                                            onclick="openModal('{{ Storage::url($res->imagen_pico_soldadura) }}', 'Pico Soldadura - {{ $pieza->n_pieza }}')">
+                                                            🖼️ Ver
+                                                        </button>
+                                                    @else
+                                                        <span class="badge-empty">—</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if ($res && $res->imagen_conexion_soldadura)
+                                                        <button type="button" class="btn-img-thumb"
+                                                            onclick="openModal('{{ Storage::url($res->imagen_conexion_soldadura) }}', 'Conexión Soldadura - {{ $pieza->n_pieza }}')">
+                                                            🖼️ Ver
+                                                        </button>
+                                                    @else
+                                                        <span class="badge-empty">—</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if ($res && $res->imagen_perfilado_soldadura)
+                                                        <button type="button" class="btn-img-thumb"
+                                                            onclick="openModal('{{ Storage::url($res->imagen_perfilado_soldadura) }}', 'Perfilado Soldadura - {{ $pieza->n_pieza }}')">
+                                                            🖼️ Ver
+                                                        </button>
+                                                    @else
+                                                        <span class="badge-empty">—</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {{-- 2. Tabla de Datos Técnicos --}}
+                            @if (!empty($piezasDelJuegoTecnicos))
+                                @include('processes_views.soldaduraPTA_table_partial', [
+                                    'piezasGroup'        => collect($piezasDelJuegoTecnicos),
+                                    'piezas'             => collect(),
+                                    'modo'               => 'reporte',
+                                    'piezasGroupActivas' => collect(),
+                                ])
+                            @else
+                                <div style="padding:1.5rem; text-align:center; color:#888; font-size:0.95rem; background:#fbfbfb;">
+                                    Sin datos técnicos de soldadura registrados para este juego.
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
                 </div>
             @endif
         @else
@@ -209,30 +232,123 @@
         </div>
     </div>
 
-    <script>
-        function openModal(src, title) {
-            document.getElementById('modal-img').src = src;
-            document.getElementById('modal-title').textContent = title;
-            document.getElementById('img-modal').classList.add('show');
-        }
-        function closeModal() {
-            document.getElementById('img-modal').classList.remove('show');
-            document.getElementById('modal-img').src = '';
-        }
-        function closeModalOnBackdrop(e) {
-            if (e.target === document.getElementById('img-modal')) closeModal();
-        }
-        // ESC cierra el modal
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeModal();
-        });
+    {{-- ── Datos técnicos de Soldadura PTA por juego ─────────────────────── --}}
+    @if (isset($piezasGroup) && $piezasGroup->isNotEmpty())
+        @php
+            // Agrupar las piezas por su prefijo numérico (juego)
+            // Ej: "2H" y "2M" → juego "2"
+            $juegosTecnicos = [];
+            foreach ($piezasGroup as $nPieza => $subFilas) {
+                preg_match('/^(\d+)/', $nPieza, $m);
+                $juegoNum = $m[1] ?? $nPieza;
+                $juegosTecnicos[$juegoNum][$nPieza] = $subFilas;
+            }
+            ksort($juegosTecnicos, SORT_NUMERIC);
 
-        // Auto-dismiss de alertas (4 s + fade-out)
-        document.querySelectorAll('.pta-alert').forEach((el) => {
-            setTimeout(() => {
-                el.classList.add('fade-out');
-                el.addEventListener('transitionend', () => el.remove(), { once: true });
-            }, 4000);
-        });
-    </script>
+            // Filtrar para mostrar SOLO los juegos que salieron "mal" según el reporte del operador
+            $juegosTecnicosMalos = [];
+            foreach ($juegosTecnicos as $jNum => $piezasDelJuego) {
+                $esMalo = false;
+
+                // 1. Revisar los datos técnicos (resultado = Mal o defecto distinto a Ninguno)
+                foreach ($piezasDelJuego as $nPieza => $subFilas) {
+                    foreach ($subFilas as $sf) {
+                        if (strtolower(trim($sf->resultado ?? '')) === 'mal' ||
+                            strtolower(trim($sf->defecto_pta ?? 'ninguno')) !== 'ninguno') {
+                            $esMalo = true;
+                            break 2;
+                        }
+                    }
+                }
+
+                if ($esMalo) {
+                    $juegosTecnicosMalos[$jNum] = $piezasDelJuego;
+                }
+            }
+        @endphp
+
+        <div class="pta-tech-section" style="margin-top:2rem; padding: 0 1.5rem; margin-bottom: 2rem;">
+            <div class="pta-header" style="margin-bottom:1.5rem;">
+                <h3 style="margin:0;">Juegos Defectuosos — OT {{ $ot->id }}</h3>
+                <p style="margin:0.2rem 0 0;opacity:.8;">Detalles técnicos de los juegos que salieron mal (solo lectura)</p>
+            </div>
+
+            @if (empty($juegosTecnicosMalos))
+                <div style="padding:1.5rem; text-align:center; color:#888; font-size:0.95rem; background:#fbfbfb; border-radius: 8px; border: 1px dashed #ccc;">
+                    Ningún juego de esta OT presenta errores o defectos técnicos.
+                </div>
+            @else
+                @foreach ($juegosTecnicosMalos as $jNum => $piezasDelJuego)
+                    @php
+                        $piezasKeys    = array_keys($piezasDelJuego);
+                        $piezasLabel   = implode(' / ', $piezasKeys);
+
+                        // Determinar si todas las piezas del juego están liberadas
+                        $todasLiberadas = true;
+                        foreach ($piezasKeys as $_k) {
+                            $_pieza = $piezasPTA->firstWhere('n_pieza', $_k);
+                            if (!$_pieza) { $todasLiberadas = false; break; }
+                            $_res = $resultados->get($_pieza->id);
+                            if (!$_res || !$_res->liberado_por_admin) { $todasLiberadas = false; break; }
+                        }
+                    @endphp
+
+                    <div class="pta-juego-block" style="margin-bottom:2rem;">
+                        {{-- Header del juego --}}
+                        <div class="pta-juego-header">
+                            <span class="pta-juego-titulo" style="color:#d32f2f;">Juego {{ $jNum }} (Con Defectos)</span>
+                            <span class="pta-juego-piezas">{{ $piezasLabel }}</span>
+                            @if ($todasLiberadas)
+                                <span class="badge-si" style="margin-left:auto;">✓ Juego Liberado</span>
+                            @elseif (count($piezasDelJuego) < 2)
+                                <span class="badge-na" style="margin-left:auto;">Incompleto</span>
+                            @else
+                                <span class="badge-empty" style="margin-left:auto;">Pendiente</span>
+                            @endif
+                        </div>
+
+                        {{-- Tabla con solo las piezas de este juego --}}
+                        @include('processes_views.soldaduraPTA_table_partial', [
+                            'piezasGroup' => collect($piezasDelJuego),
+                            'piezas' => collect(),
+                            'modo' => 'reporte',
+                            'piezasGroupActivas' => collect(),
+                        ])
+
+                    </div>
+                @endforeach
+            @endif
+        </div>
+    @elseif (isset($ot) && $ot)
+            <div style="margin-top:1.5rem;padding:1rem 1.5rem;background:#f7f7f7;border-radius:10px;color:#888;font-size:.9rem;text-align:center;">
+                    No hay datos técnicos de soldadura registrados para esta OT.
+                </div>
+        @endif
+
+        <script>
+            function openModal(src, title) {
+                document.getElementById('modal-img').src = src;
+                document.getElementById('modal-title').textContent = title;
+                document.getElementById('img-modal').classList.add('show');
+            }
+            function closeModal() {
+                document.getElementById('img-modal').classList.remove('show');
+                document.getElementById('modal-img').src = '';
+            }
+            function closeModalOnBackdrop(e) {
+                if (e.target === document.getElementById('img-modal')) closeModal();
+            }
+            // ESC cierra el modal
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeModal();
+            });
+
+            // Auto-dismiss de alertas (4 s + fade-out)
+            document.querySelectorAll('.pta-alert').forEach((el) => {
+                setTimeout(() => {
+                    el.classList.add('fade-out');
+                    el.addEventListener('transitionend', () => el.remove(), { once: true });
+                }, 4000);
+            });
+        </script>
 @endsection

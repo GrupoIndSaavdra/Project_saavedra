@@ -7,6 +7,7 @@ use App\Models\Orden_trabajo;
 use App\Models\Pieza;
 use App\Models\PtaResultado;
 use App\Models\SoldaduraPTA;
+use App\Models\SoldaduraPTA_pza;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -167,9 +168,36 @@ class PtaResultsController extends Controller
 
         $resultado->save();
 
+        // ── Auto-liberar la pieza actual al guardar ───────────────────────────
+        $resultado->liberado_por_admin = true;
+        $resultado->liberado_por = auth()->id();
+        $resultado->fecha_liberacion = now();
+        $resultado->rechazado_por_admin = false;
+        $resultado->rechazado_por = null;
+        $resultado->fecha_rechazo = null;
+        $resultado->save();
+
+        // Verificar si la pieza complementaria también está guardada (juego completo)
+        $msg = '💾 Resultados guardados y pieza liberada.';
+        preg_match('/^\d+/', $resultado->n_pieza, $m);
+        $prefix = $m[0] ?? null;
+
+        if ($prefix) {
+            $compañera = PtaResultado::where('ot_id', $ot_id)
+                ->where('id', '!=', $resultado->id)
+                ->whereHas('pieza', fn($q) => $q->where('n_pieza', 'like', $prefix . '%'))
+                ->first();
+
+            if ($compañera && $compañera->liberado_por_admin) {
+                $msg = '✅ Juego ' . $prefix . ' completo — ambas piezas liberadas.';
+            } elseif ($compañera) {
+                $msg = '💾 Pieza guardada y liberada. Falta completar la pieza complementaria del juego ' . $prefix . '.';
+            }
+        }
+
         return redirect()
             ->route('pta.results', ['ot_id' => $ot_id, 'pieza_id' => $request->pieza_id])
-            ->with('success', 'Resultados guardados correctamente.');
+            ->with('success', $msg);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -247,6 +275,7 @@ class PtaResultsController extends Controller
         $otSeleccionadaId = $request->get('ot_id');
         $resultados = collect();
         $piezasPTA = collect();
+        $piezasGroup = collect();
         $ot = null;
 
         if ($otSeleccionadaId) {
@@ -258,6 +287,17 @@ class PtaResultsController extends Controller
                 ->with(['pieza', 'liberador'])
                 ->get()
                 ->keyBy('pieza_id');
+
+            // ── Datos técnicos de soldadura (soldaduraPTA_pza) ─────────────────
+            // Se busca el último proceso PTA de esta OT y se agrupan sus sub-filas
+            // por n_pieza para pasarlas al partial en modo reporte.
+            $procesoPTA = SoldaduraPTA::where('id_ot', $otSeleccionadaId)
+                ->latest()
+                ->first();
+
+            $piezasGroup = $procesoPTA
+                ? (new SoldaduraPTAController())->buildPiezasGroup($procesoPTA->id)
+                : collect();
         }
 
         return view('pta_views.analysis', compact(
@@ -265,7 +305,8 @@ class PtaResultsController extends Controller
             'otSeleccionadaId',
             'ot',
             'piezasPTA',
-            'resultados'
+            'resultados',
+            'piezasGroup'
         ));
     }
 

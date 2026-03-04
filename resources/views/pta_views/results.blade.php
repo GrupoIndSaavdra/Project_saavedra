@@ -286,8 +286,10 @@
                             @endforeach
 
                             <td>
-                                @if ($res)
-                                    <span class="badge-si">Guardado</span>
+                                @if ($res && $res->liberado_por_admin)
+                                    <span class="badge-si">✓ Liberada</span>
+                                @elseif ($res)
+                                    <span class="badge-na">Guardada</span>
                                 @else
                                     <span class="badge-empty">Pendiente</span>
                                 @endif
