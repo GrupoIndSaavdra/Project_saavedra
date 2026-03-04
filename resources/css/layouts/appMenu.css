@@ -10,12 +10,15 @@ header {
     box-sizing: border-box;
     width: 100%;
     height: 5vh;
-    z-index: 5; 
+    z-index: 995;
+    position: sticky;
+    top: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 5px;
     background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Agregamos sombra ligera para separarlo del contenido escroleable */
 }
 body {
     background-size: cover;
@@ -40,7 +43,7 @@ body {
 }
 .btn-liberation {
     margin: 20px;
-    padding:10px;
+    padding: 10px;
     border-radius: 10px;
     color: #fff;
     font-weight: 800;

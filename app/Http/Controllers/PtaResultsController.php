@@ -7,7 +7,6 @@ use App\Models\Orden_trabajo;
 use App\Models\Pieza;
 use App\Models\PtaResultado;
 use App\Models\SoldaduraPTA;
-use App\Models\SoldaduraPTA_pza;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -15,7 +14,44 @@ class PtaResultsController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        // auth middleware is now applied selectively in routes/web.php via pta.access
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SESIÓN TEMPORAL
+    // ═══════════════════════════════════════════════════════════════════════
+
+    public function verifyTempPassword(Request $request)
+    {
+        $password = $request->input('password');
+
+        // Contraseña predefinida
+        if ($password === 'PTA2026') {
+            session([
+                'pta_temp_auth' => true,
+                'pta_temp_ot_id' => $request->input('ot_id'),
+                'pta_return_url' => url()->previous()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'redirect_url' => route('pta.results', ['ot_id' => $request->input('ot_id')])
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Contraseña incorrecta'
+        ], 403);
+    }
+
+    public function closeTempSession()
+    {
+        $returnUrl = session('pta_return_url', route('home')); // Fallback
+
+        session()->forget(['pta_temp_auth', 'pta_temp_ot_id', 'pta_return_url']);
+
+        return redirect($returnUrl);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -170,11 +206,6 @@ class PtaResultsController extends Controller
 
         // ── Auto-liberar la pieza actual al guardar ───────────────────────────
         $resultado->liberado_por_admin = true;
-        $resultado->liberado_por = auth()->id();
-        $resultado->fecha_liberacion = now();
-        $resultado->rechazado_por_admin = false;
-        $resultado->rechazado_por = null;
-        $resultado->fecha_rechazo = null;
         $resultado->save();
 
         // Verificar si la pieza complementaria también está guardada (juego completo)
@@ -215,16 +246,6 @@ class PtaResultsController extends Controller
         $liberar = $request->boolean('liberar', true);
 
         $resultado->liberado_por_admin = $liberar;
-        $resultado->liberado_por = $liberar ? auth()->id() : null;
-        $resultado->fecha_liberacion = $liberar ? now() : null;
-
-        // Si se libera, quitar cualquier rechazo previo
-        if ($liberar) {
-            $resultado->rechazado_por_admin = false;
-            $resultado->rechazado_por = null;
-            $resultado->fecha_rechazo = null;
-        }
-
         $resultado->save();
 
         $msg = $liberar ? 'Pieza liberada correctamente.' : 'Liberación revocada correctamente.';
@@ -239,23 +260,11 @@ class PtaResultsController extends Controller
     {
         $resultado = PtaResultado::findOrFail($id);
 
-        $rechazar = $request->boolean('rechazar', true);
-
-        $resultado->rechazado_por_admin = $rechazar;
-        $resultado->rechazado_por = $rechazar ? auth()->id() : null;
-        $resultado->fecha_rechazo = $rechazar ? now() : null;
-
-        // Si se rechaza, quitar cualquier liberación previa
-        if ($rechazar) {
-            $resultado->liberado_por_admin = false;
-            $resultado->liberado_por = null;
-            $resultado->fecha_liberacion = null;
-        }
-
+        // Sin funcionalidad de rechazo separada en la BD, simplemente revocamos la liberación
+        $resultado->liberado_por_admin = false;
         $resultado->save();
 
-        $msg = $rechazar ? 'Pieza rechazada por análisis.' : 'Rechazo quitado correctamente.';
-        return redirect()->back()->with('success', $msg);
+        return redirect()->back()->with('success', 'Liberación revocada correctamente.');
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -284,7 +293,7 @@ class PtaResultsController extends Controller
 
             // Cargar resultados con relaciones para no hacer N+1
             $resultados = PtaResultado::where('ot_id', $otSeleccionadaId)
-                ->with(['pieza', 'liberador'])
+                ->with(['pieza'])
                 ->get()
                 ->keyBy('pieza_id');
 
@@ -352,7 +361,6 @@ class PtaResultsController extends Controller
             ->where('piezas.error', 'Ninguno')
             ->select(
                 'pta_resultados.liberado_por_admin',
-                'pta_resultados.rechazado_por_admin',
                 'piezas.n_pieza'
             )
             ->get();
@@ -375,12 +383,9 @@ class PtaResultsController extends Controller
                 continue;
 
             $todoLiberado = collect($piezasJuego)->every(fn($p) => $p->liberado_por_admin);
-            $todoRechazado = collect($piezasJuego)->every(fn($p) => $p->rechazado_por_admin);
 
             if ($todoLiberado) {
                 $liberadas++;
-            } elseif ($todoRechazado) {
-                $rechazadas++;
             } else {
                 // Estado mixto o ambas pendientes → sin liberar
                 $sinLiberar++;

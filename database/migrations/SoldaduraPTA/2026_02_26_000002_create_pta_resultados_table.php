@@ -42,17 +42,8 @@ return new class extends Migration {
                 $table->string('imagen_conexion_soldadura')->nullable();
                 $table->string('imagen_perfilado_soldadura')->nullable();
 
-                // ── Control de liberación por administrador ────────────────
+                // ── Control de liberación por administrador (utilizado en vistas) ───
                 $table->boolean('liberado_por_admin')->default(false);
-                $table->unsignedBigInteger('liberado_por')->nullable();    // FK a users.id
-                $table->foreign('liberado_por')->references('id')->on('users')->onDelete('set null');
-                $table->timestamp('fecha_liberacion')->nullable();
-
-                // ── Control de rechazo por administrador ──────────────────
-                $table->boolean('rechazado_por_admin')->default(false);
-                $table->unsignedBigInteger('rechazado_por')->nullable();   // FK a users.id
-                $table->foreign('rechazado_por')->references('id')->on('users')->onDelete('set null');
-                $table->timestamp('fecha_rechazo')->nullable();
 
                 $table->timestamps();
 

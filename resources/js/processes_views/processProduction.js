@@ -1360,6 +1360,20 @@ function createHistoricalTable(history) {
         processTitle.innerText = currentProcessName; // Keep the specific name for the title
         processSection.appendChild(processTitle);
 
+        // Inject click access for Soldadura PTA temporal session
+        if (currentProcessName === "Soldadura y Soldadura PTA" && window.arrayData.process === "Soldadura PTA") {
+            processSection.style.cursor = "pointer";
+            processSection.title = "Añadir / Ver Resultados de Soldadura PTA";
+            processSection.addEventListener("click", function () {
+                let otId = window.arrayData.meta ? window.arrayData.meta.id_ot : null; // Fetch current OT ID
+                if (otId) {
+                    createPtaPasswordModal(otId);
+                } else {
+                    console.error("No se pudo obtener el OT ID de window.arrayData.meta");
+                }
+            });
+        }
+
         let pieces = [processData.pieces.good, processData.pieces.bad];
         for (let i = 0; i < pieces.length; i++) {
             // Crear barra de progreso
@@ -1419,4 +1433,157 @@ function createHistoricalTable(history) {
     if (targetContainer) {
         targetContainer.appendChild(container);
     }
+}
+
+//--------------------------------------------------------------------------------
+// LÓGICA TARJETA SOLDADURA PTA EN REPORTE DE PRODUCCIÓN
+//--------------------------------------------------------------------------------
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Listener is injected dynamically in createHistoricalTable for "Soldadura PTA" Process
+});
+
+function createPtaPasswordModal(otId) {
+    // 1. Crear el div de opacidad (fondo oscuro)
+    let divOpacity = document.createElement("div");
+    divOpacity.className = "div-opacity";
+    divOpacity.id = "pta-modal-opacity";
+
+    // 2. Crear contenedor principal del modal
+    let modalContainer = document.createElement("div");
+    modalContainer.className = "pta-modal-container";
+
+    // Evitar que al hacer clic en el modal se cierre
+    modalContainer.addEventListener("click", function (e) {
+        e.stopPropagation();
+    });
+
+    // Icono (opcional)
+    let icon = document.createElement("div");
+    icon.innerHTML = "🔒";
+    icon.className = "pta-modal-icon";
+    modalContainer.appendChild(icon);
+
+    // 3. Crear título
+    let title = document.createElement("h3");
+    title.textContent = "Acceso Restringido";
+    title.className = "pta-modal-title";
+    modalContainer.appendChild(title);
+
+    // 4. Crear texto descriptivo
+    let desc = document.createElement("p");
+    desc.textContent = "Ingrese la contraseña de supervisor para registrar o visualizar los resultados de Soldadura PTA.";
+    desc.className = "pta-modal-desc";
+    modalContainer.appendChild(desc);
+
+    // 5. Crear el formulario
+    let form = document.createElement("form");
+    form.id = "pta-password-form";
+
+    // 5.1 Input Token CSRF
+    let tokenMeta = document.querySelector('meta[name="csrf-token"]');
+    let token = tokenMeta ? tokenMeta.getAttribute("content") : "";
+    let inputToken = document.createElement("input");
+    inputToken.type = "hidden";
+    inputToken.name = "_token";
+    inputToken.value = token;
+    form.appendChild(inputToken);
+
+    // 5.2 Input Password
+    let inputPassword = document.createElement("input");
+    inputPassword.type = "password";
+    inputPassword.name = "password";
+    inputPassword.placeholder = "Ingresa la contraseña";
+    inputPassword.className = "pta-modal-input";
+    inputPassword.required = true;
+
+    form.appendChild(inputPassword);
+
+    // 5.3 Contenedor de Error
+    let errorMsg = document.createElement("div");
+    errorMsg.className = "pta-modal-error";
+    form.appendChild(errorMsg);
+
+    // 5.4 Contenedor de Botones
+    let btnContainer = document.createElement("div");
+    btnContainer.className = "pta-modal-btn-container";
+
+    // Botón Cancelar
+    let btnCancel = document.createElement("button");
+    btnCancel.type = "button";
+    btnCancel.textContent = "Cancelar";
+    btnCancel.className = "pta-modal-btn pta-modal-btn-cancel";
+    btnCancel.addEventListener("click", () => {
+        divOpacity.remove();
+    });
+
+    // Botón Aceptar
+    let btnSubmit = document.createElement("button");
+    btnSubmit.type = "submit";
+    btnSubmit.textContent = "Acceder";
+    btnSubmit.className = "pta-modal-btn pta-modal-btn-submit";
+
+    btnContainer.appendChild(btnCancel);
+    btnContainer.appendChild(btnSubmit);
+    form.appendChild(btnContainer);
+
+    // 6. Enviar formulario por Fetch (AJAX)
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        btnSubmit.disabled = true;
+        btnSubmit.textContent = "Verificando...";
+        errorMsg.style.display = "none";
+
+        let formData = new FormData(this);
+        formData.append("ot_id", otId);
+
+        let baseUrl = window.baseUrl || "";
+
+        fetch(baseUrl + "/admin/pta/verify-temp-password", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(result => {
+                if (result.status === 200 && result.body.success) {
+                    // Contraseña correcta: redigir a la URL que manda el server
+                    window.location.href = result.body.redirect_url;
+                } else {
+                    // Contraseña incorrecta u otro error
+                    errorMsg.textContent = result.body.message || "Error de verificación.";
+                    errorMsg.style.display = "block";
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = "Ingresar";
+                    inputPassword.value = "";
+                    inputPassword.focus();
+                }
+            })
+            .catch(error => {
+                console.error("Error en petición PTA:", error);
+                errorMsg.textContent = "Ocurrió un error. Intente nuevamente.";
+                errorMsg.style.display = "block";
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = "Ingresar";
+            });
+    });
+
+    // Armar el DOM
+    modalContainer.appendChild(title);
+    modalContainer.appendChild(desc);
+    modalContainer.appendChild(form);
+    divOpacity.appendChild(modalContainer);
+
+    // Enfocar el input al abrir y cerrar al hacer clic afuera
+    divOpacity.addEventListener("click", function (e) {
+        if (e.target === divOpacity) {
+            divOpacity.remove();
+        }
+    });
+
+    document.body.appendChild(divOpacity);
+    inputPassword.focus();
 }

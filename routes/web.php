@@ -280,24 +280,30 @@ Route::get('/check-time', function () {
 /* ===========================
    Resultados y Análisis Soldadura PTA
 =========================== */
-Route::middleware(['auth'])->prefix('admin/pta')->name('pta.')->group(function () {
-    // Vista formulario de resultados (operador / admin)
-    Route::get('/results/{ot_id}', [PtaResultsController::class, 'index'])
-        ->name('results');
+Route::prefix('admin/pta')->name('pta.')->group(function () {
+    // ── Rutas de Autenticación Temporal ──
+    Route::post('/verify-temp-password', [App\Http\Controllers\PtaResultsController::class, 'verifyTempPassword'])->name('verify_temp_password');
+    Route::get('/close-temp-session', [App\Http\Controllers\PtaResultsController::class, 'closeTempSession'])->name('close_temp_session');
 
-    // Guardar / actualizar resultados
-    Route::post('/results/{ot_id}', [PtaResultsController::class, 'store'])
-        ->name('results.store');
+    Route::middleware(['pta.access'])->group(function () {
+        // Vista formulario de resultados (operador / admin)
+        Route::get('/results/{ot_id}', [PtaResultsController::class, 'index'])
+            ->name('results');
 
-    // Liberar o revocar liberación por administrador
-    Route::put('/results/{id}/liberar', [PtaResultsController::class, 'update'])
-        ->name('results.liberar');
+        // Guardar / actualizar resultados
+        Route::post('/results/{ot_id}', [PtaResultsController::class, 'store'])
+            ->name('results.store');
 
-    // Rechazar o quitar rechazo por administrador
-    Route::put('/results/{id}/rechazar', [PtaResultsController::class, 'rechazar'])
-        ->name('results.rechazar');
+        // Liberar o revocar liberación por administrador
+        Route::put('/results/{id}/liberar', [PtaResultsController::class, 'update'])
+            ->name('results.liberar');
 
-    // Análisis administrativo
-    Route::get('/analysis', [PtaResultsController::class, 'analysis'])
-        ->name('analysis');
+        // Rechazar o quitar rechazo por administrador
+        Route::put('/results/{id}/rechazar', [PtaResultsController::class, 'rechazar'])
+            ->name('results.rechazar');
+
+        // Análisis administrativo
+        Route::get('/analysis', [PtaResultsController::class, 'analysis'])
+            ->name('analysis');
+    });
 });

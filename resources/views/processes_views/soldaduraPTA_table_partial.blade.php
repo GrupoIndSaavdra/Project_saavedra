@@ -162,7 +162,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                 <input type="number" step="0.001"
                                     name="{{ $tipo === 'D_Conexion_pico' ? 'd_conexion_pico' : ($tipo === 'D_Conexion_obt' ? 'd_conexion_obt' : 'perfilado') }}[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
                                     value="{{ old('valor', $fila?->{$tipo === 'D_Conexion_pico' ? 'd_conexion_pico' : ($tipo === 'D_Conexion_obt' ? 'd_conexion_obt' : 'perfilado')} ?? '') }}"
-                                    class="pta-input" placeholder="0.000">
+                                    class="pta-input" placeholder="0.000" required>
                                 <input type="hidden" name="piece_id[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
                                     value="{{ $fila?->id ?? '' }}">
                                 <input type="hidden" name="tipo_medida[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
@@ -183,7 +183,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         <td>
                             @if ($modo === 'captura')
                                 <input type="number" step="0.001" name="vl[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
-                                    value="{{ $fila?->vl ?? '' }}" class="pta-input" placeholder="0.000">
+                                    value="{{ $fila?->vl ?? '' }}" class="pta-input" placeholder="0.000" required>
                             @else
                                 {{ $fila?->vl ?? '—' }}
                             @endif
@@ -193,7 +193,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         <td>
                             @if ($modo === 'captura')
                                 <select name="tipo_preparacion[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
-                                    class="pta-select">
+                                    class="pta-select" required>
                                     <option value="">—</option>
                                     @foreach ([1, 2, 3] as $opt)
                                         <option value="{{ $opt }}" {{ ($fila?->tipo_preparacion ?? '') == $opt ? 'selected' : '' }}>
@@ -213,7 +213,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                     <input type="number" step="0.01"
                                         name="precalentamiento[{{ $filaPrecal?->id ?? 'new_' . $nPieza . '_precal' }}]"
                                         value="{{ $filaPrecal?->precalentamiento ?? '' }}" class="pta-input" style="min-width:60px;"
-                                        placeholder="°C">
+                                        placeholder="°C" required>
                                 @else
                                     <strong>{{ $filaPrecal?->precalentamiento ?? '—' }}</strong>
                                     <br><small style="color:#888;">°C</small>
@@ -226,7 +226,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             @if ($modo === 'captura')
                                 <input type="number" step="0.001"
                                     name="sold_inicial[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
-                                    value="{{ $fila?->sold_inicial ?? '' }}" class="pta-input" placeholder="0.000">
+                                    value="{{ $fila?->sold_inicial ?? '' }}" class="pta-input" placeholder="0.000" required>
                             @else
                                 {{ $fila?->sold_inicial ?? '—' }}
                             @endif
@@ -237,7 +237,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             @if ($modo === 'captura')
                                 <input type="number" step="0.001"
                                     name="sold_aplicada[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
-                                    value="{{ $fila?->sold_aplicada ?? '' }}" class="pta-input" placeholder="0.000">
+                                    value="{{ $fila?->sold_aplicada ?? '' }}" class="pta-input" placeholder="0.000" required>
                             @else
                                 {{ $fila?->sold_aplicada ?? '—' }}
                             @endif
@@ -248,7 +248,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             @if ($modo === 'captura')
                                 <input type="number" step="0.001"
                                     name="sold_final[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
-                                    value="{{ $fila?->sold_final ?? '' }}" class="pta-input" placeholder="0.000">
+                                    value="{{ $fila?->sold_final ?? '' }}" class="pta-input" placeholder="0.000" required>
                             @else
                                 {{ $fila?->sold_final ?? '—' }}
                             @endif
@@ -259,7 +259,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             @if ($modo === 'captura')
                                 <input type="number" step="0.001"
                                     name="corr_inicial[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
-                                    value="{{ $fila?->corr_inicial ?? '' }}" class="pta-input" placeholder="0.000">
+                                    value="{{ $fila?->corr_inicial ?? '' }}" class="pta-input" placeholder="0.000" required>
                             @else
                                 {{ $fila?->corr_inicial ?? '—' }}
                             @endif
@@ -270,7 +270,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             @if ($modo === 'captura')
                                 <input type="number" step="0.001"
                                     name="corr_aplicada[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
-                                    value="{{ $fila?->corr_aplicada ?? '' }}" class="pta-input" placeholder="0.000">
+                                    value="{{ $fila?->corr_aplicada ?? '' }}" class="pta-input" placeholder="0.000" required>
                             @else
                                 {{ $fila?->corr_aplicada ?? '—' }}
                             @endif
@@ -281,7 +281,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             @if ($modo === 'captura')
                                 <input type="number" step="0.001"
                                     name="corr_final[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
-                                    value="{{ $fila?->corr_final ?? '' }}" class="pta-input" placeholder="0.000">
+                                    value="{{ $fila?->corr_final ?? '' }}" class="pta-input" placeholder="0.000" required>
                             @else
                                 {{ $fila?->corr_final ?? '—' }}
                             @endif
@@ -292,7 +292,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             @if ($modo === 'captura')
                                 <input type="number" step="0.001"
                                     name="gas_argon[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
-                                    value="{{ $fila?->gas_argon ?? '' }}" class="pta-input" placeholder="0.000">
+                                    value="{{ $fila?->gas_argon ?? '' }}" class="pta-input" placeholder="0.000" required>
                             @else
                                 {{ $fila?->gas_argon ?? '—' }}
                             @endif
@@ -303,7 +303,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             @if ($modo === 'captura')
                                 <input type="number" step="0.001"
                                     name="velocidad_calculada[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
-                                    value="{{ $fila?->velocidad_calculada ?? '' }}" class="pta-input" placeholder="0.000">
+                                    value="{{ $fila?->velocidad_calculada ?? '' }}" class="pta-input" placeholder="0.000" required>
                             @else
                                 {{ $fila?->velocidad_calculada ?? '—' }}
                             @endif
@@ -312,7 +312,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         {{-- ── Resultado ── --}}
                         <td>
                             @if ($modo === 'captura')
-                                <select name="resultado[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]" class="pta-select">
+                                <select name="resultado[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]" class="pta-select" required>
                                     <option value="">—</option>
                                     <option value="Bien" {{ ($fila?->resultado ?? '') === 'Bien' ? 'selected' : '' }}>Bien</option>
                                     <option value="Mal"  {{ ($fila?->resultado ?? '') === 'Mal'  ? 'selected' : '' }}>Mal</option>
@@ -328,7 +328,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         {{-- ── Defecto (select: Ninguno / Fundición) ── --}}
                         <td>
                             @if ($modo === 'captura')
-                                <select name="defecto_pta[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]" class="pta-select">
+                                <select name="defecto_pta[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]" class="pta-select" required>
                                     <option value="Ninguno" {{ ($fila?->defecto_pta ?? 'Ninguno') === 'Ninguno' ? 'selected' : '' }}>
                                         Ninguno
                                     </option>
@@ -413,7 +413,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                         : ($tipoA === 'D_Conexion_obt' ? 'd_conexion_obt' : 'perfilado');
                                 @endphp
                                 <input type="number" step="0.001" name="{{ $campoA }}[{{ $keyA }}]"
-                                    value="{{ $filaA?->$campoA ?? '' }}" class="pta-input" placeholder="0.000">
+                                    value="{{ $filaA?->$campoA ?? '' }}" class="pta-input" placeholder="0.000" required>
                                 <input type="hidden" name="piece_id[{{ $keyA }}]" value="{{ $filaA?->id ?? '' }}">
                                 <input type="hidden" name="tipo_medida[{{ $keyA }}]" value="{{ $tipoA }}">
                                 <input type="hidden" name="n_pieza_ref[{{ $keyA }}]" value="{{ $nPiezaA }}">
@@ -421,11 +421,11 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                             {{-- VL --}}
                             <td><input type="number" step="0.001" name="vl[{{ $keyA }}]" value="{{ $filaA?->vl ?? '' }}"
-                                    class="pta-input" placeholder="0.000"></td>
+                                    class="pta-input" placeholder="0.000" required></td>
 
                             {{-- Tipo preparación --}}
                             <td>
-                                <select name="tipo_preparacion[{{ $keyA }}]" class="pta-select">
+                                <select name="tipo_preparacion[{{ $keyA }}]" class="pta-select" required>
                                     <option value="">—</option>
                                     @foreach ([1, 2, 3] as $opt)
                                         <option value="{{ $opt }}" {{ ($filaA?->tipo_preparacion ?? '') == $opt ? 'selected' : '' }}>
@@ -439,37 +439,37 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                 <td class="td-precal" rowspan="3">
                                     <input type="number" step="0.01"
                                         name="precalentamiento[{{ $filaPrecalA?->id ?? 'new_' . $nPiezaA . '_precal' }}]"
-                                        value="{{ $filaPrecalA?->precalentamiento ?? '' }}" class="pta-input" placeholder="°C">
+                                        value="{{ $filaPrecalA?->precalentamiento ?? '' }}" class="pta-input" placeholder="°C" required>
                                 </td>
                             @endif
 
                             {{-- Soldadura --}}
                             <td><input type="number" step="0.001" name="sold_inicial[{{ $keyA }}]"
-                                    value="{{ $filaA?->sold_inicial ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                    value="{{ $filaA?->sold_inicial ?? '' }}" class="pta-input" placeholder="0.000" required></td>
                             <td><input type="number" step="0.001" name="sold_aplicada[{{ $keyA }}]"
-                                    value="{{ $filaA?->sold_aplicada ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                    value="{{ $filaA?->sold_aplicada ?? '' }}" class="pta-input" placeholder="0.000" required></td>
                             <td><input type="number" step="0.001" name="sold_final[{{ $keyA }}]"
-                                    value="{{ $filaA?->sold_final ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                    value="{{ $filaA?->sold_final ?? '' }}" class="pta-input" placeholder="0.000" required></td>
 
                             {{-- Corriente --}}
                             <td><input type="number" step="0.001" name="corr_inicial[{{ $keyA }}]"
-                                    value="{{ $filaA?->corr_inicial ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                    value="{{ $filaA?->corr_inicial ?? '' }}" class="pta-input" placeholder="0.000" required></td>
                             <td><input type="number" step="0.001" name="corr_aplicada[{{ $keyA }}]"
-                                    value="{{ $filaA?->corr_aplicada ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                    value="{{ $filaA?->corr_aplicada ?? '' }}" class="pta-input" placeholder="0.000" required></td>
                             <td><input type="number" step="0.001" name="corr_final[{{ $keyA }}]"
-                                    value="{{ $filaA?->corr_final ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                    value="{{ $filaA?->corr_final ?? '' }}" class="pta-input" placeholder="0.000" required></td>
 
                             {{-- Gas argón --}}
                             <td><input type="number" step="0.001" name="gas_argon[{{ $keyA }}]"
-                                    value="{{ $filaA?->gas_argon ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                    value="{{ $filaA?->gas_argon ?? '' }}" class="pta-input" placeholder="0.000" required></td>
 
                             {{-- Velocidad calculada --}}
                             <td><input type="number" step="0.001" name="velocidad_calculada[{{ $keyA }}]"
-                                    value="{{ $filaA?->velocidad_calculada ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                    value="{{ $filaA?->velocidad_calculada ?? '' }}" class="pta-input" placeholder="0.000" required></td>
 
                             {{-- Resultado --}}
                             <td>
-                                <select name="resultado[{{ $keyA }}]" class="pta-select">
+                                <select name="resultado[{{ $keyA }}]" class="pta-select" required>
                                     <option value="">—</option>
                                     <option value="Bien" {{ ($filaA?->resultado ?? '') === 'Bien' ? 'selected' : '' }}>Bien</option>
                                     <option value="Mal"  {{ ($filaA?->resultado ?? '') === 'Mal'  ? 'selected' : '' }}>Mal</option>
@@ -478,7 +478,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                             {{-- Defecto --}}
                             <td>
-                                <select name="defecto_pta[{{ $keyA }}]" class="pta-select">
+                                <select name="defecto_pta[{{ $keyA }}]" class="pta-select" required>
                                     <option value="Ninguno" {{ ($filaA?->defecto_pta ?? 'Ninguno') === 'Ninguno' ? 'selected' : '' }}>
                                         Ninguno</option>
                                     <option value="Fundición" {{ ($filaA?->defecto_pta ?? '') === 'Fundición' ? 'selected' : '' }}>

@@ -25,18 +25,10 @@ class PtaResultado extends Model
         'imagen_conexion_soldadura',
         'imagen_perfilado_soldadura',
         'liberado_por_admin',
-        'liberado_por',
-        'fecha_liberacion',
-        'rechazado_por_admin',
-        'rechazado_por',
-        'fecha_rechazo',
     ];
 
     protected $casts = [
         'liberado_por_admin' => 'boolean',
-        'fecha_liberacion' => 'datetime',
-        'rechazado_por_admin' => 'boolean',
-        'fecha_rechazo' => 'datetime',
     ];
 
     // ── Relaciones ────────────────────────────────────────────────────────
@@ -55,21 +47,5 @@ class PtaResultado extends Model
     public function pieza()
     {
         return $this->belongsTo(Pieza::class, 'pieza_id');
-    }
-
-    /**
-     * Usuario administrador que liberó este resultado
-     */
-    public function liberador()
-    {
-        return $this->belongsTo(User::class, 'liberado_por');
-    }
-
-    /**
-     * Usuario administrador que rechazó este resultado
-     */
-    public function rechazador()
-    {
-        return $this->belongsTo(User::class, 'rechazado_por');
     }
 }

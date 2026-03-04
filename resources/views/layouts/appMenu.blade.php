@@ -27,8 +27,13 @@
             <div class="filter-opacity">
                 <nav class="nav" id="nav">
                     <ul class="nav-list"></ul>
-                    <a class="btn-close-session" href="{{ route('logout') }}">Cerrar sesión</a>
-                    <input type="hidden" value="{{ auth()->user()->perfil }}" id="profile">
+                    @if(session('pta_temp_auth'))
+                        <a class="btn-close-session" href="{{ route('pta.close_temp_session') }}">Regresar al Reporte</a>
+                    @else
+                        <a class="btn-close-session" href="{{ route('logout') }}">Cerrar sesión</a>
+                    @endif
+                    <input type="hidden" value="{{ session('pta_temp_auth') ? 'pta_temp' : auth()->user()->perfil }}"
+                        id="profile">
                 </nav>
             </div>
 
@@ -67,6 +72,7 @@
         'soldadura.liberarQRPlanta': @json(route('soldadura.liberarQRPlanta')),
         'soldadura.regenerarQR': @json(route('soldadura.regenerarQR')),
         'pta.analysis': @json(route('pta.analysis')),
+        'pta.results.current': @json(session('pta_temp_ot_id') ? route('pta.results', ['ot_id' => session('pta_temp_ot_id')]) : '#')
     };
 </script>
 @isset($pieces_Released)

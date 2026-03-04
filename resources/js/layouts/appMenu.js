@@ -261,6 +261,17 @@ function getRoutes(profile) {
                 },
             ];
             break;
+        case "pta_temp":
+            sections = [
+                {
+                    title: "Opciones PTA",
+                    routes: [
+                        ["pta.results.current", "Resultados de Sold. PTA"],
+                        ["pta.analysis", "Análisis de Resultados Sold. PTA"],
+                    ],
+                },
+            ];
+            break;
         default:
             sections = [
                 {
