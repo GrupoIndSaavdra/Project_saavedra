@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     <title>Resultados Sold. PTA — OT {{ $ot->id }}</title>
@@ -125,8 +125,7 @@
                                 </div>
                                 <div
                                     style="margin-top: 10px; display: {{ $imgPs ? 'flex' : 'none' }}; justify-content: center; align-items: center;">
-                                    <img id="preview_pico_sold" src="{{ $imgPs ? asset('storage/' . $imgPs) : '#' }}"
-                                        alt="Vista Previa"
+                                    <img id="preview_pico_sold" src="{{ $imgPs ? asset($imgPs) : '#' }}" alt="Vista Previa"
                                         style="max-width: 100%; max-height: 250px; border-radius: 6px; border: 1px solid #dce8f5; object-fit: contain;">
                                 </div>
                             </div>
@@ -171,8 +170,7 @@
                                 </div>
                                 <div
                                     style="margin-top: 10px; display: {{ $imgCs ? 'flex' : 'none' }}; justify-content: center; align-items: center;">
-                                    <img id="preview_con_sold" src="{{ $imgCs ? asset('storage/' . $imgCs) : '#' }}"
-                                        alt="Vista Previa"
+                                    <img id="preview_con_sold" src="{{ $imgCs ? asset($imgCs) : '#' }}" alt="Vista Previa"
                                         style="max-width: 100%; max-height: 250px; border-radius: 6px; border: 1px solid #dce8f5; object-fit: contain;">
                                 </div>
                             </div>
@@ -218,7 +216,7 @@
                                 </div>
                                 <div
                                     style="margin-top: 10px; display: {{ $imgPs2 ? 'flex' : 'none' }}; justify-content: center; align-items: center;">
-                                    <img id="preview_perf_sold" src="{{ $imgPs2 ? asset('storage/' . $imgPs2) : '#' }}"
+                                    <img id="preview_perf_sold" src="{{ $imgPs2 ? asset($imgPs2) : '#' }}"
                                         alt="Vista Previa"
                                         style="max-width: 100%; max-height: 250px; border-radius: 6px; border: 1px solid #dce8f5; object-fit: contain;">
                                 </div>
@@ -239,7 +237,7 @@
 
         </form>
 
-        {{-- ── Tabla resumen de todas las piezas ──────────────────────────── --}}
+        {{-- ---------------- Tabla resumen de todas las piezas ---------------- --}}
         <div class="pta-overview-wrap">
             <h4>Resumen de Piezas — OT {{ $ot->id }}</h4>
             <table>

@@ -159,7 +159,7 @@
                                                 <td>
                                                     @if ($res && $res->imagen_pico_soldadura)
                                                         <button type="button" class="btn-img-thumb"
-                                                            onclick="openModal('{{ Storage::url($res->imagen_pico_soldadura) }}', 'Pico Soldadura - {{ $pieza->n_pieza }}')">
+                                                            onclick="openModal('{{ asset($res->imagen_pico_soldadura) }}', 'Pico Soldadura - {{ $pieza->n_pieza }}')">
                                                             🖼️ Ver
                                                         </button>
                                                     @else
@@ -169,7 +169,7 @@
                                                 <td>
                                                     @if ($res && $res->imagen_conexion_soldadura)
                                                         <button type="button" class="btn-img-thumb"
-                                                            onclick="openModal('{{ Storage::url($res->imagen_conexion_soldadura) }}', 'Conexión Soldadura - {{ $pieza->n_pieza }}')">
+                                                            onclick="openModal('{{ asset($res->imagen_conexion_soldadura) }}', 'Conexión Soldadura - {{ $pieza->n_pieza }}')">
                                                             🖼️ Ver
                                                         </button>
                                                     @else
@@ -179,7 +179,7 @@
                                                 <td>
                                                     @if ($res && $res->imagen_perfilado_soldadura)
                                                         <button type="button" class="btn-img-thumb"
-                                                            onclick="openModal('{{ Storage::url($res->imagen_perfilado_soldadura) }}', 'Perfilado Soldadura - {{ $pieza->n_pieza }}')">
+                                                            onclick="openModal('{{ asset($res->imagen_perfilado_soldadura) }}', 'Perfilado Soldadura - {{ $pieza->n_pieza }}')">
                                                             🖼️ Ver
                                                         </button>
                                                     @else

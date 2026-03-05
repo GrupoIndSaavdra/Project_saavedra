@@ -8,7 +8,6 @@ use App\Models\Pieza;
 use App\Models\PtaResultado;
 use App\Models\SoldaduraPTA;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class PtaResultsController extends Controller
 {
@@ -87,11 +86,20 @@ class PtaResultsController extends Controller
      */
     private function subirImagen($file, ?string $rutaAnterior, string $prefijo): string
     {
-        if ($rutaAnterior && Storage::disk('public')->exists($rutaAnterior)) {
-            Storage::disk('public')->delete($rutaAnterior);
+        $directorioDestino = public_path('pta_resultados');
+
+        if (!file_exists($directorioDestino)) {
+            mkdir($directorioDestino, 0755, true);
         }
+
+        if ($rutaAnterior && file_exists(public_path($rutaAnterior))) {
+            unlink(public_path($rutaAnterior));
+        }
+
         $nombre = $prefijo . '_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        return $file->storeAs('pta_resultados', $nombre, 'public');
+        $file->move($directorioDestino, $nombre);
+
+        return 'pta_resultados/' . $nombre;
     }
 
     // ═══════════════════════════════════════════════════════════════════════
