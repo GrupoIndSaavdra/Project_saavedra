@@ -506,6 +506,8 @@ class ProcessesController extends Controller
         $tolerance = Cepillado_tolerancia::where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new Cepillado_cnominal(); //Creación de objeto Cepillado_cnominal.
+        }
+        if (!$tolerance) {
             $tolerance = new Cepillado_tolerancia(); //Creación de objeto Cepillado_tolerancia.
         }
 
@@ -571,6 +573,8 @@ class ProcessesController extends Controller
         $tolerance = Desbaste_tolerancia::where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new Desbaste_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new Desbaste_tolerancia();
         }
 
@@ -608,8 +612,10 @@ class ProcessesController extends Controller
     {
         $cNominal = RevLaterales_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = RevLaterales_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new RevLaterales_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new RevLaterales_tolerancia();
         }
         //Llenado de tabla revLaterales_cnominal
@@ -640,8 +646,10 @@ class ProcessesController extends Controller
     {
         $cNominal = PrimeraOpeSoldadura_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = PrimeraOpeSoldadura_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new PrimeraOpeSoldadura_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new PrimeraOpeSoldadura_tolerancia();
         }
 
@@ -684,8 +692,10 @@ class ProcessesController extends Controller
     {
         $cNominal = BarrenoManiobra_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = BarrenoManiobra_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new BarrenoManiobra_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new BarrenoManiobra_tolerancia();
         }
 
@@ -708,8 +718,10 @@ class ProcessesController extends Controller
     {
         $cNominal = SegundaOpeSoldadura_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = SegundaOpeSoldadura_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new SegundaOpeSoldadura_cnominal(); //Creación de objeto segundaOpeSoldadura_cnominal.
+        }
+        if (!$tolerance) {
             $tolerance = new SegundaOpeSoldadura_tolerancia(); //Creación de objeto segundaOpeSoldadura_tolerancia.
         }
         //Llenado de tabla segundaOpeSoldadura_cnominal.
@@ -749,8 +761,10 @@ class ProcessesController extends Controller
     {
         $cNominal = RevCalificado_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = RevCalificado_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new RevCalificado_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new RevCalificado_tolerancia();
         }
 
@@ -794,8 +808,10 @@ class ProcessesController extends Controller
     {
         $cNominal = AcabadoBombilo_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = AcabadoBombilo_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new AcabadoBombilo_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new AcabadoBombilo_tolerancia();
         }
 
@@ -854,8 +870,10 @@ class ProcessesController extends Controller
     {
         $cNominal = AcabadoMolde_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = AcabadoMolde_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new AcabadoMolde_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new AcabadoMolde_tolerancia();
         }
         //Llenado de tabla acabadoMolde_cnominal
@@ -910,8 +928,10 @@ class ProcessesController extends Controller
     {
         $cNominal = BarrenoProfundidad_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = BarrenoProfundidad_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new BarrenoProfundidad_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new BarrenoProfundidad_tolerancia();
         }
 
@@ -949,8 +969,10 @@ class ProcessesController extends Controller
     {
         $cNominal = PySOpeSoldadura_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = PySOpeSoldadura_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new PySOpeSoldadura_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new PySOpeSoldadura_tolerancia();
         }
 
@@ -983,8 +1005,10 @@ class ProcessesController extends Controller
     {
         $cNominal = Cavidades_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = Cavidades_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new Cavidades_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new Cavidades_tolerancia();
         }
 
@@ -1026,8 +1050,10 @@ class ProcessesController extends Controller
     {
         $cNominal = Copiado_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = Copiado_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new Copiado_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new Copiado_tolerancia();
         }
 
@@ -1086,8 +1112,10 @@ class ProcessesController extends Controller
     {
         $cNominal = OffSet_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = OffSet_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new OffSet_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new OffSet_tolerancia();
         }
 
@@ -1124,8 +1152,10 @@ class ProcessesController extends Controller
     {
         $cNominal = Palomas_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = Palomas_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new Palomas_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new Palomas_tolerancia();
         }
 
@@ -1150,8 +1180,10 @@ class ProcessesController extends Controller
     {
         $cNominal = Rebajes_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = Rebajes_tolerancia::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new Rebajes_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new Rebajes_tolerancia();
         }
 
@@ -1183,8 +1215,10 @@ class ProcessesController extends Controller
     {
         $cNominal = EmbudoCM_cnominal::where('id_proceso', '=', $id_proceso)->first();
         $tolerance = EmbudoCM_tolerancias::where('id_proceso', '=', $id_proceso)->first();
-        if (!$cNominal && !$tolerance) {
+        if (!$cNominal) {
             $cNominal = new EmbudoCM_cnominal();
+        }
+        if (!$tolerance) {
             $tolerance = new EmbudoCM_tolerancias();
         }
 
