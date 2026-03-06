@@ -1108,7 +1108,7 @@ class ProcessProductionController extends Controller
 
         // Asignar los valores en el array
         $arrayData = [
-            'consignmentPieces' => $previousProcess ? $totalGood : $consignmentPieces,
+            'consignmentPieces' => $consignmentPieces,
             'machinedPiecesInMeta' => $machinedPiecesInMeta,
             'availableAssemblies' => $availableAssemblies,
             'remainingPieces' => $remainingPieces,
