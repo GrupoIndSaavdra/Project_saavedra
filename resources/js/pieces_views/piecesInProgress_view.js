@@ -20,13 +20,15 @@ class PTACardComponent {
      * @param {Element} container  - Elemento contenedor donde se monta la card
      * @param {object}  classArray - classArray de la OT (para calcular piezas malas)
      */
-    constructor(otId, initialData, container, classArray) {
+    constructor(otId, classId, initialData, container, classArray) {
         // — Raw data del montaje inicial
         const rawTotal = initialData.totalPTA || 0;
         const totalJuegos = rawTotal > 0 ? Math.round(rawTotal / 2) : 0;
 
         this.snapshot = totalJuegos > 0 ? Object.freeze({ total: totalJuegos }) : null;
         this.otId = otId;
+        this.classId = classId;
+        this.uniqueId = `${otId}-${classId}`;
         this.container = container;
         this.classArray = classArray;
         this._pollTimer = null;
@@ -79,7 +81,7 @@ class PTACardComponent {
         const section = document.createElement("div");
         section.className = "process-section";
         section.style.cursor = "pointer";
-        section.id = `pta-card-${this.otId}`;
+        section.id = `pta-card-${this.uniqueId}`;
         section.title = "Ver resultados de Soldadura PTA";
 
         const title = document.createElement("h3");
@@ -110,7 +112,7 @@ class PTACardComponent {
         //  en la actualización de barras no bloquee la navegación)
         section.addEventListener("click", () => {
             const base = window.ptaResultsBaseUrl || (window.baseUrl + "/admin/pta/results");
-            window.location.href = `${base}/${this.otId}`;
+            window.location.href = `${base}/${this.otId}?clase_id=${this.classId}`;
         });
 
         // Actualizar valores iniciales (skip connection check, aún no está en DOM)
@@ -123,7 +125,7 @@ class PTACardComponent {
     _buildLabel(labelId) {
         const label = document.createElement("div");
         label.className = "pta-bar-label";
-        label.id = `${labelId}-${this.otId}`;
+        label.id = `${labelId}-${this.uniqueId}`;
         label.style.cssText = "font-size:12px;color:#fff;text-align:left;margin-top:4px;margin-bottom:2px;font-weight:600;";
         return label;
     }
@@ -134,7 +136,7 @@ class PTACardComponent {
         const wrap = document.createElement("div");
         wrap.className = "progress-bar";
         wrap.style.backgroundColor = bgColor;
-        wrap.id = `${barId}-${this.otId}`;
+        wrap.id = `${barId}-${this.uniqueId}`;
 
         const fill = document.createElement("div");
         fill.className = `pta-bar-fill ${barId}-fill progress`;
@@ -159,19 +161,19 @@ class PTACardComponent {
         wrap.style.backgroundColor = "#e4d9f7"; // fondo suave si nada liberado
         wrap.style.position = "relative";
         wrap.style.overflow = "hidden";
-        wrap.id = `${barId}-${this.otId}`;
+        wrap.id = `${barId}-${this.uniqueId}`;
 
         // Segmento VIOLETA: juegos liberados (crece desde la izquierda)
         const fillLib = document.createElement("div");
         fillLib.className = "pta-bar-fill progress";
-        fillLib.id = `${barId}-fill-lib-${this.otId}`;
+        fillLib.id = `${barId}-fill-lib-${this.uniqueId}`;
         fillLib.style.cssText = "background: linear-gradient(to right, #c084fc, #7c3aed); width:0%; position:absolute; left:0; top:0; height:100%; transition: width .5s ease;";
         wrap.appendChild(fillLib);
 
         // Segmento NARANJA: juegos sin liberar (lo que queda a la derecha)
         const fillSin = document.createElement("div");
         fillSin.className = "pta-bar-fill progress";
-        fillSin.id = `${barId}-fill-sin-${this.otId}`;
+        fillSin.id = `${barId}-fill-sin-${this.uniqueId}`;
         fillSin.style.cssText = "background: linear-gradient(to right, #ffb347, #e65c00); width:100%; position:absolute; right:0; top:0; height:100%; transition: width .5s ease;";
         wrap.appendChild(fillSin);
 
@@ -197,20 +199,20 @@ class PTACardComponent {
         const sinLiberar = Math.max(0, terminadas - this.liberadas - this.rechazadas);
 
         // Etiqueta terminadas (texto informativo, sin barra)
-        const labelT = root.querySelector(`#label-term-${this.otId}`);
+        const labelT = root.querySelector(`#label-term-${this.uniqueId}`);
         if (labelT) labelT.textContent =
             `Terminadas: ${terminadas} juego${terminadas !== 1 ? 's' : ''} correctos`;
 
         // —— helper interno —————————————————————————————————
         const setBar = (barId, labelId, count, labelText, countText) => {
             const pct = terminadas > 0 ? Math.min(100, Math.round((count / terminadas) * 100)) : 0;
-            const wrap = root.querySelector(`#${barId}-${this.otId}`);
+            const wrap = root.querySelector(`#${barId}-${this.uniqueId}`);
             if (wrap) {
                 wrap.querySelector(".pta-bar-fill")?.style.setProperty("width", `${pct}%`);
                 const info = wrap.querySelector(".progress-percentage");
                 if (info) info.textContent = `${pct}% ${count}/${terminadas} ${countText}`;
             }
-            const lbl = root.querySelector(`#${labelId}-${this.otId}`);
+            const lbl = root.querySelector(`#${labelId}-${this.uniqueId}`);
             if (lbl) lbl.textContent = labelText;
         };
 
@@ -232,11 +234,11 @@ class PTACardComponent {
         const pctLib = terminadas > 0 ? Math.min(100, Math.round((this.liberadas / terminadas) * 100)) : 0;
         const pctSin = 100 - pctLib; // naranja = lo que queda
 
-        const barTot = root.querySelector(`#bar-tot-${this.otId}`);
-        const lblTot = root.querySelector(`#label-tot-${this.otId}`);
+        const barTot = root.querySelector(`#bar-tot-${this.uniqueId}`);
+        const lblTot = root.querySelector(`#label-tot-${this.uniqueId}`);
         if (barTot) {
-            const fLib = barTot.querySelector(`#bar-tot-fill-lib-${this.otId}`);
-            const fSin = barTot.querySelector(`#bar-tot-fill-sin-${this.otId}`);
+            const fLib = barTot.querySelector(`#bar-tot-fill-lib-${this.uniqueId}`);
+            const fSin = barTot.querySelector(`#bar-tot-fill-sin-${this.uniqueId}`);
             if (fLib) fLib.style.width = `${pctLib}%`;
             if (fSin) fSin.style.width = `${pctSin}%`;
             const info = barTot.querySelector(".progress-percentage");
@@ -260,7 +262,7 @@ class PTACardComponent {
         this._busy = true;
 
         try {
-            const res = await fetch(`${window.baseUrl}/piecesInProgress/ptaCard/${this.otId}`);
+            const res = await fetch(`${window.baseUrl}/piecesInProgress/ptaCard/${this.otId}/${this.classId}`);
             if (!res.ok) return;
 
             const data = await res.json();
@@ -387,10 +389,11 @@ class Dashboard {
                 if (processKeys.some(k => k.includes("Soldadura PTA"))) {
                     let userProfile = document.getElementById("profile");
                     if (userProfile && (userProfile.value == "1" || userProfile.value == "2")) {
-                        const ptaData = (window.ptaCardsData && window.ptaCardsData[wOrderName])
-                            ? window.ptaCardsData[wOrderName]
+                        const classId = classArray["id"];
+                        const ptaData = (window.ptaCardsData && window.ptaCardsData[wOrderName] && window.ptaCardsData[wOrderName][classId])
+                            ? window.ptaCardsData[wOrderName][classId]
                             : { totalPTA: 0, liberadas: 0 };
-                        this.generatePTASection(ptaData, wOrderName, classArray, processesSection);
+                        this.generatePTASection(ptaData, wOrderName, classId, classArray, processesSection);
                     }
                 }
 
@@ -524,10 +527,10 @@ class Dashboard {
     }
 
     // ── Card especial para Resultados de Soldadura PTA ──────────────────────
-    generatePTASection(ptaData, otId, classArray, container) {
+    generatePTASection(ptaData, otId, classId, classArray, container) {
         // Monta el componente reactivo directamente en el container dado.
         // El componente gestiona su propio ciclo de vida.
-        new PTACardComponent(otId, ptaData, container, classArray);
+        new PTACardComponent(otId, classId, ptaData, container, classArray);
     }
     generateDivBadPieces(processName, badPieces) {
         //Creacion del div de opacidad de fondo

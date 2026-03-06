@@ -18,4 +18,12 @@ class Clase extends Model
         'finalizada',
     ];
     public $timestamps = false;
+
+    /**
+     * Piezas asociadas a esta clase
+     */
+    public function piezas()
+    {
+        return $this->hasMany(\App\Models\Pieza::class, 'id_clase');
+    }
 }

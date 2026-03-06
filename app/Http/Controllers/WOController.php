@@ -145,6 +145,7 @@ class WOController extends Controller
     public function insertClassesData(&$array, $class)
     {
         $array[$class->nombre] = array();
+        $array[$class->nombre]["id"] = $class->id;
         $array[$class->nombre]["pieces"] = $class->piezas;
         $array[$class->nombre]["order"] = $class->pedido;
         $array[$class->nombre]["startDate"] = $this->getStringDate($class->fecha_inicio, $class->hora_inicio);
@@ -268,12 +269,20 @@ class WOController extends Controller
         }
 
         // ── Datos de cards PTA (para las OTs actualmente en progreso) ────────
-        // buildCardData devuelve null si la OT no tiene registros en SoldaduraPTA.
+        // buildCardData devuelve null si la clase no tiene registros en PTA.
         $ptaCardsData = [];
         foreach (array_keys($wOInProgress) as $otId) {
-            $cardData = PtaResultsController::buildCardData((string) $otId);
-            if ($cardData !== null) {
-                $ptaCardsData[$otId] = $cardData;
+            foreach ($wOInProgress[$otId]['classes'] as $className => $classData) {
+                if (!isset($classData['id']))
+                    continue;
+                $claseId = $classData['id'];
+                $cardData = PtaResultsController::buildCardData((string) $otId, $claseId);
+                if ($cardData !== null) {
+                    if (!isset($ptaCardsData[$otId])) {
+                        $ptaCardsData[$otId] = [];
+                    }
+                    $ptaCardsData[$otId][$claseId] = $cardData;
+                }
             }
         }
 
@@ -290,9 +299,9 @@ class WOController extends Controller
      * AJAX: devuelve JSON con los datos actualizados de la card PTA para una OT.
      * GET /piecesInProgress/ptaCard/{otId}
      */
-    public function getPtaCardData(string $otId)
+    public function getPtaCardData(string $otId, string $claseId)
     {
-        $data = PtaResultsController::buildCardData($otId);
+        $data = PtaResultsController::buildCardData($otId, (int) $claseId);
         if ($data === null) {
             return response()->json(['error' => 'No PTA data'], 404);
         }

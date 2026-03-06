@@ -24,18 +24,34 @@
             <div class="pta-alert pta-alert-error">&#10007; {{ session('error') }}</div>
         @endif
 
-        {{-- Filtro OT --}}
-        <form method="GET" action="{{ route('pta.analysis') }}">
+        {{-- Filtro OT + Clase --}}
+        <form method="GET" action="{{ route('pta.analysis') }}" id="analysis-form">
+            <input type="hidden" name="ot_id" id="ot_id_input" value="{{ $otSeleccionadaId ?? '' }}">
+            <input type="hidden" name="clase_id" id="clase_id_input" value="{{ $claseSeleccionadaId ?? '' }}">
+            <script>
+                function updateAnalysisFilter(val) {
+                    if(!val) {
+                        document.getElementById('ot_id_input').value = '';
+                        document.getElementById('clase_id_input').value = '';
+                    } else {
+                        const parts = val.split('_');
+                        document.getElementById('ot_id_input').value = parts[0];
+                        document.getElementById('clase_id_input').value = parts[1];
+                    }
+                }
+            </script>
             <div class="pta-filter-card">
                 <div>
-                    <label for="ot-filter">Orden de Trabajo</label>
+                    <label for="ot-filter">Orden de Trabajo / Clase</label>
                     <div>
-                        <select name="ot_id" id="ot-filter">
-                            <option value="">— Seleccionar OT —</option>
+                        <select id="ot-filter" onchange="updateAnalysisFilter(this.value)">
+                            <option value="">— Seleccionar OT e Clase —</option>
                             @foreach ($otsConPTA as $otOpt)
-                                <option value="{{ $otOpt->id }}" {{ $otSeleccionadaId == $otOpt->id ? 'selected' : '' }}>
-                                    OT {{ $otOpt->id }}{{ $otOpt->moldura ? ' — ' . $otOpt->moldura->nombre : '' }}
-                                </option>
+                                @foreach ($otOpt->clases as $claseOpt)
+                                    <option value="{{ $otOpt->id }}_{{ $claseOpt->id }}" {{ ($otSeleccionadaId == $otOpt->id && $claseSeleccionadaId == $claseOpt->id) ? 'selected' : '' }}>
+                                        OT {{ $otOpt->id }}{{ $otOpt->moldura ? ' — ' . $otOpt->moldura->nombre : '' }} — {{ $claseOpt->nombre }}
+                                    </option>
+                                @endforeach
                             @endforeach
                         </select>
                     </div>
@@ -66,7 +82,7 @@
 
                 <div class="pta-tech-section" style="margin-top:1.5rem;">
                     <div class="pta-header" style="margin-bottom:1.5rem;">
-                        <h3 style="margin:0;">Resultados y Datos Técnicos — OT {{ $ot->id }}</h3>
+                        <h3 style="margin:0;">Resultados y Datos Técnicos — OT {{ $ot->id }} / {{ $claseSeleccionada->nombre }}</h3>
                         <p style="margin:0.2rem 0 0;opacity:.8;">Información detallada agrupada por juego</p>
                     </div>
 
@@ -269,7 +285,7 @@
 
         <div class="pta-tech-section" style="margin-top:2rem; padding: 0 1.5rem; margin-bottom: 2rem;">
             <div class="pta-header" style="margin-bottom:1.5rem;">
-                <h3 style="margin:0;">Juegos Defectuosos — OT {{ $ot->id }}</h3>
+                <h3 style="margin:0;">Juegos Defectuosos — OT {{ $ot->id }} / {{ $claseSeleccionada->nombre }}</h3>
                 <p style="margin:0.2rem 0 0;opacity:.8;">Detalles técnicos de los juegos que salieron mal (solo lectura)</p>
             </div>
 

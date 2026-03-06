@@ -59,20 +59,24 @@ class PtaResultsController extends Controller
 
     /**
      * Verifica si una OT pasó por el proceso de Soldadura PTA.
-     * Se comprueba existencia de al menos un registro en la tabla soldaduraPTA.
+     * Se comprueba existencia de piezas con proceso de soldadura PTA para la clase.
      */
-    private function pasoPorPTA(string $otId): bool
+    private function pasoPorPTA(string $otId, int $claseId): bool
     {
-        return SoldaduraPTA::where('id_ot', $otId)->exists();
+        return Pieza::where('id_ot', $otId)
+            ->where('id_clase', $claseId)
+            ->where('proceso', 'Soldadura PTA')
+            ->exists();
     }
 
     /**
      * Obtiene las piezas de una OT que pasaron por Soldadura PTA
      * y están terminadas correctamente (error = 'Ninguno', no rechazadas).
      */
-    private function getPiezasPTA(string $otId)
+    private function getPiezasPTA(string $otId, int $claseId)
     {
         return Pieza::where('id_ot', $otId)
+            ->where('id_clase', $claseId)
             ->where('proceso', 'Soldadura PTA')
             ->where('error', 'Ninguno')
             ->where('liberacion', '!=', 2)
@@ -113,12 +117,28 @@ class PtaResultsController extends Controller
     public function index(string $ot_id, Request $request)
     {
         $ot = Orden_trabajo::findOrFail($ot_id);
+        $clase_id = $request->get('clase_id');
 
-        if (!$this->pasoPorPTA($ot_id)) {
+        $clasesConPTA = \App\Models\Clase::where('id_ot', $ot_id)
+            ->whereHas('piezas', function ($q) {
+                $q->where('proceso', 'Soldadura PTA');
+            })->get();
+
+        if ($clasesConPTA->isEmpty()) {
             return redirect()->back()->with('error', 'Esta OT no pasó por el proceso de Soldadura PTA.');
         }
 
-        $piezas = $this->getPiezasPTA($ot_id);
+        if (!$clase_id) {
+            $clase_id = $clasesConPTA->first()->id;
+        }
+
+        $claseSeleccionada = $clasesConPTA->firstWhere('id', $clase_id);
+
+        if (!$claseSeleccionada) {
+            return redirect()->back()->with('error', 'La clase seleccionada no tiene Soldadura PTA.');
+        }
+
+        $piezas = $this->getPiezasPTA($ot_id, $clase_id);
 
         if ($piezas->isEmpty()) {
             return redirect()->back()->with('error', 'No hay piezas terminadas en Soldadura PTA para esta OT.');
@@ -126,17 +146,13 @@ class PtaResultsController extends Controller
 
         // IDs de piezas que ya tienen resultado guardado (o liberado)
         $resultadosGuardados = PtaResultado::where('ot_id', $ot_id)
+            ->whereHas('pieza', fn($q) => $q->where('id_clase', $clase_id))
             ->pluck('pieza_id')
             ->flip();  // flip() para buscar en O(1)
 
         // Piezas que todavía no tienen resultado
         $piezasPendientes = $piezas->filter(fn($p) => !isset($resultadosGuardados[$p->id]));
 
-        // Pieza actualmente seleccionada:
-        // 1. Si viene ?pieza_id en la URL, buscarla en pendientes o en todas
-        // 2. Si no, la primera pendiente
-        // 3. Si no hay pendientes (todas ya llenadas), mostrar la primera de todas
-        //    para que el usuario pueda revisar / editar resultados existentes
         $piezaSeleccionadaId = $request->get('pieza_id');
         $piezaSeleccionada = $piezasPendientes->firstWhere('id', $piezaSeleccionadaId)
             ?? $piezas->firstWhere('id', $piezaSeleccionadaId)
@@ -144,11 +160,23 @@ class PtaResultsController extends Controller
             ?? $piezas->first();
 
         // Todos los resultados de la OT para la tabla resumen (keyed by pieza_id)
-        $todosResultados = PtaResultado::where('ot_id', $ot_id)->get()->keyBy('pieza_id');
+        $todosResultados = PtaResultado::where('ot_id', $ot_id)
+            ->whereHas('pieza', fn($q) => $q->where('id_clase', $clase_id))
+            ->get()->keyBy('pieza_id');
 
-        // Lista de OTs con PTA para el selector de OT
-        $otIds = SoldaduraPTA::distinct()->pluck('id_ot');
-        $otsConPTA = Orden_trabajo::whereIn('id', $otIds)->with('moldura')->orderBy('id')->get();
+        // Lista de OTs con PTA para el selector de OT y clase
+        $otsConPTA = Orden_trabajo::whereHas('clases', function ($q) {
+            $q->whereHas('piezas', function ($q2) {
+                $q2->where('proceso', 'Soldadura PTA');
+            });
+        })->with([
+                    'moldura',
+                    'clases' => function ($q) {
+                        $q->whereHas('piezas', function ($q2) {
+                            $q2->where('proceso', 'Soldadura PTA');
+                        });
+                    }
+                ])->orderBy('id', 'desc')->get();
 
         // Resultado ya guardado para la pieza seleccionada (por si se edita)
         $resultado = PtaResultado::where('ot_id', $ot_id)
@@ -157,6 +185,7 @@ class PtaResultsController extends Controller
 
         return view('pta_views.results', compact(
             'ot',
+            'claseSeleccionada',
             'otsConPTA',
             'piezas',
             'piezasPendientes',
@@ -234,8 +263,10 @@ class PtaResultsController extends Controller
             }
         }
 
+        $clase_id = $request->get('clase_id');
+
         return redirect()
-            ->route('pta.results', ['ot_id' => $ot_id, 'pieza_id' => $request->pieza_id])
+            ->route('pta.results', ['ot_id' => $ot_id, 'clase_id' => $clase_id, 'pieza_id' => $request->pieza_id])
             ->with('success', $msg);
     }
 
@@ -285,30 +316,47 @@ class PtaResultsController extends Controller
      */
     public function analysis(Request $request)
     {
-        // Obtener todas las OTs que pasaron por PTA (tienen registro en soldaduraPTA)
-        $otIds = SoldaduraPTA::distinct()->pluck('id_ot');
-        $otsConPTA = Orden_trabajo::whereIn('id', $otIds)->with('moldura')->orderBy('id')->get();
+        $otsConPTA = Orden_trabajo::whereHas('clases', function ($q) {
+            $q->whereHas('piezas', function ($q2) {
+                $q2->where('proceso', 'Soldadura PTA');
+            });
+        })->with([
+                    'moldura',
+                    'clases' => function ($q) {
+                        $q->whereHas('piezas', function ($q2) {
+                            $q2->where('proceso', 'Soldadura PTA');
+                        });
+                    }
+                ])->orderBy('id', 'desc')->get();
 
         $otSeleccionadaId = $request->get('ot_id');
+        $claseSeleccionadaId = $request->get('clase_id');
         $resultados = collect();
         $piezasPTA = collect();
         $piezasGroup = collect();
         $ot = null;
+        $claseSeleccionada = null;
 
-        if ($otSeleccionadaId) {
+        if ($otSeleccionadaId && $claseSeleccionadaId) {
             $ot = Orden_trabajo::find($otSeleccionadaId);
-            $piezasPTA = $this->getPiezasPTA($otSeleccionadaId);
+            $claseSeleccionada = \App\Models\Clase::find($claseSeleccionadaId);
+            $piezasPTA = $this->getPiezasPTA($otSeleccionadaId, $claseSeleccionadaId);
 
             // Cargar resultados con relaciones para no hacer N+1
             $resultados = PtaResultado::where('ot_id', $otSeleccionadaId)
+                ->whereHas('pieza', fn($q) => $q->where('id_clase', $claseSeleccionadaId))
                 ->with(['pieza'])
                 ->get()
                 ->keyBy('pieza_id');
 
             // ── Datos técnicos de soldadura (soldaduraPTA_pza) ─────────────────
-            // Se busca el último proceso PTA de esta OT y se agrupan sus sub-filas
-            // por n_pieza para pasarlas al partial en modo reporte.
+            // En esta BD, el proceso maestro se guarda en SoldaduraPTA con la nomenclatura:
+            // "Soldadura_PTA_{NombreClase}_{OT}"
+            $nombreClaseLimpio = str_replace(' ', '_', $claseSeleccionada->nombre);
+            $procesoStringId = "Soldadura_PTA_{$nombreClaseLimpio}_{$otSeleccionadaId}";
+
             $procesoPTA = SoldaduraPTA::where('id_ot', $otSeleccionadaId)
+                ->where('id_proceso', $procesoStringId)
                 ->latest()
                 ->first();
 
@@ -320,7 +368,9 @@ class PtaResultsController extends Controller
         return view('pta_views.analysis', compact(
             'otsConPTA',
             'otSeleccionadaId',
+            'claseSeleccionadaId',
             'ot',
+            'claseSeleccionada',
             'piezasPTA',
             'resultados',
             'piezasGroup'
@@ -337,22 +387,21 @@ class PtaResultsController extends Controller
      *
      * @return array|null [pasoPorPTA, totalPTA, liberadas] o null
      */
-    public static function buildCardData(string $otId): ?array
+    public static function buildCardData(string $otId, int $claseId): ?array
     {
-        // Solo mostrar si la OT pasó por PTA
-        if (!SoldaduraPTA::where('id_ot', $otId)->exists()) {
-            return null;
-        }
-
-
-
-        // Total de piezas que pasaron por PTA (buenas + malas, todas)
+        // Total de piezas que pasaron por PTA (buenas + malas, todas) en ESTA clase específica
         $totalPTA = Pieza::where('id_ot', $otId)
+            ->where('id_clase', $claseId)
             ->where('proceso', 'Soldadura PTA')
             ->count();
 
+        if ($totalPTA === 0) {
+            return null;
+        }
+
         // Piezas TERMINADAS correctamente: liberadas por Calidad (liberacion = 1)
         $terminadas = Pieza::where('id_ot', $otId)
+            ->where('id_clase', $claseId)
             ->where('proceso', 'Soldadura PTA')
             ->where('error', 'Ninguno')
             ->where('liberacion', 1)
@@ -366,6 +415,7 @@ class PtaResultsController extends Controller
 
         $allResultados = PtaResultado::where('pta_resultados.ot_id', $otId)
             ->join('piezas', 'piezas.id', '=', 'pta_resultados.pieza_id')
+            ->where('piezas.id_clase', $claseId)
             ->where('piezas.error', 'Ninguno')
             ->select(
                 'pta_resultados.liberado_por_admin',

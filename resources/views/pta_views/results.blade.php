@@ -15,7 +15,8 @@
             <div>
                 <h2>Resultados de Soldadura PTA</h2>
                 <p>Orden de Trabajo (OT):
-                    <strong>{{ $ot->id }}{{ $ot->moldura ? ' — ' . $ot->moldura->nombre : '' }}</strong> — Registro y
+                    <strong>{{ $ot->id }}{{ $ot->moldura ? ' — ' . $ot->moldura->nombre : '' }} —
+                        {{ $claseSeleccionada->nombre }}</strong> — Registro y
                     edición de resultados por pieza
                 </p>
             </div>
@@ -40,15 +41,18 @@
 
         {{-- Selectores en la misma línea --}}
         <div class="pta-selectors-row">
-            {{-- Selector de OT --}}
+            {{-- Selector de OT y Clase --}}
             <div class="pta-ot-selector">
-                <label for="ot-select">OT</label>
-                <select id="ot-select" onchange="changeOT(this.value)">
-                    <option value="">— Cambiar OT —</option>
+                <label for="ot-select">OT - Clase</label>
+                <select id="ot-select" onchange="changeOTClass(this.value)">
+                    <option value="">— Cambiar OT y Clase —</option>
                     @foreach ($otsConPTA as $otOpt)
-                        <option value="{{ $otOpt->id }}" {{ $ot->id == $otOpt->id ? 'selected' : '' }}>
-                            OT {{ $otOpt->id }}{{ $otOpt->moldura ? ' — ' . $otOpt->moldura->nombre : '' }}
-                        </option>
+                        @foreach ($otOpt->clases as $claseOpt)
+                            <option value="{{ $otOpt->id }}?clase_id={{ $claseOpt->id }}" {{ ($ot->id == $otOpt->id && $claseSeleccionada->id == $claseOpt->id) ? 'selected' : '' }}>
+                                OT {{ $otOpt->id }}{{ $otOpt->moldura ? ' — ' . $otOpt->moldura->nombre : '' }} —
+                                {{ $claseOpt->nombre }}
+                            </option>
+                        @endforeach
                     @endforeach
                 </select>
             </div>
@@ -68,8 +72,8 @@
         </div>
 
         {{-- Formulario de resultados --}}
-        <form action="{{ route('pta.results.store', ['ot_id' => $ot->id]) }}" method="POST" enctype="multipart/form-data"
-            id="pta-form">
+        <form action="{{ route('pta.results.store', ['ot_id' => $ot->id, 'clase_id' => $claseSeleccionada->id]) }}"
+            method="POST" enctype="multipart/form-data" id="pta-form">
             @csrf
 
             <input type="hidden" name="pieza_id" value="{{ $piezaSeleccionada->id }}">
@@ -239,7 +243,7 @@
 
         {{-- ---------------- Tabla resumen de todas las piezas ---------------- --}}
         <div class="pta-overview-wrap">
-            <h4>Resumen de Piezas — OT {{ $ot->id }}</h4>
+            <h4>Resumen de Piezas — OT {{ $ot->id }} / {{ $claseSeleccionada->nombre }}</h4>
             <table>
                 <thead>
                     <tr>
@@ -336,8 +340,8 @@
             window.location.href = url.toString();
         }
 
-        function changeOT(otId) {
-            if (otId) window.location.href = `{{ url('admin/pta/results') }}/${otId}`;
+        function changeOTClass(value) {
+            if (value) window.location.href = `{{ url('admin/pta/results') }}/${value}`;
         }
 
         // Auto-dismiss alertas (4 s)

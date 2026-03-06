@@ -45,4 +45,12 @@ class Orden_trabajo extends Model
     {
         return $this->belongsTo(Moldura::class, 'id_moldura');
     }
+
+    /**
+     * Clases asociadas a esta OT
+     */
+    public function clases()
+    {
+        return $this->hasMany(\App\Models\Clase::class, 'id_ot');
+    }
 }
