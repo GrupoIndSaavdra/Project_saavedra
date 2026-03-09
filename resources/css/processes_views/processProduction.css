@@ -237,14 +237,14 @@ p {
 
 .warning-pieces {
     width: 80%;
-    font-size: 1em;
-    font-weight: 700;
+    font-size: 1.1em;
+    font-weight: 800;
     /* text-transform: uppercase; */
     padding: 0.5em;
     margin: 1.5em;
     border-radius: 5px;
-    background-color: #b3eb65a3;
-    border: 2px solid #f30018;
+    background-color: #eb65658f;
+    border: 2px solid #ff031c;
     color: #020202;
 }
 
