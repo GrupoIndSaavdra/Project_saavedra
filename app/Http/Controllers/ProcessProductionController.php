@@ -181,7 +181,7 @@ class ProcessProductionController extends Controller
             $ptaLiberacion = [];
             $ptaDefecto = []; // guarda el defecto_pta normalizado por n_pieza
             foreach ($piezasGroupHistory->keys() as $nPieza) {
-                $piezaDB = \App\Models\Pieza::where('n_pieza', $nPieza)
+                $piezaDB = Pieza::where('n_pieza', $nPieza)
                     ->where('proceso', 'Soldadura PTA')
                     ->where('id_clase', $class->id)
                     ->first();
