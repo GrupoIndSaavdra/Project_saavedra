@@ -66,6 +66,8 @@
                 <th>Peso por Pieza</th>
                 <th>Tipo Soldadura</th>
                 <th>Lote</th>
+                <th>Fecha</th>
+                <th>Hora</th>
                 <th>Observaciones</th>
             </tr>
         </thead>
@@ -79,6 +81,8 @@
                     <td>{{ $piece['peso_pieza'] }}</td>
                     <td>{{ $piece['tipo_soldadura'] }}</td>
                     <td>{{ $piece['lote'] }}</td>
+                    <td>{{ $piece['fecha'] }}</td>
+                    <td>{{ $piece['hora'] }}</td>
                     <td>{{ $piece['observaciones'] }}</td>
                 </tr>
             @endforeach

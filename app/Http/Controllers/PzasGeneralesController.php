@@ -1091,7 +1091,7 @@ class PzasGeneralesController extends Controller
                 //Obtener la meta para obtener el id del operador
                 $meta = Metas::find($pza['id_meta']);
                 $nombreOp = $this->getNameOperador($meta->id_usuario);
-                $nPieza = array_key_exists("n_pieza", $pza) ? $pza["n_pieza"] : $pza["n_juego"];
+                $nPieza = is_array($pza) ? ($pza["n_pieza"] ?? $pza["n_juego"]) : ($pza->n_pieza ?? $pza->n_juego);
 
                 // Identificador único para este par pieza-operador
                 $hash = $nPieza . '|' . $nombreOp;
@@ -1954,6 +1954,8 @@ class PzasGeneralesController extends Controller
                         'tiempo_aplicacion' => $piece->tiempo_aplicacion ?? 'N/A',
                         'tipo_soldadura' => $piece->tipo_soldadura ?? 'N/A',
                         'lote' => $piece->lote ?? 'N/A',
+                        'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',
+                        'hora' => $piece->created_at ? $piece->created_at->format('H:i') : 'N/A',
                         'observaciones' => $piece->observaciones ?? '',
                     ];
                 }
@@ -2010,6 +2012,8 @@ class PzasGeneralesController extends Controller
                         'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
                         'tipo_soldadura' => $piece->tipo_soldadura ?? 'N/A',
                         'lote' => $piece->lote ?? 'N/A',
+                        'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',
+                        'hora' => $piece->created_at ? $piece->created_at->format('H:i') : 'N/A',
                         'observaciones' => $piece->observaciones ?? '',
                     ];
                 }

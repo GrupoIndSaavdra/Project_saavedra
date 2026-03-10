@@ -641,6 +641,8 @@ function showSoldaduraExtraInfoTable(pieces) {
             "Peso por Pieza",
             "Tipo Soldadura",
             "Lote",
+            "Fecha",
+            "Hora",
             "Observaciones",
         ];
         headers.forEach((headerText) => {
@@ -667,6 +669,8 @@ function showSoldaduraExtraInfoTable(pieces) {
                 piece.peso_pieza,
                 piece.tipo_soldadura,
                 piece.lote,
+                piece.fecha,
+                piece.hora,
                 piece.observaciones,
             ];
 
