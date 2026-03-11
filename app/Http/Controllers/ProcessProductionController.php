@@ -1418,7 +1418,13 @@ class ProcessProductionController extends Controller
     public function verifyPiece($halfPiece)
     {
         if ($halfPiece) {
-            // Verificar si la pieza está en un estado válido para continuar al siguiente proceso
+            // Special logic for Soldadura PTA: Allow passing if not rejected or incomplete
+            // 2 = Rechazada, 5 = Incompleto
+            if ($halfPiece->proceso === "Soldadura PTA") {
+                return !in_array($halfPiece->liberacion, [2, 5]);
+            }
+
+            // Standard logic for other processes
             // Estados válidos:
             // - liberacion = 1 (Liberado): Pieza aprobada por calidad
             // - liberacion = 3 (Buena sin liberación): Pieza correcta sin liberación formal
