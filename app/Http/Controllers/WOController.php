@@ -477,18 +477,21 @@ class WOController extends Controller
                             if ($pFemale && $pMale) {
                                 //Verificar si el juego esta rechazado o liberado
                                 if ($pFemale->liberacion == 0) {
-                                    //Verificar si las pieza son correctas o no
                                     if ($pFemale->error == "Ninguno" && $pMale->error == "Ninguno") {
                                         array_push($piecesArray["good"], $pFemale, $pMale);
                                     } else {
-                                        //Guardar el juego completo como malo
-                                        array_push($piecesArray["bad"], $pFemale, $pMale);
+                                        if ($processName === "Soldadura PTA") {
+                                            array_push($piecesArray["good"], $pFemale, $pMale);
+                                        } else {
+                                            //Guardar el juego completo como malo
+                                            array_push($piecesArray["bad"], $pFemale, $pMale);
 
-                                        if ($pFemale->error != "Ninguno") {
-                                            array_push($piecesBadData, $this->getBadPiecesData($pFemale));
-                                        }
-                                        if ($pMale->error != "Ninguno") {
-                                            array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                            if ($pFemale->error != "Ninguno") {
+                                                array_push($piecesBadData, $this->getBadPiecesData($pFemale));
+                                            }
+                                            if ($pMale->error != "Ninguno") {
+                                                array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                            }
                                         }
                                     }
                                 } else if ($pFemale->liberacion == 1) {
@@ -525,9 +528,13 @@ class WOController extends Controller
                             if ($piece->error == "Ninguno") {
                                 array_push($piecesArray["good"], $piece);
                             } else {
-                                //Guardar el juego completo como malo
-                                array_push($piecesArray["bad"], $piece);
-                                array_push($piecesBadData, $this->getBadPiecesData($piece));
+                                if ($processName === "Soldadura PTA") {
+                                    array_push($piecesArray["good"], $piece);
+                                } else {
+                                    //Guardar el juego completo como malo
+                                    array_push($piecesArray["bad"], $piece);
+                                    array_push($piecesBadData, $this->getBadPiecesData($piece));
+                                }
                             }
                         } else if ($piece->liberacion == 1) {
                             array_push($piecesArray["good"], $piece);

@@ -1,5 +1,4 @@
 <?php
-
 use App\Http\Controllers\AcabadoBombilloController;
 use App\Http\Controllers\AcabadoMoldeController;
 use App\Http\Controllers\AsentadoController;
@@ -44,6 +43,10 @@ use App\Http\Controllers\TrackingSoldaduraController;
 use App\Http\Controllers\LiberarSoldaduraController;
 use App\Http\Controllers\RegistrarSoldaduraController;
 use App\Http\Controllers\GenerarQRSoldaduraController;
+use App\Http\Controllers\GenerarQRLoteController;
+use App\Http\Controllers\GenerarQRIndividualController;
+use App\Http\Controllers\LiberarQRPlantaController;
+use App\Http\Controllers\RegenerarQRController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -181,9 +184,6 @@ Route::get('/panel-progreso', fn() => view('wo_views.progressPanel_wo'))->name('
 /* ===========================
    1. Generar QR por Lote
 =========================== */
-use App\Http\Controllers\GenerarQRLoteController;
-use App\Http\Controllers\GenerarQRIndividualController;
-use App\Http\Controllers\LiberarQRPlantaController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/soldadura/generar-qr-lote', [GenerarQRLoteController::class, 'index'])
@@ -238,7 +238,6 @@ Route::middleware(['auth'])->group(function () {
 /* ===========================
    5. Regenerar QRs - Solo Administradores
 =========================== */
-use App\Http\Controllers\RegenerarQRController;
 
 Route::middleware(['auth'])->group(function () {
     // Vista de verificación de contraseña
@@ -305,5 +304,11 @@ Route::prefix('admin/pta')->name('pta.')->group(function () {
         // Análisis administrativo
         Route::get('/analysis', [PtaResultsController::class, 'analysis'])
             ->name('analysis');
+
+        // ── 2da Pasada — vista de edición diferida ──
+        Route::get('/segunda-pasada', [PtaResultsController::class, 'segPasadaIndex'])
+            ->name('segunda_pasada');
+        Route::post('/segunda-pasada/update', [PtaResultsController::class, 'segPasadaUpdate'])
+            ->name('segunda_pasada.update');
     });
 });

@@ -73,6 +73,10 @@
                 @php
                     $juegosPTA = [];
                     foreach ($piezasPTA as $pieza) {
+                        // Omitir piezas que Calidad ya liberó como RECHAZADAS (liberacion == 2)
+                        // para que solo aparezcan en la sección de "Juegos Defectuosos" abajo.
+                        if ($pieza->liberacion == 2) continue;
+
                         preg_match('/^(\d+)/', $pieza->n_pieza, $m);
                         $jNum = $m[1] ?? $pieza->n_pieza;
                         $juegosPTA[$jNum][$pieza->n_pieza] = $pieza;
@@ -266,14 +270,12 @@
             foreach ($juegosTecnicos as $jNum => $piezasDelJuego) {
                 $esMalo = false;
 
-                // 1. Revisar los datos técnicos (resultado = Mal o defecto distinto a Ninguno)
+                // 1. Revisar si calidad liberó como Rechazado (liberacion == 2)
                 foreach ($piezasDelJuego as $nPieza => $subFilas) {
-                    foreach ($subFilas as $sf) {
-                        if (strtolower(trim($sf->resultado ?? '')) === 'mal' ||
-                            strtolower(trim($sf->defecto_pta ?? 'ninguno')) !== 'ninguno') {
-                            $esMalo = true;
-                            break 2;
-                        }
+                    $piezaEnPiezas = $piezasPTA->firstWhere('n_pieza', $nPieza);
+                    if ($piezaEnPiezas && $piezaEnPiezas->liberacion == 2) {
+                        $esMalo = true;
+                        break;
                     }
                 }
 

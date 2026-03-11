@@ -41,26 +41,48 @@
 
         {{-- Selectores en la misma línea --}}
         <div class="pta-selectors-row">
-            {{-- Selector de OT y Clase --}}
+            {{-- 1. Selector de OT --}}
             <div class="pta-ot-selector">
-                <label for="ot-select">OT - Clase</label>
-                <select id="ot-select" onchange="changeOTClass(this.value)">
-                    <option value="">— Cambiar OT y Clase —</option>
+                <label for="ot-select">Orden de Trabajo (OT)</label>
+                <select id="ot-select" onchange="changeOT(this.value)">
+                    <option value="">— Seleccionar OT —</option>
+                    @php $otsVistas = []; @endphp
                     @foreach ($otsConPTA as $otOpt)
-                        @foreach ($otOpt->clases as $claseOpt)
-                            <option value="{{ $otOpt->id }}?clase_id={{ $claseOpt->id }}" {{ ($ot->id == $otOpt->id && $claseSeleccionada->id == $claseOpt->id) ? 'selected' : '' }}>
-                                OT {{ $otOpt->id }}{{ $otOpt->moldura ? ' — ' . $otOpt->moldura->nombre : '' }} —
-                                {{ $claseOpt->nombre }}
+                        @if(!in_array($otOpt->id, $otsVistas))
+                            <option value="{{ $otOpt->id }}" {{ $ot->id == $otOpt->id ? 'selected' : '' }}>
+                                OT {{ $otOpt->id }}{{ $otOpt->moldura ? ' — ' . $otOpt->moldura->nombre : '' }}
                             </option>
-                        @endforeach
+                            @php $otsVistas[] = $otOpt->id; @endphp
+                        @endif
                     @endforeach
                 </select>
             </div>
 
-            {{-- Selector de pieza --}}
+            {{-- 2. Selector de Clase --}}
+            <div class="pta-clase-selector">
+                <label for="clase-select">Clase</label>
+                <select id="clase-select" onchange="changeClase(this.value)" {{ !$ot ? 'disabled' : '' }}>
+                    <option value="">— Seleccionar Clase —</option>
+                    @if($ot)
+                        @php
+                            $otActualObj = $otsConPTA->firstWhere('id', $ot->id);
+                        @endphp
+                        @if($otActualObj)
+                            @foreach ($otActualObj->clases as $claseOpt)
+                                <option value="{{ $claseOpt->id }}" {{ $claseSeleccionada->id == $claseOpt->id ? 'selected' : '' }}>
+                                    {{ $claseOpt->nombre }}
+                                </option>
+                            @endforeach
+                        @endif
+                    @endif
+                </select>
+            </div>
+
+            {{-- 3. Selector de pieza --}}
             <div class="pta-piece-selector">
                 <label for="piece-select">Pieza</label>
-                <select id="piece-select" onchange="changePiece(this.value)">
+                <select id="piece-select" onchange="changePiece(this.value)" {{ !$claseSeleccionada ? 'disabled' : '' }}>
+                    <option value="">— Seleccionar Pieza —</option>
                     @foreach ($piezas as $pieza)
                         @php $tieneRes = isset($todosResultados[$pieza->id]); @endphp
                         <option value="{{ $pieza->id }}" {{ $pieza->id == $piezaSeleccionada->id ? 'selected' : '' }}>
@@ -336,12 +358,27 @@
 
         function changePiece(piezaId) {
             const url = new URL(window.location.href);
-            url.searchParams.set('pieza_id', piezaId);
+            if (piezaId) {
+                url.searchParams.set('pieza_id', piezaId);
+            } else {
+                url.searchParams.delete('pieza_id');
+            }
             window.location.href = url.toString();
         }
 
-        function changeOTClass(value) {
-            if (value) window.location.href = `{{ url('admin/pta/results') }}/${value}`;
+        function changeOT(otId) {
+            if (otId) {
+                window.location.href = `{{ url('admin/pta/results') }}/${otId}`;
+            }
+        }
+
+        function changeClase(claseId) {
+            const url = new URL(window.location.href);
+            if (claseId) {
+                url.searchParams.set('clase_id', claseId);
+                url.searchParams.delete('pieza_id'); // Al cambiar de clase, reiniciamos la pieza
+                window.location.href = url.toString();
+            }
         }
 
         // Auto-dismiss alertas (4 s)

@@ -52,6 +52,30 @@ class SoldaduraPTA_pza extends Model
         // ── Inspección ──
         'resultado',
         'defecto_pta',        // 'Ninguno' | 'Fundición'
+
+        // ── 2da Pasada ── (todos nullable, se activan con contraseña PTA2026)
+        'p2_activa',           // boolean — ¿se registró 2da pasada en esta pieza?
+        'p2_d_conexion_pico',
+        'p2_d_conexion_obt',
+        'p2_vl',
+        'p2_tipo_preparacion',
+        'p2_perfilado',
+        'p2_precalentamiento', // °C, solo en tipo_medida = 'D_Conexion_pico'
+        'p2_sold_inicial',
+        'p2_sold_aplicada',
+        'p2_sold_final',
+        'p2_corr_inicial',
+        'p2_corr_aplicada',
+        'p2_corr_final',
+        'p2_gas_argon',
+        'p2_velocidad_calculada',
+        'p2_resultado',        // 'Bien' | 'Mal'
+        'p2_defecto_pta',      // 'Ninguno' | 'Fundición'
+        'p2_observaciones',
+    ];
+
+    protected $casts = [
+        'p2_activa' => 'boolean',
     ];
 
     /**
@@ -71,4 +95,3 @@ class SoldaduraPTA_pza extends Model
         return $query->where('tipo_medida', 'D_Conexion_pico');
     }
 }
-

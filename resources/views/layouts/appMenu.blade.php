@@ -27,13 +27,17 @@
             <div class="filter-opacity">
                 <nav class="nav" id="nav">
                     <ul class="nav-list"></ul>
-                    @if(session('pta_temp_auth'))
+                    @php
+                        // Si tiene sesión temporal Y NO ES perfil 1 (Admin/Sistemas) ni 6 (Gerencia) ni 8 (Calidad/Ingeniería), se recorta su menú
+                        $isPtaTemp = session('pta_temp_auth') && !in_array(auth()->user()->perfil, ['1', '6', '8']);
+                    @endphp
+
+                    @if($isPtaTemp)
                         <a class="btn-close-session" href="{{ route('pta.close_temp_session') }}">Regresar al Reporte</a>
                     @else
                         <a class="btn-close-session" href="{{ route('logout') }}">Cerrar sesión</a>
                     @endif
-                    <input type="hidden" value="{{ session('pta_temp_auth') ? 'pta_temp' : auth()->user()->perfil }}"
-                        id="profile">
+                    <input type="hidden" value="{{ $isPtaTemp ? 'pta_temp' : auth()->user()->perfil }}" id="profile">
                 </nav>
             </div>
 
@@ -72,6 +76,7 @@
         'soldadura.liberarQRPlanta': @json(route('soldadura.liberarQRPlanta')),
         'soldadura.regenerarQR': @json(route('soldadura.regenerarQR')),
         'pta.analysis': @json(route('pta.analysis')),
+        'pta.segunda_pasada': @json(route('pta.segunda_pasada')),
         'pta.results.current': @json(session('pta_temp_ot_id') ? route('pta.results', ['ot_id' => session('pta_temp_ot_id')]) : '#')
     };
 </script>

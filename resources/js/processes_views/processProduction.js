@@ -1587,3 +1587,25 @@ function createPtaPasswordModal(otId) {
     document.body.appendChild(divOpacity);
     inputPassword.focus();
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// 2DA PASADA — toggle checkbox (PTA table partial, cargado via AJAX)
+// La función debe estar en window porque el partial se inyecta via innerHTML
+// y sus <script> no se ejecutan.
+// ────────────────────────────────────────────────────────────────────────────
+window.handleP2Checkbox = function (p2Id) {
+    const chk = document.getElementById("chk-p2-" + p2Id);
+    const hdnAct = document.getElementById("inp-p2-activa-" + p2Id);
+
+    if (!chk) return;
+
+    const activate = chk.checked;
+
+    window._setP2Rows(p2Id, activate);
+    if (hdnAct) hdnAct.value = activate ? "1" : "0";
+};
+
+window._setP2Rows = function (p2Id, show) {
+    const row = document.getElementById("row-p2-" + p2Id + "-0");
+    if (row) row.style.display = show ? "" : "none";
+};
