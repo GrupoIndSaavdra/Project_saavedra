@@ -590,24 +590,28 @@ export class Process {
                                         let sign = j == 0 ? "+" : "-";
                                         if (values) {
                                             if (i == 2) {
+                                                // Check if the current value is numerical or textual
+                                                let isTextual = isNaN(parseFloat(values[i - 1][x])) && values[i - 1][x] !== "" && values[i - 1][x] !== null;
+                                                let placeholderToGive = !isTextual ? sign : null; // Asignar placeholder (+) o (-) si es numérico
+
                                                 if (names[i - 1][x].includes("pin")) {
                                                     if (!this.tablePieces) {
-                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${values[i - 1][x]}`));
+                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${values[i - 1][x]}`, "text", placeholderToGive));
                                                     } else {
-                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `+-${values[i - 1][x]}`));
+                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], isTextual ? `${values[i - 1][x]}` : `+-${values[i - 1][x]}`, "text", placeholderToGive));
                                                     }
                                                 } else {
                                                     if (!this.tablePieces) {
-                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${values[i - 1][x]}`));
+                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${values[i - 1][x]}`, "text", placeholderToGive));
                                                     } else {
-                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], `${sign}${values[i - 1][x]}`));
+                                                        td.appendChild(this.crearInputs("input-medio", names[i - 1][x], isTextual ? `${values[i - 1][x]}` : `${sign}${values[i - 1][x]}`, "text", placeholderToGive));
                                                     }
                                                 }
                                             } else {
-                                                td.appendChild(this.crearInputs("input-medio", names[i - 1][x], values[i - 1][x]));
+                                                td.appendChild(this.crearInputs("input-medio", names[i - 1][x], values[i - 1][x], "text", null));
                                             }
                                         } else {
-                                            td.appendChild(this.crearInputs("input-medio", names[i - 1][x], null));
+                                            td.appendChild(this.crearInputs("input-medio", names[i - 1][x], null, "text", i == 2 ? sign : null));
                                         }
                                         if (j != 1) {
                                             x++;
@@ -616,16 +620,20 @@ export class Process {
                                 } else {
                                     if (values) {
                                         if (i == 2 && values[i - 1][x] != null) {
+                                            // Check if the current value is numerical or textual
+                                            let isTextual = isNaN(parseFloat(values[i - 1][x])) && values[i - 1][x] !== "" && values[i - 1][x] !== null;
+                                            let placeholderToGive = !isTextual ? "±" : null;
+
                                             if (!this.tablePieces) {
-                                                td.appendChild(this.crearInputs("input", names[i - 1][x], `${values[i - 1][x]}`));
+                                                td.appendChild(this.crearInputs("input", names[i - 1][x], `${values[i - 1][x]}`, "text", placeholderToGive));
                                             } else {
-                                                td.appendChild(this.crearInputs("input", names[i - 1][x], `+-${values[i - 1][x]}`));
+                                                td.appendChild(this.crearInputs("input", names[i - 1][x], isTextual ? `${values[i - 1][x]}` : `+-${values[i - 1][x]}`, "text", placeholderToGive));
                                             }
                                         } else {
-                                            td.appendChild(this.crearInputs("input", names[i - 1][x], values[i - 1][x]));
+                                            td.appendChild(this.crearInputs("input", names[i - 1][x], values[i - 1][x], "text", null));
                                         }
                                     } else {
-                                        td.appendChild(this.crearInputs("input", names[i - 1][x], null));
+                                        td.appendChild(this.crearInputs("input", names[i - 1][x], null, "text", i == 2 ? "±" : null));
                                     }
                                 }
                             } else {
@@ -788,12 +796,15 @@ export class Process {
         }
         table.appendChild(tr);
     }
-    crearInputs(className, name, valueInput, type = "text") {
+    crearInputs(className, name, valueInput, type = "text", placeholder = null) {
         let input = document.createElement("input");
         input.className = className;
         input.type = type;
         if (type == "text") {
             input.maxLength = 25;
+        }
+        if (placeholder) {
+            input.placeholder = placeholder;
         }
         input.name = this.edit ? `${name}[]` : name;
         input.step = "any";
