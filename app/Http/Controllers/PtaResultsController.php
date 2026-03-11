@@ -7,6 +7,7 @@ use App\Models\Orden_trabajo;
 use App\Models\Pieza;
 use App\Models\PtaResultado;
 use App\Models\SoldaduraPTA;
+use App\Models\SoldaduraPTA_pza;
 use Illuminate\Http\Request;
 
 class PtaResultsController extends Controller
@@ -59,7 +60,6 @@ class PtaResultsController extends Controller
 
     /**
      * Verifica si una OT pasó por el proceso de Soldadura PTA.
-     * Se comprueba existencia de piezas con proceso de soldadura PTA para la clase.
      */
     private function pasoPorPTA(string $otId, int $claseId): bool
     {
@@ -71,16 +71,23 @@ class PtaResultsController extends Controller
 
     /**
      * Obtiene las piezas de una OT que pasaron por Soldadura PTA
-     * y están terminadas correctamente (error = 'Ninguno', no rechazadas).
      */
-    private function getPiezasPTA(string $otId, int $claseId)
+    private function getPiezasPTA(string $otId, int $claseId, bool $soloBuenas = true, bool $incluirRechazados = false)
     {
-        return Pieza::where('id_ot', $otId)
+        $query = Pieza::where('id_ot', $otId)
             ->where('id_clase', $claseId)
-            ->where('proceso', 'Soldadura PTA')
-            ->where('error', 'Ninguno')
-            ->where('liberacion', '!=', 2)
-            ->orderBy('n_pieza')
+            ->where('proceso', 'Soldadura PTA');
+
+        if ($soloBuenas) {
+            $query->where('error', 'Ninguno');
+        }
+
+        if (!$incluirRechazados) {
+            $query->where('liberacion', '!=', 2);
+        }
+
+        return $query->orderByRaw('CAST(n_pieza AS UNSIGNED) ASC')
+            ->orderByRaw("RIGHT(n_pieza, 1) DESC")
             ->get();
     }
 
@@ -88,22 +95,27 @@ class PtaResultsController extends Controller
      * Sube una imagen al disco public y devuelve la ruta relativa.
      * Si ya existía una imagen anterior, la elimina.
      */
-    private function subirImagen($file, ?string $rutaAnterior, string $prefijo): string
+    private function subirImagen($file, ?string $rutaAnterior, string $prefijo, string $otId, string $claseNombre, string $nPieza): string
     {
-        $directorioDestino = public_path('pta_resultados');
+        $claseLimpia = preg_replace('/[^A-Za-z0-9_\-]/', '_', $claseNombre);
+        $nPiezaLimpia = preg_replace('/[^A-Za-z0-9_\-]/', '_', $nPieza);
+
+        $relativePath = 'images/resultados_PTA/OT_' . $otId . '/' . $claseLimpia;
+        $directorioDestino = public_path($relativePath);
 
         if (!file_exists($directorioDestino)) {
             mkdir($directorioDestino, 0755, true);
         }
 
         if ($rutaAnterior && file_exists(public_path($rutaAnterior))) {
-            unlink(public_path($rutaAnterior));
+            @unlink(public_path($rutaAnterior));
         }
 
-        $nombre = $prefijo . '_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $fechaHora = date('Y-m-d_H-i-s');
+        $nombre = $otId . '_' . $claseLimpia . '_' . $nPiezaLimpia . '_' . $prefijo . '_' . $fechaHora . '.' . $file->getClientOriginalExtension();
         $file->move($directorioDestino, $nombre);
 
-        return 'pta_resultados/' . $nombre;
+        return $relativePath . '/' . $nombre;
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -138,7 +150,8 @@ class PtaResultsController extends Controller
             return redirect()->back()->with('error', 'La clase seleccionada no tiene Soldadura PTA.');
         }
 
-        $piezas = $this->getPiezasPTA($ot_id, $clase_id);
+        // Permitimos ver piezas con errores para que se puedan editar, pero NO las rechazadas
+        $piezas = $this->getPiezasPTA($ot_id, $clase_id, false, false);
 
         if ($piezas->isEmpty()) {
             return redirect()->back()->with('error', 'No hay piezas terminadas en Soldadura PTA para esta OT.');
@@ -195,13 +208,12 @@ class PtaResultsController extends Controller
         ));
     }
 
-    /**
-     * POST admin/pta/results/{ot_id}
-     * Guarda o actualiza el resultado de Soldadura PTA de una pieza.
-     */
     public function store(StorePtaResultadoRequest $request, string $ot_id)
     {
         $ot = Orden_trabajo::findOrFail($ot_id);
+        $clase_id = $request->get('clase_id');
+        $clase = \App\Models\Clase::find($clase_id);
+        $clase_nombre = $clase ? $clase->nombre : 'Clase_' . $clase_id;
 
         $resultado = PtaResultado::firstOrNew([
             'ot_id' => $ot_id,
@@ -221,21 +233,30 @@ class PtaResultsController extends Controller
             $resultado->imagen_pico_soldadura = $this->subirImagen(
                 $request->file('imagen_pico_soldadura'),
                 $resultado->imagen_pico_soldadura,
-                'pico_sold'
+                'pico_sold',
+                $ot_id,
+                $clase_nombre,
+                $request->n_pieza
             );
         }
         if ($request->hasFile('imagen_conexion_soldadura')) {
             $resultado->imagen_conexion_soldadura = $this->subirImagen(
                 $request->file('imagen_conexion_soldadura'),
                 $resultado->imagen_conexion_soldadura,
-                'conexion_sold'
+                'conexion_sold',
+                $ot_id,
+                $clase_nombre,
+                $request->n_pieza
             );
         }
         if ($request->hasFile('imagen_perfilado_soldadura')) {
             $resultado->imagen_perfilado_soldadura = $this->subirImagen(
                 $request->file('imagen_perfilado_soldadura'),
                 $resultado->imagen_perfilado_soldadura,
-                'perfilado_sold'
+                'perfilado_sold',
+                $ot_id,
+                $clase_nombre,
+                $request->n_pieza
             );
         }
 
@@ -257,9 +278,9 @@ class PtaResultsController extends Controller
                 ->first();
 
             if ($compañera && $compañera->liberado_por_admin) {
-                $msg = '✅ Juego ' . $prefix . ' completo — ambas piezas liberadas.';
+                $msg = 'Juego ' . $prefix . ' completo — ambas piezas liberadas.';
             } elseif ($compañera) {
-                $msg = '💾 Pieza guardada y liberada. Falta completar la pieza complementaria del juego ' . $prefix . '.';
+                $msg = 'Pieza guardada y liberada. Falta completar la pieza complementaria del juego ' . $prefix . '.';
             }
         }
 
@@ -340,7 +361,8 @@ class PtaResultsController extends Controller
         if ($otSeleccionadaId && $claseSeleccionadaId) {
             $ot = Orden_trabajo::find($otSeleccionadaId);
             $claseSeleccionada = \App\Models\Clase::find($claseSeleccionadaId);
-            $piezasPTA = $this->getPiezasPTA($otSeleccionadaId, $claseSeleccionadaId);
+            // En el análisis queremos VER TODAS, incluso las que tienen errores o están rechazadas
+            $piezasPTA = $this->getPiezasPTA($otSeleccionadaId, $claseSeleccionadaId, false, true);
 
             // Cargar resultados con relaciones para no hacer N+1
             $resultados = PtaResultado::where('ot_id', $otSeleccionadaId)
@@ -350,8 +372,6 @@ class PtaResultsController extends Controller
                 ->keyBy('pieza_id');
 
             // ── Datos técnicos de soldadura (soldaduraPTA_pza) ─────────────────
-            // En esta BD, el proceso maestro se guarda en SoldaduraPTA con la nomenclatura:
-            // "Soldadura_PTA_{NombreClase}_{OT}"
             $nombreClaseLimpio = str_replace(' ', '_', $claseSeleccionada->nombre);
             $procesoStringId = "Soldadura_PTA_{$nombreClaseLimpio}_{$otSeleccionadaId}";
 
@@ -378,6 +398,201 @@ class PtaResultsController extends Controller
     }
 
     // ═══════════════════════════════════════════════════════════════════════
+    // PARTE 5: 2DA PASADA — Vista de edición diferida
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * GET admin/pta/segunda-pasada
+     * Vista con filtros en cascada OT → Clase → Pieza (H ó M).
+     * Muestra la 1ra pasada en solo-lectura y la 2da pasada editable.
+     */
+    public function segPasadaIndex(Request $request)
+    {
+        $otsConPTA = Orden_trabajo::whereHas('clases', function ($q) {
+            $q->whereHas('piezas', fn($q2) => $q2->where('proceso', 'Soldadura PTA'));
+        })->with([
+                    'moldura',
+                    'clases' => fn($q) => $q->whereHas('piezas', fn($q2) => $q2->where('proceso', 'Soldadura PTA'))
+                ])->orderBy('id', 'desc')->get();
+
+        $otSeleccionadaId = $request->get('ot_id');
+        $claseSeleccionadaId = $request->get('clase_id');
+        $nPiezaSel = $request->get('n_pieza');
+
+        $ot = null;
+        $claseSeleccionada = null;
+        $piezasDisponibles = collect();
+        $piezasGroup = null;
+        $procesoPTA = null;
+
+        if ($otSeleccionadaId && $claseSeleccionadaId) {
+            $ot = Orden_trabajo::find($otSeleccionadaId);
+            $claseSeleccionada = \App\Models\Clase::find($claseSeleccionadaId);
+
+            $nombreClaseLimpio = str_replace(' ', '_', $claseSeleccionada->nombre ?? '');
+            $procesoStringId = "Soldadura_PTA_{$nombreClaseLimpio}_{$otSeleccionadaId}";
+
+            $procesoPTA = SoldaduraPTA::where('id_ot', $otSeleccionadaId)
+                ->where('id_proceso', $procesoStringId)
+                ->latest()
+                ->first();
+
+            if ($procesoPTA) {
+                // n_piezas distintos con estado=2 para este proceso
+                $piezasDisponibles = SoldaduraPTA_pza::where('id_proceso', $procesoPTA->id)
+                    ->where('estado', 2)
+                    ->whereNotNull('n_pieza')
+                    ->distinct()
+                    ->orderByRaw('CAST(n_pieza AS UNSIGNED) ASC')
+                    ->orderByRaw("RIGHT(n_pieza, 1) DESC")
+                    ->pluck('n_pieza');
+
+                if ($nPiezaSel) {
+                    $piezasGroup = SoldaduraPTA_pza::where('id_proceso', $procesoPTA->id)
+                        ->where('n_pieza', $nPiezaSel)
+                        ->where('estado', 2)
+                        ->orderByRaw("FIELD(tipo_medida, 'D_Conexion_pico', 'D_Conexion_obt', 'Perfilado')")
+                        ->get()
+                        ->keyBy('tipo_medida');
+                }
+            }
+        }
+
+        return view('pta_views.segunda_pasada', compact(
+            'otsConPTA',
+            'otSeleccionadaId',
+            'claseSeleccionadaId',
+            'ot',
+            'claseSeleccionada',
+            'piezasDisponibles',
+            'nPiezaSel',
+            'piezasGroup',
+            'procesoPTA'
+        ));
+    }
+
+    /**
+     * POST admin/pta/segunda-pasada/update
+     * Guarda los datos de 2da pasada para la pieza seleccionada.
+     * Requiere autenticación temporal (sesión pta_temp_auth).
+     */
+    public function segPasadaUpdate(Request $request)
+    {
+        if (!session('pta_temp_auth')) {
+            return redirect()->route('pta.segunda_pasada', [
+                'ot_id' => $request->input('ot_id'),
+                'clase_id' => $request->input('clase_id'),
+                'n_pieza' => $request->input('n_pieza'),
+            ])->with('error', 'Debes autenticarte con la contraseña PTA2026 antes de guardar.');
+        }
+
+        $request->validate([
+            'id_proceso' => 'required|integer',
+            'n_pieza' => 'required|string',
+            'p2_tipo_medida' => 'required|in:D_Conexion_pico,D_Conexion_obt,Perfilado',
+            'p2_valor_principal' => 'required|numeric',
+            'p2_vl' => 'nullable|numeric',
+            'p2_tipo_preparacion' => 'nullable|integer|in:1,2,3',
+            'p2_precalentamiento' => 'nullable|numeric',
+            'p2_sold_inicial' => 'nullable|numeric',
+            'p2_sold_aplicada' => 'nullable|numeric',
+            'p2_sold_final' => 'nullable|numeric',
+            'p2_corr_inicial' => 'nullable|numeric',
+            'p2_corr_aplicada' => 'nullable|numeric',
+            'p2_corr_final' => 'nullable|numeric',
+            'p2_gas_argon' => 'nullable|numeric',
+            'p2_velocidad_calculada' => 'nullable|numeric',
+            'p2_resultado' => 'nullable|in:Bien,Mal',
+            'p2_defecto_pta' => 'nullable|string',
+            'p2_observaciones' => 'nullable|string|max:500',
+        ]);
+
+        $idProceso = $request->input('id_proceso');
+        $nPieza = $request->input('n_pieza');
+        $p2Tipo = $request->input('p2_tipo_medida'); // tipo que lleva el valor principal
+
+        // Buscar el número de juego de cualquier fila de esta pieza para poder
+        // asignarlo a la nueva fila si se va a crear.
+        $piezaBase = SoldaduraPTA_pza::where('id_proceso', $idProceso)
+            ->where('n_pieza', $nPieza)
+            ->where('estado', 2)
+            ->first();
+
+        if ($piezaBase) {
+            // Buscar si ya existe la fila dedicada a 2da pasada
+            $p2Row = SoldaduraPTA_pza::where('id_proceso', $idProceso)
+                ->where('n_pieza', $nPieza)
+                ->where('p2_activa', 1)
+                ->first();
+
+            if (!$p2Row) {
+                $p2Row = new SoldaduraPTA_pza();
+                $p2Row->id_proceso = $idProceso;
+                // Sufijo para evitar error UNIQUE CONSTRAINT al crear esta 4ta fila
+                $p2Row->id_pza = $piezaBase->id_pza . '_P2';
+                $p2Row->id_meta = $piezaBase->id_meta;
+                $p2Row->n_juego = $piezaBase->n_juego;
+                $p2Row->n_pieza = $nPieza;
+                $p2Row->p2_activa = true;
+                $p2Row->estado = 2;
+            }
+
+            // Nulificar base de 1ra pasada
+            $p2Row->tipo_medida = 'Segunda_Pasada';
+            $p2Row->d_conexion_pico = null;
+            $p2Row->d_conexion_obt = null;
+            $p2Row->vl = null;
+            $p2Row->tipo_preparacion = null;
+            $p2Row->perfilado = null;
+            $p2Row->precalentamiento = null;
+            $p2Row->sold_inicial = null;
+            $p2Row->sold_aplicada = null;
+            $p2Row->sold_final = null;
+            $p2Row->corr_inicial = null;
+            $p2Row->corr_aplicada = null;
+            $p2Row->corr_final = null;
+            $p2Row->gas_argon = null;
+            $p2Row->velocidad_calculada = null;
+            $p2Row->resultado = null;
+            $p2Row->defecto_pta = null;
+            $p2Row->temp_calentado = null;
+            $p2Row->temp_dispositivo = null;
+            $p2Row->limpieza = null;
+            $p2Row->error = 'Ninguno';
+            $p2Row->observaciones = null;
+
+            // Asignar los valores p2_*
+            $p2Row->p2_vl = $request->input('p2_vl');
+            $p2Row->p2_tipo_preparacion = $request->input('p2_tipo_preparacion');
+            $p2Row->p2_precalentamiento = $request->input('p2_precalentamiento');
+            $p2Row->p2_sold_inicial = $request->input('p2_sold_inicial');
+            $p2Row->p2_sold_aplicada = $request->input('p2_sold_aplicada');
+            $p2Row->p2_sold_final = $request->input('p2_sold_final');
+            $p2Row->p2_corr_inicial = $request->input('p2_corr_inicial');
+            $p2Row->p2_corr_aplicada = $request->input('p2_corr_aplicada');
+            $p2Row->p2_corr_final = $request->input('p2_corr_final');
+            $p2Row->p2_gas_argon = $request->input('p2_gas_argon');
+            $p2Row->p2_velocidad_calculada = $request->input('p2_velocidad_calculada');
+            $p2Row->p2_resultado = $request->input('p2_resultado');
+            $p2Row->p2_defecto_pta = $request->input('p2_defecto_pta', 'Ninguno');
+            $p2Row->p2_observaciones = $request->input('p2_observaciones');
+
+            // Asignar valor principal al campo correcto según el tipo seleccionado
+            $p2Row->p2_d_conexion_pico = ($p2Tipo === 'D_Conexion_pico') ? $request->input('p2_valor_principal') : null;
+            $p2Row->p2_d_conexion_obt = ($p2Tipo === 'D_Conexion_obt') ? $request->input('p2_valor_principal') : null;
+            $p2Row->p2_perfilado = ($p2Tipo === 'Perfilado') ? $request->input('p2_valor_principal') : null;
+
+            $p2Row->save();
+        }
+
+        return redirect()->route('pta.segunda_pasada', [
+            'ot_id' => $request->input('ot_id'),
+            'clase_id' => $request->input('clase_id'),
+            'n_pieza' => $request->input('n_pieza'),
+        ])->with('success', '2da pasada guardada correctamente para la pieza ' . $request->input('n_pieza') . '.');
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
     // MÉTODO AUXILIAR PARA OTRAS VISTAS (piecesInProgress)
     // ═══════════════════════════════════════════════════════════════════════
 
@@ -389,7 +604,6 @@ class PtaResultsController extends Controller
      */
     public static function buildCardData(string $otId, int $claseId): ?array
     {
-        // Total de piezas que pasaron por PTA (buenas + malas, todas) en ESTA clase específica
         $totalPTA = Pieza::where('id_ot', $otId)
             ->where('id_clase', $claseId)
             ->where('proceso', 'Soldadura PTA')
@@ -399,19 +613,12 @@ class PtaResultsController extends Controller
             return null;
         }
 
-        // Piezas TERMINADAS correctamente: liberadas por Calidad (liberacion = 1)
         $terminadas = Pieza::where('id_ot', $otId)
             ->where('id_clase', $claseId)
             ->where('proceso', 'Soldadura PTA')
             ->where('error', 'Ninguno')
             ->where('liberacion', 1)
             ->count();
-
-
-        // ── Clasificación de juegos completos ─────────────────────────────────
-        // Un juego se considera COMPLETO cuando AMBAS piezas (H y M) tienen registro
-        // en pta_resultados. Solo los juegos completos influyen en las barras.
-        // Estado mixto (ej: 5H=liberada, 5M=rechazada) → va a "sin liberar".
 
         $allResultados = PtaResultado::where('pta_resultados.ot_id', $otId)
             ->join('piezas', 'piezas.id', '=', 'pta_resultados.pieza_id')
@@ -423,7 +630,6 @@ class PtaResultsController extends Controller
             )
             ->get();
 
-        // Agrupar por prefijo numérico (ej. "5" para 5H y 5M)
         $byJuego = [];
         foreach ($allResultados as $r) {
             preg_match('/^\d+/', $r->n_pieza, $m);
@@ -436,29 +642,25 @@ class PtaResultsController extends Controller
         $sinLiberar = 0;
 
         foreach ($byJuego as $piezasJuego) {
-            // Solo juegos COMPLETOS (ambas piezas H y M presentes)
-            if (count($piezasJuego) < 2)
+            if (count($piezasJuego) < 2) {
                 continue;
+            }
 
             $todoLiberado = collect($piezasJuego)->every(fn($p) => $p->liberado_por_admin);
 
             if ($todoLiberado) {
                 $liberadas++;
             } else {
-                // Estado mixto o ambas pendientes → sin liberar
                 $sinLiberar++;
             }
         }
 
-        if ($totalPTA === 0)
-            return null;
-
         return [
-            'totalPTA' => $totalPTA,    // total que pasó por el proceso
-            'terminadas' => $terminadas,  // terminadas sin error
-            'liberadas' => $liberadas,   // juegos completos con AMBAS piezas liberadas
-            'rechazadas' => $rechazadas,  // juegos completos con AMBAS piezas rechazadas
-            'sinLiberar' => $sinLiberar,  // juegos completos en estado mixto/pendiente
+            'totalPTA' => $totalPTA,
+            'terminadas' => $terminadas,
+            'liberadas' => $liberadas,
+            'rechazadas' => $rechazadas,
+            'sinLiberar' => $sinLiberar,
         ];
     }
 }

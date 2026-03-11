@@ -179,64 +179,12 @@ class ProcessProductionController extends Controller
 
             // Construir mapa de liberación por n_pieza (para colorear filas históricas)
             $ptaLiberacion = [];
-            $ptaDefecto = []; // guarda el defecto_pta normalizado por n_pieza
             foreach ($piezasGroupHistory->keys() as $nPieza) {
                 $piezaDB = Pieza::where('n_pieza', $nPieza)
                     ->where('proceso', 'Soldadura PTA')
                     ->where('id_clase', $class->id)
                     ->first();
                 $ptaLiberacion[$nPieza] = $piezaDB ? (int) $piezaDB->liberacion : null;
-
-                // Capturar defecto_pta del primer registro; normalizar null/"" a 'Ninguno'
-                $defectoDB = $piezasGroupHistory[$nPieza]->first();
-                $rawDefecto = $defectoDB?->defecto_pta;
-                $ptaDefecto[$nPieza] = ($rawDefecto && $rawDefecto !== 'Ninguno') ? $rawDefecto : 'Ninguno';
-            }
-
-            // ── Propagación de estado malo a la mitad contraria de cada par M/H ──────
-            // Si una mitad está rechazada (lib=2), mala (lib=4) o tiene defecto_pta,
-            // la otra mitad del mismo juego debe mostrar el mismo color rojo/malo.
-            // Se usa el sentinel -1 cuando el mal estado proviene solo del defecto
-            // (liberacion=0) para que la blade lo trate como pta-row-error.
-            $BAD_LIB_STATES = [2, 4]; // rechazada, mala sin liberación
-
-            // Helper: determina si una pieza es "mala"
-            $isBad = fn($nP) =>
-                in_array($ptaLiberacion[$nP], $BAD_LIB_STATES) ||
-                ($ptaDefecto[$nP] ?? 'Ninguno') !== 'Ninguno';
-
-            // Helper: obtiene el código de liberación a propagar al compañero
-            // Si el estado malo viene solo del defecto (lib=0), usamos -1 como sentinel
-            $badCode = fn($nP) =>
-                in_array($ptaLiberacion[$nP], $BAD_LIB_STATES)
-                ? $ptaLiberacion[$nP]  // rechazada(2) o mala(4) — propagar igual
-                : -1;                   // defecto sin liberación formal → sentinel rojo
-
-            $processed = [];
-            foreach (array_keys($ptaLiberacion) as $nPieza) {
-                if (in_array($nPieza, $processed)) {
-                    continue;
-                }
-                $lastChar = substr($nPieza, -1);
-                if ($lastChar !== 'M' && $lastChar !== 'H') {
-                    continue; // No es una mitad — no aplica
-                }
-                $partnerKey = substr($nPieza, 0, -1) . ($lastChar === 'M' ? 'H' : 'M');
-                if (!array_key_exists($partnerKey, $ptaLiberacion)) {
-                    continue; // La mitad contraria no está en el historial
-                }
-
-                $processed[] = $nPieza;
-                $processed[] = $partnerKey;
-
-                $thisIsBad = $isBad($nPieza);
-                $partnerIsBad = $isBad($partnerKey);
-
-                if ($thisIsBad && !$partnerIsBad) {
-                    $ptaLiberacion[$partnerKey] = $badCode($nPieza);
-                } elseif ($partnerIsBad && !$thisIsBad) {
-                    $ptaLiberacion[$nPieza] = $badCode($partnerKey);
-                }
             }
 
             // Piezas activas (estado=1, meta actual) — modo captura
@@ -572,10 +520,59 @@ class ProcessProductionController extends Controller
         // ── Hotfix para Soldadura PTA (arrays de pieza iterativos) ──
         if ($request->input('process') == "Soldadura PTA") {
             $pieceIds = $request->input('piece_id') ?? [];
-            $firstPieceId = reset($pieceIds);
-            if (!$firstPieceId)
-                return; // Si no hay registro real, cortar ejecución
-            $piece = clone $modelProcessPiece::find($firstPieceId);
+            if (empty($pieceIds)) {
+                return;
+            }
+
+            $piecesToProcess = [];
+            foreach ($pieceIds as $key => $pid) {
+                if (!$pid)
+                    continue;
+                $pieceRow = $modelProcessPiece::find($pid);
+                if (!$pieceRow)
+                    continue;
+
+                $n_piece = $pieceRow->n_pieza ? $pieceRow->n_pieza : $pieceRow->n_juego;
+                if (!isset($piecesToProcess[$n_piece])) {
+                    $piecesToProcess[$n_piece] = [
+                        'hasFundicion' => false,
+                        'hasMal' => false,
+                        'row' => $pieceRow
+                    ];
+                }
+
+                $defecto = $request->input('defecto_pta')[$key] ?? 'Ninguno';
+                $resultado = $request->input('resultado')[$key] ?? 'Bien';
+
+                if ($defecto === 'Fundición') {
+                    $piecesToProcess[$n_piece]['hasFundicion'] = true;
+                }
+                if ($resultado === 'Mal') {
+                    $piecesToProcess[$n_piece]['hasMal'] = true;
+                }
+            }
+
+            foreach ($piecesToProcess as $n_piece => $data) {
+                $pieceInPiezas = Pieza::where("id_clase", $class->id)
+                    ->where("proceso", "Soldadura PTA")
+                    ->where("n_pieza", $n_piece)
+                    ->first();
+
+                if (!$pieceInPiezas) {
+                    $pieceInPiezas = new Pieza();
+                    $pieceInPiezas->id_ot = $class->id_ot;
+                    $pieceInPiezas->id_clase = $class->id;
+                    $pieceInPiezas->n_pieza = $n_piece;
+                    $pieceInPiezas->id_operador = $meta->id_usuario;
+                    $pieceInPiezas->maquina = $meta->maquina;
+                    $pieceInPiezas->proceso = "Soldadura PTA";
+                }
+
+                $error = $data['hasFundicion'] ? "Fundición" : ($data['hasMal'] ? "Maquinado" : "Ninguno");
+                $pieceInPiezas->error = $error;
+                $pieceInPiezas->save();
+            }
+            return; // Termina la función ya que PTA fue procesado completamente
         } else {
             $pieceId = $index !== null ? $request->input('piece')[$index] : $request->input('piece');
             $piece = $modelProcessPiece::find($pieceId);
@@ -596,27 +593,7 @@ class ProcessProductionController extends Controller
             $pieceInPiezas->proceso = $request->input('process');
         }
 
-        if ($request->input('process') == "Soldadura PTA") {
-            $defectos = $request->input('defecto_pta') ?? [];
-            $resultados = $request->input('resultado') ?? [];
-            $hasFundicion = false;
-            $hasMal = false;
-            foreach ($defectos as $defecto) {
-                if ($defecto === 'Fundición') {
-                    $hasFundicion = true;
-                    break;
-                }
-            }
-            foreach ($resultados as $resultado) {
-                if ($resultado === 'Mal') {
-                    $hasMal = true;
-                    break;
-                }
-            }
-            // Fundición es el defecto específico; "Mal" es el resultado general de error
-            $error = $hasFundicion ? "Fundición" : ($hasMal ? "Maquinado" : "Ninguno");
-
-        } else if ($request->input('process') == "Copiado") {
+        if ($request->input('process') == "Copiado") {
             $hasMaquinado = $piece->error_cilindrado === "Maquinado" || $piece->error_cavidades === "Maquinado";
             $hasFundicion = $piece->error_cilindrado === "Fundicion" || $piece->error_cavidades === "Fundicion";
 
@@ -632,57 +609,6 @@ class ProcessProductionController extends Controller
         }
         $pieceInPiezas->error = $error;
         $pieceInPiezas->save();
-
-        // ── Soldadura PTA: propagar resultado malo a la mitad contraria (M↔H) ──────
-        // Si la pieza guardada tiene error (defecto_pta ≠ Ninguno), la mitad contraria
-        // del mismo juego se marca automáticamente como mala Y se cierra (estado=2)
-        // para que el sistema salte al siguiente juego en lugar de detenerse en ella.
-        if (
-            $request->input('process') === 'Soldadura PTA'
-            && $error !== 'Ninguno'
-            && $n_piece
-        ) {
-            $ultimaLetra = substr($n_piece, -1);
-            if ($ultimaLetra === 'H' || $ultimaLetra === 'M') {
-                $partnerLetra = $ultimaLetra === 'H' ? 'M' : 'H';
-                $partnerNPieza = substr($n_piece, 0, -1) . $partnerLetra;
-
-                // 1. Crear/actualizar entrada en piezas para la mitad contraria
-                $partnerEnPiezas = Pieza::where('id_clase', $class->id)
-                    ->where('proceso', 'Soldadura PTA')
-                    ->where('n_pieza', $partnerNPieza)
-                    ->first();
-                if (!$partnerEnPiezas) {
-                    $partnerEnPiezas = new Pieza();
-                    $partnerEnPiezas->id_ot = $class->id_ot;
-                    $partnerEnPiezas->id_clase = $class->id;
-                    $partnerEnPiezas->n_pieza = $partnerNPieza;
-                    $partnerEnPiezas->id_operador = $meta->id_usuario;
-                    $partnerEnPiezas->maquina = $meta->maquina;
-                    $partnerEnPiezas->proceso = 'Soldadura PTA';
-                }
-                $partnerEnPiezas->error = $error;
-                $partnerEnPiezas->save();
-
-                // 2. Marcar los registros soldaduraPTA_pza de la mitad contraria como
-                //    estado=2 (terminados) para que get_pieceToBeUsed los omita y el
-                //    sistema salte automáticamente al siguiente juego.
-                $processIdString = str_replace(' ', '_', 'Soldadura PTA')
-                    . '_' . $class->nombre . '_' . $class->id_ot;
-                $ptaProcessDB = \App\Models\SoldaduraPTA::where('id_proceso', $processIdString)->first();
-                if ($ptaProcessDB) {
-                    \App\Models\SoldaduraPTA_pza::where('id_proceso', $ptaProcessDB->id)
-                        ->where('n_pieza', $partnerNPieza)
-                        ->where('estado', 1) // solo filas activas/pendientes
-                        ->update([
-                            'estado' => 2,
-                            'resultado' => 'Mal',
-                            'defecto_pta' => $error,
-                            'error' => $error,
-                        ]);
-                }
-            }
-        }
     }
     public function selectAssembly(Request $request)
     {
@@ -882,6 +808,9 @@ class ProcessProductionController extends Controller
         if ($meta->proceso === 'Soldadura PTA') {
             $ptaController = new \App\Http\Controllers\SoldaduraPTAController();
             $ptaController->storePiece($request);
+
+            // Sincronizar los errores de PTA en la tabla general de Piezas
+            $this->savePiece($class, $meta->proceso, $request, $meta);
         } else {
             $arrayPieces = $request->input('piece') ? array_unique($request->input('piece')) : [];
             foreach ($arrayPieces as $index => $piece) {
@@ -2592,11 +2521,17 @@ class ProcessProductionController extends Controller
                                         if ($pFemale->error == "Ninguno" && $pMale->error == "Ninguno") {
                                             array_push($piecesArray["good"], $pFemale, $pMale);
                                         } else {
-                                            array_push($piecesArray["bad"], $pFemale, $pMale);
-                                            if ($pFemale->error != "Ninguno")
-                                                array_push($piecesBadData, $this->getBadPiecesData($pFemale));
-                                            if ($pMale->error != "Ninguno")
-                                                array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                            // Modificación para PTA: si tienen error pero liberación es 0, no contar como malas
+                                            // a menos que sea otro proceso que sí deba bloquear.
+                                            if ($processName === "Soldadura PTA") {
+                                                array_push($piecesArray["good"], $pFemale, $pMale);
+                                            } else {
+                                                array_push($piecesArray["bad"], $pFemale, $pMale);
+                                                if ($pFemale->error != "Ninguno")
+                                                    array_push($piecesBadData, $this->getBadPiecesData($pFemale));
+                                                if ($pMale->error != "Ninguno")
+                                                    array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                            }
                                         }
                                     } else if ($pFemale->liberacion == 1) {
                                         array_push($piecesArray["good"], $pFemale, $pMale);
@@ -2628,8 +2563,12 @@ class ProcessProductionController extends Controller
                             if ($piece->error == "Ninguno") {
                                 array_push($piecesArray["good"], $piece);
                             } else {
-                                array_push($piecesArray["bad"], $piece);
-                                array_push($piecesBadData, $this->getBadPiecesData($piece));
+                                if ($processName === "Soldadura PTA") {
+                                    array_push($piecesArray["good"], $piece);
+                                } else {
+                                    array_push($piecesArray["bad"], $piece);
+                                    array_push($piecesBadData, $this->getBadPiecesData($piece));
+                                }
                             }
                         } else if ($piece->liberacion == 1) {
                             array_push($piecesArray["good"], $piece);

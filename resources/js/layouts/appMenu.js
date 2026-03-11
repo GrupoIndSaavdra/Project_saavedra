@@ -188,6 +188,7 @@ function getRoutes(profile) {
                     title: "Soldadura PTA",
                     routes: [
                         ["pta.analysis", "Análisis de Resultados Sold. PTA"],
+                        ["pta.segunda_pasada", "Segunda Pasada PTA"],
                     ],
                 },
             ];
@@ -268,6 +269,7 @@ function getRoutes(profile) {
                     routes: [
                         ["pta.results.current", "Resultados de Sold. PTA"],
                         ["pta.analysis", "Análisis de Resultados Sold. PTA"],
+                        ["pta.segunda_pasada", "Segunda Pasada PTA"],
                     ],
                 },
             ];
