@@ -763,8 +763,7 @@
                 return input; // Retornar input
             }
             getError(valorPieza, posicion, k, valoresCnomi, valoresTole, tolePosiciones, cNomiPosiciones, piezaPosiciones) {
-                if (valorPieza === undefined || valorPieza === null || valorPieza === "" || isNaN(parseFloat(
-                    valorPieza))) {
+                if (valorPieza === undefined || valorPieza === null || valorPieza === "") {
                     return false;
                 }
                 if (posicion === 0) return false;
@@ -779,15 +778,28 @@
                     else toleIdx++;
                 }
 
-                let cNomiVal = undefined;
+                let cNomiValStr = undefined;
                 if (cNomiPosiciones != null && cNomiPosiciones.includes(posicion)) {
-                    cNomiVal = parseFloat(valoresCnomi[nomiIdx + (k === 1 ? 1 : 0)]);
+                    cNomiValStr = valoresCnomi[nomiIdx + (k === 1 ? 1 : 0)];
                 } else {
-                    cNomiVal = parseFloat(valoresCnomi[nomiIdx]);
+                    cNomiValStr = valoresCnomi[nomiIdx];
                 }
 
-                if (isNaN(cNomiVal)) return false;
+                // Si la cota nominal no existe o está en blanco, no puede haber error
+                if (cNomiValStr === undefined || cNomiValStr === null || cNomiValStr === "") return false;
 
+                // Verificar si es un string (Acetato, Bien, Mal, Si, No, etc.)
+                if (isNaN(parseFloat(valorPieza)) || isNaN(parseFloat(cNomiValStr))) {
+                    let textPieza = String(valorPieza).trim().toLowerCase();
+                    let textCnomi = String(cNomiValStr).trim().toLowerCase();
+
+                    if (textPieza !== textCnomi && textPieza !== "----") {
+                        return true;
+                    }
+                    return false;
+                }
+
+                let cNomiVal = parseFloat(cNomiValStr);
                 let error = false;
                 let limiteInferior, limiteSuperior;
 
@@ -933,16 +945,16 @@
                                 @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
                                     <div style="margin-top: 6px;">
                                         <span style="
-                                                                                    display: inline-flex;
-                                                                                    align-items: center;
-                                                                                    padding: 2px 12px;
-                                                                                    background: #f1f3f5;
-                                                                                    border-radius: 50px;
-                                                                                    font-size: 11px;
-                                                                                    color: #495057;
-                                                                                    border: 1px solid #dee2e6;
-                                                                                    font-weight: 500;
-                                                                                ">
+                                                                                                display: inline-flex;
+                                                                                                align-items: center;
+                                                                                                padding: 2px 12px;
+                                                                                                background: #f1f3f5;
+                                                                                                border-radius: 50px;
+                                                                                                font-size: 11px;
+                                                                                                color: #495057;
+                                                                                                border: 1px solid #dee2e6;
+                                                                                                font-weight: 500;
+                                                                                            ">
                                             <strong style="color: #007bff; margin-right: 5px;">REF</strong>
                                             {{ $cNominal->altura1 }} mm
                                         </span>
@@ -950,16 +962,16 @@
                                 @elseif (isset($cNominal->profundidad1))
                                     <div style="margin-top: 6px;">
                                         <span style="
-                                                                                    display: inline-flex;
-                                                                                    align-items: center;
-                                                                                    padding: 2px 12px;
-                                                                                    background: #f1f3f5;
-                                                                                    border-radius: 50px;
-                                                                                    font-size: 11px;
-                                                                                    color: #495057;
-                                                                                    border: 1px solid #dee2e6;
-                                                                                    font-weight: 500;
-                                                                                ">
+                                                                                                display: inline-flex;
+                                                                                                align-items: center;
+                                                                                                padding: 2px 12px;
+                                                                                                background: #f1f3f5;
+                                                                                                border-radius: 50px;
+                                                                                                font-size: 11px;
+                                                                                                color: #495057;
+                                                                                                border: 1px solid #dee2e6;
+                                                                                                font-weight: 500;
+                                                                                            ">
                                             <strong style="color: #007bff; margin-right: 5px;">REF</strong>
                                             {{ $cNominal->profundidad1 }} mm
                                         </span>
@@ -971,16 +983,16 @@
                                 @if (isset($cNominal->altura2) && !isset($cNominal->profundidad1))
                                     <div style="margin-top: 6px;">
                                         <span style="
-                                                                                    display: inline-flex;
-                                                                                    align-items: center;
-                                                                                    padding: 2px 12px;
-                                                                                    background: #f1f3f5;
-                                                                                    border-radius: 50px;
-                                                                                    font-size: 11px;
-                                                                                    color: #495057;
-                                                                                    border: 1px solid #dee2e6;
-                                                                                    font-weight: 500;
-                                                                                ">
+                                                                                                display: inline-flex;
+                                                                                                align-items: center;
+                                                                                                padding: 2px 12px;
+                                                                                                background: #f1f3f5;
+                                                                                                border-radius: 50px;
+                                                                                                font-size: 11px;
+                                                                                                color: #495057;
+                                                                                                border: 1px solid #dee2e6;
+                                                                                                font-weight: 500;
+                                                                                            ">
                                             <strong style="color: #007bff; margin-right: 5px;">REF</strong>
                                             {{ $cNominal->altura2 }} mm
                                         </span>
@@ -988,16 +1000,16 @@
                                 @elseif (isset($cNominal->profundidad2))
                                     <div style="margin-top: 6px;">
                                         <span style="
-                                                                                    display: inline-flex;
-                                                                                    align-items: center;
-                                                                                    padding: 2px 12px;
-                                                                                    background: #f1f3f5;
-                                                                                    border-radius: 50px;
-                                                                                    font-size: 11px;
-                                                                                    color: #495057;
-                                                                                    border: 1px solid #dee2e6;
-                                                                                    font-weight: 500;
-                                                                                ">
+                                                                                                display: inline-flex;
+                                                                                                align-items: center;
+                                                                                                padding: 2px 12px;
+                                                                                                background: #f1f3f5;
+                                                                                                border-radius: 50px;
+                                                                                                font-size: 11px;
+                                                                                                color: #495057;
+                                                                                                border: 1px solid #dee2e6;
+                                                                                                font-weight: 500;
+                                                                                            ">
                                             <strong style="color: #007bff; margin-right: 5px;">REF</strong>
                                             {{ $cNominal->profundidad2 }} mm
                                         </span>
@@ -1009,16 +1021,16 @@
                                 @if (isset($cNominal->altura3) && !isset($cNominal->profundidad1))
                                     <div style="margin-top: 6px;">
                                         <span style="
-                                                                                    display: inline-flex;
-                                                                                    align-items: center;
-                                                                                    padding: 2px 12px;
-                                                                                    background: #f1f3f5;
-                                                                                    border-radius: 50px;
-                                                                                    font-size: 11px;
-                                                                                    color: #495057;
-                                                                                    border: 1px solid #dee2e6;
-                                                                                    font-weight: 500;
-                                                                                ">
+                                                                                                display: inline-flex;
+                                                                                                align-items: center;
+                                                                                                padding: 2px 12px;
+                                                                                                background: #f1f3f5;
+                                                                                                border-radius: 50px;
+                                                                                                font-size: 11px;
+                                                                                                color: #495057;
+                                                                                                border: 1px solid #dee2e6;
+                                                                                                font-weight: 500;
+                                                                                            ">
                                             <strong style="color: #007bff; margin-right: 5px;">REF</strong>
                                             {{ $cNominal->altura3 }} mm
                                         </span>
@@ -1026,16 +1038,16 @@
                                 @elseif (isset($cNominal->profundidad3))
                                     <div style="margin-top: 6px;">
                                         <span style="
-                                                                                    display: inline-flex;
-                                                                                    align-items: center;
-                                                                                    padding: 2px 12px;
-                                                                                    background: #f1f3f5;
-                                                                                    border-radius: 50px;
-                                                                                    font-size: 11px;
-                                                                                    color: #495057;
-                                                                                    border: 1px solid #dee2e6;
-                                                                                    font-weight: 500;
-                                                                                ">
+                                                                                                display: inline-flex;
+                                                                                                align-items: center;
+                                                                                                padding: 2px 12px;
+                                                                                                background: #f1f3f5;
+                                                                                                border-radius: 50px;
+                                                                                                font-size: 11px;
+                                                                                                color: #495057;
+                                                                                                border: 1px solid #dee2e6;
+                                                                                                font-weight: 500;
+                                                                                            ">
                                             <strong style="color: #007bff; margin-right: 5px;">REF</strong>
                                             {{ $cNominal->profundidad3 }} mm
                                         </span>
@@ -1324,19 +1336,37 @@
                         </tr>
                         <tr>
                             <td> Tolerancias. </td>
-                            <td><input type="text" class="input" value="{{ (isset($tolerance->diametro1_cilindrado) && $tolerance->diametro1_cilindrado !== '') ? '± ' . $tolerance->diametro1_cilindrado : '± ' }}" disabled></td>
-                            <td><input type="text" class="input" value="{{ (isset($tolerance->profundidad1_cilindrado) && $tolerance->profundidad1_cilindrado !== '') ? '± ' . $tolerance->profundidad1_cilindrado : '± ' }}" disabled>
+                            <td><input type="text" class="input"
+                                    value="{{ (isset($tolerance->diametro1_cilindrado) && $tolerance->diametro1_cilindrado !== '') ? '± ' . $tolerance->diametro1_cilindrado : '± ' }}"
+                                    disabled></td>
+                            <td><input type="text" class="input"
+                                    value="{{ (isset($tolerance->profundidad1_cilindrado) && $tolerance->profundidad1_cilindrado !== '') ? '± ' . $tolerance->profundidad1_cilindrado : '± ' }}"
+                                    disabled>
                             </td>
-                            <td><input type="text" class="input" value="{{ (isset($tolerance->diametro2_cilindrado) && $tolerance->diametro2_cilindrado !== '') ? '± ' . $tolerance->diametro2_cilindrado : '± ' }}" disabled></td>
-                            <td><input type="text" class="input" value="{{ (isset($tolerance->profundidad2_cilindrado) && $tolerance->profundidad2_cilindrado !== '') ? '± ' . $tolerance->profundidad2_cilindrado : '± ' }}" disabled>
+                            <td><input type="text" class="input"
+                                    value="{{ (isset($tolerance->diametro2_cilindrado) && $tolerance->diametro2_cilindrado !== '') ? '± ' . $tolerance->diametro2_cilindrado : '± ' }}"
+                                    disabled></td>
+                            <td><input type="text" class="input"
+                                    value="{{ (isset($tolerance->profundidad2_cilindrado) && $tolerance->profundidad2_cilindrado !== '') ? '± ' . $tolerance->profundidad2_cilindrado : '± ' }}"
+                                    disabled>
                             </td>
-                            <td><input type="text" class="input" value="{{ (isset($tolerance->diametro_sufridera) && $tolerance->diametro_sufridera !== '') ? '± ' . $tolerance->diametro_sufridera : '± ' }}" disabled></td>
-                            <td><input type="text" class="input" value="{{ (isset($tolerance->diametro_ranura) && $tolerance->diametro_ranura !== '') ? '± ' . $tolerance->diametro_ranura : '± ' }}" disabled>
+                            <td><input type="text" class="input"
+                                    value="{{ (isset($tolerance->diametro_sufridera) && $tolerance->diametro_sufridera !== '') ? '± ' . $tolerance->diametro_sufridera : '± ' }}"
+                                    disabled></td>
+                            <td><input type="text" class="input"
+                                    value="{{ (isset($tolerance->diametro_ranura) && $tolerance->diametro_ranura !== '') ? '± ' . $tolerance->diametro_ranura : '± ' }}"
+                                    disabled>
                             </td>
-                            <td><input type="text" class="input" value="{{ (isset($tolerance->profundidad_ranura) && $tolerance->profundidad_ranura !== '') ? '± ' . $tolerance->profundidad_ranura : '± ' }}" disabled></td>
-                            <td><input type="text" class="input" value="{{ (isset($tolerance->profundidad_sufridera) && $tolerance->profundidad_sufridera !== '') ? '± ' . $tolerance->profundidad_sufridera : '± ' }}" disabled>
+                            <td><input type="text" class="input"
+                                    value="{{ (isset($tolerance->profundidad_ranura) && $tolerance->profundidad_ranura !== '') ? '± ' . $tolerance->profundidad_ranura : '± ' }}"
+                                    disabled></td>
+                            <td><input type="text" class="input"
+                                    value="{{ (isset($tolerance->profundidad_sufridera) && $tolerance->profundidad_sufridera !== '') ? '± ' . $tolerance->profundidad_sufridera : '± ' }}"
+                                    disabled>
                             </td>
-                            <td><input type="text" class="input" value="{{ (isset($tolerance->altura_total) && $tolerance->altura_total !== '') ? '± ' . $tolerance->altura_total : '± ' }}" disabled>
+                            <td><input type="text" class="input"
+                                    value="{{ (isset($tolerance->altura_total) && $tolerance->altura_total !== '') ? '± ' . $tolerance->altura_total : '± ' }}"
+                                    disabled>
                             </td>
                             <td></td>
                             <td></td>
@@ -1424,65 +1454,100 @@
                                         value="{{ $cNominal->barrenoLateralMacho }}" class="input" step="any"
                                         inputmode="decimal" disabled></td>
                                 <td><input type="number" name="cNomi_alturaTaconInicial"
-                                        value="{{ (isset($cNominal->alturaTaconInicial) && $cNominal->alturaTaconInicial !== '') ? number_format($cNominal->alturaTaconInicial, 3) : '' }}" class="input" step="any" inputmode="decimal"
-                                        disabled></td>
+                                        value="{{ (isset($cNominal->alturaTaconInicial) && $cNominal->alturaTaconInicial !== '') ? number_format($cNominal->alturaTaconInicial, 3) : '' }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
                                 <td><input type="number" name="cNomi_alturaTaconIntermedia"
-                                        value="{{ (isset($cNominal->alturaTaconIntermedia) && $cNominal->alturaTaconIntermedia !== '') ? number_format($cNominal->alturaTaconIntermedia, 3) : '' }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
+                                        value="{{ (isset($cNominal->alturaTaconIntermedia) && $cNominal->alturaTaconIntermedia !== '') ? number_format($cNominal->alturaTaconIntermedia, 3) : '' }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
                                 <td><input type="number" class="input" disabled></td>
                                 <td><input type="number" class="input" disabled></td>
                             </tr>
                             <tr>
                                 <td> Tolerancias </td>
-                                <td><input type="text" name="tole_anchoRanura" value="{{ (isset($tolerance->anchoRanura) && $tolerance->anchoRanura !== '') ? '± ' . $tolerance->anchoRanura : '± ' }}"
+                                <td><input type="text" name="tole_anchoRanura"
+                                        value="{{ (isset($tolerance->anchoRanura) && $tolerance->anchoRanura !== '') ? '± ' . $tolerance->anchoRanura : '± ' }}"
                                         class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="text" name="tole_profuTaconHembra" value="{{ (isset($tolerance->profuTaconHembra) && $tolerance->profuTaconHembra !== '') ? '± ' . $tolerance->profuTaconHembra : '± ' }}"
+                                <td><input type="text" name="tole_profuTaconHembra"
+                                        value="{{ (isset($tolerance->profuTaconHembra) && $tolerance->profuTaconHembra !== '') ? '± ' . $tolerance->profuTaconHembra : '± ' }}"
                                         class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="text" name="tole_profuTaconMacho" value="{{ (isset($tolerance->profuTaconMacho) && $tolerance->profuTaconMacho !== '') ? '± ' . $tolerance->profuTaconMacho : '± ' }}"
+                                <td><input type="text" name="tole_profuTaconMacho"
+                                        value="{{ (isset($tolerance->profuTaconMacho) && $tolerance->profuTaconMacho !== '') ? '± ' . $tolerance->profuTaconMacho : '± ' }}"
                                         class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="text" name="tole_simetriaHembra" value="{{ (isset($tolerance->simetriaHembra) && $tolerance->simetriaHembra !== '') ? '± ' . $tolerance->simetriaHembra : '± ' }}"
+                                <td><input type="text" name="tole_simetriaHembra"
+                                        value="{{ (isset($tolerance->simetriaHembra) && $tolerance->simetriaHembra !== '') ? '± ' . $tolerance->simetriaHembra : '± ' }}"
                                         class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="text" name="tole_simetriaMacho" value="{{ (isset($tolerance->simetriaMacho) && $tolerance->simetriaMacho !== '') ? '± ' . $tolerance->simetriaMacho : '± ' }}"
+                                <td><input type="text" name="tole_simetriaMacho"
+                                        value="{{ (isset($tolerance->simetriaMacho) && $tolerance->simetriaMacho !== '') ? '± ' . $tolerance->simetriaMacho : '± ' }}"
                                         class="input" step="any" inputmode="decimal" disabled></td>
-                                <td><input type="text" name="tole_anchoTacon" value="{{ (isset($tolerance->anchoTacon) && $tolerance->anchoTacon !== '') ? '± ' . $tolerance->anchoTacon : '± ' }}"
+                                <td><input type="text" name="tole_anchoTacon"
+                                        value="{{ (isset($tolerance->anchoTacon) && $tolerance->anchoTacon !== '') ? '± ' . $tolerance->anchoTacon : '± ' }}"
                                         class="input" step="any" inputmode="decimal" disabled></td>
                                 <td><input type="text" name="tole_barrenoLateralHembra"
-                                        value="{{ (isset($tolerance->barrenoLateralHembra) && $tolerance->barrenoLateralHembra !== '') ? '± ' . $tolerance->barrenoLateralHembra : '± ' }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
+                                        value="{{ (isset($tolerance->barrenoLateralHembra) && $tolerance->barrenoLateralHembra !== '') ? '± ' . $tolerance->barrenoLateralHembra : '± ' }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
                                 <td><input type="text" name="tole_barrenoLateralMacho"
-                                        value="{{ (isset($tolerance->barrenoLateralMacho) && $tolerance->barrenoLateralMacho !== '') ? '± ' . $tolerance->barrenoLateralMacho : '± ' }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
+                                        value="{{ (isset($tolerance->barrenoLateralMacho) && $tolerance->barrenoLateralMacho !== '') ? '± ' . $tolerance->barrenoLateralMacho : '± ' }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
                                 <td><input type="text" name="tole_alturaTaconInicial"
-                                        value="{{ (isset($tolerance->alturaTaconInicial) && $tolerance->alturaTaconInicial !== '') ? '± ' . number_format($tolerance->alturaTaconInicial, 3) : '± ' }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
+                                        value="{{ (isset($tolerance->alturaTaconInicial) && $tolerance->alturaTaconInicial !== '') ? '± ' . number_format($tolerance->alturaTaconInicial, 3) : '± ' }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
                                 <td><input type="text" name="tole_alturaTaconIntermedia"
-                                        value="{{ (isset($tolerance->alturaTaconIntermedia) && $tolerance->alturaTaconIntermedia !== '') ? '± ' . number_format($tolerance->alturaTaconIntermedia, 3) : '± ' }}" class="input" step="any"
-                                        inputmode="decimal" disabled></td>
+                                        value="{{ (isset($tolerance->alturaTaconIntermedia) && $tolerance->alturaTaconIntermedia !== '') ? '± ' . number_format($tolerance->alturaTaconIntermedia, 3) : '± ' }}"
+                                        class="input" step="any" inputmode="decimal" disabled></td>
                                 <td><input type="text" class="input" disabled></td>
                                 <td><input type="text" class="input" disabled></td>
                             </tr>
                             @foreach ($piecesInfo as $pieceInfo)
+                                @php
+                                    $fields = [
+                                        'anchoRanura',
+                                        'profuTaconHembra',
+                                        'profuTaconMacho',
+                                        'simetriaHembra',
+                                        'simetriaMacho',
+                                        'anchoTacon',
+                                        'barrenoLateralHembra',
+                                        'barrenoLateralMacho',
+                                        'alturaTaconInicial',
+                                        'alturaTaconIntermedia'
+                                    ];
+                                    $errorsInfo = [];
+                                    foreach ($fields as $field) {
+                                        $errorsInfo[$field] = false;
+                                        if (isset($cNominal->$field) && isset($tolerance->$field) && is_numeric($cNominal->$field) && is_numeric($tolerance->$field) && isset($pieceInfo[$field]) && is_numeric($pieceInfo[$field])) {
+                                            $upper = $cNominal->$field + $tolerance->$field;
+                                            $lower = $cNominal->$field - $tolerance->$field;
+                                            $errorsInfo[$field] = $pieceInfo[$field] < $lower || $pieceInfo[$field] > $upper;
+                                        }
+                                    }
+                                @endphp
                                 <tr>
                                     <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['anchoRanura'] }}" step="any"
+                                    <td><input type="number" class="input" {!! $errorsInfo['anchoRanura'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['anchoRanura'] }}" step="any"
                                             inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['profuTaconHembra'] }}" step="any"
+                                    <td><input type="number" class="input" {!! $errorsInfo['profuTaconHembra'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['profuTaconHembra'] }}" step="any"
                                             inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['profuTaconMacho'] }}" step="any"
+                                    <td><input type="number" class="input" {!! $errorsInfo['profuTaconMacho'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['profuTaconMacho'] }}" step="any"
                                             inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['simetriaHembra'] }}" step="any"
+                                    <td><input type="number" class="input" {!! $errorsInfo['simetriaHembra'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['simetriaHembra'] }}" step="any"
                                             inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['simetriaMacho'] }}" step="any"
+                                    <td><input type="number" class="input" {!! $errorsInfo['simetriaMacho'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['simetriaMacho'] }}" step="any"
                                             inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['anchoTacon'] }}" step="any"
+                                    <td><input type="number" class="input" {!! $errorsInfo['anchoTacon'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['anchoTacon'] }}" step="any" inputmode="decimal"
+                                            disabled></td>
+                                    <td><input type="number" class="input" {!! $errorsInfo['barrenoLateralHembra'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['barrenoLateralHembra'] }}" step="any"
                                             inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['barrenoLateralHembra'] }}"
+                                    <td><input type="number"
+                                            class="input" {!! $errorsInfo['barrenoLateralMacho'] ? 'style="border: 3px solid red;"' : '' !!}
+                                            value="{{ $pieceInfo['barrenoLateralMacho'] }}" step="any" inputmode="decimal" disabled>
+                                    </td>
+                                    <td><input type="number"
+                                            class="input" {!! $errorsInfo['alturaTaconInicial'] ? 'style="border: 3px solid red;"' : '' !!}
+                                            value="{{ (isset($pieceInfo['alturaTaconInicial']) && $pieceInfo['alturaTaconInicial'] !== '') ? number_format($pieceInfo['alturaTaconInicial'], 3) : '' }}"
                                             step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ $pieceInfo['barrenoLateralMacho'] }}"
-                                            step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ (isset($pieceInfo['alturaTaconInicial']) && $pieceInfo['alturaTaconInicial'] !== '') ? number_format($pieceInfo['alturaTaconInicial'], 3) : '' }}" step="any"
-                                            inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" value="{{ (isset($pieceInfo['alturaTaconIntermedia']) && $pieceInfo['alturaTaconIntermedia'] !== '') ? number_format($pieceInfo['alturaTaconIntermedia'], 3) : '' }}"
+                                    <td><input type="number"
+                                            class="input" {!! $errorsInfo['alturaTaconIntermedia'] ? 'style="border: 3px solid red;"' : '' !!}
+                                            value="{{ (isset($pieceInfo['alturaTaconIntermedia']) && $pieceInfo['alturaTaconIntermedia'] !== '') ? number_format($pieceInfo['alturaTaconIntermedia'], 3) : '' }}"
                                             step="any" inputmode="decimal" disabled></td>
                                     <td><input type="text" class="input" value="{{ $pieceInfo['error'] }}" disabled></td>
                                     <td><input type="text" class="input" value="{{ $pieceInfo['observaciones'] }}" disabled></td>
@@ -1501,11 +1566,11 @@
                         'modo' => 'reporte',
                     ])
                 @else
-                    <script>
-                        document.getElementById('scrollabe-table').appendChild(process.crearProceso()); //Agregar tabla al div.
-                    </script>
-                @endif
+                        <script>
+                            document.getElementById('scrollabe-table').appendChild(process.crearProceso()); //Agregar tabla al div.
+                        </script>
+                    @endif
+                            </div>
                         </div>
-                    </div>
-                </body>
+                    </body>
 @endsection
