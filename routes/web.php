@@ -181,6 +181,11 @@ Route::get('/panel-progreso', fn() => view('wo_views.progressPanel_wo'))->name('
    Tracking Soldadura - NUEVO SISTEMA
 =========================== */
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/trackingSoldadura', [TrackingSoldaduraController::class, 'index'])->name('trackingSoldadura.index');
+    Route::post('/trackingSoldadura', [TrackingSoldaduraController::class, 'store'])->name('trackingSoldadura.store');
+});
+
 /* ===========================
    1. Generar QR por Lote
 =========================== */
