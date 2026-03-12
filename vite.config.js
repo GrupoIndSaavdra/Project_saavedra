@@ -84,6 +84,10 @@ export default defineConfig({
                 'resources/css/processes_views/soldaduraPTA_table_partial.css',
                 'resources/css/pta_views/analysis.css',
                 'resources/css/pta_views/results.css',
+                'resources/css/pta_views/segunda_pasada.css',
+                'resources/css/pieces_views/piecesReport/soldaduraExtraInfoPdf.css',
+                'resources/css/pieces_views/piecesReport/soldaduraPTAExtraInfoPdf.css',
+                'resources/css/processes_views/soldaduraPTA_table_partial.css'
             ],
             refresh: true,
         }),
