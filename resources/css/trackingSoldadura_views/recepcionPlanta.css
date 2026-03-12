@@ -35,7 +35,7 @@
     align-items: center;
     gap: 0.5rem;
     background-color: #0a8504be;
-    color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
     padding: 0.6rem 1.2rem;
     border-radius: 2rem;
     margin-bottom: 1.5rem;
@@ -50,7 +50,6 @@
 
 .badge-text strong {
     font-weight: 700;
-
 }
 
 /* Campos de formulario */

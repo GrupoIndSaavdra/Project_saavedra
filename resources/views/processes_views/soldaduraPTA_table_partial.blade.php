@@ -113,7 +113,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                     // ── Determinar clase de color por liberación (igual que en piezas normales) ──
                     $liberacionValor = $ptaLiberacion[$nPieza] ?? null;
-                    $defectoVal      = $filaPrecal?->defecto_pta ?? 'Ninguno';
+                    $defectoVal = $filaPrecal?->defecto_pta ?? 'Ninguno';
 
                     if ($liberacionValor === 1) {
                         $claseColor = 'pta-row-liberada';  // Azul  — liberada por calidad
@@ -312,10 +312,11 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         {{-- ── Resultado ── --}}
                         <td>
                             @if ($modo === 'captura')
-                                <select name="resultado[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]" class="pta-select" required>
+                                <select name="resultado[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]" class="pta-select"
+                                    required>
                                     <option value="">—</option>
                                     <option value="Bien" {{ ($fila?->resultado ?? '') === 'Bien' ? 'selected' : '' }}>Bien</option>
-                                    <option value="Mal"  {{ ($fila?->resultado ?? '') === 'Mal'  ? 'selected' : '' }}>Mal</option>
+                                    <option value="Mal" {{ ($fila?->resultado ?? '') === 'Mal' ? 'selected' : '' }}>Mal</option>
                                 </select>
                             @else
                                 @php $res = $fila?->resultado ?? '—'; @endphp
@@ -328,7 +329,8 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         {{-- ── Defecto (select: Ninguno / Fundición) ── --}}
                         <td>
                             @if ($modo === 'captura')
-                                <select name="defecto_pta[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]" class="pta-select" required>
+                                <select name="defecto_pta[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]" class="pta-select"
+                                    required>
                                     <option value="Ninguno" {{ ($fila?->defecto_pta ?? 'Ninguno') === 'Ninguno' ? 'selected' : '' }}>
                                         Ninguno
                                     </option>
@@ -361,7 +363,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                 @endforeach
 
                 {{-- ─────────────────────────────────────────────────────────────────
-                     2DA PASADA (Historial)
+                2DA PASADA (Historial)
                 ────────────────────────────────────────────────────────────────── --}}
                 @php
                     $filaP2H = $filasPorTipo['Segunda_Pasada'] ?? null;
@@ -375,24 +377,30 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                 @if ($p2YaActivaH)
                     @php
                         $tipoP2GuardadoH = null;
-                        if ($filaP2H?->p2_d_conexion_pico !== null) $tipoP2GuardadoH = 'D_Conexion_pico';
-                        elseif ($filaP2H?->p2_d_conexion_obt !== null) $tipoP2GuardadoH = 'D_Conexion_obt';
-                        elseif ($filaP2H?->p2_perfilado !== null) $tipoP2GuardadoH = 'Perfilado';
+                        if ($filaP2H?->p2_d_conexion_pico !== null)
+                            $tipoP2GuardadoH = 'D_Conexion_pico';
+                        elseif ($filaP2H?->p2_d_conexion_obt !== null)
+                            $tipoP2GuardadoH = 'D_Conexion_obt';
+                        elseif ($filaP2H?->p2_perfilado !== null)
+                            $tipoP2GuardadoH = 'Perfilado';
 
-                        $valorP2GuardadoH = match($tipoP2GuardadoH) {
+                        $valorP2GuardadoH = match ($tipoP2GuardadoH) {
                             'D_Conexion_pico' => $filaP2H?->p2_d_conexion_pico,
-                            'D_Conexion_obt'  => $filaP2H?->p2_d_conexion_obt,
-                            'Perfilado'       => $filaP2H?->p2_perfilado,
-                            default           => null,
+                            'D_Conexion_obt' => $filaP2H?->p2_d_conexion_obt,
+                            'Perfilado' => $filaP2H?->p2_perfilado,
+                            default => null,
                         };
-                        $p2IdUniqH   = 'hist_p2_' . Str::slug((string)$nPieza, '_');
+                        $p2IdUniqH = 'hist_p2_' . Str::slug((string) $nPieza, '_');
                     @endphp
                     {{-- Opcional fila de control checkbox para habilitar edición extra en historial --}}
                     @if ($modo === 'captura')
                         <tr style="background:#055a9e; border-top:2px solid #034a87;">
                             <td colspan="17" style="padding:.4rem .8rem;">
-                                <label style="display:flex; align-items:center; gap:.5rem; cursor:pointer; font-size:.82rem; color:#fff;">
-                                    <input type="checkbox" checked onchange="handleP2Checkbox('{{ $p2IdUniqH }}')" id="chk-p2-{{ $p2IdUniqH }}" style="width:15px; height:15px; cursor:pointer; accent-color:#fff;">
+                                <label
+                                    style="display:flex; align-items:center; gap:.5rem; cursor:pointer; font-size:.82rem; color:#fff;">
+                                    <input type="checkbox" checked onchange="handleP2Checkbox('{{ $p2IdUniqH }}')"
+                                        id="chk-p2-{{ $p2IdUniqH }}"
+                                        style="width:15px; height:15px; cursor:pointer; accent-color:#fff;">
                                     <strong>2da Pasada (registrada)</strong>
                                 </label>
                                 <input type="hidden" name="p2_activa[{{ $keyP2H }}]" id="inp-p2-activa-{{ $p2IdUniqH }}" value="1">
@@ -400,7 +408,8 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         </tr>
                     @endif
 
-                    <tr id="row-p2-{{ $p2IdUniqH }}-0" class="fila-p2 {{ $claseColor }}" style="border-bottom:1px solid #90b8e0;">
+                    <tr id="row-p2-{{ $p2IdUniqH }}-0" class="fila-p2 {{ $claseColor }}"
+                        style="border-bottom:1px solid #90b8e0;">
                         <td class="td-pieza" style="font-size:12px; background-color:#055a9e; color:#fff; font-weight:700;">
                             <div style="display:flex; flex-direction:column; align-items:center;">
                                 <span>{{ $nPieza }}</span>
@@ -409,11 +418,15 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         </td>
                         <td class="td-tipo-medida" style="min-width:130px;">
                             @if ($modo === 'captura')
-                                <select name="p2_tipo_medida[{{ $keyP2H }}]" class="pta-select" style="font-size:.78rem; color:#034a87; font-weight:600; width:100%;">
+                                <select name="p2_tipo_medida[{{ $keyP2H }}]" class="pta-select"
+                                    style="font-size:.78rem; color:#034a87; font-weight:600; width:100%;">
                                     <option value="">— Medida —</option>
-                                    <option value="D_Conexion_pico" {{ $tipoP2GuardadoH === 'D_Conexion_pico' ? 'selected' : '' }}>D. Conexión Pico</option>
-                                    <option value="D_Conexion_obt"  {{ $tipoP2GuardadoH === 'D_Conexion_obt'  ? 'selected' : '' }}>D. Conexión Obt.</option>
-                                    <option value="Perfilado"        {{ $tipoP2GuardadoH === 'Perfilado'        ? 'selected' : '' }}>Perfilado</option>
+                                    <option value="D_Conexion_pico" {{ $tipoP2GuardadoH === 'D_Conexion_pico' ? 'selected' : '' }}>D.
+                                        Conexión Pico</option>
+                                    <option value="D_Conexion_obt" {{ $tipoP2GuardadoH === 'D_Conexion_obt' ? 'selected' : '' }}>D.
+                                        Conexión Obt.</option>
+                                    <option value="Perfilado" {{ $tipoP2GuardadoH === 'Perfilado' ? 'selected' : '' }}>Perfilado
+                                    </option>
                                 </select>
                             @else
                                 {{ $tipoP2GuardadoH ? ($tipoP2GuardadoH === 'D_Conexion_pico' ? 'D. Conexión Pico' : ($tipoP2GuardadoH === 'D_Conexion_obt' ? 'D. Conexión Obt.' : 'Perfilado')) : '—' }}
@@ -421,14 +434,16 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         </td>
                         <td>
                             @if ($modo === 'captura')
-                                <input type="number" step="0.001" name="p2_valor[{{ $keyP2H }}]" value="{{ $valorP2GuardadoH ?? '' }}" class="pta-input" placeholder="0.000">
+                                <input type="number" step="0.001" name="p2_valor[{{ $keyP2H }}]"
+                                    value="{{ $valorP2GuardadoH ?? '' }}" class="pta-input" placeholder="0.000">
                             @else
                                 {{ $valorP2GuardadoH ?? '—' }}
                             @endif
                         </td>
                         <td>
                             @if ($modo === 'captura')
-                                <input type="number" step="0.001" name="p2_vl[{{ $keyP2H }}]" value="{{ $filaP2H?->p2_vl ?? '' }}" class="pta-input" placeholder="0.000">
+                                <input type="number" step="0.001" name="p2_vl[{{ $keyP2H }}]" value="{{ $filaP2H?->p2_vl ?? '' }}"
+                                    class="pta-input" placeholder="0.000">
                             @else
                                 {{ $filaP2H?->p2_vl ?? '—' }}
                             @endif
@@ -447,63 +462,73 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         </td>
                         <td class="td-precal">
                             @if ($modo === 'captura')
-                                <input type="number" step="0.01" name="p2_precalentamiento[{{ $keyP2H }}]" value="{{ $filaP2H?->p2_precalentamiento ?? '' }}" class="pta-input" placeholder="°C">
+                                <input type="number" step="0.01" name="p2_precalentamiento[{{ $keyP2H }}]"
+                                    value="{{ $filaP2H?->p2_precalentamiento ?? '' }}" class="pta-input" placeholder="°C">
                             @else
-                                <strong>{{ $filaP2H?->p2_precalentamiento ?? '—' }}</strong><br><small style="color:#888;">°C</small>
+                                <strong>{{ $filaP2H?->p2_precalentamiento ?? '—' }}</strong><br><small
+                                    style="color:#888;">°C</small>
                             @endif
                         </td>
                         <td>
                             @if ($modo === 'captura')
-                                <input type="number" step="0.001" name="p2_sold_inicial[{{ $keyP2H }}]" value="{{ $filaP2H?->p2_sold_inicial ?? '' }}" class="pta-input" placeholder="0.000">
+                                <input type="number" step="0.001" name="p2_sold_inicial[{{ $keyP2H }}]"
+                                    value="{{ $filaP2H?->p2_sold_inicial ?? '' }}" class="pta-input" placeholder="0.000">
                             @else
                                 {{ $filaP2H?->p2_sold_inicial ?? '—' }}
                             @endif
                         </td>
                         <td>
                             @if ($modo === 'captura')
-                                <input type="number" step="0.001" name="p2_sold_aplicada[{{ $keyP2H }}]" value="{{ $filaP2H?->p2_sold_aplicada ?? '' }}" class="pta-input" placeholder="0.000">
+                                <input type="number" step="0.001" name="p2_sold_aplicada[{{ $keyP2H }}]"
+                                    value="{{ $filaP2H?->p2_sold_aplicada ?? '' }}" class="pta-input" placeholder="0.000">
                             @else
                                 {{ $filaP2H?->p2_sold_aplicada ?? '—' }}
                             @endif
                         </td>
                         <td>
                             @if ($modo === 'captura')
-                                <input type="number" step="0.001" name="p2_sold_final[{{ $keyP2H }}]" value="{{ $filaP2H?->p2_sold_final ?? '' }}" class="pta-input" placeholder="0.000">
+                                <input type="number" step="0.001" name="p2_sold_final[{{ $keyP2H }}]"
+                                    value="{{ $filaP2H?->p2_sold_final ?? '' }}" class="pta-input" placeholder="0.000">
                             @else
                                 {{ $filaP2H?->p2_sold_final ?? '—' }}
                             @endif
                         </td>
                         <td>
                             @if ($modo === 'captura')
-                                <input type="number" step="0.001" name="p2_corr_inicial[{{ $keyP2H }}]" value="{{ $filaP2H?->p2_corr_inicial ?? '' }}" class="pta-input" placeholder="0.000">
+                                <input type="number" step="0.001" name="p2_corr_inicial[{{ $keyP2H }}]"
+                                    value="{{ $filaP2H?->p2_corr_inicial ?? '' }}" class="pta-input" placeholder="0.000">
                             @else
                                 {{ $filaP2H?->p2_corr_inicial ?? '—' }}
                             @endif
                         </td>
                         <td>
                             @if ($modo === 'captura')
-                                <input type="number" step="0.001" name="p2_corr_aplicada[{{ $keyP2H }}]" value="{{ $filaP2H?->p2_corr_aplicada ?? '' }}" class="pta-input" placeholder="0.000">
+                                <input type="number" step="0.001" name="p2_corr_aplicada[{{ $keyP2H }}]"
+                                    value="{{ $filaP2H?->p2_corr_aplicada ?? '' }}" class="pta-input" placeholder="0.000">
                             @else
                                 {{ $filaP2H?->p2_corr_aplicada ?? '—' }}
                             @endif
                         </td>
                         <td>
                             @if ($modo === 'captura')
-                                <input type="number" step="0.001" name="p2_corr_final[{{ $keyP2H }}]" value="{{ $filaP2H?->p2_corr_final ?? '' }}" class="pta-input" placeholder="0.000">
+                                <input type="number" step="0.001" name="p2_corr_final[{{ $keyP2H }}]"
+                                    value="{{ $filaP2H?->p2_corr_final ?? '' }}" class="pta-input" placeholder="0.000">
                             @else
                                 {{ $filaP2H?->p2_corr_final ?? '—' }}
                             @endif
                         </td>
                         <td>
                             @if ($modo === 'captura')
-                                <input type="number" step="0.001" name="p2_gas_argon[{{ $keyP2H }}]" value="{{ $filaP2H?->p2_gas_argon ?? '' }}" class="pta-input" placeholder="0.000">
+                                <input type="number" step="0.001" name="p2_gas_argon[{{ $keyP2H }}]"
+                                    value="{{ $filaP2H?->p2_gas_argon ?? '' }}" class="pta-input" placeholder="0.000">
                             @else
                                 {{ $filaP2H?->p2_gas_argon ?? '—' }}
                             @endif
                         </td>
                         <td>
                             @if ($modo === 'captura')
-                                <input type="number" step="0.001" name="p2_velocidad_calculada[{{ $keyP2H }}]" value="{{ $filaP2H?->p2_velocidad_calculada ?? '' }}" class="pta-input" placeholder="0.000">
+                                <input type="number" step="0.001" name="p2_velocidad_calculada[{{ $keyP2H }}]"
+                                    value="{{ $filaP2H?->p2_velocidad_calculada ?? '' }}" class="pta-input" placeholder="0.000">
                             @else
                                 {{ $filaP2H?->p2_velocidad_calculada ?? '—' }}
                             @endif
@@ -512,8 +537,9 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             @if ($modo === 'captura')
                                 <select name="p2_resultado[{{ $keyP2H }}]" class="pta-select">
                                     <option value="">—</option>
-                                    <option value="Bien" {{ ($filaP2H?->p2_resultado ?? '') === 'Bien' ? 'selected' : '' }}>Bien</option>
-                                    <option value="Mal"  {{ ($filaP2H?->p2_resultado ?? '') === 'Mal'  ? 'selected' : '' }}>Mal</option>
+                                    <option value="Bien" {{ ($filaP2H?->p2_resultado ?? '') === 'Bien' ? 'selected' : '' }}>Bien
+                                    </option>
+                                    <option value="Mal" {{ ($filaP2H?->p2_resultado ?? '') === 'Mal' ? 'selected' : '' }}>Mal</option>
                                 </select>
                             @else
                                 @php $resP2 = $filaP2H?->p2_resultado ?? '—'; @endphp
@@ -525,8 +551,8 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         <td>
                             @if ($modo === 'captura')
                                 <select name="p2_defecto_pta[{{ $keyP2H }}]" class="pta-select">
-                                    <option value="Ninguno"   {{ ($filaP2H?->p2_defecto_pta ?? 'Ninguno') === 'Ninguno'   ? 'selected' : '' }}>Ninguno</option>
-                                    <option value="Fundición" {{ ($filaP2H?->p2_defecto_pta ?? '')         === 'Fundición' ? 'selected' : '' }}>Fundición</option>
+                                    <option value="Ninguno" {{ ($filaP2H?->p2_defecto_pta ?? 'Ninguno') === 'Ninguno' ? 'selected' : '' }}>Ninguno</option>
+                                    <option value="Fundición" {{ ($filaP2H?->p2_defecto_pta ?? '') === 'Fundición' ? 'selected' : '' }}>Fundición</option>
                                 </select>
                             @else
                                 @php $defP2 = $filaP2H?->p2_defecto_pta ?? 'Ninguno'; @endphp
@@ -537,7 +563,9 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         </td>
                         <td style="min-width:120px; text-align:left; padding:6px;">
                             @if ($modo === 'captura')
-                                <textarea name="p2_observaciones[{{ $keyP2H }}]" class="pta-input" rows="2" style="resize:vertical; min-width:110px;" placeholder="Obs. 2da pasada...">{{ $filaP2H?->p2_observaciones ?? '' }}</textarea>
+                                <textarea name="p2_observaciones[{{ $keyP2H }}]" class="pta-input" rows="2"
+                                    style="resize:vertical; min-width:110px;"
+                                    placeholder="Obs. 2da pasada...">{{ $filaP2H?->p2_observaciones ?? '' }}</textarea>
                             @else
                                 {{ $filaP2H?->p2_observaciones ?? '—' }}
                             @endif
@@ -614,7 +642,8 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                     <option value="">—</option>
                                     @foreach ([1, 2, 3] as $opt)
                                         <option value="{{ $opt }}" {{ ($filaA?->tipo_preparacion ?? '') == $opt ? 'selected' : '' }}>
-                                            {{ $opt }}</option>
+                                            {{ $opt }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </td>
@@ -650,14 +679,15 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                             {{-- Velocidad calculada --}}
                             <td><input type="number" step="0.001" name="velocidad_calculada[{{ $keyA }}]"
-                                    value="{{ $filaA?->velocidad_calculada ?? '' }}" class="pta-input" placeholder="0.000" required></td>
+                                    value="{{ $filaA?->velocidad_calculada ?? '' }}" class="pta-input" placeholder="0.000" required>
+                            </td>
 
                             {{-- Resultado --}}
                             <td>
                                 <select name="resultado[{{ $keyA }}]" class="pta-select" required>
                                     <option value="">—</option>
                                     <option value="Bien" {{ ($filaA?->resultado ?? '') === 'Bien' ? 'selected' : '' }}>Bien</option>
-                                    <option value="Mal"  {{ ($filaA?->resultado ?? '') === 'Mal'  ? 'selected' : '' }}>Mal</option>
+                                    <option value="Mal" {{ ($filaA?->resultado ?? '') === 'Mal' ? 'selected' : '' }}>Mal</option>
                                 </select>
                             </td>
 
@@ -684,8 +714,8 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                     @endforeach
 
                     {{-- ─────────────────────────────────────────────────────────────────
-                         2DA PASADA (solo modo captura)
-                         Aparece oculta; se muestra solo si el operador desbloquea con PTA2026.
+                    2DA PASADA (solo modo captura)
+                    Aparece oculta; se muestra solo si el operador desbloquea con PTA2026.
                     ────────────────────────────────────────────────────────────────── --}}
                     @php
                         // Verificamos si existe la 4ta fila y si está activa
@@ -697,18 +727,17 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         }
 
                         $p2YaActiva = $filaP2Existente?->p2_activa ?? false;
-                        $p2IdUniq   = 'p2_' . Str::slug((string)$nPiezaA, '_');
+                        $p2IdUniq = 'p2_' . Str::slug((string) $nPiezaA, '_');
                     @endphp
 
                     {{-- Fila de control: checkbox --}}
                     <tr id="row-p2-ctrl-{{ $p2IdUniq }}" style="background:#055a9e; border-top:2px solid #034a87;">
                         <td colspan="17" style="padding:.4rem .8rem;">
-                            <label style="display:flex; align-items:center; gap:.5rem; cursor:pointer; font-size:.82rem; color:#fff;">
-                                <input type="checkbox"
-                                       id="chk-p2-{{ $p2IdUniq }}"
-                                       {{ $p2YaActiva ? 'checked' : '' }}
-                                       onchange="handleP2Checkbox('{{ $p2IdUniq }}')"
-                                       style="width:15px; height:15px; cursor:pointer; accent-color:#fff;">
+                            <label
+                                style="display:flex; align-items:center; gap:1rem; cursor:pointer; font-size:1rem; color:#fff;">
+                                <input type="checkbox" id="chk-p2-{{ $p2IdUniq }}" {{ $p2YaActiva ? 'checked' : '' }}
+                                    onchange="handleP2Checkbox('{{ $p2IdUniq }}')"
+                                    style="width:20px; height:20px; cursor:pointer; margin-left: 5rem; accent-color:#fff;">
                                 <strong>Aplicar 2da pasada</strong>
                                 @if($p2YaActiva)
                                     <span style="color:#b3d4f5; font-size:.78rem;">(ya registrada — puedes editar los datos)</span>
@@ -716,10 +745,11 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             </label>
                             {{-- Input oculto que envía '1' cuando se activa (se habilita por JS) --}}
                             <input type="hidden" name="p2_activa[{{ $nPiezaA }}]" id="inp-p2-activa-{{ $p2IdUniq }}"
-                                   value="{{ $p2YaActiva ? '1' : '0' }}">
+                                value="{{ $p2YaActiva ? '1' : '0' }}">
                             {{-- Mensaje de error de contraseña (oculto por defecto) --}}
-                            <span id="p2-err-{{ $p2IdUniq }}" style="color:#ffcdd2; font-size:.78rem; display:none; margin-left:.5rem;">
-                                Contrasena incorrecta.
+                            <span id="p2-err-{{ $p2IdUniq }}"
+                                style="color:#ffcdd2; font-size:.78rem; display:none; margin-left:.5rem;">
+                                Contraseña incorrecta.
                             </span>
                         </td>
                     </tr>
@@ -741,50 +771,51 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                         // Detectar qué tipo de medida ya viene guardado
                         $tipoP2Guardado = null;
-                        if ($filaP2?->p2_d_conexion_pico !== null) $tipoP2Guardado = 'D_Conexion_pico';
-                        elseif ($filaP2?->p2_d_conexion_obt !== null) $tipoP2Guardado = 'D_Conexion_obt';
-                        elseif ($filaP2?->p2_perfilado !== null) $tipoP2Guardado = 'Perfilado';
+                        if ($filaP2?->p2_d_conexion_pico !== null)
+                            $tipoP2Guardado = 'D_Conexion_pico';
+                        elseif ($filaP2?->p2_d_conexion_obt !== null)
+                            $tipoP2Guardado = 'D_Conexion_obt';
+                        elseif ($filaP2?->p2_perfilado !== null)
+                            $tipoP2Guardado = 'Perfilado';
 
-                        $valorP2Guardado = match($tipoP2Guardado) {
+                        $valorP2Guardado = match ($tipoP2Guardado) {
                             'D_Conexion_pico' => $filaP2?->p2_d_conexion_pico,
-                            'D_Conexion_obt'  => $filaP2?->p2_d_conexion_obt,
-                            'Perfilado'       => $filaP2?->p2_perfilado,
-                            default           => null,
+                            'D_Conexion_obt' => $filaP2?->p2_d_conexion_obt,
+                            'Perfilado' => $filaP2?->p2_perfilado,
+                            default => null,
                         };
                     @endphp
-                    <tr id="row-p2-{{ $p2IdUniq }}-0"
-                        class="fila-p2"
+                    <tr id="row-p2-{{ $p2IdUniq }}-0" class="fila-p2"
                         style="{{ !$p2YaActiva ? 'display:none;' : '' }} background:#e8f1fa; border-bottom:1px solid #90b8e0;">
 
                         {{-- Columna pieza --}}
-                        <td class="td-pieza"
-                            style="font-size:12px; background-color:#055a9e; color:#fff; font-weight:700;">
+                        <td class="td-pieza" style="font-size:15px; background-color:#055a9e; color:#fff; font-weight:700;">
                             {{ $nPiezaA }}<br><span style="font-size:10px;">2da P.</span>
                         </td>
 
                         {{-- SELECT: tipo de medida --}}
                         <td class="td-tipo-medida" style="min-width:130px;">
-                            <select name="p2_tipo_medida[{{ $keyP2 }}]"
-                                    class="pta-select"
-                                    style="font-size:.78rem; color:#034a87; font-weight:600; width:100%;">
+                            <select name="p2_tipo_medida[{{ $keyP2 }}]" class="pta-select"
+                                style="font-size:1.2rem; color:#034a87; font-weight:600; width:100%;">
                                 <option value="">— Medida —</option>
-                                <option value="D_Conexion_pico" {{ $tipoP2Guardado === 'D_Conexion_pico' ? 'selected' : '' }}>D. Conexión Pico</option>
-                                <option value="D_Conexion_obt"  {{ $tipoP2Guardado === 'D_Conexion_obt'  ? 'selected' : '' }}>D. Conexión Obt.</option>
-                                <option value="Perfilado"        {{ $tipoP2Guardado === 'Perfilado'        ? 'selected' : '' }}>Perfilado</option>
+                                <option value="D_Conexion_pico" {{ $tipoP2Guardado === 'D_Conexion_pico' ? 'selected' : '' }}>D.
+                                    Conexión Pico</option>
+                                <option value="D_Conexion_obt" {{ $tipoP2Guardado === 'D_Conexion_obt' ? 'selected' : '' }}>D.
+                                    Conexión Obt.</option>
+                                <option value="Perfilado" {{ $tipoP2Guardado === 'Perfilado' ? 'selected' : '' }}>Perfilado
+                                </option>
                             </select>
                         </td>
 
                         {{-- Valor de la medida seleccionada --}}
                         <td>
-                            <input type="number" step="0.001"
-                                   name="p2_valor[{{ $keyP2 }}]"
-                                   value="{{ $valorP2Guardado ?? '' }}"
-                                   class="pta-input" placeholder="0.000">
+                            <input type="number" step="0.001" name="p2_valor[{{ $keyP2 }}]" value="{{ $valorP2Guardado ?? '' }}"
+                                class="pta-input" placeholder="0.000">
                         </td>
 
                         {{-- VL --}}
-                        <td><input type="number" step="0.001" name="p2_vl[{{ $keyP2 }}]"
-                                   value="{{ $filaP2?->p2_vl ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                        <td><input type="number" step="0.001" name="p2_vl[{{ $keyP2 }}]" value="{{ $filaP2?->p2_vl ?? '' }}"
+                                class="pta-input" placeholder="0.000"></td>
 
                         {{-- Tipo Preparación --}}
                         <td>
@@ -798,58 +829,57 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                         {{-- Precalentamiento --}}
                         <td class="td-precal">
-                            <input type="number" step="0.01"
-                                   name="p2_precalentamiento[{{ $keyP2 }}]"
-                                   value="{{ $filaP2?->p2_precalentamiento ?? '' }}"
-                                   class="pta-input" placeholder="°C">
+                            <input type="number" step="0.01" name="p2_precalentamiento[{{ $keyP2 }}]"
+                                value="{{ $filaP2?->p2_precalentamiento ?? '' }}" class="pta-input" placeholder="°C">
                         </td>
 
                         {{-- Soldadura --}}
                         <td><input type="number" step="0.001" name="p2_sold_inicial[{{ $keyP2 }}]"
-                                   value="{{ $filaP2?->p2_sold_inicial ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_sold_inicial ?? '' }}" class="pta-input" placeholder="0.000"></td>
                         <td><input type="number" step="0.001" name="p2_sold_aplicada[{{ $keyP2 }}]"
-                                   value="{{ $filaP2?->p2_sold_aplicada ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_sold_aplicada ?? '' }}" class="pta-input" placeholder="0.000"></td>
                         <td><input type="number" step="0.001" name="p2_sold_final[{{ $keyP2 }}]"
-                                   value="{{ $filaP2?->p2_sold_final ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_sold_final ?? '' }}" class="pta-input" placeholder="0.000"></td>
 
                         {{-- Corriente --}}
                         <td><input type="number" step="0.001" name="p2_corr_inicial[{{ $keyP2 }}]"
-                                   value="{{ $filaP2?->p2_corr_inicial ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_corr_inicial ?? '' }}" class="pta-input" placeholder="0.000"></td>
                         <td><input type="number" step="0.001" name="p2_corr_aplicada[{{ $keyP2 }}]"
-                                   value="{{ $filaP2?->p2_corr_aplicada ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_corr_aplicada ?? '' }}" class="pta-input" placeholder="0.000"></td>
                         <td><input type="number" step="0.001" name="p2_corr_final[{{ $keyP2 }}]"
-                                   value="{{ $filaP2?->p2_corr_final ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_corr_final ?? '' }}" class="pta-input" placeholder="0.000"></td>
 
                         {{-- Gas Argón --}}
                         <td><input type="number" step="0.001" name="p2_gas_argon[{{ $keyP2 }}]"
-                                   value="{{ $filaP2?->p2_gas_argon ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_gas_argon ?? '' }}" class="pta-input" placeholder="0.000"></td>
 
                         {{-- Velocidad Calculada --}}
                         <td><input type="number" step="0.001" name="p2_velocidad_calculada[{{ $keyP2 }}]"
-                                   value="{{ $filaP2?->p2_velocidad_calculada ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_velocidad_calculada ?? '' }}" class="pta-input" placeholder="0.000"></td>
 
                         {{-- Resultado --}}
                         <td>
                             <select name="p2_resultado[{{ $keyP2 }}]" class="pta-select">
                                 <option value="">—</option>
-                                <option value="Bien" {{ ($filaP2?->p2_resultado ?? '') === 'Bien' ? 'selected' : '' }}>Bien</option>
-                                <option value="Mal"  {{ ($filaP2?->p2_resultado ?? '') === 'Mal'  ? 'selected' : '' }}>Mal</option>
+                                <option value="Bien" {{ ($filaP2?->p2_resultado ?? '') === 'Bien' ? 'selected' : '' }}>Bien
+                                </option>
+                                <option value="Mal" {{ ($filaP2?->p2_resultado ?? '') === 'Mal' ? 'selected' : '' }}>Mal</option>
                             </select>
                         </td>
 
                         {{-- Defecto --}}
                         <td>
                             <select name="p2_defecto_pta[{{ $keyP2 }}]" class="pta-select">
-                                <option value="Ninguno"   {{ ($filaP2?->p2_defecto_pta ?? 'Ninguno') === 'Ninguno'   ? 'selected' : '' }}>Ninguno</option>
-                                <option value="Fundición" {{ ($filaP2?->p2_defecto_pta ?? '')         === 'Fundición' ? 'selected' : '' }}>Fundición</option>
+                                <option value="Ninguno" {{ ($filaP2?->p2_defecto_pta ?? 'Ninguno') === 'Ninguno' ? 'selected' : '' }}>Ninguno</option>
+                                <option value="Fundición" {{ ($filaP2?->p2_defecto_pta ?? '') === 'Fundición' ? 'selected' : '' }}>Fundición</option>
                             </select>
                         </td>
 
                         {{-- Observaciones --}}
                         <td style="min-width:120px; text-align:left; padding:6px;">
-                            <textarea name="p2_observaciones[{{ $keyP2 }}]"
-                                      class="pta-input" rows="2" style="resize:vertical; min-width:110px;"
-                                      placeholder="Obs. 2da pasada...">{{ $filaP2?->p2_observaciones ?? '' }}</textarea>
+                            <textarea name="p2_observaciones[{{ $keyP2 }}]" class="pta-input" rows="2"
+                                style="resize:vertical; min-width:110px;"
+                                placeholder="Obs. 2da pasada...">{{ $filaP2?->p2_observaciones ?? '' }}</textarea>
                         </td>
                     </tr>
 
@@ -863,108 +893,108 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
 
 <script>
-/**
- * Maneja el checkbox de "Aplicar 2da pasada".
- * Toggle simple sin restriccion de contrasena: muestra u oculta las filas al instante.
- */
-window.handleP2Checkbox = function(p2Id) {
-    const chk    = document.getElementById('chk-p2-' + p2Id);
-    const hdnAct = document.getElementById('inp-p2-activa-' + p2Id);
+    /**
+     * Maneja el checkbox de "Aplicar 2da pasada".
+     * Toggle simple sin restriccion de contrasena: muestra u oculta las filas al instante.
+     */
+    window.handleP2Checkbox = function (p2Id) {
+        const chk = document.getElementById('chk-p2-' + p2Id);
+        const hdnAct = document.getElementById('inp-p2-activa-' + p2Id);
 
-    if (!chk) return;
+        if (!chk) return;
 
-    const activate = chk.checked;
-    window._setP2Rows(p2Id, activate);
-    if (hdnAct) hdnAct.value = activate ? '1' : '0';
-};
+        const activate = chk.checked;
+        window._setP2Rows(p2Id, activate);
+        if (hdnAct) hdnAct.value = activate ? '1' : '0';
+    };
 
-window._setP2Rows = function(p2Id, show) {
-    [0, 1, 2].forEach(function(i) {
-        const row = document.getElementById('row-p2-' + p2Id + '-' + i);
-        if (row) row.style.display = show ? '' : 'none';
-    });
-};
+    window._setP2Rows = function (p2Id, show) {
+        [0, 1, 2].forEach(function (i) {
+            const row = document.getElementById('row-p2-' + p2Id + '-' + i);
+            if (row) row.style.display = show ? '' : 'none';
+        });
+    };
 
-/**
- * Lógica de coloreado en vivo para filas (Especialmente Historial P2 editable y Captura P2)
- */
-document.addEventListener('change', function(e) {
-    if (e.target.name && (e.target.name.startsWith('p2_resultado') || e.target.name.startsWith('p2_defecto_pta') || e.target.name.startsWith('resultado') || e.target.name.startsWith('defecto_pta'))) {
-        const tr = e.target.closest('tr');
-        if (!tr) return;
+    /**
+     * Lógica de coloreado en vivo para filas (Especialmente Historial P2 editable y Captura P2)
+     */
+    document.addEventListener('change', function (e) {
+        if (e.target.name && (e.target.name.startsWith('p2_resultado') || e.target.name.startsWith('p2_defecto_pta') || e.target.name.startsWith('resultado') || e.target.name.startsWith('defecto_pta'))) {
+            const tr = e.target.closest('tr');
+            if (!tr) return;
 
-        tr.classList.remove('pta-row-ok', 'pta-row-error', 'pta-row-liberada', 'pta-row-rechazada', 'pta-row-buena', 'pta-row-mala', 'pta-row-incompleta');
+            tr.classList.remove('pta-row-ok', 'pta-row-error', 'pta-row-liberada', 'pta-row-rechazada', 'pta-row-buena', 'pta-row-mala', 'pta-row-incompleta');
 
-        // Determinar qué conjunto estamos evaluando
-        let isP2 = e.target.name.startsWith('p2_');
-        let resSelect = tr.querySelector(isP2 ? 'select[name^="p2_resultado"]' : 'select[name^="resultado"]');
-        let defSelect = tr.querySelector(isP2 ? 'select[name^="p2_defecto_pta"]' : 'select[name^="defecto_pta"]');
+            // Determinar qué conjunto estamos evaluando
+            let isP2 = e.target.name.startsWith('p2_');
+            let resSelect = tr.querySelector(isP2 ? 'select[name^="p2_resultado"]' : 'select[name^="resultado"]');
+            let defSelect = tr.querySelector(isP2 ? 'select[name^="p2_defecto_pta"]' : 'select[name^="defecto_pta"]');
 
-        let resVal = resSelect ? resSelect.value : '';
-        let defVal = defSelect ? defSelect.value : 'Ninguno';
+            let resVal = resSelect ? resSelect.value : '';
+            let defVal = defSelect ? defSelect.value : 'Ninguno';
 
-        if (resVal === 'Mal' || (defVal !== 'Ninguno' && defVal !== '')) {
-            tr.classList.add('pta-row-error');
+            if (resVal === 'Mal' || (defVal !== 'Ninguno' && defVal !== '')) {
+                tr.classList.add('pta-row-error');
 
-            // Si es parte del bloque tripartito (primera sub-fila activa), pintar las dos sub-filas de abajo
-            if (!isP2 && tr.classList.contains('fila-primera')) {
-                let current = tr.nextElementSibling;
-                for(let i=0; i<2; i++) {
-                    if(current && !current.classList.contains('fila-p2')) {
-                        current.classList.remove('pta-row-ok', 'pta-row-incompleta', 'pta-row-sin-lib');
-                        current.classList.add('pta-row-error');
-                        current = current.nextElementSibling;
+                // Si es parte del bloque tripartito (primera sub-fila activa), pintar las dos sub-filas de abajo
+                if (!isP2 && tr.classList.contains('fila-primera')) {
+                    let current = tr.nextElementSibling;
+                    for (let i = 0; i < 2; i++) {
+                        if (current && !current.classList.contains('fila-p2')) {
+                            current.classList.remove('pta-row-ok', 'pta-row-incompleta', 'pta-row-sin-lib');
+                            current.classList.add('pta-row-error');
+                            current = current.nextElementSibling;
+                        }
                     }
                 }
-            }
-        } else if (resVal === 'Bien' && (defVal === 'Ninguno' || defVal === '')) {
-            let allFilled = true;
-            tr.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]), select').forEach(input => {
-                if (input.name && !input.name.includes('observaciones') && input.value.trim() === '') {
-                    allFilled = false;
-                }
-            });
+            } else if (resVal === 'Bien' && (defVal === 'Ninguno' || defVal === '')) {
+                let allFilled = true;
+                tr.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]), select').forEach(input => {
+                    if (input.name && !input.name.includes('observaciones') && input.value.trim() === '') {
+                        allFilled = false;
+                    }
+                });
 
-            if(allFilled) {
-                tr.classList.add('pta-row-ok');
-            } else {
-                tr.classList.add('pta-row-incompleta');
+                if (allFilled) {
+                    tr.classList.add('pta-row-ok');
+                } else {
+                    tr.classList.add('pta-row-incompleta');
+                }
             }
         }
-    }
-});
+    });
 
-/**
- * Revisar también cuando se teclean inputs normales para pasarlos a verde si ya se completó.
- */
-document.addEventListener('input', function(e) {
-    if (e.target.tagName === 'INPUT' && !e.target.name.includes('observaciones')) {
-        const tr = e.target.closest('tr');
-        if (!tr) return;
+    /**
+     * Revisar también cuando se teclean inputs normales para pasarlos a verde si ya se completó.
+     */
+    document.addEventListener('input', function (e) {
+        if (e.target.tagName === 'INPUT' && !e.target.name.includes('observaciones')) {
+            const tr = e.target.closest('tr');
+            if (!tr) return;
 
-        let isP2 = e.target.name.startsWith('p2_');
-        let resSelect = tr.querySelector(isP2 ? 'select[name^="p2_resultado"]' : 'select[name^="resultado"]');
-        let defSelect = tr.querySelector(isP2 ? 'select[name^="p2_defecto_pta"]' : 'select[name^="defecto_pta"]');
+            let isP2 = e.target.name.startsWith('p2_');
+            let resSelect = tr.querySelector(isP2 ? 'select[name^="p2_resultado"]' : 'select[name^="resultado"]');
+            let defSelect = tr.querySelector(isP2 ? 'select[name^="p2_defecto_pta"]' : 'select[name^="defecto_pta"]');
 
-        let resVal = resSelect ? resSelect.value : '';
-        let defVal = defSelect ? defSelect.value : 'Ninguno';
+            let resVal = resSelect ? resSelect.value : '';
+            let defVal = defSelect ? defSelect.value : 'Ninguno';
 
-        if (resVal !== 'Mal' && (defVal === 'Ninguno' || defVal === '')) {
-            let allFilled = true;
-            tr.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]), select').forEach(input => {
-                if (input.name && !input.name.includes('observaciones') && input.value.trim() === '') {
-                    allFilled = false;
+            if (resVal !== 'Mal' && (defVal === 'Ninguno' || defVal === '')) {
+                let allFilled = true;
+                tr.querySelectorAll('input:not([type="hidden"]):not([type="checkbox"]), select').forEach(input => {
+                    if (input.name && !input.name.includes('observaciones') && input.value.trim() === '') {
+                        allFilled = false;
+                    }
+                });
+
+                tr.classList.remove('pta-row-ok', 'pta-row-error', 'pta-row-incompleta', 'pta-row-sin-lib');
+                if (allFilled && resVal === 'Bien') {
+                    tr.classList.add('pta-row-ok');
+                } else if (allFilled) {
+                    tr.classList.add('pta-row-incompleta');
                 }
-            });
-
-            tr.classList.remove('pta-row-ok', 'pta-row-error', 'pta-row-incompleta', 'pta-row-sin-lib');
-            if (allFilled && resVal === 'Bien') {
-                tr.classList.add('pta-row-ok');
-            } else if (allFilled) {
-                tr.classList.add('pta-row-incompleta');
             }
         }
-    }
-});
+    });
 
 </script>

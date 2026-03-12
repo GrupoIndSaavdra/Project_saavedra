@@ -230,6 +230,7 @@ textarea.pta-input {
 }
 
 .btn-guardar-pta:hover {
+    background-color: #0960a7;
     transform: scale(1.05);
     transition: 0.3s ease;
 }

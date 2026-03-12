@@ -1,0 +1,175 @@
+/* resources/css/pta_views/segunda_pasada.css */
+
+.pta-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+}
+
+.pta-modal-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem 2.5rem;
+    width: 340px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+.pta-modal-title {
+    margin-bottom: 0.8rem;
+    color: #1a237e;
+}
+
+.pta-modal-text {
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 1rem;
+}
+
+.pta-modal-input {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border-radius: 7px;
+    border: 1px solid #bbb;
+    font-size: 1rem;
+    margin-bottom: 0.6rem;
+    transition: all 0.3s ease-in-out;
+}
+
+.pta-modal-input:focus {
+    outline: none;
+    border-color: #1a237e;
+    box-shadow: 0 0 0 2px rgba(26, 35, 126, 0.2);
+}
+
+.pta-modal-input:hover {
+    transform: scale(1.05);
+}
+
+.pta-modal-error {
+    color: tomato;
+    font-size: 0.82rem;
+    margin-bottom: 0.5rem;
+    display: none;
+}
+
+.pta-btn-verify {
+    background: #1a237e;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 0.6rem 1.4rem;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-right: 0.5rem;
+    transition: all 0.3s ease-in-out;
+}
+
+.pta-btn-verify:hover {
+    background: #002c08;
+    transform: scale(1.05);
+}
+
+.pta-btn-cancel {
+    background: #9d0000;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease-in-out;
+}
+
+.pta-btn-cancel:hover {
+    background: #580b0b;
+    transform: scale(1.05);
+}
+
+.pta-filter-container {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin-bottom: 1.5rem;
+}
+
+.pta-filter-col {
+    flex: 1;
+    min-width: 200px;
+}
+
+.pta-filter-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    font-size: 0.85rem;
+    color: #444;
+}
+
+.pta-filter-select {
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    border-radius: 7px;
+    border: 1px solid #bbb;
+}
+
+.pta-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #1a237e;
+    padding-bottom: 0.4rem;
+}
+
+.pta-section-title {
+    font-size: 1.1rem;
+    color: #1a237e;
+    margin: 0;
+}
+
+.pta-btn-unlock {
+    background: #c62828;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 1rem 1rem;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.pta-btn-unlock:hover {
+    background: #841212;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+}
+
+.pta-unlocked-badge {
+    background: #2e7d32;
+    color: #fff;
+    border-radius: 7px;
+    padding: 1rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pta-p2-td-pieza {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.pta-p2-label-small {
+    font-size: 0.75em;
+    color: #fff;
+    font-weight: normal;
+    margin-top: 2px;
+}
