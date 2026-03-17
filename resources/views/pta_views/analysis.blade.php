@@ -25,40 +25,60 @@
         @endif
 
         {{-- Filtro OT + Clase --}}
-        <form method="GET" action="{{ route('pta.analysis') }}" id="analysis-form">
-            <input type="hidden" name="ot_id" id="ot_id_input" value="{{ $otSeleccionadaId ?? '' }}">
-            <input type="hidden" name="clase_id" id="clase_id_input" value="{{ $claseSeleccionadaId ?? '' }}">
-            <script>
-                function updateAnalysisFilter(val) {
-                    if(!val) {
-                        document.getElementById('ot_id_input').value = '';
-                        document.getElementById('clase_id_input').value = '';
-                    } else {
-                        const parts = val.split('_');
-                        document.getElementById('ot_id_input').value = parts[0];
-                        document.getElementById('clase_id_input').value = parts[1];
-                    }
-                }
-            </script>
-            <div class="pta-filter-card">
-                <div>
-                    <label for="ot-filter">Orden de Trabajo / Clase</label>
-                    <div>
-                        <select id="ot-filter" onchange="updateAnalysisFilter(this.value)">
-                            <option value="">— Seleccionar OT e Clase —</option>
-                            @foreach ($otsConPTA as $otOpt)
-                                @foreach ($otOpt->clases as $claseOpt)
-                                    <option value="{{ $otOpt->id }}_{{ $claseOpt->id }}" {{ ($otSeleccionadaId == $otOpt->id && $claseSeleccionadaId == $claseOpt->id) ? 'selected' : '' }}>
-                                        OT {{ $otOpt->id }}{{ $otOpt->moldura ? ' — ' . $otOpt->moldura->nombre : '' }} — {{ $claseOpt->nombre }}
-                                    </option>
-                                @endforeach
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn-pta-filter">Buscar</button>
+        <div class="pta-selectors-row">
+            {{-- 1. Selector de OT --}}
+            <div class="pta-ot-selector">
+                <label for="ot-select">Orden de Trabajo (OT)</label>
+                <select id="ot-select" onchange="changeAnalysisOT(this.value)">
+                    <option value="">— Seleccionar OT —</option>
+                    @foreach ($otsConPTA as $otOpt)
+                        <option value="{{ $otOpt->id }}" {{ $otSeleccionadaId == $otOpt->id ? 'selected' : '' }}>
+                            OT {{ $otOpt->id }}{{ $otOpt->moldura ? ' — ' . $otOpt->moldura->nombre : '' }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
-        </form>
+
+            {{-- 2. Selector de Clase --}}
+            <div class="pta-clase-selector">
+                <label for="clase-select">Clase</label>
+                <select id="clase-select" onchange="changeAnalysisClase(this.value)" {{ !$otSeleccionadaId ? 'disabled' : '' }}>
+                    <option value="">— Seleccionar Clase —</option>
+                    @if($otSeleccionadaId)
+                        @php $otActual = $otsConPTA->firstWhere('id', $otSeleccionadaId); @endphp
+                        @if($otActual)
+                            @foreach ($otActual->clases as $claseOpt)
+                                <option value="{{ $claseOpt->id }}" {{ $claseSeleccionadaId == $claseOpt->id ? 'selected' : '' }}>
+                                    {{ $claseOpt->nombre }}
+                                </option>
+                            @endforeach
+                        @endif
+                    @endif
+                </select>
+            </div>
+        </div>
+
+        <script>
+            function changeAnalysisOT(otId) {
+                const url = new URL(window.location.href);
+                if (otId) {
+                    url.searchParams.set('ot_id', otId);
+                    url.searchParams.delete('clase_id'); // Reiniciar clase al cambiar OT
+                } else {
+                    url.searchParams.delete('ot_id');
+                    url.searchParams.delete('clase_id');
+                }
+                window.location.href = url.toString();
+            }
+
+            function changeAnalysisClase(claseId) {
+                const url = new URL(window.location.href);
+                if (claseId) {
+                    url.searchParams.set('clase_id', claseId);
+                    window.location.href = url.toString();
+                }
+            }
+        </script>
 
         {{-- Tabla de resultados --}}
         @if ($otSeleccionadaId)

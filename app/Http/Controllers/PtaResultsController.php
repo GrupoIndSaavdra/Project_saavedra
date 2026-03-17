@@ -267,7 +267,7 @@ class PtaResultsController extends Controller
         $resultado->save();
 
         // Verificar si la pieza complementaria también está guardada (juego completo)
-        $msg = '💾 Resultados guardados y pieza liberada.';
+        $msg = 'Resultados guardados y pieza liberada.';
         preg_match('/^\d+/', $resultado->n_pieza, $m);
         $prefix = $m[0] ?? null;
 
@@ -597,70 +597,87 @@ class PtaResultsController extends Controller
     // ═══════════════════════════════════════════════════════════════════════
 
     /**
+     * Helper para contar piezas como juegos (sets) siguiendo la lógica del Dashboard.
+     * Si termina en 'J', cuenta como 1 juego completo. De lo contrario, cuenta como 0.5.
+     */
+    private static function countAsGames($piezas): float
+    {
+        $count = 0.0;
+        foreach ($piezas as $p) {
+            if (str_ends_with(trim($p->n_pieza), 'J')) {
+                $count += 1.0;
+            } else {
+                $count += 0.5;
+            }
+        }
+        return (float) $count;
+    }
+
+    /**
      * Construye los datos de la card PTA para una OT dada.
-     * Devuelve null si la OT no pasó por PTA.
-     *
-     * @return array|null [pasoPorPTA, totalPTA, liberadas] o null
+     * Devuelve null si la OT no pasó por PTA o no hay actividad relacionada.
      */
     public static function buildCardData(string $otId, int $claseId): ?array
     {
-        $totalPTA = Pieza::where('id_ot', $otId)
+        // 1. Obtener TODAS las piezas de esta clase en esta OT
+        $piezasClase = Pieza::where('id_ot', $otId)
             ->where('id_clase', $claseId)
-            ->where('proceso', 'Soldadura PTA')
-            ->count();
+            ->get();
 
-        if ($totalPTA === 0) {
+        if ($piezasClase->isEmpty()) {
             return null;
         }
 
-        $terminadas = Pieza::where('id_ot', $otId)
-            ->where('id_clase', $claseId)
-            ->where('proceso', 'Soldadura PTA')
-            ->where('error', 'Ninguno')
-            ->where('liberacion', 1)
-            ->count();
+        // 2. Identificar actividad PTA (resultados o piezas en proceso que contenga 'PTA')
+        $piezaIds = $piezasClase->pluck('id');
+        $resultados = PtaResultado::whereIn('pieza_id', $piezaIds)
+            ->get()
+            ->keyBy('pieza_id');
 
-        $allResultados = PtaResultado::where('pta_resultados.ot_id', $otId)
-            ->join('piezas', 'piezas.id', '=', 'pta_resultados.pieza_id')
-            ->where('piezas.id_clase', $claseId)
-            ->where('piezas.error', 'Ninguno')
-            ->select(
-                'pta_resultados.liberado_por_admin',
-                'piezas.n_pieza'
-            )
-            ->get();
+        $hayActividadPTA = $resultados->isNotEmpty() || $piezasClase->contains(function ($p) {
+            return str_contains($p->proceso, 'PTA');
+        });
 
-        $byJuego = [];
-        foreach ($allResultados as $r) {
-            preg_match('/^\d+/', $r->n_pieza, $m);
-            $key = $m[0] ?? $r->n_pieza;
-            $byJuego[$key][] = $r;
+        if (!$hayActividadPTA) {
+            return null;
         }
 
-        $liberadas = 0;
-        $rechazadas = 0;
-        $sinLiberar = 0;
+        // 3. Población "viable": solo piezas que NO han sido rechazadas (liberacion != 2)
+        $piezasViables = $piezasClase->filter(function ($p) {
+            return (int) $p->liberacion !== 2;
+        });
 
-        foreach ($byJuego as $piezasJuego) {
-            if (count($piezasJuego) < 2) {
-                continue;
-            }
+        $totalJuegos = self::countAsGames($piezasViables);
 
-            $todoLiberado = collect($piezasJuego)->every(fn($p) => $p->liberado_por_admin);
-
-            if ($todoLiberado) {
-                $liberadas++;
-            } else {
-                $sinLiberar++;
-            }
+        // Si no quedan piezas viables (todas rechazadas), ocultamos la card
+        if ($totalJuegos == 0) {
+            return null;
         }
+
+        $piezasLiberadas = $piezasViables->filter(function ($p) use ($resultados) {
+            $res = $resultados->get($p->id);
+            return $res && (int) $res->liberado_por_admin === 1;
+        });
+
+        $piezasSinLiberar = $piezasViables->reject(function ($p) use ($resultados) {
+            $res = $resultados->get($p->id);
+            return $res && (int) $res->liberado_por_admin === 1;
+        });
+
+        $piezasTerminadasPTA = $piezasViables->filter(function ($p) use ($resultados) {
+            // Se considera terminada para el flujo de PTA si:
+            // 1. Ya tiene un registro de resultado (pasó por la inspección)
+            // 2. O si el sistema lo marca como "bueno" para Soldadura PTA (está en el proceso y no rechazado)
+            return $resultados->has($p->id) || str_contains($p->proceso, 'PTA');
+        });
 
         return [
-            'totalPTA' => $totalPTA,
-            'terminadas' => $terminadas,
-            'liberadas' => $liberadas,
-            'rechazadas' => $rechazadas,
-            'sinLiberar' => $sinLiberar,
+            'totalPTA' => $totalJuegos,
+            'terminadas' => self::countAsGames($piezasTerminadasPTA),
+            'liberadas' => self::countAsGames($piezasLiberadas),
+            'rechazadas' => 0,
+            'sinLiberar' => self::countAsGames($piezasSinLiberar),
         ];
     }
 }
+

@@ -37,7 +37,7 @@ class PTACardComponent {
         this.root = null;
 
         // Estado mutable
-        this.current = totalJuegos > 0 ? this._calcTerminadas(initialData, totalJuegos) : 0;
+        this.current = initialData.terminadas || 0;
         this.liberadas = initialData.liberadas || 0;
         this.rechazadas = initialData.rechazadas || 0;
         this.sinLiberar = initialData.sinLiberar || 0;
@@ -50,23 +50,6 @@ class PTACardComponent {
         this._startPolling();
     }
 
-    // ── Calcula juegos terminados correctamente ───────────────
-    _calcTerminadas(data, totalJuegos) {
-        const liberadas = data.liberadas || 0;
-        // Re-usar la misma lógica del Dashboard para calcular terminadas
-        let terminadas = totalJuegos;
-        if (this.classArray) {
-            const soldKey = Object.keys(this.classArray["processes"]).find(k => k.includes("Soldadura PTA"));
-            if (soldKey) {
-                const badData = this.classArray["processes"][soldKey]["piecesBadData"] || [];
-                const ptaBadJuegos = new Set(
-                    badData.filter(p => p["process"] === "Soldadura PTA").map(p => p["setNumber"])
-                ).size;
-                terminadas = Math.max(0, totalJuegos - ptaBadJuegos);
-            }
-        }
-        return terminadas;
-    }
 
     // ── Montaje del DOM (puede llamarse en diferido) ──────────────
     _mount() {
@@ -267,13 +250,13 @@ class PTACardComponent {
 
             const data = await res.json();
             const rawTotal = data.totalPTA || 0;
-            const totalJuegos = rawTotal > 0 ? Math.round(rawTotal / 2) : 0;
+            const totalJuegos = rawTotal; // Trust the backend game count
 
             // ── Primera activación (modo dormido → con piezas) ────────────
             if (!this._mounted && totalJuegos > 0) {
                 // Congelar el total en el primer tick con datos reales
                 this.snapshot = Object.freeze({ total: totalJuegos });
-                this.current = this._calcTerminadasFromData(data, totalJuegos);
+                this.current = data.terminadas || 0;
                 this.liberadas = data.liberadas || 0;
                 this.rechazadas = data.rechazadas || 0;
                 this.sinLiberar = data.sinLiberar || 0;
@@ -281,13 +264,16 @@ class PTACardComponent {
                 return;
             }
 
+
             if (!this._mounted) return; // aún sin piezas, seguir esperando
 
-            // Regla 2: el total NUNCA aumenta — comparamos con el snapshot
-            const newTerminadas = Math.min(
-                this.snapshot.total,
-                this._calcTerminadasFromData(data, totalJuegos)
-            );
+            // Regla 2: Actualizar el total si ha cambiado (ej. rechazos o nuevas piezas)
+            const newTotalJuegos = data.totalPTA || 0;
+            if (newTotalJuegos !== this.snapshot.total) {
+                this.snapshot = Object.freeze({ total: newTotalJuegos });
+            }
+
+            const newTerminadas = data.terminadas || 0;
             const newLiberadas = data.liberadas || 0;
             const newRechazadas = data.rechazadas || 0;
             const newSinLiberar = data.sinLiberar || 0;
@@ -315,14 +301,6 @@ class PTACardComponent {
         }
     }
 
-    // Helper para calcular terminadas a partir de datos crudos del AJAX
-    _calcTerminadasFromData(data, totalJuegos) {
-        // En el AJAX ya tenemos `terminadas` aunque aquí preferimos recalcular
-        // desde badData si está disponible; si no, confiamos en el valor del servidor.
-        return this.classArray
-            ? this._calcTerminadas(data, totalJuegos)
-            : Math.max(0, totalJuegos - (data.bad || 0));
-    }
 
     // ── Destrucción limpia ───────────────────────────────────
     _destroy() {
