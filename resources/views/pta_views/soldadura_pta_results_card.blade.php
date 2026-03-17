@@ -15,7 +15,6 @@ Variables esperadas:
     title="Ver / registrar resultados de Soldadura PTA">
     <div class="card pta-results-card border-0 shadow-sm h-100">
         <div class="card-header pta-card-header d-flex align-items-center gap-2">
-            <span class="pta-header-icon">🔬</span>
             <h6 class="mb-0 fw-semibold text-white">Resultados Sold. PTA</h6>
         </div>
 
