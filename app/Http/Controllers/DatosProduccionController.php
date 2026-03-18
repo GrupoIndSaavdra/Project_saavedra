@@ -114,7 +114,10 @@ class DatosProduccionController extends Controller
             $datos[$ot->id] = [];
             $this->insertarMoldura($ot, $datos[$ot->id]["moldura"]);
 
-            //Agregar operadores de la orden de trabajo 
+            //Asignar nombre legible para el selector (ID - Nombre moldura)
+            $datos[$ot->id]["nombre"] = $ot->id . ' - ' . $datos[$ot->id]["moldura"];
+
+            //Agregar operadores de la orden de trabajo
             $datos[$ot->id]["operadores"] = [];
             $this->insertarDatosRestantes($ot, $datos[$ot->id]["operadores"]);
         }
@@ -123,7 +126,7 @@ class DatosProduccionController extends Controller
     }
     public function insertarMoldura($ot, &$array)
     {
-        $moldura =  Moldura::find($ot->id_moldura);
+        $moldura = Moldura::find($ot->id_moldura);
         $array = $moldura->nombre;
     }
     public function insertarDatosRestantes($ot, &$arrayOperadores)
