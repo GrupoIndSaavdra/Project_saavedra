@@ -1,0 +1,186 @@
+/* ═══════════════════════════════════════════════════════════════════
+   reportes/email.css
+   Estilos del correo diario unidos a la paleta institucional (#033966, #0a8504)
+═══════════════════════════════════════════════════════════════════ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Poppins", "Segoe UI", Arial, sans-serif;
+    font-size: 13px;
+    color: #000;
+    background: #f4f6f9;
+    padding: 24px;
+}
+
+/* ── Header ───────────────────────────────────────────────────── */
+.header {
+    background: #033966;
+    color: #fff;
+    padding: 28px 32px;
+    border-radius: 12px;
+    margin-bottom: 28px;
+    text-align: center;
+    border-bottom: 5px solid #0a8504;
+}
+
+.header h1 {
+    font-size: 22px;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+}
+
+.header p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.header .badge {
+    display: inline-block;
+    background: #0a8504;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 4px 16px;
+    font-size: 12px;
+    margin-top: 10px;
+    color: #fff;
+    font-weight: 700;
+}
+
+/* ── Bloque OT (Nivel 1) ──────────────────────────────────────── */
+.ot-block {
+    background: #fff;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 3px solid #033966d4;
+    overflow: hidden;
+}
+
+.ot-header {
+    background: #033966;
+    color: #fff;
+    padding: 14px 20px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.ot-header small {
+    font-weight: 400;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-left: 8px;
+}
+
+/* ── Bloque Clase (Nivel 2) ───────────────────────────────────── */
+.clase-block {
+    padding: 0 16px 16px;
+    margin-top: 16px;
+}
+
+.clase-header {
+    background: #f0f4f8;
+    border-left: 4px solid #0a8504;
+    padding: 8px 14px;
+    border-radius: 0 6px 6px 0;
+    font-size: 13px;
+    font-weight: 700;
+    color: #033966;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+/* ── Bloque Proceso (Nivel 3) ─────────────────────────────────── */
+.proceso-block {
+    margin-bottom: 14px;
+}
+
+.proceso-header {
+    background: #e8f0fe;
+    border-left: 3px solid #033966;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #033966;
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 6px;
+}
+
+/* ── Tabla de Operadores (Nivel 4) ────────────────────────────── */
+.op-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    border: 2px solid #033966;
+}
+
+.op-table thead tr {
+    background: #033966;
+}
+
+.op-table thead th {
+    padding: 7px 10px;
+    text-align: left;
+    font-weight: 700;
+    color: #fff;
+    font-size: 11px;
+    text-transform: uppercase;
+    border: 1px solid #022a4d;
+}
+
+.op-table tbody tr {
+    border-bottom: 1px solid #cbd5e1;
+}
+
+.op-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.op-table td {
+    padding: 7px 10px;
+    vertical-align: middle;
+    border-right: 1px solid #cbd5e1;
+}
+
+/* ── REGLA VISUAL: fila liberada = verde institucional ────────── */
+.op-table tbody tr.liberado {
+    background: #acf980a8;
+}
+.op-table tbody tr.liberado td {
+    color: #000;
+    font-weight: 500;
+}
+.op-table tbody tr.liberado .badge-estado {
+    background: #0a8504;
+    color: #fff;
+}
+
+/* ── Sin datos ────────────────────────────────────────────────── */
+.sin-datos {
+    text-align: center;
+    padding: 40px;
+    color: #9c0303;
+    font-size: 14px;
+    font-weight: bold;
+    background: #fff;
+    border-radius: 10px;
+    border: 2px dashed #9c0303;
+    margin-bottom: 20px;
+}
+
+/* ── Footer ───────────────────────────────────────────────────── */
+.footer {
+    text-align: center;
+    font-size: 11px;
+    color: #033966;
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 2px solid #033966d4;
+    font-weight: 600;
+}

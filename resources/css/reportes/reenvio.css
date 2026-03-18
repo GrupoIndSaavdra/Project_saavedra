@@ -1,0 +1,195 @@
+/* ═══════════════════════════════════════════════════════════════════
+   reportes/reenvio.css
+   Estilos de la vista de reenvío con la paleta de colores del proyecto
+═══════════════════════════════════════════════════════════════════ */
+
+/* ── Contenedor principal ─────────────────────────────────────── */
+.reenvio-container {
+    background: rgba(255, 255, 255, 0.95);
+    border: 5px solid #033966d4;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 30px 40px;
+    font-family: inherit;
+}
+
+/* ── Header ───────────────────────────────────────────────────── */
+.reenvio-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.reenvio-header h1 {
+    font-size: 26px;
+    color: #033966;
+    margin: 0 0 8px 0;
+    font-weight: 800;
+}
+
+.reenvio-subheader {
+    font-size: 14px;
+    color: #000;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* ── Alertas ──────────────────────────────────────────────────── */
+.reenvio-alert {
+    padding: 14px 18px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    border-left: 4px solid;
+}
+
+.reenvio-alert-success {
+    background: #e6f4ea;
+    color: #0a8504;
+    border-color: #0a8504;
+}
+.reenvio-alert-error {
+    background: #fce8e8;
+    color: #9c0303;
+    border-color: #9c0303;
+}
+
+/* ── Info box ─────────────────────────────────────────────────── */
+.reenvio-info {
+    background: #e8f0fe;
+    border: 2px solid #033966;
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-size: 13px;
+    color: #000;
+    line-height: 1.5;
+    margin-bottom: 30px;
+    font-weight: 500;
+}
+
+.reenvio-info strong {
+    color: #033966;
+    display: inline-block;
+    margin-bottom: 4px;
+    font-weight: 800;
+}
+
+/* ── Tarjeta principal form ───────────────────────────────────── */
+.reenvio-card {
+    background: #fff;
+    border: 2px solid #033966;
+    border-radius: 8px;
+    padding: 24px;
+}
+
+.reenvio-card h2 {
+    font-size: 18px;
+    color: #033966;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #e2e8f0;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* ── Campos de formulario ─────────────────────────────────────── */
+.reenvio-field {
+    margin-bottom: 20px;
+}
+
+.reenvio-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #033966;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.reenvio-input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 3px solid #03396690;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s;
+    font-weight: 600;
+    color: #000;
+}
+
+.reenvio-input:focus {
+    outline: none;
+    border-color: #033966;
+    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.2);
+}
+
+.reenvio-hint {
+    font-size: 11px;
+    color: #64748b;
+    margin: 6px 0 0 0;
+}
+
+/* ── Botones ──────────────────────────────────────────────────── */
+.reenvio-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 30px;
+}
+
+.reenvio-btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+    flex: 1;
+}
+
+.reenvio-btn-primary {
+    background: #033966;
+    color: #fff;
+}
+.reenvio-btn-primary:hover {
+    transform: scale(1.05);
+    background: #022a4d;
+}
+
+.reenvio-btn-secondary {
+    background: #9c0303;
+    color: #fff;
+    flex: 0 0 auto;
+}
+.reenvio-btn-secondary:hover {
+    transform: scale(1.05);
+    background: #7a0202;
+}
+
+/* ── Segunda tarjeta (info scheduler) ──────────────────────────── */
+.reenvio-card-secondary {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 24px;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 2px dashed #033966;
+}
+.reenvio-card-secondary h2 {
+    font-size: 15px;
+    font-weight: 800;
+    color: #033966;
+    margin: 0 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e8ecf5;
+}
+.reenvio-scheduler-text {
+    font-size: 13px;
+    color: #000;
+    margin-bottom: 12px;
+}

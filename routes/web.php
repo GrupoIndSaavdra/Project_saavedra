@@ -1,52 +1,27 @@
 <?php
-use App\Http\Controllers\AcabadoBombilloController;
-use App\Http\Controllers\AcabadoMoldeController;
-use App\Http\Controllers\AsentadoController;
-use App\Http\Controllers\BarrenoManiobraController;
-use App\Http\Controllers\BarrenoProfundidadController;
-use App\Http\Controllers\CavidadesController;
-use App\Http\Controllers\CepilladoController;
 use App\Http\Controllers\ClassController;
-use App\Http\Controllers\CopiadoController;
 use App\Http\Controllers\DatosProduccionController;
-use App\Http\Controllers\DesbasteExteriorController;
-use App\Http\Controllers\EmbudoCMController;
-use App\Http\Controllers\GestionOTController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LogoutController;
-use App\Http\Controllers\OffSetController;
-use App\Http\Controllers\PalomasController;
-use App\Http\Controllers\PrimeraOpeSoldaduraController;
 use App\Http\Controllers\ProgresoProcesosController;
-use App\Http\Controllers\PySOpeSoldaduraController;
 use App\Http\Controllers\PzasGeneralesController;
 use App\Http\Controllers\PzasLiberadasController;
-use App\Http\Controllers\RebajesController;
-use App\Http\Controllers\RectificadoController;
-use App\Http\Controllers\revCalificadoController;
-use App\Http\Controllers\RevLateralesController;
-use App\Http\Controllers\SegundaOpeSoldaduraController;
-use App\Http\Controllers\SoldaduraController;
-use App\Http\Controllers\SoldaduraPTAController;
 use App\Http\Controllers\TiemposProduccionController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MachinesController;
 use App\Http\Controllers\MoldingController;
 use App\Http\Controllers\ProcessesController;
 use App\Http\Controllers\ProcessProductionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WOController;
-use App\Http\Controllers\PtaResultsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TrackingSoldaduraController;
-use App\Http\Controllers\LiberarSoldaduraController;
-use App\Http\Controllers\RegistrarSoldaduraController;
-use App\Http\Controllers\GenerarQRSoldaduraController;
 use App\Http\Controllers\GenerarQRLoteController;
 use App\Http\Controllers\GenerarQRIndividualController;
 use App\Http\Controllers\LiberarQRPlantaController;
 use App\Http\Controllers\RegenerarQRController;
+use App\Http\Controllers\ReporteProduccionController;
+use App\Http\Controllers\PtaResultsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -317,3 +292,23 @@ Route::prefix('admin/pta')->name('pta.')->group(function () {
             ->name('segunda_pasada.update');
     });
 });
+
+/* ===========================
+   Reporte General de Producción
+=========================== */
+Route::middleware(['auth'])->prefix('reportes')->name('reportes.')->group(function () {
+    // Vista del formulario de re-envío manual
+    Route::get('/reenvio', [ReporteProduccionController::class, 'showReenvio'])
+        ->name('reenvio');
+
+    // Acción POST: re-enviar correo manualmente
+    Route::post('/reenviar', [ReporteProduccionController::class, 'reenviarCorreo'])
+        ->name('produccion.reenviar');
+
+});
+
+// Acción GET: descargar PDF del reporte (fuera del grupo auth para mayor compatibilidad)
+Route::get('/reportes/descargar-pdf/{fecha}', [ReporteProduccionController::class, 'descargarPDF'])
+    ->name('reportes.descargar_pdf');
+
+
