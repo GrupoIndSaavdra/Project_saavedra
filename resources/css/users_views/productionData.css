@@ -348,7 +348,7 @@ tbody tr:hover {
     font-weight: 600;
     letter-spacing: 0.3px;
     /* Color asignado dinámicamente desde JS */
-    color: white;
+    color: rgb(0, 0, 0);
     transition: width 0.6s ease-in-out;
 }
 
