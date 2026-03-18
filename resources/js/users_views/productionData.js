@@ -193,7 +193,7 @@ const crearTabla = (datos) => {
                             td.innerHTML = datos[operador][fecha][piezasinfo];
                         } else {
                             let realPct = datos[operador][fecha][piezasinfo];
-                            let visualPct = Math.min(realPct, 100);
+                            let visualPct = Math.min(Math.max(realPct, 0), 100);
                             let barColor;
                             if (realPct >= 150) {
                                 barColor = "#9b59b6"; // Platino/Morado brillante (Excelencia)
@@ -213,7 +213,7 @@ const crearTabla = (datos) => {
                             progress_bar.className = "progress-bar";
                             progress_bar.style.width = visualPct + "%";
                             progress_bar.style.backgroundColor = barColor;
-                            progress_bar.innerHTML = realPct + "%";
+                            progress_bar.innerHTML = visualPct + "%";
 
                             container_progress.appendChild(progress_bar);
                             td.appendChild(container_progress);
