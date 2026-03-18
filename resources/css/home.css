@@ -92,7 +92,9 @@
     width: 10%;
     overflow: hidden;
     background-color: transparent;
-    transition: width 0.6s ease, background-color 0.6s ease;
+    transition:
+        width 0.6s ease,
+        background-color 0.6s ease;
     display: flex;
     justify-content: center;
     align-items: center;

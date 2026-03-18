@@ -12,7 +12,15 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
+        // ── Tareas existentes ──────────────────────────────────────────
         // $schedule->command('inspire')->hourly();
+        $schedule->command('qr:cancelar-vencidos')->daily();
+
+        // ── Reporte Diario de Producción — 23:59 todos los días ────────
+        $schedule->command('reporte:enviar-diario')
+            ->dailyAt('23:59')
+            ->withoutOverlapping()       // evita ejecuciones duplicadas
+            ->appendOutputTo(storage_path('logs/reporte_diario.log'));
     }
 
     /**
@@ -20,7 +28,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands(): void
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }

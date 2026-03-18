@@ -191,6 +191,12 @@ function getRoutes(profile) {
                         ["pta.segunda_pasada", "Segunda Pasada PTA"],
                     ],
                 },
+                {
+                    title: "Reportes",
+                    routes: [
+                        ["reportes.reenvio", "Reenviar Reporte Diario"],
+                    ],
+                },
             ];
             break;
         case "2":
