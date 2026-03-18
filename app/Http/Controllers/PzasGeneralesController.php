@@ -627,45 +627,48 @@ class PzasGeneralesController extends Controller
         $otStr = $request->input('ot');
         $className = $request->input('class');
 
-        // Extract ID OT
+        // Extract ID OT (handles format "123 - Nombre OT")
         $otId = $otStr;
         if (str_contains($otStr, ' - ')) {
             $parts = explode(' - ', $otStr);
-            $otId = $parts[0];
+            $otId = trim($parts[0]);
         }
 
-        // Find Class ID
-        $clase = Clase::where('nombre', $className)->first();
+        // Find Class ID - search by nombre AND id_ot to uniquely identify the class
+        $clase = Clase::where('nombre', $className)->where('id_ot', $otId)->first();
+        // Fallback: search by nombre only if not found with id_ot
+        if (!$clase) {
+            $clase = Clase::where('nombre', $className)->first();
+        }
         if (!$clase) {
             return response()->json([]);
         }
 
-        // Search pieces
+        // Search pieces - n_pieza column only (n_juego does not exist in this table)
         $piezas = Pieza::where('id_ot', $otId)
             ->where('id_clase', $clase->id)
-            ->select('n_pieza', 'n_juego')
+            ->select('n_pieza')
             ->get();
 
         $games = [];
 
         foreach ($piezas as $pza) {
-            if ($pza->n_juego) {
-                // If it has n_juego, use it directly
-                $games[] = $pza->n_juego;
-            } elseif ($pza->n_pieza) {
-                // If it is n_pieza (e.g., 1H, 1M), convert to game (e.g., 1J)
-                $numero = $this->getPiezaNumber($pza->n_pieza);
-                if (substr($pza->n_pieza, -1) == "H" || substr($pza->n_pieza, -1) == "M") {
-                    $games[] = $numero . "J";
-                } else {
+            if ($pza->n_pieza) {
+                $lastChar = substr($pza->n_pieza, -1);
+                if ($lastChar === 'J') {
+                    // Already a game number (e.g. "1J", "10J")
                     $games[] = $pza->n_pieza;
+                } elseif ($lastChar === 'H' || $lastChar === 'M') {
+                    // Half piece - convert to game number (e.g. "1H" -> "1J")
+                    $numero = $this->getPiezaNumber($pza->n_pieza);
+                    $games[] = $numero . 'J';
                 }
             }
         }
 
-        // Remove duplicates and sort
+        // Remove duplicates and sort naturally (so 2J < 10J, not lexicographic)
         $games = array_unique($games);
-        sort($games);
+        natsort($games);
 
         return response()->json(array_values($games));
     }

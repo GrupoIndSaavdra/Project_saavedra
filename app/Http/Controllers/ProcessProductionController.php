@@ -173,7 +173,7 @@ class ProcessProductionController extends Controller
             // Historial: piezas ya completadas (estado=2) — modo reporte
             $rawHistoryPieces = collect($piecesData['machinedPiecesInMeta'] ?? [])
                 ->map(fn($item) => $item['piece'])
-                ->sortBy('n_pieza');
+                ->sortBy(fn($p) => [(int) filter_var($p->n_pieza, FILTER_SANITIZE_NUMBER_INT), $p->n_pieza]);
 
             $piezasGroupHistory = $rawHistoryPieces->groupBy('n_pieza');
 
