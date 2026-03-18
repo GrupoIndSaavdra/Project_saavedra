@@ -263,14 +263,10 @@ function createFilters() {
     defaultOption.value = "Todos";
     defaultOption.textContent = "Todos";
     selectGame.appendChild(defaultOption);
-
     // Si viene en selectedItems, ponerle el valor
     if (window.selectedItems && window.selectedItems.n_juego) {
         // Si ya hay un valor seleccionado, habilitarlo y añadir la opción
         selectGame.disabled = false;
-        // La opción seleccionada se agregará dinámicamente o se mantiene el texto si es input,
-        // pero como es select, asumimos que "Todos" o el valor específico se manejan.
-        // Para simplificar: Si hay valor, lo ponemos temporalmente como opción única hasta recargar
         if (window.selectedItems.n_juego !== "Todos") {
             let selectedOpt = document.createElement("option");
             selectedOpt.value = window.selectedItems.n_juego;
@@ -791,109 +787,60 @@ function setupGameFilterLogic() {
 }
 
 /**
- * Cargar juegos disponibles (Simulación o AJAX)
+ * Cargar juegos disponibles desde el servidor (AJAX)
+ * Siempre usa AJAX para garantizar que el dropdown muestre TODOS los juegos
+ * disponibles para la OT+Clase, sin importar el juego actualmente filtrado.
  */
 function loadAvailableGames(ot, clase, selectElement) {
+    // Guardar el valor actualmente seleccionado antes de limpiar
+    const currentSelected = window.selectedItems?.n_juego || selectElement.value || "Todos";
+
     // Limpiar opciones existentes (excepto "Todos")
     while (selectElement.options.length > 1) {
         selectElement.remove(1);
     }
 
-    console.log("=== loadAvailableGames DEBUG ===");
-    console.log("OT:", ot, "Clase:", clase);
-    console.log("window.pieces exists:", !!window.pieces);
-    console.log("window.pieces length:", window.pieces?.length);
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
 
-    // Estrategia 1: Intentar usar datos locales primero
-    let gamesLoaded = false;
-
-    if (window.pieces && window.pieces.length > 0) {
-        const games = new Set();
-
-        window.pieces.forEach((p, index) => {
-            if (index < 3) {
-                // Log solo las primeras 3 piezas para no saturar consola
-                console.log(`Piece ${index}:`, {
-                    ot: p[0],
-                    className: p.className,
-                    noAssembly: p[1],
-                });
-            }
-
-            // p[0] es OT, p.className es Clase, p[1] es JUEGO (noAssembly)
-            if (p[0] && p.className && p[1]) {
-                const pieceOT = String(p[0]).trim();
-                const pieceClass = String(p.className).trim();
-
-                // Extraer solo el número del OT (antes del " - ")
-                const selectedOT = String(ot).includes(" - ") ? String(ot).split(" - ")[0].trim() : String(ot).trim();
-                const selectedClass = String(clase).trim();
-
-                if (pieceOT === selectedOT && pieceClass === selectedClass) {
-                    games.add(p[1]);
-                }
-            }
-        });
-
-        console.log("Games found:", Array.from(games));
-
-        if (games.size > 0) {
-            // Ordenar y agregar opciones
-            const sortedGames = Array.from(games).sort();
-            sortedGames.forEach((game) => {
-                let opt = document.createElement("option");
-                opt.value = game;
-                opt.textContent = game;
-                if (window.selectedItems && window.selectedItems.n_juego == game) {
-                    opt.selected = true;
-                }
-                selectElement.appendChild(opt);
-            });
-            gamesLoaded = true;
-            console.log("Games loaded from local data successfully");
-        } else {
-            console.log("No games matched for OT:", ot, "Class:", clase);
-        }
-    } else {
-        console.log("window.pieces is empty or undefined");
+    if (!csrfToken) {
+        console.warn("[loadAvailableGames] CSRF token not found.");
+        return;
     }
 
-    // Estrategia 2: Si no hay datos locales, intentar AJAX
-    if (!gamesLoaded) {
-        console.log("Attempting AJAX load...");
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+    const payload = { ot: ot, class: clase };
+    console.log("[loadAvailableGames] Sending AJAX:", payload, "| currentSelected:", currentSelected);
 
-        if (csrfToken) {
-            fetch(window.baseUrl + "/getGamesFromOT", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-TOKEN": csrfToken,
-                    Accept: "application/json",
-                },
-                body: JSON.stringify({ ot: ot, class: clase }),
-            })
-                .then((response) => {
-                    if (response.ok) return response.json();
-                    throw new Error("Network response was not ok");
-                })
-                .then((data) => {
-                    console.log("AJAX response:", data);
-                    if (data && Array.isArray(data)) {
-                        data.forEach((game) => {
-                            let opt = document.createElement("option");
-                            opt.value = game;
-                            opt.textContent = game;
-                            if (window.selectedItems && window.selectedItems.n_juego == game) {
-                                opt.selected = true;
-                            }
-                            selectElement.appendChild(opt);
-                        });
+    fetch(window.baseUrl + "/getGamesFromOT", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": csrfToken,
+            Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+    })
+        .then((response) => {
+            console.log("[loadAvailableGames] HTTP status:", response.status);
+            if (response.ok) return response.json();
+            throw new Error("HTTP " + response.status);
+        })
+        .then((data) => {
+            console.log("[loadAvailableGames] Games received:", data);
+            if (data && Array.isArray(data)) {
+                data.forEach((game) => {
+                    let opt = document.createElement("option");
+                    opt.value = game;
+                    opt.textContent = game;
+                    // Mantener la selección actual si coincide
+                    if (currentSelected && currentSelected !== "Todos" && currentSelected == game) {
+                        opt.selected = true;
                     }
-                })
-                .catch((err) => {
-                    console.log("AJAX failed:", err);
+                    selectElement.appendChild(opt);
                 });
-        }
-    }
+            }
+        })
+        .catch((err) => {
+            console.error("[loadAvailableGames] AJAX error:", err);
+        });
 }
+
