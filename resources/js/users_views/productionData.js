@@ -16,8 +16,8 @@ const aplicarAccionesToEvents = (habilitar, campos) => {
                     let pedido =
                         habilitar != null
                             ? datos[selects["ot"].value]["operadores"][
-                                  selects["operadores"].value
-                              ]["clases"][selects["clases"].value]["pedido"]
+                            selects["operadores"].value
+                            ]["clases"][selects["clases"].value]["pedido"]
                             : null;
                     crearInputConValor(box, pedido, "pedido");
                     break;
@@ -39,26 +39,26 @@ const aplicarAccionesToEvents = (habilitar, campos) => {
 };
 const des_habilitarCampo = (box, campo, habilitar) => {
     //Declaracion de variables
-    let style, elemento, newElement;
+    let elemento, newElement;
 
     if (habilitar != null) {
-        style = `background-color: #fff; transition: all 0.3s ease-in-out;`;
         elemento = document.getElementById(`${campo}-input`);
         if (elemento === null) {
             elemento = document.getElementById(`${campo}-select`);
         }
         newElement = insertarSelect(campo, habilitar);
         selects[campo] = newElement;
+        box.classList.remove("box--disabled");
+        box.classList.add("box--enabled");
     } else {
-        style = `background-color: #a29e9e; transition: all 0.3s ease-in-out;`;
         elemento = document.getElementById(`${campo}-select`);
         if (elemento === null) {
             elemento = document.getElementById(`${campo}-input`);
         }
         newElement = insertarInput(campo);
+        box.classList.remove("box--enabled");
+        box.classList.add("box--disabled");
     }
-
-    box.style = style; //Agregar estilos
     if (elemento != null) {
         elemento.remove(); //Eliminar elemento si existe
     }
@@ -80,7 +80,7 @@ const insertarSelect = (campo, arrayOpciones) => {
             case "ot":
                 firstOption = "Selecciona una OT";
                 value = opcion;
-                text = opcion;
+                text = arrayOpciones[opcion]["nombre"] || opcion;
                 break;
             case "operadores":
                 firstOption = "Selecciona un Operador";
@@ -192,16 +192,28 @@ const crearTabla = (datos) => {
                         if (piezasinfo != "Productividad") {
                             td.innerHTML = datos[operador][fecha][piezasinfo];
                         } else {
-                            let porcentaje =
-                                datos[operador][fecha][piezasinfo] + "%";
+                            let realPct = datos[operador][fecha][piezasinfo];
+                            let visualPct = Math.min(realPct, 100);
+                            let barColor;
+                            if (realPct >= 150) {
+                                barColor = "#9b59b6"; // Platino/Morado brillante (Excelencia)
+                            } else if (realPct >= 100) {
+                                barColor = "#f1c40f"; // Dorado (Esfuerzo destacado)
+                            } else if (realPct >= 75) {
+                                barColor = "#27ae60"; // Verde (Aceptable)
+                            } else if (realPct >= 40) {
+                                barColor = "#e67e22"; // Naranja (Medio)
+                            } else {
+                                barColor = "#e74c3c"; // Rojo (Bajo)
+                            }
                             let container_progress =
                                 document.createElement("div");
                             container_progress.className = "container-progress";
                             let progress_bar = document.createElement("div");
                             progress_bar.className = "progress-bar";
-                            progress_bar.style.width = porcentaje;
-                            progress_bar.style.backgroundColor = "#064c96";
-                            progress_bar.innerHTML = porcentaje;
+                            progress_bar.style.width = visualPct + "%";
+                            progress_bar.style.backgroundColor = barColor;
+                            progress_bar.innerHTML = realPct + "%";
 
                             container_progress.appendChild(progress_bar);
                             td.appendChild(container_progress);
@@ -268,7 +280,54 @@ selects["ot"].addEventListener("change", () => {
     });
 });
 
+const crearLeyendaProductividad = () => {
+    let leyenda = document.createElement("div");
+    leyenda.className = "leyenda-productividad";
+
+    let titulo = document.createElement("p");
+    titulo.className = "leyenda-titulo";
+    titulo.innerHTML = "<strong>Leyenda de productividad:</strong>";
+    leyenda.appendChild(titulo);
+
+    const rangos = [
+        { colorClass: "leyenda-color--bajo", rango: "0% - 39%", label: "Bajo" },
+        { colorClass: "leyenda-color--medio", rango: "40% - 74%", label: "Medio" },
+        { colorClass: "leyenda-color--aceptable", rango: "75% - 100%", label: "Aceptable / Meta" },
+        { colorClass: "leyenda-color--destacado", rango: "100% - 149%", label: "Esfuerzo destacado" },
+        { colorClass: "leyenda-color--excelencia", rango: "+ 150%", label: "Excelencia" },
+    ];
+
+    let tabla = document.createElement("table");
+    tabla.className = "leyenda-tabla";
+
+    rangos.forEach(item => {
+        let fila = document.createElement("tr");
+
+        let tdColor = document.createElement("td");
+        tdColor.className = "leyenda-color " + item.colorClass;
+        fila.appendChild(tdColor);
+
+        let tdRango = document.createElement("td");
+        tdRango.className = "leyenda-rango";
+        tdRango.innerHTML = `<strong>${item.rango}</strong>`;
+        fila.appendChild(tdRango);
+
+        let tdLabel = document.createElement("td");
+        tdLabel.className = "leyenda-label";
+        tdLabel.innerText = item.label;
+        fila.appendChild(tdLabel);
+
+        tabla.appendChild(fila);
+    });
+
+    leyenda.appendChild(tabla);
+    return leyenda;
+};
+
 if (window.filtros !== undefined) {
-    let div_dashboard2 = document.querySelector(".div-table");
-    div_dashboard2.appendChild(crearTabla(datosOperadores));
+    let dashboard2 = document.querySelector(".dashboard2");
+    let div_table = document.querySelector(".div-table");
+
+    div_table.appendChild(crearTabla(datosOperadores));
+    dashboard2.appendChild(crearLeyendaProductividad());
 }
