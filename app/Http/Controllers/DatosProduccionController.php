@@ -11,6 +11,7 @@ use App\Models\Asentado_pza;
 use App\Models\BarrenoManiobra;
 use App\Models\BarrenoManiobra_pza;
 use App\Models\BarrenoProfundidad;
+use App\Models\BarrenoProfundidad_pza;
 use App\Models\Cavidades;
 use App\Models\Cavidades_pza;
 use App\Models\Cepillado;
@@ -254,7 +255,7 @@ class DatosProduccionController extends Controller
         $processName = str_replace(" ", "_", $pieza->proceso);
         $idString = $processName . "_" . $nameClass . "_" . $pieza->id_ot;
         $meta = $this->get_idMeta($idString, $pieza);
-        return $meta->meta;
+        return $meta ? $meta->meta : 0;
     }
 
     public function get_idMeta($idString, $pieza)
@@ -278,7 +279,7 @@ class DatosProduccionController extends Controller
                 break;
             case "Barreno Maniobra":
                 $id_proceso = BarrenoManiobra::where('id_proceso', $idString)->first();
-                $piezaFounded = BarrenoManiobra_pza::where('id_proceso', $id_proceso->id)->where("n_juego", $pieza->n_pieza)->first();
+                $piezaFounded = BarrenoManiobra_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
                 break;
             case "Segunda Operacion":
                 $id_proceso = SegundaOpeSoldadura::where('id_proceso', $idString)->first();
@@ -290,7 +291,7 @@ class DatosProduccionController extends Controller
                 break;
             case "Soldadura PTA":
                 $id_proceso = SoldaduraPTA::where('id_proceso', $idString)->first();
-                $piezaFounded = SoldaduraPTA_pza::where('id_proceso', $id_proceso->id)->where("n_juego", $pieza->n_pieza)->first();
+                $piezaFounded = SoldaduraPTA_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
                 break;
             case "Rectificado":
                 $id_proceso = Rectificado::where('id_proceso', $idString)->first();
@@ -318,7 +319,7 @@ class DatosProduccionController extends Controller
                 break;
             case "Barreno Profundidad":
                 $id_proceso = BarrenoProfundidad::where('id_proceso', $idString)->first();
-                $piezaFounded = BarrenoManiobra_pza::where('id_proceso', $id_proceso->id)->where("n_juego", $pieza->n_pieza)->first();
+                $piezaFounded = BarrenoProfundidad_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
                 break;
             case "Copiado":
                 $id_proceso = Copiado::where('id_proceso', $idString)->first();
@@ -349,6 +350,6 @@ class DatosProduccionController extends Controller
                 $piezaFounded = EmbudoCM_pza::where('id_proceso', $id_proceso->id)->where("n_pieza", $pieza->n_pieza)->first();
                 break;
         }
-        return $meta = Metas::find($piezaFounded->id_meta);
+        return $piezaFounded ? Metas::find($piezaFounded->id_meta) : null;
     }
 }
