@@ -9,6 +9,12 @@ class Kernel extends ConsoleKernel
 {
     /**
      * Define the application's command schedule.
+     * 
+     * NOTA: Cada vez que se descargue el proyecto en un nuevo entorno, 
+     * asegúrate de ejecutar los siguientes comandos para que los logs funcionen:
+     * 1. php artisan key:generate
+     * 2. php artisan config:clear
+     * 3. (Windows) Configurar el Programador de Tareas para ejecutar 'php artisan schedule:run' cada minuto.
      */
     protected function schedule(Schedule $schedule): void
     {
