@@ -44,9 +44,10 @@
                                     <table>
                                         <thead>
                                             <tr>
-                                                <th style="width: 20%;">N° Pieza</th>
-                                                <th style="width: 30%;">Fecha / Hora</th>
-                                                <th style="width: 50%;">Observaciones</th>
+                                                <th style="width: 15%;">N° Pieza</th>
+                                                <th style="width: 25%;">Fecha / Hora</th>
+                                                <th style="width: 30%;">Obs. Operador</th>
+                                                <th style="width: 30%;">Obs. Calidad</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -54,7 +55,8 @@
                                                 <tr class="{{ $fila['liberado'] ? 'liberado' : '' }}">
                                                     <td><strong>{{ $fila['n_piezas'] }}</strong></td>
                                                     <td>{{ $fila['hora'] }}</td>
-                                                    <td>{{ $fila['observacion'] }}</td>
+                                                    <td>{{ $fila['obs_operador'] }}</td>
+                                                    <td>{{ $fila['obs_calidad'] }}</td>
                                                 </tr>
                                             @endforeach
                                         </tbody>

@@ -81,4 +81,18 @@
         </div>
 
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const alerts = document.querySelectorAll('.reenvio-alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.add('fade-out');
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 1000); // Esperar a que termine la transición de opacidad
+                }, 5000); // 5 segundos antes de empezar a desvanecer
+            });
+        });
+    </script>
 @endsection

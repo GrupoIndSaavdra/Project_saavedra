@@ -23,7 +23,7 @@
 
         <div style="margin-top: 20px;">
             <a href="{{ route('reportes.descargar_pdf', ['fecha' => $fecha->toDateString()]) }}" class="btn-pdf"
-                style="background-color: #35dc46; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                style="background-color: #00b913; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
                 Descargar PDF
             </a>
         </div>
@@ -77,9 +77,10 @@
                                         <table class="op-table">
                                             <thead>
                                                 <tr>
-                                                    <th>N° Pieza</th>
-                                                    <th>Fecha / Hora Maquinado</th>
-                                                    <th>Observaciones</th>
+                                                    <th style="width: 15%;">N° Pieza</th>
+                                                    <th style="width: 20%;">Fecha / Hora</th>
+                                                    <th style="width: 35%;">Obs. Operador</th>
+                                                    <th style="width: 30%;">Obs. Calidad</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -88,7 +89,8 @@
                                                     <tr class="{{ $fila['liberado'] ? 'liberado' : '' }}">
                                                         <td><strong>{{ $fila['n_piezas'] }}</strong></td>
                                                         <td>{{ $fila['hora'] }}</td>
-                                                        <td>{{ $fila['observacion'] }}</td>
+                                                        <td>{{ $fila['obs_operador'] }}</td>
+                                                        <td>{{ $fila['obs_calidad'] }}</td>
                                                     </tr>
                                                 @endforeach
                                             </tbody>

@@ -126,8 +126,8 @@ td {
     border-radius: 5px;
     font-size: 1em;
     cursor: pointer;
-    transition: 0.3s ease;
-    margin: -2em;
+    transition: all 0.3s ease-in-out;
+    margin: 0;
 }
 
 .btn-cancel:hover {

@@ -525,6 +525,7 @@ class ProcessProductionController extends Controller
             }
 
             $piecesToProcess = [];
+            $piecesToProcess = [];
             foreach ($pieceIds as $key => $pid) {
                 if (!$pid)
                     continue;
@@ -537,18 +538,25 @@ class ProcessProductionController extends Controller
                     $piecesToProcess[$n_piece] = [
                         'hasFundicion' => false,
                         'hasMal' => false,
-                        'row' => $pieceRow
+                        'obs' => [],
+                        'p2_obs' => []
                     ];
                 }
 
                 $defecto = $request->input('defecto_pta')[$key] ?? 'Ninguno';
                 $resultado = $request->input('resultado')[$key] ?? 'Bien';
 
-                if ($defecto === 'Fundición') {
+                if ($defecto === 'Fundición')
                     $piecesToProcess[$n_piece]['hasFundicion'] = true;
-                }
-                if ($resultado === 'Mal') {
+                if ($resultado === 'Mal')
                     $piecesToProcess[$n_piece]['hasMal'] = true;
+
+                // Colectar observaciones de esta sub-fila
+                if (!empty($pieceRow->observaciones) && $pieceRow->observaciones !== '—') {
+                    $piecesToProcess[$n_piece]['obs'][] = $pieceRow->observaciones;
+                }
+                if (!empty($pieceRow->p2_observaciones) && $pieceRow->p2_observaciones !== '—') {
+                    $piecesToProcess[$n_piece]['p2_obs'][] = $pieceRow->p2_observaciones;
                 }
             }
 
@@ -570,6 +578,11 @@ class ProcessProductionController extends Controller
 
                 $error = $data['hasFundicion'] ? "Fundición" : ($data['hasMal'] ? "Maquinado" : "Ninguno");
                 $pieceInPiezas->error = $error;
+
+                // Combinar observaciones de sub-filas y pasadas
+                $allObs = array_unique(array_merge($data['obs'], $data['p2_obs']));
+                $pieceInPiezas->observacion_operador = empty($allObs) ? '—' : implode(' | ', $allObs);
+
                 $pieceInPiezas->save();
             }
             return; // Termina la función ya que PTA fue procesado completamente
@@ -608,6 +621,10 @@ class ProcessProductionController extends Controller
             $error = $piece->error;
         }
         $pieceInPiezas->error = $error;
+        // Copiar observaciones del operador si existen
+        if (isset($piece->observaciones)) {
+            $pieceInPiezas->observacion_operador = $piece->observaciones;
+        }
         $pieceInPiezas->save();
     }
     public function selectAssembly(Request $request)
