@@ -21,6 +21,11 @@ class Kernel extends ConsoleKernel
             ->dailyAt('23:59')
             ->withoutOverlapping()       // evita ejecuciones duplicadas
             ->appendOutputTo(storage_path('logs/reporte_diario.log'));
+
+        // ── Latido de Monitoreo — cada minuto ──────────────────────────
+        $schedule->command('app:heartbeat')
+            ->everyMinute()
+            ->withoutOverlapping();
     }
 
     /**
