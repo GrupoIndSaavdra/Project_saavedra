@@ -12,9 +12,12 @@ class SegundaOperacionCabezaSoploController extends Controller
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
-            $piece = SegundaOperacionCabezaSoplo_pza::find($request->piece[$index]);
+            $pieceId = $request->piece[$index] ?? null;
+            if (!$pieceId)
+                return;
+            $piece = SegundaOperacionCabezaSoplo_pza::find($pieceId);
 
-            // Crear arreglo de datos por �ndice
+            // Crear arreglo de datos por índice
             $fields = [
                 'diametro_exterior',
                 'longitud',
@@ -28,9 +31,12 @@ class SegundaOperacionCabezaSoploController extends Controller
                 $data[$field] = $request->$field[$index] ?? null;
             }
             $piece->fill($data);
-            $error = $request->error[$index];
+            $error = $request->error[$index] ?? 'Ninguno';
         } else {
-            $piece = SegundaOperacionCabezaSoplo_pza::find($request->piece);
+            $pieceId = $request->piece;
+            if (!$pieceId)
+                return;
+            $piece = SegundaOperacionCabezaSoplo_pza::find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'diametro_exterior',
@@ -39,7 +45,7 @@ class SegundaOperacionCabezaSoploController extends Controller
                 'longitud_candado',
                 'observaciones',
             ]));
-            $error = $request->error;
+            $error = $request->error ?? 'Ninguno';
         }
         $piece->estado = 2;
 

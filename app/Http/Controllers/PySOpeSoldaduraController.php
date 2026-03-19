@@ -13,7 +13,10 @@ class PySOpeSoldaduraController extends Controller
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
-            $piece = PySOpeSoldadura_pza::find($request->piece[$index]);
+            $pieceId = $request->piece[$index] ?? null;
+            if (!$pieceId)
+                return;
+            $piece = PySOpeSoldadura_pza::find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -33,9 +36,12 @@ class PySOpeSoldaduraController extends Controller
                 $data[$field] = $request->$field[$index] ?? null;
             }
             $piece->fill($data);
-            $error = $request->error[$index];
+            $error = $request->error[$index] ?? 'Ninguno';
         } else {
-            $piece = PySOpeSoldadura_pza::find($request->piece);
+            $pieceId = $request->piece;
+            if (!$pieceId)
+                return;
+            $piece = PySOpeSoldadura_pza::find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'altura',
@@ -48,7 +54,7 @@ class PySOpeSoldaduraController extends Controller
                 'pushUp',
                 'observaciones',
             ]));
-            $error = $request->error;
+            $error = $request->error ?? 'Ninguno';
         }
         $piece->estado = 2;
 

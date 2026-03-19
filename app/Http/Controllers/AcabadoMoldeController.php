@@ -13,7 +13,10 @@ class AcabadoMoldeController extends Controller
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
-            $piece = AcabadoMolde_pza::find($request->piece[$index]);
+            $pieceId = $request->piece[$index] ?? null;
+            if (!$pieceId)
+                return;
+            $piece = AcabadoMolde_pza::find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -40,9 +43,12 @@ class AcabadoMoldeController extends Controller
                 $data[$field] = $request->$field[$index] ?? null;
             }
             $piece->fill($data);
-            $error = $request->error[$index];
+            $error = $request->error[$index] ?? 'Ninguno';
         } else {
-            $piece = AcabadoMolde_pza::find($request->piece);
+            $pieceId = $request->piece;
+            if (!$pieceId)
+                return;
+            $piece = AcabadoMolde_pza::find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'diametro_mordaza',
@@ -62,14 +68,14 @@ class AcabadoMoldeController extends Controller
                 'simetria',
                 'observaciones',
             ]));
-            $error = $request->error;
+            $error = $request->error ?? 'Ninguno';
         }
         $piece->estado = 2;
 
         //Verificar si las medidas de la pieza estan correctas
         $correct = $this->comparePieceData($piece, $cNominal, $tolerance);
         if ($correct == 0 && $error == "Ninguno") {
-            $piece->error = 'Maquinado'; 
+            $piece->error = 'Maquinado';
             $piece->correcto = 0;
         } else if (($correct == 0 && $error == 'Fundicion') || ($correct == 1 && $error == 'Fundicion')) {
             $piece->error = $error;

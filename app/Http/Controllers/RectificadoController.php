@@ -13,7 +13,10 @@ class RectificadoController extends Controller
     public function storePiece($request, $index)
     {
         if ($index !== null) {
-            $piece = Rectificado_pza::find($request->piece[$index]);
+            $pieceId = $request->piece[$index] ?? null;
+            if (!$pieceId)
+                return;
+            $piece = Rectificado_pza::find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -28,13 +31,18 @@ class RectificadoController extends Controller
             $piece->fill($data);
 
             //Calcular el error
-            if ($request->error[$index] == "Fundicion") {
-                $piece->error = $request->error[$index];
+            $errInput = $request->error[$index] ?? 'Ninguno';
+            $cumpleInput = $request->cumple[$index] ?? null;
+            if ($errInput == "Fundicion") {
+                $piece->error = $errInput;
             } else {
-                $piece->error = $request->cumple[$index] == "Si" ? $request->error[$index] : "Maquinado";
+                $piece->error = $cumpleInput == "Si" ? $errInput : "Maquinado";
             }
         } else {
-            $piece = Rectificado_pza::find($request->piece);
+            $pieceId = $request->piece;
+            if (!$pieceId)
+                return;
+            $piece = Rectificado_pza::find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'cumple',
@@ -42,10 +50,12 @@ class RectificadoController extends Controller
             ]));
 
             //Calcular el error
-            if ($request->error == "Fundicion") {
-                $piece->error = $request->error;
+            $errInput = $request->error ?? 'Ninguno';
+            $cumpleInput = $request->cumple ?? null;
+            if ($errInput == "Fundicion") {
+                $piece->error = $errInput;
             } else {
-                $piece->error = $request->cumple == "Si" ? $request->error : "Maquinado";
+                $piece->error = $cumpleInput == "Si" ? $errInput : "Maquinado";
             }
         }
         $piece->estado = 2;

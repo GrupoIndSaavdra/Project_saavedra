@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\AcabadoBombilo_pza;
-use Illuminate\Support\Facades\Log;
 
 class AcabadoBombilloController extends Controller
 {
@@ -14,7 +13,10 @@ class AcabadoBombilloController extends Controller
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
-            $piece = AcabadoBombilo_pza::find($request->piece[$index]);
+            $pieceId = $request->piece[$index] ?? null;
+            if (!$pieceId)
+                return;
+            $piece = AcabadoBombilo_pza::find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -44,9 +46,12 @@ class AcabadoBombilloController extends Controller
                 $data[$field] = $request->$field[$index] ?? null;
             }
             $piece->fill($data);
-            $error = $request->error[$index];
+            $error = $request->error[$index] ?? 'Ninguno';
         } else {
-            $piece = AcabadoBombilo_pza::find($request->piece);
+            $pieceId = $request->piece;
+            if (!$pieceId)
+                return;
+            $piece = AcabadoBombilo_pza::find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'diametro_mordaza',
@@ -69,7 +74,7 @@ class AcabadoBombilloController extends Controller
                 'simetria',
                 'observaciones',
             ]));
-            $error = $request->error;
+            $error = $request->error ?? 'Ninguno';
         }
         $piece->estado = 2;
 

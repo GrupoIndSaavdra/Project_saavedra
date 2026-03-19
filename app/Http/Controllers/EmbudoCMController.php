@@ -244,7 +244,10 @@ class EmbudoCMController extends Controller
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
-            $piece = EmbudoCM_pza::find($request->piece[$index]);
+            $pieceId = $request->piece[$index] ?? null;
+            if (!$pieceId)
+                return;
+            $piece = EmbudoCM_pza::find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = ['conexion_lineaPartida', 'conexion_90G', 'altura_conexion', 'diametro_embudo', 'observaciones'];
@@ -254,9 +257,12 @@ class EmbudoCMController extends Controller
                 $data[$field] = $request->$field[$index] ?? null;
             }
             $piece->fill($data);
-            $error = $request->error[$index];
+            $error = $request->error[$index] ?? 'Ninguno';
         } else {
-            $piece = EmbudoCM_pza::find($request->piece);
+            $pieceId = $request->piece;
+            if (!$pieceId)
+                return;
+            $piece = EmbudoCM_pza::find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'conexion_lineaPartida',
@@ -266,7 +272,7 @@ class EmbudoCMController extends Controller
                 'observaciones',
             ]));
 
-            $error = $request->error;
+            $error = $request->error ?? 'Ninguno';
         }
 
         $piece->estado = 2;

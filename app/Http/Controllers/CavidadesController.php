@@ -14,7 +14,10 @@ class CavidadesController extends Controller
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
-            $piece = Cavidades_pza::find($request->piece[$index]);
+            $pieceId = $request->piece[$index] ?? null;
+            if (!$pieceId)
+                return;
+            $piece = Cavidades_pza::find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -36,9 +39,12 @@ class CavidadesController extends Controller
                 $data[$field] = $request->$field[$index] ?? null;
             }
             $piece->fill($data);
-            $error = $request->error[$index];
+            $error = $request->error[$index] ?? 'Ninguno';
         } else {
-            $piece = Cavidades_pza::find($request->piece);
+            $pieceId = $request->piece;
+            if (!$pieceId)
+                return;
+            $piece = Cavidades_pza::find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'profundidad1',
@@ -53,7 +59,7 @@ class CavidadesController extends Controller
                 'acetatoBM',
                 'observaciones',
             ]));
-            $error = $request->error;
+            $error = $request->error ?? 'Ninguno';
         }
         $piece->estado = 2;
 

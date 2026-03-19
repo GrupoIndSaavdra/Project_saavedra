@@ -13,7 +13,10 @@ class CopiadoController extends Controller
     public function storePiece($request, $cNominal, $tolerance, $index, $arrayPieces)
     {
         if ($index !== null) {
-            $piece = Copiado_pza::find($arrayPieces ? $arrayPieces[$index] : $request->piece[$index]);
+            $pieceId = ($arrayPieces ? $arrayPieces[$index] : ($request->piece[$index] ?? null));
+            if (!$pieceId)
+                return;
+            $piece = Copiado_pza::find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -46,12 +49,14 @@ class CopiadoController extends Controller
             $piece->fill($data);
             //Verificar si las medidas de la pieza estan correctas
             $correctSubprocess = $this->comparePieceData($piece, $cNominal, $tolerance);
+            $generalError = $request->error ?? 'Ninguno';
             foreach ($correctSubprocess as $key => $value) {
-                if ($value == 0 && $request->error == "Ninguno") {
+                $subError = $request->$key[$index] ?? 'Ninguno';
+                if ($value == 0 && $generalError == "Ninguno") {
                     $piece->$key = 'Maquinado';
                     $piece->correcto = 0;
-                } else if (($value == 0 && $request->$key[$index] == 'Fundicion') || ($value == 1 && $request->$key[$index] == 'Fundicion')) {
-                    $piece->$key = $request->$key[$index];
+                } else if (($value == 0 && $subError == 'Fundicion') || ($value == 1 && $subError == 'Fundicion')) {
+                    $piece->$key = $subError;
                     $piece->correcto = 0;
                 } else {
                     $piece->$key = 'Ninguno';
@@ -59,7 +64,10 @@ class CopiadoController extends Controller
                 }
             }
         } else {
-            $piece = Copiado_pza::find($request->piece);
+            $pieceId = $request->piece;
+            if (!$pieceId)
+                return;
+            $piece = Copiado_pza::find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'diametro1_cilindrado',
@@ -85,12 +93,14 @@ class CopiadoController extends Controller
             ]));
             //Verificar si las medidas de la pieza estan correctas
             $correctSubprocess = $this->comparePieceData($piece, $cNominal, $tolerance);
+            $generalError = $request->error ?? 'Ninguno';
             foreach ($correctSubprocess as $key => $value) {
-                if ($value == 0 && $request->error == "Ninguno") {
+                $subError = $request->$key ?? 'Ninguno';
+                if ($value == 0 && $generalError == "Ninguno") {
                     $piece->$key = 'Maquinado';
                     $piece->correcto = 0;
-                } else if (($value == 0 && $request->$key == 'Fundicion') || ($value == 1 && $request->$key == 'Fundicion')) {
-                    $piece->$key = $request->$key;
+                } else if (($value == 0 && $subError == 'Fundicion') || ($value == 1 && $subError == 'Fundicion')) {
+                    $piece->$key = $subError;
                     $piece->correcto = 0;
                 } else {
                     $piece->$key = 'Ninguno';

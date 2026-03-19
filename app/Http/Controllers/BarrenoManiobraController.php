@@ -13,14 +13,17 @@ class BarrenoManiobraController extends Controller
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
-            $piece = BarrenoManiobra_pza::find($request->piece[$index]);
+            $pieceId = $request->piece[$index] ?? null;
+            if (!$pieceId)
+                return;
+            $piece = BarrenoManiobra_pza::find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
-            'profundidad_barreno',
-            'diametro_machuelo',
-            'acetatoBM',
-            'observaciones',
+                'profundidad_barreno',
+                'diametro_machuelo',
+                'acetatoBM',
+                'observaciones',
             ];
 
             $data = array();
@@ -28,9 +31,12 @@ class BarrenoManiobraController extends Controller
                 $data[$field] = $request->$field[$index] ?? null;
             }
             $piece->fill($data);
-            $error = $request->error[$index];
+            $error = $request->error[$index] ?? 'Ninguno';
         } else {
-            $piece = BarrenoManiobra_pza::find($request->piece);
+            $pieceId = $request->piece;
+            if (!$pieceId)
+                return;
+            $piece = BarrenoManiobra_pza::find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'profundidad_barreno',
@@ -38,7 +44,7 @@ class BarrenoManiobraController extends Controller
                 'acetatoBM',
                 'observaciones',
             ]));
-            $error = $request->error;
+            $error = $request->error ?? 'Ninguno';
         }
         $piece->estado = 2;
 

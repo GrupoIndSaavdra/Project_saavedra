@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\PrimeraOperacionCabezaSoplo_pza;
-use Illuminate\Support\Facades\Log;
 
 class PrimeraOperacionCabezaSoploController extends Controller
 {
@@ -14,25 +13,29 @@ class PrimeraOperacionCabezaSoploController extends Controller
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
-            $piece = PrimeraOperacionCabezaSoplo_pza::find($request->piece[$index]);
-
-            // Crear arreglo de datos por índice
+            $pieceId = $request->piece[$index] ?? null;
+            if (!$pieceId)
+                return;
+            $piece = PrimeraOperacionCabezaSoplo_pza::find($pieceId);
+            // Crear arreglo de datos por Ã­ndice
             $fields = [
-            'diametro_exterior',
-            'longitud',
-            'diametro_candado',
-            'longitud_candado',
+                'diametro_exterior',
+                'longitud',
+                'diametro_candado',
+                'longitud_candado',
                 'observaciones',
             ];
-
             $data = array();
             foreach ($fields as $field) {
                 $data[$field] = $request->$field[$index] ?? null;
             }
             $piece->fill($data);
-            $error = $request->error[$index];
+            $error = $request->error[$index] ?? 'Ninguno';
         } else {
-            $piece = PrimeraOperacionCabezaSoplo_pza::find($request->piece);
+            $pieceId = $request->piece;
+            if (!$pieceId)
+                return;
+            $piece = PrimeraOperacionCabezaSoplo_pza::find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'diametro_exterior',
@@ -41,10 +44,9 @@ class PrimeraOperacionCabezaSoploController extends Controller
                 'longitud_candado',
                 'observaciones',
             ]));
-            $error = $request->error;
+            $error = $request->error ?? 'Ninguno';
         }
         $piece->estado = 2;
-
         //Verificar si las medidas de la pieza estan correctas
         $correct = $this->comparePieceData($piece, $cNominal, $tolerance);
         if ($correct == 0 && $error == "Ninguno") {
@@ -68,7 +70,7 @@ class PrimeraOperacionCabezaSoploController extends Controller
             'longitud_candado'
         ];
 
-        $epsilon = 0.000001; // tolerancia mínima para errores de redondeo
+        $epsilon = 0.000001; // tolerancia mÃ­nima para errores de redondeo
 
         foreach ($campos as $campo) {
             $valorPiece = (float) $pieza->$campo;

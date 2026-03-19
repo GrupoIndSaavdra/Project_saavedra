@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\PrimeraOpeSoldadura_pza;
-use App\Models\RevLaterales_pza;
 
 class PrimeraOpeSoldaduraController extends Controller
 {
@@ -14,7 +13,10 @@ class PrimeraOpeSoldaduraController extends Controller
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
-            $piece = PrimeraOpeSoldadura_pza::find($request->piece[$index]);
+            $pieceId = $request->piece[$index] ?? null;
+            if (!$pieceId)
+                return;
+            $piece = PrimeraOpeSoldadura_pza::find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -38,9 +40,12 @@ class PrimeraOpeSoldaduraController extends Controller
                 $data[$field] = $request->$field[$index] ?? null;
             }
             $piece->fill($data);
-            $error = $request->error[$index];
+            $error = $request->error[$index] ?? 'Ninguno';
         } else {
-            $piece = PrimeraOpeSoldadura_pza::find($request->piece);
+            $pieceId = $request->piece;
+            if (!$pieceId)
+                return;
+            $piece = PrimeraOpeSoldadura_pza::find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'diametro1',
@@ -57,7 +62,7 @@ class PrimeraOpeSoldaduraController extends Controller
                 'Simetria90G',
                 'observaciones',
             ]));
-            $error = $request->error;
+            $error = $request->error ?? 'Ninguno';
         }
         $piece->estado = 2;
 
@@ -77,7 +82,7 @@ class PrimeraOpeSoldaduraController extends Controller
     }
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
-        if ($pieza->diametro1 > ($cNominal->diametro1 + $tolerancia->diametro1) || $pieza->diametro1 < ($cNominal->diametro1 - $tolerancia->diametro1) || $pieza->profundidad1 > ($cNominal->profundidad1 + $tolerancia->profundidad1) || $pieza->profundidad1 < ($cNominal->profundidad1 - $tolerancia->profundidad1) || $pieza->diametro2 > ($cNominal->diametro2 + $tolerancia->diametro2) || $pieza->diametro2 < ($cNominal->diametro2 - $tolerancia->diametro2) || $pieza->profundidad2 > ($cNominal->profundidad2 + $tolerancia->profundidad2) || $pieza->profundidad2 < ($cNominal->profundidad2 - $tolerancia->profundidad2) || $pieza->diametro3 > ($cNominal->diametro3 + $tolerancia->diametro3) || $pieza->diametro3 < ($cNominal->diametro3 - $tolerancia->diametro3) || $pieza->profundidad3  > ($cNominal->profundidad3  + $tolerancia->profundidad3) || $pieza->profundidad3 < ($cNominal->profundidad3 - $tolerancia->profundidad3) || $pieza->diametroSoldadura > ($cNominal->diametroSoldadura  + $tolerancia->diametroSoldadura) || $pieza->diametroSoldadura < ($cNominal->diametroSoldadura - $tolerancia->diametroSoldadura) || $pieza->profundidadSoldadura > ($cNominal->profundidadSoldadura + $tolerancia->profundidadSoldadura) || $pieza->profundidadSoldadura < ($cNominal->profundidadSoldadura - $tolerancia->profundidadSoldadura) || $pieza->diametroBarreno > ($cNominal->diametroBarreno + $tolerancia->diametroBarreno1) || $pieza->diametroBarreno < round(($cNominal->diametroBarreno - $tolerancia->diametroBarreno2), 3) || $pieza->simetriaLinea_partida > ($cNominal->simetriaLinea_partida + $tolerancia->simetriaLinea_partida1) || $pieza->simetriaLinea_partida < ($cNominal->simetriaLinea_partida - $tolerancia->simetriaLinea_partida2) || $pieza->pernoAlineacion > ($cNominal->pernoAlineacion + $tolerancia->pernoAlineacion) || $pieza->pernoAlineacion < ($cNominal->pernoAlineacion - $tolerancia->pernoAlineacion) || $pieza->Simetria90G > ($cNominal->Simetria90G + $tolerancia->Simetria90G) || $pieza->Simetria90G < ($cNominal->Simetria90G - $tolerancia->Simetria90G)) {
+        if ($pieza->diametro1 > ($cNominal->diametro1 + $tolerancia->diametro1) || $pieza->diametro1 < ($cNominal->diametro1 - $tolerancia->diametro1) || $pieza->profundidad1 > ($cNominal->profundidad1 + $tolerancia->profundidad1) || $pieza->profundidad1 < ($cNominal->profundidad1 - $tolerancia->profundidad1) || $pieza->diametro2 > ($cNominal->diametro2 + $tolerancia->diametro2) || $pieza->diametro2 < ($cNominal->diametro2 - $tolerancia->diametro2) || $pieza->profundidad2 > ($cNominal->profundidad2 + $tolerancia->profundidad2) || $pieza->profundidad2 < ($cNominal->profundidad2 - $tolerancia->profundidad2) || $pieza->diametro3 > ($cNominal->diametro3 + $tolerancia->diametro3) || $pieza->diametro3 < ($cNominal->diametro3 - $tolerancia->diametro3) || $pieza->profundidad3 > ($cNominal->profundidad3 + $tolerancia->profundidad3) || $pieza->profundidad3 < ($cNominal->profundidad3 - $tolerancia->profundidad3) || $pieza->diametroSoldadura > ($cNominal->diametroSoldadura + $tolerancia->diametroSoldadura) || $pieza->diametroSoldadura < ($cNominal->diametroSoldadura - $tolerancia->diametroSoldadura) || $pieza->profundidadSoldadura > ($cNominal->profundidadSoldadura + $tolerancia->profundidadSoldadura) || $pieza->profundidadSoldadura < ($cNominal->profundidadSoldadura - $tolerancia->profundidadSoldadura) || $pieza->diametroBarreno > ($cNominal->diametroBarreno + $tolerancia->diametroBarreno1) || $pieza->diametroBarreno < round(($cNominal->diametroBarreno - $tolerancia->diametroBarreno2), 3) || $pieza->simetriaLinea_partida > ($cNominal->simetriaLinea_partida + $tolerancia->simetriaLinea_partida1) || $pieza->simetriaLinea_partida < ($cNominal->simetriaLinea_partida - $tolerancia->simetriaLinea_partida2) || $pieza->pernoAlineacion > ($cNominal->pernoAlineacion + $tolerancia->pernoAlineacion) || $pieza->pernoAlineacion < ($cNominal->pernoAlineacion - $tolerancia->pernoAlineacion) || $pieza->Simetria90G > ($cNominal->Simetria90G + $tolerancia->Simetria90G) || $pieza->Simetria90G < ($cNominal->Simetria90G - $tolerancia->Simetria90G)) {
             return 0; //Si los datos de la pieza son diferentes a los nominales y de tolerancia, se retorna 0.
         } else {
             return 1; //Si los datos de la pieza son iguales a los nominales y de tolerancia, se retorna 1.
