@@ -56,6 +56,11 @@
     border-color: #9c0303;
 }
 
+.reenvio-alert.fade-out {
+    opacity: 0;
+    transition: opacity 1s ease-out;
+}
+
 /* ── Info box ─────────────────────────────────────────────────── */
 .reenvio-info {
     background: #e8f0fe;

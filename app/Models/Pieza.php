@@ -23,6 +23,7 @@ class Pieza extends Model
         'fecha_liberacion',
         'user_liberacion',
         'observacion_liberacion',
+        'observacion_operador',
     ];
 
     /**

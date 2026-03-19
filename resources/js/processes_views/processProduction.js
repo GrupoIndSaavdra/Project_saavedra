@@ -1273,6 +1273,7 @@ if (window.arrayData) {
             let btnCancel = document.querySelector(".btn-cancel");
             btnCancel.style.top = "0";
             btnCancel.style.left = "0";
+            btnCancel.style.margin = "1.5em";
             if (window.arrayData["numberPieces"] > 0) {
                 // Si ya se han registrado piezas, solo habilitar los inputs de tiempo y fecha
                 createInputsWithValue(window.arrayData, ["startTime", "endTime", "date"]);
@@ -1292,6 +1293,7 @@ if (window.arrayData) {
             let btnCancel = document.querySelector(".btn-cancel");
             btnCancel.style.bottom = "0";
             btnCancel.style.right = "6em";
+            btnCancel.style.margin = "-2em";
         }
     } else {
         createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
