@@ -72,7 +72,7 @@ class SegundaOperacionCabezaSoploController extends Controller
             'longitud_candado'
         ];
 
-        $epsilon = 0.000001; // tolerancia m�nima para errores de redondeo
+        $epsilon = 0.000001; // tolerancia mínima para errores de redondeo
 
         foreach ($campos as $campo) {
             $valorPiece = (float) $pieza->$campo;

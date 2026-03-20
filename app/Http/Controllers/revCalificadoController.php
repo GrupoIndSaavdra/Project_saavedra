@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\revCalificado_pza;
+use App\Models\revCalificado_pza as RevCalificadoPza;
 
 class revCalificadoController extends Controller
 {
@@ -16,7 +16,7 @@ class revCalificadoController extends Controller
             $pieceId = $request->piece[$index] ?? null;
             if (!$pieceId)
                 return;
-            $piece = revCalificado_pza::find($pieceId);
+            $piece = RevCalificadoPza::find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -42,7 +42,7 @@ class revCalificadoController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = revCalificado_pza::find($pieceId);
+            $piece = RevCalificadoPza::find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'diametro_ceja',
