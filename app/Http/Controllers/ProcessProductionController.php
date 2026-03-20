@@ -29,6 +29,20 @@ class ProcessProductionController extends Controller
         $this->classController = new ClassController();
         $this->processesController = new ProcessesController();
     }
+
+    /**
+     * Resuelve el problema de max_input_vars truncando datos en formularios grandes.
+     * Si el front-end envía 'piece_data_json', se decodifica y se fusiona en el request.
+     */
+    protected function mergeJsonIntoRequest(Request $request)
+    {
+        if ($request->has('piece_data_json')) {
+            $jsonData = json_decode($request->input('piece_data_json'), true);
+            if (is_array($jsonData)) {
+                $request->merge($jsonData);
+            }
+        }
+    }
     public function show($returnArray = null)
     {
         $wOrdersFounded = Orden_trabajo::all();
@@ -479,6 +493,7 @@ class ProcessProductionController extends Controller
     }
     public function storePiece(Request $request)
     {
+        $this->mergeJsonIntoRequest($request);
         $meta = Metas::find($request->input('meta'));
         $machine = Maquinas::where('id_meta', $meta->id)->first();
         if ($machine) {
@@ -629,6 +644,7 @@ class ProcessProductionController extends Controller
     }
     public function selectAssembly(Request $request)
     {
+        $this->mergeJsonIntoRequest($request);
         // Obtener las variables principales
         $meta = Metas::find($request->input('meta'));
         $machine = Maquinas::where('id_meta', $meta->id)->first();
@@ -815,6 +831,7 @@ class ProcessProductionController extends Controller
     }
     public function editPieces(Request $request)
     {
+        $this->mergeJsonIntoRequest($request);
         $meta = Metas::find($request->input('meta'));
         $machine = Maquinas::where('id_meta', $meta->id)->first();
         if (!$machine) {

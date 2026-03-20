@@ -447,6 +447,41 @@ function createTable() {
     }
     body.appendChild(form);
 
+    // Interceptar el submit para evitar el límite de max_input_vars en PHP
+    form.addEventListener("submit", function () {
+        const pieceInputs = form.querySelectorAll('input[name="piece[]"]');
+        if (pieceInputs.length > 40) { // Si hay más de 40 piezas (aprox 500-600 variables), usamos JSON
+            const formData = new FormData(form);
+            const jsonData = {};
+            const keysToGroup = [];
+
+            for (const [key, value] of formData.entries()) {
+                if (key.endsWith("[]")) {
+                    const cleanKey = key.slice(0, -2);
+                    if (!jsonData[cleanKey]) {
+                        jsonData[cleanKey] = [];
+                        keysToGroup.push(key);
+                    }
+                    jsonData[cleanKey].push(value);
+                }
+            }
+
+            if (Object.keys(jsonData).length > 0) {
+                // Agregar el JSON como un solo campo
+                let inputJson = document.createElement("input");
+                inputJson.type = "hidden";
+                inputJson.name = "piece_data_json";
+                inputJson.value = JSON.stringify(jsonData);
+                form.appendChild(inputJson);
+
+                // Remover los nombres de los inputs originales para que PHP no los procese individualmente
+                keysToGroup.forEach(name => {
+                    form.querySelectorAll(`[name="${name}"]`).forEach(el => el.removeAttribute("name"));
+                });
+            }
+        }
+    });
+
     // Insertar tabla historica si hay datos
     if (window.arrayData && window.arrayData["history"]) {
         createHistoricalTable(window.arrayData["history"]);
