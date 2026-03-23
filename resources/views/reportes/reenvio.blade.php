@@ -28,9 +28,9 @@
 
         {{-- Info box --}}
         <div class="reenvio-info">
-            <strong>Como funciona:</strong>
+            <strong>¿Cómo funciona?:</strong>
             Selecciona la fecha del turno que deseas reportar, escribe los correos de los destinatarios
-            (separados por coma) y presiona <em>Enviar</em>. El sistema consultará los registros de
+            (separados por coma) y presiona <strong><em>Enviar Reporte</em></strong>. El sistema consultará los registros de
             producción de ese día y generará el correo automáticamente.
         </div>
 
