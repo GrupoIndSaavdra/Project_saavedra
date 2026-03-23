@@ -72,45 +72,24 @@ class ReporteProduccionController extends Controller
 
         $reporte = $this->agruparJerarquicamente($piezas);
 
-        // ── Generar PDFs por OT/Clase ─────────────────────────────────────
+        // ── Generar PDF global ─────────────────────────────────────
         $pdfPaths = [];
         $baseDir = storage_path('app/public/reportes');
-
-        foreach ($reporte as $otId => $otData) {
-            $nOT = str_replace(['#', 'OT ', ' ', '—'], ['', '', '_', ''], $otData['ot_label']);
-            $nOT = preg_replace('/[^A-Za-z0-9_\-]/', '', $nOT); // Sanitizar
-
-            foreach ($otData['clases'] as $claseId => $claseData) {
-                $nClase = str_replace(['#', 'Clase ', ' '], ['', '', '_'], $claseData['clase_label']);
-                $nClase = preg_replace('/[^A-Za-z0-9_\-]/', '', $nClase); // Sanitizar
-
-                $folderPath = "{$baseDir}/{$nOT}/{$nClase}";
-                if (!file_exists($folderPath)) {
-                    mkdir($folderPath, 0755, true);
-                }
-
-                $fileName = "{$fecha->toDateString()}.pdf";
-                $fullPath = "{$folderPath}/{$fileName}";
-
-                $miniReporte = [
-                    $otId => [
-                        'ot_label' => $otData['ot_label'],
-                        'clases' => [
-                            $claseId => $claseData
-                        ]
-                    ]
-                ];
-
-                $pdf = FacadePdf::loadView('emails.reporte_diario_pdf', [
-                    'reporte' => $miniReporte,
-                    'fecha' => $fecha
-                ]);
-                $pdf->setPaper('a4', 'portrait');
-                $pdf->save($fullPath);
-
-                $pdfPaths[] = $fullPath;
-            }
+        $folderPath = "{$baseDir}/General";
+        if (!file_exists($folderPath)) {
+            mkdir($folderPath, 0755, true);
         }
+        $fullPath = "{$folderPath}/{$fecha->toDateString()}.pdf";
+
+        $pdf = FacadePdf::loadView('emails.reporte_diario_pdf', [
+            'reporte' => $reporte,
+            'fecha' => $fecha
+        ]);
+        $pdf->setPaper('a4', 'portrait');
+        $pdf->save($fullPath);
+
+        $pdfPaths[] = $fullPath;
+
 
         \Illuminate\Support\Facades\Log::info("PDFs generados (" . count($pdfPaths) . "): " . implode(', ', $pdfPaths));
 
@@ -217,154 +196,165 @@ class ReporteProduccionController extends Controller
      */
     private function agruparJerarquicamente($piezas): array
     {
-        $reporte = [];
-        $molduras = [];
-        $usuarios = [];
+        $reporteFinal = [];
+        $agrupacion = [];
+        $totales = [];
+        $moldurasMap = [];
+        $clasesMap = [];
+        $usuariosMap = [];
+
+        $dt = new \App\Http\Controllers\DatosProduccionController();
+        $processesAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion"];
 
         foreach ($piezas as $pieza) {
-            // ── OT ────────────────────────────────────────────────────────
+            $mat = $pieza->id_operador;
+            if (!isset($usuariosMap[$mat])) {
+                $u = User::where('matricula', $mat)->first();
+                $usuariosMap[$mat] = $u ? trim("{$u->nombre} {$u->a_paterno} {$u->a_materno}") : "Op #{$mat}";
+            }
+            $operador = $usuariosMap[$mat];
+
             $otId = $pieza->id_ot;
-            if (!isset($reporte[$otId])) {
-                if (!isset($molduras[$otId])) {
-                    $ot = Orden_trabajo::find($otId);
-                    $mn = $ot ? optional(Moldura::find($ot->id_moldura))->nombre ?? '—' : '—';
-                    $molduras[$otId] = "OT #{$otId} — {$mn}";
-                }
-                $reporte[$otId] = ['ot_label' => $molduras[$otId], 'clases' => []];
+            if (!isset($moldurasMap[$otId])) {
+                $ot = Orden_trabajo::find($otId);
+                $mn = $ot ? optional(Moldura::find($ot->id_moldura))->nombre ?? '—' : '—';
+                $moldurasMap[$otId] = "OT #{$otId} — {$mn}";
             }
 
-            // ── Clase ─────────────────────────────────────────────────────
             $claseId = $pieza->id_clase;
-            if (!isset($reporte[$otId]['clases'][$claseId])) {
+            if (!isset($clasesMap[$claseId])) {
                 $cls = Clase::find($claseId);
-                $reporte[$otId]['clases'][$claseId] = [
-                    'clase_label' => $cls ? trim($cls->nombre . ' ' . $cls->tamanio) : "Clase #{$claseId}",
-                    'procesos' => [],
+                $clasesMap[$claseId] = ['label' => $cls ? trim($cls->nombre . ' ' . $cls->tamanio) : "Clase #{$claseId}", 'nombre' => $cls->nombre ?? ''];
+            }
+
+            $proceso = $pieza->proceso ?? 'Sin Proceso';
+            $hashProceso = "{$otId}_{$claseId}_{$proceso}";
+
+            if (!isset($totales[$operador][$hashProceso])) {
+                try {
+                    $meta = $dt->obtenerMeta($pieza, $clasesMap[$claseId]['nombre']);
+                } catch (\Exception $e) {
+                    $meta = 0;
+                }
+                $totales[$operador][$hashProceso] = [
+                    'meta' => $meta,
+                    'buenas' => 0,
+                    'ot_label' => $moldurasMap[$otId],
+                    'clase_label' => $clasesMap[$claseId]['label'],
+                    'proceso' => $proceso
                 ];
             }
 
-            // ── Proceso ───────────────────────────────────────────────────
-            $proceso = $pieza->proceso ?? 'Sin Proceso';
-            if (!isset($reporte[$otId]['clases'][$claseId]['procesos'][$proceso])) {
-                $reporte[$otId]['clases'][$claseId]['procesos'][$proceso] = [];
+            $cantidad = in_array($pieza->proceso, $processesAssembly) || in_array($proceso, $processesAssembly) ? 1 : 0.5;
+            $isValid = false;
+            if ($pieza->error != "Ninguno" && !empty($pieza->error)) {
+                if ($pieza->liberacion == 1 || $pieza->liberacion == 3)
+                    $isValid = true;
+            } else {
+                if ($pieza->liberacion != 2)
+                    $isValid = true;
+            }
+            if ($isValid) {
+                $totales[$operador][$hashProceso]['buenas'] += $cantidad;
             }
 
-            // ── Fila ──────────────────────────────────────────────────────
-            $mat = $pieza->id_operador;
-            if (!isset($usuarios[$mat])) {
-                $u = User::where('matricula', $mat)->first();
-                $usuarios[$mat] = $u
-                    ? trim("{$u->nombre} {$u->a_paterno} {$u->a_materno}")
-                    : "Op #{$mat}";
-            }
-            $operador = $usuarios[$mat];
+            $liberado = $this->verifyPiece($pieza);
+            $obsCalidad = $pieza->observacion_liberacion ?: '—';
+            $obsOperador = $this->getObservacionesOperador($pieza);
+            $colorFila = $this->asignColorTr($pieza->liberacion, $pieza->error);
 
-            if (!isset($reporte[$otId]['clases'][$claseId]['procesos'][$proceso][$operador])) {
-                $reporte[$otId]['clases'][$claseId]['procesos'][$proceso][$operador] = [];
-            }
-
-            // ── Lógica de Agrupación (Juegos) ─────────────────────────────
             $nPiezaRaw = $pieza->n_pieza;
-            $nPiezaBase = $nPiezaRaw;
-            $sufijo = '';
+            $esJuego = str_ends_with($nPiezaRaw, 'H') || str_ends_with($nPiezaRaw, 'M');
 
             if (preg_match('/^(\d+)([HM])$/i', $nPiezaRaw, $matches)) {
                 $nPiezaBase = $matches[1];
                 $sufijo = strtoupper($matches[2]);
+            } else {
+                $nPiezaBase = $nPiezaRaw;
+                $sufijo = '';
             }
 
-            $keyDict = "juego_{$nPiezaBase}";
-            $coleccion = &$reporte[$otId]['clases'][$claseId]['procesos'][$proceso][$operador];
+            if (!isset($agrupacion[$operador][$hashProceso])) {
+                $agrupacion[$operador][$hashProceso] = [];
+            }
+            $coleccion = &$agrupacion[$operador][$hashProceso];
 
-            $liberado = $this->verifyPiece($pieza);
-            $obsCalidad = $pieza->observacion_liberacion ?: '—';
+            $keyDict = $esJuego ? "juego_{$nPiezaBase}" : "pieza_{$nPiezaRaw}_" . $pieza->id;
 
-            // Recuperar observaciones del operador desde tablas de proceso
-            $nPiezaRaw = $pieza->n_pieza;
-            $esJuego = str_ends_with($nPiezaRaw, 'H') || str_ends_with($nPiezaRaw, 'M');
-            $numJuego = $esJuego ? substr($nPiezaRaw, 0, -1) : $nPiezaRaw;
-            $identificador = $esJuego ? $numJuego . "J" : $nPiezaRaw;
-
-            $obsOperador = $this->getObservacionesOperador($pieza);
-
-            if ($esJuego) { // Es parte de un juego (termina en H o M)
+            if ($esJuego) {
                 if (!isset($coleccion[$keyDict])) {
-                    // Inicializamos el juego
                     $coleccion[$keyDict] = [
                         'n_piezas' => "{$nPiezaBase}J",
                         'hora' => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
                         'obs_operador' => $obsOperador,
-                        'obs_calidad' => $obsCalidad, // Tomamos la primera obs de calidad que llegue
-                        'liberado' => $liberado,
+                        'obs_calidad' => $obsCalidad,
+                        'bg_color' => $colorFila,
                         'is_juego' => true,
                         'piezas_incluidas' => [$sufijo],
                     ];
                 } else {
-                    // Ya existe el juego, agregamos la otra mitad
                     if (!in_array($sufijo, $coleccion[$keyDict]['piezas_incluidas'])) {
-                        // Concatenar observaciones del operador si hay nuevas y no son "—"
                         if ($obsOperador !== '—' && !str_contains($coleccion[$keyDict]['obs_operador'], $obsOperador)) {
-                            if ($coleccion[$keyDict]['obs_operador'] === '—') {
-                                $coleccion[$keyDict]['obs_operador'] = $obsOperador;
-                            } else {
-                                $coleccion[$keyDict]['obs_operador'] .= ' | ' . $obsOperador;
-                            }
+                            $coleccion[$keyDict]['obs_operador'] = $coleccion[$keyDict]['obs_operador'] === '—' ? $obsOperador : $coleccion[$keyDict]['obs_operador'] . ' | ' . $obsOperador;
                         }
-
-                        // Concatenar observaciones de calidad si hay nuevas y no son "—"
                         if ($obsCalidad !== '—' && !str_contains($coleccion[$keyDict]['obs_calidad'], $obsCalidad)) {
-                            if ($coleccion[$keyDict]['obs_calidad'] === '—') {
-                                $coleccion[$keyDict]['obs_calidad'] = $obsCalidad;
-                            } else {
-                                $coleccion[$keyDict]['obs_calidad'] .= ' | ' . $obsCalidad;
-                            }
+                            $coleccion[$keyDict]['obs_calidad'] = $coleccion[$keyDict]['obs_calidad'] === '—' ? $obsCalidad : $coleccion[$keyDict]['obs_calidad'] . ' | ' . $obsCalidad;
                         }
 
-                        // La liberación es estricta (si uno fue rechazado, todo el juego figura rechazado)
-                        $coleccion[$keyDict]['liberado'] = $coleccion[$keyDict]['liberado'] && $liberado;
+                        $priority = [
+                            '#FF6B6B' => 5, // Rechazado
+                            '#DDA0DD' => 4, // Mala sin liberación
+                            '#FFD700' => 3, // Incompleto
+                            '#90EE90' => 2, // Buena sin lib
+                            '#79BFED' => 1  // Liberado
+                        ];
+                        $currentColor = $coleccion[$keyDict]['bg_color'];
+                        if (($priority[$colorFila] ?? 0) > ($priority[$currentColor] ?? 0)) {
+                            $coleccion[$keyDict]['bg_color'] = $colorFila;
+                        }
+
                         $coleccion[$keyDict]['piezas_incluidas'][] = $sufijo;
                     }
                 }
             } else {
-                // Es una pieza individual (no termina en H o M)
-                $keyInd = "pieza_{$nPiezaRaw}_" . $pieza->id; // Usar ID para que no colisionen piezas con el mismo num en distintos momentos
-                $coleccion[$keyInd] = [
+                $coleccion[$keyDict] = [
                     'n_piezas' => "{$nPiezaRaw}",
                     'hora' => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
                     'obs_operador' => $obsOperador,
                     'obs_calidad' => $obsCalidad,
-                    'liberado' => $liberado,
+                    'bg_color' => $colorFila,
                     'is_juego' => false,
                 ];
             }
         }
 
-        // Limpiar las llaves de diccionario (para que Blade itere normalmente sin ver 'juego_XX')
-        foreach ($reporte as $otId => &$otData) {
-            foreach ($otData['clases'] as $claseId => &$claseData) {
-                foreach ($claseData['procesos'] as $proceso => &$operadores) {
-                    ksort($operadores); // Ordenar operadores alfabéticamente
-                    foreach ($operadores as $nombreOperador => &$filas) {
-                        // Si un juego quedó huérfano (solo H o solo M), lo renombramos a "Pieza XXH"
-                        foreach ($filas as $key => &$fila) {
-                            if (isset($fila['is_juego']) && $fila['is_juego']) {
-                                if (count($fila['piezas_incluidas']) == 1) {
-                                    $suf = $fila['piezas_incluidas'][0];
-                                    $numBase = str_replace('J', '', $fila['n_piezas']);
-                                    $fila['n_piezas'] = "{$numBase}{$suf}";
-                                    // Limpiamos la 'H: ' de la observación si quedó suelta para que no se vea feo, o la dejamos.
-                                }
-                                unset($fila['is_juego']);
-                                unset($fila['piezas_incluidas']);
-                            }
+        foreach ($agrupacion as $operador => $procesosData) {
+            $reporteFinal[$operador] = [];
+            foreach ($procesosData as $hashProceso => $filas) {
+                $t = $totales[$operador][$hashProceso];
+                foreach ($filas as $fila) {
+                    if (isset($fila['is_juego']) && $fila['is_juego']) {
+                        if (count($fila['piezas_incluidas']) == 1) {
+                            $suf = $fila['piezas_incluidas'][0];
+                            $numBase = str_replace('J', '', $fila['n_piezas']);
+                            $fila['n_piezas'] = "{$numBase}{$suf}";
                         }
-                        $filas = array_values($filas); // Quitar llaves de texto
+                        unset($fila['is_juego']);
+                        unset($fila['piezas_incluidas']);
                     }
+                    $fila['meta'] = $t['meta'];
+                    $fila['juegos_realizados'] = $t['buenas'];
+                    $fila['ot_label'] = $t['ot_label'];
+                    $fila['clase_label'] = $t['clase_label'];
+                    $fila['proceso'] = $t['proceso'];
+                    $reporteFinal[$operador][] = $fila;
                 }
             }
         }
 
-        return $reporte;
+        ksort($reporteFinal);
+
+        return $reporteFinal;
     }
 
     /**
@@ -451,5 +441,32 @@ class ReporteProduccionController extends Controller
         if ($piece->liberacion == 0 && ($piece->error == 'Ninguno' || empty($piece->error)))
             return true;
         return false;
+    }
+
+    /**
+     * Mapeamos el color en Hex de acuerdo con adminPieces.js
+     */
+    private function asignColorTr($status, $error)
+    {
+        $status = (int) $status;
+        switch ($status) {
+            case 1:
+                return "#79BFED";
+            case 2:
+                return "#FF6B6B";
+            case 3:
+                return "#90EE90";
+            case 4:
+                return "#DDA0DD";
+            case 5:
+                return "#FFD700";
+            default:
+                if (str_contains((string) $error, "Incompleto"))
+                    return "#FFD700";
+                elseif ($error === "Ninguno" || empty($error))
+                    return "#90EE90";
+                else
+                    return "#DDA0DD";
+        }
     }
 }

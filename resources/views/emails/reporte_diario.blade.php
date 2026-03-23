@@ -37,74 +37,159 @@
             <p>No se registró producción en este turno.</p>
         </div>
     @else
+        {{-- LEYENDA HORIZONTAL REQUISITADA --}}
+        <div
+            style="margin: 20px auto; width: 100%; max-width: 1200px; background: #fff; padding: 15px; border: 1px solid #eee; border-radius: 8px;">
+            <div
+                style="font-weight: bold; margin-bottom: 15px; color: #333; text-align: center; border-bottom: 2px solid #00b913; padding-bottom: 5px; font-size: 1.1em;">
+                GUÍA DE COLORES Y PRODUCTIVIDAD
+            </div>
 
-        {{-- NIVEL 1: OT --}}
-        @foreach ($reporte as $otId => $otData)
-            <div class="ot-block">
+            <p style="font-size: 0.85em; font-weight: bold; color: #666; margin-bottom: 8px; margin-top: 0;">
+                Productividad (<span style="color: #00b003;">Meta</span> y <span style="color: #0054ad;">Juegos
+                    Realizados</span>):
+            </p>
+            <table style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 5px;">
+                <tr>
+                    <td style="padding: 2px;">
+                        <div style="background: #9b59b6; height: 12px; border-radius: 2px;"></div>
+                    </td>
+                    <td style="padding: 2px;">
+                        <div style="background: #f1c40f; height: 12px; border-radius: 2px;"></div>
+                    </td>
+                    <td style="padding: 2px;">
+                        <div style="background: #27ae60; height: 12px; border-radius: 2px;"></div>
+                    </td>
+                    <td style="padding: 2px;">
+                        <div style="background: #e67e22; height: 12px; border-radius: 2px;"></div>
+                    </td>
+                    <td style="padding: 2px;">
+                        <div style="background: #e74c3c; height: 12px; border-radius: 2px;"></div>
+                    </td>
+                </tr>
+                <tr style="font-size: 0.75em; text-align: center; color: #333;">
+                    <td style="padding-top: 3px;"><b>+150%</b><br>Excelencia</td>
+                    <td style="padding-top: 3px;"><b>100-149%</b><br>Destacado</td>
+                    <td style="padding-top: 3px;"><b>75-99%</b><br>Aceptable</td>
+                    <td style="padding-top: 3px;"><b>40-74%</b><br>Medio</td>
+                    <td style="padding-top: 3px;"><b>0-39%</b><br>Bajo</td>
+                </tr>
+            </table>
+            <p style="font-size: 0.7em; color: #777; font-style: italic; margin-bottom: 15px; text-align: center;">
+                * Nota: El color del texto <strong>'Juegos Realizados'</strong> en las tablas varía según el promedio de
+                productividad
+                alcanzado.
+            </p>
 
-                <div class="ot-header">
-                    {{ $otData['ot_label'] }}
-                    <small>{{ count($otData['clases']) }} {{ count($otData['clases']) === 1 ? 'clase' : 'clases' }}</small>
+            <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+                <tr>
+                    <td colspan="5" style="font-size: 0.85em; font-weight: bold; color: #666; padding-bottom: 5px;">Estado
+                        de Piezas (Fondo de Fila):</td>
+                </tr>
+                <tr>
+                    <td style="padding: 2px;">
+                        <div style="background: #79BFED; height: 12px; border-radius: 2px; border: 1px solid #ddd;"></div>
+                    </td>
+                    <td style="padding: 2px;">
+                        <div style="background: #90EE90; height: 12px; border-radius: 2px; border: 1px solid #ddd;"></div>
+                    </td>
+                    <td style="padding: 2px;">
+                        <div style="background: #FFD700; height: 12px; border-radius: 2px; border: 1px solid #ddd;"></div>
+                    </td>
+                    <td style="padding: 2px;">
+                        <div style="background: #DDA0DD; height: 12px; border-radius: 2px; border: 1px solid #ddd;"></div>
+                    </td>
+                    <td style="padding: 2px;">
+                        <div style="background: #FF6B6B; height: 12px; border-radius: 2px; border: 1px solid #ddd;"></div>
+                    </td>
+                </tr>
+                <tr style="font-size: 0.75em; text-align: center; color: #333;">
+                    <td style="padding-top: 3px;">Liberado</td>
+                    <td style="padding-top: 3px;">Buena s/lib.</td>
+                    <td style="padding-top: 3px;">Incompleto</td>
+                    <td style="padding-top: 3px;">Mala s/lib.</td>
+                    <td style="padding-top: 3px;">Rechazado</td>
+                </tr>
+            </table>
+        </div>
+
+        {{-- NIVEL 1: Operador --}}
+        @foreach ($reporte as $nombreOperador => $filas)
+            @php
+                // Cálculo de promedio de productividad para el operador
+                $totalMeta = 0;
+                $totalRealizados = 0;
+                foreach ($filas as $f) {
+                    $totalMeta += (float) ($f['meta'] ?? 0);
+                    $totalRealizados += (float) ($f['juegos_realizados'] ?? 0);
+                }
+
+                $promedioOp = $totalMeta > 0 ? ($totalRealizados / $totalMeta) * 100 : 0;
+                $colorHeaderRealizados = "#e74c3c"; // Rojo (Bajo) por defecto
+
+                if ($promedioOp >= 150)
+                    $colorHeaderRealizados = "#9b59b6";
+                elseif ($promedioOp >= 100)
+                    $colorHeaderRealizados = "#f1c40f";
+                elseif ($promedioOp >= 75)
+                    $colorHeaderRealizados = "#27ae60";
+                elseif ($promedioOp >= 40)
+                    $colorHeaderRealizados = "#e67e22";
+            @endphp
+            <div class="operador-section" style="margin-bottom: 30px;">
+                <div class="operador-header"
+                    style="background: #f8f9fa; padding: 10px 15px; border-left: 5px solid #00b913; margin-bottom: 10px; font-weight: bold; font-size: 1.1em; color: #333;">
+                    Operador: {{ $nombreOperador }}
+                    <span style="float: right; font-weight: normal; font-size: 0.9em; color: #666;">
+                        {{ count($filas) }} {{ count($filas) === 1 ? 'registro' : 'registros' }}
+                    </span>
                 </div>
 
-                {{-- NIVEL 2: Clase --}}
-                @foreach ($otData['clases'] as $claseId => $claseData)
-                    <div class="clase-block">
-
-                        <div class="clase-header">
-                            {{ $claseData['clase_label'] }}
-                        </div>
-
-                        {{-- NIVEL 3: Proceso --}}
-                        @foreach ($claseData['procesos'] as $proceso => $operadores)
-                            <div class="proceso-block">
-
-                                <div class="proceso-header">
-                                    {{ $proceso }}
-                                </div>
-
-                                {{-- NIVEL 4: Operador --}}
-                                @foreach ($operadores as $nombreOperador => $filas)
-                                    <div class="operador-section" style="margin-top: 15px;">
-                                        <div class="operador-header"
-                                            style="background: #f8f9fa; padding: 8px 12px; border-left: 4px solid #007bff; margin-bottom: 5px; font-weight: bold; color: #333;">
-                                            Operador: {{ $nombreOperador }}
-                                            <span style="float: right; font-weight: normal; font-size: 0.85em; color: #666;">
-                                                {{ count($filas) }} {{ count($filas) === 1 ? 'registro' : 'registros' }}
-                                            </span>
-                                        </div>
-
-                                        <table class="op-table">
-                                            <thead>
-                                                <tr>
-                                                    <th style="width: 15%;">N° Pieza</th>
-                                                    <th style="width: 20%;">Fecha / Hora</th>
-                                                    <th style="width: 35%;">Obs. Operador</th>
-                                                    <th style="width: 30%;">Obs. Calidad</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($filas as $fila)
-                                                    {{-- Clase CSS "liberado" activa el fondo azul --}}
-                                                    <tr class="{{ $fila['liberado'] ? 'liberado' : '' }}">
-                                                        <td><strong>{{ $fila['n_piezas'] }}</strong></td>
-                                                        <td>{{ $fila['hora'] }}</td>
-                                                        <td>{{ $fila['obs_operador'] }}</td>
-                                                        <td>{{ $fila['obs_calidad'] }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @endforeach
-
-                            </div>{{-- /proceso-block --}}
+                <table class="op-table" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr>
+                            <th style="width: 20%; text-align: center;">Orden de Trabajo</th>
+                            <th style="width: 15%; text-align: center;">Proceso</th>
+                            <th style="width: 12%; text-align: center;">Número de Juego</th>
+                            <th style="width: 8%; text-align: center; color: #2ecc71;">Meta</th>
+                            <th style="width: 10%; text-align: center; color: {{ $colorHeaderRealizados }};">Juegos Realizados
+                            </th>
+                            <th style="width: 17.5%; text-align: center;">Observaciones Operador</th>
+                            <th style="width: 17.5%; text-align: center;">Observaciones Calidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($filas as $fila)
+                            @php
+                                $meta = $fila['meta'] > 0 ? $fila['meta'] : 1;
+                                $realPct = ($fila['juegos_realizados'] / $meta) * 100;
+                                if ($realPct >= 150) {
+                                    $barColor = "#9b59b6"; // Platino/Morado brillante (Excelencia)
+                                } elseif ($realPct >= 100) {
+                                    $barColor = "#f1c40f"; // Dorado (Esfuerzo destacado)
+                                } elseif ($realPct >= 75) {
+                                    $barColor = "#27ae60"; // Verde (Aceptable)
+                                } elseif ($realPct >= 40) {
+                                    $barColor = "#e67e22"; // Naranja (Medio)
+                                } else {
+                                    $barColor = "#e74c3c"; // Rojo (Bajo)
+                                }
+                            @endphp
+                            <tr style="background-color: {{ $fila['bg_color'] ?? 'white' }};">
+                                <td style="font-size: 0.9em;">{{ $fila['ot_label'] }}</td>
+                                <td style="font-size: 0.9em;">{{ $fila['proceso'] }}</td>
+                                <td style="text-align: center;"><strong>{{ $fila['n_piezas'] }}</strong></td>
+                                <td style="text-align: center;">{{ $fila['meta'] }}</td>
+                                <td style="background-color: {{ $barColor }}; color: white; font-weight: bold; text-align: center;">
+                                    {{ $fila['juegos_realizados'] }}
+                                </td>
+                                <td style="font-size: 0.85em;">{{ $fila['obs_operador'] }}</td>
+                                <td style="font-size: 0.85em;">{{ $fila['obs_calidad'] }}</td>
+                            </tr>
                         @endforeach
-
-                    </div>{{-- /clase-block --}}
-                @endforeach
-
-            </div>{{-- /ot-block --}}
+                    </tbody>
+                </table>
+            </div>
         @endforeach
     @endif
 
