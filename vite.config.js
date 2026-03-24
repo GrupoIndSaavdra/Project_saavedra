@@ -83,11 +83,11 @@ export default defineConfig({
                 //Views PTA
                 'resources/css/processes_views/soldaduraPTA_table_partial.css',
                 'resources/css/pta_views/analysis.css',
+                'resources/css/pta_views/analysis_pdf.css',
                 'resources/css/pta_views/results.css',
                 'resources/css/pta_views/segunda_pasada.css',
                 'resources/css/pieces_views/piecesReport/soldaduraExtraInfoPdf.css',
                 'resources/css/pieces_views/piecesReport/soldaduraPTAExtraInfoPdf.css',
-                'resources/css/processes_views/soldaduraPTA_table_partial.css',
 
                 //Views Reporte Diario
                 'resources/css/reportes/email.css',

@@ -285,6 +285,10 @@ Route::prefix('admin/pta')->name('pta.')->group(function () {
         Route::get('/analysis', [PtaResultsController::class, 'analysis'])
             ->name('analysis');
 
+        // Descargar PDF del análisis
+        Route::get('/analysis/pdf', [PtaResultsController::class, 'analysisPDF'])
+            ->name('analysis.pdf');
+
         // ── 2da Pasada — vista de edición diferida ──
         Route::get('/segunda-pasada', [PtaResultsController::class, 'segPasadaIndex'])
             ->name('segunda_pasada');

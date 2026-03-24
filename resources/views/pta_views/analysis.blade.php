@@ -56,6 +56,17 @@
                     @endif
                 </select>
             </div>
+
+            {{-- 3. Botón Descargar PDF (Solo si hay OT y Clase) --}}
+            @if($otSeleccionadaId && $claseSeleccionadaId)
+                <div class="pta-pdf-action">
+                    <button type="button" class="btn-pta-pdf-icon"
+                            onclick="window.location.href='{{ route('pta.analysis.pdf', ['ot_id' => $otSeleccionadaId, 'clase_id' => $claseSeleccionadaId]) }}'"
+                            title="Descargar reporte en PDF">
+                        <img src="{{ asset('images/pdf.png') }}" alt="PDF">
+                    </button>
+                </div>
+            @endif
         </div>
 
         <script>

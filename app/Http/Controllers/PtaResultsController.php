@@ -9,6 +9,7 @@ use App\Models\PtaResultado;
 use App\Models\SoldaduraPTA;
 use App\Models\SoldaduraPTA_pza;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PtaResultsController extends Controller
 {
@@ -395,6 +396,66 @@ class PtaResultsController extends Controller
             'resultados',
             'piezasGroup'
         ));
+    }
+
+    /**
+     * GET admin/pta/analysis/pdf
+     * Genera el reporte PDF del análisis actual (filtros OT y Clase).
+     */
+    public function analysisPDF(Request $request)
+    {
+        $otId = $request->get('ot_id');
+        $claseId = $request->get('clase_id');
+
+        if (!$otId || !$claseId) {
+            return redirect()->back()->with('error', 'Debe seleccionar OT y Clase para generar el PDF.');
+        }
+
+        $ot = Orden_trabajo::findOrFail($otId);
+        $claseSeleccionada = \App\Models\Clase::findOrFail($claseId);
+
+        // 1. Obtener piezas PTA (incluyendo rechazadas para el reporte completo)
+        $piezasPTA = $this->getPiezasPTA($otId, $claseId, false, true);
+
+        // 2. Cargar resultados
+        $resultados = PtaResultado::where('ot_id', $otId)
+            ->whereHas('pieza', fn($q) => $q->where('id_clase', $claseId))
+            ->with(['pieza'])
+            ->get()
+            ->keyBy('pieza_id');
+
+        // 3. Datos técnicos
+        $nombreClaseLimpio = str_replace(' ', '_', $claseSeleccionada->nombre);
+        $procesoStringId = "Soldadura_PTA_{$nombreClaseLimpio}_{$otId}";
+
+        $procesoPTA = SoldaduraPTA::where('id_ot', $otId)
+            ->where('id_proceso', $procesoStringId)
+            ->latest()
+            ->first();
+
+        $piezasGroup = $procesoPTA
+            ? (new SoldaduraPTAController())->buildPiezasGroup($procesoPTA->id)
+            : collect();
+
+        // 4. Generar PDF
+        $fecha = now()->format('d-m-Y');
+        $filename = "OT_{$ot->id}_{$claseSeleccionada->nombre}_{$fecha}.pdf";
+        // Limpiar nombre de archivo (evitar caracteres problemáticos)
+        $filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $filename);
+
+        $pdf = Pdf::loadView('pta_views.analysis_pdf', compact(
+            'ot',
+            'claseSeleccionada',
+            'piezasPTA',
+            'resultados',
+            'piezasGroup',
+            'fecha'
+        ));
+
+        // Establecer orientación horizontal (landscape)
+        $pdf->setPaper('a4', 'landscape');
+
+        return $pdf->download($filename);
     }
 
     // ═══════════════════════════════════════════════════════════════════════

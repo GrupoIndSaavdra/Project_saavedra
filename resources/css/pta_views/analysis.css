@@ -51,6 +51,8 @@
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
+    flex: 1;
+    min-width: 1030px;
 }
 
 .pta-ot-selector label,
@@ -69,7 +71,7 @@
     color: #1e3a5f;
     background: #f0f7ff;
     cursor: pointer;
-    min-width: 260px;
+    min-width: 750px;
     transition: all 0.2s ease-in-out;
 }
 
@@ -408,10 +410,45 @@
     border-radius: 10px;
     padding: 1px 8px;
 }
-
-/* ── La tabla dentro de cada bloque de juego no lleva bordes redondeados ─── */
 .pta-juego-block .pta-table-wrapper {
     border-radius: 0;
     box-shadow: none;
     margin: 0;
+}
+
+/* ── La tabla dentro de cada bloque de juego no lleva bordes redondeados ─── */
+/* ── Botón Descargar PDF ────────────────────────────────── */
+.pta-pdf-action {
+    margin-bottom: 1.2rem;
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+    min-width: 30px;
+}
+
+.btn-pta-pdf-icon {
+    width: auto;
+    height: auto;
+    background-color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-pta-pdf-icon img {
+    width: 80px;
+    height: auto;
+    display: block;
+}
+
+.btn-pta-pdf-icon:hover {
+    transform: scale(1.1);
+    background-color: #efefef;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
