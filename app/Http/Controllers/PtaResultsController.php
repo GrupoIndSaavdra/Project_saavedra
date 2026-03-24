@@ -197,6 +197,8 @@ class PtaResultsController extends Controller
             ->where('pieza_id', $piezaSeleccionada->id)
             ->first();
 
+        $esJuegoCompleto = $claseSeleccionada ? in_array(strtoupper($claseSeleccionada->nombre), ['OBTURADOR', 'FONDO']) : false;
+
         return view('pta_views.results', compact(
             'ot',
             'claseSeleccionada',
@@ -205,7 +207,8 @@ class PtaResultsController extends Controller
             'piezasPendientes',
             'piezaSeleccionada',
             'resultado',
-            'todosResultados'
+            'todosResultados',
+            'esJuegoCompleto'
         ));
     }
 
@@ -272,7 +275,11 @@ class PtaResultsController extends Controller
         preg_match('/^\d+/', $resultado->n_pieza, $m);
         $prefix = $m[0] ?? null;
 
-        if ($prefix) {
+        $esJuegoCompleto = in_array(strtoupper($clase_nombre), ['OBTURADOR', 'FONDO']);
+
+        if ($esJuegoCompleto && $prefix) {
+            $msg = 'Juego ' . $prefix . ' (Juego Completo) guardado y liberado.';
+        } elseif ($prefix) {
             $compañera = PtaResultado::where('ot_id', $ot_id)
                 ->where('id', '!=', $resultado->id)
                 ->whereHas('pieza', fn($q) => $q->where('n_pieza', 'like', $prefix . '%'))
@@ -386,6 +393,8 @@ class PtaResultsController extends Controller
                 : collect();
         }
 
+        $esJuegoCompleto = $claseSeleccionada ? in_array(strtoupper($claseSeleccionada->nombre), ['OBTURADOR', 'FONDO']) : false;
+
         return view('pta_views.analysis', compact(
             'otsConPTA',
             'otSeleccionadaId',
@@ -394,7 +403,8 @@ class PtaResultsController extends Controller
             'claseSeleccionada',
             'piezasPTA',
             'resultados',
-            'piezasGroup'
+            'piezasGroup',
+            'esJuegoCompleto'
         ));
     }
 
@@ -443,13 +453,16 @@ class PtaResultsController extends Controller
         // Limpiar nombre de archivo (evitar caracteres problemáticos)
         $filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $filename);
 
+        $esJuegoCompleto = in_array(strtoupper($claseSeleccionada->nombre), ['OBTURADOR', 'FONDO']);
+
         $pdf = Pdf::loadView('pta_views.analysis_pdf', compact(
             'ot',
             'claseSeleccionada',
             'piezasPTA',
             'resultados',
             'piezasGroup',
-            'fecha'
+            'fecha',
+            'esJuegoCompleto'
         ));
 
         // Establecer orientación horizontal (landscape)

@@ -23,7 +23,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
         <thead>
             {{-- FILA 1: Cabeceras principales --}}
             <tr>
-                <th rowspan="2">Número<br>(M/H)</th>
+                <th rowspan="2">Número<br>({{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'M/H' }})</th>
 
                 {{-- Bloque Concepto --}}
                 <th colspan="2" style="background:#055a9e;">Concepto</th>

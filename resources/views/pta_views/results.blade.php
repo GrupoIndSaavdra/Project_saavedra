@@ -80,9 +80,10 @@
 
             {{-- 3. Selector de pieza --}}
             <div class="pta-piece-selector">
-                <label for="piece-select">Pieza</label>
+                <label for="piece-select">{{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'Pieza' }}</label>
                 <select id="piece-select" onchange="changePiece(this.value)" {{ !$claseSeleccionada ? 'disabled' : '' }}>
-                    <option value="">— Seleccionar Pieza —</option>
+                    <option value="">— Seleccionar {{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'Pieza' }} —
+                    </option>
                     @foreach ($piezas as $pieza)
                         @php $tieneRes = isset($todosResultados[$pieza->id]); @endphp
                         <option value="{{ $pieza->id }}" {{ $pieza->id == $piezaSeleccionada->id ? 'selected' : '' }}>
@@ -103,7 +104,8 @@
 
             <div class="pta-form-card">
                 <div class="pta-form-card-header">
-                    Resultados Técnicos — Pieza: <strong>{{ $piezaSeleccionada->n_pieza }}</strong>
+                    Resultados Técnicos — {{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'Pieza' }}:
+                    <strong>{{ $piezaSeleccionada->n_pieza }}</strong>
                     @if(isset($todosResultados[$piezaSeleccionada->id]))
                         <span style="font-size:.8rem;font-weight:400;opacity:.9;"> (editando resultado existente)</span>
                     @endif
@@ -265,11 +267,12 @@
 
         {{-- ---------------- Tabla resumen de todas las piezas ---------------- --}}
         <div class="pta-overview-wrap">
-            <h4>Resumen de Piezas — OT {{ $ot->id }} / {{ $claseSeleccionada->nombre }}</h4>
+            <h4>Resumen de {{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juegos' : 'Piezas' }} — OT {{ $ot->id }} /
+                {{ $claseSeleccionada->nombre }}</h4>
             <table>
                 <thead>
                     <tr>
-                        <th>Pieza</th>
+                        <th>{{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'Pieza' }}</th>
                         <th>Pico Llen.</th>
                         <th>Pico Sold.</th>
                         <th>Conex. Llen.</th>

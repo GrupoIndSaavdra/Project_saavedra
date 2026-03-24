@@ -151,7 +151,7 @@
                                 <span class="pta-juego-piezas">{{ $piezasLabel }}</span>
                                 @if ($todasLiberadas)
                                     <span class="badge-si" style="margin-left:auto;">✓ Juego Liberado</span>
-                                @elseif (count($piezasDelJuegoObj) < 2)
+                                @elseif (count($piezasDelJuegoObj) < (isset($esJuegoCompleto) && $esJuegoCompleto ? 1 : 2))
                                     <span class="badge-na" style="margin-left:auto;">Incompleto</span>
                                 @else
                                     <span class="badge-empty" style="margin-left:auto;">Pendiente</span>
@@ -349,7 +349,7 @@
                             <span class="pta-juego-piezas">{{ $piezasLabel }}</span>
                             @if ($todasLiberadas)
                                 <span class="badge-si" style="margin-left:auto;">✓ Juego Liberado</span>
-                            @elseif (count($piezasDelJuego) < 2)
+                            @elseif (count($piezasDelJuego) < (isset($esJuegoCompleto) && $esJuegoCompleto ? 1 : 2))
                                 <span class="badge-na" style="margin-left:auto;">Incompleto</span>
                             @else
                                 <span class="badge-empty" style="margin-left:auto;">Pendiente</span>

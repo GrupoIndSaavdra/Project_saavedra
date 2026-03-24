@@ -48,7 +48,11 @@
     @foreach ($juegosPTA as $jNum => $piezasDelJuegoObj)
         <div class="juego-block">
             <div class="juego-header">
-                Juego {{ $jNum }} — Piezas: {{ implode(' / ', array_keys($piezasDelJuegoObj)) }}
+                @if(isset($esJuegoCompleto) && $esJuegoCompleto)
+                    Juego {{ $jNum }} - J{{ $jNum }}
+                @else
+                    Juego {{ $jNum }} — Piezas: {{ implode(' / ', array_keys($piezasDelJuegoObj)) }}
+                @endif
             </div>
 
             {{-- 2. Tabla de Datos Técnicos (Resumen) --}}
@@ -75,7 +79,8 @@
                     <table class="pta-table" style="page-break-inside: avoid; margin-bottom: 5px;">
                         <thead>
                             <tr>
-                                <th rowspan="2" style="width: 35px;">Número<br>(M/H)</th>
+                                <th rowspan="2" style="width: 35px;">
+                                    Número<br>({{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'M/H' }})</th>
                                 <th colspan="2" class="th-section">Concepto</th>
                                 <th rowspan="2" style="width: 25px;">VL</th>
                                 <th rowspan="2" style="width: 20px;">T. de P.</th>

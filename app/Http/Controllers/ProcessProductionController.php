@@ -229,6 +229,7 @@ class ProcessProductionController extends Controller
                 'piezasGroupActivas' => $piezasGroupActivas,
                 'modo' => ($edit == 2) ? 'captura' : 'reporte',
                 'ptaLiberacion' => $ptaLiberacion,
+                'esJuegoCompleto' => in_array(strtoupper($class->nombre), ['OBTURADOR', 'FONDO']),
             ])->render();
         }
 
@@ -483,9 +484,12 @@ class ProcessProductionController extends Controller
         $model = $this->get_ModelProcessPieces($processString);
 
         if ($processString === 'Soldadura PTA') {
+            $class = Clase::find($meta->id_clase);
+            $esJuegoCompleto = $class ? in_array(strtoupper($class->nombre), ['OBTURADOR', 'FONDO']) : false;
             // Dividimos entre 2 porque las metas y procesos paralelos originales evalúan PTA por Juego, no por mitad.
-            // 2 mitades (M y H) = 1 juego.
-            return $model::where('id_meta', $meta->id)->distinct('n_pieza')->count('n_pieza') / 2;
+            // 2 mitades (M y H) = 1 juego. Para Juego Completo el divisor es 1.
+            $divisor = $esJuegoCompleto ? 1 : 2;
+            return $model::where('id_meta', $meta->id)->distinct('n_pieza')->count('n_pieza') / $divisor;
         }
 
         $piecesCount = $model::where('id_meta', $meta->id)->count();
@@ -727,8 +731,14 @@ class ProcessProductionController extends Controller
                     $message = 'El juego ' . $noAssembly . ' ya está en uso. Por favor, elija otro juego.';
                 }
             } else {
-                for ($i = 1; $i <= 2; $i++) {
-                    $pieceLetter = $i > 1 ? "H" : "M"; // Asociar la letra de la mitad de la pieza
+                $esJuegoCompleto = false;
+                if ($processString === 'Soldadura PTA') {
+                    $esJuegoCompleto = in_array(strtoupper($class->nombre), ['OBTURADOR', 'FONDO']);
+                }
+                $maxMitades = $esJuegoCompleto ? 1 : 2;
+
+                for ($i = 1; $i <= $maxMitades; $i++) {
+                    $pieceLetter = $esJuegoCompleto ? "J" : ($i > 1 ? "H" : "M"); // Asociar la letra de la mitad de la pieza
 
                     //Verificar que no exista la pieza que se quiere crear en el proceso actual
                     $existingPiece = $modelPieces::where("id_proceso", $process->id)
