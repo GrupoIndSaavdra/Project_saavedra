@@ -537,22 +537,31 @@ class PzasLiberadasController extends Controller
     }
     public function piecesToBeReleased()
     {
-        //Obtener las clases ya finalizadas
-        $finishedClasess = Clase::where('finalizada', '!=', 0)->get();
-        $arrayFClasses = array();
-        foreach ($finishedClasess as $finishedClass) {
-            array_push($arrayFClasses, $finishedClass->id);
+        // ── OPTIMIZACIÓN: query directa sin pasar por saveInArray completo ──
+        // Solo necesitamos piezas con error pendientes de liberar, de clases activas
+        $finishedClassIds = Clase::where('finalizada', '!=', 0)->pluck('id')->toArray();
+
+        // 1 query: solo las piezas que realmente necesitamos
+        $piezasRaw = Pieza::where('error', '!=', 'Ninguno')
+            ->where('liberacion', 0)
+            ->when(!empty($finishedClassIds), fn($q) => $q->whereNotIn('id_clase', $finishedClassIds))
+            ->get();
+
+        if ($piezasRaw->isEmpty()) {
+            return [[], []];
         }
 
-        $infoPieces = array();
-        $pieces = Pieza::where('error', '!=', "Ninguno")->where('liberacion', 0)->get();
-        $pieces = $this->controladorPzas->saveInArray($pieces);
+        // Construir array procesado usando saveInArray sin observaciones (0 queries de procesos)
+        $pieces = $this->controladorPzas->saveInArray($piezasRaw, false);
+
+        // Filtrar juegos incompletos
         foreach ($pieces as $key => $piece) {
-            if (str_contains($piece[5], "Incompleto") || in_array($piece["id_clase"], $arrayFClasses)) {
-                //borrar pieza del array
+            if (isset($piece[5]) && str_contains((string) $piece[5], 'Incompleto')) {
                 unset($pieces[$key]);
             }
         }
+
+        $infoPieces = array();
         if (count($pieces) > 0) {
             $this->controladorPzas->saveInfoPzas($infoPieces, $pieces);
         }

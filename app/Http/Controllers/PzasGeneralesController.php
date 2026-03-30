@@ -100,6 +100,9 @@ use Illuminate\Support\Facades\Hash;
 //Clase para el control de las piezas generales
 class PzasGeneralesController extends Controller
 {
+    /** Cache de usuarios indexado por matrícula para evitar N+1 queries */
+    protected array $usersCache = [];
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -124,13 +127,16 @@ class PzasGeneralesController extends Controller
     public function search($piecesData, $profile = null)
     {
         $selectedItems = array();
-        $infoPieces = array();
-        $filtersData = $this->getFiltersInfo();
-        $pieces = $this->buscarPiezas($piecesData, $selectedItems);
+        $infoPieces    = array();
+        $filtersData   = $this->getFiltersInfo();
+
+        // Solo cargar observaciones cuando se genera PDF (evita miles de queries extra en vista de lista)
+        $isPdf = $piecesData["action"] === 'pdf';
+        $pieces = $this->buscarPiezas($piecesData, $selectedItems, $isPdf);
         $pieces = $pieces == null ? array() : $pieces;
         $this->saveInfoPzas($infoPieces, $pieces);
 
-        if ($piecesData["action"] != 'pdf' || $piecesData["action"] == null) {
+        if (!$isPdf) {
             if ($profile == 'quality') {
                 return [true, $pieces, $piecesData, $infoPieces, $selectedItems, $filtersData];
             }
@@ -142,12 +148,10 @@ class PzasGeneralesController extends Controller
 
             // Configuración para generación de PDFs grandes
             @ini_set('max_execution_time', '300'); // 5 minutos
-            @ini_set('memory_limit', '512M'); // Aumentar memoria disponible
+            @ini_set('memory_limit', '512M');
             @set_time_limit(300);
 
             $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
-
-            // Generar nombre del archivo
             $filename = $this->generatePdfFilename($selectedItems, "Piezas");
             return $pdf->download($filename);
         }
@@ -176,8 +180,10 @@ class PzasGeneralesController extends Controller
     }
     public function getFiltersInfo()
     {
+        // Pre-carga molduras en 1 query para evitar N+1 dentro de objectToArrayFromDB
+        $molduras = Moldura::all()->keyBy('id');
         $filtersData = array(
-            "workOrder" => $this->objectToArrayFromDB(Orden_trabajo::all(), "workOrder"),
+            "workOrder" => $this->objectToArrayFromDB(Orden_trabajo::all(), "workOrder", $molduras),
             "class" => ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo"],
             "operator" => $this->objectToArrayFromDB(User::all(), "operator"),
             "machine" => [1, 2, 3, 4, 5, 6, 7],
@@ -186,15 +192,16 @@ class PzasGeneralesController extends Controller
         );
         return $filtersData;
     }
-    public function objectToArrayFromDB($object, $param)
+    public function objectToArrayFromDB($object, $param, $molduras = null)
     {
         $array = array();
         foreach ($object as $item) {
             if (($param == "operator" && $item->perfil == 2)) {
                 array_push($array, $item);
             } else if ($param == "workOrder") {
-                $molding = Moldura::where('id', $item->id_moldura)->first();
-                $text = $item->id . " - " . $molding->nombre;
+                // Usa cache de molduras si está disponible (0 queries), si no hace 1 query
+                $molding = $molduras ? $molduras->get($item->id_moldura) : Moldura::where('id', $item->id_moldura)->first();
+                $text = $item->id . " - " . ($molding ? $molding->nombre : '?');
                 array_push($array, $text);
             }
         }
@@ -216,43 +223,71 @@ class PzasGeneralesController extends Controller
         );
         return $this->search($datosPiezas, 'admin');
     }
-    public function buscarPiezas($piecesData, &$itemElegidos)
+    public function buscarPiezas($piecesData, &$itemElegidos, bool $includeObservations = false)
     {
-        //Busca las piezas que coincidan con los parametros de búsqueda
-        $array = Pieza::all();
-        $array = $this->saveInArray($array);
-        if (count($array) > 0) {
-            $positionsArray = array("workOrder" => 0, "class" => "className", "operator" => 2, "machine" => 3, "process" => 4, "error" => 5, "dateFrom" => 6, "dateTo" => 6, "n_juego" => 1);
-            foreach ($piecesData as $key => $value) {
-                $dateField = false;
-                if ($key != "action") {
-                    if ($value !== "Todos" && isset($piecesData[$key])) {
-                        $itemElegidos[$key] = $piecesData[$key];
-                        if ($key == "operator") {
-                            $itemElegidos[$key] = User::where('matricula', $piecesData[$key])->first();
-                            $piecesData[$key] = User::where('matricula', $piecesData[$key])->first()->nombre . " " . User::where('matricula', $piecesData[$key])->first()->a_paterno . " " . User::where('matricula', $piecesData[$key])->first()->a_materno;
-                        } else if ($key == "workOrder") {
-                            $workOrderId = explode(" - ", $piecesData[$key])[0];
-                            $workOrder = Orden_trabajo::find($workOrderId);
-                            $molding = Moldura::where('id', $workOrder->id_moldura)->first();
-                            $itemElegidos[$key] = $workOrder->id . " - " . $molding->nombre;
-                            $piecesData[$key] = $workOrder->id;
-                        }
-                        if (($key == "dateFrom" || $key == "dateTo") && !$dateField) {
-                            $dateField = true;
-                            $dateFrom = $piecesData["dateFrom"] ? $piecesData["dateFrom"] . " 00:00:00" : null;
-                            $dateTo = $piecesData["dateTo"] ? $piecesData["dateTo"] . " 23:59:59" : null;
-                            $array = $this->buscarElemento($array, $positionsArray[$key], [$dateFrom, $dateTo]);
-                        } else {
-                            $array = $this->buscarElemento($array, $positionsArray[$key], $piecesData[$key]);
-                        }
-                    } else {
-                        $itemElegidos[$key] = "Todos";
-                    }
-                }
-            }
-            return $array;
+        // ── OPTIMIZACIÓN: filtrar directamente en SQL en lugar de cargar Pieza::all() ──
+        $finishedClassIds = Clase::where('finalizada', '!=', 0)->pluck('id')->toArray();
+        $query = Pieza::query();
+        if (!empty($finishedClassIds)) {
+            $query->whereNotIn('id_clase', $finishedClassIds);
         }
+
+        foreach ($piecesData as $key => $value) {
+            if ($key === 'action') continue;
+
+            if ($value === null || $value === 'Todos' || $value === '') {
+                $itemElegidos[$key] = 'Todos';
+                continue;
+            }
+
+            $itemElegidos[$key] = $value;
+
+            switch ($key) {
+                case 'workOrder':
+                    $workOrderId = explode(' - ', $value)[0];
+                    $workOrder   = Orden_trabajo::find($workOrderId);
+                    $molding     = Moldura::find($workOrder->id_moldura);
+                    $itemElegidos[$key] = $workOrder->id . ' - ' . ($molding ? $molding->nombre : '?');
+                    $query->where('id_ot', $workOrderId);
+                    break;
+                case 'class':
+                    $claseIds = Clase::where('nombre', $value)->pluck('id');
+                    $query->whereIn('id_clase', $claseIds);
+                    break;
+                case 'operator':
+                    $user = User::where('matricula', $value)->first();
+                    $itemElegidos[$key] = $user;
+                    $query->where('id_operador', $value);
+                    break;
+                case 'machine':
+                    $query->where('maquina', $value);
+                    break;
+                case 'process':
+                    // Exacto para que 'Soldadura' no coincida con 'Soldadura PTA'
+                    $query->where('proceso', $value);
+                    break;
+                case 'error':
+                    $query->where('error', $value);
+                    break;
+                case 'dateFrom':
+                    $query->where('created_at', '>=', $value . ' 00:00:00');
+                    break;
+                case 'dateTo':
+                    $query->where('created_at', '<=', $value . ' 23:59:59');
+                    break;
+                case 'n_juego':
+                    $numJuego = rtrim($value, 'J'); // "3J" → "3"
+                    $query->where(function ($q) use ($numJuego) {
+                        $q->where('n_pieza', $numJuego . 'J')
+                          ->orWhere('n_pieza', $numJuego . 'H')
+                          ->orWhere('n_pieza', $numJuego . 'M');
+                    });
+                    break;
+            }
+        }
+
+        $piezas = $query->get();
+        return $piezas->isEmpty() ? [] : $this->saveInArray($piezas, $includeObservations);
     }
     //Obtener los procesos por los que pasa una clase
     public function procesosClase($clase)
@@ -316,154 +351,137 @@ class PzasGeneralesController extends Controller
         }
         return $array;
     }
-    public function saveInArray($arrayP)
+    public function saveInArray($arrayP, bool $includeObservations = false)
     {
-        //Obtener las clases ya finalizadas
-        $finishedClasess = Clase::where('finalizada', '!=', 0)->get();
-        $arrayFClasses = array();
-        foreach ($finishedClasess as $finishedClass) {
-            array_push($arrayFClasses, $finishedClass->id);
-        }
+        // ── OPTIMIZACIÓN: pre-cargar todo en memoria para eliminar N+1 queries ──
+        // 3 queries en total en lugar de N * 6 queries
+        $finishedClassIds = Clase::where('finalizada', '!=', 0)->pluck('id')->toArray();
+        $usersCache       = User::all()->keyBy('matricula');
+        $clasesCache      = Clase::all()->keyBy('id');
 
-        $array = array();
+        // Índice en memoria: '{id_clase}_{proceso}_{numJuego}' → colección de piezas
+        // Permite encontrar la mitad H/M sin ir a BD
+        $piezasIndex = collect($arrayP)->groupBy(function ($pza) {
+            $num = $this->getPiezaNumber($pza->n_pieza);
+            return $pza->id_clase . '_' . $pza->proceso . '_' . $num;
+        });
+
+        // Instanciar controller de proceso una sola vez fuera del loop
+        $processController = new ProcessProductionController();
+
+        $array          = array();
         $juegosGuardados = array();
-        $contador = 0;
-        $mitad = false;
+        $contador       = 0;
+        $mitad          = false;
+
         foreach ($arrayP as $item) {
-            if (in_array($item->id_clase, $arrayFClasses)) {
+            if (in_array($item->id_clase, $finishedClassIds)) {
                 continue;
             }
-            $band = false;
+
+            $band     = false;
             $numJuego = $this->getPiezaNumber($item->n_pieza);
-            //Identificar si la pieza es mitad o juego
-            if (substr($item->n_pieza, -1) != "J") { //Si la pieza es mitad
-                $mitad = true;
-                //Si la pieza es mitad, buscar si ya se guardo el juego
-                if (!in_array($numJuego . "J" . "_" . $item->proceso . "_" . $item->id_clase . "_" . $item->id_ot, $juegosGuardados)) {
+
+            if (substr($item->n_pieza, -1) !== 'J') { // Es mitad (H o M)
+                $mitad    = true;
+                $juegoKey = $numJuego . 'J_' . $item->proceso . '_' . $item->id_clase . '_' . $item->id_ot;
+
+                if (!in_array($juegoKey, $juegosGuardados)) {
                     $band = true;
-                    //Guardar el numero de juego
-                    $array[$contador][1] = $numJuego . "J";
-                    array_push($juegosGuardados, $array[$contador][1] . "_" . $item->proceso . "_" . $item->id_clase . "_" . $item->id_ot);
+                    $array[$contador][1] = $numJuego . 'J';
+                    $juegosGuardados[]   = $juegoKey;
 
-                    //Buscar las mitades del juego para los demás datos
-                    $pzas[0] = Pieza::where('id_clase', $item->id_clase)->where('proceso', $item->proceso)->where('n_pieza', $numJuego . 'H')->first();
-                    $pzas[1] = Pieza::where('id_clase', $item->id_clase)->where('proceso', $item->proceso)->where('n_pieza', $numJuego . 'M')->first();
+                    // ── Buscar mitades desde índice en memoria (0 queries) ──
+                    $indexKey = $item->id_clase . '_' . $item->proceso . '_' . $numJuego;
+                    $group    = $piezasIndex->get($indexKey, collect());
+                    $pzaH     = $group->firstWhere('n_pieza', $numJuego . 'H');
+                    $pzaM     = $group->firstWhere('n_pieza', $numJuego . 'M');
 
-                    if (!$pzas[0] || !$pzas[1]) { //Si no existe la mitad M
-                        if (!$pzas[0]) {
-                            //Guardar operador
-                            $array[$contador][2] = $this->getNameOperador($pzas[1]->id_operador);
-
-                            //Identificar error
-                            $error = "";
-                            if ($pzas[1]->error != "Ninguno") {
-                                $error = $pzas[1]->error . " / Incompleto";
-                            } else {
-                                $error = "Incompleto";
-                            }
-                        } else {
-                            //Guardar operador
-                            $array[$contador][2] = $this->getNameOperador($pzas[0]->id_operador);
-
-                            //Identificar error
-                            $error = "";
-                            if ($pzas[0]->error != "Ninguno") {
-                                $error = $pzas[0]->error . " / Incompleto";
-                            } else {
-                                $error = "Incompleto";
-                            }
-                        }
-
-                        //Guardar el error
-                        if ($item->proceso == "Operacion Equipo_1" || $item->proceso == "Operacion Equipo_2") {
+                    if (!$pzaH || !$pzaM) { // Juego incompleto
+                        $existing = $pzaH ?? $pzaM;
+                        $op = $usersCache->get($existing->id_operador);
+                        $array[$contador][2] = $op ? "{$op->nombre} {$op->a_paterno} {$op->a_materno}" : '(desconocido)';
+                        $error = $existing->error !== 'Ninguno' ? $existing->error . ' / Incompleto' : 'Incompleto';
+                        if ($item->proceso === 'Operacion Equipo_1' || $item->proceso === 'Operacion Equipo_2') {
                             $array[$contador][6] = $error;
                         } else {
                             $array[$contador][5] = $error;
                         }
                     } else {
-                        //Guardar operadores u operador
-                        if ($pzas[0]->id_operador == $pzas[1]->id_operador) {
-                            $array[$contador][2] = $this->getNameOperador($pzas[0]->id_operador);
+                        // Operadores
+                        $opH = $usersCache->get($pzaH->id_operador);
+                        $opM = $usersCache->get($pzaM->id_operador);
+                        $nombreH = $opH ? "{$opH->nombre} {$opH->a_paterno} {$opH->a_materno}" : '(desconocido)';
+                        $nombreM = $opM ? "{$opM->nombre} {$opM->a_paterno} {$opM->a_materno}" : '(desconocido)';
+
+                        if ($pzaH->id_operador === $pzaM->id_operador) {
+                            $array[$contador][2] = $nombreH;
                         } else {
-                            $array[$contador][2] = $this->getNameOperador($pzas[0]->id_operador) . " / " . $this->getNameOperador($pzas[1]->id_operador);
+                            $array[$contador][2] = $nombreH . ' / ' . $nombreM;
                         }
 
-                        //Guardar el error o errores
-                        if ($pzas[0]->error == $pzas[1]->error) {
-                            if ($pzas[0]->proceso = "Desbaste Exterior") {
-                                $pzas[0]->error . "_" . $pzas[0]->error;
-                            }
-                            if ($item->proceso == "Operacion Equipo_1" || $item->proceso == "Operacion Equipo_2") {
-                                $array[$contador][6] = $pzas[0]->error;
-                            } else {
-                                $pzas[0]->error . $pzas[0]->n_pieza;
-                                $array[$contador][5] = $pzas[0]->error;
-                            }
+                        // Errores
+                        $esEquipo = $item->proceso === 'Operacion Equipo_1' || $item->proceso === 'Operacion Equipo_2';
+                        if ($pzaH->error === $pzaM->error) {
+                            $esEquipo ? ($array[$contador][6] = $pzaH->error) : ($array[$contador][5] = $pzaH->error);
                         } else {
-                            if ($item->proceso == "Operacion Equipo_1" || $item->proceso == "Operacion Equipo_2") {
-                                $array[$contador][6] = $pzas[0]->error . " / " . $pzas[1]->error;
-                            } else {
-                                $array[$contador][5] = $pzas[0]->error . " / " . $pzas[1]->error;
-                            }
+                            $errorVal = $pzaH->error . ' / ' . $pzaM->error;
+                            $esEquipo ? ($array[$contador][6] = $errorVal) : ($array[$contador][5] = $errorVal);
                         }
                     }
                 }
-            } else { //Si la pieza es juego
-                $band = true;
+            } else { // Es juego completo (J)
+                $band  = true;
                 $mitad = false;
                 $array[$contador][1] = $item->n_pieza;
-                $array[$contador][2] = $this->getNameOperador($item->id_operador);
+                $op = $usersCache->get($item->id_operador);
+                $array[$contador][2] = $op ? "{$op->nombre} {$op->a_paterno} {$op->a_materno}" : '(desconocido)';
                 $array[$contador][5] = $item->error;
             }
 
-            //Almacenar los demas datos
-            $user_liberacion = User::where('matricula', $item->user_liberacion)->first();
+            // Usuario de liberación desde cache (0 queries)
+            $userLib = $usersCache->get($item->user_liberacion);
+
             if ($band) {
-                $array[$contador][0] = $item->id_ot;
-                $array[$contador][3] = $item->maquina;
-                $array[$contador]["id_clase"] = $item->id_clase;
-                $className = Clase::find($item->id_clase);
-                $array[$contador]["className"] = $className ? $className->nombre : null;
+                $array[$contador][0]             = $item->id_ot;
+                $array[$contador][3]             = $item->maquina;
+                $array[$contador]['id_clase']    = $item->id_clase;
+                $className                       = $clasesCache->get($item->id_clase);
+                $array[$contador]['className']   = $className ? $className->nombre : null;
+                $array[$contador]['observacion_liberacion'] = $item->observacion_liberacion;
 
-                //Obtener las observaciones de la pieza por parte del operador
-                $array[$contador]["observacion_liberacion"] = $item->observacion_liberacion;
-
-                //Obtener las observaciones de la pieza por parte del operador
-                $array[$contador]["observations"] = "";
-                $controller = new ProcessProductionController();
-                $id_process = str_replace(" ", "_", $item->proceso) . "_" . $className->nombre . "_" . $item->id_ot;
-                $processString = str_contains($item->proceso, "Operacion Equipo") ? "Operacion Equipo" : $item->proceso;
-                $id_procesDB = $controller->get_ModelProcess($processString)::where('id_proceso', $id_process)->first()->id;
-                $pieces = $controller->get_ModelProcessPieces($processString)::where('id_proceso', $id_procesDB)->where('n_juego', $numJuego . "J")->get();
-                foreach ($pieces as $piece) {
-                    if ($piece == $pieces->last() && $array[$contador]["observations"] != "" && $piece->observaciones != "") {
-                        $array[$contador]["observations"] .= " / ";
+                // Observaciones del proceso: solo se cargan para PDF (evita ~4700 queries en lista)
+                $array[$contador]['observations'] = '';
+                if ($includeObservations && $className) {
+                    $id_process    = str_replace(' ', '_', $item->proceso) . '_' . $className->nombre . '_' . $item->id_ot;
+                    $processString = str_contains($item->proceso, 'Operacion Equipo') ? 'Operacion Equipo' : $item->proceso;
+                    try {
+                        $procesoDB = $processController->get_ModelProcess($processString)::where('id_proceso', $id_process)->first();
+                        if ($procesoDB) {
+                            $pieces = $processController->get_ModelProcessPieces($processString)
+                                ::where('id_proceso', $procesoDB->id)
+                                ->where('n_juego', $numJuego . 'J')
+                                ->get();
+                            foreach ($pieces as $piece) {
+                                if ($piece === $pieces->last() && $array[$contador]['observations'] !== '' && $piece->observaciones !== '') {
+                                    $array[$contador]['observations'] .= ' / ';
+                                }
+                                $array[$contador]['observations'] .= $piece->observaciones;
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        // Proceso no encontrado, dejar observaciones vacías
                     }
-                    $array[$contador]["observations"] .= $piece->observaciones;
                 }
 
                 $array[$contador][4] = $item->proceso;
-                $date = new \DateTime($item->created_at);
+                $date                = new \DateTime($item->created_at);
                 $array[$contador][6] = $date->format('Y-m-d H:i:s');
-                if ($item->fecha_liberacion != null) {
-                    $array[$contador][7] = $item->fecha_liberacion;
-                } else {
-                    $array[$contador][7] = "No liberado";
-                }
-                if ($user_liberacion) {
-                    $array[$contador][8] = $user_liberacion->nombre . " " . $user_liberacion->a_paterno . " " . $user_liberacion->a_materno;
-                } else {
-                    $array[$contador][8] = null;
-                }
+                $array[$contador][7] = $item->fecha_liberacion ?? 'No liberado';
+                $array[$contador][8] = $userLib ? "{$userLib->nombre} {$userLib->a_paterno} {$userLib->a_materno}" : null;
 
-                //Almacenar valor de liberacion
                 array_push($array[$contador], $item->liberacion);
-                //Almacenar valor si la pieza es juego o no
-                if ($mitad == true) {
-                    array_push($array[$contador], "mitad");
-                } else {
-                    array_push($array[$contador], "juego");
-                }
+                array_push($array[$contador], $mitad ? 'mitad' : 'juego');
                 $contador++;
             }
         }
@@ -475,10 +493,12 @@ class PzasGeneralesController extends Controller
         if ($piezas == null || count($piezas) == 0) {
             return;
         }
+        // Pre-cargar clases en memoria para evitar N+1 en el loop
+        $clasesCache = Clase::all()->keyBy('id');
         foreach ($piezas as $pieza) {
-            //Buscar la clase de la pieza
-            $clase = Clase::find($pieza["id_clase"]);
-            $clase = $clase->nombre;
+            // Buscar la clase desde cache (0 queries)
+            $claseObj = $clasesCache->get($pieza["id_clase"]);
+            $clase = $claseObj ? $claseObj->nombre : null;
 
             $clase = $clase == null ?: $clase;
 
@@ -1126,8 +1146,12 @@ class PzasGeneralesController extends Controller
     }
     public function getNameOperador($matricula)
     {
-        $operador = User::where('matricula', $matricula)->first();
-        return $operador->nombre . " " . $operador->a_paterno . " " . $operador->a_materno;
+        // Memoización: solo va a BD la primera vez que se pide esta matrícula
+        if (!isset($this->usersCache[$matricula])) {
+            $this->usersCache[$matricula] = User::where('matricula', $matricula)->first();
+        }
+        $op = $this->usersCache[$matricula];
+        return $op ? "{$op->nombre} {$op->a_paterno} {$op->a_materno}" : '(desconocido)';
     }
     public function getNameClase($id)
     {

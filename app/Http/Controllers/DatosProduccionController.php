@@ -104,73 +104,84 @@ class DatosProduccionController extends Controller
     }
     public function obtenerOtArray()
     {
-        $otArray = Orden_trabajo::all();
-        return $otArray;
+        // Eager loading de moldura para evitar N+1 en insertarMoldura()
+        return Orden_trabajo::with('moldura')->get();
     }
+
     public function obtenerDatos($OTs)
     {
+        // ── OPTIMIZACIÓN: pre-cargar todo en 4 queries en lugar de N queries por OT ──
+        $otIds       = $OTs->pluck('id')->toArray();
+        $usersCache  = User::all()->keyBy('matricula');
+        $clasesCache = Clase::all()->keyBy('id');
+
+        // 1 query: todas las piezas de todas las OTs activas
+        $todasPiezas = Pieza::whereIn('id_ot', $otIds)->get()->groupBy('id_ot');
+
         $datos = [];
         foreach ($OTs as $ot) {
-            //Asignar nombre de la moldura en el arreglo
             $datos[$ot->id] = [];
-            $this->insertarMoldura($ot, $datos[$ot->id]["moldura"]);
+            // Moldura ya cargada con eager loading (0 queries)
+            $datos[$ot->id]['moldura'] = $ot->moldura ? $ot->moldura->nombre : '?';
+            $datos[$ot->id]['nombre']  = $ot->id . ' - ' . $datos[$ot->id]['moldura'];
 
-            //Asignar nombre legible para el selector (ID - Nombre moldura)
-            $datos[$ot->id]["nombre"] = $ot->id . ' - ' . $datos[$ot->id]["moldura"];
+            $datos[$ot->id]['operadores'] = [];
+            $piezasDeOT = $todasPiezas->get($ot->id, collect());
 
-            //Agregar operadores de la orden de trabajo
-            $datos[$ot->id]["operadores"] = [];
-            $this->insertarDatosRestantes($ot, $datos[$ot->id]["operadores"]);
+            foreach ($piezasDeOT as $pieza) {
+                $operator = $usersCache->get($pieza->id_operador);
+                if (!$operator) continue;
+
+                if (!array_key_exists($operator->matricula, $datos[$ot->id]['operadores'])) {
+                    $datos[$ot->id]['operadores'][$operator->matricula] = [];
+                    $datos[$ot->id]['operadores'][$operator->matricula]['nombre'] = "{$operator->nombre} {$operator->a_paterno} {$operator->a_materno}";
+                    $datos[$ot->id]['operadores'][$operator->matricula]['clases'] = [];
+                }
+
+                $clase = $clasesCache->get($pieza->id_clase);
+                if (!$clase) continue;
+
+                if (!array_key_exists($clase->nombre, $datos[$ot->id]['operadores'][$operator->matricula]['clases'])) {
+                    $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre] = [];
+                    $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre]['pedido']   = $clase->pedido;
+                    $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre]['procesos'] = $this->asignarProcesosOperador($clase->id, $operator->matricula);
+                }
+            }
         }
 
         return $datos;
     }
+
+    /** @deprecated Reemplazado por el pre-cargado en obtenerDatos() */
     public function insertarMoldura($ot, &$array)
     {
-        $moldura = Moldura::find($ot->id_moldura);
-        $array = $moldura->nombre;
+        $array = $ot->moldura ? $ot->moldura->nombre : '?';
     }
+
+    /** @deprecated Reemplazado por el pre-cargado en obtenerDatos() */
     public function insertarDatosRestantes($ot, &$arrayOperadores)
     {
-        $piezas = Pieza::where("id_ot", $ot->id)->get(); //Obtener las piezas en la que se ha trabajado la OT
-        foreach ($piezas as $pieza) {
-            //Verificar que el operador no se haya agregado previamente
-            $operator = User::where("matricula", $pieza->id_operador)->first();
-            if (!array_key_exists($operator->matricula, $arrayOperadores)) {
-                $arrayOperadores[$operator->matricula] = [];
-                $arrayOperadores[$operator->matricula]["nombre"] = $operator->nombre . " " . $operator->a_paterno . " " . $operator->a_materno;
-                $arrayOperadores[$operator->matricula]["clases"] = [];
-            }
-
-
-            //Obtener el nombre de la clase en la que ha trabajado el operador
-            $clase = Clase::find($pieza->id_clase);
-            //Verificar que la clase no se haya agregado previamente
-            if (!array_key_exists($clase->nombre, $arrayOperadores[$operator->matricula]["clases"])) {
-                $arrayOperadores[$operator->matricula]["clases"][$clase->nombre] = [];
-                $arrayOperadores[$operator->matricula]["clases"][$clase->nombre]["pedido"] = $clase->pedido;
-                $arrayOperadores[$operator->matricula]["clases"][$clase->nombre]["procesos"] = $this->asignarProcesosOperador($clase->id, $operator->matricula);
-            }
-        }
+        // Mantenido por compatibilidad; la lógica ahora está en obtenerDatos()
     }
+
     public function asignarProcesosOperador($idClase, $operador)
     {
-        //Solo retorar las columnas que tengan un valor diferente a 0
-        $procesosClase_Operador = Pieza::where("id_clase", $idClase)
-            ->where("id_operador", $operador)
+        return Pieza::where('id_clase', $idClase)
+            ->where('id_operador', $operador)
             ->distinct()
-            ->pluck("proceso")
+            ->pluck('proceso')
             ->toArray();
-        return $procesosClase_Operador;
     }
 
     public function obtenerInformacionPiezas($piezas, $clase)
     {
+        // ── OPTIMIZACIÓN: pre-cargar users en cache para evitar N+1 ──
+        $usersCache = User::all()->keyBy('matricula');
+
         $operadores = [];
         foreach ($piezas as $pieza) {
-            //Se otiene el nombre del operador
-            $operadorName = User::where("matricula", $pieza->id_operador)->first();
-            $operadorName = $operadorName->nombre . " " . $operadorName->a_paterno . " " . $operadorName->a_materno;
+            $operadorObj  = $usersCache->get($pieza->id_operador);
+            $operadorName = $operadorObj ? "{$operadorObj->nombre} {$operadorObj->a_paterno} {$operadorObj->a_materno}" : '(desconocido)';
 
             //Se obtiene la fecha en la que se trabajo la pieza
             $fecha = $pieza->created_at;

@@ -31,27 +31,33 @@ class ProgresoProcesosController extends Controller
     {
         $clases = Clase::all();
         if (count($clases) > 0) {
-            //Array para guardar los datos obtenidos
+            // ── OPTIMIZACIÓN: pre-cargar OTs y molduras en memoria ──
+            // Sin esto, el switch de 26 casos hacía Orden_trabajo::where() en cada iteración
+            $ordenesMap = Orden_trabajo::all()->keyBy('id');
+            $moldurasMap = Moldura::all()->keyBy('id');
+
             $ot = array();
-            //Guardar los datos por cada orden de trabajo y clase
             $contador = 0;
-            foreach ($clases as $clases) {
+
+            // Renombrado de $clases a $clase para evitar shadowing con la colección externa
+            foreach ($clases as $clase) {
+                // Pre-calcular OT y moldura UNA SOLA VEZ por clase (no 26 veces)
+                $ordenT  = $ordenesMap->get($clase->id_ot);
+                $moldura = $ordenT ? $moldurasMap->get($ordenT->id_moldura) : null;
+
                 for ($i = 0; $i < 26; $i++) {
-                    $ordenT = Orden_trabajo::where('id', $clases->id_ot)->first();
                     switch ($i) {
                         case 0:
-                            $ot[$contador][$i] = $ordenT->id;
+                            $ot[$contador][$i] = $ordenT ? $ordenT->id : null;
                             break;
                         case 1:
-                            //Buscar la moldura y guardarla
-                            $moldura = Moldura::find($ordenT->id_moldura);
-                            $ot[$contador][$i] = $moldura->nombre;
+                            $ot[$contador][$i] = $moldura ? $moldura->nombre : '?';
                             break;
                         case 2:
-                            $ot[$contador][$i] = $clases->nombre . " " . $clases->tamanio;
+                            $ot[$contador][$i] = $clase->nombre . " " . $clase->tamanio;
                             break;
                         case 3:
-                            $proceso = 'Cepillado_' . $clases->nombre . "_" . $ordenT->id;
+                            $proceso = 'Cepillado_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
                             $cepillado = Cepillado::where('id_proceso', $proceso)->first();
 
                             if ($cepillado != null) {
@@ -61,15 +67,15 @@ class ProgresoProcesosController extends Controller
                             }
                             break;
                         case 4:
-                            $proceso = 'desbaste_' . $clases->nombre . "_" . $ordenT->id;
+                            $proceso = 'desbaste_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
                             $desbaste = DesbasteExterior::where('id_proceso', $proceso)->first();
 
                             if ($desbaste != null) {
                                 $pzasCorrectas = Desbaste_pza::where('estado', 2)->where('correcto', 1)->where('id_proceso', $desbaste->id)->get();
-                                if (isset($pzasCorrectas)) { //Si existen piezas correctas, se actualiza el resultado de la meta.
+                                if (isset($pzasCorrectas)) {
                                     $correctas = 0;
-                                    $juegosUtilizados = array(); //Array para guardar los juegos que ya se han utilizado.
-                                    for ($x = 0; $x < count($pzasCorrectas); $x++) { //Recorrer todas las piezas correctas.
+                                    $juegosUtilizados = array();
+                                    for ($x = 0; $x < count($pzasCorrectas); $x++) {
                                         for ($y = 0; $y < count($pzasCorrectas); $y++) {
                                             if ($pzasCorrectas[$x]->n_juego === $pzasCorrectas[$y]->n_juego && $x != $y) {
                                                 if ($pzasCorrectas[$x]->correcto == 1 && $pzasCorrectas[$y]->correcto == 1) {
@@ -81,24 +87,24 @@ class ProgresoProcesosController extends Controller
                                             }
                                         }
                                     }
-                                    $ot[$contador][$i] = $correctas; //Actualización de datos en tabla Metas.
+                                    $ot[$contador][$i] = $correctas;
                                 } else {
-                                    $ot[$contador][$i] = 0; //Actualización de los datos en la tabla metas.
+                                    $ot[$contador][$i] = 0;
                                 }
                             } else {
                                 $ot[$contador][$i] = 0;
                             }
                             break;
                         case 5:
-                            $proceso = 'revLaterales_' . $clases->nombre . "_" . $ordenT->id;
+                            $proceso = 'revLaterales_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
                             $revLaterales = RevLaterales::where('id_proceso', $proceso)->first();
 
                             if ($revLaterales != null) {
                                 $pzasCorrectas = RevLaterales_pza::where('estado', 2)->where('correcto', 1)->where('id_proceso', $revLaterales->id)->get();
-                                if (isset($pzasCorrectas)) { //Si existen piezas correctas, se actualiza el resultado de la meta.
+                                if (isset($pzasCorrectas)) {
                                     $correctas = 0;
-                                    $juegosUtilizados = array(); //Array para guardar los juegos que ya se han utilizado.
-                                    for ($x = 0; $x < count($pzasCorrectas); $x++) { //Recorrer todas las piezas correctas.
+                                    $juegosUtilizados = array();
+                                    for ($x = 0; $x < count($pzasCorrectas); $x++) {
                                         for ($y = 0; $y < count($pzasCorrectas); $y++) {
                                             if ($pzasCorrectas[$x]->n_juego === $pzasCorrectas[$y]->n_juego && $x != $y) {
                                                 if ($pzasCorrectas[$x]->correcto == 1 && $pzasCorrectas[$y]->correcto == 1) {
@@ -110,24 +116,24 @@ class ProgresoProcesosController extends Controller
                                             }
                                         }
                                     }
-                                    $ot[$contador][$i] = $correctas; //Actualización de datos en tabla Metas.
+                                    $ot[$contador][$i] = $correctas;
                                 } else {
-                                    $ot[$contador][$i] = 0; //Actualización de los datos en la tabla metas.
+                                    $ot[$contador][$i] = 0;
                                 }
                             } else {
                                 $ot[$contador][$i] = 0;
                             }
                             break;
                         case 6:
-                            $proceso = '1opeSoldadura_' . $clases->nombre . "_" . $ordenT->id;
+                            $proceso = '1opeSoldadura_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
                             $primeraOpeSoldadura = PrimeraOpeSoldadura::where('id_proceso', $proceso)->first();
 
                             if ($primeraOpeSoldadura != null) {
                                 $pzasCorrectas = PrimeraOpeSoldadura_pza::where('estado', 2)->where('correcto', 1)->where('id_proceso', $primeraOpeSoldadura->id)->get();
-                                if (isset($pzasCorrectas)) { //Si existen piezas correctas, se actualiza el resultado de la meta.
+                                if (isset($pzasCorrectas)) {
                                     $correctas = 0;
-                                    $juegosUtilizados = array(); //Array para guardar los juegos que ya se han utilizado.
-                                    for ($x = 0; $x < count($pzasCorrectas); $x++) { //Recorrer todas las piezas correctas.
+                                    $juegosUtilizados = array();
+                                    for ($x = 0; $x < count($pzasCorrectas); $x++) {
                                         for ($y = 0; $y < count($pzasCorrectas); $y++) {
                                             if ($pzasCorrectas[$x]->n_juego === $pzasCorrectas[$y]->n_juego && $x != $y) {
                                                 if ($pzasCorrectas[$x]->correcto == 1 && $pzasCorrectas[$y]->correcto == 1) {
@@ -139,24 +145,24 @@ class ProgresoProcesosController extends Controller
                                             }
                                         }
                                     }
-                                    $ot[$contador][$i] = $correctas; //Actualización de datos en tabla Metas.
+                                    $ot[$contador][$i] = $correctas;
                                 } else {
-                                    $ot[$contador][$i] = 0; //Actualización de los datos en la tabla metas.
+                                    $ot[$contador][$i] = 0;
                                 }
                             } else {
                                 $ot[$contador][$i] = 0;
                             }
                             break;
                         case 7:
-                            $proceso = '2opeSoldadura_' . $clases->nombre . "_" . $ordenT->id;
+                            $proceso = '2opeSoldadura_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
                             $segundaOpeSoldadura = SegundaOpeSoldadura::where('id_proceso', $proceso)->first();
 
                             if ($segundaOpeSoldadura != null) {
                                 $pzasCorrectas = SegundaOpeSoldadura_pza::where('estado', 2)->where('correcto', 1)->where('id_proceso', $segundaOpeSoldadura->id)->get();
-                                if (isset($pzasCorrectas)) { //Si existen piezas correctas, se actualiza el resultado de la meta.
+                                if (isset($pzasCorrectas)) {
                                     $correctas = 0;
-                                    $juegosUtilizados = array(); //Array para guardar los juegos que ya se han utilizado.
-                                    for ($x = 0; $x < count($pzasCorrectas); $x++) { //Recorrer todas las piezas correctas.
+                                    $juegosUtilizados = array();
+                                    for ($x = 0; $x < count($pzasCorrectas); $x++) {
                                         for ($y = 0; $y < count($pzasCorrectas); $y++) {
                                             if ($pzasCorrectas[$x]->n_juego === $pzasCorrectas[$y]->n_juego && $x != $y) {
                                                 if ($pzasCorrectas[$x]->correcto == 1 && $pzasCorrectas[$y]->correcto == 1) {
@@ -168,67 +174,20 @@ class ProgresoProcesosController extends Controller
                                             }
                                         }
                                     }
-                                    $ot[$contador][$i] = $correctas; //Actualización de datos en tabla Metas.
+                                    $ot[$contador][$i] = $correctas;
                                 } else {
-                                    $ot[$contador][$i] = 0; //Actualización de los datos en la tabla metas.
+                                    $ot[$contador][$i] = 0;
                                 }
                             } else {
                                 $ot[$contador][$i] = 0;
                             }
                             break;
-                        case 8:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 9:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 10:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 11:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 12:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 13:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 14:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 15:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 16:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 17:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 18:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 19:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 20:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 21:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 22:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 23:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 24:
-                            $ot[$contador][$i] = 0;
-                            break;
-                        case 25:
-                            $ot[$contador][$i] = $clases->pedido;
+                        default:
+                            if ($i === 25) {
+                                $ot[$contador][$i] = $clase->pedido;
+                            } else {
+                                $ot[$contador][$i] = 0;
+                            }
                             break;
                     }
                 }

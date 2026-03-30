@@ -9,8 +9,8 @@ class Kernel extends ConsoleKernel
 {
     /**
      * Define the application's command schedule.
-     * 
-     * NOTA: Cada vez que se descargue el proyecto en un nuevo entorno, 
+     *
+     * NOTA: Cada vez que se descargue el proyecto en un nuevo entorno,
      * asegúrate de ejecutar los siguientes comandos para que los logs funcionen:
      * 1. php artisan key:generate
      * 2. php artisan config:clear
@@ -24,7 +24,7 @@ class Kernel extends ConsoleKernel
 
         // ── Reporte Diario de Producción — 23:59 todos los días ────────
         $schedule->command('reporte:enviar-diario')
-            ->dailyAt('23:59')
+            ->dailyAt('00:00')
             ->withoutOverlapping()       // evita ejecuciones duplicadas
             ->appendOutputTo(storage_path('logs/reporte_diario.log'));
 

@@ -13,7 +13,7 @@ class GenerarQRIndividualController extends Controller
     public function index()
     {
         // Obtener lotes que no han generado todos sus botes
-        $lotes = SoldaduraLote::whereColumn('botes_generados', '<', DB::raw('FLOOR(peso_total_kg / 5)'))
+        $lotes = SoldaduraLote::whereRaw('botes_generados < FLOOR(peso_total_kg / 5)')
                     ->orWhere('botes_generados', 0)
                     ->orderBy('fecha_ingreso', 'desc')
                     ->get();

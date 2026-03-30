@@ -45,7 +45,8 @@ class ProcessProductionController extends Controller
     }
     public function show($returnArray = null)
     {
-        $wOrdersFounded = Orden_trabajo::all();
+        // ── OPTIMIZACIÓN: eager loading de moldura evita N+1 ──
+        $wOrdersFounded = Orden_trabajo::with('moldura')->get();
         $workOrders = array();
         if (count($wOrdersFounded) > 0) {
             foreach ($wOrdersFounded as $workOrder) {
@@ -55,13 +56,13 @@ class ProcessProductionController extends Controller
                         if ($class->finalizada == 0) {
                             if (!array_key_exists($workOrder->id, $workOrders)) {
                                 $workOrders[$workOrder->id] = array();
-                                $molding = Moldura::find($workOrder->id_moldura);
-                                $workOrders[$workOrder->id]['moldura'] = $molding ? $molding->nombre : 'Moldura no encontrada';
+                                // Moldura ya cargada (0 queries)
+                                $workOrders[$workOrder->id]['moldura'] = $workOrder->moldura ? $workOrder->moldura->nombre : 'Moldura no encontrada';
                             }
                             $processes = Procesos::where('id_clase', $class->id)->first();
                             if ($processes) {
                                 $workOrders[$workOrder->id][$class->nombre] = array();
-                                $workOrders[$workOrder->id][$class->nombre] = $this->setOrderedProcess($class); // Establecer el orden de los procesos disponibles e insertarlos en el array
+                                $workOrders[$workOrder->id][$class->nombre] = $this->setOrderedProcess($class);
                             }
                         }
                     }
@@ -236,7 +237,7 @@ class ProcessProductionController extends Controller
         return [
             'operator' => $this->getOperatorName(),
             'workOrder' => $workOrder->id . ' - ' . $molding->nombre,
-            'class' => Clase::where('id_ot', $meta->id_ot)->where('id', $meta->id_clase)->first()->nombre,
+            'class'     => $class->nombre,
             'process' => $process,
             'subprocess' => $subprocess,
             'startTime' => $meta->h_inicio,
@@ -451,16 +452,15 @@ class ProcessProductionController extends Controller
     public function validatePasswordAdmin($passwordEntered)
     {
         if ($passwordEntered) {
-            $users = User::all();
+            // ── OPTIMIZACIÓN: solo cargar admins y calidad, no User::all() ──
+            $users = User::whereIn('perfil', [1, 4, 5])->get();
             foreach ($users as $user) {
-                if ($user->perfil == 1 || $user->perfil == 4) { // Verificar si el usuario es admin o calidad o superadmin
-                    if (Hash::check($passwordEntered, $user->contrasena)) {
-                        return true; // Contraseña correcta
-                    }
+                if (Hash::check($passwordEntered, $user->contrasena)) {
+                    return true;
                 }
             }
         }
-        return false; // No se proporcionó contraseña
+        return false;
     }
     public function verifiedPasswordAdmin(Request $request)
     {

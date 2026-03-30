@@ -33,28 +33,25 @@ class WOController extends Controller
     //Mostrar la vista para seleccionar o crear una Orden de Trabajo
     public function manage()
     {
-        $moldings = Moldura::all();
-        $workOrdersAll = Orden_trabajo::all();
-        //Si existen ordenes de trabajo registradas.
-        $workOrders = null;
-        if ($workOrdersAll != "[]") {
-            $workOrders = []; //Arreglo para guardar las molduras de cada OT
-            $counter = 0; // Contador para las molduras y OT
-            foreach ($workOrdersAll as $workOrder) { //Recorro las ordenes de trabajo
-                $clases = Clase::where("id_ot", $workOrder->id)->get();
+        // ── OPTIMIZACIÓN: eager loading evita N+1 queries de moldura y clases ──
+        $moldings       = Moldura::all();
+        $workOrdersAll  = Orden_trabajo::with(['clases', 'moldura'])->get();
+        $workOrders     = null;
+
+        if ($workOrdersAll->isNotEmpty()) {
+            $workOrders = [];
+            $counter    = 0;
+            foreach ($workOrdersAll as $workOrder) {
+                $clases = $workOrder->clases;
                 if (auth()->user()->perfil == 5) {
-                    if ($clases->count() == 0) {
-                        continue;
-                    }
+                    if ($clases->count() == 0) continue;
                 } else {
-                    $clases = Clase::where("id_ot", $workOrder->id)->where('finalizada', 0)->get();
-                    if ($clases->count() == 0) {
-                        continue;
-                    }
+                    $clases = $clases->where('finalizada', 0);
+                    if ($clases->count() == 0) continue;
                 }
-                $moldura = Moldura::find($workOrder->id_moldura);
+                // Moldura ya cargada con eager loading (0 queries)
                 $workOrders[$counter]['workOrder'] = $workOrder->id;
-                $workOrders[$counter]['molding'] = $moldura->nombre;
+                $workOrders[$counter]['molding']   = $workOrder->moldura ? $workOrder->moldura->nombre : '?';
                 $counter++;
             }
         }
@@ -245,22 +242,19 @@ class WOController extends Controller
 
     public function showViewPiecesInProgress()
     {
-        //Obtener las ordenes de trabajo que aun siguen en progreso, es decir, que tienen clases que no han sido finalizadas.
+        // ── OPTIMIZACIÓN: eager loading evita N+1 de clases y moldura ──
         $wOInProgress = array();
-        $workOrders = Orden_trabajo::all();
+        $workOrders   = Orden_trabajo::with(['clases', 'moldura'])->get();
         foreach ($workOrders as $workOrder) {
-            //Obtener las clases que pertenecen a la orden de trabajo y que no han sido finalizadas.
-            $classes = Clase::where('id_ot', $workOrder->id)->where('finalizada', 0)->get();
-            if (count($classes) > 0) {
+            $classes = $workOrder->clases->where('finalizada', 0);
+            if ($classes->count() > 0) {
                 foreach ($classes as $index => $class) {
-                    //Verificar si ya se asignaron procesos a la clase
                     $process = Procesos::where('id_clase', $class->id)->first();
                     if ($process) {
-                        if ($index == 0) {
+                        if ($index === $classes->keys()->first()) {
                             $wOInProgress[$workOrder->id] = array();
-                            $wOInProgress[$workOrder->id]['molding'] = $this->getMolding($workOrder->id_moldura); //Insertar el nombre de la moldura
-                            //Insertar las clases de la orden de trabajo
-                            $wOInProgress[$workOrder->id]['classes'] = array();
+                            $wOInProgress[$workOrder->id]['molding']  = $workOrder->moldura ? $workOrder->moldura->nombre : '?';
+                            $wOInProgress[$workOrder->id]['classes']  = array();
                         }
                         $this->insertClassesData($wOInProgress[$workOrder->id]['classes'], $class);
                     }
@@ -449,149 +443,121 @@ class WOController extends Controller
     function getPieces($class, $processName, &$piecesBadData)
     {
         $setStoredParts = array();
-        $piecesArray = array();
-        $piecesArray["good"] = array();
-        $piecesArray["bad"] = array();
-        $piecesArray["total"] = 0;
-        $processNamesArray = $processName == "Soldadura y Soldadura PTA" ? ["Soldadura", "Soldadura PTA"] : [$processName];
+        $piecesArray    = ['good' => [], 'bad' => [], 'total' => 0];
+        $processNamesArray = $processName === 'Soldadura y Soldadura PTA'
+            ? ['Soldadura', 'Soldadura PTA']
+            : [$processName];
+
+        // ── OPTIMIZACIÓN: pre-cargar users en memoria para evitar N+1 en getBadPiecesData ──
+        $usersCache = User::all()->keyBy('matricula');
 
         foreach ($processNamesArray as $processName) {
-            $pieces = Pieza::where("proceso", $processName)->where('id_clase', $class->id)->get();
-            if (count($pieces) > 0) {
-                //Recorrer cada una de las piezas
-                foreach ($pieces as $piece) {
-                    //Verificar si es juego o pieza
-                    if (substr($piece->n_pieza, -1, 1) != "J") { // Si no es un juego y se divide en hembra y macho
-                        $pares = true;
-                        preg_match('/^\d+/', $piece->n_pieza, $noSet); //Obtener el numero de juego de la pieza
-                        $noSet = $noSet[0];
-                        //Comprobar si el juego ya fue almacenado en el array
-                        if (!in_array($noSet, $setStoredParts)) {
-                            array_push($setStoredParts, $noSet); //Almacenar el juego en el array
+            $pieces = Pieza::where('proceso', $processName)->where('id_clase', $class->id)->get();
 
-                            //Obtener las piezas del juego
-                            $pFemale = Pieza::where("n_pieza", $noSet . "H")->where('id_clase', $class->id)->where('proceso', $processName)->first();
-                            $pMale = Pieza::where("n_pieza", $noSet . "M")->where('id_clase', $class->id)->where('proceso', $processName)->first();
+            if ($pieces->isEmpty()) continue;
 
-                            //Verificar si ambas piezas existen
-                            if ($pFemale && $pMale) {
-                                //Verificar si el juego esta rechazado o liberado
-                                if ($pFemale->liberacion == 0) {
-                                    if ($pFemale->error == "Ninguno" && $pMale->error == "Ninguno") {
-                                        array_push($piecesArray["good"], $pFemale, $pMale);
-                                    } else {
-                                        if ($processName === "Soldadura PTA") {
-                                            array_push($piecesArray["good"], $pFemale, $pMale);
-                                        } else {
-                                            //Guardar el juego completo como malo
-                                            array_push($piecesArray["bad"], $pFemale, $pMale);
+            // ── Mapa n_pieza → pieza para buscar H/M sin queries adicionales ──
+            $piecesMap = $pieces->keyBy('n_pieza');
 
-                                            if ($pFemale->error != "Ninguno") {
-                                                array_push($piecesBadData, $this->getBadPiecesData($pFemale));
-                                            }
-                                            if ($pMale->error != "Ninguno") {
-                                                array_push($piecesBadData, $this->getBadPiecesData($pMale));
-                                            }
-                                        }
-                                    }
-                                } else if ($pFemale->liberacion == 1) {
-                                    array_push($piecesArray["good"], $pFemale, $pMale);
+            foreach ($pieces as $piece) {
+                if (substr($piece->n_pieza, -1, 1) !== 'J') {
+                    $pares = true;
+                    preg_match('/^\d+/', $piece->n_pieza, $noSet);
+                    $noSet = $noSet[0];
+
+                    if (!in_array($noSet, $setStoredParts)) {
+                        $setStoredParts[] = $noSet;
+
+                        // ── 0 queries: buscar H/M desde el mapa en memoria ──
+                        $pFemale = $piecesMap->get($noSet . 'H');
+                        $pMale   = $piecesMap->get($noSet . 'M');
+
+                        if ($pFemale && $pMale) {
+                            if ($pFemale->liberacion == 0) {
+                                if ($pFemale->error === 'Ninguno' && $pMale->error === 'Ninguno') {
+                                    array_push($piecesArray['good'], $pFemale, $pMale);
                                 } else {
-                                    array_push($piecesArray["bad"], $pFemale, $pMale);
-
-                                    if ($pFemale->error != "Ninguno") {
-                                        array_push($piecesBadData, $this->getBadPiecesData($pFemale));
+                                    if ($processName === 'Soldadura PTA') {
+                                        array_push($piecesArray['good'], $pFemale, $pMale);
                                     } else {
-                                        array_push($piecesBadData, $this->getBadPiecesData($pFemale, "Rechazada"));
-                                    }
-                                    if ($pMale->error != "Ninguno") {
-                                        array_push($piecesBadData, $this->getBadPiecesData($pMale));
-                                    } else {
-                                        array_push($piecesBadData, $this->getBadPiecesData($pMale, "Rechazada"));
+                                        array_push($piecesArray['bad'], $pFemale, $pMale);
+                                        if ($pFemale->error !== 'Ninguno') array_push($piecesBadData, $this->getBadPiecesData($pFemale, null, '- - - ', $usersCache));
+                                        if ($pMale->error !== 'Ninguno')   array_push($piecesBadData, $this->getBadPiecesData($pMale, null, '- - - ', $usersCache));
                                     }
                                 }
+                            } elseif ($pFemale->liberacion == 1) {
+                                array_push($piecesArray['good'], $pFemale, $pMale);
                             } else {
-                                //Si no existe una de las piezas, se guarda la pieza incompleta como mala
-                                $imcompletePiece = $pFemale ? $pFemale : $pMale;
-
-                                if ($imcompletePiece->liberacion == 2) {
-                                    array_push($piecesArray["bad"], $imcompletePiece, $imcompletePiece);
-                                    array_push($piecesBadData, $this->getBadPiecesData($imcompletePiece, "Rechazada"));
-                                }
+                                array_push($piecesArray['bad'], $pFemale, $pMale);
+                                $piecesBadData[] = $this->getBadPiecesData($pFemale, $pFemale->error !== 'Ninguno' ? null : 'Rechazada', '- - - ', $usersCache);
+                                $piecesBadData[] = $this->getBadPiecesData($pMale,   $pMale->error !== 'Ninguno'   ? null : 'Rechazada', '- - - ', $usersCache);
                             }
-                        }
-                    } else {
-                        $pares = false;
-                        //Verificar si el juego esta rechazado o liberado
-                        if ($piece->liberacion == 0) {
-                            //Verificar si las pieza son correctas o no
-                            if ($piece->error == "Ninguno") {
-                                array_push($piecesArray["good"], $piece);
-                            } else {
-                                if ($processName === "Soldadura PTA") {
-                                    array_push($piecesArray["good"], $piece);
-                                } else {
-                                    //Guardar el juego completo como malo
-                                    array_push($piecesArray["bad"], $piece);
-                                    array_push($piecesBadData, $this->getBadPiecesData($piece));
-                                }
-                            }
-                        } else if ($piece->liberacion == 1) {
-                            array_push($piecesArray["good"], $piece);
                         } else {
-                            array_push($piecesArray["bad"], $piece);
-                            if ($piece->error != "Ninguno") {
-                                array_push($piecesBadData, $this->getBadPiecesData($piece));
-                            } else {
-                                array_push($piecesBadData, $this->getBadPiecesData($piece, "Rechazada"));
+                            $incompletePiece = $pFemale ?? $pMale;
+                            if ($incompletePiece && $incompletePiece->liberacion == 2) {
+                                array_push($piecesArray['bad'], $incompletePiece, $incompletePiece);
+                                $piecesBadData[] = $this->getBadPiecesData($incompletePiece, 'Rechazada', '- - - ', $usersCache);
                             }
                         }
+                    }
+                } else {
+                    $pares = false;
+                    if ($piece->liberacion == 0) {
+                        if ($piece->error === 'Ninguno') {
+                            array_push($piecesArray['good'], $piece);
+                        } else {
+                            if ($processName === 'Soldadura PTA') {
+                                array_push($piecesArray['good'], $piece);
+                            } else {
+                                array_push($piecesArray['bad'], $piece);
+                                $piecesBadData[] = $this->getBadPiecesData($piece, null, '- - - ', $usersCache);
+                            }
+                        }
+                    } elseif ($piece->liberacion == 1) {
+                        array_push($piecesArray['good'], $piece);
+                    } else {
+                        array_push($piecesArray['bad'], $piece);
+                        $piecesBadData[] = $this->getBadPiecesData($piece, $piece->error !== 'Ninguno' ? null : 'Rechazada', '- - - ', $usersCache);
                     }
                 }
             }
         }
+
         if (isset($pares)) {
-            // Contar las piezas en base a si son juegos completos o mitades
             $goodCount = 0;
-            foreach ($piecesArray["good"] as $p) {
-                if (substr($p->n_pieza, -1) == "J") {
-                    $goodCount += 1;
-                } else {
-                    $goodCount += 0.5;
-                }
+            foreach ($piecesArray['good'] as $p) {
+                $goodCount += (substr($p->n_pieza, -1) === 'J') ? 1 : 0.5;
             }
-
             $badCount = 0;
-            foreach ($piecesArray["bad"] as $p) {
-                if (substr($p->n_pieza, -1) == "J") {
-                    $badCount += 1;
-                } else {
-                    $badCount += 0.5;
-                }
+            foreach ($piecesArray['bad'] as $p) {
+                $badCount += (substr($p->n_pieza, -1) === 'J') ? 1 : 0.5;
             }
-
-            $piecesArray["good"] = $goodCount;
-            $piecesArray["bad"] = $badCount;
-            $piecesArray["total"] = $goodCount + $badCount;
+            $piecesArray['good']  = $goodCount;
+            $piecesArray['bad']   = $badCount;
+            $piecesArray['total'] = $goodCount + $badCount;
         } else {
-            $piecesArray["good"] = 0;
-            $piecesArray["bad"] = 0;
-            $piecesArray["total"] = 0;
+            $piecesArray['good']  = 0;
+            $piecesArray['bad']   = 0;
+            $piecesArray['total'] = 0;
         }
         return $piecesArray;
     }
-    function getBadPiecesData($piece, $rechazada = null, $operation = "- - - ")
+
+    function getBadPiecesData($piece, $rechazada = null, $operation = '- - - ', $usersCache = null)
     {
-        $array = array();
-        $operador = User::where('matricula', $piece->id_operador)->first();
-        $array["piece"] = $piece->n_pieza;
-        //Obtener el numero de juego
+        $array    = array();
+        // ── Usa cache si está disponible; si no, hace la query ──
+        $operador = $usersCache
+            ? $usersCache->get($piece->id_operador)
+            : User::where('matricula', $piece->id_operador)->first();
+
+        $array['piece']     = $piece->n_pieza;
         preg_match('/^\d+/', $piece->n_pieza, $n_juego);
-        $array["setNumber"] = $n_juego[0] . "J";
-        $array["operator"] = $operador->nombre . " " . $operador->a_paterno . " " . $operador->a_materno;
-        $array["process"] = $piece->proceso;
-        $array["operation"] = $operation;
-        $array["error"] = $rechazada ? $rechazada : $piece->error; //Si la pieza no tiene ningun error pero esta rechazada
+        $array['setNumber'] = $n_juego[0] . 'J';
+        $array['operator']  = $operador ? "{$operador->nombre} {$operador->a_paterno} {$operador->a_materno}" : '(desconocido)';
+        $array['process']   = $piece->proceso;
+        $array['operation'] = $operation;
+        $array['error']     = $rechazada ?? $piece->error;
         return $array;
     }
 }
