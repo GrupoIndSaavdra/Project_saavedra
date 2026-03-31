@@ -58,6 +58,15 @@ function asignColorTr(status, error) {
     }
 }
 function orderedArray(array) {
+    // Estructura del backend PHP (saveInArray):
+    //  [0] id_ot  [1] n_pieza  [2] operador  [3] maquina  [4] proceso
+    //  [5] error  [6] created_at  [7] fecha_liberacion  [8] user_liberacion
+    //  [9] liberacion (push)  [10] 'mitad'|'juego' (push)
+    //  .observations  .observacion_liberacion  .className  .id_clase
+    //
+    // NOTA: Para procesos 'Operacion Equipo', en el PHP el error se guarda en [6]
+    // y luego [6] se sobreescribe con la fecha. El error correcto siempre está en [5]
+    // para piezas normales. El backend ya unifica esto correctamente en [5].
     return {
         class: array["className"],
         workOrder: array[0],
@@ -66,13 +75,13 @@ function orderedArray(array) {
         machine: array[3],
         process: array[4],
         errors: array[5],
-        observations: array.observations,
+        observations: array.observations ?? "",
         machinedDate: array[6],
         liberationDate: array[7],
         user_liberation: array[8],
-        observacion_liberacion: array.observacion_liberacion,
+        observacion_liberacion: array.observacion_liberacion ?? "",
         btn_seePiece: array[2],
-        colorPiece: asignColorTr(array[9], array[5]),
+        colorPiece: asignColorTr(array[9], array[5] ?? ""),
     };
 }
 
@@ -759,6 +768,9 @@ function setupGameFilterLogic() {
     const classSelect = document.querySelector('select[name="class"]');
     const gameSelect = document.getElementById("n_juego_filter");
 
+    // Flag para evitar que múltiples cambios simultáneos lancen varias peticiones AJAX
+    let gameFilterDebounceTimer = null;
+
     function checkEnableGameFilter() {
         if (!otSelect || !classSelect || !gameSelect) return;
 
@@ -767,22 +779,28 @@ function setupGameFilterLogic() {
 
         if (otVal && otVal !== "Todos" && classVal && classVal !== "Todos") {
             gameSelect.disabled = false;
-            // Aquí se podría disparar la carga de juegos disponibles
-            loadAvailableGames(otVal, classVal, gameSelect);
+            // Debounce: esperar 150ms para evitar múltiples requests al cambiar rápido
+            clearTimeout(gameFilterDebounceTimer);
+            gameFilterDebounceTimer = setTimeout(() => {
+                loadAvailableGames(otVal, classVal, gameSelect);
+            }, 150);
         } else {
+            clearTimeout(gameFilterDebounceTimer);
             gameSelect.disabled = true;
             gameSelect.value = "Todos";
-            // Limpiar opciones extra
+            // Limpiar opciones extra (mantener solo "Todos")
             while (gameSelect.options.length > 1) {
                 gameSelect.remove(1);
             }
         }
     }
 
+    // Usar listeners con {passive: true} para que no bloqueen el submit del formulario
     if (otSelect) otSelect.addEventListener("change", checkEnableGameFilter);
     if (classSelect) classSelect.addEventListener("change", checkEnableGameFilter);
 
-    // Chequeo inicial
+    // Chequeo inicial: solo cargar juegos si OT y clase ya tienen valor seleccionado
+    // (es decir, si el usuario ya había filtrado antes)
     checkEnableGameFilter();
 }
 

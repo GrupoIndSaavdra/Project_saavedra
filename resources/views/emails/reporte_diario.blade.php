@@ -66,6 +66,9 @@
                     <td style="padding: 2px;">
                         <div style="background: #e74c3c; height: 12px; border-radius: 2px;"></div>
                     </td>
+                    <td style="padding: 2px;">
+                        <div style="background: #ffffff; height: 12px; border-radius: 2px; border: 1px solid #bbb;"></div>
+                    </td>
                 </tr>
                 <tr style="font-size: 0.75em; text-align: center; color: #333;">
                     <td style="padding-top: 3px;"><b>+150%</b><br>Excelencia</td>
@@ -73,6 +76,7 @@
                     <td style="padding-top: 3px;"><b>75-99%</b><br>Aceptable</td>
                     <td style="padding-top: 3px;"><b>40-74%</b><br>Medio</td>
                     <td style="padding-top: 3px;"><b>0-39%</b><br>Bajo</td>
+                    <td style="padding-top: 3px;"><b>—</b><br>Sin meta</td>
                 </tr>
             </table>
             <p style="font-size: 0.7em; color: #777; font-style: italic; margin-bottom: 15px; text-align: center;">
@@ -124,17 +128,21 @@
                     $totalRealizados += (float) ($f['juegos_realizados'] ?? 0);
                 }
 
-                $promedioOp = $totalMeta > 0 ? ($totalRealizados / $totalMeta) * 100 : 0;
-                $colorHeaderRealizados = "#e74c3c"; // Rojo (Bajo) por defecto
-
-                if ($promedioOp >= 150)
-                    $colorHeaderRealizados = "#9b59b6";
-                elseif ($promedioOp >= 100)
-                    $colorHeaderRealizados = "#f1c40f";
-                elseif ($promedioOp >= 75)
-                    $colorHeaderRealizados = "#27ae60";
-                elseif ($promedioOp >= 40)
-                    $colorHeaderRealizados = "#e67e22";
+                if ($totalMeta == 0) {
+                    // Sin meta definida: gris neutro para el header
+                    $colorHeaderRealizados = "#888888";
+                } else {
+                    $promedioOp = ($totalRealizados / $totalMeta) * 100;
+                    $colorHeaderRealizados = "#e74c3c"; // Rojo (Bajo) por defecto
+                    if ($promedioOp >= 150)
+                        $colorHeaderRealizados = "#9b59b6";
+                    elseif ($promedioOp >= 100)
+                        $colorHeaderRealizados = "#f1c40f";
+                    elseif ($promedioOp >= 75)
+                        $colorHeaderRealizados = "#27ae60";
+                    elseif ($promedioOp >= 40)
+                        $colorHeaderRealizados = "#e67e22";
+                }
             @endphp
             <div class="operador-section" style="margin-bottom: 30px;">
                 <div class="operador-header"
@@ -148,39 +156,50 @@
                 <table class="op-table" style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                     <thead>
                         <tr>
-                            <th style="width: 20%; text-align: center;">Orden de Trabajo</th>
-                            <th style="width: 15%; text-align: center;">Proceso</th>
-                            <th style="width: 12%; text-align: center;">Número de Juego</th>
-                            <th style="width: 8%; text-align: center; color: #2ecc71;">Meta</th>
-                            <th style="width: 10%; text-align: center; color: {{ $colorHeaderRealizados }};">Juegos Realizados
+                            <th style="width: 18%; text-align: center;">Orden de Trabajo</th>
+                            <th style="width: 10%; text-align: center;">Clase</th>
+                            <th style="width: 13%; text-align: center;">Proceso</th>
+                            <th style="width: 10%; text-align: center;">Núm. de Juego</th>
+                            <th style="width: 7%; text-align: center; color: #2ecc71;">Meta</th>
+                            <th style="width: 9%; text-align: center; color: {{ $colorHeaderRealizados }};">Juegos Realizados
                             </th>
-                            <th style="width: 17.5%; text-align: center;">Observaciones Operador</th>
-                            <th style="width: 17.5%; text-align: center;">Observaciones Calidad</th>
+                            <th style="width: 16.5%; text-align: center;">Obs. Operador</th>
+                            <th style="width: 16.5%; text-align: center;">Obs. Calidad</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($filas as $fila)
                             @php
-                                $meta = $fila['meta'] > 0 ? $fila['meta'] : 1;
-                                $realPct = ($fila['juegos_realizados'] / $meta) * 100;
-                                if ($realPct >= 150) {
-                                    $barColor = "#9b59b6"; // Platino/Morado brillante (Excelencia)
-                                } elseif ($realPct >= 100) {
-                                    $barColor = "#f1c40f"; // Dorado (Esfuerzo destacado)
-                                } elseif ($realPct >= 75) {
-                                    $barColor = "#27ae60"; // Verde (Aceptable)
-                                } elseif ($realPct >= 40) {
-                                    $barColor = "#e67e22"; // Naranja (Medio)
+                                if ($fila['meta'] == 0) {
+                                    // Sin meta asignada: fondo blanco, número negro, borde visible
+                                    $barColor     = "#ffffff";
+                                    $barTextColor = "#000000";
+                                    $barBorder    = "border: 1px solid #bbb;";
                                 } else {
-                                    $barColor = "#e74c3c"; // Rojo (Bajo)
+                                    $meta = $fila['meta'];
+                                    $realPct = ($fila['juegos_realizados'] / $meta) * 100;
+                                    $barBorder    = "";
+                                    $barTextColor = "white";
+                                    if ($realPct >= 150) {
+                                        $barColor = "#9b59b6";
+                                    } elseif ($realPct >= 100) {
+                                        $barColor = "#f1c40f";
+                                    } elseif ($realPct >= 75) {
+                                        $barColor = "#27ae60";
+                                    } elseif ($realPct >= 40) {
+                                        $barColor = "#e67e22";
+                                    } else {
+                                        $barColor = "#e74c3c";
+                                    }
                                 }
                             @endphp
                             <tr style="background-color: {{ $fila['bg_color'] ?? 'white' }};">
                                 <td style="font-size: 0.9em;">{{ $fila['ot_label'] }}</td>
+                                <td style="font-size: 0.9em;">{{ $fila['clase_label'] ?? '—' }}</td>
                                 <td style="font-size: 0.9em;">{{ $fila['proceso'] }}</td>
                                 <td style="text-align: center;"><strong>{{ $fila['n_piezas'] }}</strong></td>
-                                <td style="text-align: center;">{{ $fila['meta'] }}</td>
-                                <td style="background-color: {{ $barColor }}; color: white; font-weight: bold; text-align: center;">
+                                <td style="text-align: center;">{{ $fila['meta'] == 0 ? '—' : $fila['meta'] }}</td>
+                                <td style="background-color: {{ $barColor }}; color: {{ $barTextColor }}; font-weight: bold; text-align: center; {{ $barBorder }}">
                                     {{ $fila['juegos_realizados'] }}
                                 </td>
                                 <td style="font-size: 0.85em;">{{ $fila['obs_operador'] }}</td>

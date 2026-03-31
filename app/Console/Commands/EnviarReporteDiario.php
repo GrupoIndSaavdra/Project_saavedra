@@ -110,6 +110,16 @@ class EnviarReporteDiario extends Command
         $dt = new \App\Http\Controllers\DatosProduccionController();
         $processesAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion"];
 
+        // Índice global de mitades por juego: mismo patrón que $piezasIndex en saveInArray.
+        // Permite detectar al procesar 87H si su partner 87M es de distinto operador.
+        $globalJuegoIndex = []; // [hash][numBase]['H'|'M'] => $pieza
+        foreach ($piezas as $pz) {
+            if (preg_match('/^(\d+)([HM])$/i', $pz->n_pieza, $gm)) {
+                $gh = $pz->id_ot . '_' . $pz->id_clase . '_' . ($pz->proceso ?? 'Sin Proceso');
+                $globalJuegoIndex[$gh][$gm[1]][strtoupper($gm[2])] = $pz;
+            }
+        }
+
         foreach ($piezas as $pieza) {
             $mat = $pieza->id_operador;
             if (!isset($usuariosMap[$mat])) {
@@ -149,7 +159,12 @@ class EnviarReporteDiario extends Command
                 ];
             }
 
-            $cantidad = in_array($pieza->proceso, $processesAssembly) || in_array($proceso, $processesAssembly) ? 1 : 0.5;
+            // Cantidad: las mitades (H/M) siempre valen 0.5 sin importar el proceso,
+            // porque H + M = 1 juego. Solo las piezas completas (J) o piezas únicas valen 1.
+            $nPiezaForCount = $pieza->n_pieza;
+            $esMitad = str_ends_with($nPiezaForCount, 'H') || str_ends_with($nPiezaForCount, 'M');
+            $cantidad = $esMitad ? 0.5 : 1;
+
             $isValid = false;
             if ($pieza->error != "Ninguno" && !empty($pieza->error)) {
                 if ($pieza->liberacion == 1 || $pieza->liberacion == 3)
@@ -189,48 +204,82 @@ class EnviarReporteDiario extends Command
             $keyDict = $esJuego ? "juego_{$nPiezaBase}" : "pieza_{$nPiezaRaw}_" . $pieza->id;
 
             if ($esJuego) {
-                if (!isset($coleccion[$keyDict])) {
-                    $coleccion[$keyDict] = [
-                        'n_piezas' => "{$nPiezaBase}J",
-                        'hora' => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
-                        'obs_operador' => $obsOperador,
-                        'obs_calidad' => $obsCalidad,
-                        'bg_color' => $colorFila,
-                        'is_juego' => true,
-                        'piezas_incluidas' => [$sufijo],
-                    ];
-                } else {
-                    if (!in_array($sufijo, $coleccion[$keyDict]['piezas_incluidas'])) {
-                        if ($obsOperador !== '—' && !str_contains($coleccion[$keyDict]['obs_operador'], $obsOperador)) {
-                            $coleccion[$keyDict]['obs_operador'] = $coleccion[$keyDict]['obs_operador'] === '—' ? $obsOperador : $coleccion[$keyDict]['obs_operador'] . ' | ' . $obsOperador;
-                        }
-                        if ($obsCalidad !== '—' && !str_contains($coleccion[$keyDict]['obs_calidad'], $obsCalidad)) {
-                            $coleccion[$keyDict]['obs_calidad'] = $coleccion[$keyDict]['obs_calidad'] === '—' ? $obsCalidad : $coleccion[$keyDict]['obs_calidad'] . ' | ' . $obsCalidad;
-                        }
+                // ── Detectar juego compartido (distinto operador en H y M) ──
+                $partnerSuf = $sufijo === 'H' ? 'M' : 'H';
+                $partnerPza = $globalJuegoIndex[$hashProceso][$nPiezaBase][$partnerSuf] ?? null;
+                
+                // Fallback a DB si la otra mitad se hizo otro día y no está en el reporte actual
+                if (!$partnerPza) {
+                    $partnerPza = Pieza::where('id_ot', $pieza->id_ot)
+                        ->where('id_clase', $pieza->id_clase)
+                        ->where('n_pieza', "{$nPiezaBase}{$partnerSuf}")
+                        ->where(function($q) use ($pieza) {
+                            if ($pieza->proceso) { $q->where('proceso', $pieza->proceso); }
+                            else { $q->whereNull('proceso'); }
+                        })->orderBy('id', 'desc')->first();
+                }
 
-                        $priority = [
-                            '#FF6B6B' => 5, // Rechazado
-                            '#DDA0DD' => 4, // Mala sin liberación
-                            '#FFD700' => 3, // Incompleto
-                            '#90EE90' => 2, // Buena sin lib
-                            '#79BFED' => 1  // Liberado
+                $esCompartido = $partnerPza && $partnerPza->id_operador !== $pieza->id_operador;
+
+                if ($esCompartido) {
+                    $mOpPartner = $partnerPza->id_operador;
+                    if (!isset($usuariosMap[$mOpPartner])) {
+                        $uOp = User::where('matricula', $mOpPartner)->first();
+                        $usuariosMap[$mOpPartner] = $uOp ? trim("{$uOp->nombre} {$uOp->a_paterno} {$uOp->a_materno}") : "Operador #{$mOpPartner}";
+                    }
+                    $opPartner = $usuariosMap[$mOpPartner];
+
+                    if (!isset($coleccion[$keyDict])) {
+                        $nota = '"Se realizó mitad de pieza junto con ' . $opPartner . '"';
+                        $obsCompleta = ($obsOperador !== '' && $obsOperador !== '—') ? $nota . ', ' . $obsOperador : $nota;
+                        $coleccion[$keyDict] = [
+                            'n_piezas'        => "{$nPiezaBase}J",
+                            'hora'            => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
+                            'obs_operador'    => $obsCompleta,
+                            'obs_calidad'     => $obsCalidad,
+                            'bg_color'        => $colorFila,
+                            'is_juego'        => true,
+                            'es_compartido'   => true,
+                            // Forzamos ambas para que no se regrese a 'H' o 'M' al final
+                            'piezas_incluidas'=> ['H', 'M'],
                         ];
-                        $currentColor = $coleccion[$keyDict]['bg_color'];
-                        if (($priority[$colorFila] ?? 0) > ($priority[$currentColor] ?? 0)) {
-                            $coleccion[$keyDict]['bg_color'] = $colorFila;
+                    }
+                } else {
+                    // Juego normal (mismo operador o incompleto) — lógica original
+                    if (!isset($coleccion[$keyDict])) {
+                        $coleccion[$keyDict] = [
+                            'n_piezas'        => "{$nPiezaBase}J",
+                            'hora'            => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
+                            'obs_operador'    => $obsOperador,
+                            'obs_calidad'     => $obsCalidad,
+                            'bg_color'        => $colorFila,
+                            'is_juego'        => true,
+                            'piezas_incluidas'=> [$sufijo],
+                        ];
+                    } else {
+                        if (!in_array($sufijo, $coleccion[$keyDict]['piezas_incluidas'])) {
+                            if ($obsOperador !== '—' && !str_contains($coleccion[$keyDict]['obs_operador'], $obsOperador)) {
+                                $coleccion[$keyDict]['obs_operador'] = $coleccion[$keyDict]['obs_operador'] === '—' ? $obsOperador : $coleccion[$keyDict]['obs_operador'] . ' | ' . $obsOperador;
+                            }
+                            if ($obsCalidad !== '—' && !str_contains($coleccion[$keyDict]['obs_calidad'], $obsCalidad)) {
+                                $coleccion[$keyDict]['obs_calidad'] = $coleccion[$keyDict]['obs_calidad'] === '—' ? $obsCalidad : $coleccion[$keyDict]['obs_calidad'] . ' | ' . $obsCalidad;
+                            }
+                            $priority = ['#FF6B6B' => 5, '#DDA0DD' => 4, '#FFD700' => 3, '#90EE90' => 2, '#79BFED' => 1];
+                            if (($priority[$colorFila] ?? 0) > ($priority[$coleccion[$keyDict]['bg_color']] ?? 0)) {
+                                $coleccion[$keyDict]['bg_color'] = $colorFila;
+                            }
+                            $coleccion[$keyDict]['piezas_incluidas'][] = $sufijo;
                         }
-
-                        $coleccion[$keyDict]['piezas_incluidas'][] = $sufijo;
                     }
                 }
             } else {
                 $coleccion[$keyDict] = [
-                    'n_piezas' => "{$nPiezaRaw}",
-                    'hora' => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
-                    'obs_operador' => $obsOperador,
+                    'n_piezas'    => "{$nPiezaRaw}",
+                    'hora'        => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
+                    'obs_operador'=> $obsOperador,
                     'obs_calidad' => $obsCalidad,
-                    'bg_color' => $colorFila,
-                    'is_juego' => false,
+                    'bg_color'    => $colorFila,
+                    'is_juego'    => false,
                 ];
             }
         }
@@ -244,10 +293,13 @@ class EnviarReporteDiario extends Command
                         if (count($fila['piezas_incluidas']) == 1) {
                             $suf = $fila['piezas_incluidas'][0];
                             $numBase = str_replace('J', '', $fila['n_piezas']);
-                            $fila['n_piezas'] = "{$numBase}{$suf}";
+                            $fila['n_piezas'] = "{$numBase}{$suf} (.5)"; // Mitad solitaria (aporta 0.5)
+                        } elseif (isset($fila['es_compartido']) && $fila['es_compartido']) {
+                            $fila['n_piezas'] .= " (.5)"; // Juego compartido (aporta 0.5 a este op)
                         }
                         unset($fila['is_juego']);
                         unset($fila['piezas_incluidas']);
+                        unset($fila['es_compartido']);
                     }
                     $fila['meta'] = $t['meta'];
                     $fila['juegos_realizados'] = $t['buenas'];

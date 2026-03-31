@@ -130,9 +130,10 @@ class PzasGeneralesController extends Controller
         $infoPieces    = array();
         $filtersData   = $this->getFiltersInfo();
 
-        // Solo cargar observaciones cuando se genera PDF (evita miles de queries extra en vista de lista)
-        $isPdf = $piecesData["action"] === 'pdf';
-        $pieces = $this->buscarPiezas($piecesData, $selectedItems, $isPdf);
+        // Siempre cargar observaciones: los índices de BD hacen las queries eficientes
+        $isPdf   = $piecesData["action"] === 'pdf';
+        $pieces  = $this->buscarPiezas($piecesData, $selectedItems, true);
+
         $pieces = $pieces == null ? array() : $pieces;
         $this->saveInfoPzas($infoPieces, $pieces);
 
@@ -397,20 +398,38 @@ class PzasGeneralesController extends Controller
                     $pzaH     = $group->firstWhere('n_pieza', $numJuego . 'H');
                     $pzaM     = $group->firstWhere('n_pieza', $numJuego . 'M');
 
-                    if (!$pzaH || !$pzaM) { // Juego incompleto
+                    // ── Si no se encontró alguna mitad en el índice en memoria,
+                    //    puede ser que esté filtrada (ej. filtro por operador).
+                    //    Buscarla en BD antes de declarar el juego incompleto. ──
+                    if (!$pzaH) {
+                        $pzaH = Pieza::where('n_pieza', $numJuego . 'H')
+                            ->where('id_clase', $item->id_clase)
+                            ->where('proceso', $item->proceso)
+                            ->where('id_ot', $item->id_ot)
+                            ->first();
+                    }
+                    if (!$pzaM) {
+                        $pzaM = Pieza::where('n_pieza', $numJuego . 'M')
+                            ->where('id_clase', $item->id_clase)
+                            ->where('proceso', $item->proceso)
+                            ->where('id_ot', $item->id_ot)
+                            ->first();
+                    }
+
+                    if (!$pzaH || !$pzaM) { // Realmente incompleto: una mitad no existe en BD
                         $existing = $pzaH ?? $pzaM;
                         $op = $usersCache->get($existing->id_operador);
                         $array[$contador][2] = $op ? "{$op->nombre} {$op->a_paterno} {$op->a_materno}" : '(desconocido)';
                         $error = $existing->error !== 'Ninguno' ? $existing->error . ' / Incompleto' : 'Incompleto';
-                        if ($item->proceso === 'Operacion Equipo_1' || $item->proceso === 'Operacion Equipo_2') {
-                            $array[$contador][6] = $error;
-                        } else {
-                            $array[$contador][5] = $error;
-                        }
+                        // Siempre en [5] — [6] se usa para created_at y no debe pisarse
+                        $array[$contador][5] = $error;
                     } else {
                         // Operadores
                         $opH = $usersCache->get($pzaH->id_operador);
                         $opM = $usersCache->get($pzaM->id_operador);
+                        // Si el operador H no está en caché (es de otro operador filtrado), ir a BD
+                        if (!$opH) $opH = User::where('matricula', $pzaH->id_operador)->first();
+                        if (!$opM) $opM = User::where('matricula', $pzaM->id_operador)->first();
                         $nombreH = $opH ? "{$opH->nombre} {$opH->a_paterno} {$opH->a_materno}" : '(desconocido)';
                         $nombreM = $opM ? "{$opM->nombre} {$opM->a_paterno} {$opM->a_materno}" : '(desconocido)';
 
@@ -420,15 +439,20 @@ class PzasGeneralesController extends Controller
                             $array[$contador][2] = $nombreH . ' / ' . $nombreM;
                         }
 
-                        // Errores
-                        $esEquipo = $item->proceso === 'Operacion Equipo_1' || $item->proceso === 'Operacion Equipo_2';
+                        // Errores — siempre en [5], independientemente del tipo de proceso
                         if ($pzaH->error === $pzaM->error) {
-                            $esEquipo ? ($array[$contador][6] = $pzaH->error) : ($array[$contador][5] = $pzaH->error);
+                            $array[$contador][5] = $pzaH->error;
                         } else {
-                            $errorVal = $pzaH->error . ' / ' . $pzaM->error;
-                            $esEquipo ? ($array[$contador][6] = $errorVal) : ($array[$contador][5] = $errorVal);
+                            $array[$contador][5] = $pzaH->error . ' / ' . $pzaM->error;
                         }
+
+                        // Liberación combinada: usar el peor estado entre ambas mitades
+                        // La asignación final se hará en array_push más abajo,
+                        // pero necesitamos que $item->liberacion refleje el estado del juego.
+                        // Guardamos el estado combinado en una variable temporal.
+                        $liberacionCombinada = $this->combinarLiberacion($pzaH->liberacion, $pzaM->liberacion);
                     }
+
                 }
             } else { // Es juego completo (J)
                 $band  = true;
@@ -450,9 +474,9 @@ class PzasGeneralesController extends Controller
                 $array[$contador]['className']   = $className ? $className->nombre : null;
                 $array[$contador]['observacion_liberacion'] = $item->observacion_liberacion;
 
-                // Observaciones del proceso: solo se cargan para PDF (evita ~4700 queries en lista)
                 $array[$contador]['observations'] = '';
                 if ($includeObservations && $className) {
+
                     $id_process    = str_replace(' ', '_', $item->proceso) . '_' . $className->nombre . '_' . $item->id_ot;
                     $processString = str_contains($item->proceso, 'Operacion Equipo') ? 'Operacion Equipo' : $item->proceso;
                     try {
@@ -480,8 +504,12 @@ class PzasGeneralesController extends Controller
                 $array[$contador][7] = $item->fecha_liberacion ?? 'No liberado';
                 $array[$contador][8] = $userLib ? "{$userLib->nombre} {$userLib->a_paterno} {$userLib->a_materno}" : null;
 
-                array_push($array[$contador], $item->liberacion);
+                // Si es un juego de dos mitades con estados diferentes, usar el estado combinado
+                $liberacionFinal = isset($liberacionCombinada) ? $liberacionCombinada : $item->liberacion;
+                array_push($array[$contador], $liberacionFinal);
                 array_push($array[$contador], $mitad ? 'mitad' : 'juego');
+                $liberacionCombinada = null; // Resetear para la siguiente iteración
+
                 $contador++;
             }
         }
@@ -633,12 +661,8 @@ class PzasGeneralesController extends Controller
                 $infoPiezas[$contador][0][0] = $pieza[1] . $id_proceso->id;
             }
 
-            //Guardar el error
-            if (count($pieza) > 11) {
-                $infoPiezas[$contador][2] = $pieza[6];
-            } else {
-                $infoPiezas[$contador][2] = $pieza[5];
-            }
+            // Guardar el error — siempre en [5] ahora que se unificó el layout de índices
+            $infoPiezas[$contador][2] = $pieza[5];
             $contador++;
         }
     }
@@ -1168,6 +1192,26 @@ class PzasGeneralesController extends Controller
             case 4:
                 return substr($pieza, 0, 3);
         }
+    }
+
+    /**
+     * Combina los estados de liberación de dos mitades (H y M) de un juego,
+     * devolviendo el peor estado entre ambas para que el color del juego sea correcto.
+     * Prioridad (mayor = peor): 2(Rechazado) > 4(Mala) > 5(Incompleto) > 0(Sin lib) > 3(Buena) > 1(Liberado)
+     */
+    private function combinarLiberacion($libH, $libM): int
+    {
+        $priority = [
+            2 => 6, // Rechazado       — peor
+            4 => 5, // Mala sin lib
+            5 => 4, // Incompleto
+            0 => 3, // Sin liberación
+            3 => 2, // Buena sin lib
+            1 => 1, // Liberado        — mejor
+        ];
+        $pH = $priority[(int)$libH] ?? 0;
+        $pM = $priority[(int)$libM] ?? 0;
+        return $pH >= $pM ? (int)$libH : (int)$libM;
     }
 
     //Funciones para el control de la vista de piezas por maquina
