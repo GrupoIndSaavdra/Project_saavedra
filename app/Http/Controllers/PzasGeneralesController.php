@@ -181,12 +181,21 @@ class PzasGeneralesController extends Controller
     }
     public function getFiltersInfo()
     {
-        // Pre-carga molduras en 1 query para evitar N+1 dentro de objectToArrayFromDB
-        $molduras = Moldura::all()->keyBy('id');
+        // 1 minuto de cache local: reduce carga en base de datos para la generación de filtros
+        $molduras = \Illuminate\Support\Facades\Cache::remember('molduras_all', 60, function () {
+            return Moldura::all()->keyBy('id');
+        });
+        $orders = \Illuminate\Support\Facades\Cache::remember('ot_all', 60, function () {
+            return Orden_trabajo::all();
+        });
+        $users = \Illuminate\Support\Facades\Cache::remember('users_all', 60, function () {
+            return User::all();
+        });
+
         $filtersData = array(
-            "workOrder" => $this->objectToArrayFromDB(Orden_trabajo::all(), "workOrder", $molduras),
+            "workOrder" => $this->objectToArrayFromDB($orders, "workOrder", $molduras),
             "class" => ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo"],
-            "operator" => $this->objectToArrayFromDB(User::all(), "operator"),
+            "operator" => $this->objectToArrayFromDB($users, "operator"),
             "machine" => [1, 2, 3, 4, 5, 6, 7],
             "process" => ["Cepillado", "Desbaste Exterior", "Revision Laterales", "Primera Operacion", "Barreno Maniobra", "Segunda Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado", "Acabado Bombillo", "Acabado Molde", "Barreno Profundidad", "Cavidades", "Copiado", "Off Set", "Palomas", "Rebajes", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion", "Embudo CM", "Primera Operacion Cabeza Soplo", "Segunda Operacion Cabeza Soplo"],
             "error" => ["Ninguno", "Maquinado", "Fundicion"],
@@ -355,13 +364,11 @@ class PzasGeneralesController extends Controller
     public function saveInArray($arrayP, bool $includeObservations = false)
     {
         // ── OPTIMIZACIÓN: pre-cargar todo en memoria para eliminar N+1 queries ──
-        // 3 queries en total en lugar de N * 6 queries
         $finishedClassIds = Clase::where('finalizada', '!=', 0)->pluck('id')->toArray();
         $usersCache       = User::all()->keyBy('matricula');
         $clasesCache      = Clase::all()->keyBy('id');
 
         // Índice en memoria: '{id_clase}_{proceso}_{numJuego}' → colección de piezas
-        // Permite encontrar la mitad H/M sin ir a BD
         $piezasIndex = collect($arrayP)->groupBy(function ($pza) {
             $num = $this->getPiezaNumber($pza->n_pieza);
             return $pza->id_clase . '_' . $pza->proceso . '_' . $num;
@@ -369,6 +376,47 @@ class PzasGeneralesController extends Controller
 
         // Instanciar controller de proceso una sola vez fuera del loop
         $processController = new ProcessProductionController();
+
+        // ── OPTIMIZACIÓN DE OBSERVACIONES ──
+        $observacionesMap = [];
+        $procesosDBMap = [];
+        if ($includeObservations) {
+            $piezasPorProceso = collect($arrayP)->groupBy('proceso');
+            foreach ($piezasPorProceso as $nombreProceso => $piezasDelProceso) {
+                $processString = str_contains($nombreProceso, 'Operacion Equipo') ? 'Operacion Equipo' : $nombreProceso;
+                try {
+                    $modelClass = $processController->get_ModelProcess($processString); 
+                    $modelPiecesClass = $processController->get_ModelProcessPieces($processString);
+
+                    $idProcesos = [];
+                    foreach ($piezasDelProceso as $pz) {
+                        $clsObj = $clasesCache->get($pz->id_clase);
+                        if ($clsObj) {
+                            $id_process = str_replace(' ', '_', $pz->proceso) . '_' . $clsObj->nombre . '_' . $pz->id_ot;
+                            $idProcesos[] = $id_process;
+                        }
+                    }
+                    $idProcesos = array_unique($idProcesos);
+
+                    $procesosDB = $modelClass::whereIn('id_proceso', $idProcesos)->get()->keyBy('id_proceso');
+                    $procesosDBMap[$nombreProceso] = $procesosDB;
+
+                    $parentDbIds = $procesosDB->pluck('id')->toArray();
+                    if (!empty($parentDbIds)) {
+                        $childPieces = $modelPiecesClass::whereIn('id_proceso', $parentDbIds)->get();
+                        foreach ($childPieces as $cp) {
+                            $key = $cp->id_proceso . '_' . $cp->n_juego;
+                            if (!isset($observacionesMap[$nombreProceso][$key])) {
+                                $observacionesMap[$nombreProceso][$key] = [];
+                            }
+                            if ($cp->observaciones) {
+                                $observacionesMap[$nombreProceso][$key][] = $cp->observaciones;
+                            }
+                        }
+                    }
+                } catch (\Throwable $e) { }
+            }
+        }
 
         $array          = array();
         $juegosGuardados = array();
@@ -476,25 +524,14 @@ class PzasGeneralesController extends Controller
 
                 $array[$contador]['observations'] = '';
                 if ($includeObservations && $className) {
-
-                    $id_process    = str_replace(' ', '_', $item->proceso) . '_' . $className->nombre . '_' . $item->id_ot;
-                    $processString = str_contains($item->proceso, 'Operacion Equipo') ? 'Operacion Equipo' : $item->proceso;
-                    try {
-                        $procesoDB = $processController->get_ModelProcess($processString)::where('id_proceso', $id_process)->first();
-                        if ($procesoDB) {
-                            $pieces = $processController->get_ModelProcessPieces($processString)
-                                ::where('id_proceso', $procesoDB->id)
-                                ->where('n_juego', $numJuego . 'J')
-                                ->get();
-                            foreach ($pieces as $piece) {
-                                if ($piece === $pieces->last() && $array[$contador]['observations'] !== '' && $piece->observaciones !== '') {
-                                    $array[$contador]['observations'] .= ' / ';
-                                }
-                                $array[$contador]['observations'] .= $piece->observaciones;
-                            }
+                    $id_process = str_replace(' ', '_', $item->proceso) . '_' . $className->nombre . '_' . $item->id_ot;
+                    
+                    if (isset($procesosDBMap[$item->proceso][$id_process])) {
+                        $pDbId = $procesosDBMap[$item->proceso][$id_process]->id;
+                        $mapKey = $pDbId . '_' . $numJuego . 'J';
+                        if (isset($observacionesMap[$item->proceso][$mapKey]) && !empty($observacionesMap[$item->proceso][$mapKey])) {
+                            $array[$contador]['observations'] = implode(' / ', $observacionesMap[$item->proceso][$mapKey]);
                         }
-                    } catch (\Throwable $e) {
-                        // Proceso no encontrado, dejar observaciones vacías
                     }
                 }
 
@@ -717,8 +754,23 @@ class PzasGeneralesController extends Controller
         return response()->json(array_values($games));
     }
 
+    /**
+     * @param string $pieces
+     * @param string $process
+     * @param string $profile
+     * @return mixed
+     */
     public function showPiece($pieces, $process, $profile)
     {
+        /** @var array<int, mixed> $pieceInfo */
+        $pieceInfo = array();
+        /** @var string $processName */
+        $processName = '';
+        /** @var mixed $cNominal */
+        $cNominal = null;
+        /** @var mixed $tolerance */
+        $tolerance = null;
+        
         switch ($process) {
             case 'Cepillado':
                 $pieceInfo = array();
@@ -1226,8 +1278,13 @@ class PzasGeneralesController extends Controller
             return view('machines_views.maquinas');
         }
     }
+    /**
+     * @param Request $request
+     * @return mixed
+     */
     public function showMachinesProcess(Request $request)
     {
+        /** @var mixed $ot */
         $ot = Orden_trabajo::find($request->ot);
         $clase = Clase::find($request->clase);
         $procesos = array();

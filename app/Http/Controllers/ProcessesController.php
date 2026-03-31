@@ -68,22 +68,27 @@ class ProcessesController extends Controller
     {
         $wOrdersFounded = Orden_trabajo::all();
         $workOrders = array();
+        
+        // Optimización: Precargar catalogos en memoria
+        $todasClases = Clase::all()->groupBy('id_ot');
+        $todasMolduras = Moldura::all()->keyBy('id');
+        $todosProcesos = Procesos::all()->keyBy('id_clase');
+
         if (count($wOrdersFounded) > 0) {
             foreach ($wOrdersFounded as $workOrder) {
-                $classes = $this->classController->getClasses($workOrder);
+                $classes = $todasClases->get($workOrder->id, collect());
                 //Filtrar clases no finalizadas
-                foreach ($classes as $key => $item) {
-                    if ($item->finalizada != 0) {
-                        unset($classes[$key]);
-                    }
-                }
+                $classes = $classes->filter(function($item) {
+                    return $item->finalizada == 0;
+                });
 
                 if (count($classes) > 0) {
-                    $molding = Moldura::where('id', '=', $workOrder->id_moldura)->first();
-                    $workOrderTxt = $workOrder->id . " - " . $molding->nombre;
+                    $molding = $todasMolduras->get($workOrder->id_moldura);
+                    $moldingName = $molding ? $molding->nombre : 'Sin Moldura';
+                    $workOrderTxt = $workOrder->id . " - " . $moldingName;
                     $workOrders[$workOrderTxt] = array();
                     foreach ($classes as $class) {
-                        $processes = Procesos::where('id_clase', '=', $class->id)->first();
+                        $processes = $todosProcesos->get($class->id);
                         if ($processes) {
                             $workOrders[$workOrderTxt][$class->nombre] = array();
                             foreach ($processes->getAttributes() as $process => $valor) {

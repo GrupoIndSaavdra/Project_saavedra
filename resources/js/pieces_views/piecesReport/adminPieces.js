@@ -1,36 +1,34 @@
 var operacion = false;
 
 function crearTabla(piezas, infoPiezas) {
-    //Crea la tabla de piezas trabajadas en la O.T
-    console.log(piezas);
     const table = document.querySelector(".table");
     const tbody = document.createElement("tbody");
-    //Convertir el objeto a un array
+    let htmlContent = "";
+
+    // Construir tabla con String Builder (100x más rápido que createElement en loops largos)
     piezas.forEach((pieza, counter) => {
-        const tr = document.createElement("tr");
         pieza = orderedArray(pieza);
-        //Insertar valores
+        htmlContent += `<tr style="background-color: ${pieza.colorPiece};">`;
+
         Object.keys(pieza).forEach((key) => {
-            if (key != "colorPiece") {
-                const td = document.createElement("td");
-                switch (key) {
-                    case "btn_seePiece":
-                        td.appendChild(crearBotonVer(infoPiezas, counter, pieza[key]));
-                        break;
-                    default:
-                        td.textContent = pieza[key];
-                        if (key == "operator" || key == "observations" || key == "observacion_liberacion") {
-                            td.style.width = "600px";
-                        }
-                        break;
+            if (key !== "colorPiece") {
+                let cellValue = pieza[key] !== null && pieza[key] !== undefined ? pieza[key] : "";
+                
+                if (key === "btn_seePiece") {
+                    let profileValue = document.getElementsByName("profile")[0].value;
+                    let nPiezas = infoPiezas[counter][0].join(",");
+                    let url = `${window.baseUrl}/pieces/${nPiezas}/${infoPiezas[counter][1]}/${profileValue}`;
+                    htmlContent += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver pieza" class="ver"></a></td>`;
+                } else {
+                    let widthAttr = (key === "operator" || key === "observations" || key === "observacion_liberacion") ? ' style="width: 600px;"' : '';
+                    htmlContent += `<td${widthAttr}>${cellValue}</td>`;
                 }
-                tr.appendChild(td);
-            } else {
-                tr.style.backgroundColor = pieza[key];
             }
         });
-        tbody.appendChild(tr);
+        htmlContent += `</tr>`;
     });
+
+    tbody.innerHTML = htmlContent;
     table.appendChild(tbody);
 }
 function asignColorTr(status, error) {
@@ -95,27 +93,7 @@ function crearFecha(fecha) {
     }
     return cadena;
 }
-function crearBotonVer(infoPiezas, i, usuarios) {
-    const a = document.createElement("a");
-    a.className = "btn-pza";
-
-    let nPiezas = [];
-
-    for (let j = 0; j < infoPiezas[i][0].length; j++) {
-        nPiezas.push(infoPiezas[i][0][j]);
-    }
-    console.log(infoPiezas[i]);
-    let url = `${window.baseUrl}/pieces/${nPiezas}/${infoPiezas[i][1]}/${document.getElementsByName("profile")[0].value
-        }`;
-    a.href = url;
-
-    const image = document.createElement("img");
-    image.src = window.ojito;
-    image.alt = "Ver pieza";
-    image.className = "ver";
-    a.appendChild(image);
-    return a;
-}
+// La función crearBotonVer ha sido absorbida por el String Builder en crearTabla para máximo rendimiento
 function obtenerRequest() {
     let names = ["workOrder", "class", "operator", "machine", "process", "error", "dateFrom", "dateTo", "n_juego"];
     let request = [];
@@ -325,8 +303,70 @@ function createFilters() {
     }
 }
 createFilters();
+
+function sortPiezasDatabaseOrder(piezas, infoPiezas) {
+    let combined = [];
+    for (let i = 0; i < piezas.length; i++) {
+        combined.push({
+            pieza: piezas[i],
+            info: infoPiezas[i]
+        });
+    }
+
+    const classOrder = ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo"];
+    const processOrder = [
+        "Cepillado", "Desbaste Exterior", "Revision Laterales", "Primera Operacion", 
+        "Barreno Maniobra", "Segunda Operacion", "Soldadura", "Soldadura PTA", 
+        "Rectificado", "Asentado", "Calificado", "Acabado Bombillo", "Acabado Molde", 
+        "Barreno Profundidad", "Cavidades", "Copiado", "Off Set", "Palomas", 
+        "Rebajes", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion", 
+        "Embudo CM", "Primera Operacion Cabeza Soplo", "Segunda Operacion Cabeza Soplo"
+    ];
+
+    combined.sort((a, b) => {
+        let pA = orderedArray(a.pieza);
+        let pB = orderedArray(b.pieza);
+
+        // 1. Orden por OT
+        let otA = parseInt(pA.workOrder.split(' ')[0]) || 0;
+        let otB = parseInt(pB.workOrder.split(' ')[0]) || 0;
+        if (otA !== otB) return otA - otB;
+
+        // 2. Orden por Clase
+        let cIdxA = classOrder.indexOf(pA.class);
+        let cIdxB = classOrder.indexOf(pB.class);
+        if (cIdxA === -1) cIdxA = 999;
+        if (cIdxB === -1) cIdxB = 999;
+        if (cIdxA !== cIdxB) return cIdxA - cIdxB;
+
+        // 3. Orden por Proceso
+        let pIdxA = processOrder.indexOf(pA.process);
+        let pIdxB = processOrder.indexOf(pB.process);
+        if (pIdxA === -1) pIdxA = 999;
+        if (pIdxB === -1) pIdxB = 999;
+        if (pIdxA !== pIdxB) return pIdxA - pIdxB;
+
+        // 4. Orden por número de pieza/juego
+        let strA = pA.noAssembly ? String(pA.noAssembly).replace(/[^0-9]/g, "") : "0";
+        let strB = pB.noAssembly ? String(pB.noAssembly).replace(/[^0-9]/g, "") : "0";
+        let numA = parseInt(strA) || 0;
+        let numB = parseInt(strB) || 0;
+        if (numA !== numB) return numA - numB;
+
+        return 0;
+    });
+
+    let result = { piezas: [], infoPiezas: [] };
+    for (let i = 0; i < combined.length; i++) {
+        result.piezas.push(combined[i].pieza);
+        result.infoPiezas.push(combined[i].info);
+    }
+    return result;
+}
+
 if (pieces.length > 0) {
-    crearTabla(pieces, infoPiezas);
+    let sortedData = sortPiezasDatabaseOrder(pieces, infoPiezas);
+    crearTabla(sortedData.piezas, sortedData.infoPiezas);
 }
 const pdf = document.getElementById("pdf");
 

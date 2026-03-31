@@ -106,7 +106,8 @@ class LiberarQRPlantaController extends Controller
     public function indexRecepcion()
     {
         $almacenistas = User::where('perfil', '5')->get(); // Perfil 5 = Almacén
-        $botesEnPlanta = SoldaduraBote::where('estado', 'en_planta')->count();
+        $botesDisponibles = SoldaduraBote::where('estado', 'en_planta')->get();
+        $botesEnPlanta = $botesDisponibles->count();
         $currentUser = auth()->user(); // Usuario autenticado actual
 
         return view('trackingSoldadura_views.recepcionPlanta', compact('almacenistas', 'botesEnPlanta', 'currentUser'));
@@ -195,12 +196,14 @@ class LiberarQRPlantaController extends Controller
 
     public function index()
     {
-        $operadores = User::where('perfil', '2')->get(); // Perfil 2 = Operadores de planta
-        $almacenistas = User::where('perfil', '5')->get(); // Perfil 5 = Almacén
-        $botesEnPlanta = SoldaduraBote::where('estado', 'en_planta')->count();
+        $usuarios = User::whereIn('perfil', ['2', '5'])->get()->groupBy('perfil');
+        $operadores = $usuarios->get('2', collect());
+        $almacenistas = $usuarios->get('5', collect());
+
         $botesDisponibles = SoldaduraBote::where('estado', 'en_planta')
             ->with('lote')
             ->get();
+        $botesEnPlanta = $botesDisponibles->count();
         $currentUser = auth()->user(); // Usuario autenticado actual
 
         return view('trackingSoldadura_views.liberarQRPlanta', compact('operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles', 'currentUser'));
@@ -240,12 +243,14 @@ class LiberarQRPlantaController extends Controller
                 return back()->withErrors(['qr_content' => 'Este bote no está disponible para liberación. Estado actual: ' . $bote->estado]);
             }
 
-            $operadores = User::where('perfil', '2')->get();
-            $almacenistas = User::where('perfil', '5')->get();
-            $botesEnPlanta = SoldaduraBote::where('estado', 'en_planta')->count();
+            $usuarios = User::whereIn('perfil', ['2', '5'])->get()->groupBy('perfil');
+            $operadores = $usuarios->get('2', collect());
+            $almacenistas = $usuarios->get('5', collect());
+
             $botesDisponibles = SoldaduraBote::where('estado', 'en_planta')
                 ->with('lote')
                 ->get();
+            $botesEnPlanta = $botesDisponibles->count();
             $currentUser = auth()->user(); // Usuario autenticado actual
 
             return view('trackingSoldadura_views.liberarQRPlanta', compact('bote', 'operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles', 'currentUser'));

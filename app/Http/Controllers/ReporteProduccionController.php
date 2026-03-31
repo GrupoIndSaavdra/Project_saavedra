@@ -193,9 +193,12 @@ class ReporteProduccionController extends Controller
     /**
      * Agrupa piezas en: OT → Clase → Proceso → [ filas de operadores ]
      * Idéntica a la lógica del Command (reutilizable desde ambos lugares).
+     * @param \Illuminate\Support\Collection $piezas
+     * @return array<string, mixed>
      */
     private function agruparJerarquicamente($piezas): array
     {
+        /** @var array<string, mixed> $reporteFinal */
         $reporteFinal = [];
         $agrupacion = [];
         $totales = [];
@@ -215,24 +218,33 @@ class ReporteProduccionController extends Controller
             }
         }
 
+        // --- Optimización: Bulk Eager Load ---
+        $matIds = $piezas->pluck('id_operador')->unique();
+        $otIds = $piezas->pluck('id_ot')->unique();
+        $claseIds = $piezas->pluck('id_clase')->unique();
+
+        $usuariosPrecargados = User::whereIn('matricula', $matIds)->get()->keyBy('matricula');
+        $otsPrecargadas = Orden_trabajo::with('moldura')->whereIn('id', $otIds)->get()->keyBy('id');
+        $clasesPrecargadas = Clase::whereIn('id', $claseIds)->get()->keyBy('id');
+
         foreach ($piezas as $pieza) {
             $mat = $pieza->id_operador;
             if (!isset($usuariosMap[$mat])) {
-                $u = User::where('matricula', $mat)->first();
+                $u = $usuariosPrecargados->get($mat);
                 $usuariosMap[$mat] = $u ? trim("{$u->nombre} {$u->a_paterno} {$u->a_materno}") : "Op #{$mat}";
             }
             $operador = $usuariosMap[$mat];
 
             $otId = $pieza->id_ot;
             if (!isset($moldurasMap[$otId])) {
-                $ot = Orden_trabajo::find($otId);
-                $mn = $ot ? optional(Moldura::find($ot->id_moldura))->nombre ?? '—' : '—';
+                $ot = $otsPrecargadas->get($otId);
+                $mn = $ot && $ot->moldura ? $ot->moldura->nombre : '—';
                 $moldurasMap[$otId] = "OT #{$otId} — {$mn}";
             }
 
             $claseId = $pieza->id_clase;
             if (!isset($clasesMap[$claseId])) {
-                $cls = Clase::find($claseId);
+                $cls = $clasesPrecargadas->get($claseId);
                 $clasesMap[$claseId] = ['label' => $cls ? trim($cls->nombre . ' ' . $cls->tamanio) : "Clase #{$claseId}", 'nombre' => $cls->nombre ?? ''];
             }
 

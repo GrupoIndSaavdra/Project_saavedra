@@ -551,8 +551,8 @@ class PzasLiberadasController extends Controller
             return [[], []];
         }
 
-        // Construir array procesado usando saveInArray sin observaciones (0 queries de procesos)
-        $pieces = $this->controladorPzas->saveInArray($piezasRaw, false);
+        // Construir array procesado usando saveInArray (observaciones optimizadas con eager loading)
+        $pieces = $this->controladorPzas->saveInArray($piezasRaw, true);
 
         // Filtrar juegos incompletos
         foreach ($pieces as $key => $piece) {

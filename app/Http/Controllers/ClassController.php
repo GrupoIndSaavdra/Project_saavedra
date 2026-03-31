@@ -27,10 +27,13 @@ class ClassController extends Controller
     }
     public function getClassProcesses($classes)
     {
-        if ($classes != null) {
+        if ($classes != null && count($classes) > 0) {
             $processes = [];
+            $classIds = $classes->pluck('id')->toArray();
+            $procesosCache = Procesos::whereIn('id_clase', $classIds)->get()->keyBy('id_clase');
+
             foreach ($classes as $class) {
-                $process = Procesos::where('id_clase', $class->id)->first();
+                $process = $procesosCache->get($class->id);
                 if ($process) {
                     // Obtener los campos donde el valor es igual a 1
                     foreach ($process->getAttributes() as $campo => $valor) { //Se recorren los campos del registro.
@@ -229,8 +232,8 @@ class ClassController extends Controller
             if (auth()->user()->perfil == 5) {
                 //Asignar los procesos a la clase
                 $noProcess = 0;
+                $processFounded = Procesos::where('id_clase', $class->id)->first();
                 for ($i = 0; $i < count($processNames); $i++) {
-                    $processFounded = Procesos::where('id_clase', $class->id)->first();
                     if ($processFounded) {
                         //Crear el registro de la fecha de inicio del proceso
                         $string = $processNames[$i]; //Asigno el nombre del proceso.

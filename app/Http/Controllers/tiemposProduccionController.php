@@ -28,13 +28,15 @@ class tiemposProduccionController extends Controller
         $wOrdersFounded = Orden_trabajo::all();
         $workOrders = array();
         if (count($wOrdersFounded) > 0) {
+            $allTiempos = tiempoproduccion::all()->groupBy('id_clase'); // Optimizacion: precargar todos los tiempos
+
             foreach ($wOrdersFounded as $workOrder) {
                 $classes = $this->classController->getClasses($workOrder);
                 if (count($classes) > 0) {
                     $workOrders[$workOrder->id] = array();
                     foreach ($classes as $class) {
                         $workOrders[$workOrder->id][$class->nombre] = array();
-                        $tiemposProduccion = tiempoproduccion::where('id_clase', $class->id)->get();
+                        $tiemposProduccion = $allTiempos->get($class->id, collect()); // Buscar en memoria
                         if ($tiemposProduccion->count() > 0) {
                             foreach ($tiemposProduccion as $tiempo) {
                                 // Inicializar el array si no existe
@@ -138,13 +140,18 @@ class tiemposProduccionController extends Controller
     }
     public function store(Request $request)
     {
-        $productionTimes = $this->getProductionTimes(Clase::where('nombre', $request->input('class'))->where("id_ot", $request->input('workOrder'))->first());
+        $classObj = Clase::where('nombre', $request->input('class'))->where("id_ot", $request->input('workOrder'))->first();
+        if (!$classObj) return redirect()->back()->with('error', 'Clase no encontrada.');
+        
+        $productionTimes = $this->getProductionTimes($classObj);
+        $tiemposClase = tiempoproduccion::where('id_clase', $classObj->id)->get()->keyBy('proceso'); // Pre-cargar tiempos
+
         foreach ($request->all() as $key => $value) {
             if ($key == '_token' || $key == "class" || $key == "workOrder") {
                 continue;
             }
-            $class = Clase::where('nombre', $request->input('class'))->where("id_ot", $request->input('workOrder'))->first();
-            $tiempo = tiempoproduccion::where('id_clase', $class->id)->where('proceso', $key)->first();
+            $class = $classObj; // Se usa el cargado fuera del loop
+            $tiempo = $tiemposClase->get($key);
 
             $processName = $this->get_processNormalName($key);
             if ($tiempo) {
@@ -276,11 +283,14 @@ class tiemposProduccionController extends Controller
     public function updateMetas()
     {
         $metas = Metas::all();
+        $allTiemposDeClases = tiempoproduccion::all()->groupBy('id_clase'); // Pre-cargar todos los tiempos
+
         if ($metas->count() > 0) {
             foreach ($metas as $meta) {
                 //Asignar tiempo estándar
                 $processName = $this->get_processName($meta->proceso);
-                $tiempo = tiempoproduccion::where('id_clase', $meta->id_clase)->where('proceso', $processName)->first();
+                $tiemposClase = $allTiemposDeClases->get($meta->id_clase, collect());
+                $tiempo = $tiemposClase->firstWhere('proceso', $processName);
                 $meta->t_estandar = $tiempo->tiempo ?? 0;
 
                 //Calcular las horas de trabajo de cada operador

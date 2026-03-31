@@ -30,13 +30,17 @@ class EmbudoCMController extends Controller
         $ot = Orden_trabajo::all(); //Obtención de todas las ordenes de trabajo.
         if (count($ot) != 0) {
             $oTrabajo = array(); //Declara arreglo para guardar las ordenes de trabajo disponibles en  SoldaduraPTA
+            
+            $todasClases = Clase::all()->groupBy('id_ot');
+            $todosProcesos = Procesos::all()->keyBy('id_clase');
+
             //Recorre todas las ordenes de trabajo.
-            foreach ($ot as $ot) {
+            foreach ($ot as $orden) {
                 $contador = 0; //Contador para verificar que existan clases que pasaran por  SoldaduraPTA
-                $clases = Clase::where('id_ot', $ot->id)->get();
+                $clases = $todasClases->get($orden->id, []);
                 //Recorre todas las clases registradas en la orden de trabajo.
                 foreach ($clases as $clase) {
-                    $proceso = Procesos::where('id_clase', $clase->id)->first(); //Obtención del proceso de la clase.
+                    $proceso = $todosProcesos->get($clase->id); //Obtención del proceso de la clase.
                     if ($proceso) {
                         if ($proceso->embudoCM) { //Si existen maquinas en  SoldaduraPTA de esa clase, se almacena en el arreglo que se pasara a la vista
                             $contador++;
@@ -45,7 +49,7 @@ class EmbudoCMController extends Controller
                 }
                 //Si hay clases que pasaran por Barreno maniobra, se almacena la orden de trabajo en el arreglo.
                 if ($contador != 0) {
-                    array_push($oTrabajo, $ot);
+                    array_push($oTrabajo, $orden);
                 }
             }
             //Si hay clases que pasaran por Primera operación soldadura, se almacena la orden de trabajo en el arreglo.
@@ -343,14 +347,6 @@ class EmbudoCMController extends Controller
             $pzasOpeEquipo1 = PySOpeSoldadura_pza::where('id_proceso', $id_opeEquipo1->id)->where('estado', 2)->get();
             $pzasRestantes = $this->piezasRestantes($clase, $pzasEmbudoCM, $pzasOpeEquipo1, $id_opeEquipo2->id, 'Operacion equipo');
         }
-        $procesos = Procesos::where('id_clase', $clase->id)->first();
-        $pzasembudoCM = EmbudoCM_pza::where('id_proceso', $id_proceso->id)->where('estado', 2)->get();
-        if ($procesos->operacionEquipo != 0) {
-            $id_opeEquipo1 = PySOpeSoldadura::where('id_proceso', '1y2opeSoldadura_' . $clase->nombre . '_' . $clase->id_ot . '_1')->first();
-            $id_opeEquipo2 = PySOpeSoldadura::where('id_proceso', '1y2opeSoldadura_' . $clase->nombre . '_' . $clase->id_ot . '_2')->first();
-            $pzasOpeEquipo1 = PySOpeSoldadura_pza::where('id_proceso', $id_opeEquipo1->id)->where('estado', 2)->get();
-            $pzasRestantes = $this->piezasRestantes($clase, $pzasembudoCM, $pzasOpeEquipo1, $id_opeEquipo2->id, 'Operacion equipo');
-        }
 
         if (isset($request->n_pieza)) { //Si se obtienen los datos de las piezas, se guardan en la tabla SoldaduraPTA_cnominal.
             for ($i = 0; $i < count($request->n_pieza); $i++) {
@@ -440,9 +436,9 @@ class EmbudoCMController extends Controller
             }
         } else {
             if (isset($request->password)) { //Si se ingreso una contraseña y la meta existe entonces...
-                $usersPasswords = User::all(); //Obtengo todas las contraseñas.
+                $usersPasswords = User::where('perfil', 1)->get(); //Obtengo todas las contraseñas de admin.
                 foreach ($usersPasswords as $userPassword) { //Recorro las contraseñas.
-                    if (Hash::check($request->password, $userPassword->contrasena) && $userPassword->perfil == 1) {  //Si la contraseña es correcta.
+                    if (Hash::check($request->password, $userPassword->contrasena)) {  //Si la contraseña es correcta.
                         return view('processes.embudoCM', ['band' => 4, 'moldura' => $moldura->nombre, 'ot' => $ot, 'meta' => $meta, 'clase' => $clase, 'nPiezas' => $pzasCreadas, 'pzasRestantes' => $pzasRestantes, 'cNominal' => $cNominal, 'tolerancia' => $tolerancia]); //Retorno la vista de cepillado.
                     }
                 }
