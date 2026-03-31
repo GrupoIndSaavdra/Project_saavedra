@@ -68,6 +68,11 @@ function asignColorTr(status, error) {
     }
 }
 function orderedArray(array) {
+    // Estructura del backend PHP (saveInArray):
+    //  [0] id_ot  [1] n_pieza  [2] operador  [3] maquina  [4] proceso
+    //  [5] error  [6] created_at  [7] fecha_liberacion  [8] user_liberacion
+    //  [9] liberacion (push)  [10] 'mitad'|'juego' (push)
+    //  .observations  .observacion_liberacion  .className  .id_clase
     return {
         class: array["className"],
         workOrder: array[0],
@@ -76,15 +81,15 @@ function orderedArray(array) {
         machine: array[3],
         process: array[4],
         errors: array[5],
-        observations: array.observations,
+        observations: array.observations ?? "",
         machinedDate: array[6],
         liberationDate: array[7],
         user_liberation: array[8],
-        observacion_liberacion: array.observacion_liberacion,
-        btn_release: [array[9], array[5]],
+        observacion_liberacion: array.observacion_liberacion ?? "",
+        btn_release: [array[9], array[5] ?? ""],
         btn_decline: array[9],
         btn_seePiece: array[2],
-        colorPiece: asignColorTr(array[9], array[5]),
+        colorPiece: asignColorTr(array[9], array[5] ?? ""),
     };
 }
 function crearFecha(fecha) {
