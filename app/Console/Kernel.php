@@ -24,7 +24,7 @@ class Kernel extends ConsoleKernel
 
         // ── Reporte Diario de Producción — 23:59 todos los días ────────
         $schedule->command('reporte:enviar-diario')
-            ->dailyAt('00:00')
+            ->dailyAt('23:59')
             ->withoutOverlapping()       // evita ejecuciones duplicadas
             ->appendOutputTo(storage_path('logs/reporte_diario.log'));
 
