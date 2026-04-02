@@ -10,7 +10,7 @@
         window.back = "{{ asset('images/img-back.png') }}";
         window.baseUrl = "{{ url('/') }}";
     </script>
-    @vite(['resources/js/pieces_views/releasePieces/releasePieces.js', 'resources/css/pieces_views/piecesReport/adminPieces.css'])
+    @vite(['resources/js/pieces_views/releasePieces/releasePieces.js', 'resources/css/pieces_views/releasePieces/releasePieces_view.css'])
 @endsection
 
 @section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')

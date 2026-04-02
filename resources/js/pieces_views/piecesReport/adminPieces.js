@@ -3,33 +3,66 @@ var operacion = false;
 function crearTabla(piezas, infoPiezas) {
     const table = document.querySelector(".table");
     const tbody = document.createElement("tbody");
-    let htmlContent = "";
-
-    // Construir tabla con String Builder (100x más rápido que createElement en loops largos)
-    piezas.forEach((pieza, counter) => {
-        pieza = orderedArray(pieza);
-        htmlContent += `<tr style="background-color: ${pieza.colorPiece};">`;
-
-        Object.keys(pieza).forEach((key) => {
-            if (key !== "colorPiece") {
-                let cellValue = pieza[key] !== null && pieza[key] !== undefined ? pieza[key] : "";
-                
-                if (key === "btn_seePiece") {
-                    let profileValue = document.getElementsByName("profile")[0].value;
-                    let nPiezas = infoPiezas[counter][0].join(",");
-                    let url = `${window.baseUrl}/pieces/${nPiezas}/${infoPiezas[counter][1]}/${profileValue}`;
-                    htmlContent += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver pieza" class="ver"></a></td>`;
-                } else {
-                    let widthAttr = (key === "operator" || key === "observations" || key === "observacion_liberacion") ? ' style="width: 600px;"' : '';
-                    htmlContent += `<td${widthAttr}>${cellValue}</td>`;
-                }
-            }
-        });
-        htmlContent += `</tr>`;
-    });
-
-    tbody.innerHTML = htmlContent;
     table.appendChild(tbody);
+    
+    const CHUNK_SIZE = 500;
+    let index = 0;
+    const esc = (v) => v ? String(v).replace(/"/g, '&quot;').replace(/>/g, '&gt;').replace(/</g, '&lt;') : '';
+
+    function renderNextChunk() {
+        let chunkHtml = "";
+        const limit = Math.min(index + CHUNK_SIZE, piezas.length);
+
+        for (; index < limit; index++) {
+            let piezaOG = piezas[index];
+            let infoP = infoPiezas[index];
+            let pieza = orderedArray(piezaOG);
+            
+            chunkHtml += `<tr style="background-color: ${pieza.colorPiece};"
+                data-color="${esc(pieza.colorPiece).toUpperCase()}"
+                data-workorder="${esc(pieza.workOrder)}"
+                data-class="${esc(pieza.class)}"
+                data-operator="${esc(pieza.operator)}"
+                data-machine="${esc(pieza.machine)}"
+                data-process="${esc(pieza.process)}"
+                data-error="${esc(pieza.errors)}"
+                data-date="${esc(pieza.machinedDate)}"
+                data-njuego="${esc(pieza.noAssembly)}"
+            >`;
+
+            Object.keys(pieza).forEach((key) => {
+                if (key !== "colorPiece") {
+                    let cellValue = pieza[key] !== null && pieza[key] !== undefined ? pieza[key] : "";
+
+                    if (key === "btn_seePiece") {
+                        let profileValue = document.getElementsByName("profile")[0].value;
+                        let nPiezas = infoP[0].join(",");
+                        let url = `${window.baseUrl}/pieces/${nPiezas}/${infoP[1]}/${profileValue}`;
+                        chunkHtml += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver pieza" class="ver"></a></td>`;
+                    } else {
+                        let widthAttr = (key === "operator" || key === "observations" || key === "observacion_liberacion") ? ' style="width: 600px;"' : '';
+                        chunkHtml += `<td${widthAttr}>${cellValue}</td>`;
+                    }
+                }
+            });
+            chunkHtml += `</tr>`;
+        }
+
+        tbody.innerHTML += chunkHtml;
+
+        if (index < piezas.length) {
+            // Renderizar siguiente bloque en el próximo ciclo libre
+            requestAnimationFrame(renderNextChunk);
+        } else {
+            // Terminó de cargar todo: aplicar filtros iniciales si existen
+            applyAllFilters();
+            // Quitar gif de carga si existe
+            const loading = document.querySelector('.loading');
+            if(loading) loading.style.display = 'none';
+        }
+    }
+
+    renderNextChunk();
 }
 function asignColorTr(status, error) {
     switch (status) {
@@ -229,6 +262,10 @@ function createFilters() {
             label.textContent = titles[item] + ": ";
             div.appendChild(label);
             document.querySelector(".filters").appendChild(div);
+
+            if (item === "error") {
+                createStatusFilterUI();
+            }
         }
     });
 
@@ -275,64 +312,298 @@ function createFilters() {
     setupGameFilterLogic();
 
     if (Object.keys(window.selectedItems).length > 0) {
-        let button = document.createElement("button");
-        button.textContent = "Buscar";
-        button.className = "btns btn-search";
-        button.type = "submit";
-        button.name = "action";
-        button.value = "search";
-        button.textContent = "Buscar";
-
-        //Agregar div de cargando
-        button.addEventListener("click", () => {
-            let div_opacity = document.createElement("div");
-            div_opacity.className = "div-opacity";
-            document.body.appendChild(div_opacity);
-
-            let divLoading = document.createElement("div");
-            divLoading.className = "loading";
-            //Insertar video de cargando
-            let imgLoading = document.createElement("img");
-            imgLoading.className = "img-loading";
-            imgLoading.src = window.loading;
-            imgLoading.alt = "Cargando...";
-            divLoading.appendChild(imgLoading);
-            document.body.appendChild(divLoading);
+        document.querySelectorAll(".input-filter, .select-filter").forEach(el => {
+            el.addEventListener("change", applyAllFilters);
         });
-        document.querySelector(".filters").appendChild(button);
+
+        // ============================================
+        // NUEVO BOTÓN: Limpiar Filtros
+        // ============================================
+        let btnClear = document.createElement("button");
+        btnClear.id = "btnClearFilters";
+        btnClear.textContent = "Limpiar Filtros";
+        btnClear.className = "btns btn-clear-filters";
+        btnClear.type = "button";
+        
+        const styleEnabled = () => {
+            btnClear.style.cssText = `
+                margin-left: 10px;
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: bold;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.6);
+                transition: all 0.3s ease;
+                opacity: 1;
+            `;
+        };
+
+        const styleDisabled = () => {
+            btnClear.style.cssText = `
+                margin-left: 10px;
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 4px;
+                cursor: not-allowed;
+                font-weight: bold;
+                box-shadow: none;
+                transition: all 0.3s ease;
+                opacity: 0.4;
+            `;
+        };
+
+        styleDisabled(); // Inicialmente deshabilitado si no hay filtros
+
+        btnClear.addEventListener("mouseenter", () => {
+            if (!btnClear.disabled) {
+                btnClear.style.backgroundColor = "#28a745";
+                btnClear.style.transform = "scale(1.03)";
+            }
+        });
+
+        btnClear.addEventListener("mouseleave", () => {
+            if (!btnClear.disabled) {
+                btnClear.style.backgroundColor = "#6c757d";
+                btnClear.style.transform = "scale(1)";
+            }
+        });
+
+        btnClear.addEventListener("click", () => {
+            if (btnClear.disabled) return;
+            document.querySelectorAll(".select-filter").forEach(select => {
+                select.value = "Todos";
+                select.dispatchEvent(new Event('change'));
+            });
+            document.querySelectorAll(".input-filter").forEach(input => {
+                input.value = "";
+            });
+            
+            let statusSel = document.getElementById("statusPieceFilter");
+            if (statusSel) {
+                statusSel.value = "Todos";
+                statusSel.dispatchEvent(new Event('change'));
+                sessionStorage.setItem("currentStatusFilter", "Todos");
+            }
+
+            applyAllFilters();
+        });
+
+        document.querySelector(".filters").appendChild(btnClear);
+
+        // Función para actualizar el estado del botón
+        window.updateClearButtonState = () => {
+            let hasFilters = false;
+            document.querySelectorAll(".select-filter").forEach(s => {
+                if (s.value !== "Todos") hasFilters = true;
+            });
+            document.querySelectorAll(".input-filter").forEach(i => {
+                if (i.value !== "") hasFilters = true;
+            });
+
+            if (hasFilters) {
+                btnClear.disabled = false;
+                styleEnabled();
+            } else {
+                btnClear.disabled = true;
+                styleDisabled();
+            }
+        };
     }
+}
+function createStatusFilterUI() {
+    let divStatus = document.createElement("div");
+    divStatus.className = "filter";
+
+    let selectStatus = document.createElement("select");
+    selectStatus.className = "select-filter";
+    selectStatus.id = "statusPieceFilter";
+
+    const statuses = [
+        { value: "Todos", text: "Todos" },
+        { value: "#79BFED", text: "Liberadas" },
+        { value: "#FF6B6B", text: "Rechazadas" },
+        { value: "#90EE90", text: "Buenas sin liberación" },
+        { value: "#DDA0DD", text: "Malas sin liberación" },
+        { value: "#FFD700", text: "Incompletas" }
+    ];
+
+    let savedStatus = sessionStorage.getItem("currentStatusFilter") || "Todos";
+
+    statuses.forEach(s => {
+        let opt = document.createElement("option");
+        opt.value = s.value;
+        opt.textContent = s.text;
+        if (s.value !== "Todos") {
+            opt.style.backgroundColor = s.value;
+            opt.style.color = (s.value === "#FFD700" || s.value === "#90EE90") ? "#000" : "#FFF";
+        }
+        if (s.value === savedStatus) opt.selected = true;
+        selectStatus.appendChild(opt);
+    });
+
+    selectStatus.addEventListener("change", function () {
+        sessionStorage.setItem("currentStatusFilter", this.value);
+        applyAllFilters();
+    });
+
+    divStatus.appendChild(selectStatus);
+
+    let labelStatus = document.createElement("label");
+    labelStatus.textContent = "Estado: ";
+    divStatus.appendChild(labelStatus);
+
+    let filtersContainer = document.querySelector(".filters");
+    if (filtersContainer) filtersContainer.appendChild(divStatus);
 }
 createFilters();
 
-function sortPiezasDatabaseOrder(piezas, infoPiezas) {
-    let combined = [];
-    for (let i = 0; i < piezas.length; i++) {
-        combined.push({
-            pieza: piezas[i],
-            info: infoPiezas[i]
-        });
+function applyAllFilters() {
+    let visibleCount = 0;
+    const getVal = (name) => {
+        let el = document.querySelector(`[name="${name}"]`);
+        if (!el) return "Todos";
+        if (name === "operator") {
+            return el.options[el.selectedIndex].textContent.trim();
+        }
+        return el.value.trim();
+    };
+
+    let statusFilterEl = document.getElementById("statusPieceFilter");
+    let statusFilter = statusFilterEl ? statusFilterEl.value : "Todos";
+
+    let f = {
+        workOrder: getVal("workOrder"),
+        class: getVal("class"),
+        operator: getVal("operator"),
+        machine: getVal("machine"),
+        process: getVal("process"),
+        error: getVal("error"),
+        dateFrom: getVal("dateFrom"),
+        dateTo: getVal("dateTo"),
+        n_juego: getVal("n_juego")
+    };
+
+    const rows = document.querySelectorAll(".table tbody tr");
+    rows.forEach(row => {
+        let show = true;
+        let ds = row.dataset;
+
+        if (f.workOrder && f.workOrder !== "Todos") {
+            let dsWo = String(ds.workorder).trim().toLowerCase();
+            let fWo = String(f.workOrder).trim().toLowerCase();
+            let dsId = dsWo.split(' ')[0].split('-')[0].trim();
+            let fId = fWo.split(' ')[0].split('-')[0].trim();
+            if (dsWo !== fWo && dsId !== fId) show = false;
+        }
+        if (f.class && f.class !== "Todos" && String(ds.class).trim() !== f.class) show = false;
+        if (f.operator && f.operator !== "Todos" && String(ds.operator).trim() !== f.operator) show = false;
+
+        if (f.machine && f.machine !== "Todos") {
+            let mach = f.machine.replace(" y ", "_");
+            let strMach = String(ds.machine).trim();
+            if (strMach !== f.machine && strMach !== mach) show = false;
+        }
+
+        if (f.process && f.process !== "Todos" && String(ds.process).trim() !== f.process) show = false;
+
+        if (f.error && f.error !== "Todos") {
+            let err = typeof ds.error === "string" && ds.error.trim() !== "" ? ds.error : "Ninguno";
+            if (f.error === "Ninguno") {
+                if (err.toLowerCase() !== "ninguno" && err !== "") show = false;
+            } else {
+                if (!err.toLowerCase().includes(f.error.toLowerCase())) show = false;
+            }
+        }
+
+        if (f.n_juego && f.n_juego !== "Todos" && ds.njuego) {
+            let numPiece = String(ds.njuego).replace(/[^0-9]/g, "");
+            let numFilter = String(f.n_juego).replace(/[^0-9]/g, "");
+            if (numPiece !== numFilter && String(ds.njuego).trim() !== f.n_juego) show = false;
+        }
+
+        if (statusFilter !== "Todos" && ds.color) {
+            if (ds.color !== statusFilter.toUpperCase()) show = false;
+        }
+
+        if (ds.date && ds.date !== "No liberado" && ds.date.trim() !== "") {
+            let dsDate = ds.date.replace(/\n/g, "").trim().split(" ")[0];
+            if (f.dateFrom && f.dateFrom !== "") {
+                if (dsDate < f.dateFrom) show = false;
+            }
+            if (f.dateTo && f.dateTo !== "") {
+                if (dsDate > f.dateTo) show = false;
+            }
+        }
+
+        row.style.display = show ? "" : "none";
+        if (show) visibleCount++;
+    });
+
+    let totalLabel = document.querySelector(".total-records-found");
+    if (totalLabel) {
+        totalLabel.textContent = `Registros encontrados: ${visibleCount}`;
+
+        // Agregar o actualizar nota explicativa debajo del contador
+        let explanation = document.querySelector(".filter-explanation");
+        if (!explanation) {
+            explanation = document.createElement("div");
+            explanation.className = "filter-explanation";
+            explanation.style.cssText = "font-size: 0.85rem; color: #555; margin-top: 5px; font-style: italic;";
+            explanation.textContent = "Nota: Los filtros se aplican en tiempo real de forma acumulativa (puedes combinar múltiples criterios).";
+            totalLabel.insertAdjacentElement("afterend", explanation);
+        }
+
+        // Agregar o actualizar mensaje de 'No hay datos'
+        let noDataMsg = document.getElementById("no-data-alert");
+        if (visibleCount === 0) {
+            if (!noDataMsg) {
+                noDataMsg = document.createElement("div");
+                noDataMsg.id = "no-data-alert";
+                noDataMsg.style.cssText = "background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-top: 20px; text-align: center; font-weight: bold; border: 1px solid #f5c6cb;";
+                noDataMsg.textContent = "No hay datos para ese filtro aplicado.";
+                explanation.insertAdjacentElement("afterend", noDataMsg);
+            }
+        } else {
+            if (noDataMsg) noDataMsg.remove();
+        }
     }
+
+    if (window.updateClearButtonState) window.updateClearButtonState();
+}
+
+function sortPiezasDatabaseOrder(piezas, infoPiezas) {
+    // 1. Pre-mapear todas las piezas primero para evitar miles de llamadas redundantes a orderedArray
+    let mapped = piezas.map((p, i) => ({
+        original: p,
+        info: infoPiezas[i],
+        ordered: orderedArray(p)
+    }));
 
     const classOrder = ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo"];
     const processOrder = [
-        "Cepillado", "Desbaste Exterior", "Revision Laterales", "Primera Operacion", 
-        "Barreno Maniobra", "Segunda Operacion", "Soldadura", "Soldadura PTA", 
-        "Rectificado", "Asentado", "Calificado", "Acabado Bombillo", "Acabado Molde", 
-        "Barreno Profundidad", "Cavidades", "Copiado", "Off Set", "Palomas", 
-        "Rebajes", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion", 
+        "Cepillado", "Desbaste Exterior", "Revision Laterales", "Primera Operacion",
+        "Barreno Maniobra", "Segunda Operacion", "Soldadura", "Soldadura PTA",
+        "Rectificado", "Asentado", "Calificado", "Acabado Bombillo", "Acabado Molde",
+        "Barreno Profundidad", "Cavidades", "Copiado", "Off Set", "Palomas",
+        "Rebajes", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion",
         "Embudo CM", "Primera Operacion Cabeza Soplo", "Segunda Operacion Cabeza Soplo"
     ];
 
-    combined.sort((a, b) => {
-        let pA = orderedArray(a.pieza);
-        let pB = orderedArray(b.pieza);
+    mapped.sort((a, b) => {
+        let pA = a.ordered;
+        let pB = b.ordered;
 
-        // 1. Orden por OT
-        let otA = parseInt(pA.workOrder.split(' ')[0]) || 0;
-        let otB = parseInt(pB.workOrder.split(' ')[0]) || 0;
+        // 1. Orden por OT (Numérico)
+        let otA = parseInt(pA.workOrder) || 0;
+        let otB = parseInt(pB.workOrder) || 0;
         if (otA !== otB) return otA - otB;
 
-        // 2. Orden por Clase
+        // 2. Orden por Clase (según el arreglo pre-definido)
         let cIdxA = classOrder.indexOf(pA.class);
         let cIdxB = classOrder.indexOf(pB.class);
         if (cIdxA === -1) cIdxA = 999;
@@ -346,27 +617,25 @@ function sortPiezasDatabaseOrder(piezas, infoPiezas) {
         if (pIdxB === -1) pIdxB = 999;
         if (pIdxA !== pIdxB) return pIdxA - pIdxB;
 
-        // 4. Orden por número de pieza/juego
-        let strA = pA.noAssembly ? String(pA.noAssembly).replace(/[^0-9]/g, "") : "0";
-        let strB = pB.noAssembly ? String(pB.noAssembly).replace(/[^0-9]/g, "") : "0";
-        let numA = parseInt(strA) || 0;
-        let numB = parseInt(strB) || 0;
+        // 4. Orden por número de pieza/juego (Numérico)
+        let numA = parseInt(String(pA.noAssembly).replace(/[^0-9]/g, "")) || 0;
+        let numB = parseInt(String(pB.noAssembly).replace(/[^0-9]/g, "")) || 0;
         if (numA !== numB) return numA - numB;
 
         return 0;
     });
 
-    let result = { piezas: [], infoPiezas: [] };
-    for (let i = 0; i < combined.length; i++) {
-        result.piezas.push(combined[i].pieza);
-        result.infoPiezas.push(combined[i].info);
-    }
-    return result;
+    // Reconstruir los arreglos originales en el nuevo orden optimizado
+    return {
+        piezas: mapped.map(m => m.original),
+        infoPiezas: mapped.map(m => m.info)
+    };
 }
 
-if (pieces.length > 0) {
-    let sortedData = sortPiezasDatabaseOrder(pieces, infoPiezas);
+if (window.pieces.length > 0) {
+    let sortedData = sortPiezasDatabaseOrder(window.pieces, window.infoPiezas);
     crearTabla(sortedData.piezas, sortedData.infoPiezas);
+    applyAllFilters();
 }
 const pdf = document.getElementById("pdf");
 
