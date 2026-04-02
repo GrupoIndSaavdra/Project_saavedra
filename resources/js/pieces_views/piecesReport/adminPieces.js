@@ -9,6 +9,10 @@ function crearTabla(piezas, infoPiezas) {
     let index = 0;
     const esc = (v) => v ? String(v).replace(/"/g, '&quot;').replace(/>/g, '&gt;').replace(/</g, '&lt;') : '';
 
+    // Intentar obtener el perfil para los enlaces, fallback a 'quality' si no existe
+    const profileInput = document.getElementsByName("profile")[0];
+    const profileValue = profileInput ? profileInput.value : 'quality';
+
     function renderNextChunk() {
         let chunkHtml = "";
         const limit = Math.min(index + CHUNK_SIZE, piezas.length);
@@ -35,7 +39,6 @@ function crearTabla(piezas, infoPiezas) {
                     let cellValue = pieza[key] !== null && pieza[key] !== undefined ? pieza[key] : "";
 
                     if (key === "btn_seePiece") {
-                        let profileValue = document.getElementsByName("profile")[0].value;
                         let nPiezas = infoP[0].join(",");
                         let url = `${window.baseUrl}/pieces/${nPiezas}/${infoP[1]}/${profileValue}`;
                         chunkHtml += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver pieza" class="ver"></a></td>`;
@@ -51,12 +54,9 @@ function crearTabla(piezas, infoPiezas) {
         tbody.innerHTML += chunkHtml;
 
         if (index < piezas.length) {
-            // Renderizar siguiente bloque en el próximo ciclo libre
             requestAnimationFrame(renderNextChunk);
         } else {
-            // Terminó de cargar todo: aplicar filtros iniciales si existen
             applyAllFilters();
-            // Quitar gif de carga si existe
             const loading = document.querySelector('.loading');
             if(loading) loading.style.display = 'none';
         }
