@@ -35,6 +35,9 @@ function crearTabla(piezas, infoPiezas) {
     let index = 0;
     const esc = (v) => v ? String(v).replace(/"/g, '&quot;').replace(/>/g, '&gt;').replace(/</g, '&lt;') : '';
 
+    // releasePieces usa 'quality' como perfil por defecto
+    const profileValue = 'quality';
+
     function renderNextChunk() {
         let chunkHtml = "";
         const limit = Math.min(index + CHUNK_SIZE, piezas.length);
@@ -77,7 +80,7 @@ function crearTabla(piezas, infoPiezas) {
                         chunkHtml += `<td>${btnHtml}</td>`;
                     } else if (key === "btn_seePiece") {
                         let nPiezas = piezasArray.join(",");
-                        let url = `${window.baseUrl}/pieces/${nPiezas}/${infoP[1]}/quality`;
+                        let url = `${window.baseUrl}/pieces/${nPiezas}/${infoP[1]}/${profileValue}`;
                         chunkHtml += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver" class="ver"></a></td>`;
                     } else {
                         let widthAttr = (key === "operator" || key === "observations" || key === "observacion_liberacion") ? ' style="width: 600px;"' : '';
@@ -360,6 +363,10 @@ function createFilters() {
             label.textContent = titles[item] + ": ";
             div.appendChild(label);
             document.querySelector(".filters").appendChild(div);
+
+            if (item === "error") {
+                createStatusFilterUI();
+            }
         }
     });
 
@@ -406,35 +413,268 @@ function createFilters() {
     setupGameFilterLogic();
 
     if (Object.keys(window.selectedItems).length > 0) {
-        let button = document.createElement("button");
-        button.textContent = "Buscar";
-        button.className = "btns btn-search";
-        button.type = "submit";
-        button.name = "action";
-        button.value = "search";
-        button.textContent = "Buscar";
-
-        //Agregar div de cargando
-        button.addEventListener("click", () => {
-            let div_opacity = document.createElement("div");
-            div_opacity.className = "div-opacity";
-            document.body.appendChild(div_opacity);
-
-            let divLoading = document.createElement("div");
-            divLoading.className = "loading";
-            //Insertar video de cargando
-            let imgLoading = document.createElement("img");
-            imgLoading.src = window.loading;
-            imgLoading.alt = "Cargando...";
-            imgLoading.className = "img-loading";
-            divLoading.appendChild(imgLoading);
-            document.body.appendChild(divLoading);
+        document.querySelectorAll(".input-filter, .select-filter").forEach(el => {
+            el.addEventListener("change", applyAllFilters);
         });
 
-        document.querySelector(".filters").appendChild(button);
+        // ============================================
+        // NUEVO BOTÓN: Limpiar Filtros
+        // ============================================
+        let btnClear = document.createElement("button");
+        btnClear.id = "btnClearFilters";
+        btnClear.textContent = "Limpiar Filtros";
+        btnClear.className = "btns btn-clear-filters";
+        btnClear.type = "button";
+        
+        const styleEnabled = () => {
+            btnClear.style.cssText = `
+                margin-left: 10px;
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: bold;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.6);
+                transition: all 0.3s ease;
+                opacity: 1;
+            `;
+        };
+
+        const styleDisabled = () => {
+            btnClear.style.cssText = `
+                margin-left: 10px;
+                background-color: #6c757d;
+                color: white;
+                border: none;
+                padding: 8px 15px;
+                border-radius: 4px;
+                cursor: not-allowed;
+                font-weight: bold;
+                box-shadow: none;
+                transition: all 0.3s ease;
+                opacity: 0.4;
+            `;
+        };
+
+        styleDisabled(); // Inicialmente deshabilitado si no hay filtros
+
+        btnClear.addEventListener("mouseenter", () => {
+            if (!btnClear.disabled) {
+                btnClear.style.backgroundColor = "#28a745";
+                btnClear.style.transform = "scale(1.03)";
+            }
+        });
+
+        btnClear.addEventListener("mouseleave", () => {
+            if (!btnClear.disabled) {
+                btnClear.style.backgroundColor = "#6c757d";
+                btnClear.style.transform = "scale(1)";
+            }
+        });
+
+        btnClear.addEventListener("click", () => {
+            if (btnClear.disabled) return;
+            document.querySelectorAll(".select-filter").forEach(select => {
+                select.value = "Todos";
+                select.dispatchEvent(new Event('change'));
+            });
+            document.querySelectorAll(".input-filter").forEach(input => {
+                input.value = "";
+            });
+            
+            let statusSel = document.getElementById("statusPieceFilter");
+            if (statusSel) {
+                statusSel.value = "Todos";
+                statusSel.dispatchEvent(new Event('change'));
+                sessionStorage.setItem("currentStatusFilter", "Todos");
+            }
+
+            applyAllFilters();
+        });
+
+        document.querySelector(".filters").appendChild(btnClear);
+
+        // Función para actualizar el estado del botón
+        window.updateClearButtonState = () => {
+            let hasFilters = false;
+            document.querySelectorAll(".select-filter").forEach(s => {
+                if (s.value !== "Todos") hasFilters = true;
+            });
+            document.querySelectorAll(".input-filter").forEach(i => {
+                if (i.value !== "") hasFilters = true;
+            });
+
+            if (hasFilters) {
+                btnClear.disabled = false;
+                styleEnabled();
+            } else {
+                btnClear.disabled = true;
+                styleDisabled();
+            }
+        };
     }
 }
 createFilters();
+
+function createStatusFilterUI() {
+    let divStatus = document.createElement("div");
+    divStatus.className = "filter";
+
+    let selectStatus = document.createElement("select");
+    selectStatus.className = "select-filter";
+    selectStatus.id = "statusPieceFilter";
+
+    const statuses = [
+        { value: "Todos", text: "Todos" },
+        { value: "#79BFED", text: "Liberadas" },
+        { value: "#FF6B6B", text: "Rechazadas" },
+        { value: "#90EE90", text: "Buenas sin liberación" },
+        { value: "#DDA0DD", text: "Malas sin liberación" },
+        { value: "#FFD700", text: "Incompletas" }
+    ];
+
+    let savedStatus = sessionStorage.getItem("currentStatusFilter") || "Todos";
+
+    statuses.forEach(s => {
+        let opt = document.createElement("option");
+        opt.value = s.value;
+        opt.textContent = s.text;
+        if (s.value !== "Todos") {
+            opt.style.backgroundColor = s.value;
+            opt.style.color = (s.value === "#FFD700" || s.value === "#90EE90") ? "#000" : "#FFF";
+        }
+        if (s.value === savedStatus) opt.selected = true;
+        selectStatus.appendChild(opt);
+    });
+
+    selectStatus.addEventListener("change", function () {
+        sessionStorage.setItem("currentStatusFilter", this.value);
+        applyAllFilters();
+    });
+
+    divStatus.appendChild(selectStatus);
+
+    let labelStatus = document.createElement("label");
+    labelStatus.textContent = "Estado: ";
+    divStatus.appendChild(labelStatus);
+
+    let filtersContainer = document.querySelector(".filters");
+    if (filtersContainer) filtersContainer.appendChild(divStatus);
+}
+
+function applyAllFilters() {
+    let visibleCount = 0;
+    const getVal = (name) => {
+        let el = document.querySelector(`[name="${name}"]`);
+        if (!el) return "Todos";
+        if (name === "operator") {
+            return el.options[el.selectedIndex].textContent.trim();
+        }
+        return el.value.trim();
+    };
+
+    let statusFilterEl = document.getElementById("statusPieceFilter");
+    let statusFilter = statusFilterEl ? statusFilterEl.value : "Todos";
+
+    let f = {
+        workOrder: getVal("workOrder"),
+        class: getVal("class"),
+        operator: getVal("operator"),
+        machine: getVal("machine"),
+        process: getVal("process"),
+        error: getVal("error"),
+        dateFrom: getVal("dateFrom"),
+        dateTo: getVal("dateTo"),
+        n_juego: getVal("n_juego")
+    };
+
+    const rows = document.querySelectorAll(".table tbody tr");
+    rows.forEach(row => {
+        let show = true;
+        let ds = row.dataset;
+
+        if (f.workOrder && f.workOrder !== "Todos") {
+            let dsId = String(ds.workorder).split(' ')[0].split('-')[0].trim();
+            let fId = String(f.workOrder).split(' ')[0].split('-')[0].trim();
+            if (dsId !== fId) show = false;
+        }
+        if (f.class && f.class !== "Todos" && String(ds.class).trim() !== f.class) show = false;
+        if (f.operator && f.operator !== "Todos" && String(ds.operator).trim() !== f.operator) show = false;
+
+        if (f.machine && f.machine !== "Todos") {
+            let mach = f.machine.replace(" y ", "_");
+            let strMach = String(ds.machine).trim();
+            if (strMach !== f.machine && strMach !== mach) show = false;
+        }
+
+        if (f.process && f.process !== "Todos" && String(ds.process).trim() !== f.process) show = false;
+
+        if (f.error && f.error !== "Todos") {
+            let err = typeof ds.error === "string" && ds.error.trim() !== "" ? ds.error : "Ninguno";
+            if (f.error === "Ninguno") {
+                if (err.toLowerCase() !== "ninguno" && err !== "") show = false;
+            } else {
+                if (!err.toLowerCase().includes(f.error.toLowerCase())) show = false;
+            }
+        }
+
+        if (f.n_juego && f.n_juego !== "Todos" && ds.njuego) {
+            let numPiece = String(ds.njuego).replace(/[^0-9]/g, "");
+            let numFilter = String(f.n_juego).replace(/[^0-9]/g, "");
+            if (numPiece !== numFilter && String(ds.njuego).trim() !== f.n_juego) show = false;
+        }
+
+        if (statusFilter !== "Todos" && ds.color) {
+            if (ds.color !== statusFilter.toUpperCase()) show = false;
+        }
+
+        if (ds.date && ds.date !== "No liberado" && ds.date.trim() !== "") {
+            let dsDate = ds.date.replace(/\n/g, "").trim().split(" ")[0];
+            if (f.dateFrom && f.dateFrom !== "") {
+                if (dsDate < f.dateFrom) show = false;
+            }
+            if (f.dateTo && f.dateTo !== "") {
+                if (dsDate > f.dateTo) show = false;
+            }
+        }
+
+        row.style.display = show ? "" : "none";
+        if (show) visibleCount++;
+    });
+
+    let totalLabel = document.querySelector(".total-records-found");
+    if (totalLabel) {
+        totalLabel.textContent = `Registros encontrados: ${visibleCount}`;
+
+        // Nota explicativa
+        let explanation = document.querySelector(".filter-explanation");
+        if (!explanation) {
+            explanation = document.createElement("div");
+            explanation.className = "filter-explanation";
+            explanation.style.cssText = "font-size: 0.85rem; color: #555; margin-top: 5px; font-style: italic;";
+            explanation.textContent = "Nota: Los filtros se aplican en tiempo real de forma acumulativa.";
+            totalLabel.insertAdjacentElement("afterend", explanation);
+        }
+
+        // Mensaje de 'No hay datos'
+        let noDataMsg = document.getElementById("no-data-alert");
+        if (visibleCount === 0) {
+            if (!noDataMsg) {
+                noDataMsg = document.createElement("div");
+                noDataMsg.id = "no-data-alert";
+                noDataMsg.style.cssText = "background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-top: 20px; text-align: center; font-weight: bold; border: 1px solid #f5c6cb;";
+                noDataMsg.textContent = "No hay datos para ese filtro aplicado.";
+                explanation.insertAdjacentElement("afterend", noDataMsg);
+            }
+        } else {
+            if (noDataMsg) noDataMsg.remove();
+        }
+    }
+
+    if (window.updateClearButtonState) window.updateClearButtonState();
+}
 
 function sortPiezasDatabaseOrder(piezas, infoPiezas) {
     // 1. Pre-mapear todas las piezas primero para evitar miles de llamadas redundantes a orderedArray
