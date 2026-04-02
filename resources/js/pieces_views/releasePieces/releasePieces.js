@@ -630,7 +630,11 @@ function applyAllFilters() {
             if (ds.color !== statusFilter.toUpperCase()) show = false;
         }
 
-        if (ds.date && ds.date !== "No liberado" && ds.date.trim() !== "") {
+        // Filtro de fecha: se aplica sobre la fecha de maquinado (machinedDate)
+        // El estado de liberación es irrelevante para este filtro.
+        // Si la pieza tiene fecha de maquinado válida, se compara contra el rango.
+        // Si no tiene fecha de maquinado (caso borde), se muestra igualmente.
+        if (ds.date && ds.date.trim() !== "" && ds.date !== "No liberado") {
             let dsDate = ds.date.replace(/\n/g, "").trim().split(" ")[0];
             if (f.dateFrom && f.dateFrom !== "") {
                 if (dsDate < f.dateFrom) show = false;

@@ -4,7 +4,7 @@ function crearTabla(piezas, infoPiezas) {
     const table = document.querySelector(".table");
     const tbody = document.createElement("tbody");
     table.appendChild(tbody);
-    
+
     const CHUNK_SIZE = 500;
     let index = 0;
     const esc = (v) => v ? String(v).replace(/"/g, '&quot;').replace(/>/g, '&gt;').replace(/</g, '&lt;') : '';
@@ -21,7 +21,7 @@ function crearTabla(piezas, infoPiezas) {
             let piezaOG = piezas[index];
             let infoP = infoPiezas[index];
             let pieza = orderedArray(piezaOG);
-            
+
             chunkHtml += `<tr style="background-color: ${pieza.colorPiece};"
                 data-color="${esc(pieza.colorPiece).toUpperCase()}"
                 data-workorder="${esc(pieza.workOrder)}"
@@ -58,7 +58,7 @@ function crearTabla(piezas, infoPiezas) {
         } else {
             applyAllFilters();
             const loading = document.querySelector('.loading');
-            if(loading) loading.style.display = 'none';
+            if (loading) loading.style.display = 'none';
         }
     }
 
@@ -324,7 +324,7 @@ function createFilters() {
         btnClear.textContent = "Limpiar Filtros";
         btnClear.className = "btns btn-clear-filters";
         btnClear.type = "button";
-        
+
         const styleEnabled = () => {
             btnClear.style.cssText = `
                 margin-left: 10px;
@@ -382,7 +382,7 @@ function createFilters() {
             document.querySelectorAll(".input-filter").forEach(input => {
                 input.value = "";
             });
-            
+
             let statusSel = document.getElementById("statusPieceFilter");
             if (statusSel) {
                 statusSel.value = "Todos";
@@ -530,7 +530,11 @@ function applyAllFilters() {
             if (ds.color !== statusFilter.toUpperCase()) show = false;
         }
 
-        if (ds.date && ds.date !== "No liberado" && ds.date.trim() !== "") {
+        // Filtro de fecha: se aplica sobre la fecha de maquinado (machinedDate)
+        // El estado de liberación es irrelevante para este filtro.
+        // Si la pieza tiene fecha de maquinado válida, se compara contra el rango.
+        // Si no tiene fecha de maquinado (caso borde), se muestra igualmente.
+        if (ds.date && ds.date.trim() !== "" && ds.date !== "No liberado") {
             let dsDate = ds.date.replace(/\n/g, "").trim().split(" ")[0];
             if (f.dateFrom && f.dateFrom !== "") {
                 if (dsDate < f.dateFrom) show = false;
@@ -686,32 +690,8 @@ function showExtraInfoButton() {
     extraInfoButton = document.createElement("button");
     extraInfoButton.className = "btn-extra-info-soldadura";
     extraInfoButton.textContent = "Ver información extra";
-    extraInfoButton.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        padding: 12px 24px;
-        background-color: #033966;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: bold;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        z-index: 999;
-        transition: background-color 0.3s;
-    `;
 
-    extraInfoButton.addEventListener("mouseenter", function () {
-        this.style.backgroundColor = "#055a9e";
-    });
-
-    extraInfoButton.addEventListener("mouseleave", function () {
-        this.style.backgroundColor = "#033966";
-    });
-
-    extraInfoButton.addEventListener("click", showAdminVerification);
+    extraInfoButton.addEventListener("click", getSoldaduraExtraInfo);
 
     document.body.appendChild(extraInfoButton);
 }
@@ -726,140 +706,42 @@ function hideExtraInfoButton() {
     }
 }
 
+
 /**
- * Mostrar modal de verificación de administrador
+ * Obtener los filtros activos actualmente desde el DOM
  */
-function showAdminVerification() {
-    if (soldaduraModalOpen) return;
+function getCurrentFiltersFromDOM() {
+    const getVal = (name) => {
+        let el = document.querySelector(`[name="${name}"]`);
+        if (!el) return "Todos";
+        if (name === "operator") {
+            // Para operador devolvemos la matrícula (value del select), no el textContent
+            return el.value.trim();
+        }
+        return el.value.trim();
+    };
 
-    soldaduraModalOpen = true;
+    let statusFilterEl = document.getElementById("statusPieceFilter");
 
-    // Crear div de opacidad
-    const divOpacity = document.createElement("div");
-    divOpacity.className = "div-opacity";
-    divOpacity.id = "div-opacity-soldadura";
-
-    // Crear contenedor del modal
-    const modalContainer = document.createElement("div");
-    modalContainer.className = "soldadura-verification-modal";
-    modalContainer.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        z-index: 1001;
-        min-width: 400px;
-    `;
-
-    // Título
-    const title = document.createElement("h2");
-    title.textContent = "Verificación de Administrador";
-    title.style.cssText = "margin: 0 0 20px 0; color: #033966; font-size: 20px;";
-    modalContainer.appendChild(title);
-
-    // Formulario
-    const form = document.createElement("form");
-    form.className = "form-verify-admin-soldadura";
-    form.style.cssText = "display: flex; flex-direction: column; gap: 15px;";
-
-    // Input de contraseña
-    const inputGroup = document.createElement("div");
-    inputGroup.style.cssText = "display: flex; flex-direction: column; gap: 8px;";
-
-    const label = document.createElement("label");
-    label.textContent = "Contraseña de administrador:";
-    label.style.cssText = "font-weight: bold; color: #333;";
-
-    const inputPassword = document.createElement("input");
-    inputPassword.type = "password";
-    inputPassword.name = "passwordAdmin";
-    inputPassword.placeholder = "Ingrese contraseña";
-    inputPassword.className = "normal-input input-password";
-    inputPassword.required = true;
-    inputPassword.style.cssText = "padding: 10px; border: 1px solid #ccc; border-radius: 4px;";
-
-    inputGroup.appendChild(label);
-    inputGroup.appendChild(inputPassword);
-    form.appendChild(inputGroup);
-
-    // Botones
-    const buttonGroup = document.createElement("div");
-    buttonGroup.style.cssText = "display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;";
-
-    const btnCancel = document.createElement("button");
-    btnCancel.type = "button";
-    btnCancel.textContent = "Cancelar";
-    btnCancel.className = "btn-cancel-soldadura";
-    btnCancel.style.cssText =
-        "padding: 10px 20px; background: #ccc; border: none; border-radius: 4px; cursor: pointer;";
-    btnCancel.addEventListener("click", closeSoldaduraModal);
-
-    const btnVerify = document.createElement("button");
-    btnVerify.type = "submit";
-    btnVerify.textContent = "Verificar";
-    btnVerify.className = "btn-submit-password";
-    btnVerify.style.cssText =
-        "padding: 10px 20px; background: #033966; color: white; border: none; border-radius: 4px; cursor: pointer;";
-
-    buttonGroup.appendChild(btnCancel);
-    buttonGroup.appendChild(btnVerify);
-    form.appendChild(buttonGroup);
-
-    // Event listener del formulario
-    form.addEventListener("submit", function (e) {
-        e.preventDefault();
-        verifyAdminPasswordAjax(inputPassword.value);
-    });
-
-    modalContainer.appendChild(form);
-    divOpacity.appendChild(modalContainer);
-    document.body.appendChild(divOpacity);
-
-    // Focus en el input
-    inputPassword.focus();
+    return {
+        workOrder: getVal("workOrder"),
+        class: getVal("class"),
+        operator: getVal("operator"),
+        machine: getVal("machine"),
+        process: getVal("process"),
+        error: getVal("error"),
+        dateFrom: getVal("dateFrom"),
+        dateTo: getVal("dateTo"),
+        n_juego: getVal("n_juego"),
+        status: statusFilterEl ? statusFilterEl.value : "Todos",
+    };
 }
 
-/**
- * Verificar contraseña de administrador mediante AJAX
- */
-function verifyAdminPasswordAjax(password) {
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
-
-    const formData = new FormData();
-    formData.append("passwordAdmin", password);
-
-    fetch(window.baseUrl + "/pieces/verifyAdminPassword", {
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": csrfToken,
-            Accept: "application/json",
-        },
-        body: formData,
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success) {
-                closeSoldaduraModal();
-                getSoldaduraExtraInfo();
-            } else {
-                alert(data.message || "Contraseña incorrecta");
-            }
-        })
-        .catch((error) => {
-            console.error("Error:", error);
-            alert("Error al verificar la contraseña. Intente de nuevo.");
-        });
-}
-
-/**
- * Obtener información extra de Soldadura
- */
 function getSoldaduraExtraInfo() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+
+    // Leer los filtros activos del DOM en lugar de los selectedItems iniciales
+    const liveFilters = getCurrentFiltersFromDOM();
 
     fetch(window.baseUrl + "/pieces/getSoldaduraExtraInfo", {
         method: "POST",
@@ -868,12 +750,12 @@ function getSoldaduraExtraInfo() {
             "Content-Type": "application/json",
             Accept: "application/json",
         },
-        body: JSON.stringify(window.selectedItems || {})
+        body: JSON.stringify(liveFilters)
     })
         .then((response) => response.json())
         .then((data) => {
             if (data.success) {
-                showSoldaduraExtraInfoTable(data.pieces);
+                showSoldaduraExtraInfoTable(data.pieces, liveFilters);
             } else {
                 alert(data.message || "Error al obtener información");
             }
@@ -887,7 +769,7 @@ function getSoldaduraExtraInfo() {
 /**
  * Mostrar tabla con información extra de Soldadura
  */
-function showSoldaduraExtraInfoTable(pieces) {
+function showSoldaduraExtraInfoTable(pieces, liveFilters) {
     soldaduraModalOpen = true;
 
     // Crear div de opacidad
@@ -898,54 +780,36 @@ function showSoldaduraExtraInfoTable(pieces) {
     // Crear contenedor del modal
     const modalContainer = document.createElement("div");
     modalContainer.className = "soldadura-info-modal";
-    modalContainer.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        z-index: 1001;
-        max-width: 90%;
-        max-height: 90%;
-        overflow: auto;
-    `;
 
     // Título
     const title = document.createElement("h2");
     title.textContent = "Información Extra - Soldadura";
-    title.style.cssText = "margin: 0 0 20px 0; color: #033966; font-size: 20px;";
+    title.className = "soldadura-modal-title";
     modalContainer.appendChild(title);
 
     // Subtítulo con total
     const subtitle = document.createElement("p");
     subtitle.textContent = `Total de piezas en Soldadura: ${pieces.length}`;
-    subtitle.style.cssText = "margin: 0 0 15px 0; color: #666; font-size: 14px;";
+    subtitle.className = "soldadura-modal-subtitle";
     modalContainer.appendChild(subtitle);
 
     if (pieces.length === 0) {
         const noDataMsg = document.createElement("p");
         noDataMsg.textContent = "No hay piezas en proceso de Soldadura actualmente.";
-        noDataMsg.style.cssText = "color: #999; font-style: italic;";
+        noDataMsg.className = "soldadura-no-data";
         modalContainer.appendChild(noDataMsg);
     } else {
         // Crear tabla
         const tableContainer = document.createElement("div");
-        tableContainer.style.cssText = "overflow-x: auto; margin-bottom: 20px;";
+        tableContainer.className = "soldadura-table-container";
 
         const table = document.createElement("table");
-        table.style.cssText = `
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        `;
+        table.className = "soldadura-modal-table";
 
         // Encabezados
         const thead = document.createElement("thead");
         const headerRow = document.createElement("tr");
-        headerRow.style.cssText = "background-color: #033966; color: white;";
+        headerRow.className = "soldadura-modal-header-row";
 
         const headers = [
             "N° Juego",
@@ -962,7 +826,7 @@ function showSoldaduraExtraInfoTable(pieces) {
         headers.forEach((headerText) => {
             const th = document.createElement("th");
             th.textContent = headerText;
-            th.style.cssText = "padding: 12px 8px; text-align: left; border: 1px solid #ddd;";
+            th.className = "soldadura-modal-th";
             headerRow.appendChild(th);
         });
 
@@ -973,7 +837,7 @@ function showSoldaduraExtraInfoTable(pieces) {
         const tbody = document.createElement("tbody");
         pieces.forEach((piece, index) => {
             const tr = document.createElement("tr");
-            tr.style.cssText = index % 2 === 0 ? "background-color: #f9f9f9;" : "background-color: white;";
+            tr.className = index % 2 === 0 ? "soldadura-row-even" : "soldadura-row-odd";
 
             const fields = [
                 piece.n_juego,
@@ -991,7 +855,7 @@ function showSoldaduraExtraInfoTable(pieces) {
             fields.forEach((fieldValue) => {
                 const td = document.createElement("td");
                 td.textContent = fieldValue;
-                td.style.cssText = "padding: 10px 8px; border: 1px solid #ddd;";
+                td.className = "soldadura-modal-td";
                 tr.appendChild(td);
             });
 
@@ -1005,45 +869,31 @@ function showSoldaduraExtraInfoTable(pieces) {
 
     // Botones de acción
     const buttonsContainer = document.createElement("div");
-    buttonsContainer.style.cssText = "display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;";
+    buttonsContainer.className = "soldadura-modal-buttons";
 
     // Botón descargar PDF
     const btnDownload = document.createElement("button");
-    btnDownload.type = "button"; // Prevenir submit del formulario
+    btnDownload.type = "button";
     btnDownload.textContent = "Descargar PDF";
-    btnDownload.style.cssText =
-        "padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;";
+    btnDownload.className = "soldadura-btn-download";
     btnDownload.addEventListener("click", () => {
-        console.log("=== PDF Download Debug ===");
-        console.log("window.selectedItems:", window.selectedItems);
+        // Usar los filtros vivos del DOM (los mismos que se enviaron al backend)
+        const filters = liveFilters ? { ...liveFilters } : getCurrentFiltersFromDOM();
 
-        // Construir query string con los filtros actuales, excluyendo 'action'
-        const filters = { ...(window.selectedItems || {}) };
-        delete filters.action; // Eliminar el parámetro 'action' que causa conflictos de ruta
-
-        // Si el operador es un objeto, extraer solo la matrícula
-        if (filters.operator && typeof filters.operator === 'object') {
-            console.log("Operator is object:", filters.operator);
-            filters.operator = filters.operator.matricula;
-        }
-
-        console.log("Filters after processing:", filters);
+        // Eliminar parámetros que no son filtros de datos
+        delete filters.action;
+        delete filters.status; // Se maneja por separado si el backend lo necesita
 
         const params = new URLSearchParams(filters).toString();
         const downloadUrl = window.baseUrl + "/pieces/downloadSoldaduraExtraInfoPDF?" + params;
 
-        console.log("Download URL:", downloadUrl);
-        console.log("Params:", params);
-
-        // Usar window.open en lugar de window.location.href para mejor manejo de errores
         window.open(downloadUrl, '_blank');
     });
 
     // Botón cerrar
     const btnClose = document.createElement("button");
     btnClose.textContent = "Cerrar";
-    btnClose.style.cssText =
-        "padding: 10px 20px; background: #033966; color: white; border: none; border-radius: 4px; cursor: pointer;";
+    btnClose.className = "soldadura-btn-close";
     btnClose.addEventListener("click", closeSoldaduraModal);
 
     buttonsContainer.appendChild(btnDownload);
@@ -1058,8 +908,7 @@ function showSoldaduraExtraInfoTable(pieces) {
  * Cerrar modal de Soldadura
  */
 function closeSoldaduraModal() {
-    const divOpacity =
-        document.getElementById("div-opacity-soldadura") || document.getElementById("div-opacity-soldadura-table");
+    const divOpacity = document.getElementById("div-opacity-soldadura-table");
     if (divOpacity) {
         divOpacity.remove();
     }
