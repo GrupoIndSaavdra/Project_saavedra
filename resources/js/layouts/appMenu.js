@@ -416,20 +416,35 @@ function crearTabla(piezas, infoPiezas) {
     });
     table.appendChild(tbody);
 }
-function asignColorTr(status, error) {
+function asignColorTr(status, error, process) {
     switch (status) {
-        case 0:
-            if (error.includes("Incompleto")) {
-                return "#FFFF99";
-            } else if (error == "Ninguno") {
-                return "#ACF980A8";
-            } else {
-                return "#E59CFF";
-            }
         case 1:
-            return "#79BFED";
+            return "#79BFED"; // Liberado - Azul
         case 2:
-            return "#EC7063";
+            return "#FF6B6B"; // Rechazado - Rojo
+        case 3:
+            return "#90EE90"; // Buena sin liberación - Verde
+        case 4:
+            // Para Soldadura PTA: solo Fundicion bloquea
+            if (process === "Soldadura PTA" && !error.toLowerCase().includes("fundicion") && !error.toLowerCase().includes("fundición")) {
+                return "#90EE90"; // Verde — defecto no bloqueante para PTA
+            }
+            return "#DDA0DD"; // Mala sin liberación - Morado
+        case 5:
+            return "#FFD700"; // Incompleto - Amarillo
+        case 0:
+        default:
+            if (error.includes("Incompleto")) {
+                return "#FFD700"; // Incompleto - Amarillo
+            } else if (error == "Ninguno") {
+                return "#90EE90"; // Buena sin liberación - Verde
+            } else {
+                // Para Soldadura PTA: solo Fundicion bloquea
+                if (process === "Soldadura PTA" && !error.toLowerCase().includes("fundicion") && !error.toLowerCase().includes("fundición")) {
+                    return "#90EE90"; // Verde — defecto no bloqueante para PTA
+                }
+                return "#DDA0DD"; // Mala sin liberación - Morado
+            }
     }
 }
 function orderedArray(array) {
@@ -446,7 +461,7 @@ function orderedArray(array) {
         btn_release: [array[9], array[5]],
         btn_decline: array[9],
         btn_seePiece: array[2],
-        colorPiece: asignColorTr(array[9], array[5]),
+        colorPiece: asignColorTr(array[9], array[5] ?? "", array[4] ?? ""),
     };
 }
 

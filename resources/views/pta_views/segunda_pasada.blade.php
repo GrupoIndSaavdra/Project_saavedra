@@ -41,14 +41,12 @@
         </div>
 
         {{-- ── FILTROS EN CASCADA ── --}}
-        <div class="pta-filter-card pta-filter-container">
+        <div class="pta-selectors-row">
 
-            {{-- 1. OT --}}
-            <div class="pta-filter-col">
-                <label class="pta-filter-label">
-                    Orden de Trabajo
-                </label>
-                <select id="sel-ot" onchange="onOtChange()" class="pta-filter-select">
+            {{-- 1. Selector de OT --}}
+            <div class="pta-ot-selector">
+                <label for="sel-ot">Orden de Trabajo (OT)</label>
+                <select id="sel-ot" onchange="onOtChange()">
                     <option value="">— Seleccionar OT —</option>
                     @foreach ($otsConPTA as $otOpt)
                         <option value="{{ $otOpt->id }}" {{ $otSeleccionadaId == $otOpt->id ? 'selected' : '' }}>
@@ -58,12 +56,10 @@
                 </select>
             </div>
 
-            {{-- 2. Clase (se habilita al elegir OT) --}}
-            <div style="flex:1; min-width:180px;">
-                <label class="pta-filter-label">
-                    Clase
-                </label>
-                <select id="sel-clase" onchange="onClaseChange()" class="pta-filter-select" {{ !$otSeleccionadaId ? 'disabled' : '' }}>
+            {{-- 2. Selector de Clase (se habilita al elegir OT) --}}
+            <div class="pta-clase-selector">
+                <label for="sel-clase">Clase</label>
+                <select id="sel-clase" onchange="onClaseChange()" {{ !$otSeleccionadaId ? 'disabled' : '' }}>
                     <option value="">— Seleccionar Clase —</option>
                     @if ($otSeleccionadaId)
                         @foreach ($otsConPTA->firstWhere('id', $otSeleccionadaId)?->clases ?? [] as $claseOpt)
@@ -75,12 +71,10 @@
                 </select>
             </div>
 
-            {{-- 3. Pieza (se habilita al elegir Clase) --}}
-            <div style="flex:1; min-width:150px;">
-                <label class="pta-filter-label">
-                    Pieza
-                </label>
-                <select id="sel-pieza" onchange="onPiezaChange()" class="pta-filter-select" {{ !$claseSeleccionadaId ? 'disabled' : '' }}>
+            {{-- 3. Selector de Pieza (se habilita al elegir Clase) --}}
+            <div class="pta-pieza-selector">
+                <label for="sel-pieza">Pieza</label>
+                <select id="sel-pieza" onchange="onPiezaChange()" {{ !$claseSeleccionadaId ? 'disabled' : '' }}>
                     <option value="">— Seleccionar Pieza —</option>
                     @foreach ($piezasDisponibles as $np)
                         <option value="{{ $np }}" {{ $nPiezaSel === $np ? 'selected' : '' }}>{{ $np }}</option>
@@ -119,15 +113,15 @@
                     @endif
                 </div>
 
-                <div class="pta-table-wrapper">
-                    <form method="POST" action="{{ route('pta.segunda_pasada.update') }}" id="form-p2"
-                        style="{{ !session('pta_temp_auth') ? 'pointer-events:none; filter:grayscale(90%) opacity(0.85);' : '' }}">
-                        @csrf
-                        <input type="hidden" name="ot_id" value="{{ $otSeleccionadaId }}">
-                        <input type="hidden" name="clase_id" value="{{ $claseSeleccionadaId }}">
-                        <input type="hidden" name="n_pieza" value="{{ $nPiezaSel }}">
-                        <input type="hidden" name="id_proceso" value="{{ $procesoPTA->id }}">
+                <form method="POST" action="{{ route('pta.segunda_pasada.update') }}" id="form-p2"
+                    style="{{ !session('pta_temp_auth') ? 'pointer-events:none; filter:grayscale(90%) opacity(0.85);' : '' }}">
+                    @csrf
+                    <input type="hidden" name="ot_id" value="{{ $otSeleccionadaId }}">
+                    <input type="hidden" name="clase_id" value="{{ $claseSeleccionadaId }}">
+                    <input type="hidden" name="n_pieza" value="{{ $nPiezaSel }}">
+                    <input type="hidden" name="id_proceso" value="{{ $procesoPTA->id }}">
 
+                    <div class="pta-table-wrapper">
                         <table class="pta-table">
                             <thead>
                                 {{-- FILA 1: Cabeceras principales --}}
@@ -328,12 +322,12 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
 
-                        <button type="submit" class="btn-guardar-pta">
-                            Guardar 2da Pasada
-                        </button>
-                    </form>
-                </div>
+                    <button type="submit" class="btn-guardar-pta">
+                        Guardar 2da Pasada
+                    </button>
+                </form>
             </div>
 
         @elseif ($claseSeleccionadaId && $nPiezaSel)

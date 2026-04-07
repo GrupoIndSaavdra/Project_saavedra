@@ -1,175 +1,378 @@
-/* resources/css/pta_views/segunda_pasada.css */
+/* ═══════════════════════════════════════════════════════════════
+   resources/css/pta_views/segunda_pasada.css
+   ─────── Enhanced Segunda Pasada — Soldadura PTA ──────────────
+   ═══════════════════════════════════════════════════════════════ */
 
+/* ── Animaciones ───────────────────────────────────────────── */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(198, 40, 40, 0.4); }
+    50%      { box-shadow: 0 0 16px 4px rgba(198, 40, 40, 0.25); }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* ── Modal contraseña (overlay + contenido) ────────────────── */
 .pta-modal-overlay {
     display: none;
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
     z-index: 9999;
     align-items: center;
     justify-content: center;
 }
 
 .pta-modal-content {
-    background: #fff;
-    border-radius: 12px;
-    padding: 2rem 2.5rem;
-    width: 340px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8f9ff 100%);
+    border-radius: 16px;
+    padding: 2.2rem 2.8rem;
+    width: 370px;
     text-align: center;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    box-shadow:
+        0 12px 48px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(26, 35, 126, 0.08);
+    animation: scaleIn 0.3s ease-out;
 }
 
 .pta-modal-title {
     margin-bottom: 0.8rem;
-    color: #1a237e;
+    color: #1e3a5f;
+    font-size: 1.2rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
 }
 
 .pta-modal-text {
     font-size: 0.9rem;
-    color: #555;
-    margin-bottom: 1rem;
+    color: #5a6a7a;
+    margin-bottom: 1.2rem;
+    line-height: 1.5;
 }
 
 .pta-modal-input {
     width: 100%;
-    padding: 0.6rem 0.8rem;
-    border-radius: 7px;
-    border: 1px solid #bbb;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    border: 2px solid #c8d6e5;
     font-size: 1rem;
     margin-bottom: 0.6rem;
+    background: #f7faff;
     transition: all 0.3s ease-in-out;
 }
 
 .pta-modal-input:focus {
     outline: none;
-    border-color: #1a237e;
-    box-shadow: 0 0 0 2px rgba(26, 35, 126, 0.2);
+    border-color: #1e3a5f;
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.15);
+    background: #fff;
 }
 
 .pta-modal-input:hover {
-    transform: scale(1.05);
+    border-color: #2d6a9f;
+    transform: scale(1.02);
 }
 
 .pta-modal-error {
-    color: tomato;
+    color: #c62828;
     font-size: 0.82rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.6rem;
     display: none;
+    font-weight: 600;
+    animation: slideDown 0.25s ease-out;
 }
 
+/* ── Botones de verificar / cancelar ───────────────────────── */
 .pta-btn-verify {
-    background: #1a237e;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
     color: #fff;
     border: none;
-    border-radius: 7px;
-    padding: 0.6rem 1.4rem;
+    border-radius: 10px;
+    padding: 0.65rem 1.6rem;
     cursor: pointer;
     font-size: 1rem;
+    font-weight: 700;
     margin-right: 0.5rem;
     transition: all 0.3s ease-in-out;
+    box-shadow: 0 3px 12px rgba(30, 58, 95, 0.3);
 }
 
 .pta-btn-verify:hover {
-    background: #002c08;
-    transform: scale(1.05);
+    background: linear-gradient(135deg, #15294a 0%, #1e5080 100%);
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: 0 6px 20px rgba(30, 58, 95, 0.4);
+}
+
+.pta-btn-verify:active {
+    transform: translateY(0) scale(0.98);
 }
 
 .pta-btn-cancel {
-    background: #9d0000;
+    background: linear-gradient(135deg, #b71c1c 0%, #c62828 100%);
     color: #fff;
     border: none;
-    border-radius: 7px;
-    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    padding: 0.65rem 1.4rem;
     cursor: pointer;
     font-size: 1rem;
+    font-weight: 600;
     transition: all 0.3s ease-in-out;
+    box-shadow: 0 3px 12px rgba(183, 28, 28, 0.25);
 }
 
 .pta-btn-cancel:hover {
-    background: #580b0b;
-    transform: scale(1.05);
+    background: linear-gradient(135deg, #8e0000 0%, #b71c1c 100%);
+    transform: translateY(-1px) scale(1.03);
+    box-shadow: 0 6px 20px rgba(183, 28, 28, 0.35);
 }
 
-.pta-filter-container {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    margin-bottom: 1.5rem;
+.pta-btn-cancel:active {
+    transform: translateY(0) scale(0.98);
 }
 
-.pta-filter-col {
-    flex: 1;
-    min-width: 200px;
+/* ── Filtros en cascada (OT / Clase / Pieza) ───────────────── */
+.pta-selectors-row {
+    animation: fadeInUp 0.5s ease-out 0.15s both;
 }
 
-.pta-filter-label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 0.3rem;
-    font-size: 0.85rem;
-    color: #444;
-}
-
-.pta-filter-select {
-    width: 100%;
-    padding: 0.5rem 0.7rem;
-    border-radius: 7px;
-    border: 1px solid #bbb;
-}
-
+/* ── Sección header (Resultados + botón desbloquear) ───────── */
 .pta-section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
-    border-bottom: 2px solid #1a237e;
-    padding-bottom: 0.4rem;
+    border-bottom: 3px solid transparent;
+    border-image: linear-gradient(90deg, #1e3a5f 0%, #2d6a9f 50%, transparent 100%) 1;
+    padding-bottom: 0.6rem;
+    animation: fadeInUp 0.5s ease-out 0.25s both;
 }
 
 .pta-section-title {
-    font-size: 1.1rem;
-    color: #1a237e;
+    font-size: 1.15rem;
+    color: #1e3a5f;
     margin: 0;
+    font-weight: 700;
+    letter-spacing: 0.02em;
 }
 
+/* ── Botón desbloquear edición ─────────────────────────────── */
 .pta-btn-unlock {
-    background: #c62828;
+    background: linear-gradient(135deg, #b71c1c 0%, #e53935 100%);
     color: #fff;
     border: none;
-    border-radius: 7px;
-    padding: 1rem 1rem;
+    border-radius: 10px;
+    padding: 0.75rem 1.4rem;
     cursor: pointer;
     font-size: 1rem;
-    font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(183, 28, 28, 0.3);
+    transition: all 0.3s ease-in-out;
+    animation: pulseGlow 2.5s ease-in-out infinite;
+    letter-spacing: 0.02em;
 }
 
 .pta-btn-unlock:hover {
-    background: #841212;
-    transform: scale(1.05);
-    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #8e0000 0%, #c62828 100%);
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 8px 28px rgba(183, 28, 28, 0.4);
+    animation: none;
 }
 
+.pta-btn-unlock:active {
+    transform: translateY(0) scale(0.97);
+}
+
+/* ── Badge desbloqueado ────────────────────────────────────── */
 .pta-unlocked-badge {
-    background: #2e7d32;
+    background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
     color: #fff;
-    border-radius: 7px;
-    padding: 1rem 1rem;
+    border-radius: 10px;
+    padding: 0.75rem 1.4rem;
     font-size: 1rem;
-    font-weight: 600;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: 700;
+    box-shadow: 0 4px 16px rgba(46, 125, 50, 0.3);
+    animation: fadeIn 0.4s ease-out;
+    letter-spacing: 0.02em;
 }
 
+/* ── Pieza 2da pasada ──────────────────────────────────────── */
 .pta-p2-td-pieza {
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 2px;
 }
 
 .pta-p2-label-small {
-    font-size: 0.75em;
-    color: #fff;
-    font-weight: normal;
+    font-size: 0.72em;
+    color: #ffeb3b;
+    font-weight: 600;
     margin-top: 2px;
+    letter-spacing: 0.03em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Fila de captura header (barra azul "EDICIÓN DE SEGUNDA PASADA") ── */
+.pta-captura-header td {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-align: center;
+    border: none;
+}
+
+/* ── Fila de captura (editable) ────────────────────────────── */
+.fila-captura {
+    animation: fadeInUp 0.5s ease-out 0.3s both;
+}
+
+.fila-captura td {
+    background: #f0f7ff;
+    border-bottom: 2px solid #c8d6e5;
+}
+
+.fila-captura:hover td {
+    background: #e0edff;
+}
+
+/* ── Botón Guardar ─────────────────────────────────────────── */
+.btn-guardar-pta {
+    display: block;
+    max-width: 400px;
+    margin: 1.2rem auto 0;
+    padding: 0.85rem 2rem;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 16px rgba(30, 58, 95, 0.3);
+    text-align: center;
+}
+
+.btn-guardar-pta:hover {
+    background: linear-gradient(135deg, #15294a 0%, #1e5080 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(30, 58, 95, 0.45);
+}
+
+.btn-guardar-pta:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(30, 58, 95, 0.3);
+}
+
+/* ── Mensajes de estado vacío (info boxes) ─────────────────── */
+.pta-analysis-wrapper > div[style*="background:#fff8e1"],
+.pta-analysis-wrapper > div[style*="background:#e8f5e9"],
+.pta-analysis-wrapper > div[style*="background:#e3f2fd"] {
+    animation: fadeInUp 0.5s ease-out 0.2s both;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* ── Tabla PTA wrapper dentro de 2da Pasada ────────────────── */
+.pta-table-wrapper {
+    animation: fadeInUp 0.5s ease-out 0.3s both;
+}
+
+/* ── Mejoras a selects e inputs dentro de la tabla de captura ── */
+.fila-captura .pta-input,
+.fila-captura .pta-select {
+    transition: all 0.2s ease-in-out;
+    border-radius: 6px;
+}
+
+.fila-captura .pta-input:focus,
+.fila-captura .pta-select:focus {
+    box-shadow: 0 0 0 2px rgba(30, 58, 95, 0.2);
+    border-color: #2d6a9f;
+}
+
+.fila-captura .pta-input:hover,
+.fila-captura .pta-select:hover {
+    background: #fff;
+    border-color: #2d6a9f;
+}
+
+/* ── Filas de lectura — micro-animación al cargar ──────────── */
+.pta-row-sin-lib {
+    animation: fadeIn 0.4s ease-out both;
+}
+
+.pta-row-sin-lib:nth-child(1) { animation-delay: 0.1s; }
+.pta-row-sin-lib:nth-child(2) { animation-delay: 0.15s; }
+.pta-row-sin-lib:nth-child(3) { animation-delay: 0.2s; }
+
+/* ── Hover en filas de lectura ─────────────────────────────── */
+.pta-table tbody tr.pta-row-sin-lib:hover td {
+    background: rgba(45, 106, 159, 0.08);
+    transition: background 0.2s ease;
+}
+
+/* ── Formulario deshabilitado — overlay visual ─────────────── */
+#form-p2[style*="pointer-events:none"] {
+    position: relative;
+}
+
+#form-p2[style*="pointer-events:none"]::after {
+    content: '🔒 Desbloquea la edición para continuar';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(30, 58, 95, 0.85);
+    color: #fff;
+    padding: 0.8rem 1.8rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.03em;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    pointer-events: none;
+    animation: fadeIn 0.5s ease-out 0.5s both;
 }

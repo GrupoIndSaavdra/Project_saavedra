@@ -64,7 +64,7 @@ function crearTabla(piezas, infoPiezas) {
 
     renderNextChunk();
 }
-function asignColorTr(status, error) {
+function asignColorTr(status, error, process) {
     switch (status) {
         case 1:
             return "#79BFED"; // Liberado - Azul
@@ -73,6 +73,10 @@ function asignColorTr(status, error) {
         case 3:
             return "#90EE90"; // Buena sin liberación - Verde
         case 4:
+            // Para Soldadura PTA: solo Fundicion bloquea
+            if (process === "Soldadura PTA" && !error.toLowerCase().includes("fundicion") && !error.toLowerCase().includes("fundición")) {
+                return "#90EE90"; // Verde — defecto no bloqueante para PTA
+            }
             return "#DDA0DD"; // Mala sin liberación - Morado
         case 5:
             return "#FFD700"; // Incompleto - Amarillo
@@ -84,6 +88,10 @@ function asignColorTr(status, error) {
             } else if (error == "Ninguno") {
                 return "#90EE90"; // Buena sin liberación - Verde
             } else {
+                // Para Soldadura PTA: solo Fundicion bloquea, los demás defectos pasan verde
+                if (process === "Soldadura PTA" && !error.toLowerCase().includes("fundicion") && !error.toLowerCase().includes("fundición")) {
+                    return "#90EE90"; // Verde — defecto no bloqueante para PTA
+                }
                 return "#DDA0DD"; // Mala sin liberación - Morado
             }
     }
@@ -112,7 +120,7 @@ function orderedArray(array) {
         user_liberation: array[8],
         observacion_liberacion: array.observacion_liberacion ?? "",
         btn_seePiece: array[2],
-        colorPiece: asignColorTr(array[9], array[5] ?? ""),
+        colorPiece: asignColorTr(array[9], array[5] ?? "", array[4] ?? ""),
     };
 }
 

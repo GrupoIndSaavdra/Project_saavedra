@@ -478,7 +478,13 @@ class WOController extends Controller
                                     array_push($piecesArray['good'], $pFemale, $pMale);
                                 } else {
                                     if ($processName === 'Soldadura PTA') {
-                                        array_push($piecesArray['good'], $pFemale, $pMale);
+                                        if (in_array($pFemale->error, ['Fundicion', 'Fundición']) || in_array($pMale->error, ['Fundicion', 'Fundición'])) {
+                                            array_push($piecesArray['bad'], $pFemale, $pMale);
+                                            if (in_array($pFemale->error, ['Fundicion', 'Fundición'])) array_push($piecesBadData, $this->getBadPiecesData($pFemale, null, '- - - ', $usersCache));
+                                            if (in_array($pMale->error, ['Fundicion', 'Fundición']))   array_push($piecesBadData, $this->getBadPiecesData($pMale, null, '- - - ', $usersCache));
+                                        } else {
+                                            array_push($piecesArray['good'], $pFemale, $pMale);
+                                        }
                                     } else {
                                         array_push($piecesArray['bad'], $pFemale, $pMale);
                                         if ($pFemale->error !== 'Ninguno') array_push($piecesBadData, $this->getBadPiecesData($pFemale, null, '- - - ', $usersCache));
@@ -507,7 +513,12 @@ class WOController extends Controller
                             array_push($piecesArray['good'], $piece);
                         } else {
                             if ($processName === 'Soldadura PTA') {
-                                array_push($piecesArray['good'], $piece);
+                                if (in_array($piece->error, ['Fundicion', 'Fundición'])) {
+                                    array_push($piecesArray['bad'], $piece);
+                                    $piecesBadData[] = $this->getBadPiecesData($piece, null, '- - - ', $usersCache);
+                                } else {
+                                    array_push($piecesArray['good'], $piece);
+                                }
                             } else {
                                 array_push($piecesArray['bad'], $piece);
                                 $piecesBadData[] = $this->getBadPiecesData($piece, null, '- - - ', $usersCache);

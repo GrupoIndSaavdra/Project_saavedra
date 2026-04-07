@@ -41,7 +41,8 @@
 
 /* ── Selector OT / Clase ───────────────────────────────────── */
 .pta-ot-selector,
-.pta-clase-selector {
+.pta-clase-selector,
+.pta-pieza-selector {
     background: #f7f7f7;
     border-radius: 10px;
     padding: 1rem 1.5rem;
@@ -51,19 +52,21 @@
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
-    flex: 1;
-    min-width: 1030px;
+    flex: 2; /* Increased from 1 to give more space */
+    min-width: 320px;
 }
 
 .pta-ot-selector label,
-.pta-clase-selector label {
+.pta-clase-selector label,
+.pta-pieza-selector label {
     font-weight: 600;
     color: #1e3a5f;
     white-space: nowrap;
 }
 
 .pta-ot-selector select,
-.pta-clase-selector select {
+.pta-clase-selector select,
+.pta-pieza-selector select {
     border: 2px solid #2d6a9f;
     border-radius: 8px;
     padding: 0.45rem 0.8rem;
@@ -71,12 +74,14 @@
     color: #1e3a5f;
     background: #f0f7ff;
     cursor: pointer;
-    min-width: 750px;
+    min-width: 250px; /* Adjusted from 750px for more flexibility */
     transition: all 0.2s ease-in-out;
+    flex: 1;
 }
 
 .pta-ot-selector select:hover,
-.pta-clase-selector select:hover {
+.pta-clase-selector select:hover,
+.pta-pieza-selector select:hover {
     background: #dce8f5;
     border: 2px solid #1e3a5f;
     transform: scale(1.03);
@@ -423,7 +428,8 @@
     margin-left: 8px;
     display: flex;
     align-items: center;
-    min-width: 30px;
+    min-width: auto;
+    flex: 0 0 auto; /* Prevent growing, take only needed space */
 }
 
 .btn-pta-pdf-icon {

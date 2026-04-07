@@ -144,7 +144,7 @@
                                         </td>
                                     @endif
                                     <td class="td-tipo-medida">{{ $labelMedida[$tipo] }}</td>
-                                    <td>{{ $fila?->$campo ?? '—' }}</td>
+                                    <td>{{ ($fila?->$campo !== null) ? $fila->$campo . '"' : '—' }}</td>
                                     <td>{{ $fila?->vl ?? '—' }}</td>
                                     <td>{{ $fila?->tipo_preparacion ?? '—' }}</td>
                                     @if ($subIdx === 0)
@@ -204,7 +204,7 @@
                                     <td class="td-tipo-medida">
                                         {{ $tipoP2GuardadoH ? ($tipoP2GuardadoH === 'D_Conexion_pico' ? 'D. Conexión Pico' : ($tipoP2GuardadoH === 'D_Conexion_obt' ? 'D. Conexión Obt.' : 'Perfilado')) : '—' }}
                                     </td>
-                                    <td>{{ $valorP2GuardadoH ?? '—' }}</td>
+                                    <td>{{ ($valorP2GuardadoH !== null) ? $valorP2GuardadoH . '"' : '—' }}</td>
                                     <td>{{ $filaP2H?->p2_vl ?? '—' }}</td>
                                     <td>{{ $filaP2H?->p2_tipo_preparacion ?? '—' }}</td>
                                     <td class="td-precal">{{ $filaP2H?->p2_precalentamiento ?? '—' }}</td>

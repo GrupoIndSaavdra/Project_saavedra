@@ -101,7 +101,7 @@
                         <td class="td-tipo">{{ $labelMedida[$tipo] ?? $tipo }}</td>
 
                         {{-- Valor principal --}}
-                        <td>{{ $fila?->$campoPrincipal ?? '—' }}</td>
+                        <td>{{ ($fila?->$campoPrincipal !== null) ? $fila->$campoPrincipal . '"' : '—' }}</td>
 
                         {{-- VL --}}
                         <td>{{ $fila?->vl ?? '—' }}</td>

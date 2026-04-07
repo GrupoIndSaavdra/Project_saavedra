@@ -565,7 +565,7 @@ class ProcessProductionController extends Controller
                 $defecto = $request->input('defecto_pta')[$key] ?? 'Ninguno';
                 $resultado = $request->input('resultado')[$key] ?? 'Bien';
 
-                if ($defecto === 'Fundición')
+                if ($defecto === 'Fundición' || $defecto === 'Fundicion')
                     $piecesToProcess[$n_piece]['hasFundicion'] = true;
                 if ($resultado === 'Mal')
                     $piecesToProcess[$n_piece]['hasMal'] = true;
@@ -595,7 +595,7 @@ class ProcessProductionController extends Controller
                     $pieceInPiezas->proceso = "Soldadura PTA";
                 }
 
-                $error = $data['hasFundicion'] ? "Fundición" : ($data['hasMal'] ? "Maquinado" : "Ninguno");
+                $error = $data['hasFundicion'] ? "Fundicion" : ($data['hasMal'] ? "Maquinado" : "Ninguno");
                 $pieceInPiezas->error = $error;
 
                 // Combinar observaciones de sub-filas y pasadas
@@ -1462,10 +1462,19 @@ class ProcessProductionController extends Controller
     public function verifyPiece($halfPiece)
     {
         if ($halfPiece) {
-            // Special logic for Soldadura PTA: Allow passing if not rejected or incomplete
-            // 2 = Rechazada, 5 = Incompleto
+            // Special logic for Soldadura PTA:
+            // - Rechazada (2) o Incompleta (5) → siempre bloqueada
+            // - Error de Fundicion → bloqueada hasta que sea liberada
+            // - Cualquier otro defecto → pasa (no bloquea)
             if ($halfPiece->proceso === "Soldadura PTA") {
-                return !in_array($halfPiece->liberacion, [2, 5]);
+                if (in_array($halfPiece->liberacion, [2, 5])) {
+                    return false;
+                }
+                // Si tiene defecto de Fundicion y NO ha sido liberada formalmente, bloquear
+                if (in_array($halfPiece->error, ['Fundicion', 'Fundición']) && !in_array($halfPiece->liberacion, [1, 3])) {
+                    return false;
+                }
+                return true;
             }
 
             // Standard logic for other processes
@@ -2571,10 +2580,17 @@ class ProcessProductionController extends Controller
                                         if ($pFemale->error == "Ninguno" && $pMale->error == "Ninguno") {
                                             array_push($piecesArray["good"], $pFemale, $pMale);
                                         } else {
-                                            // Modificación para PTA: si tienen error pero liberación es 0, no contar como malas
-                                            // a menos que sea otro proceso que sí deba bloquear.
+                                            // Modificación para PTA: solo Fundicion bloquea
                                             if ($processName === "Soldadura PTA") {
-                                                array_push($piecesArray["good"], $pFemale, $pMale);
+                                                if (in_array($pFemale->error, ['Fundicion', 'Fundición']) || in_array($pMale->error, ['Fundicion', 'Fundición'])) {
+                                                    array_push($piecesArray["bad"], $pFemale, $pMale);
+                                                    if (in_array($pFemale->error, ['Fundicion', 'Fundición']))
+                                                        array_push($piecesBadData, $this->getBadPiecesData($pFemale));
+                                                    if (in_array($pMale->error, ['Fundicion', 'Fundición']))
+                                                        array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                                } else {
+                                                    array_push($piecesArray["good"], $pFemale, $pMale);
+                                                }
                                             } else {
                                                 array_push($piecesArray["bad"], $pFemale, $pMale);
                                                 if ($pFemale->error != "Ninguno")
@@ -2614,7 +2630,12 @@ class ProcessProductionController extends Controller
                                 array_push($piecesArray["good"], $piece);
                             } else {
                                 if ($processName === "Soldadura PTA") {
-                                    array_push($piecesArray["good"], $piece);
+                                    if (in_array($piece->error, ['Fundicion', 'Fundición'])) {
+                                        array_push($piecesArray["bad"], $piece);
+                                        array_push($piecesBadData, $this->getBadPiecesData($piece));
+                                    } else {
+                                        array_push($piecesArray["good"], $piece);
+                                    }
                                 } else {
                                     array_push($piecesArray["bad"], $piece);
                                     array_push($piecesBadData, $this->getBadPiecesData($piece));

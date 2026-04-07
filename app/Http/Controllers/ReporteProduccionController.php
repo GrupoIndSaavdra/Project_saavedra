@@ -273,7 +273,16 @@ class ReporteProduccionController extends Controller
             $cantidad = $esMitad ? 0.5 : 1;
 
             $isValid = false;
-            if ($pieza->error != "Ninguno" && !empty($pieza->error)) {
+            if ($pieza->proceso === 'Soldadura PTA') {
+                // PTA: only Fundicion blocks
+                if ($pieza->liberacion == 2) {
+                    $isValid = false;
+                } elseif (in_array($pieza->error, ['Fundicion', 'Fundición']) && !in_array($pieza->liberacion, [1, 3])) {
+                    $isValid = false;
+                } else {
+                    $isValid = true;
+                }
+            } elseif ($pieza->error != "Ninguno" && !empty($pieza->error)) {
                 if ($pieza->liberacion == 1 || $pieza->liberacion == 3)
                     $isValid = true;
             } else {
@@ -287,7 +296,7 @@ class ReporteProduccionController extends Controller
             $liberado = $this->verifyPiece($pieza);
             $obsCalidad = $pieza->observacion_liberacion ?: '—';
             $obsOperador = $this->getObservacionesOperador($pieza);
-            $colorFila = $this->asignColorTr($pieza->liberacion, $pieza->error);
+            $colorFila = $this->asignColorTr($pieza->liberacion, $pieza->error, $pieza->proceso ?? '');
 
             $nPiezaRaw = $pieza->n_pieza;
             $esJuego = str_ends_with($nPiezaRaw, 'H') || str_ends_with($nPiezaRaw, 'M');
@@ -496,6 +505,16 @@ class ReporteProduccionController extends Controller
     {
         if (!$piece)
             return false;
+
+        // PTA-specific: only Fundicion blocks
+        if ($piece->proceso === 'Soldadura PTA') {
+            if (in_array($piece->liberacion, [2, 5]))
+                return false;
+            if (in_array($piece->error, ['Fundicion', 'Fundición']) && !in_array($piece->liberacion, [1, 3]))
+                return false;
+            return true;
+        }
+
         if ($piece->liberacion == 1 || $piece->liberacion == 3)
             return true;
         if ($piece->liberacion == 0 && ($piece->error == 'Ninguno' || empty($piece->error)))
@@ -506,7 +525,7 @@ class ReporteProduccionController extends Controller
     /**
      * Mapeamos el color en Hex de acuerdo con adminPieces.js
      */
-    private function asignColorTr($status, $error)
+    private function asignColorTr($status, $error, $process = '')
     {
         $status = (int) $status;
         switch ($status) {
@@ -517,6 +536,10 @@ class ReporteProduccionController extends Controller
             case 3:
                 return "#90EE90";
             case 4:
+                // PTA: only Fundicion stays purple
+                if ($process === 'Soldadura PTA' && !str_contains((string) $error, 'Fundicion') && !str_contains((string) $error, 'Fundición')) {
+                    return "#90EE90";
+                }
                 return "#DDA0DD";
             case 5:
                 return "#FFD700";
@@ -525,8 +548,12 @@ class ReporteProduccionController extends Controller
                     return "#FFD700";
                 elseif ($error === "Ninguno" || empty($error))
                     return "#90EE90";
-                else
+                else {
+                    if ($process === 'Soldadura PTA' && !str_contains((string) $error, 'Fundicion') && !str_contains((string) $error, 'Fundición')) {
+                        return "#90EE90";
+                    }
                     return "#DDA0DD";
+                }
         }
     }
 }
