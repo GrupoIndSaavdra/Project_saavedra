@@ -3,9 +3,16 @@
     margin: 0.5cm;
 }
 
+@media print {
+    body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+
 body {
     font-family: "Helvetica", "Arial", sans-serif;
-    font-size: 9px;
+    font-size: 8px; /* Slightly smaller base font helps fit more columns in Chrome */
     color: #333;
     margin: 0;
     padding: 0;
@@ -53,7 +60,7 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 10px;
-    table-layout: fixed;
+    table-layout: auto; /* Permite a Chrome ajustar el ancho de las celdas dinámicamente */
 }
 
 .pta-table td,
@@ -177,4 +184,104 @@ th {
 .resultado-NOK {
     color: red;
     font-weight: bold;
+}
+
+/* Modificaciones recientes (Resultados y Anexos) */
+
+.pta-table-resultados {
+    page-break-inside: avoid;
+    margin-bottom: 4px;
+}
+
+.td-res-si {
+    background-color: #2da34f !important;
+    color: white !important;
+    text-align: center;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.td-res-no {
+    background-color: #e64e59 !important;
+    color: white !important;
+    text-align: center;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.td-res-na {
+    background-color: #818b94 !important;
+    color: white !important;
+    text-align: center;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.td-res-none {
+    background-color: transparent !important;
+    color: #333 !important;
+    text-align: center;
+    font-size: 9px;
+    font-weight: bold;
+}
+
+.anexos-juego-banner {
+    background-color: #f7f9fc;
+    border-left: 3px solid #033966;
+    padding: 4px 8px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    border-radius: 2px;
+}
+
+.anexos-juego-banner strong {
+    font-size: 10px;
+    color: #033966;
+}
+
+.anexos-img-table {
+    width: 100%;
+    text-align: center;
+    border-collapse: separate;
+    border-spacing: 4px;
+    margin-bottom: 4px;
+    page-break-inside: avoid;
+    border: none;
+}
+
+.anexos-img-td {
+    width: 33.33%;
+    vertical-align: top;
+    border: 1px solid #eaeaea;
+    background-color: #ffffff;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.anexos-img-td strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 9px;
+    color: #555;
+    text-align: center;
+}
+
+.anexos-img {
+    max-width: 100%;
+    max-height: 105px;
+    object-fit: contain;
+}
+
+.anexos-img-none {
+    color: #aaa;
+    font-size: 8px;
+    padding: 20px 0;
+    background-color: #fafafa;
+    border: 1px dashed #ddd;
+    border-radius: 2px;
+    text-align: center;
+}
+
+.page-break {
+    page-break-before: always;
 }

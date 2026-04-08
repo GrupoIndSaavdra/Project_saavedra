@@ -9,7 +9,8 @@ use App\Models\PtaResultado;
 use App\Models\SoldaduraPTA;
 use App\Models\SoldaduraPTA_pza;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Spatie\LaravelPdf\Facades\Pdf;
+use Intervention\Image\Facades\Image;
 
 class PtaResultsController extends Controller
 {
@@ -113,8 +114,17 @@ class PtaResultsController extends Controller
         }
 
         $fechaHora = date('Y-m-d_H-i-s');
-        $nombre = $otId . '_' . $claseLimpia . '_' . $nPiezaLimpia . '_' . $prefijo . '_' . $fechaHora . '.' . $file->getClientOriginalExtension();
-        $file->move($directorioDestino, $nombre);
+        // Obligamos a guardar con extensión .jpg, ya que dompdf lo renderiza rapidísimo
+        $nombre = $otId . '_' . $claseLimpia . '_' . $nPiezaLimpia . '_' . $prefijo . '_' . $fechaHora . '.jpg';
+        
+        // Usa Intervention Image para reducir, comprimir a JPG e impedir que saturen memoria
+        Image::make($file)
+            ->resize(900, 900, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize(); // No agrandar si es una imagen pequeña
+            })
+            ->encode('jpg', 75) // 75% de calidad es muy bueno y ahorra mucho peso
+            ->save($directorioDestino . '/' . $nombre);
 
         return $relativePath . '/' . $nombre;
     }
@@ -455,7 +465,7 @@ class PtaResultsController extends Controller
 
         $esJuegoCompleto = in_array(strtoupper($claseSeleccionada->nombre), ['OBTURADOR', 'FONDO']);
 
-        $pdf = Pdf::loadView('pta_views.analysis_pdf', compact(
+        return Pdf::view('pta_views.analysis_pdf', compact(
             'ot',
             'claseSeleccionada',
             'piezasPTA',
@@ -463,12 +473,10 @@ class PtaResultsController extends Controller
             'piezasGroup',
             'fecha',
             'esJuegoCompleto'
-        ));
-
-        // Establecer orientación horizontal (landscape)
-        $pdf->setPaper('a4', 'landscape');
-
-        return $pdf->download($filename);
+        ))
+        ->landscape()
+        ->format('a4')
+        ->download($filename);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
