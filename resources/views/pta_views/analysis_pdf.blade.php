@@ -49,7 +49,7 @@
             </div>
 
             {{-- 1. Tabla de Resultados (Pico Llenado, etc.) --}}
-            <table class="pta-table table-compact">
+            <table class="pta-table pta-table-resultados">
                 <thead>
                     <tr>
                         <th style="width: 35px;">Pieza</th>
@@ -78,14 +78,16 @@
                             @endphp
                             @foreach ($campos as $campo)
                                 @php
-                                    $resClass = match($campo) {
-                                        'Si'         => 'res-si',
-                                        'No'         => 'res-no',
-                                        'No Aplica'  => 'res-na',
-                                        default      => 'res-empty'
-                                    };
+                                    $bgClass = 'td-res-none';
+                                    if ($campo === 'Si') {
+                                        $bgClass = 'td-res-si';
+                                    } elseif ($campo === 'No') {
+                                        $bgClass = 'td-res-no';
+                                    } elseif ($campo === 'No Aplica') {
+                                        $bgClass = 'td-res-na';
+                                    }
                                 @endphp
-                                <td class="{{ $resClass }}" style="text-align: center; font-size: 9px; font-weight: bold;">
+                                <td class="{{ $bgClass }}">
                                     {{ $campo === 'No Aplica' ? 'N/A' : ($campo ?: '—') }}
                                 </td>
                             @endforeach
@@ -242,38 +244,38 @@
                         $hasImages = $res && ($res->imagen_pico_soldadura || $res->imagen_conexion_soldadura || $res->imagen_perfilado_soldadura);
                     @endphp
                     @if($hasImages)
-                        <div class="annex-piece-header">
+                        <div class="anexos-juego-banner">
                             @php
                                 $nPieza = $pieza->n_pieza;
                                 $esSufijoJ = str_ends_with(strtoupper($nPieza), 'J');
                                 $labelPza = $esSufijoJ ? 'Juego: ' . $nPieza : 'Pieza: ' . $nPieza;
                             @endphp
-                            <strong class="annex-piece-title">{{ $labelPza }}</strong>
+                            <strong>{{ $labelPza }}</strong>
                         </div>
-                        <table class="annex-table">
+                        <table class="anexos-img-table">
                             <tr>
-                                <td class="annex-card">
-                                    <strong class="annex-label">Pico Soldadura</strong>
+                                <td class="anexos-img-td">
+                                    <strong>Pico Soldadura</strong>
                                     @if($res->imagen_pico_soldadura && file_exists(public_path($res->imagen_pico_soldadura)))
-                                        <img src="{{ public_path($res->imagen_pico_soldadura) }}" class="annex-img">
+                                        <img src="{{ public_path($res->imagen_pico_soldadura) }}" class="anexos-img">
                                     @else
-                                        <div class="annex-placeholder">No disponible</div>
+                                        <div class="anexos-img-none">No disponible</div>
                                     @endif
                                 </td>
-                                <td class="annex-card">
-                                    <strong class="annex-label">Conexión Soldadura</strong>
+                                <td class="anexos-img-td">
+                                    <strong>Conexión Soldadura</strong>
                                     @if($res->imagen_conexion_soldadura && file_exists(public_path($res->imagen_conexion_soldadura)))
-                                        <img src="{{ public_path($res->imagen_conexion_soldadura) }}" class="annex-img">
+                                        <img src="{{ public_path($res->imagen_conexion_soldadura) }}" class="anexos-img">
                                     @else
-                                        <div class="annex-placeholder">No disponible</div>
+                                        <div class="anexos-img-none">No disponible</div>
                                     @endif
                                 </td>
-                                <td class="annex-card">
-                                    <strong class="annex-label">Perfilado Soldadura</strong>
+                                <td class="anexos-img-td">
+                                    <strong>Perfilado Soldadura</strong>
                                     @if($res->imagen_perfilado_soldadura && file_exists(public_path($res->imagen_perfilado_soldadura)))
-                                        <img src="{{ public_path($res->imagen_perfilado_soldadura) }}" class="annex-img">
+                                        <img src="{{ public_path($res->imagen_perfilado_soldadura) }}" class="anexos-img">
                                     @else
-                                        <div class="annex-placeholder">No disponible</div>
+                                        <div class="anexos-img-none">No disponible</div>
                                     @endif
                                 </td>
                             </tr>

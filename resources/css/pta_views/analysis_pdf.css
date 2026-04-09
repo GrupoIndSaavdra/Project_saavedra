@@ -1,242 +1,260 @@
-body {
-    font-family: Arial, sans-serif;
-    font-size: 8px;
-    margin: 0;
-    padding: 20px;
-    color: #333;
+@page {
+    size: A4 landscape;
+    margin: 0.8cm;
 }
 
+@media print {
+    body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+
+body {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 8px;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
+}
+
+/* --- Cabecera Principal --- */
 .header {
     text-align: center;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #033966;
-    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 2.5px solid #033966;
+    padding-bottom: 5px;
 }
 
 .header h1 {
-    color: #033966;
     margin: 0;
     font-size: 18px;
+    color: #033966;
     text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .header p {
-    margin: 5px 0 0;
+    margin: 2px 0 0;
     font-size: 10px;
-    color: #666;
-}
-
-.info-section {
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.info-box {
-    display: inline-block;
-    width: 48%;
-    vertical-align: top;
-}
-
-.info-box p {
-    margin: 3px 0;
-}
-
-.juego-block {
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    padding: 10px;
-    background-color: #f9f9f9;
-}
-
-.juego-header {
-    background-color: #033966;
-    color: white;
-    padding: 5px 10px;
-    font-size: 11px;
-    font-weight: bold;
-    margin-bottom: 10px;
-}
-
-.pta-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 10px;
-    table-layout: fixed;
-}
-
-.pta-table th,
-.pta-table td {
-    border: 1px solid #aaa;
-    padding: 4px 2px;
-    text-align: center;
-    word-wrap: break-word;
-}
-
-.pta-table th {
-    background-color: #eee;
-    font-weight: bold;
-    font-size: 7px;
-}
-
-.th-section {
-    background-color: #d1d1d1 !important;
-    text-transform: uppercase;
-    font-size: 7px;
-}
-
-.td-pieza {
-    font-weight: bold;
-    background-color: #f0f0f0;
-}
-
-.td-tipo-medida {
-    text-align: left !important;
-    padding-left: 5px !important;
-    font-style: italic;
-}
-
-.td-precal {
-    background-color: #fffde7;
-    font-weight: bold;
-}
-
-/* Colores de Liberación (Fondo total de la fila) */
-.pta-row-liberada {
-    background-color: #e3f2fd;
-}
-
-.pta-row-rechazada {
-    background-color: #ffebee;
-}
-
-.pta-row-buena {
-    background-color: #e8f5e9;
-}
-
-.pta-row-mala {
-    background-color: #fbe9e7;
-}
-
-.pta-row-incompleta {
-    background-color: #fff3e0;
-}
-
-.pta-row-ok {
-    background-color: #ffffff;
-}
-
-.pta-row-sin-lib {
-    background-color: #fafafa;
-}
-
-/* Colores de texto para Resultado */
-.resultado-OK {
-    color: green;
-    font-weight: bold;
-}
-
-.resultado-NOK {
-    color: red;
-    font-weight: bold;
-}
-
-/* --- Nuevas clases de utilidad para refactorización --- */
-
-/* Resultados con fondo */
-.res-si {
-    background-color: #36bc5c !important;
-    color: white !important;
-}
-
-.res-no {
-    background-color: #db4a54 !important;
-    color: white !important;
-}
-
-.res-na {
-    background-color: #b7983b !important;
-    color: white !important;
-}
-
-.res-empty {
-    background-color: transparent !important;
-}
-
-/* Contenedores de tablas */
-.table-compact {
-    margin-bottom: 4px !important;
-}
-
-/* Sección de Anexos */
-.annex-piece-header {
-    background-color: #f7f9fc;
-    border-left: 3px solid #033966;
-    padding: 4px 8px;
-    margin-top: 8px;
-    margin-bottom: 4px;
-    border-radius: 2px;
-}
-
-.annex-piece-title {
-    font-size: 10px;
-    color: #033966;
-}
-
-.annex-table {
-    width: 100%;
-    text-align: center;
-    border-collapse: separate;
-    border-spacing: 4px;
-    margin-bottom: 4px;
-    border: none;
-}
-
-.annex-card {
-    width: 33.33%;
-    vertical-align: top;
-    border: 1px solid #eaeaea;
-    background-color: #ffffff;
-    padding: 4px;
-    border-radius: 4px;
-}
-
-.annex-label {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 9px;
     color: #555;
     font-weight: bold;
 }
 
-.annex-img {
-    max-width: 100%;
-    max-height: 105px;
-    object-fit: contain;
+/* --- Bloque de Información --- */
+.info-section {
+    margin-bottom: 10px;
+    display: table;
+    width: 100%;
 }
 
-.annex-placeholder {
-    color: #aaa;
+.info-box {
+    display: table-cell;
+    width: 50%;
+    vertical-align: middle;
+}
+
+.info-box p {
+    margin: 2px 0;
+    font-size: 9px;
+}
+
+.info-box strong {
+    color: #033966;
+    text-transform: uppercase;
     font-size: 8px;
-    padding: 20px 0;
-    background-color: #fafafa;
+}
+
+/* --- Tablas Generales --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+}
+
+th, td {
+    border: 1px solid #b0c4de;
+    padding: 3px 2px;
+    text-align: center;
+    word-wrap: break-word;
+}
+
+th {
+    background-color: #033966;
+    color: white;
+    font-weight: bold;
+    font-size: 7.5px;
+    text-transform: uppercase;
+}
+
+/* --- Bloques de Juegos --- */
+.juego-block {
+    page-break-inside: avoid;
+    margin-bottom: 8px; /* Reducido de 15px */
+    border: 1px solid #e0e0e0;
+    background-color: #fff;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.juego-header {
+    background-color: #f0f7ff;
+    font-weight: bold;
+    text-align: left;
+    padding: 6px 10px;
+    border: 1.5px solid #033966;
+    margin-bottom: 8px;
+    font-size: 10px;
+    color: #033966;
+    border-radius: 2px;
+}
+
+/* --- Tabla de Resultados (Pico, Conexión, etc.) --- */
+.pta-table-resultados {
+    table-layout: fixed;
+    margin-bottom: 6px;
+}
+
+/* Colores de Resultados (Tonos del usuario) */
+.td-res-si {
+    background-color: #36bc5c !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+.td-res-no {
+    background-color: #db4a54 !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+.td-res-na {
+    background-color: #b7983b !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+.td-res-none {
+    background-color: #fafafa !important;
+    color: #999 !important;
+}
+
+/* --- Tabla Técnica (Valores) --- */
+.pta-table {
+    table-layout: fixed;
+}
+
+.th-section {
+    background-color: #055a9e !important;
+    color: white !important;
+    font-size: 7px;
+}
+
+.td-pieza {
+    background-color: #033966 !important;
+    color: white !important;
+    font-weight: bold;
+    font-size: 10px;
+}
+
+.td-tipo-medida {
+    text-align: left;
+    padding-left: 5px;
+    font-weight: bold;
+    color: #333;
+    background-color: #f1f8ff !important;
+    font-size: 7.5px;
+}
+
+.td-precal {
+    background-color: #fffde7 !important;
+    font-weight: bold;
+    border-left: 2px solid #ffd600 !important;
+    border-right: 2px solid #ffd600 !important;
+    font-size: 10px;
+}
+
+/* Estados de Fila */
+.pta-row-buena { border-left: 4px solid #28a745; }
+.pta-row-rechazada { border-left: 4px solid #dc3545; }
+.pta-row-liberada { border-left: 4px solid #007bff; }
+
+.resultado-OK { color: #28a745; font-weight: bold; }
+.resultado-NOK { color: #dc3545; font-weight: bold; }
+
+/* --- Sección de Anexos (Imágenes) --- */
+.anexos-juego-banner {
+    background-color: #f8f9fa;
+    border-left: 3px solid #033966;
+    padding: 3px 8px; /* Reducido de 5px */
+    margin-top: 5px;   /* Reducido de 10px */
+    margin-bottom: 3px; /* Reducido de 5px */
+    border-radius: 2px;
+}
+
+.anexos-juego-banner strong {
+    font-size: 10px; /* Reducido de 11px */
+    color: #033966;
+}
+
+.anexos-img-table {
+    table-layout: fixed;
+    border-spacing: 3px; /* Reducido de 5px */
+    border-collapse: separate;
+    margin-bottom: 2px; /* Reducido de 5px */
+}
+
+.anexos-img-td {
+    width: 33.33%;
+    vertical-align: top;
+    border: 1px solid #dee2e6;
+    background-color: #ffffff;
+    padding: 4px; /* Reducido de 6px */
+    border-radius: 4px;
+}
+
+.anexos-img-td strong {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 8px; /* Reducido de 9px */
+    color: #444;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 2px;
+}
+
+.anexos-img {
+    width: auto;
+    max-width: 100%;
+    max-height: 210px; /* Punto medio entre 180px y 250px */
+    display: block;
+    margin: 0 auto;
+    background-color: #fcfcfc;
+    border-radius: 2px;
+}
+
+.anexos-img-none {
+    color: #bbb;
+    font-size: 8px;
+    height: 120px; /* Ajuste proporcional */
+    line-height: 120px;
+    text-align: center;
+    background-color: #fdfdfd;
     border: 1px dashed #ddd;
     border-radius: 2px;
 }
 
 .footer {
     position: fixed;
-    bottom: 0;
-    left: 0;
+    bottom: -15px;
     width: 100%;
     text-align: center;
-    font-size: 7px;
-    color: #999;
-}
-
-@page {
-    margin: 1cm;
+    font-size: 8px;
+    color: #bbb;
+    padding-top: 5px;
 }
 
 .page-break {
-    page-break-after: always;
+    page-break-before: always;
 }
