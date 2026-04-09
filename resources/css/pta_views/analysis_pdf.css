@@ -216,12 +216,15 @@ th {
 
 .anexos-img-td strong {
     display: block;
-    margin-bottom: 3px;
-    font-size: 8px; /* Reducido de 9px */
-    color: #444;
+    margin-bottom: 5px;
+    font-size: 8px;
+    color: #033966; /* Azul oscuro de la marca */
     text-align: center;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 2px;
+    background-color: #e9f2fb; /* Fondo azul muy claro */
+    padding: 3px 0;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .anexos-img {
