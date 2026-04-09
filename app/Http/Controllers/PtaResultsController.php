@@ -93,8 +93,8 @@ class PtaResultsController extends Controller
     }
 
     /**
-     * Sube una imagen al disco public, la redimensiona usando GD nativo y devuelve la ruta.
-     * Convierte imágenes a formato JPEG (1000px max, 80% compresión) para optimización extrema.
+     * Sube una imagen al disco public y devuelve la ruta relativa.
+     * Si ya existía una imagen anterior, la elimina.
      */
     private function subirImagen($file, ?string $rutaAnterior, string $prefijo, string $otId, string $claseNombre, string $nPieza): string
     {
@@ -113,70 +113,10 @@ class PtaResultsController extends Controller
         }
 
         $fechaHora = date('Y-m-d_H-i-s');
-        $rutaTemporal = $file->getRealPath();
-        
-        $infoImagen = @getimagesize($rutaTemporal);
-        $tieneGD = extension_loaded('gd');
+        $nombre = $otId . '_' . $claseLimpia . '_' . $nPiezaLimpia . '_' . $prefijo . '_' . $fechaHora . '.' . $file->getClientOriginalExtension();
+        $file->move($directorioDestino, $nombre);
 
-        if ($tieneGD && $infoImagen !== false && in_array($infoImagen[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP, IMAGETYPE_GIF])) {
-            $nombre = $otId . '_' . $claseLimpia . '_' . $nPiezaLimpia . '_' . $prefijo . '_' . $fechaHora . '.jpg';
-            $destinoFinal = $directorioDestino . DIRECTORY_SEPARATOR . $nombre;
-
-            $tipoImagen = $infoImagen[2];
-            $anchoOrig = $infoImagen[0];
-            $altoOrig = $infoImagen[1];
-
-            // Crear el recurso base
-            if ($tipoImagen === IMAGETYPE_JPEG) $origen = @imagecreatefromjpeg($rutaTemporal);
-            elseif ($tipoImagen === IMAGETYPE_PNG) $origen = @imagecreatefrompng($rutaTemporal);
-            elseif ($tipoImagen === IMAGETYPE_WEBP) $origen = @imagecreatefromwebp($rutaTemporal);
-            elseif ($tipoImagen === IMAGETYPE_GIF) $origen = @imagecreatefromgif($rutaTemporal);
-            else $origen = false;
-
-            if ($origen !== false) {
-                // Corregir orientación EXIF
-                if ($tipoImagen === IMAGETYPE_JPEG && function_exists('exif_read_data')) {
-                    $exif = @exif_read_data($rutaTemporal);
-                    if (!empty($exif['Orientation'])) {
-                        switch ($exif['Orientation']) {
-                            case 3: $origen = imagerotate($origen, 180, 0); break;
-                            case 6: $origen = imagerotate($origen, -90, 0); $tmp = $anchoOrig; $anchoOrig = $altoOrig; $altoOrig = $tmp; break;
-                            case 8: $origen = imagerotate($origen, 90, 0);  $tmp = $anchoOrig; $anchoOrig = $altoOrig; $altoOrig = $tmp; break;
-                        }
-                    }
-                }
-
-                // Cálculo para escala (1000px ancho max)
-                $maxAncho = 1000;
-                if ($anchoOrig > $maxAncho) {
-                    $nuevoAncho = $maxAncho;
-                    $nuevoAlto = intval(($maxAncho / $anchoOrig) * $altoOrig);
-                } else {
-                    $nuevoAncho = $anchoOrig;
-                    $nuevoAlto = $altoOrig;
-                }
-
-                $lienzo = imagecreatetruecolor($nuevoAncho, $nuevoAlto);
-
-                if (in_array($tipoImagen, [IMAGETYPE_PNG, IMAGETYPE_WEBP, IMAGETYPE_GIF])) {
-                    $fondoBlanco = imagecolorallocate($lienzo, 255, 255, 255);
-                    imagefill($lienzo, 0, 0, $fondoBlanco);
-                }
-
-                imagecopyresampled($lienzo, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $anchoOrig, $altoOrig);
-                imagejpeg($lienzo, $destinoFinal, 80);
-
-                imagedestroy($lienzo);
-                imagedestroy($origen);
-                
-                return $relativePath . '/' . $nombre;
-            }
-        }
-        
-        $nombreFallback = $otId . '_' . $claseLimpia . '_' . $nPiezaLimpia . '_' . $prefijo . '_' . $fechaHora . '.' . $file->getClientOriginalExtension();
-        $file->move($directorioDestino, $nombreFallback);
-        
-        return $relativePath . '/' . $nombreFallback;
+        return $relativePath . '/' . $nombre;
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -509,12 +449,8 @@ class PtaResultsController extends Controller
 
         // 4. Generar PDF
         $fecha = now()->format('d-m-Y');
-        $fechaHora = now()->format('d-m-Y_h-i-s-A');
-        $molduraNombre = $ot->moldura ? $ot->moldura->nombre : 'SinMoldura';
-        
-        $filename = "OT_{$ot->id}_{$molduraNombre}_Clase_{$claseSeleccionada->nombre}_{$fechaHora}.pdf";
-        
-        // Limpiar nombre de archivo (evitar espacios y caracteres problemáticos)
+        $filename = "OT_{$ot->id}_{$claseSeleccionada->nombre}_{$fecha}.pdf";
+        // Limpiar nombre de archivo (evitar caracteres problemáticos)
         $filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $filename);
 
         $esJuegoCompleto = in_array(strtoupper($claseSeleccionada->nombre), ['OBTURADOR', 'FONDO']);
