@@ -49,11 +49,57 @@
         <div class="juego-block">
             <div class="juego-header">
                 @if(isset($esJuegoCompleto) && $esJuegoCompleto)
-                    Juego {{ $jNum }} - J{{ $jNum }}
+                    Juego {{ $jNum }} - {{ $jNum }}J
                 @else
                     Juego {{ $jNum }} — Piezas: {{ implode(' / ', array_keys($piezasDelJuegoObj)) }}
                 @endif
             </div>
+
+            {{-- 1. Tabla de Resultados (Pico Llenado, etc.) --}}
+            <table class="pta-table table-compact">
+                <thead>
+                    <tr>
+                        <th style="width: 35px;">Pieza</th>
+                        <th>Pico Llenado</th>
+                        <th>Pico Soldadura</th>
+                        <th>Conexión Llenado</th>
+                        <th>Conexión Soldadura</th>
+                        <th>Perfilado Llenado</th>
+                        <th>Perfilado Soldadura</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($piezasDelJuegoObj as $pieza)
+                        @php $res = $resultados->get($pieza->id); @endphp
+                        <tr>
+                            <td class="td-pieza" style="font-size: 10px;">{{ $pieza->n_pieza }}</td>
+                            @php
+                                $campos = [
+                                    $res->resultado_pico_llenado ?? null,
+                                    $res->resultado_pico_soldadura ?? null,
+                                    $res->resultado_conexion_llenado ?? null,
+                                    $res->resultado_conexion_soldadura ?? null,
+                                    $res->resultado_perfilado_llenado ?? null,
+                                    $res->resultado_perfilado_soldadura ?? null,
+                                ];
+                            @endphp
+                            @foreach ($campos as $campo)
+                                @php
+                                    $resClass = match($campo) {
+                                        'Si'         => 'res-si',
+                                        'No'         => 'res-no',
+                                        'No Aplica'  => 'res-na',
+                                        default      => 'res-empty'
+                                    };
+                                @endphp
+                                <td class="{{ $resClass }}" style="text-align: center; font-size: 9px; font-weight: bold;">
+                                    {{ $campo === 'No Aplica' ? 'N/A' : ($campo ?: '—') }}
+                                </td>
+                            @endforeach
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
 
             {{-- 2. Tabla de Datos Técnicos (Resumen) --}}
             @php
@@ -235,6 +281,84 @@
                 </p>
             @endif
 
+        </div>
+    @endforeach
+
+    <div style="page-break-before: always;"></div>
+    <div class="header">
+        <h1>Anexos - Evidencia Fotográfica</h1>
+        <p>Imágenes por juego/pieza</p>
+    </div>
+
+    @foreach ($juegosPTA as $jNum => $piezasDelJuegoObj)
+        <div class="juego-block">
+            <div class="juego-header">
+                @if(isset($esJuegoCompleto) && $esJuegoCompleto)
+                    Anexos: Juego {{ $jNum }} - {{ $jNum }}J
+                @else
+                    Anexos: Juego {{ $jNum }} — Piezas: {{ implode(' / ', array_keys($piezasDelJuegoObj)) }}
+                @endif
+            </div>
+
+            @php
+                $anyImagesInJuego = false;
+                foreach ($piezasDelJuegoObj as $pieza) {
+                    $res = $resultados->get($pieza->id);
+                    if ($res && ($res->imagen_pico_soldadura || $res->imagen_conexion_soldadura || $res->imagen_perfilado_soldadura)) {
+                        $anyImagesInJuego = true;
+                        break;
+                    }
+                }
+            @endphp
+            
+            @if(!$anyImagesInJuego)
+                <p style="text-align: center; color: #888; font-style: italic; font-size: 10px;">Sin imágenes subidas para este juego.</p>
+            @else
+                @foreach ($piezasDelJuegoObj as $pieza)
+                    @php 
+                        $res = $resultados->get($pieza->id); 
+                        $hasImages = $res && ($res->imagen_pico_soldadura || $res->imagen_conexion_soldadura || $res->imagen_perfilado_soldadura);
+                    @endphp
+                    @if($hasImages)
+                        <div class="annex-piece-header">
+                            @php
+                                $nPieza = $pieza->n_pieza;
+                                $esSufijoJ = str_ends_with(strtoupper($nPieza), 'J');
+                                $labelPza = $esSufijoJ ? 'Juego: ' . $nPieza : 'Pieza: ' . $nPieza;
+                            @endphp
+                            <strong class="annex-piece-title">{{ $labelPza }}</strong>
+                        </div>
+                        <table class="annex-table">
+                            <tr>
+                                <td class="annex-card">
+                                    <strong class="annex-label">Pico Soldadura</strong>
+                                    @if($res->imagen_pico_soldadura && file_exists(public_path($res->imagen_pico_soldadura)))
+                                        <img src="{{ public_path($res->imagen_pico_soldadura) }}" class="annex-img">
+                                    @else
+                                        <div class="annex-placeholder">No disponible</div>
+                                    @endif
+                                </td>
+                                <td class="annex-card">
+                                    <strong class="annex-label">Conexión Soldadura</strong>
+                                    @if($res->imagen_conexion_soldadura && file_exists(public_path($res->imagen_conexion_soldadura)))
+                                        <img src="{{ public_path($res->imagen_conexion_soldadura) }}" class="annex-img">
+                                    @else
+                                        <div class="annex-placeholder">No disponible</div>
+                                    @endif
+                                </td>
+                                <td class="annex-card">
+                                    <strong class="annex-label">Perfilado Soldadura</strong>
+                                    @if($res->imagen_perfilado_soldadura && file_exists(public_path($res->imagen_perfilado_soldadura)))
+                                        <img src="{{ public_path($res->imagen_perfilado_soldadura) }}" class="annex-img">
+                                    @else
+                                        <div class="annex-placeholder">No disponible</div>
+                                    @endif
+                                </td>
+                            </tr>
+                        </table>
+                    @endif
+                @endforeach
+            @endif
         </div>
     @endforeach
 
