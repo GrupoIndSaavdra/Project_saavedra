@@ -30,18 +30,11 @@
     @php
         $juegosPTA = [];
         foreach ($piezasPTA as $pieza) {
-            // Omitir piezas que Calidad ya liberó como RECHAZADAS (liberacion == 2)
-            // if ($pieza->liberacion == 2) continue; // El usuario quiere ver todo o solo lo bueno?
-            // En el análisis admin ve todo. Lo dejaré que vea todo.
-
             preg_match('/^(\d+)/', $pieza->n_pieza, $m);
             $jNum = $m[1] ?? $pieza->n_pieza;
             $juegosPTA[$jNum][$pieza->n_pieza] = $pieza;
         }
         ksort($juegosPTA, SORT_NUMERIC);
-    @endphp
-
-    @php
         $piezasMap = $piezasPTA->keyBy('n_pieza');
     @endphp
 
@@ -56,7 +49,7 @@
             </div>
 
             {{-- 1. Tabla de Resultados (Pico Llenado, etc.) --}}
-            <table class="pta-table pta-table-resultados">
+            <table class="pta-table table-compact">
                 <thead>
                     <tr>
                         <th style="width: 35px;">Pieza</th>
@@ -85,16 +78,14 @@
                             @endphp
                             @foreach ($campos as $campo)
                                 @php
-                                    $bgClass = 'td-res-none';
-                                    if ($campo === 'Si') {
-                                        $bgClass = 'td-res-si';
-                                    } elseif ($campo === 'No') {
-                                        $bgClass = 'td-res-no';
-                                    } elseif ($campo === 'No Aplica') {
-                                        $bgClass = 'td-res-na';
-                                    }
+                                    $resClass = match($campo) {
+                                        'Si'         => 'res-si',
+                                        'No'         => 'res-no',
+                                        'No Aplica'  => 'res-na',
+                                        default      => 'res-empty'
+                                    };
                                 @endphp
-                                <td class="{{ $bgClass }}">
+                                <td class="{{ $resClass }}" style="text-align: center; font-size: 9px; font-weight: bold;">
                                     {{ $campo === 'No Aplica' ? 'N/A' : ($campo ?: '—') }}
                                 </td>
                             @endforeach
@@ -127,8 +118,7 @@
                     <table class="pta-table" style="page-break-inside: avoid; margin-bottom: 5px;">
                         <thead>
                             <tr>
-                                <th rowspan="2" style="width: 35px;">
-                                    Número<br>({{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'M/H' }})</th>
+                                <th rowspan="2" style="width: 35px;">Número<br>({{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'M/H' }})</th>
                                 <th colspan="2" class="th-section">Concepto</th>
                                 <th rowspan="2" style="width: 25px;">VL</th>
                                 <th rowspan="2" style="width: 20px;">T. de P.</th>
@@ -159,26 +149,18 @@
                                     $filasPorTipo[$sf->tipo_medida] = $sf;
                                 }
                                 $filaPrecal = $filasPorTipo['D_Conexion_pico'] ?? null;
-
-                                // Lógica de colores idéntica al partial de operadores
                                 $piezaObj = $piezasMap->get($nPieza);
                                 $libVal = $piezaObj->liberacion ?? null;
 
-                                if ($libVal === 1) {
-                                    $claseColor = 'pta-row-liberada';
-                                } elseif ($libVal === 2) {
-                                    $claseColor = 'pta-row-rechazada';
-                                } elseif ($libVal === 3) {
-                                    $claseColor = 'pta-row-buena';
-                                } elseif ($libVal === 4) {
-                                    $claseColor = 'pta-row-mala';
-                                } elseif ($libVal === 5) {
-                                    $claseColor = 'pta-row-incompleta';
-                                } elseif ($libVal === 0 || $libVal === null) {
-                                    $claseColor = 'pta-row-ok';
-                                } else {
-                                    $claseColor = 'pta-row-sin-lib';
-                                }
+                                $claseColor = match($libVal) {
+                                    1 => 'pta-row-liberada',
+                                    2 => 'pta-row-rechazada',
+                                    3 => 'pta-row-buena',
+                                    4 => 'pta-row-mala',
+                                    5 => 'pta-row-incompleta',
+                                    0, null => 'pta-row-ok',
+                                    default => 'pta-row-sin-lib'
+                                };
                             @endphp
                             @foreach ($tiposOrden as $subIdx => $tipo)
                                 @php
@@ -187,9 +169,7 @@
                                 @endphp
                                 <tr class="{{ $claseColor }}">
                                     @if ($subIdx === 0)
-                                        <td rowspan="3" class="td-pieza">
-                                            {{ $nPieza }}
-                                        </td>
+                                        <td rowspan="3" class="td-pieza">{{ $nPieza }}</td>
                                     @endif
                                     <td class="td-tipo-medida">{{ $labelMedida[$tipo] }}</td>
                                     <td>{{ ($fila?->$campo !== null) ? $fila->$campo . '"' : '—' }}</td>
@@ -213,80 +193,20 @@
                                     </td>
                                     <td>{{ $fila?->defecto_pta ?? 'Ninguno' }}</td>
                                     @if ($subIdx === 0)
-                                        <td rowspan="3" style="text-align: left; font-size: 7px;">{{ $filaPrecal?->observaciones ?? '—' }}
-                                        </td>
+                                        <td rowspan="3" style="text-align: left; font-size: 7px;">{{ $filaPrecal?->observaciones ?? '—' }}</td>
                                     @endif
                                 </tr>
                             @endforeach
-
-                            {{-- 2DA PASADA --}}
-                            @php
-                                $filaP2H = $filasPorTipo['Segunda_Pasada'] ?? null;
-                                if (!$filaP2H && isset($filasPorTipo['D_Conexion_pico']) && $filasPorTipo['D_Conexion_pico']->p2_activa) {
-                                    $filaP2H = $filasPorTipo['D_Conexion_pico'];
-                                }
-                                $p2YaActivaH = $filaP2H?->p2_activa ?? false;
-                            @endphp
-
-                            @if ($p2YaActivaH)
-                                @php
-                                    $tipoP2GuardadoH = null;
-                                    if ($filaP2H?->p2_d_conexion_pico !== null)
-                                        $tipoP2GuardadoH = 'D_Conexion_pico';
-                                    elseif ($filaP2H?->p2_d_conexion_obt !== null)
-                                        $tipoP2GuardadoH = 'D_Conexion_obt';
-                                    elseif ($filaP2H?->p2_perfilado !== null)
-                                        $tipoP2GuardadoH = 'Perfilado';
-
-                                    $valorP2GuardadoH = match ($tipoP2GuardadoH) {
-                                        'D_Conexion_pico' => $filaP2H?->p2_d_conexion_pico,
-                                        'D_Conexion_obt' => $filaP2H?->p2_d_conexion_obt,
-                                        'Perfilado' => $filaP2H?->p2_perfilado,
-                                        default => null,
-                                    };
-                                @endphp
-                                <tr>
-                                    <td class="td-pieza" style="font-size: 6px; line-height: 1.1;">
-                                        {{ $nPieza }}<br><span style="color: #ffeb3b;">(2da Pasada)</span>
-                                    </td>
-                                    <td class="td-tipo-medida">
-                                        {{ $tipoP2GuardadoH ? ($tipoP2GuardadoH === 'D_Conexion_pico' ? 'D. Conexión Pico' : ($tipoP2GuardadoH === 'D_Conexion_obt' ? 'D. Conexión Obt.' : 'Perfilado')) : '—' }}
-                                    </td>
-                                    <td>{{ ($valorP2GuardadoH !== null) ? $valorP2GuardadoH . '"' : '—' }}</td>
-                                    <td>{{ $filaP2H?->p2_vl ?? '—' }}</td>
-                                    <td>{{ $filaP2H?->p2_tipo_preparacion ?? '—' }}</td>
-                                    <td class="td-precal">{{ $filaP2H?->p2_precalentamiento ?? '—' }}</td>
-                                    <td>{{ $filaP2H?->p2_sold_inicial ?? '—' }}</td>
-                                    <td>{{ $filaP2H?->p2_sold_aplicada ?? '—' }}</td>
-                                    <td>{{ $filaP2H?->p2_sold_final ?? '—' }}</td>
-                                    <td>{{ $filaP2H?->p2_corr_inicial ?? '—' }}</td>
-                                    <td>{{ $filaP2H?->p2_corr_aplicada ?? '—' }}</td>
-                                    <td>{{ $filaP2H?->p2_corr_final ?? '—' }}</td>
-                                    <td>{{ $filaP2H?->p2_gas_argon ?? '—' }}</td>
-                                    <td>{{ $filaP2H?->p2_velocidad_calculada ?? '—' }}</td>
-                                    <td>
-                                        @php $resP2 = $filaP2H?->p2_resultado ?? '—'; @endphp
-                                        <span
-                                            class="{{ $resP2 === 'Bien' ? 'resultado-OK' : ($resP2 !== '—' ? 'resultado-NOK' : '') }}">
-                                            {{ $resP2 }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $filaP2H?->p2_defecto_pta ?? 'Ninguno' }}</td>
-                                    <td style="text-align: left; font-size: 7px;">{{ $filaP2H?->p2_observaciones ?? '—' }}</td>
-                                </tr>
-                            @endif
                         </tbody>
                     </table>
                 @endforeach
             @else
-                <p style="text-align: center; color: #888; font-style: italic;">Sin datos técnicos registrados para este juego.
-                </p>
+                <p style="text-align: center; color: #888; font-style: italic;">Sin datos técnicos registrados para este juego.</p>
             @endif
-
         </div>
     @endforeach
 
-    <div class="page-break"></div>
+    <div style="page-break-before: always;"></div>
     <div class="header">
         <h1>Anexos - Evidencia Fotográfica</h1>
         <p>Imágenes por juego/pieza</p>
@@ -296,7 +216,7 @@
         <div class="juego-block">
             <div class="juego-header">
                 @if(isset($esJuegoCompleto) && $esJuegoCompleto)
-                    Anexos: Juego {{ $jNum }} - J{{ $jNum }}
+                    Anexos: Juego {{ $jNum }} - {{ $jNum }}J
                 @else
                     Anexos: Juego {{ $jNum }} — Piezas: {{ implode(' / ', array_keys($piezasDelJuegoObj)) }}
                 @endif
@@ -312,43 +232,48 @@
                     }
                 }
             @endphp
-
+            
             @if(!$anyImagesInJuego)
                 <p style="text-align: center; color: #888; font-style: italic; font-size: 10px;">Sin imágenes subidas para este juego.</p>
             @else
                 @foreach ($piezasDelJuegoObj as $pieza)
-                    @php
-                        $res = $resultados->get($pieza->id);
+                    @php 
+                        $res = $resultados->get($pieza->id); 
                         $hasImages = $res && ($res->imagen_pico_soldadura || $res->imagen_conexion_soldadura || $res->imagen_perfilado_soldadura);
                     @endphp
                     @if($hasImages)
-                        <div class="anexos-juego-banner">
-                            <strong>Pieza: {{ $pieza->n_pieza }}</strong>
+                        <div class="annex-piece-header">
+                            @php
+                                $nPieza = $pieza->n_pieza;
+                                $esSufijoJ = str_ends_with(strtoupper($nPieza), 'J');
+                                $labelPza = $esSufijoJ ? 'Juego: ' . $nPieza : 'Pieza: ' . $nPieza;
+                            @endphp
+                            <strong class="annex-piece-title">{{ $labelPza }}</strong>
                         </div>
-                        <table class="anexos-img-table">
+                        <table class="annex-table">
                             <tr>
-                                <td class="anexos-img-td">
-                                    <strong>Pico Soldadura</strong>
+                                <td class="annex-card">
+                                    <strong class="annex-label">Pico Soldadura</strong>
                                     @if($res->imagen_pico_soldadura && file_exists(public_path($res->imagen_pico_soldadura)))
-                                        <img src="{{ public_path($res->imagen_pico_soldadura) }}" class="anexos-img">
+                                        <img src="{{ public_path($res->imagen_pico_soldadura) }}" class="annex-img">
                                     @else
-                                        <div class="anexos-img-none">No disponible</div>
+                                        <div class="annex-placeholder">No disponible</div>
                                     @endif
                                 </td>
-                                <td class="anexos-img-td">
-                                    <strong>Conexión Soldadura</strong>
+                                <td class="annex-card">
+                                    <strong class="annex-label">Conexión Soldadura</strong>
                                     @if($res->imagen_conexion_soldadura && file_exists(public_path($res->imagen_conexion_soldadura)))
-                                        <img src="{{ public_path($res->imagen_conexion_soldadura) }}" class="anexos-img">
+                                        <img src="{{ public_path($res->imagen_conexion_soldadura) }}" class="annex-img">
                                     @else
-                                        <div class="anexos-img-none">No disponible</div>
+                                        <div class="annex-placeholder">No disponible</div>
                                     @endif
                                 </td>
-                                <td class="anexos-img-td">
-                                    <strong>Perfilado Soldadura</strong>
+                                <td class="annex-card">
+                                    <strong class="annex-label">Perfilado Soldadura</strong>
                                     @if($res->imagen_perfilado_soldadura && file_exists(public_path($res->imagen_perfilado_soldadura)))
-                                        <img src="{{ public_path($res->imagen_perfilado_soldadura) }}" class="anexos-img">
+                                        <img src="{{ public_path($res->imagen_perfilado_soldadura) }}" class="annex-img">
                                     @else
-                                        <div class="anexos-img-none">No disponible</div>
+                                        <div class="annex-placeholder">No disponible</div>
                                     @endif
                                 </td>
                             </tr>

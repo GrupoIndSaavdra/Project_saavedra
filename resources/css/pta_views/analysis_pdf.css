@@ -1,174 +1,135 @@
-@page {
-    size: A4 landscape;
-    margin: 0.5cm;
-}
-
 body {
-    font-family: "Helvetica", "Arial", sans-serif;
-    font-size: 9px;
-    color: #333;
+    font-family: Arial, sans-serif;
+    font-size: 8px;
     margin: 0;
-    padding: 0;
+    padding: 20px;
+    color: #333;
 }
 
 .header {
     text-align: center;
-    margin-bottom: 5px;
+    margin-bottom: 20px;
     border-bottom: 2px solid #033966;
-    padding-bottom: 2px;
+    padding-bottom: 10px;
 }
 
 .header h1 {
-    margin: 0;
-    font-size: 16px;
     color: #033966;
+    margin: 0;
+    font-size: 18px;
+    text-transform: uppercase;
 }
 
 .header p {
-    margin: 2px 0 0;
+    margin: 5px 0 0;
     font-size: 10px;
     color: #666;
 }
 
 .info-section {
-    margin-bottom: 5px;
-    display: table;
     width: 100%;
+    margin-bottom: 15px;
 }
 
 .info-box {
-    display: table-cell;
-    width: 50%;
+    display: inline-block;
+    width: 48%;
+    vertical-align: top;
 }
 
 .info-box p {
-    margin: 2px 0;
+    margin: 3px 0;
 }
 
-.info-box strong {
-    color: #033966;
+.juego-block {
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #f9f9f9;
 }
 
-table {
+.juego-header {
+    background-color: #033966;
+    color: white;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.pta-table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 10px;
     table-layout: fixed;
 }
 
-.pta-table td,
-.pta-table th {
-    padding: 2px 1px;
-    line-height: 1;
-}
-
-tr {
-    page-break-inside: avoid;
-}
-
-th,
-td {
-    border: 1px solid #ccc;
+.pta-table th,
+.pta-table td {
+    border: 1px solid #aaa;
     padding: 4px 2px;
     text-align: center;
     word-wrap: break-word;
-    font-size: 8px;
 }
 
-th {
-    background-color: #033966;
-    color: white;
-    font-weight: bold;
-    border: 1px solid #033966;
-}
-
-.sub-header {
-    background-color: #f2f2f2;
-    font-weight: bold;
-    text-align: left;
-    padding-left: 5px;
-}
-
-.juego-header {
-    background-color: #e8f1fa;
-    font-weight: bold;
-    text-align: left;
-    padding: 6px;
-    border: 1.5px solid #033966;
-    margin-top: 10px;
-    font-size: 10px;
-    color: #033966;
-}
-
-.juego-block {
-    page-break-inside: avoid;
-    margin-bottom: 20px;
-}
-
-.badge-si {
-    color: green;
-    font-weight: bold;
-}
-
-.badge-no {
-    color: red;
-    font-weight: bold;
-}
-
-.badge-na {
-    color: #888;
-}
-
-.footer {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    text-align: right;
-    font-size: 8px;
-    color: #999;
-    border-top: 1px solid #eee;
-    padding-top: 5px;
-}
-
-/* Estilos específicos para la tabla técnica */
 .pta-table th {
-    background-color: #033966;
-    color: white;
+    background-color: #eee;
+    font-weight: bold;
+    font-size: 7px;
 }
 
 .th-section {
-    background-color: #055a9e !important;
-    color: white !important;
-}
-
-.pta-table td {
-    font-size: 9px;
-    border: 1px solid #033966;
-    background-color: white;
+    background-color: #d1d1d1 !important;
+    text-transform: uppercase;
+    font-size: 7px;
 }
 
 .td-pieza {
-    background-color: #055a9e !important;
-    color: white !important;
     font-weight: bold;
-    width: 35px;
-}
-
-.td-precal {
-    background-color: #fff7e0 !important;
-    border-left: 2px solid #e6a800 !important;
-    border-right: 2px solid #e6a800 !important;
+    background-color: #f0f0f0;
 }
 
 .td-tipo-medida {
-    text-align: left;
-    padding-left: 3px;
-    font-weight: bold;
-    width: 80px;
-    color: #333;
-    background-color: rgba(13, 110, 253, 0.25) !important;
+    text-align: left !important;
+    padding-left: 5px !important;
+    font-style: italic;
 }
 
+.td-precal {
+    background-color: #fffde7;
+    font-weight: bold;
+}
+
+/* Colores de Liberación (Fondo total de la fila) */
+.pta-row-liberada {
+    background-color: #e3f2fd;
+}
+
+.pta-row-rechazada {
+    background-color: #ffebee;
+}
+
+.pta-row-buena {
+    background-color: #e8f5e9;
+}
+
+.pta-row-mala {
+    background-color: #fbe9e7;
+}
+
+.pta-row-incompleta {
+    background-color: #fff3e0;
+}
+
+.pta-row-ok {
+    background-color: #ffffff;
+}
+
+.pta-row-sin-lib {
+    background-color: #fafafa;
+}
+
+/* Colores de texto para Resultado */
 .resultado-OK {
     color: green;
     font-weight: bold;
@@ -177,4 +138,105 @@ th {
 .resultado-NOK {
     color: red;
     font-weight: bold;
+}
+
+/* --- Nuevas clases de utilidad para refactorización --- */
+
+/* Resultados con fondo */
+.res-si {
+    background-color: #36bc5c !important;
+    color: white !important;
+}
+
+.res-no {
+    background-color: #db4a54 !important;
+    color: white !important;
+}
+
+.res-na {
+    background-color: #b7983b !important;
+    color: white !important;
+}
+
+.res-empty {
+    background-color: transparent !important;
+}
+
+/* Contenedores de tablas */
+.table-compact {
+    margin-bottom: 4px !important;
+}
+
+/* Sección de Anexos */
+.annex-piece-header {
+    background-color: #f7f9fc;
+    border-left: 3px solid #033966;
+    padding: 4px 8px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    border-radius: 2px;
+}
+
+.annex-piece-title {
+    font-size: 10px;
+    color: #033966;
+}
+
+.annex-table {
+    width: 100%;
+    text-align: center;
+    border-collapse: separate;
+    border-spacing: 4px;
+    margin-bottom: 4px;
+    border: none;
+}
+
+.annex-card {
+    width: 33.33%;
+    vertical-align: top;
+    border: 1px solid #eaeaea;
+    background-color: #ffffff;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.annex-label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 9px;
+    color: #555;
+    font-weight: bold;
+}
+
+.annex-img {
+    max-width: 100%;
+    max-height: 105px;
+    object-fit: contain;
+}
+
+.annex-placeholder {
+    color: #aaa;
+    font-size: 8px;
+    padding: 20px 0;
+    background-color: #fafafa;
+    border: 1px dashed #ddd;
+    border-radius: 2px;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 7px;
+    color: #999;
+}
+
+@page {
+    margin: 1cm;
+}
+
+.page-break {
+    page-break-after: always;
 }
