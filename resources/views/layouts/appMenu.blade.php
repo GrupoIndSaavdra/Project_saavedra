@@ -52,7 +52,8 @@
 
 <!--Creacion de rutas de laravel para pasarlas a JS-->
 <script>
-    window.routes = {
+window.routes = {
+        ...(window.routes || {}),
         home: @json(route('home')),
         createMolding: @json(route('createMolding')),
         editMolding: @json(route('editMolding')),
@@ -78,7 +79,8 @@
         'pta.analysis': @json(route('pta.analysis')),
         'pta.segunda_pasada': @json(route('pta.segunda_pasada')),
         'pta.results.current': @json(session('pta_temp_ot_id') ? route('pta.results', ['ot_id' => session('pta_temp_ot_id')]) : '#'),
-        'reportes.reenvio': @json(route('reportes.reenvio'))
+        'reportes.reenvio': @json(route('reportes.reenvio')),
+        'dibujos.manage': @json(route('dibujos.manage'))
     };
 </script>
 @isset($pieces_Released)

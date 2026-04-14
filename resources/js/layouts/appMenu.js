@@ -164,6 +164,7 @@ function getRoutes(profile) {
                         ["piecesInProgress", "Piezas en progreso"],
                         ["showPiecesReport_view", "Reporte de piezas"],
                         ["showReleasePieces_view", "Liberacion de piezas"],
+                        ["dibujos.manage", "Dibujos de Producción"],
                     ],
                 },
                 {

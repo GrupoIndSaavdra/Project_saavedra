@@ -70,6 +70,36 @@ function createSelects(labelText, className) {
     return select;
 }
 
+function validateProductionForm() {
+    let submit = document.querySelector(".btn-submit");
+    if (!submit) return;
+
+    let formGrid = document.querySelector(".form-grid");
+    if (!formGrid) return;
+
+    // Obtener todos los campos requeridos (selects e inputs)
+    let inputs = formGrid.querySelectorAll("input[required], select[required], .workOrder, .class, .process");
+    let allFilled = true;
+
+    inputs.forEach(input => {
+        // Ignorar campos deshabilitados
+        if (input.disabled) return;
+
+        if (!input.value || input.value.trim() === "") {
+            allFilled = false;
+        }
+    });
+
+    // Cambiar estado del botón
+    if (allFilled) {
+        submit.style.opacity = "1";
+        submit.style.pointerEvents = "auto";
+    } else {
+        submit.style.opacity = "0";
+        submit.style.pointerEvents = "none";
+    }
+}
+
 function modifySelects(array, select, labelText) {
     select.disabled = false; // Habilitar el select si ya existe
     select.innerHTML = ""; // Limpiar las opciones existentes
@@ -193,11 +223,17 @@ function createInputs() {
     });
 
     let form_principal_data = document.querySelector(".form-principal-data");
+
+    let container = document.createElement("div");
+    container.className = "form-btns-container";
+
     let submit = document.createElement("button");
     submit.type = "submit";
     submit.className = "btn-submit";
     submit.textContent = "Registrar";
-    form_principal_data.appendChild(submit);
+
+    container.appendChild(submit);
+    form_principal_data.appendChild(container);
 }
 
 function createInputsWithValue(values, valuesEnabled = []) {
@@ -274,7 +310,19 @@ function createInputsWithValue(values, valuesEnabled = []) {
     }
     // Crear el boton de submit si hay campos habilitados
     if (valuesEnabled.length > 0) {
-        document.querySelector(".form-principal-data").appendChild(createBtnSubmit_editMeta());
+        let container = document.createElement("div");
+        container.className = "form-btns-container";
+
+        // Agregar submit
+        container.appendChild(createBtnSubmit_editMeta());
+
+        // Mover cancelar si ya existe (inyectado por changeFormRoute)
+        let existingCancel = document.querySelector(".btn-cancel");
+        if (existingCancel) {
+            container.appendChild(existingCancel);
+        }
+
+        document.querySelector(".form-principal-data").appendChild(container);
     }
 }
 function createBtnSubmit_editMeta() {
@@ -282,6 +330,7 @@ function createBtnSubmit_editMeta() {
     submit.type = "submit";
     submit.className = "btn-submit";
     submit.style.opacity = "1"; // Mostrar el botón de submit
+    submit.style.pointerEvents = "auto"; // Habilitar clics
     submit.textContent = "Editar";
     return submit;
 }
@@ -318,12 +367,17 @@ function insertSelects() {
                 let selectSubprocesses = createSelects("Subproceso", "subprocess");
                 modifySelects(["1 operacion", "2 operacion"], selectSubprocesses, "Subproceso");
             } else if (selectedProcess) {
-                submit.style.opacity = "1";
+                validateProductionForm();
             } else {
-                submit.style.opacity = "0";
+                validateProductionForm();
             }
         });
         createInputs();
+
+        // Agregar listeners para validación en tiempo real
+        let formContainer = document.querySelector(".form-principal-data");
+        formContainer.addEventListener("change", validateProductionForm);
+        formContainer.addEventListener("input", validateProductionForm);
     } else {
         let p = document.createElement("p");
         p.textContent = "No hay órdenes de trabajo disponibles.";
@@ -332,27 +386,35 @@ function insertSelects() {
     }
 }
 
-function createInputPassword() {
-    //Creacion de input
+function createInputPassword(name = "passwordAdmin", placeholderText = "Contraseña de Administrador") {
+    // Creación de contenedor
     let form_group = document.createElement("div");
     form_group.className = "form-group-password";
-    form_group.style.width = "100%";
     form_group.style.zIndex = "1000";
 
+    // Input de contraseña
     let inputPassword = document.createElement("input");
     inputPassword.type = "password";
-    inputPassword.name = "passwordAdmin";
-    inputPassword.placeholder = "Password Admin";
+    inputPassword.name = name;
+    inputPassword.placeholder = placeholderText;
     inputPassword.className = "normal-input input-password";
     inputPassword.required = true;
 
-    //Creacion de boton de submit
+    // Botón de submit
     let submit = document.createElement("button");
     submit.type = "submit";
-    submit.className = "btn-submit-password";
+    submit.className = "btn-submit-password" + (name === "passwordQuality" ? " btn-quality" : "");
     submit.textContent = "Verificar";
+
+    // Input oculto para meta (dentro del grupo como pide el snippet)
+    let inputMeta = document.createElement("input");
+    inputMeta.type = "hidden";
+    inputMeta.name = "meta";
+    inputMeta.value = window.arrayData["meta"].id;
+
     form_group.appendChild(inputPassword);
     form_group.appendChild(submit);
+    form_group.appendChild(inputMeta);
 
     return form_group;
 }
@@ -724,44 +786,101 @@ function redirectToEndTable() {
     };
 }
 function createBtnMetaEdit() {
+    let wrapper = document.createElement("div");
+    wrapper.className = "edit-meta-wrapper";
+
     let btn_edit = document.createElement("img");
     btn_edit.className = "img-edit";
     btn_edit.src = window.edit;
     btn_edit.alt = "Editar";
+    btn_edit.title = "Editar Datos Generales del Reporte";
+    btn_edit.style.zIndex = ""; // Asegurar que inicie limpio (herede del contenedor)
+
+    let label = document.createElement("div");
+    label.className = "action-label";
+    label.textContent = "Reporte";
 
     btn_edit.addEventListener("click", function () {
         if (btn_edit.src == window.edit) {
-            //Insertar el div-opacity
-            document.querySelector("body").appendChild(createDivOpacity());
-
-            let form_group_password = createInputPassword();
-            let table_meta = document.querySelector(".table-meta");
-
-            let input_hidden = document.createElement("input");
-            input_hidden.type = "hidden";
-            input_hidden.name = "meta";
-            input_hidden.value = window.arrayData["meta"].id;
-
-            form_group_password.appendChild(input_hidden);
-            table_meta.before(form_group_password);
-
-            btn_edit.src = window.back;
-            btn_edit.style.zIndex = "1000";
+            // Mostrar formulario de contraseña inline localmente
+            showInlinePasswordForm("EditMeta", btn_edit);
         } else {
-            let form_group_password = document.querySelector(".form-group-password");
-            if (form_group_password) {
-                form_group_password.remove();
-                let div_opacity = document.getElementById("div-opacity");
-                if (div_opacity) {
-                    div_opacity.remove();
-                }
-            }
-            btn_edit.src = window.edit;
-            btn_edit.style.zIndex = "1";
+            removePasswordForms();
         }
     });
 
-    return btn_edit;
+    wrapper.appendChild(btn_edit);
+    wrapper.appendChild(label);
+    return wrapper;
+}
+
+function showInlinePasswordForm(type, imgElement = null) {
+    // 1. Limpiar cualquier formulario previo y ocultar botón de terminar
+    removePasswordForms();
+    toggleFinishReportButton(false);
+
+    // 2. Insertar el div-opacity (fondo borroso)
+    document.querySelector("body").appendChild(createDivOpacity());
+
+    // 3. Determinar contenedor y comportamiento
+    let form;
+    let targetContainer = imgElement ? imgElement.parentElement : null;
+
+    if (!targetContainer) return;
+
+    // Crear formulario dinámico (Nuevo enfoque unificado)
+    form = document.createElement("form");
+    form.method = "POST";
+    form.className = "form-inline-verification";
+    form.action = window.baseUrl + "/processProduction/verified";
+
+    // Agregar Token CSRF
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+    let inputCSRF = document.createElement("input");
+    inputCSRF.type = "hidden";
+    inputCSRF.name = "_token";
+    inputCSRF.value = csrfToken;
+    form.appendChild(inputCSRF);
+
+    if (type === "EditPieces") {
+        let editFlag = document.createElement("input");
+        editFlag.type = "hidden";
+        editFlag.name = "editPieces";
+        editFlag.value = "true";
+        form.appendChild(editFlag);
+    }
+
+    // 4. Crear el grupo de contraseña según el tipo
+    let form_group_password;
+    if (type === "Calidad") {
+        form_group_password = createInputPassword("passwordQuality", "Contraseña de Calidad");
+        form.onsubmit = function (e) {
+            e.preventDefault();
+            verifyQualityPasswordAjax(form, imgElement);
+        };
+    } else if (type === "EditMeta") {
+        form_group_password = createInputPassword("passwordAdmin", "Contraseña Admin (Reporte)");
+    } else {
+        form_group_password = createInputPassword("passwordAdmin", "Contraseña Admin (Piezas)");
+    }
+
+    // 5. Ubicar el formulario al lado del botón
+    targetContainer.classList.add("is-verifying");
+    form.appendChild(form_group_password);
+    targetContainer.appendChild(form);
+
+    // 6. Cambiar icono a "Back" (La capa superior la hereda del contenedor wrapper)
+    if (imgElement) {
+        imgElement.src = window.back;
+        imgElement.style.zIndex = "";
+    }
+}
+
+function toggleFinishReportButton(show) {
+    let btn_finishReport = document.querySelector(".btn-finishReport");
+    if (btn_finishReport) {
+        btn_finishReport.style.display = show ? "flex" : "none";
+    }
 }
 
 function addEventToFinishReport() {
@@ -793,13 +912,16 @@ function changeFormRoute(div, form, route) {
     input_hidden.value = window.arrayData["meta"].id;
     form.appendChild(input_hidden);
 
-    //Crear el boton de cancelar edición
-    div.appendChild(createBtnCancelEdit());
+    // Crear el boton de cancelar edición solo si no es edición de piezas (el cual va abajo)
+    if (window.arrayData["edit"] == 1) {
+        div.appendChild(createBtnCancelEdit("btn-cancel-report"));
+    }
 }
-function createBtnCancelEdit() {
+
+function createBtnCancelEdit(customClass = "btn-cancel") {
     let btn_cancel = document.createElement("a");
     btn_cancel.href = "#";
-    btn_cancel.className = "btn-cancel";
+    btn_cancel.className = customClass;
     btn_cancel.textContent = "Cancelar";
     btn_cancel.onclick = function (e) {
         e.preventDefault();
@@ -816,113 +938,162 @@ function createBtnCancelEdit() {
     return btn_cancel;
 }
 
-// Editar las piezas ya registradas en la meta
-function insertButtonEditPieces() {
-    let div = document.createElement("div");
-    div.className = "div-editPieces";
+// --- Centralización de Controles de Producción ---
 
-    let img = document.createElement("img");
-    img.src = window.imgEditPieces;
-    img.className = "img-editPieces";
-    img.alt = "Editar piezas";
-    div.appendChild(img);
-    document.querySelector(".container-meta").appendChild(div);
+function insertProductionActions() {
+    let warningLabel = document.querySelector(".warning-pieces");
+    if (!warningLabel) return;
 
-    //Agregar evento onclick a la imagen
-    img.onclick = function () {
-        //Insertar campo de contraseña para editar piezas
-        if (img.src == window.imgEditPieces) {
-            document.querySelector("body").appendChild(createDivOpacity());
+    // Crear contenedor principal
+    let actionsContainer = document.createElement("div");
+    actionsContainer.className = "production-actions";
 
-            div.style.width = "40%";
-            let form = createForm("/processProduction/verified");
-            form.className = "form-verifyPassword";
+    // MODO EDICIÓN DE PIEZAS (Estandarizado con la estética del reporte pero con clase propia)
+    if (window.arrayData["edit"] == 2) {
+        actionsContainer.appendChild(createBtnCancelEdit("btn-cancel-pieces"));
+        warningLabel.insertAdjacentElement('afterend', actionsContainer);
+        return;
+    }
 
-            let input_hidden = document.createElement("input");
-            input_hidden.type = "hidden";
-            input_hidden.name = "editPieces";
-            input_hidden.value = true;
+    // Detectar si hay piezas liberadas (liberacion == 1)
+    let hasPieces = window.arrayData["machinedPiecesInMeta"] &&
+        window.arrayData["machinedPiecesInMeta"].length > 0;
 
-            let input_meta = document.createElement("input");
-            input_meta.type = "hidden";
-            input_meta.name = "meta";
-            input_meta.value = window.arrayData["meta"].id;
+    let hasReleasedPieces = window.arrayData["machinedPiecesInMeta"] &&
+        window.arrayData["machinedPiecesInMeta"].some(p => p.piece.liberacion === 1);
 
-            let form_group_password = createInputPassword();
-            form.appendChild(form_group_password);
-            form.appendChild(input_meta);
-            form.appendChild(input_hidden);
+    // 1. Botón de Dibujos (Siempre habilitado)
+    let btnDrawings = createActionButton(
+        window.imgDraws,
+        "Dibujos",
+        "Ver Dibujos/Planos",
+        false,
+        () => window.openDibujosViewer()
+    );
+    btnDrawings.classList.add("btn-drawings");
+    actionsContainer.appendChild(btnDrawings);
 
-            img.before(form);
-            div.style.zIndex = "1000";
-        } else {
-            div.querySelector(".form-verifyPassword").remove();
-            div.style.width = "auto";
-            div.style.zIndex = "1";
-            let div_opacity = document.getElementById("div-opacity");
-            if (div_opacity) {
-                div_opacity.remove();
-            }
-        }
-        img.src = img.src == window.imgEditPieces ? window.back : window.imgEditPieces;
-    };
+    // 2. Botón de Calidad (Bloqueado si no hay piezas registradas)
+    let qualityDisabled = !hasPieces;
+    actionsContainer.appendChild(createActionButton(
+        window.imgQualityCheck,
+        "Calidad",
+        "Liberación de Calidad",
+        qualityDisabled,
+        (e) => handleQualityClick(e, actionsContainer)
+    ));
+
+    // 3. Botón de Editar Piezas (Bloqueado similar a calidad)
+    let editDisabled = !hasPieces;
+    actionsContainer.appendChild(createActionButton(
+        window.imgEditPieces,
+        "Editar",
+        "Editar piezas registradas",
+        editDisabled,
+        (e) => handleEditPiecesClick(e, actionsContainer)
+    ));
+
+    // Insertar después de la advertencia
+    warningLabel.insertAdjacentElement('afterend', actionsContainer);
 }
 
-// Botón de verificación de calidad para liberación de piezas
-function insertButtonQualityCheck() {
-    let div = document.createElement("div");
-    div.className = "div-qualityCheck";
+function createActionButton(src, label, title, disabled, callback) {
+    let wrapper = document.createElement("div");
+    wrapper.className = "action-btn-wrapper";
 
     let img = document.createElement("img");
-    img.src = window.imgQualityCheck;
-    img.className = "img-qualityCheck";
-    img.alt = "Liberación de calidad";
-    img.title = "Liberación de piezas por calidad";
-    div.appendChild(img);
-    document.querySelector(".container-meta").appendChild(div);
+    img.src = src;
+    img.className = "img-action-btn" + (disabled ? " btn-disabled" : "");
+    img.title = title;
+    img.alt = label;
 
-    // Agregar evento onclick a la imagen
-    img.onclick = function () {
-        if (!document.querySelector(".form-verifyQualityPassword")) {
-            document.querySelector("body").appendChild(createDivOpacity());
+    if (!disabled) {
+        img.onclick = (e) => callback(e);
+    }
 
-            div.style.width = "40%";
+    let lbl = document.createElement("div");
+    lbl.className = "action-label";
+    lbl.textContent = label;
 
-            // Crear formulario que manejará la verificación via AJAX
-            let form = document.createElement("form");
-            form.className = "form-verifyQualityPassword";
-            form.onsubmit = function (e) {
-                e.preventDefault();
-                verifyQualityPasswordAjax(form);
-            };
-
-            let input_meta = document.createElement("input");
-            input_meta.type = "hidden";
-            input_meta.name = "meta";
-            input_meta.value = window.arrayData["meta"].id;
-
-            let form_group_password = createInputPasswordQuality();
-            form.appendChild(form_group_password);
-            form.appendChild(input_meta);
-
-            img.before(form);
-            div.style.zIndex = "1000";
-            img.src = window.back;
-        } else {
-            div.querySelector(".form-verifyQualityPassword").remove();
-            div.style.width = "auto";
-            div.style.zIndex = "1";
-            let div_opacity = document.getElementById("div-opacity");
-            if (div_opacity) {
-                div_opacity.remove();
-            }
-            img.src = window.imgQualityCheck;
-        }
-    };
+    wrapper.appendChild(img);
+    wrapper.appendChild(lbl);
+    return wrapper;
 }
+
+function handleQualityClick(event) {
+    let img = event.currentTarget;
+    if (!img || img.classList.contains("btn-disabled")) return;
+
+    if (img.src.includes(window.imgQualityCheck.split('/').pop())) {
+        showInlinePasswordForm("Calidad", img);
+    } else {
+        removePasswordForms();
+        img.src = window.imgQualityCheck;
+    }
+}
+
+function handleEditPiecesClick(event) {
+    let img = event.currentTarget;
+    if (!img || img.classList.contains("btn-disabled")) return;
+
+    if (img.src.includes(window.imgEditPieces.split('/').pop())) {
+        showInlinePasswordForm("EditPieces", img);
+    } else {
+        removePasswordForms();
+        img.src = window.imgEditPieces;
+    }
+}
+
+function removePasswordForms() {
+    // 1. Eliminar el div de opacidad
+    let div_opacity = document.getElementById("div-opacity");
+    if (div_opacity) div_opacity.remove();
+
+    // 2. Eliminar el grupo de contraseña si existe (global o local)
+    let form_group_password = document.querySelector(".form-group-password");
+    if (form_group_password) form_group_password.remove();
+
+    // 3. Restaurar botón de terminar reporte
+    toggleFinishReportButton(true);
+
+    // Eliminar formularios en línea inyectados
+    let form_inline = document.querySelector(".form-inline-verification");
+    if (form_inline) form_inline.remove();
+
+    // 3. Restaurar action y onsubmit del formulario principal
+    let form = document.querySelector(".form-verified-password");
+    if (form) {
+        form.action = window.baseUrl + "/processProduction/verified";
+        form.onsubmit = null;
+        let editFlag = form.querySelector('input[name="editPieces"]');
+        if (editFlag) editFlag.remove();
+    }
+
+    // 4. Restaurar contenedores y estados
+    document.querySelectorAll(".is-verifying").forEach(el => el.classList.remove("is-verifying"));
+
+    // 5. Restaurar iconos de acciones de producción e iconos de edición
+    let imgQuality = document.querySelector('img[alt="Calidad"]');
+    let imgEditPieces = document.querySelector('img[alt="Editar"]');
+    let imgEditMeta = document.querySelector('.img-edit');
+
+    if (imgQuality) {
+        imgQuality.src = window.imgQualityCheck;
+        imgQuality.style.zIndex = "";
+    }
+    if (imgEditPieces) {
+        imgEditPieces.src = window.imgEditPieces;
+        imgEditPieces.style.zIndex = "";
+    }
+    if (imgEditMeta) {
+        imgEditMeta.src = window.edit;
+        imgEditMeta.style.zIndex = "";
+    }
+}
+
 
 // Verificar contraseña de calidad mediante AJAX
-function verifyQualityPasswordAjax(form) {
+function verifyQualityPasswordAjax(form, imgElement) {
     const formData = new FormData(form);
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
 
@@ -937,26 +1108,9 @@ function verifyQualityPasswordAjax(form) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Cerrar el formulario de contraseña
-                let divQuality = document.querySelector(".div-qualityCheck");
-                if (divQuality) {
-                    let formPassword = divQuality.querySelector(".form-verifyQualityPassword");
-                    if (formPassword) {
-                        formPassword.remove();
-                    }
-                    divQuality.style.width = "auto";
-                    divQuality.style.zIndex = "1";
-                    let imgQuality = divQuality.querySelector(".img-qualityCheck");
-                    if (imgQuality) {
-                        imgQuality.src = window.imgQualityCheck;
-                    }
-                }
-
-                // Cerrar el div de opacidad actual
-                let div_opacity = document.getElementById("div-opacity");
-                if (div_opacity) {
-                    div_opacity.remove();
-                }
+                // Limpiar UI
+                removePasswordForms();
+                if (imgElement) imgElement.src = window.imgQualityCheck;
 
                 // Mostrar el modal de liberación de piezas
                 showQualityReleaseModal(data.pieces, data.qualityUser);
@@ -970,30 +1124,6 @@ function verifyQualityPasswordAjax(form) {
         });
 }
 
-function createInputPasswordQuality() {
-    // Creación de input para contraseña de calidad
-    let form_group = document.createElement("div");
-    form_group.className = "form-group-password";
-    form_group.style.width = "100%";
-    form_group.style.zIndex = "1000";
-
-    let inputPassword = document.createElement("input");
-    inputPassword.type = "password";
-    inputPassword.name = "passwordQuality";
-    inputPassword.placeholder = "Password Quality";
-    inputPassword.className = "normal-input input-password";
-    inputPassword.required = true;
-
-    // Creación de botón de submit
-    let submit = document.createElement("button");
-    submit.type = "submit";
-    submit.className = "btn-submit-password btn-quality";
-    submit.textContent = "Verificar";
-    form_group.appendChild(inputPassword);
-    form_group.appendChild(submit);
-
-    return form_group;
-}
 
 // Función para obtener el color de un juego completo
 function getColorForSet(pieces) {
@@ -1031,6 +1161,19 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
 
     let modalContainer = document.createElement("div");
     modalContainer.className = "quality-release-modal";
+
+    // Botón de cerrar (X) arriba a la derecha
+    let divCerrar = document.createElement("div");
+    divCerrar.className = "div-cerrar";
+    let btnCerrar = document.createElement("button");
+    btnCerrar.className = "btn-cerrar btn-cancel-release"; 
+    btnCerrar.onclick = function() { closeQualityModal(); };
+    let imgCerrar = document.createElement("img");
+    imgCerrar.className = "img-cerrar";
+    imgCerrar.src = window.cerrarImgUrl;
+    btnCerrar.appendChild(imgCerrar);
+    divCerrar.appendChild(btnCerrar);
+    modalContainer.appendChild(divCerrar);
 
     // Título del modal
     let title = document.createElement("h2");
@@ -1229,15 +1372,6 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
     let buttonContainer = document.createElement("div");
     buttonContainer.className = "button-container";
 
-    let btnCancel = document.createElement("button");
-    btnCancel.type = "button";
-    btnCancel.className = "btn-cancel-release";
-    btnCancel.textContent = "Cancelar";
-    btnCancel.onclick = function () {
-        closeQualityModal();
-    };
-    buttonContainer.appendChild(btnCancel);
-
     let btnAccept = document.createElement("button");
     btnAccept.type = "submit";
     btnAccept.className = "btn-accept-release";
@@ -1275,15 +1409,10 @@ function closeQualityModal() {
     if (divOpacity) {
         divOpacity.remove();
     }
-    // Restaurar el botón de calidad
-    let divQuality = document.querySelector(".div-qualityCheck");
-    if (divQuality) {
-        divQuality.style.width = "auto";
-        divQuality.style.zIndex = "1";
-        let imgQuality = divQuality.querySelector(".img-qualityCheck");
-        if (imgQuality) {
-            imgQuality.src = window.imgQualityCheck;
-        }
+    // Restaurar el botón de calidad en el nuevo contenedor
+    let imgQuality = document.querySelector('img[alt="Calidad"]');
+    if (imgQuality) {
+        imgQuality.src = window.imgQualityCheck;
     }
 }
 
@@ -1296,8 +1425,9 @@ document.addEventListener("submit", (e) => {
 });
 
 if (window.arrayData) {
-    console.log(window.arrayData);
     if (window.arrayData["edit"]) {
+        toggleFinishReportButton(false); // Ocultar siempre en modo edición
+
         if (window.arrayData["edit"] == 1) {
             //Cambiar la ruta del formulario a la de editar y crear el botón de cancelar edición
             changeFormRoute(
@@ -1305,10 +1435,7 @@ if (window.arrayData) {
                 document.querySelector(".form-principal-data"),
                 "/processProduction/editMeta"
             );
-            let btnCancel = document.querySelector(".btn-cancel");
-            btnCancel.style.top = "0";
-            btnCancel.style.left = "0";
-            btnCancel.style.margin = "1.5em";
+
             if (window.arrayData["numberPieces"] > 0) {
                 // Si ya se han registrado piezas, solo habilitar los inputs de tiempo y fecha
                 createInputsWithValue(window.arrayData, ["startTime", "endTime", "date"]);
@@ -1319,26 +1446,22 @@ if (window.arrayData) {
         } else {
             createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
             enableTable(); // Habilitar la tabla de piezas
-            //Cambiar la ruta del formulario a la de editar y crear el botón de cancelar edición
+            // Cambiar la ruta del formulario a la de editar piezas
             changeFormRoute(
                 document.querySelector(".container-meta"),
                 document.querySelector(".form-tablePieces"),
                 "/processProduction/editPieces"
             );
-            let btnCancel = document.querySelector(".btn-cancel");
-            btnCancel.style.bottom = "0";
-            btnCancel.style.right = "6em";
-            btnCancel.style.margin = "-2em";
+
+            // Insertar controles abajo (que detectará el modo edición para el botón gigante)
+            insertProductionActions();
         }
     } else {
         createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
-        document.querySelector(".div-table-meta").appendChild(createBtnMetaEdit()); // Insertar botón de editar meta
+        document.querySelector(".div-table-meta").prepend(createBtnMetaEdit()); // Insertar botón de editar meta arriba
         addEventToFinishReport(); // Agregar evento al botón de terminar reporte
         enableTable(); // Habilitar la tabla de piezas
-        if (window.arrayData["machinedPiecesInMeta"] && window.arrayData["machinedPiecesInMeta"].length > 0) {
-            insertButtonEditPieces(); // Insertar botón para editar piezas
-            insertButtonQualityCheck(); // Insertar botón para liberación de calidad
-        }
+        insertProductionActions(); // Insertar controles unificados de producción
     }
 } else {
     if (window.workOrders != null) {
@@ -1497,8 +1620,8 @@ function createPtaPasswordModal(otId) {
 
     // Icono (opcional)
     let icon = document.createElement("div");
-    icon.innerHTML = "🔒";
     icon.className = "pta-modal-icon";
+    // Icono removido por petición del usuario
     modalContainer.appendChild(icon);
 
     // 3. Crear título
@@ -1646,3 +1769,250 @@ window._setP2Rows = function (p2Id, show) {
     const row = document.getElementById("row-p2-" + p2Id + "-0");
     if (row) row.style.display = show ? "" : "none";
 };
+
+// ────────────────────────────────────────────────────────────────────────────
+// VISOR DE DIBUJOS / PLANOS PDF — Acceso del Operador
+// ────────────────────────────────────────────────────────────────────────────
+
+/** Abre el visor de dibujos/planos para una OT */
+window.openDibujosViewer = function (otId = null, claseNombre = null) {
+    const activeOT = otId || (window.arrayData && window.arrayData.workOrder ? window.arrayData.workOrder.split(' - ')[0] : '');
+    const activeClase = claseNombre || (window.arrayData ? (window.arrayData.class || '') : '');
+
+    const divOpacity = document.createElement('div');
+    divOpacity.className = 'prod-viewer-portal';
+    divOpacity.id = 'div-opacity-dibujos';
+
+    const modal = document.createElement('div');
+    modal.className = 'prod-viewer-modal';
+
+    // Seccion de Header (Titulo + Filtros)
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'prod-viewer-header';
+
+    // Boton cerrar
+    const divCerrar = document.createElement('div');
+    divCerrar.className = 'div-cerrar';
+    const btnCerrar = document.createElement('button');
+    btnCerrar.className = 'btn-cerrar';
+    btnCerrar.onclick = () => divOpacity.remove();
+    const imgCerrar = document.createElement('img');
+    imgCerrar.className = 'img-cerrar';
+    imgCerrar.src = window.cerrarImgUrl;
+    btnCerrar.appendChild(imgCerrar);
+    divCerrar.appendChild(btnCerrar);
+
+    const titulo = document.createElement('h3');
+    titulo.textContent = 'Visor de Planos / Dibujos';
+
+    const navDiv = document.createElement('div');
+    navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.2em;';
+
+    const selOTWrap = _dibujosSelectGroup('Orden de Trabajo', 'd-viewer-ot');
+    const selClaseWrap = _dibujosSelectGroup('Clase', 'd-viewer-clase');
+    
+    const btnBuscar = document.createElement('button');
+    btnBuscar.className = 'btn-submit-password';
+    btnBuscar.style.cssText = 'margin:0;flex-shrink:0;height:42px;';
+    btnBuscar.textContent = 'Ver Archivos';
+
+    navDiv.appendChild(selOTWrap);
+    navDiv.appendChild(selClaseWrap);
+    navDiv.appendChild(btnBuscar);
+
+    headerDiv.appendChild(divCerrar);
+    headerDiv.appendChild(titulo);
+    headerDiv.appendChild(navDiv);
+
+    // Area de contenido (Scrollable)
+    const contentDiv = document.createElement('div');
+    contentDiv.id = 'viewer-content';
+    contentDiv.className = 'prod-viewer-body';
+
+    modal.appendChild(headerDiv);
+    modal.appendChild(contentDiv);
+    divOpacity.appendChild(modal);
+    document.body.appendChild(divOpacity);
+
+    // Cerrar al hacer clic en fondo
+    divOpacity.addEventListener('click', (e) => {
+        if (e.target === divOpacity) divOpacity.remove();
+    });
+
+    const selOT = document.getElementById('d-viewer-ot');
+    const selClase = document.getElementById('d-viewer-clase');
+
+    fetch(window.baseUrl + '/dibujos/estructura', {
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(estructura => {
+        selOT.innerHTML = '<option value="">— Seleccionar OT —</option>';
+        Object.keys(estructura).sort().forEach(ot => {
+            let label = ot;
+            if (window.workOrders && window.workOrders[ot] && window.workOrders[ot].moldura) {
+                label = `${ot} — ${window.workOrders[ot].moldura}`;
+            }
+            const opt = document.createElement('option');
+            opt.value = ot;
+            opt.textContent = label;
+            if (ot === activeOT) opt.selected = true;
+            selOT.appendChild(opt);
+        });
+
+        selOT.addEventListener('change', () => {
+            const selOTVal = selOT.value;
+            selClase.innerHTML = '<option value="">— Seleccionar Clase —</option>';
+            if (selOTVal && estructura[selOTVal]) {
+                estructura[selOTVal].forEach(clase => {
+                    const opt = document.createElement('option');
+                    opt.value = clase;
+                    opt.textContent = clase;
+                    selClase.appendChild(opt);
+                });
+                selClase.disabled = false;
+            } else {
+                selClase.disabled = true;
+            }
+        });
+
+        if (activeOT && estructura[activeOT]) {
+            selOT.dispatchEvent(new Event('change'));
+            setTimeout(() => {
+                const opt = selClase.querySelector(`option[value="${activeClase}"]`);
+                if (opt) opt.selected = true;
+                if (activeOT && activeClase) {
+                    const otText = selOT.options[selOT.selectedIndex].text;
+                    _dibujosCargarArchivos(activeOT, activeClase, contentDiv, otText);
+                }
+            }, 50);
+        }
+
+        btnBuscar.addEventListener('click', () => {
+            const ot = selOT.value;
+            const clase = selClase.value;
+            if (!ot || !clase) {
+                _dibujosShowEmpty(contentDiv);
+                return;
+            }
+            const otText = selOT.options[selOT.selectedIndex].text;
+            _dibujosCargarArchivos(ot, clase, contentDiv, otText);
+        });
+    })
+    .catch(() => {
+        contentDiv.innerHTML = '<p style="color:#9c0300;text-align:center;">Error al cargar la estructura de carpetas.</p>';
+    });
+};
+
+/** Crea un grupo de select con label para el visor */
+function _dibujosSelectGroup(labelText, selectId) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;flex-direction:column;flex:1;min-width:180px;';
+
+    const label = document.createElement('label');
+    label.htmlFor = selectId;
+    label.textContent = labelText;
+    label.className = 'form-label';
+    label.style.cssText = 'font-size:0.85em;margin-bottom:0.3em;';
+
+    const select = document.createElement('select');
+    select.id = selectId;
+    select.className = 'form-control';
+    select.style.cssText = 'font-size:0.9em; height:42px; padding:0 0.5em;';
+    select.innerHTML = `<option value="">— ${labelText} —</option>`;
+    if (selectId === 'd-viewer-clase') select.disabled = true;
+
+    wrap.appendChild(label);
+    wrap.appendChild(select);
+    return wrap;
+}
+
+/** Carga y renderiza los archivos PDF de la carpeta OT/Clase indicada */
+function _dibujosCargarArchivos(ot, clase, contentDiv, otText = '') {
+    contentDiv.innerHTML = '<p style="color:#666;text-align:center;">Cargando archivos...</p>';
+
+    const url = `${window.baseUrl}/dibujos/archivos?ot=${encodeURIComponent(ot)}&clase=${encodeURIComponent(clase)}`;
+    fetch(url, { headers: { 'Accept': 'application/json' } })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.existe || !data.archivos || data.archivos.length === 0) {
+            _dibujosShowEmpty(contentDiv);
+            return;
+        }
+        _dibujosRenderArchivos(data.archivos, otText || ot, clase, contentDiv);
+    })
+    .catch(() => _dibujosShowEmpty(contentDiv));
+}
+
+/** Renderiza la cuadricula de tarjetas de archivos PDF con optimización de rendimiento */
+function _dibujosRenderArchivos(archivos, otDisplay, clase, contentDiv) {
+    contentDiv.innerHTML = '';
+
+    const breadcrumb = document.createElement('div');
+    breadcrumb.className = 'prod-viewer-breadcrumb';
+    breadcrumb.innerHTML = `
+        <span class="path-label">Directorio Activo</span>
+        <span class="path-ot">${otDisplay}</span>
+        <span style="opacity: 0.5;">/</span>
+        <span class="path-clase">${clase}</span>
+        <span class="path-count">${archivos.length} PDFs</span>
+    `;
+    contentDiv.appendChild(breadcrumb);
+
+    const grid = document.createElement('div');
+    grid.className = 'prod-viewer-grid';
+    contentDiv.appendChild(grid);
+
+    // Optimizacion: Renderizado por lotes (Chunks) para evitar lag
+    const CHUNK_SIZE = 8;
+    let currentIndex = 0;
+
+    function renderNextBatch() {
+        const end = Math.min(currentIndex + CHUNK_SIZE, archivos.length);
+        
+        for (let i = currentIndex; i < end; i++) {
+            const archivo = archivos[i];
+            const card = document.createElement('div');
+            card.className = 'prod-viewer-card';
+            // Delay escalonado relativo al inicio del lote para maxima fluidez
+            card.style.animationDelay = `${(i % CHUNK_SIZE) * 0.05}s`;
+            
+            card.innerHTML = `
+                <div class="file-icon-wrapper">
+                    <img src="${window.baseUrl}/images/pdf-view-shadow.png" class="prod-viewer-icon icon-default">
+                    <img src="${window.baseUrl}/images/pdf-view.png" class="prod-viewer-icon icon-hover">
+                </div>
+                <div class="prod-viewer-filename">${archivo.nombre}</div>
+                <div class="prod-viewer-action">Clic para abrir</div>`;
+
+            card.onclick = () => window.open(archivo.url, '_blank');
+            grid.appendChild(card);
+        }
+
+        currentIndex = end;
+        if (currentIndex < archivos.length) {
+            requestAnimationFrame(renderNextBatch);
+        }
+    }
+
+    requestAnimationFrame(renderNextBatch);
+}
+
+/** Muestra el estado vacio cuando no hay archivos PDF disponibles. */
+function _dibujosShowEmpty(contentDiv) {
+    contentDiv.innerHTML = '';
+    const alertDiv = document.createElement('div');
+    alertDiv.style.cssText = `
+        display:flex;flex-direction:column;align-items:center;
+        padding:2em;background:#fff3cd;border:2px solid #856404;
+        border-radius:8px;text-align:center;
+    `;
+    const msg = document.createElement('label');
+    msg.className = 'label-alert';
+    msg.style.cssText = 'color:#856404;font-weight:700;font-size:1em;line-height:1.5;';
+    msg.textContent = 'No hay dibujos para esta OT o Clase. Favor de reportar con el departamento de Programacion CNC o de Software.';
+    alertDiv.appendChild(msg);
+    contentDiv.appendChild(alertDiv);
+}
+
+

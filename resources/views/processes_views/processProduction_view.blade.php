@@ -79,8 +79,10 @@
         window.imgNoPieces = "{{ asset('images/ready.png') }}";
         window.imgNoPiecesPrevious = "{{ asset('images/noPieces.png') }}";
         window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";
+        window.imgCerrar = "{{ asset('images/cerrar.png') }}";
         window.imgEditPieces = "{{ asset('images/editPieces.png') }}";
         window.imgQualityCheck = "{{ asset('images/Quality.png') }}";
+        window.imgDraws = "{{ asset('images/DrawsProduction.png') }}";
     </script>
     @isset($arrayData)
         <script>

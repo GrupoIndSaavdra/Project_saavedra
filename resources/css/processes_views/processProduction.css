@@ -61,6 +61,11 @@ body {
     background: #033966;
     border: 5px solid #033966d4;
     color: #ffffff;
+    transition: all 0.3s ease;
+}
+
+.form-control:hover:not(:disabled) {
+    transform: scale(1.02);
 }
 
 td {
@@ -98,42 +103,95 @@ td {
 }
 
 .btn-submit {
-    opacity: 0;
-    width: 100%;
+    opacity: 0; /* Oculto por defecto */
+    pointer-events: none; /* Inactivo por defecto */
     background: #033966;
     color: #ffffff;
-    padding: 0.8em;
+    padding: 1em 7em;
     border: none;
-    border-radius: 5px;
-    font-size: 1em;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
     cursor: pointer;
-    transition: 0.3s ease;
-    margin-top: 1em;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.3);
+    margin: -2em auto;
+    display: block;
+    width: fit-content;
 }
 
 .btn-submit:hover {
-    transform: scale(1.1);
-    transition: 0.3s ease;
+    background: #28a745;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
 }
 
-.btn-cancel {
-    position: absolute;
-    background: #9c0300;
-    color: #ffffff;
-    text-decoration: none;
-    padding: 0.8em;
+/*
+   BOTONES DE CANCELACIÓN (Consolidados y Modulares)
+   --------------------------------------------------
+   Eliminamos .btn-cancel para evitar herencias no deseadas.
+*/
+
+.btn-cancel-report,
+.btn-cancel-pieces,
+.btn-finishReport {
+    position: relative;
+    width: 100%;
+    max-width: 290px;
+    margin: 0em auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 3.5em; /* Aplicamos la altura del reporte */
+    font-size: 1.1em; /* Aplicamos el tamaño del reporte */
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 0; /* Centrado perfecto por height */
     border: none;
-    border-radius: 5px;
-    font-size: 1em;
+    border-radius: 8px;
+    color: #ffffff;
+    background: #9c0300;
     cursor: pointer;
-    transition: all 0.3s ease-in-out;
-    margin: 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3);
+    text-decoration: none;
+    text-align: center;
 }
 
-.btn-cancel:hover {
-    transform: scale(1.1);
-    transition: 0.3s ease;
+.btn-cancel-report:hover,
+.btn-cancel-pieces:hover,
+.btn-finishReport:hover {
+    background: #d30400;
+    transform: scale(1.05) !important;
+    box-shadow: 0 6px 20px rgba(156, 3, 0, 0.5);
 }
+
+/* Contenedor unificado para botones de acción (Registrar/Cancelar) */
+.form-btns-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5em;
+    width: 100%;
+    margin: 3.5em auto 1.5em auto;
+    padding: 0 1em;
+}
+
+.form-btns-container .btn-submit,
+.form-btns-container .btn-cancel-report {
+    flex: 1;
+    max-width: 280px;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 3.5em;
+}
+
+/* .btn-finishReport ya hereda de .btn-cancel o tiene sus propios estilos similares */
 
 p {
     margin: 2em;
@@ -164,49 +222,127 @@ p {
 }
 
 .img-edit {
-    position: absolute;
-    top: 1em;
-    left: 0;
-    width: 3em;
+    width: 4.5em; /* Aumentado */
+    height: 4.5em; /* Aumentado */
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    object-fit: contain;
 }
 
 .img-edit:hover {
-    transform: scale(1.1);
-    transition: 0.2s ease;
+    transform: scale(1.15) translateY(-3px);
 }
 
 .input-password {
-    font-size: 1em;
-    padding: 0.2em;
-    width: inherit;
+    font-size: 1.25em;
+    padding: 0.6em 1em;
+    width: 500px;
     cursor: text;
     margin-right: 1em;
+}
+
+/* Contenedor para unificar edición de metadatos */
+.edit-meta-wrapper {
+    position: absolute;
+    top: 1em;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: fit-content;
+    height: auto;
+    margin-bottom: 1em;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.edit-meta-wrapper:not(.is-verifying):hover .img-edit,
+.edit-meta-wrapper:not(.is-verifying):hover .action-label {
+    transform: translateY(-5px) scale(1.1);
+}
+
+/* Hover específico del icono cuando se está verificando (botón "Atrás") */
+.edit-meta-wrapper.is-verifying .img-edit:hover {
+    transform: scale(1.1);
+}
+
+.img-edit {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.edit-meta-wrapper.is-verifying {
+    flex-direction: column; /* Cambiamos a column para que el texto no se mueva */
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0;
+    left: 0;
+    padding: 0;
+    z-index: 1500 !important; /* Capa superior */
+}
+
+.edit-meta-wrapper.is-verifying .action-label {
+    opacity: 0; /* Ocultar el label durante la verificación */
+    pointer-events: none;
+}
+
+.edit-meta-wrapper.is-verifying .form-group-password {
+    position: absolute;
+    left: 5.5em; /* Ajustado para el nuevo tamaño del icono */
+    top: -10%;
+    width: max-content;
+    white-space: nowrap;
+    padding: 1em;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    z-index: 1600;
+}
+
+.form-group-password .btn-submit-password {
+    margin: 0;
 }
 
 .btn-submit-password {
     background: #033966;
     color: #ffffff;
-    box-sizing: border-box;
-    padding: 0.5em 1em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 3.5em; /* Estandarizado */
+    padding: 0 1.5em;
     border: none;
-    border-radius: 5px;
-    font-size: 1em;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
     cursor: pointer;
-    transition: 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.3);
 }
 
 .btn-submit-password:hover {
-    transform: scale(1.1);
-    transition: 0.3s ease;
+    background: #28a745 !important;
+    transform: scale(1.05) translateY(-3px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.btn-submit-password:active {
+    transform: scale(0.95);
 }
 
 .form-group-password {
-    width: 100%;
+    width: fit-content;
     display: flex;
     flex-direction: row;
     box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    position: relative;
+    padding: 2px 10px;
 }
 
 .table-meta {
@@ -236,16 +372,41 @@ p {
 }
 
 .warning-pieces {
-    width: 80%;
+    width: 90%;
     font-size: 1.1em;
     font-weight: 800;
-    /* text-transform: uppercase; */
-    padding: 0.5em;
-    margin: 1.5em;
-    border-radius: 5px;
-    background-color: #65ebd96c;
-    border: 2px solid #000000;
-    color: #020202;
+    padding: 1.5em;
+    margin: 1em auto;
+    border-radius: 12px;
+    background-color: #fff3cd; /* Amarillo de advertencia */
+    border: 3px solid #ffc107;
+    color: #856404;
+    display: block;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+    /* Animación distintiva */
+    animation: alert-breathing 3s ease-in-out infinite;
+    transition: all 0.3s ease-in-out;
+}
+
+@keyframes alert-breathing {
+    0% {
+        transform: scale(1);
+        border-color: #ffc107;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+    }
+    50% {
+        transform: scale(1.02);
+        border-color: #dc3545; /* Rojo de urgencia */
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+        background-color: #fff;
+    }
+    100% {
+        transform: scale(1);
+        border-color: #ffc107;
+        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+    }
 }
 
 /* Tabla de codigos de version */
@@ -284,6 +445,7 @@ p {
 .form-tablePieces {
     position: relative;
     width: 100%;
+    height: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -301,18 +463,22 @@ p {
 
 .scrollable-table {
     position: relative;
-    margin-top: 2.5em;
+    margin-top: 1em;
+    margin-bottom: 1em;
     border-radius: 10px;
     width: 99%;
-    height: 30vh;
+    max-height: 40vh;
+    height: auto;
     overflow-x: auto;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     transition: all 0.5s ease;
 }
 
 .max-height-table {
-    height: 50vh;
+    max-height: 50vh;
+    height: auto;
 }
 
 .table {
@@ -382,20 +548,27 @@ td select {
     justify-content: end;
 }
 
-.btn-finishReport {
-    opacity: 0;
-    background: #9c0300;
+
+/* Botón Ver Dibujos (operador) */
+
+/* Botón Ver Dibujos (operador) */
+.btn-dibujos-viewer {
+    background: #033966;
     color: #ffffff;
     padding: 0.5em 1em;
-    margin: -1em;
+    margin: 0.3em -1em 0 -1em;
     border: none;
     border-radius: 5px;
-    font-size: 1.1em;
+    font-size: 1em;
     cursor: pointer;
     transition: 0.3s ease;
+    display: block;
+    width: auto;
+    align-self: center;
 }
 
-.btn-finishReport:hover {
+.btn-dibujos-viewer:hover {
+    background: #022847;
     transform: scale(1.1);
     transition: all 0.3s ease;
 }
@@ -403,18 +576,23 @@ td select {
 .btn-savePiece {
     background: #033966;
     color: #ffffff;
-    padding: 0.8em;
+    padding: 0.8em 1.5em;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     font-size: 1.1em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
     cursor: pointer;
-    transition: 0.3s ease;
-    margin: 2em 0;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    margin: 0em 0;
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.3);
 }
 
 .btn-savePiece:hover {
-    transform: scale(1.1);
-    transition: 0.3s ease;
+    background: #28a745; /* Verde sugerido */
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
 }
 
 .select-pieces {
@@ -432,18 +610,6 @@ td select {
     cursor: pointer;
 }
 
-/* .alert-NoCotas {
-    color: #f00;
-    font-size: 1.2em;
-    font-weight: 700;
-    font-style: oblique;
-    text-transform: uppercase;
-    padding: 1em;
-    border: 2px solid #f00;
-    border-radius: 5px;
-    background: #fff;
-    margin: 1em 0;
-} */
 .div-opacity {
     position: fixed;
     top: 0;
@@ -535,75 +701,50 @@ td select {
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Editar piezas registradas */
-.div-editPieces {
-    position: absolute;
-    display: flex;
-    right: 7em;
-    bottom: -2em;
-    box-sizing: border-box;
-    height: 3em;
-}
-
-.form-verifyPassword {
-    width: 100%;
-}
-
-.img-editPieces {
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-    margin-left: 3em;
-}
-
-.img-editPieces:hover {
-    transform: scale(1.1);
-}
-
-/* Botón de verificación de calidad */
-.div-qualityCheck {
-    position: absolute;
-    display: flex;
-    right: 12em;
-    bottom: -2em;
-    box-sizing: border-box;
-    height: 3em;
-}
-
-.form-verifyQualityPassword {
-    width: 100%;
-}
-
-.img-qualityCheck {
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-    margin-left: 1em;
-    height: 100%;
-}
-
-.img-qualityCheck:hover {
-    transform: scale(1.1);
-}
-
-.btn-quality {
-    background: #033966;
-}
-
-.btn-quality:hover {
-    background: #033966;
-}
-
 /* Modal de liberación de piezas */
 .quality-release-modal {
+    position: relative; /* Para el botón de cierre absoluto */
     background: #fff;
-    border-radius: 10px;
-    padding: 2em;
+    border-radius: 20px;
+    padding: 2.5em;
     max-width: 95%;
     width: 1200px;
     max-height: 90vh;
     overflow-y: auto;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    border: 4px solid #033966;
+}
+
+/* Estilo para la "X" de cierre en el modal de liberación */
+.quality-release-modal .div-cerrar {
+    position: absolute;
+    top: 1.5em;
+    right: 1.5em;
+    width: 2.5em;
+    z-index: 100;
+}
+
+.quality-release-modal .btn-cancel-release {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.quality-release-modal .btn-cancel-release:hover {
+    transform: scale(1.3);
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.quality-release-modal .img-cerrar {
+    width: 100%;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
 .modal-title {
@@ -720,36 +861,34 @@ td select {
     margin-top: 1em;
 }
 
-.btn-cancel-release {
-    background: #00659c;
-    color: #fff;
-    padding: 0.7em 1em;
-    border: none;
-    border-radius: 8px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.btn-cancel-release:hover {
-    background: #7a0200;
-    transform: scale(1.05);
-}
 
 .btn-accept-release {
     background: #2e7d32;
     color: #fff;
-    padding: 0.7em 1em;
+    position: relative;
+    width: 100%;
+    max-width: 290px;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 3.5em;
+    font-size: 1.1em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 0;
     border: none;
     border-radius: 8px;
-    font-size: 1em;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
 }
 
 .btn-accept-release:hover {
-    background: #1b5e20;
-    transform: scale(1.05);
+    background: #09a714;
+    transform: scale(1.05) !important;
+    box-shadow: 0 6px 20px rgba(46, 125, 50, 0.5);
 }
 
 /* Formulario de liberación */
@@ -914,7 +1053,7 @@ td select {
 }
 
 .pta-modal-input {
-    width: 100%;
+    width: 280px;
     padding: 0.75em;
     border: 1.5px solid #d1d5db;
     border-radius: 8px;
@@ -922,7 +1061,8 @@ td select {
     outline: none;
     transition: border-color 0.2s;
     text-align: center;
-    margin-bottom: 1rem;
+    margin: 0 auto 1rem auto;
+    display: block;
 }
 
 .pta-modal-input:focus {
@@ -975,4 +1115,339 @@ td select {
 
 .pta-modal-btn-submit:hover {
     background-color: #022847;
+}
+
+/* Centralized Production Actions */
+.production-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10em;
+    margin: 0.2em auto 0em auto;
+    padding: 0em;
+    background: transparent;
+    width: 100%; /* Cambiado de fit-content para permitir expansión de botones */
+}
+
+/* Regla espejo para forzar que el botón de piezas herede el tamaño del reporte */
+.production-actions .btn-cancel-pieces {
+    flex: 1;
+    max-width: 280px;
+    margin: 0 auto;
+}
+
+.action-btn-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.action-btn-wrapper:hover {
+    transform: translateY(-5px);
+}
+
+.img-action-btn {
+    width: 5em; /* Aumentado para mayor impacto visual */
+    height: 5em; /* Aumentado para mayor impacto visual */
+    object-fit: contain;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+}
+
+.img-action-btn:hover:not(.btn-disabled) {
+    transform: scale(1.15) translateY(-3px);
+}
+
+.img-action-btn:active:not(.btn-disabled) {
+    transform: scale(0.95);
+}
+
+.action-label {
+    margin-top: 0.7em;
+    font-size: 0.85em;
+    font-weight: 800;
+    color: #033966;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Modo Verificación: Ajustes locales para botones de acción (Sin desplazamiento) */
+.action-btn-wrapper.is-verifying {
+    transform: none !important;
+    z-index: 1000 !important;
+    position: relative;
+    width: 5em; /* Ajustado al nuevo tamaño */
+}
+
+.action-btn-wrapper.is-verifying .action-label {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.action-btn-wrapper.is-verifying .form-inline-verification {
+    position: absolute;
+    left: 6em; /* Ajustado para el botón más grande */
+    top: 30%;
+    transform: translateY(-50%);
+    width: max-content;
+    white-space: nowrap;
+    z-index: 1010;
+}
+
+.btn-disabled {
+    filter: grayscale(100%) opacity(0.4) !important;
+    cursor: not-allowed !important;
+}
+
+.btn-disabled + .action-label {
+    opacity: 0.5;
+}
+
+/* ── Visor de Planos: Animaciones y Estilos Refinados (Sin Lag) ── */
+/* ── VISOR DE PLANOS: Ecosistema Modular Independiente (prod-viewer-*) ── */
+
+@keyframes prodModalEntrance {
+    0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes prodCardPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    70% {
+        transform: scale(1.02) translateY(-5px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Contenedor Opacidad (Portal) */
+.prod-viewer-portal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 10, 25, 0.85); /* Fondo sólido semi-transparente sin blur */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 5vh;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+/* Modal Independiente */
+.prod-viewer-modal {
+    max-width: 1100px;
+    width: 98%;
+    max-height: 88vh;
+    background: #ffffff;
+    border-radius: 20px;
+    border: 4px solid #033966;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: prodModalEntrance 0.5s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+/* Header Fijo */
+.prod-viewer-header {
+    padding: 2em 2.5em 1.2em;
+    background: #fff;
+    border-bottom: 2px solid #f0f0f0;
+    z-index: 10;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.02);
+}
+
+.prod-viewer-header h3 {
+    color: #033966;
+    font-size: 1.4em;
+    font-weight: 800;
+    margin-bottom: 1em;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Breadcrumb Estilo Path */
+.prod-viewer-breadcrumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8em;
+    font-size: 1em;
+    color: #033966;
+    background: #f0f7ff;
+    border: 2px solid #033966;
+    border-radius: 50px;
+    padding: 0.8em 2em;
+    margin-bottom: 1.5em;
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.08);
+}
+
+.prod-viewer-breadcrumb .path-label {
+    opacity: 0.6;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.prod-viewer-breadcrumb .path-ot {
+    font-weight: 800;
+    border-left: 2px solid #033966;
+    padding-left: 1em;
+}
+
+.prod-viewer-breadcrumb .path-clase {
+    font-weight: 700;
+    background: #033966;
+    color: #fff;
+    padding: 0.15em 0.8em;
+    border-radius: 6px;
+}
+
+.prod-viewer-breadcrumb .path-count {
+    margin-left: auto;
+    font-size: 0.85em;
+    font-weight: 800;
+    opacity: 0.8;
+    color: #03819a;
+}
+
+/* Cuerpo con Scroll */
+.prod-viewer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2em 1.5em;
+    background: #fdfdfd;
+}
+
+/* Grid de 2 Columnas */
+.prod-viewer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.8em;
+    width: 100%;
+}
+
+/* Tarjeta Premium */
+.prod-viewer-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2em 1.5em;
+    border: 3px solid #033966;
+    border-radius: 16px;
+    background: #ffffff;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 6px 15px rgba(0, 54, 102, 0.05);
+    transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+    animation: prodCardPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    position: relative;
+    overflow: hidden;
+    will-change: transform, box-shadow;
+}
+
+.prod-viewer-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: #033966;
+    opacity: 0.1;
+    transition: opacity 0.3s ease;
+}
+
+.prod-viewer-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(3, 57, 102, 0.15);
+    border-color: #03819a;
+    background: #f8fbff;
+}
+
+.prod-viewer-card:hover::before {
+    opacity: 1;
+    background: #03819a;
+}
+
+.prod-viewer-card .file-icon-wrapper {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    margin-bottom: 1em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.prod-viewer-card .prod-viewer-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity, transform;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.prod-viewer-card .icon-hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+}
+
+.prod-viewer-card:hover .icon-default {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.prod-viewer-card:hover .icon-hover {
+    opacity: 1;
+    transform: scale(1.15) rotate(3deg);
+}
+
+/* Botón "Ver Archivos" — Estilos heredados de .btn-submit-password */
+
+
+.prod-viewer-filename {
+    font-size: 0.95em;
+    font-weight: 800;
+    color: #033966;
+    word-break: break-all;
+    line-height: 1.3;
+}
+
+.prod-viewer-action {
+    font-size: 0.85em;
+    margin-top: 1em;
+    color: #03819a;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.prod-viewer-card:hover .prod-viewer-action {
+    color: #033966;
+    letter-spacing: 2px;
 }

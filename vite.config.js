@@ -91,7 +91,11 @@ export default defineConfig({
 
                 //Views Reporte Diario
                 'resources/css/reportes/email.css',
-                'resources/css/reportes/reenvio.css'
+                'resources/css/reportes/reenvio.css',
+
+                //Módulo Dibujos PDF
+                'resources/css/wo_views/manage_dibujos.css',
+                'resources/js/wo_views/manage_dibujos.js',
             ],
             refresh: true,
         }),

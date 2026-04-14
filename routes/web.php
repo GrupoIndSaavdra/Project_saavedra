@@ -1,6 +1,7 @@
 <?php
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\DatosProduccionController;
+use App\Http\Controllers\DibujosPdfController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LogoutController;
@@ -314,5 +315,43 @@ Route::middleware(['auth'])->prefix('reportes')->name('reportes.')->group(functi
 // Acción GET: descargar PDF del reporte (fuera del grupo auth para mayor compatibilidad)
 Route::get('/reportes/descargar-pdf/{fecha}', [ReporteProduccionController::class, 'descargarPDF'])
     ->name('reportes.descargar_pdf');
+
+/* ===========================
+   Módulo de Dibujos / Planos PDF (DIBUJOS_GIS)
+=========================== */
+
+Route::middleware(['auth'])->prefix('dibujos')->name('dibujos.')->group(function () {
+
+    // ── Vista de administración ──
+    Route::get('/manage', [DibujosPdfController::class, 'showManage'])
+        ->name('manage');
+
+    // ── API de Lectura (operadores y administradores) ──
+    Route::get('/estructura', [DibujosPdfController::class, 'getStructure'])
+        ->name('estructura');
+
+    Route::get('/archivos', [DibujosPdfController::class, 'getFiles'])
+        ->name('archivos');
+
+    Route::get('/serve', [DibujosPdfController::class, 'serveFile'])
+        ->name('serve');
+
+    // ── CRUD Administración ──
+    Route::post('/createFolder', [DibujosPdfController::class, 'createFolder'])
+        ->name('createFolder');
+
+    Route::post('/upload', [DibujosPdfController::class, 'uploadPdf'])
+        ->name('upload');
+
+    Route::post('/delete', [DibujosPdfController::class, 'deletePdf'])
+        ->name('delete');
+
+    Route::post('/replace', [DibujosPdfController::class, 'replacePdf'])
+        ->name('replace');
+
+    // ── Log de auditoría (últimas 50 entradas) ──
+    Route::get('/log', [DibujosPdfController::class, 'getLog'])
+        ->name('log');
+});
 
 
