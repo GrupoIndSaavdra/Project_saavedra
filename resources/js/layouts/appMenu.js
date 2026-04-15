@@ -164,7 +164,14 @@ function getRoutes(profile) {
                         ["piecesInProgress", "Piezas en progreso"],
                         ["showPiecesReport_view", "Reporte de piezas"],
                         ["showReleasePieces_view", "Liberacion de piezas"],
+                    ],
+                },
+                {
+                    title: "Documentación Técnica",
+                    routes: [
                         ["dibujos.manage", "Dibujos de Producción"],
+                        ["manuales.manage", "Manuales de Procesos"],
+                        ["ayudas.manage", "Ayudas Visuales"],
                     ],
                 },
                 {

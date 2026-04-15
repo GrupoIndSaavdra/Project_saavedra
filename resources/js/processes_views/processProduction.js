@@ -814,6 +814,34 @@ function createBtnMetaEdit() {
     return wrapper;
 }
 
+/**
+ * Crea el botón de acceso rápido a Documentación (Manuales/Ayudas)
+ * Espejo estetico de createBtnMetaEdit pero para el lado derecho
+ */
+function createBtnTechDocs() {
+    let wrapper = document.createElement("div");
+    wrapper.className = "tech-docs-wrapper";
+
+    let btn_docs = document.createElement("img");
+    btn_docs.className = "img-edit";
+    btn_docs.src = window.imgTechDocs;
+    btn_docs.alt = "Documentación";
+    btn_docs.title = "Ver Manuales y Ayudas Visuales";
+
+    let label = document.createElement("div");
+    label.className = "action-label";
+    label.textContent = "Documentos";
+
+    btn_docs.addEventListener("click", function () {
+        openTechDocsModal();
+    });
+
+    wrapper.appendChild(btn_docs);
+    wrapper.appendChild(label);
+    return wrapper;
+}
+
+
 function showInlinePasswordForm(type, imgElement = null) {
     // 1. Limpiar cualquier formulario previo y ocultar botón de terminar
     removePasswordForms();
@@ -972,6 +1000,7 @@ function insertProductionActions() {
     );
     btnDrawings.classList.add("btn-drawings");
     actionsContainer.appendChild(btnDrawings);
+
 
     // 2. Botón de Calidad (Bloqueado si no hay piezas registradas)
     let qualityDisabled = !hasPieces;
@@ -1459,6 +1488,10 @@ if (window.arrayData) {
     } else {
         createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
         document.querySelector(".div-table-meta").prepend(createBtnMetaEdit()); // Insertar botón de editar meta arriba
+        
+        let containerCode = document.querySelector(".div-table-code");
+        if (containerCode) containerCode.prepend(createBtnTechDocs()); // Insertar botón de documentos arriba a la derecha
+
         addEventToFinishReport(); // Agregar evento al botón de terminar reporte
         enableTable(); // Habilitar la tabla de piezas
         insertProductionActions(); // Insertar controles unificados de producción
@@ -1811,14 +1844,9 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
     const selOTWrap = _dibujosSelectGroup('Orden de Trabajo', 'd-viewer-ot');
     const selClaseWrap = _dibujosSelectGroup('Clase', 'd-viewer-clase');
     
-    const btnBuscar = document.createElement('button');
-    btnBuscar.className = 'btn-submit-password';
-    btnBuscar.style.cssText = 'margin:0;flex-shrink:0;height:42px;';
-    btnBuscar.textContent = 'Ver Archivos';
 
     navDiv.appendChild(selOTWrap);
     navDiv.appendChild(selClaseWrap);
-    navDiv.appendChild(btnBuscar);
 
     headerDiv.appendChild(divCerrar);
     headerDiv.appendChild(titulo);
@@ -1847,6 +1875,15 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
     })
     .then(r => r.json())
     .then(estructura => {
+        let exactActiveOT = activeOT;
+        let otNumMatch = activeOT ? activeOT.match(/\d+/) : null;
+        let otNum = otNumMatch ? otNumMatch[0] : activeOT;
+
+        if (activeOT && !estructura[activeOT]) {
+            const foundKey = Object.keys(estructura).find(key => key.includes("OT " + otNum) || key.includes(activeOT));
+            if (foundKey) exactActiveOT = foundKey;
+        }
+
         selOT.innerHTML = '<option value="">— Seleccionar OT —</option>';
         Object.keys(estructura).sort().forEach(ot => {
             let label = ot;
@@ -1856,7 +1893,7 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
             const opt = document.createElement('option');
             opt.value = ot;
             opt.textContent = label;
-            if (ot === activeOT) opt.selected = true;
+            if (ot === exactActiveOT) opt.selected = true;
             selOT.appendChild(opt);
         });
 
@@ -1874,30 +1911,34 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
             } else {
                 selClase.disabled = true;
             }
+            // Búsqueda automática al cambiar OT (si hay clase)
+            if (selOTVal && selClase.value) {
+                const otText = selOT.options[selOT.selectedIndex].text;
+                _dibujosCargarArchivos(selOTVal, selClase.value, contentDiv, otText);
+            }
         });
 
-        if (activeOT && estructura[activeOT]) {
+        selClase.addEventListener('change', () => {
+            const ot = selOT.value;
+            const clase = selClase.value;
+            if (ot && clase) {
+                const otText = selOT.options[selOT.selectedIndex].text;
+                _dibujosCargarArchivos(ot, clase, contentDiv, otText);
+            }
+        });
+
+        if (exactActiveOT && estructura[exactActiveOT]) {
+            selOT.value = exactActiveOT;
             selOT.dispatchEvent(new Event('change'));
             setTimeout(() => {
                 const opt = selClase.querySelector(`option[value="${activeClase}"]`);
-                if (opt) opt.selected = true;
-                if (activeOT && activeClase) {
+                if (opt) {
+                    opt.selected = true;
                     const otText = selOT.options[selOT.selectedIndex].text;
-                    _dibujosCargarArchivos(activeOT, activeClase, contentDiv, otText);
+                    _dibujosCargarArchivos(exactActiveOT, activeClase, contentDiv, otText);
                 }
             }, 50);
         }
-
-        btnBuscar.addEventListener('click', () => {
-            const ot = selOT.value;
-            const clase = selClase.value;
-            if (!ot || !clase) {
-                _dibujosShowEmpty(contentDiv);
-                return;
-            }
-            const otText = selOT.options[selOT.selectedIndex].text;
-            _dibujosCargarArchivos(ot, clase, contentDiv, otText);
-        });
     })
     .catch(() => {
         contentDiv.innerHTML = '<p style="color:#9c0300;text-align:center;">Error al cargar la estructura de carpetas.</p>';
@@ -2015,4 +2056,542 @@ function _dibujosShowEmpty(contentDiv) {
     contentDiv.appendChild(alertDiv);
 }
 
+// ────────────────────────────────────────────────────────────────────────────
+// VISOR DE MANUALES DE PROCESOS — Acceso del Operador
+// ────────────────────────────────────────────────────────────────────────────
 
+window.openManualesViewer = function () {
+    const activeProceso = window.arrayData ? window.arrayData.process : '';
+
+    const divOpacity = document.createElement('div');
+    divOpacity.className = 'prod-viewer-portal';
+    divOpacity.id = 'div-opacity-manuales';
+
+    const modal = document.createElement('div');
+    modal.className = 'prod-viewer-modal';
+
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'prod-viewer-header';
+
+    const divCerrar = document.createElement('div');
+    divCerrar.className = 'div-cerrar';
+    const btnCerrar = document.createElement('button');
+    btnCerrar.className = 'btn-cerrar';
+    btnCerrar.onclick = () => divOpacity.remove();
+    const imgCerrar = document.createElement('img');
+    imgCerrar.className = 'img-cerrar';
+    imgCerrar.src = window.cerrarImgUrl;
+    btnCerrar.appendChild(imgCerrar);
+    divCerrar.appendChild(btnCerrar);
+
+    const titulo = document.createElement('h3');
+    titulo.textContent = 'Visor de Manuales de Procesos';
+
+    const navDiv = document.createElement('div');
+    navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.2em;';
+
+    const selProcesoWrap = _dibujosSelectGroup('Proceso', 'd-viewer-manuales-proceso');
+    
+
+    navDiv.appendChild(selProcesoWrap);
+
+    headerDiv.appendChild(divCerrar);
+    headerDiv.appendChild(titulo);
+    headerDiv.appendChild(navDiv);
+
+    const contentDiv = document.createElement('div');
+    contentDiv.id = 'viewer-content-manuales';
+    contentDiv.className = 'prod-viewer-body';
+
+    modal.appendChild(headerDiv);
+    modal.appendChild(contentDiv);
+    divOpacity.appendChild(modal);
+    document.body.appendChild(divOpacity);
+
+    divOpacity.addEventListener('click', (e) => {
+        if (e.target === divOpacity) divOpacity.remove();
+    });
+
+    const selProceso = document.getElementById('d-viewer-manuales-proceso');
+
+    fetch(window.baseUrl + '/manuales/estructura', {
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(estructura => {
+        selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
+        estructura.sort().forEach(proc => {
+            const opt = document.createElement('option');
+            opt.value = proc;
+            opt.textContent = proc;
+            selProceso.appendChild(opt);
+        });
+
+        // Intentar seleccionar el proceso actual
+        const optDefault = selProceso.querySelector(`option[value="${activeProceso}"]`);
+        if (optDefault) optDefault.selected = true;
+
+        if (selProceso.value) {
+            _manualesCargarArchivos(selProceso.value, contentDiv);
+        }
+
+        selProceso.addEventListener('change', () => {
+            if (selProceso.value) {
+                _manualesCargarArchivos(selProceso.value, contentDiv);
+            } else {
+                _dibujosShowEmpty(contentDiv);
+            }
+        });
+    })
+    .catch(() => {
+        contentDiv.innerHTML = '<p style="color:#9c0300;text-align:center;">Error al cargar la estructura.</p>';
+    });
+};
+
+function _manualesCargarArchivos(proceso, contentDiv) {
+    contentDiv.innerHTML = '<p style="color:#666;text-align:center;">Cargando archivos...</p>';
+    const url = `${window.baseUrl}/manuales/archivos?proceso=${encodeURIComponent(proceso)}`;
+    fetch(url, { headers: { 'Accept': 'application/json' } })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.existe || !data.archivos || data.archivos.length === 0) {
+            _dibujosShowEmpty(contentDiv);
+            return;
+        }
+        _dibujosRenderArchivos(data.archivos, proceso, 'General', contentDiv);
+    })
+    .catch(() => _dibujosShowEmpty(contentDiv));
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// VISOR DE AYUDAS VISUALES — Acceso del Operador
+// ────────────────────────────────────────────────────────────────────────────
+
+window.openAyudasViewer = function () {
+    const activeProceso = window.arrayData ? window.arrayData.process : '';
+    const activeClase = window.arrayData ? (window.arrayData.class || '') : '';
+
+    const divOpacity = document.createElement('div');
+    divOpacity.className = 'prod-viewer-portal';
+    divOpacity.id = 'div-opacity-ayudas';
+
+    const modal = document.createElement('div');
+    modal.className = 'prod-viewer-modal';
+
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'prod-viewer-header';
+
+    const divCerrar = document.createElement('div');
+    divCerrar.className = 'div-cerrar';
+    const btnCerrar = document.createElement('button');
+    btnCerrar.className = 'btn-cerrar';
+    btnCerrar.onclick = () => divOpacity.remove();
+    const imgCerrar = document.createElement('img');
+    imgCerrar.className = 'img-cerrar';
+    imgCerrar.src = window.cerrarImgUrl;
+    btnCerrar.appendChild(imgCerrar);
+    divCerrar.appendChild(btnCerrar);
+
+    const titulo = document.createElement('h3');
+    titulo.textContent = 'Visor de Ayudas Visuales';
+
+    const navDiv = document.createElement('div');
+    navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.2em;';
+
+    const selClaseWrap = _dibujosSelectGroup('Clase', 'd-viewer-ayudas-clase');
+    const selProcesoWrap = _dibujosSelectGroup('Proceso', 'd-viewer-ayudas-proceso');
+    
+
+    navDiv.appendChild(selClaseWrap);
+    navDiv.appendChild(selProcesoWrap);
+
+    headerDiv.appendChild(divCerrar);
+    headerDiv.appendChild(titulo);
+    headerDiv.appendChild(navDiv);
+
+    const contentDiv = document.createElement('div');
+    contentDiv.id = 'viewer-content-ayudas';
+    contentDiv.className = 'prod-viewer-body';
+
+    modal.appendChild(headerDiv);
+    modal.appendChild(contentDiv);
+    divOpacity.appendChild(modal);
+    document.body.appendChild(divOpacity);
+
+    divOpacity.addEventListener('click', (e) => {
+        if (e.target === divOpacity) divOpacity.remove();
+    });
+
+    const selClase = document.getElementById('d-viewer-ayudas-clase');
+    const selProceso = document.getElementById('d-viewer-ayudas-proceso');
+
+    fetch(window.baseUrl + '/ayudas/estructura', {
+        headers: { 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(estructura => {
+        selClase.innerHTML = '<option value="">— Seleccionar Clase —</option>';
+        Object.keys(estructura).sort().forEach(clase => {
+            if (clase === '-- SIN CLASE --') return;
+            const opt = document.createElement('option');
+            opt.value = clase;
+            opt.textContent = clase;
+            if (clase === activeClase) opt.selected = true;
+            selClase.appendChild(opt);
+        });
+
+        selClase.addEventListener('change', () => {
+            const selClaseVal = selClase.value;
+            selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
+            if (selClaseVal && estructura[selClaseVal]) {
+                const procs = [...estructura[selClaseVal]];
+                if (!procs.includes('General')) procs.push('General');
+
+                procs.sort().forEach(proc => {
+                    const opt = document.createElement('option');
+                    selClase.appendChild(opt);
+                });
+                selClase.disabled = false;
+            } else {
+                selClase.disabled = true;
+            }
+        });
+
+        if (activeProceso && estructura[activeProceso]) {
+            selProceso.dispatchEvent(new Event('change'));
+            setTimeout(() => {
+                const opt = selClase.querySelector(`option[value="${activeClase}"]`);
+                if (opt) opt.selected = true;
+                if (selProceso.value && selClase.value) {
+                    _ayudasCargarArchivos(selProceso.value, selClase.value, contentDiv);
+                }
+            }, 50);
+        }
+
+        selClase.addEventListener('change', () => {
+            if (selProceso.value && selClase.value) {
+                _ayudasCargarArchivos(selProceso.value, selClase.value, contentDiv);
+            }
+        });
+    })
+    .catch(() => {
+        contentDiv.innerHTML = '<p style="color:#9c0300;text-align:center;">Error al cargar la estructura.</p>';
+    });
+};
+
+/**
+ * Abre el modal técnico con pestañas para Manuales y Ayudas Visuales
+ */
+window.openTechDocsModal = function() {
+    let activeProcess = window.arrayData ? window.arrayData["process"] || (window.arrayData["meta"] ? window.arrayData["meta"].proceso : null) : null;
+    let activeClass = window.arrayData ? window.arrayData["class"] || (window.arrayData["meta"] ? window.arrayData["meta"].clase : null) : null;
+    let activeOT = window.arrayData ? window.arrayData["ot_folio"] || window.arrayData["ot"] || (window.arrayData["meta"] ? window.arrayData["meta"].ot : null) : null;
+
+    if (!activeProcess) {
+        const procInput = document.getElementById("process");
+        if (procInput && procInput.value) activeProcess = procInput.value;
+    }
+    if (!activeClass) {
+        const classInput = document.getElementById("class");
+        if (classInput && classInput.value) activeClass = classInput.value;
+    }
+
+    if (!activeProcess && !activeOT) {
+        mostrarNotificacion("No se pudo identificar el contexto activo.", true);
+        return;
+    }
+
+    const divOpacity = document.createElement('div');
+    divOpacity.className = 'prod-viewer-portal';
+    divOpacity.id = 'tech-docs-overlay';
+
+    const modal = document.createElement('div');
+    modal.className = 'prod-viewer-modal';
+
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'prod-viewer-header';
+
+    const divCerrar = document.createElement('div');
+    divCerrar.className = 'div-cerrar';
+    const btnCerrar = document.createElement('button');
+    btnCerrar.className = 'btn-cerrar';
+    btnCerrar.onclick = () => divOpacity.remove();
+    const imgCerrar = document.createElement('img');
+    imgCerrar.className = 'img-cerrar';
+    imgCerrar.src = window.cerrarImgUrl;
+    btnCerrar.appendChild(imgCerrar);
+    divCerrar.appendChild(btnCerrar);
+
+    const titulo = document.createElement('h3');
+    titulo.textContent = 'Documentación Técnica';
+
+    const topBar = document.createElement('div');
+    topBar.style.cssText = 'display:flex; flex-direction:column; align-items:stretch; margin-bottom:1.2em; gap: 0.8em;';
+
+    const tabsContainer = document.createElement('div');
+    tabsContainer.className = 'tech-docs-tabs';
+    tabsContainer.style.cssText = 'margin:0; padding:0.4em; display:flex; gap: 0.5em;';
+    tabsContainer.innerHTML = `
+        <button class="tech-tab-btn active" data-tab="manuales" style="flex:1; padding: 0.8em; font-size: 0.9em;">Manuales</button>
+        <button class="tech-tab-btn" data-tab="ayudas" style="flex:1; padding: 0.8em; font-size: 0.9em;">Ayudas Visuales</button>
+    `;
+
+    const navDiv = document.createElement('div');
+    navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end; flex:2; min-width: 400px;';
+    
+    // Solo necesitamos Clase y Proceso
+    const selClaseWrap = _dibujosSelectGroup('Clase', 'tech-doc-clase');
+    const selProcesoWrap = _dibujosSelectGroup('Proceso', 'tech-doc-proceso');
+    
+    selClaseWrap.style.display = 'none';
+
+    navDiv.appendChild(selClaseWrap);
+    navDiv.appendChild(selProcesoWrap);
+
+    topBar.appendChild(tabsContainer);
+    topBar.appendChild(navDiv);
+
+    headerDiv.appendChild(divCerrar);
+    headerDiv.appendChild(titulo);
+    headerDiv.appendChild(topBar);
+
+    const contentDiv = document.createElement('div');
+    contentDiv.id = 'viewer-content-tech-docs';
+    contentDiv.className = 'prod-viewer-body';
+
+    modal.appendChild(headerDiv);
+    modal.appendChild(contentDiv);
+    divOpacity.appendChild(modal);
+    document.body.appendChild(divOpacity);
+
+    let activeTab = 'manuales';
+    let manualEstructura = [];
+    let ayudasEstructura = {}; 
+
+    const selClase = document.getElementById('tech-doc-clase');
+    const selProceso = document.getElementById('tech-doc-proceso');
+
+    divOpacity.addEventListener('click', (e) => {
+        if (e.target === divOpacity) divOpacity.remove();
+    });
+
+    contentDiv.innerHTML = '<p style="color:#666;text-align:center;">Cargando estructuras...</p>';
+    Promise.all([
+        fetch(window.baseUrl + '/manuales/estructura').then(r=>r.json()),
+        fetch(window.baseUrl + '/ayudas/estructura').then(r=>r.json())
+    ]).then(([manData, ayuData]) => {
+        manualEstructura = Array.isArray(manData) ? manData : Object.keys(manData);
+        ayudasEstructura = ayuData;
+
+        let matchedProc = activeProcess;
+        if (!manualEstructura.includes(matchedProc) && activeProcess && activeProcess.includes('_')) {
+            matchedProc = activeProcess.split('_')[0];
+            if (!manualEstructura.includes(matchedProc)) matchedProc = activeProcess.split('_')[1];
+        }
+
+        updateManualesSelect(matchedProc);
+        _triggerSearch();
+
+    }).catch(err => {
+        console.error(err);
+        contentDiv.innerHTML = '<p style="color:#9c0300;text-align:center;">Error al cargar estructuras.</p>';
+    });
+
+    function _triggerSearch() {
+        const cl = selClase.value;
+        const proc = selProceso.value;
+
+        if (activeTab === 'manuales') {
+            if (proc) _techDocsCargarArchivos('manuales', proc, null, contentDiv);
+            else _techDocsShowEmpty(contentDiv, "Seleccione un Proceso.");
+        } else if (activeTab === 'ayudas') {
+            if (cl && proc) _techDocsCargarArchivos('ayudas', proc, cl, contentDiv);
+            else _techDocsShowEmpty(contentDiv, "Seleccione Clase y Proceso.");
+        }
+    }
+
+    function updateManualesSelect(selectedProc = null) {
+        selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
+        manualEstructura.sort().forEach(proc => {
+            const opt = document.createElement('option');
+            opt.value = proc;
+            opt.textContent = proc;
+            if (proc === selectedProc) opt.selected = true;
+            selProceso.appendChild(opt);
+        });
+        selProceso.disabled = false;
+    }
+
+    function updateAyudasFilters(claseVal = null, procVal = null) {
+        const allClases = Object.keys(ayudasEstructura).sort();
+        const currentClase = claseVal || selClase.value;
+        const currentProc = procVal || selProceso.value;
+
+        selClase.innerHTML = '<option value="">— Seleccionar Clase —</option>';
+        allClases.forEach(c => {
+            if (c === '-- SIN CLASE --') return; // Quitar opcion sin clase por peticion
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            if (c === currentClase) opt.selected = true;
+            selClase.appendChild(opt);
+        });
+
+        selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
+        if (currentClase && ayudasEstructura[currentClase]) {
+            selProceso.disabled = false;
+            const procs = [...ayudasEstructura[currentClase]];
+            if (!procs.includes('General')) procs.push('General');
+
+            procs.sort().forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p;
+                if (p === currentProc) opt.selected = true;
+                selProceso.appendChild(opt);
+            });
+        } else {
+            selProceso.disabled = true;
+        }
+    }
+
+    selClase.addEventListener('change', () => {
+        if (activeTab === 'ayudas') {
+            updateAyudasFilters(selClase.value, null);
+            _triggerSearch();
+        }
+    });
+
+    selProceso.addEventListener('change', () => {
+        if (activeTab === 'manuales') {
+            _triggerSearch();
+        } else if (activeTab === 'ayudas') {
+            updateAyudasFilters(null, selProceso.value);
+            _triggerSearch();
+        }
+    });
+
+    const tabs = tabsContainer.querySelectorAll('.tech-tab-btn');
+    tabs.forEach(tab => {
+        tab.onclick = () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            activeTab = tab.dataset.tab;
+            
+            // Ocultar todos
+            selClaseWrap.style.display = 'none';
+            selProcesoWrap.style.display = 'none';
+
+            if (activeTab === 'manuales') {
+                selProcesoWrap.style.display = 'flex';
+                let matchedProc = activeProcess;
+                if (!manualEstructura.includes(matchedProc) && activeProcess && activeProcess.includes('_')) {
+                    matchedProc = activeProcess.split('_')[0];
+                    if (!manualEstructura.includes(matchedProc)) matchedProc = activeProcess.split('_')[1];
+                }
+                updateManualesSelect(matchedProc);
+            } else if (activeTab === 'ayudas') {
+                selClaseWrap.style.display = 'flex';
+                selProcesoWrap.style.display = 'flex';
+                let matchedProc = activeProcess;
+                let ayuProcs = [...new Set(Object.values(ayudasEstructura).flat())];
+                if (!ayuProcs.includes(matchedProc) && activeProcess && activeProcess.includes('_')) {
+                    matchedProc = activeProcess.split('_')[0];
+                    if (!ayuProcs.includes(matchedProc)) matchedProc = activeProcess.split('_')[1];
+                }
+                updateAyudasFilters(activeClass, ayuProcs.includes(matchedProc) ? matchedProc : null);
+            }
+            _triggerSearch();
+        };
+    });
+
+    function _techDocsShowEmpty(containerDiv, msg) {
+        containerDiv.innerHTML = '';
+        const alertDiv = document.createElement('div');
+        alertDiv.style.cssText = `
+            display:flex;flex-direction:column;align-items:center;
+            padding:2em;background:#fff3cd;border:2px solid #856404;
+            border-radius:8px;text-align:center;
+        `;
+        const msgLbl = document.createElement('label');
+        msgLbl.className = 'label-alert';
+        msgLbl.style.cssText = 'color:#856404;font-weight:700;font-size:1em;line-height:1.5;';
+        msgLbl.textContent = msg || 'No hay documentos disponibles en esta ubicación.';
+        alertDiv.appendChild(msgLbl);
+        containerDiv.appendChild(alertDiv);
+    }
+
+    function _techDocsCargarArchivos(type, proc, clase, contentDiv) {
+        contentDiv.innerHTML = '<p style="color:#666;text-align:center;">Cargando archivos...</p>';
+        
+        let url = '';
+        if (type === 'manuales') {
+            url = `${window.baseUrl}/manuales/archivos?proceso=${encodeURIComponent(proc)}`;
+        } else if (type === 'ayudas') {
+            url = `${window.baseUrl}/ayudas/archivos?proceso=${encodeURIComponent(proc)}&clase=${encodeURIComponent(clase)}`;
+        } else if (type === 'dibujos') {
+            url = `${window.baseUrl}/dibujos/archivos?ot=${encodeURIComponent(proc)}&clase=${encodeURIComponent(clase)}`;
+        }
+
+        fetch(url, { headers: { 'Accept': 'application/json' } })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.archivos || data.archivos.length === 0) {
+                _techDocsShowEmpty(contentDiv);
+                return;
+            }
+            _techDocsRenderArchivos(data.archivos, type, proc, clase, contentDiv);
+        })
+        .catch(() => _techDocsShowEmpty(contentDiv));
+    }
+
+    function _techDocsRenderArchivos(archivos, type, proc, clase, contentDiv) {
+        contentDiv.innerHTML = '';
+        const breadcrumb = document.createElement('div');
+        breadcrumb.className = 'prod-viewer-breadcrumb';
+        breadcrumb.innerHTML = `
+            <span class="path-label">Directorio Activo</span>
+            <span class="path-ot">${proc}</span>
+            ${clase ? `<span style="opacity: 0.5;">/</span><span class="path-clase">${clase}</span>` : ''}
+            <span class="path-count">${archivos.length} PDFs</span>
+        `;
+        contentDiv.appendChild(breadcrumb);
+
+        const grid = document.createElement('div');
+        grid.className = 'prod-viewer-grid';
+        contentDiv.appendChild(grid);
+
+        let currentIndex = 0;
+        const CHUNK_SIZE = 8;
+
+        function renderNextBatch() {
+            const end = Math.min(currentIndex + CHUNK_SIZE, archivos.length);
+            for (let i = currentIndex; i < end; i++) {
+                const archivo = archivos[i];
+                const card = document.createElement('div');
+                card.className = 'prod-viewer-card';
+                card.style.animationDelay = `${(i % CHUNK_SIZE) * 0.05}s`;
+                
+                const fileName = typeof archivo === 'string' ? archivo : archivo.nombre;
+                const urlFinal = typeof archivo === 'object' ? archivo.url : '#';
+
+                card.innerHTML = `
+                    <div class="file-icon-wrapper">
+                        <img src="${window.baseUrl}/images/pdf-view-shadow.png" class="prod-viewer-icon icon-default">
+                        <img src="${window.baseUrl}/images/pdf-view.png" class="prod-viewer-icon icon-hover">
+                    </div>
+                    <div class="prod-viewer-filename">${fileName}</div>
+                    <div class="prod-viewer-action">Clic para abrir</div>`;
+
+                card.onclick = () => window.open(urlFinal, '_blank');
+                grid.appendChild(card);
+            }
+
+            currentIndex = end;
+            if (currentIndex < archivos.length) {
+                requestAnimationFrame(renderNextBatch);
+            }
+        }
+        requestAnimationFrame(renderNextBatch);
+    }
+}

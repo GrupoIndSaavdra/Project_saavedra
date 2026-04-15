@@ -250,19 +250,22 @@ body {
 .dibujos-table th {
     background: #033966;
     color: #fff;
-    padding: 0.8em 1em;
-    text-align: center;
-    font-weight: 600;
+    padding: 0.9em 1em;
+    text-align: left; /* Default alignment */
+    font-weight: 700;
     border: 1px solid #022847;
-    font-size: 0.95em;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .dibujos-table td {
-    padding: 0.7em 1em;
+    padding: 0.8em 1em;
     text-align: center;
     border: 1px solid #ddd;
     vertical-align: middle;
     font-size: 0.95em;
+    color: #333;
 }
 
 .dibujos-table tbody tr:hover {
@@ -280,9 +283,27 @@ body {
 
 .dibujos-table .td-actions {
     display: flex;
-    justify-content: center;
-    gap: 0.5em;
-    flex-wrap: wrap;
+    justify-content: center; /* A la derecha */
+    gap: 2em;
+}
+
+/* Clases de utilidad para alineacion estricta */
+.d-text-center {
+    text-align: center !important;
+}
+.d-text-right {
+    text-align: right !important;
+}
+
+/* Anchos fijos para columnas de control */
+.dibujos-table th:nth-last-child(2),
+.dibujos-table td:nth-last-child(2) {
+    width: 140px;
+}
+
+.dibujos-table th:last-child,
+.dibujos-table td:last-child {
+    width: 240px;
 }
 
 /* Badge de cantidad de archivos */
@@ -708,8 +729,14 @@ body {
 .d-text-subtle {
     color: #999;
 }
+.d-text-primary {
+    color: #033966 !important;
+}
 .d-text-danger {
-    color: #9c0300;
+    color: #9c0300 !important;
+}
+.d-text-success {
+    color: #28a745 !important;
 }
 .d-text-center {
     text-align: center;
@@ -721,7 +748,7 @@ body {
     font-size: 0.85em;
 }
 .d-text-bold {
-    font-weight: 700;
+    font-weight: 700 !important;
 }
 
 .d-mt-1 {
@@ -774,4 +801,223 @@ body {
 .d-log-scroll {
     max-height: 35vh;
     overflow-y: auto;
+}
+
+/* ── Botones de acción con iconos ── */
+.td-actions {
+    display: flex;
+    gap: 2.5em;
+    justify-content: center;
+}
+
+.btn-action-icon {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    padding: 1em;
+    min-width: 90px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.btn-action-icon span {
+    font-size: 0.85em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-action-icon img {
+    width: 44px;
+    height: 44px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Tema Verde (Ver archivos) */
+.btn-ver-archivos {
+    background: #28a745;
+    border-color: #218838;
+    color: #fff;
+}
+
+.btn-ver-archivos img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-ver-archivos:hover {
+    background: #e6f9ed;
+    color: #28a745;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.15);
+}
+
+.btn-ver-archivos:hover img {
+    filter: none; /* Icono a color original en hover */
+}
+
+/* Tema Rojo (Eliminar carpeta) */
+.btn-eliminar-carpeta {
+    background: #dc3545;
+    border-color: #c82333;
+    color: #fff;
+}
+
+.btn-eliminar-carpeta img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-eliminar-carpeta:hover {
+    background: #fdf2f2;
+    color: #dc3545;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.15);
+}
+
+.btn-eliminar-carpeta:hover img {
+    filter: none; /* Icono a color original en hover */
+}
+
+.btn-action-icon:active {
+    transform: scale(0.9);
+}
+
+/* ── Portal y Modal Estilo Premium (prod-viewer) ── */
+.confirm-portal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 10, 25, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.confirm-modal {
+    max-width: 600px;
+    width: 95%;
+    background: #fff;
+    border-radius: 20px;
+    border: 4px solid #033966;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: prodModalEntrance 0.5s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes prodModalEntrance {
+    0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.confirm-modal-header {
+    padding: 1.5em 2em;
+    background: #fff;
+    border-bottom: 2px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.confirm-modal-header h3 {
+    color: #033966;
+    font-size: 1.3em;
+    font-weight: 800;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.confirm-modal-body {
+    padding: 2.5em;
+    text-align: center;
+    background: #fdfdfd;
+}
+
+.confirm-icon-wrapper {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 1.5em;
+    background: #fdf2f2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-icon-wrapper img {
+    width: 60px;
+}
+
+.confirm-modal-body p {
+    margin: 0 0 1.5em 0;
+    color: #444;
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+
+.confirm-label-highlight {
+    display: block;
+    margin-top: 0.5em;
+    color: #ff0000;
+    font-weight: 800;
+    font-size: 1.3em;
+}
+
+.confirm-modal-actions {
+    display: flex;
+    gap: 1.5em;
+    justify-content: center;
+}
+
+.btn-confirm-cancel {
+    background: #6c757d;
+    color: #fff;
+    padding: 1em 2em;
+    border-radius: 8px;
+    border: none;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-confirm-cancel:hover {
+    background: #033966;
+    transform: scale(1.05);
+}
+
+.btn-confirm-danger {
+    background: #9c0300;
+    color: #000;
+    padding: 1em 2em;
+    border-radius: 8px;
+    border: none;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(156, 3, 0, 0.2);
+}
+
+.btn-confirm-danger:hover {
+    background: #ff0000;
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255, 0, 0, 0.5);
 }

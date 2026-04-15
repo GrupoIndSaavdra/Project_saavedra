@@ -54,6 +54,9 @@
                     disabled>
                 <label>Operador</label>
             </div>
+            
+            {{-- El botón de documentación técnica se inyecta vía JS en insertProductionActions --}}
+
             <table class="table-code">
                 <tr>
                     <th>Código</th>
@@ -83,6 +86,7 @@
         window.imgEditPieces = "{{ asset('images/editPieces.png') }}";
         window.imgQualityCheck = "{{ asset('images/Quality.png') }}";
         window.imgDraws = "{{ asset('images/DrawsProduction.png') }}";
+        window.imgTechDocs = "{{ asset('images/manual.png') }}";
     </script>
     @isset($arrayData)
         <script>

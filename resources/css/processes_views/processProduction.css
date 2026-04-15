@@ -258,8 +258,25 @@ p {
 }
 
 .edit-meta-wrapper:not(.is-verifying):hover .img-edit,
-.edit-meta-wrapper:not(.is-verifying):hover .action-label {
+.edit-meta-wrapper:not(.is-verifying):hover .action-label,
+.tech-docs-wrapper:not(.is-verifying):hover .img-edit,
+.tech-docs-wrapper:not(.is-verifying):hover .action-label {
     transform: translateY(-5px) scale(1.1);
+}
+
+.tech-docs-wrapper {
+    position: absolute;
+    top: 1em;
+    right: 36em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    width: fit-content;
+    height: auto;
+    margin-bottom: 1em;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* Hover específico del icono cuando se está verificando (botón "Atrás") */
@@ -411,6 +428,7 @@ p {
 
 /* Tabla de codigos de version */
 .div-table-code {
+    position: relative;
     width: 25%;
     box-sizing: border-box;
     padding: 10px;
@@ -547,7 +565,6 @@ td select {
     display: flex;
     justify-content: end;
 }
-
 
 /* Botón Ver Dibujos (operador) */
 
@@ -744,7 +761,7 @@ td select {
 
 .quality-release-modal .img-cerrar {
     width: 100%;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
 
 .modal-title {
@@ -860,7 +877,6 @@ td select {
     gap: 2em;
     margin-top: 1em;
 }
-
 
 .btn-accept-release {
     background: #2e7d32;
@@ -1404,7 +1420,9 @@ td select {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     will-change: opacity, transform;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
@@ -1428,7 +1446,6 @@ td select {
 
 /* Botón "Ver Archivos" — Estilos heredados de .btn-submit-password */
 
-
 .prod-viewer-filename {
     font-size: 0.95em;
     font-weight: 800;
@@ -1450,4 +1467,182 @@ td select {
 .prod-viewer-card:hover .prod-viewer-action {
     color: #033966;
     letter-spacing: 2px;
+}
+
+/* =========================================================================
+   MODAL DE DOCUMENTACIÓN TÉCNICA (TABULADO)
+   ========================================================================= */
+
+.tech-docs-modal {
+    position: relative;
+    background: #fff;
+    border-radius: 20px;
+    padding: 2.5em;
+    max-width: 95%;
+    width: 1000px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    border: 4px solid #033966;
+    animation: modal-entry 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes modal-entry {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.tech-docs-header {
+    margin-bottom: 2em;
+    text-align: center;
+}
+
+.tech-docs-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1em;
+    margin-bottom: 2em;
+    background: rgba(3, 57, 102, 0.05);
+    padding: 0.8em;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.tech-tab-btn {
+    flex: 1;
+    padding: 1.2em;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #033966;
+    font-weight: 800;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.tech-tab-btn:hover:not(.active) {
+    background: rgba(3, 57, 102, 0.1);
+    transform: translateY(-2px);
+}
+
+.tech-tab-btn.active {
+    background: #033966;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.3);
+    transform: scale(1.05);
+}
+
+.tech-docs-body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 400px;
+    padding: 1em;
+}
+
+.tech-pane {
+    display: none;
+    animation: pane-fade 0.4s ease;
+}
+
+.tech-pane.active {
+    display: block;
+}
+
+@keyframes pane-fade {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Reutilizamos el grid del visualizador de dibujos */
+.tech-docs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 2em;
+    padding: 0.5em;
+}
+
+.tech-loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    gap: 1.5em;
+    color: #033966;
+}
+
+.tech-empty-state {
+    text-align: center;
+    padding: 4em 2em;
+    color: #666;
+    background: #f8f9fa;
+    border-radius: 15px;
+    border: 2px dashed #dee2e6;
+}
+
+/* Nuevo Card de PDF Documentos con Efecto Hover Similar al Action Button */
+.tech-doc-card {
+    padding: 1.5em;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    background: #fdfdfd;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.tech-doc-card:hover {
+    background: #fff;
+    border-color: #033966;
+    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.15);
+}
+
+.tech-doc-icon-container {
+    position: relative;
+    width: 6em;
+    height: 6em;
+    margin-bottom: 0.5em;
+}
+
+.tech-doc-icon-container .img-action-btn {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.tech-doc-icon-container .doc-icon-hover {
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+.tech-doc-card:hover .doc-icon-default {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.tech-doc-card:hover .doc-icon-hover {
+    opacity: 1;
+    transform: scale(1.15) rotate(3deg) translateY(-3px);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }

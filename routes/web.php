@@ -350,8 +350,45 @@ Route::middleware(['auth'])->prefix('dibujos')->name('dibujos.')->group(function
         ->name('replace');
 
     // ── Log de auditoría (últimas 50 entradas) ──
-    Route::get('/log', [DibujosPdfController::class, 'getLog'])
-        ->name('log');
+    Route::get('/log', [DibujosPdfController::class, 'getLog'])->name('log');
+    Route::post('/deleteFolder', [DibujosPdfController::class, 'deleteFolder'])->name('deleteFolder');
+    Route::post('/deleteParent', [DibujosPdfController::class, 'deleteParent'])->name('deleteParent');
+});
+    
+/* ===========================
+   Módulo de Manuales (MANUALES_GIS)
+=========================== */
+
+Route::middleware(['auth'])->prefix('manuales')->name('manuales.')->group(function () {
+    Route::get('/manage', [\App\Http\Controllers\ManualesPdfController::class, 'showManage'])->name('manage');
+    Route::get('/estructura', [\App\Http\Controllers\ManualesPdfController::class, 'getStructure'])->name('estructura');
+    Route::get('/archivos', [\App\Http\Controllers\ManualesPdfController::class, 'getFiles'])->name('archivos');
+    Route::get('/serve', [\App\Http\Controllers\ManualesPdfController::class, 'serveFile'])->name('serve');
+    
+    Route::post('/createFolder', [\App\Http\Controllers\ManualesPdfController::class, 'createFolder'])->name('createFolder');
+    Route::post('/upload', [\App\Http\Controllers\ManualesPdfController::class, 'uploadPdf'])->name('upload');
+    Route::post('/delete', [\App\Http\Controllers\ManualesPdfController::class, 'deletePdf'])->name('delete');
+    Route::post('/replace', [\App\Http\Controllers\ManualesPdfController::class, 'replacePdf'])->name('replace');
+    Route::get('/log', [\App\Http\Controllers\ManualesPdfController::class, 'getLog'])->name('log');
+    Route::post('/deleteFolder', [\App\Http\Controllers\ManualesPdfController::class, 'deleteFolder'])->name('deleteFolder');
+    Route::post('/deleteParent', [\App\Http\Controllers\ManualesPdfController::class, 'deleteFolder'])->name('deleteParent'); // Manuales solo tiene un nivel
 });
 
+/* ===========================
+   Módulo de Ayudas Visuales (AYUDAS_GIS)
+=========================== */
 
+Route::middleware(['auth'])->prefix('ayudas')->name('ayudas.')->group(function () {
+    Route::get('/manage', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'showManage'])->name('manage');
+    Route::get('/estructura', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'getStructure'])->name('estructura');
+    Route::get('/archivos', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'getFiles'])->name('archivos');
+    Route::get('/serve', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'serveFile'])->name('serve');
+    
+    Route::post('/createFolder', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'createFolder'])->name('createFolder');
+    Route::post('/upload', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'uploadPdf'])->name('upload');
+    Route::post('/delete', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'deletePdf'])->name('delete');
+    Route::post('/replace', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'replacePdf'])->name('replace');
+    Route::get('/log', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'getLog'])->name('log');
+    Route::post('/deleteFolder', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'deleteFolder'])->name('deleteFolder');
+    Route::post('/deleteParent', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'deleteParent'])->name('deleteParent');
+});

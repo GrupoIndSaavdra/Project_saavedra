@@ -2,79 +2,88 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DibujoFileLog;
-use App\Models\DibujoOtHistory;
-use App\Models\Orden_trabajo;
+use App\Models\AyudaVisualFileLog;
+use App\Models\AyudaVisualHistory;
+use App\Models\Procesos;
 use App\Models\Clase;
+use App\Models\Fecha_proceso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class DibujosPdfController extends Controller
+class AyudasVisualesPdfController extends Controller
 {
     /**
      * Disco local de Laravel donde se almacenan los PDFs.
-     * Carpeta base: storage/app/DIBUJOS_GIS/
+     * Carpeta base: storage/app/AYUDAS_GIS/
      */
-    private const BASE_DIR = 'DIBUJOS_GIS';
+    private const BASE_DIR = 'AYUDAS_GIS';
 
     // =========================================================================
     // VISTAS
     // =========================================================================
 
     /**
-     * Vista de administración del módulo de dibujos.
-     * Solo accesible para administradores (perfil 1).
+     * Vista de administración del módulo de ayudas visuales.
      */
     public function showManage(Request $request)
     {
-        // ── Estructura del filesystem (para la tabla de carpetas existentes) ──
         $estructura = $this->buildStructure();
 
-        // Cargamos SOLO las OTs que tienen al menos una Clase NO finalizada (activas)
-        $todasLasOTs = Orden_trabajo::with([
-            'moldura',
-            'clases' => fn($q) => $q->where('finalizada', 0)->orderBy('nombre'),
-        ])
-        ->whereHas('clases', fn($q) => $q->where('finalizada', 0))
-        ->orderBy('id', 'asc')
-        ->get();
+        // 1. Catálogo de Clases Únicas
+        $clasesUnicas = Clase::select('nombre')
+            ->distinct()
+            ->orderBy('nombre')
+            ->get()
+            ->map(function($clase) {
+                return (object)[ 'id' => $clase->nombre, 'nombre' => $clase->nombre ];
+            });
 
-        // ── Selección activa (via query string: ?ot_id=X&clase_id=Y) ──
-        $otSeleccionadaId    = $request->query('ot_id');
-        $claseSeleccionadaId = $request->query('clase_id');
+        $claseSeleccionadaId   = $request->query('clase_id');
+        $procesoSeleccionadoId = $request->query('proceso_id');
 
-        // Si hay OT seleccionada, obtener la OT y Clase activa
-        $otActiva    = $otSeleccionadaId    ? $todasLasOTs->firstWhere('id', $otSeleccionadaId)    : null;
-        $claseActiva = $claseSeleccionadaId ? optional($otActiva?->clases)->firstWhere('id', $claseSeleccionadaId) : null;
+        // 2. Catálogo de Procesos Estándar (Completo)
+        $nombresProcesos = [
+            'General', 'Cepillado', 'Desbaste Exterior', 'Revision Laterales', 'Primera Operacion',
+            'Barreno Maniobra', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA',
+            'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo', 'Acabado Molde',
+            'Barreno Profundidad', 'Cavidades', 'Copiado', 'Off Set', 'Palomas',
+            'Rebajes', 'Grabado', 'Operacion Equipo', 'Embudo CM',
+            'Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'
+        ];
+
+        $todosLosProcesos = collect($nombresProcesos)->map(function($nombre) {
+            return (object)[ 'id' => $nombre, 'nombre' => $nombre ];
+        })->sortBy(function($p) {
+            return $p->nombre === 'General' ? '' : $p->nombre; // General siempre primero
+        })->values();
+
+        $claseActiva = $claseSeleccionadaId ? $clasesUnicas->firstWhere('id', $claseSeleccionadaId) : null;
+        $procesoActivo = $procesoSeleccionadoId ? $todosLosProcesos->firstWhere('id', $procesoSeleccionadoId) : null;
 
         return view('wo_views.manage_documentation', array_merge(compact(
             'estructura',
-            'todasLasOTs',
-            'otSeleccionadaId',
+            'todosLosProcesos',
+            'clasesUnicas',
+            'procesoSeleccionadoId',
             'claseSeleccionadaId',
-            'otActiva',
+            'procesoActivo',
             'claseActiva'
         ), [
-            'moduleType' => 'dibujos',
-            'modulePrefix' => 'dibujos',
-            'pageTitle' => 'Gestión de Dibujos / Planos PDF',
-            'directoryName' => 'DIBUJOS_GIS',
+            'moduleType' => 'ayudas',
+            'modulePrefix' => 'ayudas',
+            'pageTitle' => 'Gestión de Ayudas Visuales',
+            'directoryName' => 'AYUDAS_GIS',
             'moduleMetadata' => [
-                'description' => 'Selecciona la OT y Clase existentes en el sistema.'
+                'description' => 'Selecciona primero la clase y luego el proceso.'
             ]
         ]));
     }
 
-    /**
-     * Devuelve las últimas 50 entradas del log de auditoría como JSON.
-     *
-     * GET /dibujos/log
-     */
     public function getLog()
     {
-        $logs = DibujoFileLog::query()
+        $logs = AyudaVisualFileLog::query()
             ->orderByDesc('created_at')
             ->limit(50)
             ->get(['id', 'user_name', 'action', 'ruta', 'archivo', 'created_at'])
@@ -92,43 +101,30 @@ class DibujosPdfController extends Controller
     }
 
     // =========================================================================
-    // API DE LECTURA (para operadores y administradores)
+    // API DE LECTURA
     // =========================================================================
 
-    /**
-     * Devuelve la estructura completa de carpetas OT → [Clase, ...] leyendo
-     * directamente el sistema de archivos. La BD NO es la fuente de verdad.
-     *
-     * GET /dibujos/estructura
-     * Response: { "OT001": ["ClaseA", "ClaseB"], "OT002": ["ClaseC"] }
-     */
     public function getStructure()
     {
         $estructura = $this->buildStructure();
         return response()->json($estructura);
     }
 
-    /**
-     * Devuelve los archivos PDF dentro de una carpeta OT/Clase específica.
-     *
-     * GET /dibujos/archivos?ot=OT001&clase=ClaseA
-     * Response: { "archivos": [{ "nombre": "plano.pdf", "url": "..." }], "ot": "OT001", "clase": "ClaseA" }
-     */
     public function getFiles(Request $request)
     {
-        $ot    = $this->sanitizePath($request->query('ot', ''));
-        $clase = $this->sanitizePath($request->query('clase', ''));
+        $proceso = $this->sanitizePath($request->query('proceso', ''));
+        $clase   = $this->sanitizePath($request->query('clase', ''));
 
-        if (empty($ot) || empty($clase)) {
-            return response()->json(['error' => 'Parámetros OT y Clase son requeridos.'], 422);
+        if (empty($proceso) || empty($clase)) {
+            return response()->json(['error' => 'Parámetros proceso y clase son requeridos.'], 422);
         }
 
-        $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
+        $dirPath = self::BASE_DIR . '/' . $proceso . '/' . $clase;
 
         if (!Storage::disk('local')->exists($dirPath)) {
             return response()->json([
                 'archivos' => [],
-                'ot'       => $ot,
+                'proceso'  => $proceso,
                 'clase'    => $clase,
                 'existe'   => false,
             ]);
@@ -140,39 +136,33 @@ class DibujosPdfController extends Controller
             ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
             ->map(fn($f) => [
                 'nombre' => basename($f),
-                'url'    => route('dibujos.serve', [
-                    'ot'     => $ot,
-                    'clase'  => $clase,
-                    'archivo'=> basename($f),
+                'url'    => route('ayudas.serve', [
+                    'proceso' => $proceso,
+                    'clase'   => $clase,
+                    'archivo' => basename($f),
                 ]),
             ])
             ->values();
 
         return response()->json([
             'archivos' => $archivos,
-            'ot'       => $ot,
+            'proceso'  => $proceso,
             'clase'    => $clase,
             'existe'   => true,
         ]);
     }
 
-    /**
-     * Sirve el contenido binario de un PDF al navegador (nueva pestaña).
-     * El navegador mostrará el PDF inline sin descargarlo.
-     *
-     * GET /dibujos/serve?ot=OT001&clase=ClaseA&archivo=plano.pdf
-     */
     public function serveFile(Request $request): BinaryFileResponse
     {
-        $ot      = $this->sanitizePath($request->query('ot', ''));
+        $proceso = $this->sanitizePath($request->query('proceso', ''));
         $clase   = $this->sanitizePath($request->query('clase', ''));
         $archivo = $this->sanitizeFileName($request->query('archivo', ''));
 
-        if (empty($ot) || empty($clase) || empty($archivo)) {
+        if (empty($proceso) || empty($clase) || empty($archivo)) {
             abort(422, 'Parámetros inválidos.');
         }
 
-        $filePath = self::BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
+        $filePath = self::BASE_DIR . '/' . $proceso . '/' . $clase . '/' . $archivo;
 
         if (!Storage::disk('local')->exists($filePath)) {
             abort(404, 'Archivo no encontrado.');
@@ -192,28 +182,16 @@ class DibujosPdfController extends Controller
     // CRUD ADMINISTRADOR
     // =========================================================================
 
-    /**
-     * Crea la carpeta OT/Clase en el sistema de archivos.
-     * Si ya existe, retorna un mensaje informativo (no error).
-     *
-     * POST /dibujos/createFolder
-     * Body: { ot, clase }
-     */
     public function createFolder(Request $request)
     {
         $request->validate([
-            'ot_id' => 'required|exists:orden_trabajo,id',
-            'clase' => 'required|string|max:100',
+            'proceso' => 'required|string|max:100',
+            'clase'   => 'required|string|max:100',
         ]);
 
-        $otId  = $request->input('ot_id');
-        $clase = $this->sanitizePath($request->input('clase'));
-        
-        $otModel = Orden_trabajo::with('moldura')->findOrFail($otId);
-        $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-        $otFolderName = $this->sanitizePath($otFolderName);
-
-        $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+        $proceso = $this->sanitizePath($request->input('proceso'));
+        $clase   = $this->sanitizePath($request->input('clase'));
+        $dirPath = self::BASE_DIR . '/' . $proceso . '/' . $clase;
 
         if (Storage::disk('local')->exists($dirPath)) {
             return response()->json([
@@ -224,43 +202,32 @@ class DibujosPdfController extends Controller
 
         Storage::disk('local')->makeDirectory($dirPath);
 
-        DibujoOtHistory::firstOrCreate(['ot' => $otFolderName, 'clase' => $clase]);
-        $this->logAction('crear_carpeta', $otFolderName . '/' . $clase, null);
+        AyudaVisualHistory::firstOrCreate(['proceso' => $proceso, 'clase' => $clase]);
+        $this->logAction('crear_carpeta', $proceso . '/' . $clase, null);
 
         return response()->json([
             'success' => true,
-            'message' => "Carpeta {$otFolderName}/{$clase} creada correctamente.",
-            'ot'      => $otFolderName,
+            'message' => "Carpeta {$proceso}/{$clase} creada correctamente.",
+            'proceso' => $proceso,
             'clase'   => $clase,
         ]);
     }
 
-    /**
-     * Sube un PDF a la carpeta OT/Clase. Si la carpeta no existe, la crea automáticamente.
-     *
-     * POST /dibujos/upload
-     * Body (multipart): { ot, clase, pdf (file) }
-     */
     public function uploadPdf(Request $request)
     {
         $request->validate([
-            'ot_id' => 'required|exists:orden_trabajo,id',
-            'clase' => 'required|string|max:100',
-            'pdf'   => 'required|file|mimes:pdf',
+            'proceso' => 'required|string|max:100',
+            'clase'   => 'required|string|max:100',
+            'pdf'     => 'required|file|mimes:pdf',
         ]);
 
-        $otId  = $request->input('ot_id');
-        $clase = $this->sanitizePath($request->input('clase'));
-        
-        $otModel = Orden_trabajo::with('moldura')->findOrFail($otId);
-        $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-        $otFolderName = $this->sanitizePath($otFolderName);
-
-        $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+        $proceso = $this->sanitizePath($request->input('proceso'));
+        $clase   = $this->sanitizePath($request->input('clase'));
+        $dirPath = self::BASE_DIR . '/' . $proceso . '/' . $clase;
 
         if (!Storage::disk('local')->exists($dirPath)) {
             Storage::disk('local')->makeDirectory($dirPath);
-            DibujoOtHistory::firstOrCreate(['ot' => $otFolderName, 'clase' => $clase]);
+            AyudaVisualHistory::firstOrCreate(['proceso' => $proceso, 'clase' => $clase]);
         }
 
         $file         = $request->file('pdf');
@@ -275,38 +242,32 @@ class DibujosPdfController extends Controller
 
         $file->storeAs($dirPath, $originalName, 'local');
 
-        $this->logAction('subir_pdf', $otFolderName . '/' . $clase, $originalName);
+        $this->logAction('subir_pdf', $proceso . '/' . $clase, $originalName);
 
         return response()->json([
             'success'  => true,
             'message'  => "PDF '{$originalName}' subido correctamente.",
             'nombre'   => $originalName,
-            'url'      => route('dibujos.serve', [
-                'ot'     => $otFolderName,
-                'clase'  => $clase,
-                'archivo'=> $originalName,
+            'url'      => route('ayudas.serve', [
+                'proceso' => $proceso,
+                'clase'   => $clase,
+                'archivo' => $originalName,
             ]),
         ]);
     }
 
-    /**
-     * Elimina un PDF del sistema de archivos.
-     *
-     * POST /dibujos/delete
-     * Body: { ot, clase, archivo }
-     */
     public function deletePdf(Request $request)
     {
         $request->validate([
-            'ot'     => 'required|string|max:200',
-            'clase'  => 'required|string|max:100',
-            'archivo'=> 'required|string|max:300',
+            'proceso' => 'required|string|max:100',
+            'clase'   => 'required|string|max:100',
+            'archivo' => 'required|string|max:300',
         ]);
 
-        $ot      = $this->sanitizePath($request->input('ot'));
-        $clase   = $this->sanitizePath($request->input('clase'));
-        $archivo = $this->sanitizeFileName($request->input('archivo'));
-        $filePath = self::BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
+        $proceso  = $this->sanitizePath($request->input('proceso'));
+        $clase    = $this->sanitizePath($request->input('clase'));
+        $archivo  = $this->sanitizeFileName($request->input('archivo'));
+        $filePath = self::BASE_DIR . '/' . $proceso . '/' . $clase . '/' . $archivo;
 
         if (!Storage::disk('local')->exists($filePath)) {
             return response()->json([
@@ -316,7 +277,7 @@ class DibujosPdfController extends Controller
         }
 
         Storage::disk('local')->delete($filePath);
-        $this->logAction('eliminar_pdf', $ot . '/' . $clase, $archivo);
+        $this->logAction('eliminar_pdf', $proceso . '/' . $clase, $archivo);
 
         return response()->json([
             'success' => true,
@@ -325,21 +286,21 @@ class DibujosPdfController extends Controller
     }
 
     /**
-     * Elimina una carpeta completa (en Dibujos seria la carpeta de la Clase).
+     * Elimina una carpeta completa (el Proceso dentro de una Clase).
      *
-     * POST /dibujos/deleteFolder
-     * Body: { ot, clase }
+     * POST /ayudas/deleteFolder
+     * Body: { proceso, clase }
      */
     public function deleteFolder(Request $request)
     {
         $request->validate([
-            'ot'    => 'required|string|max:200',
-            'clase' => 'required|string|max:100',
+            'proceso' => 'required|string|max:100',
+            'clase'   => 'required|string|max:100',
         ]);
 
-        $ot    = $this->sanitizePath($request->input('ot'));
-        $clase = $this->sanitizePath($request->input('clase'));
-        $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
+        $proceso = $this->sanitizePath($request->input('proceso'));
+        $clase   = $this->sanitizePath($request->input('clase'));
+        $dirPath = self::BASE_DIR . '/' . $proceso . '/' . $clase;
 
         if (!Storage::disk('local')->exists($dirPath)) {
             return response()->json([
@@ -349,46 +310,46 @@ class DibujosPdfController extends Controller
         }
 
         Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_pdf', $ot . '/' . $clase, null);
+        $this->logAction('eliminar_pdf', $proceso . '/' . $clase, null);
 
         return response()->json([
             'success' => true,
-            'message' => "Carpeta '{$clase}' (OT: {$ot}) eliminada correctamente.",
+            'message' => "Carpeta '{$proceso}' (Clase: {$clase}) eliminada correctamente.",
         ]);
     }
 
     /**
-     * Elimina la carpeta principal de una OT si está vacía.
+     * Elimina la carpeta principal de un Proceso si está vacía.
      *
-     * POST /dibujos/deleteParent
-     * Body: { ot }
+     * POST /ayudas/deleteParent
+     * Body: { proceso }
      */
     public function deleteParent(Request $request)
     {
         $request->validate([
-            'ot' => 'required|string|max:200',
+            'proceso' => 'required|string|max:200',
         ]);
 
-        $ot      = $this->sanitizePath($request->input('ot'));
-        $dirPath = self::BASE_DIR . '/' . $ot;
+        $proceso = $this->sanitizePath($request->input('proceso'));
+        $dirPath = self::BASE_DIR . '/' . $proceso;
 
         if (!Storage::disk('local')->exists($dirPath)) {
             return response()->json([
                 'success' => false,
-                'message' => 'La carpeta de la OT no existe.',
+                'message' => 'La carpeta del proceso no existe.',
             ], 404);
         }
 
-        // Seguridad: Verificar que no tenga subcarpetas (clases)
+        // Seguridad: Verificar subcarpetas
         $subDirs = Storage::disk('local')->directories($dirPath);
         if (count($subDirs) > 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'No se puede eliminar: la OT todavía tiene subcarpetas (clases).',
+                'message' => 'No se puede eliminar: el proceso todavía tiene subcarpetas (clases).',
             ], 400);
         }
 
-        // Seguridad: Verificar que no tenga archivos sueltos
+        // Seguridad: Verificar archivos
         $files = Storage::disk('local')->files($dirPath);
         if (count($files) > 0) {
             return response()->json([
@@ -398,36 +359,29 @@ class DibujosPdfController extends Controller
         }
 
         Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_pdf', $ot, null);
+        $this->logAction('eliminar_pdf', $proceso, null);
 
         return response()->json([
             'success' => true,
-            'message' => "Carpeta principal '{$ot}' eliminada correctamente.",
+            'message' => "Carpeta principal del proceso '{$proceso}' eliminada correctamente.",
         ]);
     }
 
-    /**
-     * Reemplaza un PDF existente por el nuevo (mismo nombre o nuevo nombre).
-     *
-     * POST /dibujos/replace
-     * Body (multipart): { ot, clase, archivo_anterior, pdf (file) }
-     */
     public function replacePdf(Request $request)
     {
         $request->validate([
-            'ot'              => 'required|string|max:100',
+            'proceso'         => 'required|string|max:100',
             'clase'           => 'required|string|max:100',
             'archivo_anterior'=> 'required|string|max:300',
             'pdf'             => 'required|file|mimes:pdf',
         ]);
 
-        $ot              = $this->sanitizePath($request->input('ot'));
+        $proceso         = $this->sanitizePath($request->input('proceso'));
         $clase           = $this->sanitizePath($request->input('clase'));
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
-        $dirPath         = self::BASE_DIR . '/' . $ot . '/' . $clase;
+        $dirPath         = self::BASE_DIR . '/' . $proceso . '/' . $clase;
         $oldPath         = $dirPath . '/' . $archivoAnterior;
 
-        // Eliminar el archivo anterior si existe
         if (Storage::disk('local')->exists($oldPath)) {
             Storage::disk('local')->delete($oldPath);
         }
@@ -436,16 +390,16 @@ class DibujosPdfController extends Controller
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
         $file->storeAs($dirPath, $originalName, 'local');
 
-        $this->logAction('reemplazar_pdf', $ot . '/' . $clase, "{$archivoAnterior} → {$originalName}");
+        $this->logAction('reemplazar_pdf', $proceso . '/' . $clase, "{$archivoAnterior} → {$originalName}");
 
         return response()->json([
             'success'  => true,
             'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$originalName}'.",
             'nombre'   => $originalName,
-            'url'      => route('dibujos.serve', [
-                'ot'     => $ot,
-                'clase'  => $clase,
-                'archivo'=> $originalName,
+            'url'      => route('ayudas.serve', [
+                'proceso' => $proceso,
+                'clase'   => $clase,
+                'archivo' => $originalName,
             ]),
         ]);
     }
@@ -454,36 +408,37 @@ class DibujosPdfController extends Controller
     // HELPERS PRIVADOS
     // =========================================================================
 
-    /**
-     * Construye la estructura completa de OTs y Clases leyendo el filesystem.
-     * Retorna: [ "OT001" => ["ClaseA", "ClaseB"], ... ]
-     */
     private function buildStructure(): array
     {
         $baseDir = self::BASE_DIR;
         $estructura = [];
 
-        // Si la carpeta base no existe aún, retornar vacío
         if (!Storage::disk('local')->exists($baseDir)) {
             return $estructura;
         }
 
-        $otDirs = Storage::disk('local')->directories($baseDir);
+        $procesoDirs = Storage::disk('local')->directories($baseDir);
 
-        foreach ($otDirs as $otDir) {
-            $otName   = basename($otDir);
-            $claseDirs = Storage::disk('local')->directories($otDir);
-            $clases   = array_map('basename', $claseDirs);
-            $estructura[$otName] = $clases;
+        foreach ($procesoDirs as $procesoDir) {
+            $procesoName = basename($procesoDir);
+            $claseDirs   = Storage::disk('local')->directories($procesoDir);
+            
+            if (empty($claseDirs)) {
+                // Si el proceso no tiene carpetas de clase, lo marcamos como huérfano
+                $estructura['-- SIN CLASE --'][] = $procesoName;
+            } else {
+                foreach ($claseDirs as $claseDir) {
+                    $claseName = basename($claseDir);
+                    $estructura[$claseName][] = $procesoName;
+                }
+            }
         }
 
         ksort($estructura, SORT_NATURAL);
         return $estructura;
     }
 
-    /**
-     * Registra una acción en la tabla de auditoría dibujos_file_log.
-     */
+
     private function logAction(string $action, string $ruta, ?string $archivo): void
     {
         $user     = Auth::user();
@@ -498,7 +453,7 @@ class DibujosPdfController extends Controller
             );
         }
 
-        DibujoFileLog::create([
+        AyudaVisualFileLog::create([
             'user_id'   => $user?->id,
             'user_name' => $userName,
             'action'    => $action,
@@ -507,25 +462,16 @@ class DibujosPdfController extends Controller
         ]);
     }
 
-    /**
-     * Sanitiza un segmento de ruta para evitar path traversal.
-     * Elimina '..' y caracteres peligrosos.
-     */
     private function sanitizePath(string $path): string
     {
-        // Eliminar cualquier intento de traversal
         $path = preg_replace('/\.\.+/', '', $path);
         $path = preg_replace('/[\/\\\\]/', '', $path);
         $path = trim($path);
         return $path;
     }
 
-    /**
-     * Sanitiza el nombre de un archivo PDF.
-     */
     private function sanitizeFileName(string $name): string
     {
-        // Solo permitir caracteres seguros en nombres de archivo
         $name = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', $name);
         $name = preg_replace('/\s+/', '_', $name);
         $name = trim($name, '_.');

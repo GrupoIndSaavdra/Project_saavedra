@@ -1,0 +1,383 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\ManualFileLog;
+use App\Models\ManualHistory;
+use App\Models\Procesos;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+
+class ManualesPdfController extends Controller
+{
+    /**
+     * Disco local de Laravel donde se almacenan los PDFs.
+     * Carpeta base: storage/app/MANUALES_GIS/
+     */
+    private const BASE_DIR = 'MANUALES_GIS';
+
+    // =========================================================================
+    // VISTAS
+    // =========================================================================
+
+    /**
+     * Vista de administración del módulo de manuales.
+     */
+    public function showManage(Request $request)
+    {
+        $estructura = $this->buildStructure();
+
+        // Lista de procesos estándar del sistema (estos no están en una tabla de catálogo, son nombres de columnas/procesos)
+        $nombresProcesos = [
+            'Cepillado', 'Desbaste Exterior', 'Revision Laterales', 'Primera Operacion',
+            'Barreno Maniobra', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA',
+            'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo', 'Acabado Molde',
+            'Barreno Profundidad', 'Cavidades', 'Copiado', 'Off Set', 'Palomas',
+            'Rebajes', 'Grabado', 'Operacion Equipo', 'Embudo CM',
+            'Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'
+        ];
+
+        $todosLosProcesos = collect($nombresProcesos)->map(function($nombre) {
+            return (object)[ 'id' => $nombre, 'nombre' => $nombre ];
+        });
+
+        $procesoSeleccionadoId = $request->query('proceso_id'); // Ahora es el nombre directamente
+        $procesoActivo = $procesoSeleccionadoId ? $todosLosProcesos->firstWhere('id', $procesoSeleccionadoId) : null;
+
+        return view('wo_views.manage_documentation', array_merge(compact(
+            'estructura',
+            'todosLosProcesos',
+            'procesoSeleccionadoId',
+            'procesoActivo'
+        ), [
+            'moduleType' => 'manuales',
+            'modulePrefix' => 'manuales',
+            'pageTitle' => 'Gestión de Manuales de Procesos',
+            'directoryName' => 'MANUALES_GIS',
+            'moduleMetadata' => [
+                'description' => 'Selecciona el proceso existente en el sistema.'
+            ]
+        ]));
+    }
+
+    public function getLog()
+    {
+        $logs = ManualFileLog::query()
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get(['id', 'user_name', 'action', 'ruta', 'archivo', 'created_at'])
+            ->map(function ($log) {
+                return [
+                    'created_at' => $log->created_at->format('d/m/Y H:i:s'),
+                    'user_name'  => $log->user_name,
+                    'action'     => $log->action,
+                    'ruta'       => $log->ruta,
+                    'archivo'    => $log->archivo,
+                ];
+            });
+
+        return response()->json(['logs' => $logs]);
+    }
+
+    // =========================================================================
+    // API DE LECTURA
+    // =========================================================================
+
+    public function getStructure()
+    {
+        $estructura = $this->buildStructure();
+        return response()->json($estructura);
+    }
+
+    public function getFiles(Request $request)
+    {
+        $proceso = $this->sanitizePath($request->query('proceso', ''));
+
+        if (empty($proceso)) {
+            return response()->json(['error' => 'Parámetro proceso es requerido.'], 422);
+        }
+
+        $dirPath = self::BASE_DIR . '/' . $proceso;
+
+        if (!Storage::disk('local')->exists($dirPath)) {
+            return response()->json([
+                'archivos' => [],
+                'proceso'  => $proceso,
+                'existe'   => false,
+            ]);
+        }
+
+        $files = Storage::disk('local')->files($dirPath);
+
+        $archivos = collect($files)
+            ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
+            ->map(fn($f) => [
+                'nombre' => basename($f),
+                'url'    => route('manuales.serve', [
+                    'proceso' => $proceso,
+                    'archivo' => basename($f),
+                ]),
+            ])
+            ->values();
+
+        return response()->json([
+            'archivos' => $archivos,
+            'proceso'  => $proceso,
+            'existe'   => true,
+        ]);
+    }
+
+    public function serveFile(Request $request): BinaryFileResponse
+    {
+        $proceso = $this->sanitizePath($request->query('proceso', ''));
+        $archivo = $this->sanitizeFileName($request->query('archivo', ''));
+
+        if (empty($proceso) || empty($archivo)) {
+            abort(422, 'Parámetros inválidos.');
+        }
+
+        $filePath = self::BASE_DIR . '/' . $proceso . '/' . $archivo;
+
+        if (!Storage::disk('local')->exists($filePath)) {
+            abort(404, 'Archivo no encontrado.');
+        }
+
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk     = Storage::disk('local');
+        $fullPath = $disk->path($filePath);
+
+        return response()->file($fullPath, [
+            'Content-Type'        => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $archivo . '"',
+        ]);
+    }
+
+    // =========================================================================
+    // CRUD ADMINISTRADOR
+    // =========================================================================
+
+    public function createFolder(Request $request)
+    {
+        $request->validate([
+            'proceso' => 'required|string|max:100',
+        ]);
+
+        $proceso = $this->sanitizePath($request->input('proceso'));
+        $dirPath = self::BASE_DIR . '/' . $proceso;
+
+        if (Storage::disk('local')->exists($dirPath)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La carpeta ya existe.',
+            ], 409);
+        }
+
+        Storage::disk('local')->makeDirectory($dirPath);
+
+        ManualHistory::firstOrCreate(['proceso' => $proceso]);
+        $this->logAction('crear_carpeta', $proceso, null);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Carpeta {$proceso} creada correctamente.",
+            'proceso' => $proceso,
+        ]);
+    }
+
+    public function uploadPdf(Request $request)
+    {
+        $request->validate([
+            'proceso' => 'required|string|max:100',
+            'pdf'     => 'required|file|mimes:pdf',
+        ]);
+
+        $proceso = $this->sanitizePath($request->input('proceso'));
+        $dirPath = self::BASE_DIR . '/' . $proceso;
+
+        if (!Storage::disk('local')->exists($dirPath)) {
+            Storage::disk('local')->makeDirectory($dirPath);
+            ManualHistory::firstOrCreate(['proceso' => $proceso]);
+        }
+
+        $file         = $request->file('pdf');
+        $originalName = $this->sanitizeFileName($file->getClientOriginalName());
+
+        if (Storage::disk('local')->exists($dirPath . '/' . $originalName)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Ya existe un archivo con el nombre '{$originalName}'. Use la función de Reemplazar.",
+            ], 409);
+        }
+
+        $file->storeAs($dirPath, $originalName, 'local');
+
+        $this->logAction('subir_pdf', $proceso, $originalName);
+
+        return response()->json([
+            'success'  => true,
+            'message'  => "PDF '{$originalName}' subido correctamente.",
+            'nombre'   => $originalName,
+            'url'      => route('manuales.serve', [
+                'proceso' => $proceso,
+                'archivo' => $originalName,
+            ]),
+        ]);
+    }
+
+    public function deletePdf(Request $request)
+    {
+        $request->validate([
+            'proceso' => 'required|string|max:100',
+            'archivo' => 'required|string|max:300',
+        ]);
+
+        $proceso  = $this->sanitizePath($request->input('proceso'));
+        $archivo  = $this->sanitizeFileName($request->input('archivo'));
+        $filePath = self::BASE_DIR . '/' . $proceso . '/' . $archivo;
+
+        if (!Storage::disk('local')->exists($filePath)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El archivo no existe.',
+            ], 404);
+        }
+
+        Storage::disk('local')->delete($filePath);
+        $this->logAction('eliminar_pdf', $proceso, $archivo);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Archivo '{$archivo}' eliminado correctamente.",
+        ]);
+    }
+
+    /**
+     * Elimina una carpeta completa (el Proceso).
+     *
+     * POST /manuales/deleteFolder
+     * Body: { proceso }
+     */
+    public function deleteFolder(Request $request)
+    {
+        $request->validate([
+            'proceso' => 'required|string|max:100',
+        ]);
+
+        $proceso = $this->sanitizePath($request->input('proceso'));
+        $dirPath = self::BASE_DIR . '/' . $proceso;
+
+        if (!Storage::disk('local')->exists($dirPath)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La carpeta no existe.',
+            ], 404);
+        }
+
+        Storage::disk('local')->deleteDirectory($dirPath);
+        $this->logAction('eliminar_pdf', $proceso, null);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Carpeta del proceso '{$proceso}' eliminada correctamente.",
+        ]);
+    }
+
+    public function replacePdf(Request $request)
+    {
+        $request->validate([
+            'proceso'         => 'required|string|max:100',
+            'archivo_anterior'=> 'required|string|max:300',
+            'pdf'             => 'required|file|mimes:pdf',
+        ]);
+
+        $proceso         = $this->sanitizePath($request->input('proceso'));
+        $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
+        $dirPath         = self::BASE_DIR . '/' . $proceso;
+        $oldPath         = $dirPath . '/' . $archivoAnterior;
+
+        if (Storage::disk('local')->exists($oldPath)) {
+            Storage::disk('local')->delete($oldPath);
+        }
+
+        $file         = $request->file('pdf');
+        $originalName = $this->sanitizeFileName($file->getClientOriginalName());
+        $file->storeAs($dirPath, $originalName, 'local');
+
+        $this->logAction('reemplazar_pdf', $proceso, "{$archivoAnterior} → {$originalName}");
+
+        return response()->json([
+            'success'  => true,
+            'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$originalName}'.",
+            'nombre'   => $originalName,
+            'url'      => route('manuales.serve', [
+                'proceso' => $proceso,
+                'archivo' => $originalName,
+            ]),
+        ]);
+    }
+
+    // =========================================================================
+    // HELPERS PRIVADOS
+    // =========================================================================
+
+    private function buildStructure(): array
+    {
+        $baseDir = self::BASE_DIR;
+        $estructura = [];
+
+        if (!Storage::disk('local')->exists($baseDir)) {
+            return $estructura;
+        }
+
+        // Para manuales, la estructura es un simple array de procesos
+        $procesoDirs = Storage::disk('local')->directories($baseDir);
+
+        foreach ($procesoDirs as $procesoDir) {
+            $estructura[] = basename($procesoDir);
+        }
+
+        sort($estructura, SORT_NATURAL);
+        return $estructura;
+    }
+
+    private function logAction(string $action, string $ruta, ?string $archivo): void
+    {
+        $user     = Auth::user();
+        $userName = null;
+
+        if ($user) {
+            $userName = trim(
+                ($user->matricula ?? '') . ' - ' .
+                ($user->nombre ?? '') . ' ' .
+                ($user->a_paterno ?? '') . ' ' .
+                ($user->a_materno ?? '')
+            );
+        }
+
+        ManualFileLog::create([
+            'user_id'   => $user?->id,
+            'user_name' => $userName,
+            'action'    => $action,
+            'ruta'      => $ruta,
+            'archivo'   => $archivo,
+        ]);
+    }
+
+    private function sanitizePath(string $path): string
+    {
+        $path = preg_replace('/\.\.+/', '', $path);
+        $path = preg_replace('/[\/\\\\]/', '', $path);
+        $path = trim($path);
+        return $path;
+    }
+
+    private function sanitizeFileName(string $name): string
+    {
+        $name = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', $name);
+        $name = preg_replace('/\s+/', '_', $name);
+        $name = trim($name, '_.');
+        return $name ?: 'archivo.pdf';
+    }
+}

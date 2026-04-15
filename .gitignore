@@ -19,3 +19,5 @@ yarn-error.log
 /.vscode
 /public/images/resultados_PTA/
 /storage/app/DIBUJOS_GIS/
+/storage/app/MANUALES_GIS/
+/storage/app/AYUDAS_GIS/
