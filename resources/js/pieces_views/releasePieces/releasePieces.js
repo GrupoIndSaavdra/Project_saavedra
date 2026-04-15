@@ -526,6 +526,126 @@ function createFilters() {
 }
 createFilters();
 
+// ============================================
+// FUNCIONALIDAD: Filtros en Cascada (OT, Clase, Procesos)
+// ============================================
+function setupCascadingFilters() {
+    const otSelect = document.querySelector('select[name="workOrder"]');
+    const classSelect = document.querySelector('select[name="class"]');
+    const processSelect = document.querySelector('select[name="process"]');
+
+    if (!otSelect || !classSelect || !processSelect) return;
+
+    function extractOptions(select) {
+        let opts = [];
+        let seen = new Set();
+        Array.from(select.options).forEach(o => {
+            if (!seen.has(o.value)) {
+                seen.add(o.value);
+                opts.push({ value: o.value, text: o.textContent });
+            }
+        });
+        return opts;
+    }
+
+    const originalOTOptions = extractOptions(otSelect);
+    const originalClassOptions = extractOptions(classSelect);
+    const originalProcessOptions = extractOptions(processSelect);
+
+    function updateCascadingFilters() {
+        if (!window.pieces || window.pieces.length === 0) return;
+
+        let anySelectionChanged = false;
+
+        function refreshSelect(selectEl, originalOptions, activeSet, isOT) {
+            const currentVal = selectEl.value;
+            while (selectEl.options.length > 0) selectEl.remove(0);
+
+            let hasCurrentVal = false;
+
+            originalOptions.forEach(opt => {
+                if (opt.value === "Todos") {
+                    let o = document.createElement("option");
+                    o.value = opt.value;
+                    o.textContent = opt.text;
+                    selectEl.appendChild(o);
+                    if (currentVal === "Todos") hasCurrentVal = true;
+                    return;
+                }
+
+                let isActive = false;
+                if (isOT) {
+                    let optId = String(opt.value).split(" - ")[0].trim();
+                    isActive = activeSet.has(optId);
+                } else {
+                    isActive = activeSet.has(opt.value);
+                }
+
+                if (isActive) {
+                    let o = document.createElement("option");
+                    o.value = opt.value;
+                    o.textContent = opt.text;
+                    selectEl.appendChild(o);
+                    if (currentVal === opt.value) hasCurrentVal = true;
+                }
+            });
+
+            if (hasCurrentVal) {
+                selectEl.value = currentVal;
+            } else {
+                selectEl.value = "Todos";
+                anySelectionChanged = true;
+            }
+        }
+
+        // 1. OT activas globales
+        let activeOTIds = new Set();
+        window.pieces.forEach(p => activeOTIds.add(String(p[0]).trim()));
+        refreshSelect(otSelect, originalOTOptions, activeOTIds, true);
+
+        // 2. Clases activas para OT
+        const finalOT = otSelect.value;
+        let activeClasses = new Set();
+        window.pieces.forEach(p => {
+            let pieceOT = String(p[0]).trim();
+            let matchOT = finalOT === "Todos" ? true : (pieceOT === String(finalOT).split(" - ")[0].trim());
+            if (matchOT) {
+                activeClasses.add(String(p.className).trim());
+            }
+        });
+        refreshSelect(classSelect, originalClassOptions, activeClasses, false);
+
+        // 3. Procesos activos para OT y Clase
+        const finalClass = classSelect.value;
+        let activeProcesses = new Set();
+        window.pieces.forEach(p => {
+            let pieceOT = String(p[0]).trim();
+            let pieceClass = String(p.className).trim();
+            
+            let matchOT = finalOT === "Todos" ? true : (pieceOT === String(finalOT).split(" - ")[0].trim());
+            let matchClass = finalClass === "Todos" ? true : (pieceClass === finalClass);
+            
+            if (matchOT && matchClass) {
+                activeProcesses.add(String(p[4]).trim());
+            }
+        });
+        refreshSelect(processSelect, originalProcessOptions, activeProcesses, false);
+
+        if (anySelectionChanged && typeof applyAllFilters === 'function') {
+            applyAllFilters();
+        }
+    }
+
+    // Inicializar cascada con valores actuales
+    updateCascadingFilters();
+
+    // Event listeners
+    otSelect.addEventListener('change', updateCascadingFilters);
+    classSelect.addEventListener('change', updateCascadingFilters);
+}
+
+setupCascadingFilters();
+
 function createStatusFilterUI() {
     let divStatus = document.createElement("div");
     divStatus.className = "filter";
