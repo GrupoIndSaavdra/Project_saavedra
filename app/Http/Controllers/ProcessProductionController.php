@@ -1833,7 +1833,13 @@ class ProcessProductionController extends Controller
                                                 } else if ($pieceIntermedio->estado == 0) {
                                                     $status += 1;
                                                 }
+                                            } else {
+                                                $status += 1;
+                                                $correct += 1;
                                             }
+                                        } else {
+                                            $status += 1;
+                                            $correct += 1;
                                         }
                                     } else {
                                         $status += 1;
