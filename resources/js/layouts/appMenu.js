@@ -170,6 +170,7 @@ function getRoutes(profile) {
                     title: "Documentación Técnica",
                     routes: [
                         ["dibujos.manage", "Dibujos de Producción"],
+                        ["fundicion.manage", "Dibujos de Fundición"],
                         ["manuales.manage", "Manuales de Procesos"],
                         ["ayudas.manage", "Ayudas Visuales"],
                     ],

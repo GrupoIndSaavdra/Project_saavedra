@@ -359,6 +359,26 @@ Route::middleware(['auth'])->prefix('dibujos')->name('dibujos.')->group(function
    Módulo de Manuales (MANUALES_GIS)
 =========================== */
 
+Route::middleware(['auth'])->prefix('fundicion')->name('fundicion.')->group(function () {
+    Route::get('/manage', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'showManage'])->name('manage');
+    Route::get('/estructura', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getStructure'])->name('estructura');
+    Route::get('/archivos', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getFiles'])->name('archivos');
+    Route::get('/serve', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'serveFile'])->name('serve');
+    
+    Route::post('/createFolder', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'createFolder'])->name('createFolder');
+    Route::post('/upload', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'uploadPdf'])->name('upload');
+    Route::post('/send-alert', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'sendEmailAlert'])->name('send_alert');
+    Route::post('/delete', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'deletePdf'])->name('delete');
+    Route::post('/replace', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'replacePdf'])->name('replace');
+    Route::get('/log', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getLog'])->name('log');
+    Route::post('/deleteFolder', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'deleteFolder'])->name('deleteFolder');
+    Route::post('/deleteParent', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'deleteFolder'])->name('deleteParent');
+});
+
+/* ===========================
+   Módulo de Manuales (MANUALES_GIS)
+=========================== */
+
 Route::middleware(['auth'])->prefix('manuales')->name('manuales.')->group(function () {
     Route::get('/manage', [\App\Http\Controllers\ManualesPdfController::class, 'showManage'])->name('manage');
     Route::get('/estructura', [\App\Http\Controllers\ManualesPdfController::class, 'getStructure'])->name('estructura');
