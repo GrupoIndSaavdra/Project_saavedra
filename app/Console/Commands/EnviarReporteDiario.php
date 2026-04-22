@@ -28,6 +28,7 @@ class EnviarReporteDiario extends Command
 
     public function handle(): int
     {
+        ini_set('memory_limit', '512M');
         // ── 1. Determinar fecha ───────────────────────────────────────────
         $fechaStr = $this->option('fecha');
         $fecha = $fechaStr ? Carbon::parse($fechaStr) : Carbon::today();
@@ -205,10 +206,10 @@ class EnviarReporteDiario extends Command
                 $sufijo = '';
             }
 
-            if (!isset($agrupacion[$operador][$hashProceso])) {
-                $agrupacion[$operador][$hashProceso] = [];
+            if (!isset($agrupacion[$proceso][$operador][$hashProceso])) {
+                $agrupacion[$proceso][$operador][$hashProceso] = [];
             }
-            $coleccion = &$agrupacion[$operador][$hashProceso];
+            $coleccion = &$agrupacion[$proceso][$operador][$hashProceso];
 
             $keyDict = $esJuego ? "juego_{$nPiezaBase}" : "pieza_{$nPiezaRaw}_" . $pieza->id;
 
@@ -243,7 +244,8 @@ class EnviarReporteDiario extends Command
                         $obsCompleta = ($obsOperador !== '' && $obsOperador !== '—') ? $nota . ', ' . $obsOperador : $nota;
                         $coleccion[$keyDict] = [
                             'n_piezas'        => "{$nPiezaBase}J",
-                            'hora'            => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
+                            'hora_inicio'     => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
+                            'hora_fin'        => Carbon::parse($pieza->updated_at)->format('d/m/Y H:i'),
                             'obs_operador'    => $obsCompleta,
                             'obs_calidad'     => $obsCalidad,
                             'bg_color'        => $colorFila,
@@ -258,7 +260,8 @@ class EnviarReporteDiario extends Command
                     if (!isset($coleccion[$keyDict])) {
                         $coleccion[$keyDict] = [
                             'n_piezas'        => "{$nPiezaBase}J",
-                            'hora'            => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
+                            'hora_inicio'     => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
+                            'hora_fin'        => Carbon::parse($pieza->updated_at)->format('d/m/Y H:i'),
                             'obs_operador'    => $obsOperador,
                             'obs_calidad'     => $obsCalidad,
                             'bg_color'        => $colorFila,
@@ -284,7 +287,8 @@ class EnviarReporteDiario extends Command
             } else {
                 $coleccion[$keyDict] = [
                     'n_piezas'    => "{$nPiezaRaw}",
-                    'hora'        => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
+                    'hora_inicio' => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
+                    'hora_fin'    => Carbon::parse($pieza->updated_at)->format('d/m/Y H:i'),
                     'obs_operador'=> $obsOperador,
                     'obs_calidad' => $obsCalidad,
                     'bg_color'    => $colorFila,
@@ -293,34 +297,73 @@ class EnviarReporteDiario extends Command
             }
         }
 
-        foreach ($agrupacion as $operador => $procesosData) {
-            $reporteFinal[$operador] = [];
-            foreach ($procesosData as $hashProceso => $filas) {
-                $t = $totales[$operador][$hashProceso];
-                foreach ($filas as $fila) {
-                    if (isset($fila['is_juego']) && $fila['is_juego']) {
-                        if (count($fila['piezas_incluidas']) == 1) {
-                            $suf = $fila['piezas_incluidas'][0];
-                            $numBase = str_replace('J', '', $fila['n_piezas']);
-                            $fila['n_piezas'] = "{$numBase}{$suf} (.5)"; // Mitad solitaria (aporta 0.5)
-                        } elseif (isset($fila['es_compartido']) && $fila['es_compartido']) {
-                            $fila['n_piezas'] .= " (.5)"; // Juego compartido (aporta 0.5 a este op)
+        foreach ($agrupacion as $procesoKey => $operadoresData) {
+            if (!isset($reporteFinal[$procesoKey])) {
+                $reporteFinal[$procesoKey] = [];
+            }
+            foreach ($operadoresData as $operador => $procesosData) {
+                if (!isset($reporteFinal[$procesoKey][$operador])) {
+                    $reporteFinal[$procesoKey][$operador] = [];
+                }
+                foreach ($procesosData as $hashProceso => $filas) {
+                    $t = $totales[$operador][$hashProceso];
+                    foreach ($filas as $fila) {
+                        if (isset($fila['is_juego']) && $fila['is_juego']) {
+                            if (count($fila['piezas_incluidas']) == 1) {
+                                $suf = $fila['piezas_incluidas'][0];
+                                $numBase = str_replace('J', '', $fila['n_piezas']);
+                                $fila['n_piezas'] = "{$numBase}{$suf} (.5)"; // Mitad solitaria (aporta 0.5)
+                            } elseif (isset($fila['es_compartido']) && $fila['es_compartido']) {
+                                $fila['n_piezas'] .= " (.5)"; // Juego compartido (aporta 0.5 a este op)
+                            }
+                            unset($fila['is_juego']);
+                            unset($fila['piezas_incluidas']);
+                            unset($fila['es_compartido']);
                         }
-                        unset($fila['is_juego']);
-                        unset($fila['piezas_incluidas']);
-                        unset($fila['es_compartido']);
+                        $fila['meta'] = $t['meta'];
+                        $fila['juegos_realizados'] = $t['buenas'];
+                        $fila['ot_label'] = $t['ot_label'];
+                        $fila['clase_label'] = $t['clase_label'];
+                        $fila['proceso'] = $t['proceso'];
+                        $reporteFinal[$procesoKey][$operador][] = $fila;
                     }
-                    $fila['meta'] = $t['meta'];
-                    $fila['juegos_realizados'] = $t['buenas'];
-                    $fila['ot_label'] = $t['ot_label'];
-                    $fila['clase_label'] = $t['clase_label'];
-                    $fila['proceso'] = $t['proceso'];
-                    $reporteFinal[$operador][] = $fila;
                 }
             }
+            ksort($reporteFinal[$procesoKey]);
         }
+        // ── Ordenar los procesos según el flujo de producción ──
+        $prioridadProcesos = [
+            'Cepillado' => 1,
+            'Desbaste Exterior' => 2,
+            'Revision Laterales' => 3,
+            'Primera Operacion' => 4,
+            'Barreno Maniobra' => 5,
+            'Segunda Operacion' => 6,
+            'Soldadura' => 7,
+            'Soldadura PTA' => 8,
+            'Rectificado' => 9,
+            'Asentado' => 10,
+            'Calificado' => 11,
+            'Acabado Bombillo' => 12,
+            'Acabado Molde' => 13,
+            'Barreno Profundidad' => 14,
+            'Cavidades' => 15,
+            'Copiado' => 16,
+            'Off Set' => 17,
+            'Palomas' => 18,
+            'Rebajes' => 19,
+            'Grabado' => 20,
+            'Operacion Equipo' => 21,
+            'Embudo CM' => 22,
+            'Primera Operacion Cabeza Soplo' => 23,
+            'Segunda Operacion Cabeza Soplo' => 24,
+        ];
 
-        ksort($reporteFinal);
+        uksort($reporteFinal, function ($a, $b) use ($prioridadProcesos) {
+            $pA = $prioridadProcesos[$a] ?? 99;
+            $pB = $prioridadProcesos[$b] ?? 99;
+            return $pA <=> $pB;
+        });
 
         return $reporteFinal;
     }
