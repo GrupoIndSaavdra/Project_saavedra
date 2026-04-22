@@ -87,6 +87,7 @@ class tiemposProduccionController extends Controller
             case "Obturador":
             case "Fondo":
             case "Embudo":
+            case "Candado Obturador":
                 return match ($class->tamanio) {
                     'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Soldadura' => 30, 'Soldadura PTA' => 15],
                     default => null,
@@ -225,6 +226,9 @@ class tiemposProduccionController extends Controller
             case "Obturador":
             case "Fondo":
                 return array("operacionEquipo", "soldadura", "soldaduraPTA");
+                break;
+            case "Candado Obturador":
+                return array("operacionEquipo");
                 break;
             case "Corona":
                 return array("cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo");

@@ -363,7 +363,7 @@ function insertSelects() {
         selectProcesses.addEventListener("change", function () {
             let selectedProcess = selectProcesses.value;
             let submit = document.querySelector(".btn-submit");
-            if (selectedProcess && selectedProcess === "Operacion Equipo") {
+            if (selectedProcess && (selectedProcess === "Operacion Equipo" || selectedProcess === "Candado Obturador")) {
                 let selectSubprocesses = createSelects("Subproceso", "subprocess");
                 modifySelects(["1 operacion", "2 operacion"], selectSubprocesses, "Subproceso");
             } else if (selectedProcess) {

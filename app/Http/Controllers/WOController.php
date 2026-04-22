@@ -168,6 +168,9 @@ class WOController extends Controller
             case "Fondo":
                 $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                 break;
+            case "Candado Obturador":
+                $processesInOrder = ["operacionEquipo"];
+                break;
             case "Plato":
                 $processesInOrder = ["barreno_maniobra", "operacionEquipo"];
                 break;

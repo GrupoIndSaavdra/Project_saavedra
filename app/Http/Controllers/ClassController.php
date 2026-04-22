@@ -193,6 +193,9 @@ class ClassController extends Controller
             case "Cabeza de Soplo":
                 $processNames = array("primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo");
                 break;
+            case "Candado Obturador":
+                $processNames = array("operacionEquipo");
+                break;
         }
 
         if (auth()->user()->perfil != 5) {
@@ -350,6 +353,9 @@ class ClassController extends Controller
                     break;
                 case "Cabeza de Soplo":
                     $piecesProcesses = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+                    break;
+                case "Candado Obturador":
+                    $piecesProcesses = ["operacionEquipo"];
                     break;
             }
 
@@ -511,6 +517,9 @@ class ClassController extends Controller
                 break;
             case "Cabeza de Soplo":
                 $procesos = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+                break;
+            case "Candado Obturador":
+                $procesos = ["operacionEquipo"];
                 break;
             default:
                 $procesos = [];

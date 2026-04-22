@@ -234,6 +234,9 @@ function createFilters() {
                         if (item == "class" && !dataToIterate.includes("Cabeza de Soplo")) {
                             dataToIterate.push("Cabeza de Soplo");
                         }
+                        if (item == "class" && !dataToIterate.includes("Candado Obturador")) {
+                            dataToIterate.push("Candado Obturador");
+                        }
 
                         if (item == "operator") {
                             dataToIterate = [...window.filtersData[item]].sort((a, b) => {
@@ -716,13 +719,14 @@ function sortPiezasDatabaseOrder(piezas, infoPiezas) {
         ordered: orderedArray(p)
     }));
 
-    const classOrder = ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo"];
+    const classOrder = ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo", "Candado Obturador"];
     const processOrder = [
         "Cepillado", "Desbaste Exterior", "Revision Laterales", "Primera Operacion",
         "Barreno Maniobra", "Segunda Operacion", "Soldadura", "Soldadura PTA",
         "Rectificado", "Asentado", "Calificado", "Acabado Bombillo", "Acabado Molde",
         "Barreno Profundidad", "Cavidades", "Copiado", "Off Set", "Palomas",
         "Rebajes", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion",
+        "Candado Obturador_1 operacion", "Candado Obturador_2 operacion",
         "Embudo CM", "Primera Operacion Cabeza Soplo", "Segunda Operacion Cabeza Soplo"
     ];
 

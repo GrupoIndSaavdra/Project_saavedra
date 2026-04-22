@@ -24,6 +24,7 @@ use App\Models\Rebajes_pza;
 use App\Models\Rectificado_pza;
 use App\Models\revCalificado_pza;
 use App\Models\RevLaterales_pza;
+use App\Models\CandadoObturador_pza;
 use App\Models\SegundaOpeSoldadura_pza;
 use App\Models\SegundaOperacionCabezaSoplo_pza;
 use App\Models\Soldadura_pza;
@@ -130,7 +131,7 @@ class PzasLiberadasController extends Controller
                     $p = Pza_cepillado::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = Pza_cepillado::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? Pza_cepillado::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Desbaste Exterior":
                 $pieza = array();
@@ -138,7 +139,7 @@ class PzasLiberadasController extends Controller
                     $p = Desbaste_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = Desbaste_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? Desbaste_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Revision Laterales":
                 $pieza = array();
@@ -146,7 +147,7 @@ class PzasLiberadasController extends Controller
                     $p = RevLaterales_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = RevLaterales_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? RevLaterales_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Primera Operacion":
                 $pieza = array();
@@ -154,7 +155,7 @@ class PzasLiberadasController extends Controller
                     $p = PrimeraOpeSoldadura_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = PrimeraOpeSoldadura_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? PrimeraOpeSoldadura_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Barreno Maniobra":
                 $pieza = array();
@@ -162,7 +163,7 @@ class PzasLiberadasController extends Controller
                     $p = BarrenoManiobra_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = BarrenoManiobra_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? BarrenoManiobra_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Segunda Operacion":
                 $pieza = array();
@@ -170,7 +171,7 @@ class PzasLiberadasController extends Controller
                     $p = SegundaOpeSoldadura_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = SegundaOpeSoldadura_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? SegundaOpeSoldadura_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Soldadura":
                 $pieza = array();
@@ -178,7 +179,7 @@ class PzasLiberadasController extends Controller
                     $p = Soldadura_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = Soldadura_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? Soldadura_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Soldadura PTA":
                 $pieza = array();
@@ -208,7 +209,7 @@ class PzasLiberadasController extends Controller
                     $p = Rectificado_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = Rectificado_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? Rectificado_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Asentado":
                 $pieza = array();
@@ -216,7 +217,7 @@ class PzasLiberadasController extends Controller
                     $p = Asentado_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = Asentado_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? Asentado_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Calificado":
                 $pieza = array();
@@ -224,7 +225,7 @@ class PzasLiberadasController extends Controller
                     $p = revCalificado_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = revCalificado_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? revCalificado_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Acabado Bombillo":
                 $pieza = array();
@@ -232,7 +233,7 @@ class PzasLiberadasController extends Controller
                     $p = AcabadoBombilo_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = AcabadoBombilo_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? AcabadoBombilo_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Acabado Molde":
                 $pieza = array();
@@ -240,7 +241,7 @@ class PzasLiberadasController extends Controller
                     $p = AcabadoMolde_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = AcabadoMolde_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? AcabadoMolde_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Cavidades":
                 $pieza = array();
@@ -248,7 +249,7 @@ class PzasLiberadasController extends Controller
                     $p = Cavidades_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = Cavidades_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? Cavidades_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Barreno Profundidad":
                 $pieza = array();
@@ -256,7 +257,7 @@ class PzasLiberadasController extends Controller
                     $p = BarrenoProfundidad_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = BarrenoProfundidad_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? BarrenoProfundidad_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Copiado":
                 $pieza = array();
@@ -264,7 +265,7 @@ class PzasLiberadasController extends Controller
                     $p = Copiado_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = Copiado_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? Copiado_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Off Set":
                 $pieza = array();
@@ -272,7 +273,7 @@ class PzasLiberadasController extends Controller
                     $p = OffSet_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = OffSet_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? OffSet_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Palomas":
                 $pieza = array();
@@ -280,7 +281,7 @@ class PzasLiberadasController extends Controller
                     $p = Palomas_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = Palomas_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? Palomas_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Rebajes":
                 $pieza = array();
@@ -288,23 +289,25 @@ class PzasLiberadasController extends Controller
                     $p = Rebajes_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = Rebajes_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? Rebajes_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Operacion Equipo_1 operacion":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = PySOpeSoldadura_pza::where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = PySOpeSoldadura_pza::where('id_meta', $pieza[0]->id_meta)->get();
-                break;
             case "Operacion Equipo_2 operacion":
                 $pieza = array();
                 foreach ($juego as $pza) {
                     $p = PySOpeSoldadura_pza::where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
+                    if (!$p) {
+                        $p = CandadoObturador_pza::where('id_pza', $pza)->first();
+                    }
+                    if ($p) {
+                        array_push($pieza, $p);
+                    }
                 }
-                $piezas = PySOpeSoldadura_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                if (!empty($pieza) && $pieza[0]) {
+                    $piezas = get_class($pieza[0])::where('id_meta', $pieza[0]->id_meta)->get();
+                } else {
+                    $piezas = array();
+                }
                 break;
             case "Embudo CM":
                 $pieza = array();
@@ -312,7 +315,7 @@ class PzasLiberadasController extends Controller
                     $p = EmbudoCM_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = EmbudoCM_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? EmbudoCM_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Primera Operacion Cabeza Soplo":
                 $pieza = array();
@@ -320,7 +323,7 @@ class PzasLiberadasController extends Controller
                     $p = PrimeraOperacionCabezaSoplo_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = PrimeraOperacionCabezaSoplo_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? PrimeraOperacionCabezaSoplo_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
             case "Segunda Operacion Cabeza Soplo":
                 $pieza = array();
@@ -328,7 +331,7 @@ class PzasLiberadasController extends Controller
                     $p = SegundaOperacionCabezaSoplo_pza::where('id_pza', $pza)->first();
                     array_push($pieza, $p);
                 }
-                $piezas = SegundaOperacionCabezaSoplo_pza::where('id_meta', $pieza[0]->id_meta)->get();
+                $piezas = !empty($pieza) && $pieza[0] ? SegundaOperacionCabezaSoplo_pza::where('id_meta', $pieza[0]->id_meta)->get() : array();
                 break;
         }
         //Algoritmo para liberar 5 juegos despues de que se libere uno
@@ -348,6 +351,7 @@ class PzasLiberadasController extends Controller
     }
     public function liberarPiezas($piezas, $proceso, $buena, $observacion)
     {
+        if (empty($piezas) || !$piezas[0]) return;
         //Algoritmo para liberar solamente 1 juego
         $meta = Metas::find($piezas[0]->id_meta);
         //Actualizar el estado de liberacion de la pieza
@@ -439,6 +443,7 @@ class PzasLiberadasController extends Controller
     }
     public function rechazarPieza($piezas, $proceso, $observacion)
     {
+        if (empty($piezas) || !$piezas[0]) return;
         $meta = Metas::find($piezas[0]->id_meta);
         //Actualizar el estado de liberacion de la pieza
         foreach ($piezas as $pza) {

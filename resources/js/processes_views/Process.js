@@ -407,6 +407,19 @@ export class Process {
 
                 fields = ["id", "altura", "alturaCandado", "alturaAsientoObturador", "profundidadSoldadura", "pushUp"];
                 break;
+            case "Candado Obturador":
+                this.tableTitles = ["", "Altura", "ø Altura de candado", "Altura asiento obturador", "ø Profundidad de soldadura", "ø de PushUp"];
+
+                divisionsCNomi = [2, 4, 6];
+                divisionsTole = [2, 4, 6];
+
+                positionSelects = [
+                    [6],
+                    [["Ninguno", "Fundicion"]]
+                ];
+
+                fields = ["id", "altura", "alturaCandado", "alturaAsientoObturador", "profundidadSoldadura", "pushUp"];
+                break;
             case "Primera Operacion Cabeza Soplo":
                 this.tableTitles = ["", "Diametro Exterior", "Longitud", "Diametro Candado", "Longitud Candado"];
 
@@ -646,7 +659,7 @@ export class Process {
                     break;
                 case 3://Crear inputs de las piezas e input de la pieza a utilizar si es que existe
                     if (this.piecesData.length > 0) { // Crear inputs inhabilitados de las piezas maquinadas en la meta
-                        let divisions = this.nameProcess == "Operacion Equipo" ? [2, 3, 4] : divisionsCNomi;
+                        let divisions = (this.nameProcess == "Operacion Equipo" || this.nameProcess == "Candado Obturador") ? [2, 3, 4] : divisionsCNomi;
                         this.piecesData.forEach((piece, index) => { // Recorrer cada una de las piezas
                             let tr = document.createElement("tr");
                             for (let i = 0; i < fields.length; i++) { // Recorrer las medidas de la pieza
@@ -736,7 +749,7 @@ export class Process {
         return table;
     }
     createPieceToBeUsed(tr, fields, divisionsCNomi, positionSelects, table) {
-        let divisions = this.nameProcess == "Operacion Equipo" ? [2, 3, 4] : divisionsCNomi;
+        let divisions = (this.nameProcess == "Operacion Equipo" || this.nameProcess == "Candado Obturador") ? [2, 3, 4] : divisionsCNomi;
         tr = document.createElement("tr");
         for (let x = 0; x < fields.length; x++) {
             const td = document.createElement("td");

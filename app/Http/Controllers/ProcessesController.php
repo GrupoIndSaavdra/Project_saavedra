@@ -52,6 +52,8 @@ use App\Models\PrimeraOperacionCabezaSoplo_cnominal;
 use App\Models\PrimeraOperacionCabezaSoplo_tolerancia;
 use App\Models\SegundaOperacionCabezaSoplo_cnominal;
 use App\Models\SegundaOperacionCabezaSoplo_tolerancia;
+use App\Models\CandadoObturador_cnominal;
+use App\Models\CandadoObturador_tolerancia;
 use Illuminate\Http\Request;
 
 class ProcessesController extends Controller
@@ -185,6 +187,7 @@ class ProcessesController extends Controller
                 'Calificado',
             ],
             'Fondo', 'Obturador' => ['Operacion Equipo'],
+            'Candado Obturador' => ['Operacion Equipo'],
             'Plato' => ['Barreno Maniobra', 'Operacion Equipo'],
             'Embudo' => ['Operacion Equipo', 'Embudo CM'],
             'Cabeza de Soplo' => ['Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'],
@@ -295,8 +298,13 @@ class ProcessesController extends Controller
             case 'Operacion Equipo':
                 $subprocessModified = str_replace(' ', '_', $subprocess);
                 $id_operation = 'Operacion_Equipo_' . $subprocessModified . "_" . $class->nombre . "_" . $class->id_ot;
-                $cNominal = PySOpeSoldadura_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = PySOpeSoldadura_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                if ($class->nombre == 'Candado Obturador') {
+                    $cNominal = CandadoObturador_cnominal::where('id_proceso', '=', $id_operation)->first();
+                    $tolerance = CandadoObturador_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                } else {
+                    $cNominal = PySOpeSoldadura_cnominal::where('id_proceso', '=', $id_operation)->first();
+                    $tolerance = PySOpeSoldadura_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                }
                 break;
             case 'Embudo CM':
                 $id_operation = 'Embudo_CM_' . $class->nombre . "_" . $class->id_ot;
@@ -372,7 +380,7 @@ class ProcessesController extends Controller
             'Off Set' => $this->offSet($id_process, $request),
             'Palomas' => $this->palomas($id_process, $request),
             'Rebajes' => $this->rebajes($id_process, $request),
-            'Operacion Equipo' => $this->pySOpeSoldadura($id_process, $request),
+            'Operacion Equipo' => $request->input('class') == 'Candado Obturador' ? $this->candadoObturador($id_process, $request) : $this->pySOpeSoldadura($id_process, $request),
             'Embudo CM' => $this->embudoCM($id_process, $request),
 
             'Primera Operacion Cabeza Soplo' => $this->primeraOperacionCS($id_process, $request),
@@ -993,6 +1001,43 @@ class ProcessesController extends Controller
         $cNominal->pushUp = $request->input('cNomi_pushUp');
 
         //Llenado de tabla pysOpeSoldadura_tolerancia
+        $tolerance->id_proceso = $id_proceso;
+        $tolerance->altura = $request->input('tole_altura');
+        $tolerance->alturaCandado1 = $request->input('tole_alturaCandado1');
+        $tolerance->alturaCandado2 = $request->input('tole_alturaCandado2');
+        $tolerance->alturaAsientoObturador1 = $request->input('tole_alturaAsientoObturador1');
+        $tolerance->alturaAsientoObturador2 = $request->input('tole_alturaAsientoObturador2');
+        $tolerance->profundidadSoldadura1 = $request->input('tole_profundidadSoldadura1');
+        $tolerance->profundidadSoldadura2 = $request->input('tole_profundidadSoldadura2');
+        $tolerance->pushUp = $request->input('tole_pushUp');
+
+        $cNominal->save();
+        $tolerance->save();
+    }
+
+    public function candadoObturador($id_proceso, $request)
+    {
+        $cNominal = CandadoObturador_cnominal::where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = CandadoObturador_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        if (!$cNominal) {
+            $cNominal = new CandadoObturador_cnominal();
+        }
+        if (!$tolerance) {
+            $tolerance = new CandadoObturador_tolerancia();
+        }
+
+        //Llenado de tabla CandadoObturador_cnominal
+        $cNominal->id_proceso = $id_proceso;
+        $cNominal->altura = $request->input('cNomi_altura');
+        $cNominal->alturaCandado1 = $request->input('cNomi_alturaCandado1');
+        $cNominal->alturaCandado2 = $request->input('cNomi_alturaCandado2');
+        $cNominal->alturaAsientoObturador1 = $request->input('cNomi_alturaAsientoObturador1');
+        $cNominal->alturaAsientoObturador2 = $request->input('cNomi_alturaAsientoObturador2');
+        $cNominal->profundidadSoldadura1 = $request->input('cNomi_profundidadSoldadura1');
+        $cNominal->profundidadSoldadura2 = $request->input('cNomi_profundidadSoldadura2');
+        $cNominal->pushUp = $request->input('cNomi_pushUp');
+
+        //Llenado de tabla CandadoObturador_tolerancia
         $tolerance->id_proceso = $id_proceso;
         $tolerance->altura = $request->input('tole_altura');
         $tolerance->alturaCandado1 = $request->input('tole_alturaCandado1');

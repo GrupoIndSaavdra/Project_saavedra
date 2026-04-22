@@ -12,6 +12,10 @@ use App\Models\AcabadoMolde_pza;
 use App\Models\AcabadoMolde_tolerancia;
 use App\Models\Asentado;
 use App\Models\Asentado_pza;
+use App\Models\CandadoObturador;
+use App\Models\CandadoObturador_cnominal;
+use App\Models\CandadoObturador_pza;
+use App\Models\CandadoObturador_tolerancia;
 use App\Models\BarrenoManiobra;
 use App\Models\BarrenoManiobra_cnominal;
 use App\Models\BarrenoManiobra_pza;
@@ -194,7 +198,7 @@ class PzasGeneralesController extends Controller
 
         $filtersData = array(
             "workOrder" => $this->objectToArrayFromDB($orders, "workOrder", $molduras),
-            "class" => ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo"],
+            "class" => ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo", "Candado Obturador"],
             "operator" => $this->objectToArrayFromDB($users, "operator"),
             "machine" => [1, 2, 3, 4, 5, 6, 7],
             "process" => ["Cepillado", "Desbaste Exterior", "Revision Laterales", "Primera Operacion", "Barreno Maniobra", "Segunda Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado", "Acabado Bombillo", "Acabado Molde", "Barreno Profundidad", "Cavidades", "Copiado", "Off Set", "Palomas", "Rebajes", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion", "Embudo CM", "Primera Operacion Cabeza Soplo", "Segunda Operacion Cabeza Soplo"],
@@ -554,151 +558,125 @@ class PzasGeneralesController extends Controller
     }
     public function saveInfoPzas(&$infoPiezas, $piezas)
     {
-        $contador = 0;
         if ($piezas == null || count($piezas) == 0) {
             return;
         }
-        // Pre-cargar clases en memoria para evitar N+1 en el loop
+
+        // Cache classes
         $clasesCache = Clase::all()->keyBy('id');
-        foreach ($piezas as $pieza) {
-            // Buscar la clase desde cache (0 queries)
-            $claseObj = $clasesCache->get($pieza["id_clase"]);
-            $clase = $claseObj ? $claseObj->nombre : null;
 
-            $clase = $clase == null ?: $clase;
+        // Pre-gather all process strings to fetch in bulk
+        $processLookups = [];
+        foreach ($piezas as $p) {
+            $claseObj = $clasesCache->get($p["id_clase"]);
+            $claseName = $claseObj ? $claseObj->nombre : null;
+            $procName = $p[4];
+            $otId = $p[0];
 
-            switch ($pieza[4]) {
-                case 'Cepillado':
-                    $id_proceso = 'Cepillado_' . $clase . "_" . $pieza[0];
-                    $id_proceso = Cepillado::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Cepillado';
-                    break;
-                case 'Desbaste Exterior':
-                    $id_proceso = 'Desbaste_Exterior_' . $clase . "_" . $pieza[0];
-                    $id_proceso = DesbasteExterior::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Desbaste Exterior';
-                    break;
-                case 'Revision Laterales':
-                    $id_proceso = 'Revision_Laterales_' . $clase . "_" . $pieza[0];
-                    $id_proceso = RevLaterales::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Revision Laterales';
-                    break;
-                case 'Primera Operacion':
-                    $id_proceso = 'Primera_Operacion_' . $clase . "_" . $pieza[0];
-                    $id_proceso = PrimeraOpeSoldadura::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Primera Operacion';
-                    break;
-                case 'Barreno Maniobra':
-                    $id_proceso = 'Barreno_Maniobra_' . $clase . "_" . $pieza[0];
-                    $id_proceso = BarrenoManiobra::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Barreno Maniobra';
-                    break;
-                case 'Segunda Operacion':
-                    $id_proceso = 'Segunda_Operacion_' . $clase . "_" . $pieza[0];
-                    $id_proceso = SegundaOpeSoldadura::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Segunda Operacion';
-                    break;
-                case 'Soldadura':
-                    $id_proceso = 'Soldadura_' . $clase . "_" . $pieza[0];
-                    $id_proceso = Soldadura::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Soldadura';
-                    break;
-                case 'Soldadura PTA':
-                    $id_proceso = 'Soldadura_PTA_' . $clase . "_" . $pieza[0];
-                    $id_proceso = SoldaduraPTA::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Soldadura PTA';
-                    break;
-                case 'Rectificado':
-                    $id_proceso = 'Rectificado_' . $clase . "_" . $pieza[0];
-                    $id_proceso = Rectificado::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Rectificado';
-                    break;
-                case 'Asentado':
-                    $id_proceso = 'Asentado_' . $clase . "_" . $pieza[0];
-                    $id_proceso = Asentado::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Asentado';
-                    break;
-                case 'Calificado':
-                    $id_proceso = 'Calificado_' . $clase . "_" . $pieza[0];
-                    $id_proceso = revCalificado::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Calificado';
-                    break;
-                case 'Acabado Bombillo':
-                    $id_proceso = 'Acabado_Bombillo_' . $clase . "_" . $pieza[0];
-                    $id_proceso = AcabadoBombilo::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Acabado Bombillo';
-                    break;
-                case 'Acabado Molde':
-                    $id_proceso = 'Acabado_Molde_' . $clase . "_" . $pieza[0];
-                    $id_proceso = AcabadoMolde::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Acabado Molde';
-                    break;
-                case 'Barreno Profundidad':
-                    $id_proceso = 'Barreno_Profundidad_' . $clase . "_" . $pieza[0];
-                    $id_proceso = BarrenoProfundidad::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Barreno Profundidad';
-                    break;
-                case 'Cavidades':
-                    $id_proceso = 'Cavidades_' . $clase . "_" . $pieza[0];
-                    $id_proceso = Cavidades::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Cavidades';
-                    break;
-                case 'Copiado':
-                    $id_proceso = 'Copiado_' . $clase . "_" . $pieza[0];
-                    $id_proceso = Copiado::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Copiado';
-                    break;
-                case 'Off Set':
-                    $id_proceso = 'Off_Set_' . $clase . "_" . $pieza[0];
-                    $id_proceso = OffSet::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Off Set';
-                    break;
-                case 'Palomas':
-                    $id_proceso = 'Palomas_' . $clase . "_" . $pieza[0];
-                    $id_proceso = Palomas::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Palomas';
-                    break;
-                case 'Rebajes':
-                    $id_proceso = 'Rebajes_' . $clase . "_" . $pieza[0];
-                    $id_proceso = Rebajes::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Rebajes';
-                    break;
+            $lookupKey = null;
+            switch ($procName) {
                 case 'Operacion Equipo_1 operacion':
-                    $id_proceso = 'Operacion_Equipo_1_operacion' . "_" . $clase . "_" . $pieza[0];
-                    $id_proceso = PySOpeSoldadura::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = "Operacion Equipo_1 operacion";
+                    $lookupKey = 'Operacion_Equipo_1_operacion_' . $claseName . "_" . $otId;
+                    $model = ($claseName == 'Candado Obturador') ? CandadoObturador::class : PySOpeSoldadura::class;
                     break;
                 case 'Operacion Equipo_2 operacion':
-                    $id_proceso = 'Operacion_Equipo_2_operacion' . "_" . $clase . "_" . $pieza[0];
-                    $id_proceso = PySOpeSoldadura::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = "Operacion Equipo_2 operacion";
+                    $lookupKey = 'Operacion_Equipo_2_operacion_' . $claseName . "_" . $otId;
+                    $model = ($claseName == 'Candado Obturador') ? CandadoObturador::class : PySOpeSoldadura::class;
                     break;
-                case 'Embudo CM':
-                    $id_proceso = 'Embudo_CM_' . $clase . "_" . $pieza[0];
-                    $id_proceso = EmbudoCM::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Embudo CM';
-                    break;
-                case 'Primera Operacion Cabeza Soplo':
-                    $id_proceso = 'Primera_Operacion_Cabeza_Soplo_' . $clase . "_" . $pieza[0];
-                    $id_proceso = PrimeraOperacionCabezaSoplo::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Primera Operacion Cabeza Soplo';
-                    break;
-                case 'Segunda Operacion Cabeza Soplo':
-                    $id_proceso = 'Segunda_Operacion_Cabeza_Soplo_' . $clase . "_" . $pieza[0];
-                    $id_proceso = SegundaOperacionCabezaSoplo::where('id_proceso', $id_proceso)->first();
-                    $infoPiezas[$contador][1] = 'Segunda Operacion Cabeza Soplo';
-                    break;
-            }
-            if (end($pieza) == "mitad") {
-                //Guardar el numero de pieza
-                $numero = $this->getPiezaNumber($pieza[1]);
-                $infoPiezas[$contador][0][0] = $numero . "H" . $id_proceso->id;
-                $infoPiezas[$contador][0][1] = $numero . "M" . $id_proceso->id;
-            } else {
-                $infoPiezas[$contador][0][0] = $pieza[1] . $id_proceso->id;
+                case 'Cepillado': $lookupKey = 'Cepillado_'.$claseName.'_'.$otId; $model = Cepillado::class; break;
+                case 'Desbaste Exterior': $lookupKey = 'Desbaste_Exterior_'.$claseName.'_'.$otId; $model = DesbasteExterior::class; break;
+                case 'Revision Laterales': $lookupKey = 'Revision_Laterales_'.$claseName.'_'.$otId; $model = RevLaterales::class; break;
+                case 'Primera Operacion': $lookupKey = 'Primera_Operacion_'.$claseName.'_'.$otId; $model = PrimeraOpeSoldadura::class; break;
+                case 'Barreno Maniobra': $lookupKey = 'Barreno_Maniobra_'.$claseName.'_'.$otId; $model = BarrenoManiobra::class; break;
+                case 'Segunda Operacion': $lookupKey = 'Segunda_Operacion_'.$claseName.'_'.$otId; $model = SegundaOpeSoldadura::class; break;
+                case 'Soldadura': $lookupKey = 'Soldadura_'.$claseName.'_'.$otId; $model = Soldadura::class; break;
+                case 'Soldadura PTA': $lookupKey = 'Soldadura_PTA_'.$claseName.'_'.$otId; $model = SoldaduraPTA::class; break;
+                case 'Rectificado': $lookupKey = 'Rectificado_'.$claseName.'_'.$otId; $model = Rectificado::class; break;
+                case 'Asentado': $lookupKey = 'Asentado_'.$claseName.'_'.$otId; $model = Asentado::class; break;
+                case 'Calificado': $lookupKey = 'Calificado_'.$claseName.'_'.$otId; $model = revCalificado::class; break;
+                case 'Acabado Bombillo': $lookupKey = 'Acabado_Bombillo_'.$claseName.'_'.$otId; $model = AcabadoBombilo::class; break;
+                case 'Acabado Molde': $lookupKey = 'Acabado_Molde_'.$claseName.'_'.$otId; $model = AcabadoMolde::class; break;
+                case 'Barreno Profundidad': $lookupKey = 'Barreno_Profundidad_'.$claseName.'_'.$otId; $model = BarrenoProfundidad::class; break;
+                case 'Cavidades': $lookupKey = 'Cavidades_'.$claseName.'_'.$otId; $model = Cavidades::class; break;
+                case 'Copiado': $lookupKey = 'Copiado_'.$claseName.'_'.$otId; $model = Copiado::class; break;
+                case 'Off Set': $lookupKey = 'Off_Set_'.$claseName.'_'.$otId; $model = OffSet::class; break;
+                case 'Palomas': $lookupKey = 'Palomas_'.$claseName.'_'.$otId; $model = Palomas::class; break;
+                case 'Rebajes': $lookupKey = 'Rebajes_'.$claseName.'_'.$otId; $model = Rebajes::class; break;
+                case 'Embudo CM': $lookupKey = 'Embudo_CM_'.$claseName.'_'.$otId; $model = EmbudoCM::class; break;
+                case 'Primera Operacion Cabeza Soplo': $lookupKey = 'Primera_Operacion_Cabeza_Soplo_'.$claseName.'_'.$otId; $model = PrimeraOperacionCabezaSoplo::class; break;
+                case 'Segunda Operacion Cabeza Soplo': $lookupKey = 'Segunda_Operacion_Cabeza_Soplo_'.$claseName.'_'.$otId; $model = SegundaOperacionCabezaSoplo::class; break;
             }
 
-            // Guardar el error — siempre en [5] ahora que se unificó el layout de índices
+            if ($lookupKey) {
+                $processLookups[$model][$lookupKey] = null;
+            }
+        }
+
+        // Bulk fetch all needed process records
+        foreach ($processLookups as $model => $keys) {
+            $records = $model::whereIn('id_proceso', array_keys($keys))->get();
+            foreach ($records as $r) {
+                $processLookups[$model][$r->id_proceso] = $r;
+            }
+        }
+
+        $contador = 0;
+        foreach ($piezas as $pieza) {
+            $claseObj = $clasesCache->get($pieza["id_clase"]);
+            $claseName = $claseObj ? $claseObj->nombre : null;
+            $procName = $pieza[4];
+            $otId = $pieza[0];
+
+            $model = null;
+            $lookupKey = null;
+            switch ($procName) {
+                case 'Operacion Equipo_1 operacion': 
+                    $lookupKey = 'Operacion_Equipo_1_operacion_'.$claseName.'_'.$otId; 
+                    $model = ($claseName == 'Candado Obturador') ? CandadoObturador::class : PySOpeSoldadura::class;
+                    break;
+                case 'Operacion Equipo_2 operacion': 
+                    $lookupKey = 'Operacion_Equipo_2_operacion_'.$claseName.'_'.$otId;
+                    $model = ($claseName == 'Candado Obturador') ? CandadoObturador::class : PySOpeSoldadura::class;
+                    break;
+                case 'Cepillado': $lookupKey = 'Cepillado_'.$claseName.'_'.$otId; $model = Cepillado::class; break;
+                case 'Desbaste Exterior': $lookupKey = 'Desbaste_Exterior_'.$claseName.'_'.$otId; $model = DesbasteExterior::class; break;
+                case 'Revision Laterales': $lookupKey = 'Revision_Laterales_'.$claseName.'_'.$otId; $model = RevLaterales::class; break;
+                case 'Primera Operacion': $lookupKey = 'Primera_Operacion_'.$claseName.'_'.$otId; $model = PrimeraOpeSoldadura::class; break;
+                case 'Barreno Maniobra': $lookupKey = 'Barreno_Maniobra_'.$claseName.'_'.$otId; $model = BarrenoManiobra::class; break;
+                case 'Segunda Operacion': $lookupKey = 'Segunda_Operacion_'.$claseName.'_'.$otId; $model = SegundaOpeSoldadura::class; break;
+                case 'Soldadura': $lookupKey = 'Soldadura_'.$claseName.'_'.$otId; $model = Soldadura::class; break;
+                case 'Soldadura PTA': $lookupKey = 'Soldadura_PTA_'.$claseName.'_'.$otId; $model = SoldaduraPTA::class; break;
+                case 'Rectificado': $lookupKey = 'Rectificado_'.$claseName.'_'.$otId; $model = Rectificado::class; break;
+                case 'Asentado': $lookupKey = 'Asentado_'.$claseName.'_'.$otId; $model = Asentado::class; break;
+                case 'Calificado': $lookupKey = 'Calificado_'.$claseName.'_'.$otId; $model = revCalificado::class; break;
+                case 'Acabado Bombillo': $lookupKey = 'Acabado_Bombillo_'.$claseName.'_'.$otId; $model = AcabadoBombilo::class; break;
+                case 'Acabado Molde': $lookupKey = 'Acabado_Molde_'.$claseName.'_'.$otId; $model = AcabadoMolde::class; break;
+                case 'Barreno Profundidad': $lookupKey = 'Barreno_Profundidad_'.$claseName.'_'.$otId; $model = BarrenoProfundidad::class; break;
+                case 'Cavidades': $lookupKey = 'Cavidades_'.$claseName.'_'.$otId; $model = Cavidades::class; break;
+                case 'Copiado': $lookupKey = 'Copiado_'.$claseName.'_'.$otId; $model = Copiado::class; break;
+                case 'Off Set': $lookupKey = 'Off_Set_'.$claseName.'_'.$otId; $model = OffSet::class; break;
+                case 'Palomas': $lookupKey = 'Palomas_'.$claseName.'_'.$otId; $model = Palomas::class; break;
+                case 'Rebajes': $lookupKey = 'Rebajes_'.$claseName.'_'.$otId; $model = Rebajes::class; break;
+                case 'Embudo CM': $lookupKey = 'Embudo_CM_'.$claseName.'_'.$otId; $model = EmbudoCM::class; break;
+                case 'Primera Operacion Cabeza Soplo': $lookupKey = 'Primera_Operacion_Cabeza_Soplo_'.$claseName.'_'.$otId; $model = PrimeraOperacionCabezaSoplo::class; break;
+                case 'Segunda Operacion Cabeza Soplo': $lookupKey = 'Segunda_Operacion_Cabeza_Soplo_'.$claseName.'_'.$otId; $model = SegundaOperacionCabezaSoplo::class; break;
+            }
+
+            $id_proceso = ($model && $lookupKey) ? ($processLookups[$model][$lookupKey] ?? null) : null;
+            $infoPiezas[$contador][1] = $procName;
+
+            if ($id_proceso) {
+                if (end($pieza) == "mitad") {
+                    $numero = $this->getPiezaNumber($pieza[1]);
+                    $infoPiezas[$contador][0][0] = $numero . "H" . $id_proceso->id;
+                    $infoPiezas[$contador][0][1] = $numero . "M" . $id_proceso->id;
+                } else {
+                    $infoPiezas[$contador][0][0] = $pieza[1] . $id_proceso->id;
+                }
+            } else {
+                $infoPiezas[$contador][0][0] = $pieza[1] . "??";
+            }
+
             $infoPiezas[$contador][2] = $pieza[5];
             $contador++;
         }
@@ -787,8 +765,10 @@ class PzasGeneralesController extends Controller
                 }
                 //Obtener Cotas nominales y tolerancias
                 $id_process = Cepillado::find($pieceInfo[0]->id_proceso);
-                $cNominal = Cepillado_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $tolerance = Cepillado_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
+                $cnRecord = $id_process ? Cepillado_cnominal::where('id_proceso', $id_process->id_proceso)->first() : null;
+                $tolRecord = $id_process ? Cepillado_tolerancia::where('id_proceso', $id_process->id_proceso)->first() : null;
+                $cNominal = $cnRecord ? $cnRecord->toArray() : null;
+                $tolerance = $tolRecord ? $tolRecord->toArray() : null;
                 $process = 'Cepillado';
                 break;
             case 'Desbaste Exterior':
@@ -801,9 +781,10 @@ class PzasGeneralesController extends Controller
                 //Obtener Cotas nominales y tolerancias
                 $id_process = DesbasteExterior::find($pieceInfo[0]->id_proceso);
                 // $cNominal = Desbaste_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $id_process->id_proceso;
-                $cNominal = Desbaste_cnominal::where('id_proceso', $id_process->id_proceso)->first();
-                $tolerance = Desbaste_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
+                $cnRecord = $id_process ? Desbaste_cnominal::where('id_proceso', $id_process->id_proceso)->first() : null;
+                $tolRecord = $id_process ? Desbaste_tolerancia::where('id_proceso', $id_process->id_proceso)->first() : null;
+                $cNominal = $cnRecord ? $cnRecord->toArray() : null;
+                $tolerance = $tolRecord ? $tolRecord->toArray() : null;
                 $process = 'Desbaste Exterior';
                 break;
             case 'Revision Laterales':
@@ -815,8 +796,10 @@ class PzasGeneralesController extends Controller
                 }
                 //Obtener Cotas nominales y tolerancias
                 $id_process = RevLaterales::find($pieceInfo[0]->id_proceso);
-                $cNominal = RevLaterales_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $tolerance = RevLaterales_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
+                $cnRecord = $id_process ? RevLaterales_cnominal::where('id_proceso', $id_process->id_proceso)->first() : null;
+                $tolRecord = $id_process ? RevLaterales_tolerancia::where('id_proceso', $id_process->id_proceso)->first() : null;
+                $cNominal = $cnRecord ? $cnRecord->toArray() : null;
+                $tolerance = $tolRecord ? $tolRecord->toArray() : null;
                 $process = 'Revision Laterales';
                 break;
             case 'Primera Operacion':
@@ -1061,30 +1044,35 @@ class PzasGeneralesController extends Controller
                 $process = 'Rebajes';
                 break;
             case 'Operacion Equipo_1 operacion':
-                //Obtener informacion del juego elegido
-                $pieceInfo = array();
-                $piece = explode(",", $pieces);
-                foreach ($piece as $pza) {
-                    array_push($pieceInfo, PySOpeSoldadura_pza::where('id_pza', $pza)->first());
-                }
-                //Obtener Cotas nominales y tolerancias
-                $id_process = PySOpeSoldadura::find($pieceInfo[0]->id_proceso);
-                $cNominal = PySOpeSoldadura_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $tolerance = PySOpeSoldadura_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $process = 'Operacion Equipo_1 operacion';
-                break;
             case 'Operacion Equipo_2 operacion':
-                //Obtener informacion del juego elegido
+                // Auto-detect class: try CandadoObturador_pza first, fall back to PySOpeSoldadura_pza
                 $pieceInfo = array();
                 $piece = explode(",", $pieces);
                 foreach ($piece as $pza) {
-                    array_push($pieceInfo, PySOpeSoldadura_pza::where('id_pza', $pza)->first());
+                    $p = CandadoObturador_pza::where('id_pza', $pza)->first();
+                    if ($p) {
+                        array_push($pieceInfo, $p);
+                    } else {
+                        $p = PySOpeSoldadura_pza::where('id_pza', $pza)->first();
+                        if ($p) array_push($pieceInfo, $p);
+                    }
                 }
-                //Obtener Cotas nominales y tolerancias
-                $id_process = PySOpeSoldadura::find($pieceInfo[0]->id_proceso);
-                $cNominal = PySOpeSoldadura_cnominal::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $tolerance = PySOpeSoldadura_tolerancia::where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $process = 'Operacion Equipo_2 operacion';
+                if (empty($pieceInfo)) {
+                    return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
+                }
+                // Detect model based on first piece class
+                if ($pieceInfo[0] instanceof CandadoObturador_pza) {
+                    $id_process = CandadoObturador::find($pieceInfo[0]->id_proceso);
+                    $cnRecord = $id_process ? CandadoObturador_cnominal::where('id_proceso', $id_process->id_proceso)->first() : null;
+                    $tolRecord = $id_process ? CandadoObturador_tolerancia::where('id_proceso', $id_process->id_proceso)->first() : null;
+                } else {
+                    $id_process = PySOpeSoldadura::find($pieceInfo[0]->id_proceso);
+                    $cnRecord = $id_process ? PySOpeSoldadura_cnominal::where('id_proceso', $id_process->id_proceso)->first() : null;
+                    $tolRecord = $id_process ? PySOpeSoldadura_tolerancia::where('id_proceso', $id_process->id_proceso)->first() : null;
+                }
+                $cNominal = $cnRecord ? $cnRecord->toArray() : null;
+                $tolerance = $tolRecord ? $tolRecord->toArray() : null;
+                // $process is already preserved as the function argument
                 break;
             case 'Embudo CM':
                 //Obtener informacion de la pieza elegida
@@ -1820,30 +1808,42 @@ class PzasGeneralesController extends Controller
                         break;
                     case "operacionEquipo":
                         $metas = Metas::where('id_clase', $clase->id)->get();
-                        if (count($metas) > 0) {
+                        if ($metas->isNotEmpty()) {
+                            $metaIds = $metas->pluck('id');
+                            $userIds = $metas->unique('id_usuario')->pluck('id_usuario');
+                            $usersMap = User::whereIn('matricula', $userIds)->get()->keyBy('matricula');
+
+                            if ($clase->nombre == 'Candado Obturador') {
+                                $allPieces = CandadoObturador_pza::whereIn('id_meta', $metaIds)->where('estado', '!=', 0)->get();
+                                $opIds = $allPieces->unique('id_proceso')->pluck('id_proceso');
+                                $opsMap = CandadoObturador::whereIn('id', $opIds)->get()->keyBy('id');
+                            } else {
+                                $allPieces = PySOpeSoldadura_pza::whereIn('id_meta', $metaIds)->where('estado', '!=', 0)->get();
+                                $opIds = $allPieces->unique('id_proceso')->pluck('id_proceso');
+                                $opsMap = PySOpeSoldadura::whereIn('id', $opIds)->get()->keyBy('id');
+                            }
+
+                            // Group pieces by meta to easily access them in the loop
+                            $piecesByMeta = $allPieces->groupBy('id_meta');
+
                             $pzasNoCero = 0;
                             foreach ($metas as $meta) {
-                                $piezas = PySOpeSoldadura_pza::where('id_meta', $meta->id)->get();
-                                if (count($piezas) > 0) {
-                                    foreach ($piezas as $pieza) {
-                                        if ($pieza->estado != 0) {
-                                            //Obtener usuario
-                                            $user = User::where('matricula', $meta->id_usuario)->first();
-                                            //Obtener operacion
-                                            $operacion = PySOpeSoldadura::find($pieza->id_proceso);
-                                            $operacion = $operacion->operacion;
-                                            if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "---", $meta->maquina, $operacion);
-                                            } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "Terminada", $meta->maquina, $operacion);
-                                            }
-                                            $pzasNoCero++;
-                                        }
-                                    }
+                                $piezas = $piecesByMeta->get($meta->id, collect());
+                                $user = $usersMap->get($meta->id_usuario);
+
+                                foreach ($piezas as $pieza) {
+                                    $operacionRecord = $opsMap->get($pieza->id_proceso);
+                                    $operacionName = $operacionRecord ? $operacionRecord->operacion : "---";
+                                    $userName = $user ? "{$user->nombre} {$user->a_paterno} {$user->a_materno}" : "---";
+
+                                    $estadoStr = ($pieza->estado == 1) ? "---" : "Terminada";
+                                    $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $userName, $estadoStr, $meta->maquina, $operacionName];
+                                    $pzasNoCero++;
                                 }
                             }
+                            
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][0] = array("---", "---", "---", "---");
                             }
                         } else {
                             $procesos[$indice][1][0] = array("---", "---", "---", "---");

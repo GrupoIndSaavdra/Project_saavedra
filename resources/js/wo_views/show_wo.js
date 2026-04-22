@@ -53,7 +53,7 @@ function get_inputAttributes(workOrder, molding, value = null) {
                 name: "class",
                 class: "classes",
             },
-            options: ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo"],
+            options: ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo", "Candado Obturador"],
         },
         size: {
             label: "Seleccione el tamaño",
@@ -717,6 +717,10 @@ function get_operationsArray(className) {
         case "Cabeza de Soplo":
             operations = ["Primera Operacion", "Segunda Operacion"];
             operationsArray = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+            break;
+        case "Candado Obturador":
+            operations = ["1ra y 2da Operación Equipo"];
+            operationsArray = ["operacionEquipo"];
             break;
     }
     return [operations, operationsArray];
