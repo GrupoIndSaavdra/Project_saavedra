@@ -490,6 +490,11 @@ body {
     background: #006943 !important; /* Verdecito Base */
 }
 
+.dibujos-file-card:hover .btn-alerta-fund {
+    border: 2px solid #4caf50;
+    background: #2e7d32 !important; /* Verde Alerta Base */
+}
+
 .dibujos-file-card:hover .btn-reemplazar {
     border: 2px solid #ffc107;
     background: #b8860b !important; /* Amarillo/Dorado Fuerte Base */
@@ -526,6 +531,13 @@ body {
     background: #00d06f !important;
     transform: scale(1.05) translateY(-2px);
     box-shadow: 0 6px 18px rgba(0, 208, 111, 0.4) !important;
+}
+
+.dibujos-file-card .btn-alerta-fund:hover {
+    border: 2px solid #4caf50;
+    background: #4caf50 !important;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 18px rgba(76, 175, 80, 0.4) !important;
 }
 
 .dibujos-file-card .btn-reemplazar:hover {
@@ -671,6 +683,23 @@ body {
     }
 }
 
+.dibujos-spinner-sm {
+    border-width: 2px;
+    width: 14px;
+    height: 14px;
+}
+
+.icon-btn-alerta {
+    width: 14px;
+    vertical-align: middle;
+}
+
+/* Cuando se usa dentro de .btn-action-icon se ajusta el tamaño */
+.btn-action-icon.btn-alerta-fund img {
+    width: 44px;
+    height: 44px;
+}
+
 /* ── Log de auditoría ── */
 .dibujos-log-table {
     width: 100%;
@@ -720,6 +749,10 @@ body {
 .action-badge.reemplazar_pdf {
     background: #fff3cd;
     color: #856404;
+}
+.action-badge.enviar_alerta {
+    background: #fff8f0;
+    color: #ff8c00;
 }
 
 /* ── Clases de Utilidad para Limpieza de Estilos Inline ── */
@@ -880,6 +913,28 @@ body {
 }
 
 .btn-eliminar-carpeta:hover img {
+    filter: none; /* Icono a color original en hover */
+}
+
+/* Tema Naranja/Amber (Enviar Alerta) */
+.btn-alerta-fund {
+    background: #ff8c00;
+    border-color: #e67e00;
+    color: #fff;
+}
+
+.btn-alerta-fund img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-alerta-fund:hover {
+    background: #fff8f0;
+    color: #ff8c00;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(255, 140, 0, 0.15);
+}
+
+.btn-alerta-fund:hover img {
     filter: none; /* Icono a color original en hover */
 }
 

@@ -59,6 +59,20 @@
                         </select>
                     </div>
 
+                @elseif($moduleType === 'fundicion')
+                    {{-- Selector de OT (sin clase) --}}
+                    <div class="dibujos-form-group">
+                        <label for="ot-select">Orden de Trabajo (OT)</label>
+                        <select id="ot-select" onchange="changeDocSelector('ot_id', this.value)">
+                            <option value="">— Seleccionar OT —</option>
+                            @foreach($todasLasOTs as $otOpt)
+                                <option value="{{ $otOpt->id }}" {{ $otSeleccionadaId == $otOpt->id ? 'selected' : '' }}>
+                                    OT {{ $otOpt->id }}{{ $otOpt->moldura ? ' — ' . $otOpt->moldura->nombre : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                 @elseif($moduleType === 'manuales')
                     {{-- Selector de Proceso --}}
                     <div class="dibujos-form-group">
@@ -131,6 +145,19 @@
                         $folderPathLabel = $procesoActivo->nombre . " / " . $claseActiva->nombre;
                         $carpetaExiste = isset($estructura[$param2Name]) && in_array($param1Name, $estructura[$param2Name]);
                         $folderProps = ['data-proceso' => $param1Name, 'data-clase' => $param2Name];
+                    } elseif ($moduleType === 'fundicion' && $otSeleccionadaId && $otActiva) {
+                        $isReady = true;
+                        $param1Name = (string) $otActiva->id;
+                        $folderPathLabel = "OT " . $otActiva->id . ($otActiva->moldura ? " — " . $otActiva->moldura->nombre : "");
+                        
+                        // En fundicion, la estructura es lineal (solo OTs en raiz)
+                        // Para armar el nombre correcto como devuelve buildStructure
+                        $expectedFolderName = "OT " . $otActiva->id . ($otActiva->moldura ? " - " . $otActiva->moldura->nombre : "");
+                        // sanear
+                        $expectedFolderName = trim(preg_replace('/[\/\\\\]/', '', preg_replace('/\.\.+/', '', $expectedFolderName)));
+                        $carpetaExiste = in_array($expectedFolderName, $estructura);
+                        
+                        $folderProps = ['data-ot' => $param1Name];
                     }
                 @endphp
 
@@ -217,6 +244,8 @@
                                 @if($moduleType === 'dibujos')
                                     <th class="d-text-center">Orden de Trabajo</th>
                                     <th class="d-text-center">Clase</th>
+                                @elseif($moduleType === 'fundicion')
+                                    <th class="d-text-center">Orden de Trabajo</th>
                                 @elseif($moduleType === 'manuales')
                                     <th class="d-text-center">Proceso</th>
                                 @elseif($moduleType === 'ayudas')
@@ -301,6 +330,40 @@
                                                 </button>
                                                 <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                                                     onclick="confirmarEliminarCarpeta('{{ $procesoName }}', null, '{{ $procesoName }}')">
+                                                    <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
+                                                    <span>Eliminar</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            @elseif($moduleType === 'fundicion')
+                                @foreach($estructura as $otName)
+                                    @php
+                                        preg_match('/OT\s*(\d+)/', $otName, $matches);
+                                        $otIdNumber = isset($matches[1]) ? (int)$matches[1] : 0;
+                                        $otReal = $otIdNumber > 0 ? $todasLasOTs->firstWhere('id', $otIdNumber) : null;
+                                        $otLabel = $otReal ? ("OT " . $otReal->id . ($otReal->moldura ? " — " . $otReal->moldura->nombre : "")) : $otName;
+                                        $otIdBD = $otReal ? $otReal->id : null;
+                                        $badgeId = "badge-" . Str::slug($otName);
+                                    @endphp
+                                    <tr data-ot="{{ $otName }}">
+                                        <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
+                                        <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
+                                        <td class="d-text-center">
+                                            <div class="td-actions">
+                                                <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
+                                                    onclick="irACarpeta('{{ $otIdBD ?? $otName }}', null, {{ $otIdBD ? 'true' : 'false' }})">
+                                                    <img src="{{ asset('images/documento.png') }}" alt="Ver">
+                                                    <span>Ver</span>
+                                                </button>
+                                                <button class="btn-action-icon btn-alerta-fund" title="Enviar correo de alerta"
+                                                    onclick="enviarAlertaFundicion(null, '{{ $otName }}', this)">
+                                                    <img src="{{ asset('images/enviando.png') }}" alt="Alerta">
+                                                    <span>Enviar Correo</span>
+                                                </button>
+                                                <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
+                                                    onclick="confirmarEliminarCarpeta('{{ $otName }}', null, '{{ $otLabel }}')">
                                                     <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
                                                     <span>Eliminar</span>
                                                 </button>
@@ -440,6 +503,9 @@
             window.activeParam2 = @json($claseActiva?->nombre ?? null);
         @elseif($moduleType === 'manuales')
             window.activeParam1 = @json($procesoActivo?->nombre ?? null);
+            window.activeParam2 = null;
+        @elseif($moduleType === 'fundicion')
+            window.activeParam1 = @json($otActiva?->id ?? null);
             window.activeParam2 = null;
         @elseif($moduleType === 'ayudas')
             window.activeParam1 = @json($procesoActivo?->nombre ?? null);
