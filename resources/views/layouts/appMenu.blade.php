@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
     @vite(['resources/css/layouts/appMenu.css', 'resources/js/layouts/appMenu.js'])
     @yield('head')
     <script>
