@@ -3,6 +3,7 @@
 <!--Estilos y codigo JS-->
 @section('head')
     <title>Producción</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite(['resources/css/processes_views/processProduction.css', 'resources/js/processes_views/processProduction.js'])
 @endsection
 

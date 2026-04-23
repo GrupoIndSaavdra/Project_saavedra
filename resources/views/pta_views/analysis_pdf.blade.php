@@ -7,6 +7,7 @@
     <style>
         {!! file_get_contents(resource_path('css/pta_views/analysis_pdf.css')) !!}
     </style>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 </head>
 
 <body>

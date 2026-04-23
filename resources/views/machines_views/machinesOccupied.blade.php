@@ -2,6 +2,7 @@
 
 @section('head')
 <title>Maquinas Ocupadas</title>
+<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 @vite(['resources/css/machines_views/machinesOccupied.css', 'resources/js/machines_views/machinesOccupied.js'])
 @endsection
 

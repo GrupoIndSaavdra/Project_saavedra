@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     <meta charset="utf-8">
     <title>QRs Individuales - {{ $lote->matricula }}</title>
     <style>

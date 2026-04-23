@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Informacion de la orden de trabajo</title>
 </head>

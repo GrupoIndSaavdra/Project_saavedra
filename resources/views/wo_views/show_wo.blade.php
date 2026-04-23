@@ -2,6 +2,7 @@
 
 @section('head')
 <title>Orden de trabajo</title>
+<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 <script>
     //Rutas de imagenes
     window.deleteImgUrl = "{{ asset('images/delete.png') }}";

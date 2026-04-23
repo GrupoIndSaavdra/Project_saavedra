@@ -2,6 +2,7 @@
 
 @section('head')
     <title>{{ $pageTitle ?? 'Gestión de Documentación' }}</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite([
         'resources/css/wo_views/manage_documentation.css',
         'resources/js/wo_views/manage_documentation.js'

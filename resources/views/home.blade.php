@@ -2,6 +2,7 @@
 
 @section('head')
     <title>Inicio</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     <!--Styles-->
     @vite(['resources/css/home.css', 'resources/js/home.js'])
 

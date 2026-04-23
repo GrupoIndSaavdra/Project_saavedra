@@ -2,6 +2,7 @@
 
 @section('head')
 <title>Editar molduras</title>
+<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 @vite(['resources/css/moldings_views/edit_molding.css', 'resources/js/moldings_views/edit_molding.js'])
 <script>
     window.baseUrl = "{{ url('/') }}";

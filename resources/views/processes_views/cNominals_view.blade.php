@@ -3,6 +3,7 @@
 <!--Estilos y codigo JS-->
 @section('head')
 <title>C.Nominales y tolerancias</title>
+<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 @vite(['resources/css/processes_views/cNominals_view.css', 'resources/js/processes_views/cNominals_view.js'])
 @endsection
 

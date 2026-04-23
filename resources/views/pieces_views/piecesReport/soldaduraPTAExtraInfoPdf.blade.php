@@ -3,6 +3,7 @@
 
 <head>
     <title>Reporte Soldadura PTA - Información Detallada</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     <link rel="stylesheet" href="{{ public_path('css/pieces_views/piecesReport/soldaduraPTAExtraInfoPdf.css') }}">
 </head>
 

@@ -3,6 +3,7 @@
 <!--Estilos y codigo JS-->
 @section('head')
 <title>Tiempos de producción</title>
+<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 @vite(['resources/css/processes_views/productionTimes.css', 'resources/js/processes_views/productionTimes.js'])
 @endsection
 

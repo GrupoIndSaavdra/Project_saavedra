@@ -2,6 +2,7 @@
 
 @section('head')
     <title>Regenerar QRs</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite(['resources/css/trackingSoldadura_views/regenerarQR.css'])
 @endsection
 

@@ -2,6 +2,7 @@
 
 @section('head')
     <title>Reporte de piezas</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite(['resources/css/pieces_views/piecesReport/adminPieces.css', 'resources/js/pieces_views/piecesReport/adminPieces.js'])
 @endsection
 <script>
