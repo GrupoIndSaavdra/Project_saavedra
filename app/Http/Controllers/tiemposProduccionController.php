@@ -67,7 +67,7 @@ class tiemposProduccionController extends Controller
         switch ($class->nombre) {
             case "Bombillo":
                 return match ($class->tamanio) {
-                    'Chico' => ['Cepillado' => 35, 'Desbaste Exterior' => 26, 'Revision Laterales' => 20, 'Primera Operacion' => 24, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 24, 'Soldadura' => 24, 'Soldadura PTA' => 24, 'Rectificado' => 12, 'Asentado' => 20, 'Calificado' => 22, 'Acabado Bombillo' => 25, 'Barreno Profundidad' => 27, 'Cavidades' => 42, 'Copiado' => 27, 'Off Set' => 16, 'Palomas' => 12, 'Rebajes' => 20, 'Grabado' => 12,],
+                    'Chico' => ['Cepillado' => 52, 'Desbaste Exterior' => 22, 'Revision Laterales' => 20, 'Primera Operacion' => 24, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 24, 'Soldadura' => 24, 'Soldadura PTA' => 24, 'Rectificado' => 12, 'Asentado' => 20, 'Calificado' => 22, 'Acabado Bombillo' => 25, 'Barreno Profundidad' => 27, 'Cavidades' => 42, 'Copiado' => 27, 'Off Set' => 16, 'Palomas' => 12, 'Rebajes' => 20, 'Grabado' => 12,],
 
                     'Mediano' => ['Cepillado' => 60, 'Desbaste Exterior' => 30, 'Revision Laterales' => 24, 'Primera Operacion' => 28, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 28, 'Soldadura' => 30, 'Soldadura PTA' => 30, 'Rectificado' => 13, 'Asentado' => 24, 'Calificado' => 24, 'Acabado Bombillo' => 27, 'Barreno Profundidad' => 40, 'Cavidades' => 34, 'Copiado' => 29, 'Off Set' => 16, 'Palomas' => 12, 'Rebajes' => 20, 'Grabado' => 12,],
 
@@ -77,7 +77,7 @@ class tiemposProduccionController extends Controller
 
             case "Molde":
                 return match ($class->tamanio) {
-                    'Chico' => ['Cepillado' => 53, 'Desbaste Exterior' => 26, 'Revision Laterales' => 20, 'Primera Operacion' => 20, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 24, 'Soldadura' => 24, 'Soldadura PTA' => 24, 'Rectificado' => 12, 'Asentado' => 20, 'Calificado' => 22, 'Acabado Molde' => 24, 'Barreno Profundidad' => 28, 'Cavidades' => 21, 'Copiado' => 0, 'Off Set' => 0, 'Palomas' => 0, 'Rebajes' => 0, 'Grabado' => 0,],
+                    'Chico' => ['Cepillado' => 53, 'Desbaste Exterior' => 22, 'Revision Laterales' => 20, 'Primera Operacion' => 20, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 24, 'Soldadura' => 24, 'Soldadura PTA' => 24, 'Rectificado' => 12, 'Asentado' => 20, 'Calificado' => 22, 'Acabado Molde' => 24, 'Barreno Profundidad' => 28, 'Cavidades' => 21, 'Copiado' => 0, 'Off Set' => 0, 'Palomas' => 0, 'Rebajes' => 0, 'Grabado' => 0,],
 
                     'Mediano' => ['Cepillado' => 64, 'Desbaste Exterior' => 30, 'Revision Laterales' => 24, 'Primera Operacion' => 24, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 28, 'Soldadura' => 30, 'Soldadura PTA' => 30, 'Rectificado' => 13, 'Asentado' => 24, 'Calificado' => 24, 'Acabado Molde' => 26, 'Barreno Profundidad' => 40, 'Cavidades' => 17, 'Copiado' => 0, 'Off Set' => 0, 'Palomas' => 0, 'Rebajes' => 0, 'Grabado' => 0,],
 
@@ -85,8 +85,20 @@ class tiemposProduccionController extends Controller
                     default => null,
                 };
             case "Obturador":
+                    return match ($class->tamanio) {
+                        'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Soldadura' => 30, 'Soldadura PTA' => 15],
+                        default => null,
+                    };
             case "Fondo":
+                return match ($class->tamanio) {
+                        'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Soldadura' => 30, 'Soldadura PTA' => 15],
+                        default => null,
+                    };
             case "Embudo":
+                return match ($class->tamanio) {
+                        'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Soldadura' => 30, 'Soldadura PTA' => 15],
+                        default => null,
+                    };
             case "Candado Obturador":
                 return match ($class->tamanio) {
                     'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Soldadura' => 30, 'Soldadura PTA' => 15],
