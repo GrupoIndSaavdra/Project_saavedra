@@ -2647,30 +2647,56 @@ class ProcessProductionController extends Controller
             $claseObj = Clase::find($meta->id_clase);
             $classLabel = $claseObj ? $claseObj->nombre : $meta->id_clase;
 
-            // --- LOG 1: RESULTADOS DE PRODUCCIÓN (VERDE / ROJO / AMARILLO) ---
+            // Determinar la acción principal para el log
+            $mainAction = 'Liberación por Calidad';
+            if ($statusCounts[2] > 0 && $statusCounts[1] == 0) {
+                $mainAction = 'Rechazo por Calidad';
+            }
+
+            // Recopilar todos los números de juegos/piezas afectados
+            $allAffectedNums = [];
+            foreach ([1, 2, 5] as $status) {
+                if (!empty($statusPieceNumbers[$status])) {
+                    $allAffectedNums = array_merge($allAffectedNums, $statusPieceNumbers[$status]);
+                }
+            }
+            $cleanAffected = implode(', ', array_unique($allAffectedNums));
+
+            // Obtener h_inicio del usuario (operador)
+            $user = auth()->user();
+            $h_inicio = $user->prod_start_at ? \Carbon\Carbon::parse($user->prod_start_at)->format('H:i:s') : 'N/A';
+            $h_termino = now()->format('H:i:s');
+
+            // --- LOG 1: RESULTADOS DE PRODUCCIÓN (Liberación o Rechazo) ---
             SystemLog::create([
-                'user_matricula' => auth()->user()->matricula,
-                'action' => 'Proceso Correcto',
+                'user_matricula' => $user->matricula,
+                'action' => $mainAction,
                 'details' => "El inspector <b>{$qualityName}</b> finalizó la revisión de los juegos con {$introText}: {$narrative}.",
                 'ot' => $otLabel,
                 'clase' => $classLabel,
                 'proceso' => $meta->proceso,
                 'maquina' => $meta->maquina,
-                'h_inicio' => 'N/A',
-                'h_termino' => 'N/A'
+                'n_pieza' => $cleanAffected ?: 'N/A',
+                'h_inicio' => $h_inicio,
+                'h_termino' => $h_termino,
+                'id_ot' => $meta->id_ot,
+                'id_clase' => $meta->id_clase
             ]);
 
-            // --- LOG 2: CIERRE DE INTERFAZ (AZUL) ---
+            // --- LOG 2: CIERRE DE INTERFAZ (Abandono de Liberación) ---
             SystemLog::create([
-                'user_matricula' => auth()->user()->matricula,
+                'user_matricula' => $user->matricula,
                 'action' => 'Abandono de Liberación',
                 'details' => "El inspector <b>{$qualityName}</b> finalizó el registro y cerró la interfaz de calidad.",
                 'ot' => $otLabel,
                 'clase' => $classLabel,
                 'proceso' => $meta->proceso,
                 'maquina' => $meta->maquina,
-                'h_inicio' => 'N/A',
-                'h_termino' => 'N/A'
+                'n_pieza' => $cleanAffected ?: 'N/A',
+                'h_inicio' => $h_inicio,
+                'h_termino' => $h_termino,
+                'id_ot' => $meta->id_ot,
+                'id_clase' => $meta->id_clase
             ]);
 
         } else {

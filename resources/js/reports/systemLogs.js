@@ -164,7 +164,7 @@ function createFilters() {
                     "Selección de OT": { color: "#AED6F1" },
                     "Selección de Clase": { color: "#AED6F1" },
                     "Selección de Proceso": { color: "#AED6F1" },
-                    "Abandono de Liberación": { color: "#AED6F1" },
+                    "Abandono de Liberación": { color: "#D7BDE2" },
                     "Inicio de Sesión": { color: "#3498DB", dark: true },
                     "Nuevo reporte": { color: "#3498DB", dark: true },
                     "Inicio de Reporte": { color: "#3498DB", dark: true },
@@ -190,7 +190,8 @@ function createFilters() {
                     "Consulta Dibujos Técnicos": { color: "#D7BDE2" },
                     "Solicitud Edición de Piezas": { color: "#8E44AD", dark: true },
                     "Intento de Liberación": { color: "#512E5F", dark: true },
-                    "Liberación por Calidad": { color: "#6C3483", dark: true },
+                    "Liberación por Calidad": { color: "#D5F5E3" },
+                    "Rechazo por Calidad": { color: "#FADBD8" },
 
                     // ROJO
                     "Exceso de Tiempo": { color: "#F5B7B1" },
@@ -402,7 +403,8 @@ function crearTabla(logs, append = false) {
         "Cambio de Catálogo": "#D7BDE2",
         "Edición de Piezas en Reporte": "#8E44AD", // Morado Normal
         "Solicitud Edición de Piezas": "#8E44AD",
-        "Liberación por Calidad": "#6C3483", // Morado Medio (Calidad)
+        "Liberación por Calidad": "#D5F5E3", // Verde Claro (Éxito Calidad)
+        "Rechazo por Calidad": "#FADBD8",   // Rojo Claro (Falla Calidad)
         "Intento de Liberación de Calidad": "#512E5F", // Morado Oscuro
         "Intento de Liberación": "#512E5F",
 
@@ -502,6 +504,11 @@ function crearTabla(logs, append = false) {
                                 '<span style="color:#B7950B; font-weight:bold; margin-left:12px;">Incompletas: $1 <small>$2</small></span>');
                         }
                     }
+
+                    // Resaltado para Liberaciones/Rechazos de Calidad
+                    content = content.replace(/LIBERADA/g, '<b style="color:#1D8348;">LIBERADA</b>');
+                    content = content.replace(/RECHAZADA/g, '<b style="color:#943126;">RECHAZADA</b>');
+
                     return content;
                 })()}
                     ${(log.action === "Captura Sospechosa" || (log.action === "Captura Medida" && log.is_suspicious))
@@ -514,14 +521,17 @@ function crearTabla(logs, append = false) {
                 </td>
                 <td>${esc(log.ot)}</td>
                 <td>
-                    ${(() => {
                     let rawPieza = log.n_juego ? String(log.n_juego).trim().toUpperCase() : "";
-                    // Si contiene una diagonal o está vacío, poner N/A
-                    if (!rawPieza || rawPieza.includes('/')) return "N/A";
+                    if (!rawPieza || rawPieza === "N/A") return "N/A";
 
-                    // Extraer el número y siempre ponerle la J
-                    let numero = rawPieza.replace(/[A-Z]/g, '');
-                    return numero + "J";
+                    // Si contiene comas (es una lista) o ya tiene letras al final, dejarlo casi tal cual
+                    if (rawPieza.includes(',') || rawPieza.endsWith('H') || rawPieza.endsWith('M') || rawPieza.endsWith('J')) {
+                        return rawPieza;
+                    }
+
+                    // Si es solo número solo, ponerle la J
+                    let numero = rawPieza.replace(/[^0-9]/g, '');
+                    return numero ? numero + "J" : rawPieza;
                 })()}
                 </td>
                 <td>${esc(log.hora_inicio)}</td>

@@ -181,10 +181,9 @@
                     <td>Autorizaciones y Edición de Reporte</td>
                 </tr>
 
-                <!-- Familia Morada -->
+                <!-- Familia Morada (Auditoría / Calidad / Dibujos) -->
                 <tr class="level-toggle" data-level="morado" style="cursor: pointer;">
-                    <th colspan="2" style="background-color: #512E5F; color: #ffffff;">Logs Morados (Dibujos / Edición)
-                        <span class="arrow">▶</span></th>
+                    <th colspan="2" style="background-color: #512E5F; color: #ffffff;">Auditoría de Calidad y Dibujos <span class="arrow">▶</span></th>
                 </tr>
                 <tr class="level-row level-morado" style="display: none;">
                     <td style="background-color: #D7BDE2; color: black;">Morado Claro</td>
@@ -197,6 +196,14 @@
                 <tr class="level-row level-morado" style="display: none;">
                     <td style="background-color: #512E5F; color: white;">Morado Oscuro</td>
                     <td>Intento de Liberación de Calidad</td>
+                </tr>
+                <tr class="level-row level-morado" style="display: none;">
+                    <td style="background-color: #D5F5E3; color: black;">Verde Claro</td>
+                    <td>Liberación por Calidad (Correcto)</td>
+                </tr>
+                <tr class="level-row level-morado" style="display: none;">
+                    <td style="background-color: #FADBD8; color: black;">Rojo Claro</td>
+                    <td>Rechazo por Calidad (Error)</td>
                 </tr>
 
                 <!-- Familia Roja -->
