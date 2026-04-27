@@ -173,29 +173,34 @@
             @for ($i = 0; $i < count($pieces); $i++)
                 <!--Definicion del color de la columna con respecto a sus liberaciones y errores-->
                 <?php
-                $colorColumn;
-                $indexLiberation = $pieces[$i][4] == 'Operacion Equipo' ? 10 : 9;
-                $indexError = $pieces[$i][4] == 'Operacion Equipo' ? 6 : 5;
+                $colorColumn = '#FFFFFF'; // default blanco
+                $indexLiberation = (str_contains($pieces[$i][4] ?? '', 'Operacion Equipo')) ? 10 : 9;
+                $indexError      = (str_contains($pieces[$i][4] ?? '', 'Operacion Equipo')) ? 6 : 5;
+                $libVal = $pieces[$i][$indexLiberation] ?? null;
+                $errVal = $pieces[$i][$indexError] ?? 'Ninguno';
                 switch (true) {
-                    case $pieces[$i][9] == 1:
-                        $colorColumn = '#79BFED'; // Azul
+                    case $libVal == 1:
+                        $colorColumn = '#79BFED'; // Azul - Liberado
                         break;
-                    case $pieces[$i][9] == 2:
-                        $colorColumn = '#EC7063'; // Rojo
+                    case $libVal == 2:
+                        $colorColumn = '#FF6B6B'; // Rojo - Rechazado
                         break;
-                    case $pieces[$i][9] == 0:
-                        $colorColumn = match ($pieces[$i][5]) {
-                            'Incompleto' => '#FFFF99', // Amarillo
-                            'Ninguno' => '#ACF980A8', // Verde
-                            default => '#E59CFF', // Morado
-                        };
+                    default:
+                        if (str_contains($errVal, 'Incompleto')) {
+                            $colorColumn = '#FFD700'; // Amarillo - Incompleto
+                        } elseif ($errVal === 'Ninguno') {
+                            $colorColumn = '#90EE90'; // Verde - Buena sin liberación
+                        } else {
+                            $colorColumn = '#DDA0DD'; // Morado - Mala sin liberación
+                        }
                         break;
                 }
                 ?>
 
                 <tr style="background-color: {{ $colorColumn }}">
-                    @for ($j = 1; $j < count($pieces[$i]) - 6; $j++)
-                        <td>{{ $pieces[$i][$j] }}</td>
+                    {{-- Columnas fijas visibles: [1]=Juego [2]=Operador [3]=Maquina [4]=Proceso [5]=Error [6]=Fecha maquinado [7]=Fecha liberacion [8]=Liberado por --}}
+                    @for ($j = 1; $j <= 8; $j++)
+                        <td>{{ $pieces[$i][$j] ?? '' }}</td>
                     @endfor
                 </tr>
             @endfor

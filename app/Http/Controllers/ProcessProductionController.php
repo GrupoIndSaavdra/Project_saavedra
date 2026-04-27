@@ -2664,7 +2664,7 @@ class ProcessProductionController extends Controller
 
             // Obtener h_inicio del usuario (operador)
             $user = auth()->user();
-            $h_inicio = $user->prod_start_at ? \Carbon\Carbon::parse($user->prod_start_at)->format('H:i:s') : 'N/A';
+            $h_inicio = $user->prod_start_at ? Carbon::parse($user->prod_start_at)->format('H:i:s') : 'N/A';
             $h_termino = now()->format('H:i:s');
 
             // --- LOG 1: RESULTADOS DE PRODUCCIÓN (Liberación o Rechazo) ---
