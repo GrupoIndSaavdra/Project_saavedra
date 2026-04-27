@@ -594,7 +594,11 @@ function applyAllFilters() {
             if (dsWo !== fWo && dsId !== fId) show = false;
         }
         if (f.class && f.class !== "Todos" && String(ds.class).trim() !== f.class) show = false;
-        if (f.operator && f.operator !== "Todos" && String(ds.operator).trim() !== f.operator) show = false;
+        if (f.operator && f.operator !== "Todos") {
+            let rowOperators = String(ds.operator).split('/').map(op => op.trim());
+            if (!rowOperators.includes(f.operator)) show = false;
+        }
+
 
         if (f.machine && f.machine !== "Todos") {
             let mach = f.machine.replace(" y ", "_");
