@@ -4,6 +4,7 @@
 <head>
     <title>Reporte de Soldadura - Información Extra</title>
     <link rel="stylesheet" href="{{ public_path('css/pieces_views/piecesReport/soldaduraExtraInfoPdf.css') }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
 </head>
 
 <body>

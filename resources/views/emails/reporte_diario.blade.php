@@ -12,6 +12,7 @@
     <style>
         {!! file_get_contents(resource_path('css/reportes/email.css')) !!}
     </style>
+    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
 </head>
 
 <body>

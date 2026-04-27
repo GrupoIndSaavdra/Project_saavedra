@@ -7,6 +7,7 @@
     <title>Piezas en máquinas</title>
     @vite('resources/css/maquinas.css')
     <link rel="stylesheet" href="{{asset('bootstrap/css/bootstrap.min.css')}}">
+    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
 </head>
 
 <body background="{{ asset('images/fondoLogin.jpg') }}">
