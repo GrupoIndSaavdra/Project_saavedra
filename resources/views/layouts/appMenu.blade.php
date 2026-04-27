@@ -6,8 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+<<<<<<< HEAD
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+=======
+
+    @vite(['resources/css/layouts/appMenu.css', 'resources/js/layouts/appMenu.js', 'resources/js/layouts/productivity.js', 'resources/css/layouts/partials/messages.css', 'resources/js/layouts/partials/messages.js'])
+
+    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
+>>>>>>> origin/dev/changues
     @vite(['resources/css/layouts/appMenu.css', 'resources/js/layouts/appMenu.js'])
+
     @yield('head')
     <script>
         window.loading = "{{ asset('images/loading.gif') }}"
@@ -53,7 +61,7 @@
 
 <!--Creacion de rutas de laravel para pasarlas a JS-->
 <script>
-window.routes = {
+    window.routes = {
         ...(window.routes || {}),
         home: @json(route('home')),
         createMolding: @json(route('createMolding')),
@@ -84,7 +92,8 @@ window.routes = {
         'dibujos.manage': @json(route('dibujos.manage')),
         'fundicion.manage': @json(route('fundicion.manage')),
         'manuales.manage': @json(route('manuales.manage')),
-        'ayudas.manage': @json(route('ayudas.manage'))
+        'ayudas.manage': @json(route('ayudas.manage')),
+        systemLogsReport: @json(route('systemLogsReport'))
     };
 </script>
 @isset($pieces_Released)

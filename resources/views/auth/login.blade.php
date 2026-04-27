@@ -6,7 +6,12 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<<<<<<< HEAD
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+=======
+    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
+
+>>>>>>> origin/dev/changues
     <!-- Bootstrap CSS v5.2.1 -->
     <link rel="stylesheet" href="{{asset('bootstrap/css/bootstrap.min.css')}}">
     <!-- Link estilos de CSS -->

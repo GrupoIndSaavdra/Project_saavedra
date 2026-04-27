@@ -427,6 +427,18 @@ class PzasGeneralesController extends Controller
         $contador       = 0;
         $mitad          = false;
 
+        // ── OPTIMIZACIÓN DE METAS (TIEMPOS) ──
+        $otsArray = collect($arrayP)->pluck('id_ot')->unique();
+        $clasesArray = collect($arrayP)->pluck('id_clase')->unique();
+
+        $metasDB = \App\Models\Metas::whereIn('id_ot', $otsArray)
+                                    ->whereIn('id_clase', $clasesArray)
+                                    ->get();
+
+        $metasCruzadas = collect($metasDB)->groupBy(function($m) {
+            return $m->id_ot . '_' . $m->id_clase . '_' . $m->proceso . '_' . $m->fecha;
+        });
+
         foreach ($arrayP as $item) {
             if (in_array($item->id_clase, $finishedClassIds)) {
                 continue;
@@ -542,8 +554,27 @@ class PzasGeneralesController extends Controller
                 $array[$contador][4] = $item->proceso;
                 $date                = new \DateTime($item->created_at);
                 $array[$contador][6] = $date->format('Y-m-d H:i:s');
+
+                $metaKey = $item->id_ot . '_' . $item->id_clase . '_' . $item->proceso . '_' . $date->format('Y-m-d');
+                $mMatchGroup = $metasCruzadas->get($metaKey, collect());
+                $mMatch = $mMatchGroup->first(); // Tomar primera coincidencia de la meta por turno/proceso
+                
+                if ($mMatch && $mMatch->h_inicio && $mMatch->h_termino) {
+                    $array[$contador]['hora_inicio'] = $mMatch->h_inicio;
+                    $array[$contador]['hora_termino'] = $mMatch->h_termino;
+                    
+                    $inicioStr = new \DateTime($mMatch->h_inicio);
+                    $terminoStr = new \DateTime($mMatch->h_termino);
+                    $array[$contador]['tiempo_total'] = $inicioStr->diff($terminoStr)->format('%H:%I:%S');
+                } else {
+                    $array[$contador]['hora_inicio'] = 'N/A';
+                    $array[$contador]['hora_termino'] = 'N/A';
+                    $array[$contador]['tiempo_total'] = 'N/A';
+                }
+
                 $array[$contador][7] = $item->fecha_liberacion ?? 'No liberado';
                 $array[$contador][8] = $userLib ? "{$userLib->nombre} {$userLib->a_paterno} {$userLib->a_materno}" : null;
+
 
                 // Si es un juego de dos mitades con estados diferentes, usar el estado combinado
                 $liberacionFinal = isset($liberacionCombinada) ? $liberacionCombinada : $item->liberacion;

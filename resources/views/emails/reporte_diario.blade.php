@@ -12,7 +12,11 @@
     <style>
         {!! file_get_contents(resource_path('css/reportes/email.css')) !!}
     </style>
+<<<<<<< HEAD
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+=======
+    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
+>>>>>>> origin/dev/changues
 </head>
 
 <body>

@@ -5,6 +5,7 @@
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     <meta charset="utf-8">
     <title>QRs Individuales - {{ $lote->matricula }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 

@@ -5,7 +5,6 @@
                 <li>{{ $error }}</li>
             @endforeach
         </ul>
-        <button class="close-alert">&times;</button>
     </div>
 @endif
 
@@ -14,13 +13,11 @@
     @if (is_array($data))
         @foreach ($data as $message)
             <div class="alert alert-success custom-alert">
-                <button class="close-alert">&times;</button>
                 {{ $message }}
             </div>
         @endforeach
     @else
         <div class="alert alert-success custom-alert">
-            <button class="close-alert">&times;</button>
             {{ $data }}
         </div>
     @endif
@@ -28,7 +25,12 @@
 
 @if (session('error'))
     <div class="alert alert-danger custom-alert">
-        <button class="close-alert">&times;</button>
         {{ session('error') }}
+    </div>
+@endif
+
+@if (session('warning'))
+    <div class="alert alert-warning custom-alert">
+        {{ session('warning') }}
     </div>
 @endif

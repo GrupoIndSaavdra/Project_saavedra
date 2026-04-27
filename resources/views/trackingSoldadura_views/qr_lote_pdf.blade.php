@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     <title>QR Lote - {{ $lote->matricula }}</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
         body { 

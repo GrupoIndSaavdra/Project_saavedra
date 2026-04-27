@@ -75,6 +75,9 @@
                             <th>Proceso</th>
                             <th>Errores</th>
                             <th>Observaciones</th>
+                            <th style="width:100px;">Inicio</th>
+                            <th>Término</th>
+                            <th>Total Maquinado</th>
                             <th>Fecha de Maquinado</th>
                             <th>Fecha de Liberacion</th>
                             <th>Liberado por</th>
