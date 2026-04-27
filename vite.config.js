@@ -12,6 +12,7 @@ export default defineConfig({
                 //Layout appMenu
                 "resources/css/layouts/appMenu.css",
                 "resources/js/layouts/appMenu.js",
+                "resources/js/layouts/productivity.js",
 
                 //View home
                 "resources/css/home.css",
