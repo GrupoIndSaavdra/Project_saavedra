@@ -83,8 +83,8 @@ function crearTabla(piezas, infoPiezas) {
                         let url = `${window.baseUrl}/pieces/${nPiezas}/${infoP[1]}/${profileValue}`;
                         chunkHtml += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver" class="ver"></a></td>`;
                     } else {
-                        let widthAttr = (key === "operator" || key === "observations" || key === "observacion_liberacion") ? ' style="width: 600px;"' : '';
-                        chunkHtml += `<td${widthAttr}>${cellValue}</td>`;
+                        let cellClass = (key === "operator" || key === "observations" || key === "observacion_liberacion") ? ' class="wide-cell"' : '';
+                        chunkHtml += `<td${cellClass}>${cellValue}</td>`;
                     }
                 }
             });
@@ -208,7 +208,7 @@ function create_ObservationsField(keys) {
     submit.type = "submit";
     submit.value = keys.liberar ? "Liberar" : "Rechazar";
     submit.classList.add("btn-liberation");
-    submit.style.backgroundColor = !keys.liberar ? "#f00000" : "#033966";
+    submit.classList.add(keys.liberar ? "btn-liberate" : "btn-reject");
 
     form.appendChild(textArea);
     form.appendChild(submit);
@@ -436,54 +436,7 @@ function createFilters() {
         btnClear.textContent = "Limpiar Filtros";
         btnClear.className = "btns btn-clear-filters";
         btnClear.type = "button";
-        
-        const styleEnabled = () => {
-            btnClear.style.cssText = `
-                margin-left: 10px;
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                padding: 8px 15px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-weight: bold;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.6);
-                transition: all 0.3s ease;
-                opacity: 1;
-            `;
-        };
-
-        const styleDisabled = () => {
-            btnClear.style.cssText = `
-                margin-left: 10px;
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                padding: 8px 15px;
-                border-radius: 4px;
-                cursor: not-allowed;
-                font-weight: bold;
-                box-shadow: none;
-                transition: all 0.3s ease;
-                opacity: 0.4;
-            `;
-        };
-
-        styleDisabled(); // Inicialmente deshabilitado si no hay filtros
-
-        btnClear.addEventListener("mouseenter", () => {
-            if (!btnClear.disabled) {
-                btnClear.style.backgroundColor = "#28a745";
-                btnClear.style.transform = "scale(1.03)";
-            }
-        });
-
-        btnClear.addEventListener("mouseleave", () => {
-            if (!btnClear.disabled) {
-                btnClear.style.backgroundColor = "#6c757d";
-                btnClear.style.transform = "scale(1)";
-            }
-        });
+        btnClear.disabled = true;
 
         btnClear.addEventListener("click", () => {
             if (btnClear.disabled) return;
@@ -517,13 +470,7 @@ function createFilters() {
                 if (i.value !== "") hasFilters = true;
             });
 
-            if (hasFilters) {
-                btnClear.disabled = false;
-                styleEnabled();
-            } else {
-                btnClear.disabled = true;
-                styleDisabled();
-            }
+            btnClear.disabled = !hasFilters;
         };
     }
 }
@@ -789,7 +736,7 @@ function applyAllFilters() {
             explanation = document.createElement("div");
             explanation.className = "filter-explanation";
             explanation.style.cssText = "font-size: 0.85rem; color: #555; margin-top: 5px; font-style: italic;";
-            explanation.textContent = "Nota: Los filtros se aplican en tiempo real de forma acumulativa.";
+            explanation.textContent = "Nota: Los filtros se aplican en tiempo real de forma acumulativa (puedes combinar múltiples criterios).";
             totalLabel.insertAdjacentElement("afterend", explanation);
         }
 

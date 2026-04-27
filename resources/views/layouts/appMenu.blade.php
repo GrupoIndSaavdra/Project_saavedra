@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    @vite(['resources/css/layouts/appMenu.css', 'resources/js/layouts/appMenu.js'])
+    @vite(['resources/css/layouts/appMenu.css', 'resources/js/layouts/appMenu.js', 'resources/js/layouts/productivity.js', 'resources/css/layouts/partials/messages.css', 'resources/js/layouts/partials/messages.js'])
     @yield('head')
     <script>
         window.loading = "{{ asset('images/loading.gif') }}"
@@ -83,7 +83,8 @@ window.routes = {
         'dibujos.manage': @json(route('dibujos.manage')),
         'fundicion.manage': @json(route('fundicion.manage')),
         'manuales.manage': @json(route('manuales.manage')),
-        'ayudas.manage': @json(route('ayudas.manage'))
+        'ayudas.manage': @json(route('ayudas.manage')),
+        systemLogsReport: @json(route('systemLogsReport'))
     };
 </script>
 @isset($pieces_Released)

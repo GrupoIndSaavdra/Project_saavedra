@@ -191,6 +191,7 @@ function getRoutes(profile) {
                         ["machinesOccupied", "Maquinas ocupadas"],
                         // ["showTimes", "Modificar tiempos de producción"],
                         ["show_panelWO", "Panel de progreso de O.T"],
+                        ["systemLogsReport", "Auditoría de Producción"],
                     ],
                 },
                 {

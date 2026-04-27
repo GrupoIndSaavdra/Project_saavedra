@@ -368,6 +368,18 @@ class PzasLiberadasController extends Controller
                 'observacion_liberacion' => $observacion,
             ]);
 
+            // Logger de Auditoría
+            \App\Models\SystemLog::create([
+                'id_usuario' => auth()->user()->id,
+                'accion' => 'Liberación por Calidad',
+                'detalles' => "Pieza/Juego $n_pieza LIBERADA en $proceso. Obs: $observacion",
+                'id_ot' => $meta->id_ot,
+                'id_clase' => $meta->id_clase,
+                'proceso' => $proceso,
+                'n_pieza' => $n_pieza,
+                'maquina' => $meta->maquina
+            ]);
+
             // ── Para Soldadura PTA: liberar también la mitad contraria del par M/H ──
             if ($proceso === 'Soldadura PTA') {
                 $ultimaLetra = substr($n_pieza, -1);
@@ -457,6 +469,18 @@ class PzasLiberadasController extends Controller
                 'fecha_liberacion' => date('Y-m-d H:i:s'),
                 'user_liberacion' => auth()->user()->matricula,
                 'observacion_liberacion' => $observacion,
+            ]);
+
+            // Logger de Auditoría
+            \App\Models\SystemLog::create([
+                'id_usuario' => auth()->user()->id,
+                'accion' => 'Rechazo por Calidad',
+                'detalles' => "Pieza/Juego $n_pieza RECHAZADA en $proceso. Obs: $observacion",
+                'id_ot' => $meta->id_ot,
+                'id_clase' => $meta->id_clase,
+                'proceso' => $proceso,
+                'n_pieza' => $n_pieza,
+                'maquina' => $meta->maquina
             ]);
 
             // ── Para Soldadura PTA: rechazar también la mitad contraria del par M/H ──

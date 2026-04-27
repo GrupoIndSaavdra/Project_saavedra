@@ -1,5 +1,28 @@
 import { Process } from "./Process.js";
 
+// Variable global para rastrear el inicio real de cada pieza/juego independiente de la meta
+window.currentPieceStartTime = null;
+
+// Función global para actualizar el inicio de la pieza y los inputs del formulario
+window.refreshPieceStartTime = function() {
+    window.currentPieceStartTime = new Date().toLocaleTimeString('it-IT');
+    // Actualizar todos los inputs h_inicio_solicitud que existan en el DOM
+    document.querySelectorAll('input[name="h_inicio_solicitud"]').forEach(input => {
+        input.value = window.currentPieceStartTime;
+    });
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Inicializar datos si estamos en proceso
+    if (window.arrayData && window.arrayData.meta) {
+        if (!window.currentPieceStartTime) {
+            window.refreshPieceStartTime();
+        }
+        window.logUserAction("Carga de Formulario de Producción");
+    }
+});
+
+
 function createSelects(labelText, className) {
     let form_grid = document.querySelector(".form-grid");
 
@@ -147,6 +170,7 @@ function disabledSelects(className) {
                 optionEmpty.value = "";
                 optionEmpty.textContent = "No disponible";
                 select.appendChild(optionEmpty);
+
                 let submit = document.querySelector(".btn-submit");
                 if (submit) {
                     submit.style.opacity = "0";
@@ -345,6 +369,7 @@ function insertSelects() {
         selectWO.addEventListener("change", function () {
             let selectedValue = selectWO.value;
             if (selectedValue) {
+                window.logUserAction("Selección de OT", selectedValue);
                 let classes = window.workOrders[selectedValue];
                 modifySelects(classes, document.querySelector(".class"), "Clase");
             }
@@ -353,6 +378,7 @@ function insertSelects() {
         selectClasses.addEventListener("change", function () {
             let selectedClass = selectClasses.value;
             if (selectedClass) {
+                window.logUserAction("Selección de Clase", selectedClass);
                 let processes = window.workOrders[selectWO.value][selectedClass];
                 if (processes.length > 0) {
                     modifySelects(processes, document.querySelector(".process"), "Proceso");
@@ -362,6 +388,9 @@ function insertSelects() {
         //prettier-ignore
         selectProcesses.addEventListener("change", function () {
             let selectedProcess = selectProcesses.value;
+            if (selectedProcess) {
+                window.logUserAction("Selección de Proceso", selectedProcess);
+            }
             let submit = document.querySelector(".btn-submit");
             if (selectedProcess && (selectedProcess === "Operacion Equipo" || selectedProcess === "Candado Obturador")) {
                 let selectSubprocesses = createSelects("Subproceso", "subprocess");
@@ -499,7 +528,9 @@ function createTable() {
             div.innerHTML =
                 "No hay Cotas Nominales disponibles. Notificar inmediatamente al area de software o calidad.";
             form.appendChild(div);
-            body.appendChild(
+
+            let bodyNode = document.querySelector("body");
+            bodyNode.appendChild(
                 showDivAlert(
                     "Las Cotas Nominales y tolerancias aun no se han cargado. Por favor notifica al area de Calidad o Software",
                     true
@@ -511,6 +542,78 @@ function createTable() {
 
     // Interceptar el submit para evitar el límite de max_input_vars en PHP
     form.addEventListener("submit", function () {
+        // Enviar al logger que se guardó una pieza
+        let now = new Date();
+        let timeFormatted = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+        let operatorNameInput = document.querySelector(".operator-name input");
+        let opName = operatorNameInput ? operatorNameInput.value.split(" - ").slice(1).join(" ") : "Operador";
+
+        if (window.pieceToBeUsed && window.pieceToBeUsed.id) {
+            let pieceIdentifier = window.pieceToBeUsed.n_pieza || window.pieceToBeUsed.n_juego;
+            let description = "";
+            let action = "Captura Medida";
+
+            const raw = String(pieceIdentifier).toUpperCase();
+            const num = raw.slice(0, -1);
+            const letra = raw.slice(-1);
+
+            if (letra === 'J') {
+                description = `El operador completó el maquinado del juego ${num}`;
+            } else if (letra === 'M' || letra === 'H') {
+                // Buscar si la otra mitad ya existe en las piezas maquinadas de la meta actual
+                const otraLetra = (letra === 'M') ? 'H' : 'M';
+                const pareja = num + otraLetra;
+
+                const piezasYaHechas = window.arrayData.machinedPiecesInMeta || [];
+                const yaExistePareja = piezasYaHechas.some(p => {
+                    let pId = p.piece.n_pieza || p.piece.n_juego;
+                    return String(pId).toUpperCase() === pareja;
+                });
+
+                if (yaExistePareja) {
+                    description = `El operador completó el maquinado del juego ${num} (Parte H + M)`;
+                } else {
+                    description = `El operador registró la pieza ${raw} (${letra === 'M' ? 'Macho' : 'Hembra'})`;
+                }
+            } else {
+                description = `El operador registró la pieza ${raw}`;
+            }
+
+            // --- LÓGICA DE ALERTAS ESTÁNDAR (TODOS LOS PROCESOS QUE USAN JUEGOS H/M) ---
+            if (letra === 'M' || letra === 'H') {
+                const otraLetra = (letra === 'M') ? 'H' : 'M';
+                const pareja = num + otraLetra;
+                const piezasYaHechas = window.arrayData.machinedPiecesInMeta || [];
+                const yaExistePareja = piezasYaHechas.some(p => {
+                    let pId = p.piece.n_pieza || p.piece.n_juego;
+                    return String(pId).toUpperCase() === pareja;
+                });
+
+                if (yaExistePareja) {
+                    // Si completa el juego, mandamos dos alertas secuenciales
+                    toastpremium(`El operador registró la pieza ${raw} (${letra === 'M' ? 'Macho' : 'Hembra'}) a las ${timeFormatted}`, "success");
+                    setTimeout(() => {
+                        toastpremium(`El operador completó el maquinado del juego ${num} (Parte H + M) a las ${timeFormatted}`, "success");
+                    }, 800);
+                } else {
+                    // Si es solo la primera pieza del juego
+                    toastpremium(description + ` a las ${timeFormatted}`, "success");
+                }
+            } else {
+                // Registro de pieza normal (no H/M) o Reporte General
+                toastpremium(description + ` a las ${timeFormatted}`, "success");
+            }
+
+            // --- LÓGICA DE LOGGING (En el servidor para PTA, en el JS para los demás) ---
+            if (window.arrayData.process !== 'Soldadura PTA') {
+                window.logUserAction(action, description + ` a las ${timeFormatted}`);
+            }
+        } else {
+            window.logUserAction("Proceso Correcto", "El operador sincronizó los datos técnicos de la pieza con el reporte general.");
+            toastpremium(`El operador registró el reporte general a las ${timeFormatted}`, "success");
+        }
+
         const pieceInputs = form.querySelectorAll('input[name="piece[]"]');
         if (pieceInputs.length > 40) { // Si hay más de 40 piezas (aprox 500-600 variables), usamos JSON
             const formData = new FormData(form);
@@ -564,6 +667,13 @@ function createForm(route) {
     inputCSRF.name = "_token";
     inputCSRF.value = csrfToken;
     form.appendChild(inputCSRF);
+
+    // Agregar h_inicio_solicitud para reportar el inicio real de la pieza al backend
+    let inputInicio = document.createElement("input");
+    inputInicio.type = "hidden";
+    inputInicio.name = "h_inicio_solicitud";
+    inputInicio.value = window.currentPieceStartTime || new Date().toLocaleTimeString('it-IT');
+    form.appendChild(inputInicio);
 
     return form;
 }
@@ -652,7 +762,7 @@ function insertButton_saveOrChoose(form, table) {
                 form.appendChild(btn);
             }
         } else {
-            //Mostrar DIV de alerta para "No hay piezas disponibles"
+            //Mostrar alerta para "No hay piezas disponibles"
             if (window.arrayData["edit"] != 2) {
                 document
                     .querySelector("body")
@@ -674,6 +784,14 @@ function insertAvaliablePiecesSelect(form) {
     select.name = "selectedAssembly";
     select.required = true;
 
+    select.addEventListener("change", function () {
+        if (this.value) {
+            // Actualizar la hora de inicio al momento exacto de selección de la pieza
+            window.refreshPieceStartTime();
+            window.logUserAction("Selección de Pieza", this.value);
+        }
+    });
+
     //Agregar opciones al select
     window.arrayData["availableAssemblies"].forEach((assembly, index) => {
         //Crear opción vacia
@@ -690,6 +808,12 @@ function insertAvaliablePiecesSelect(form) {
         select.appendChild(option);
     });
 
+    select.addEventListener("change", function (e) {
+        if (e.target.value) {
+            toastpremium(`${e.target.value} seleccionado correctamente`, "success");
+        }
+    });
+
     // Insertar el select directamente en el formulario (fuera de la tabla)
     form.appendChild(select);
 }
@@ -701,6 +825,8 @@ function createDivOpacity() {
 
     return div_padre;
 }
+
+
 function showDivAlert(text, close, img) {
     let div_padre = createDivOpacity();
 
@@ -714,6 +840,11 @@ function showDivAlert(text, close, img) {
     let image = document.createElement("img");
     image.className = "img-error";
     image.src = img || window.imgError;
+
+    // REGISTRO AUTOMÁTICO EN BITÁCORA:
+    if (typeof window.logUserAction === 'function') {
+        window.logUserAction("Avisos de Sistema", `Se mostró mensaje al operador: ${text.replace(/<[^>]*>/g, '')}`);
+    }
 
     if (close) {
         // Permitir cerrar la alerta
@@ -739,7 +870,7 @@ function showDivAlert(text, close, img) {
 
 function cerrarDiv() {
     let div_padre = document.getElementById("div-opacity");
-    div_padre.remove();
+    if (div_padre) div_padre.remove();
 }
 
 function enableTable() {
@@ -878,17 +1009,28 @@ function showInlinePasswordForm(type, imgElement = null) {
         form.appendChild(editFlag);
     }
 
+    // REGLA DE ORO: INICIO DE RANGO (OPCIÓN 2 - ESPERA SUPERVISOR)
+    const h_inicio_solicitud = new Date().toLocaleTimeString('it-IT');
+    let inputInicio = document.createElement("input");
+    inputInicio.type = "hidden";
+    inputInicio.name = "h_inicio_solicitud";
+    inputInicio.value = h_inicio_solicitud;
+    form.appendChild(inputInicio);
+
     // 4. Crear el grupo de contraseña según el tipo
     let form_group_password;
     if (type === "Calidad") {
         form_group_password = createInputPassword("passwordQuality", "Contraseña de Calidad");
         form.onsubmit = function (e) {
             e.preventDefault();
+            window.logUserAction("Intento de Liberación", "Se abrió el formulario de liberación de calidad");
             verifyQualityPasswordAjax(form, imgElement);
         };
     } else if (type === "EditMeta") {
+        window.logUserAction("Solicitud Edición de Reporte", "Se requiere contraseña de administrador para editar metadatos");
         form_group_password = createInputPassword("passwordAdmin", "Contraseña Admin (Reporte)");
     } else {
+        window.logUserAction("Solicitud Edición de Piezas", "Se requiere contraseña de administrador para editar piezas");
         form_group_password = createInputPassword("passwordAdmin", "Contraseña Admin (Piezas)");
     }
 
@@ -919,6 +1061,7 @@ function addEventToFinishReport() {
     btn_finishReport.style.opacity = "1";
     btn_finishReport.addEventListener("click", function () {
         if (confirm("¿Estás seguro de que deseas terminar el reporte?")) {
+            window.logUserAction("Terminar Reporte", "El usuario finalizó su turno");
             reporteTerminado = true; // ✅ permitir salir sin advertencia
             if (window.arrayData) {
                 window.location.href =
@@ -996,7 +1139,12 @@ function insertProductionActions() {
         "Dibujos",
         "Ver Dibujos/Planos",
         false,
-        () => window.openDibujosViewer()
+        () => {
+            const activeOT = window.arrayData && window.arrayData.workOrder ? window.arrayData.workOrder : 'Sin OT';
+            const activeClase = window.arrayData ? (window.arrayData.class || 'Sin Clase') : 'Sin Clase';
+            window.logUserAction("Consulta Dibujos Técnicos", `El operador revisó los dibujos técnicos de ${activeOT} - ${activeClase}`);
+            window.openDibujosViewer();
+        }
     );
     btnDrawings.classList.add("btn-drawings");
     actionsContainer.appendChild(btnDrawings);
@@ -1056,6 +1204,7 @@ function handleQualityClick(event) {
     if (img.src.includes(window.imgQualityCheck.split('/').pop())) {
         showInlinePasswordForm("Calidad", img);
     } else {
+        window.logUserAction("Abandono de Liberación", "El usuario canceló la autenticación de calidad.");
         removePasswordForms();
         img.src = window.imgQualityCheck;
     }
@@ -1137,6 +1286,7 @@ function verifyQualityPasswordAjax(form, imgElement) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                window.logUserAction("Login Inspector Calidad", "Autenticación correcta: " + data.qualityUser);
                 // Limpiar UI
                 removePasswordForms();
                 if (imgElement) imgElement.src = window.imgQualityCheck;
@@ -1144,7 +1294,8 @@ function verifyQualityPasswordAjax(form, imgElement) {
                 // Mostrar el modal de liberación de piezas
                 showQualityReleaseModal(data.pieces, data.qualityUser);
             } else {
-                alert(data.message || "Contraseña incorrecta");
+                toastpremium("Contraseña incorrecta", "error");
+                window.logUserAction("Error Inspector Calidad", "Autenticación fallida");
             }
         })
         .catch(error => {
@@ -1195,8 +1346,10 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
     let divCerrar = document.createElement("div");
     divCerrar.className = "div-cerrar";
     let btnCerrar = document.createElement("button");
-    btnCerrar.className = "btn-cerrar btn-cancel-release"; 
-    btnCerrar.onclick = function() { closeQualityModal(); };
+    btnCerrar.className = "btn-cerrar btn-cancel-release";
+    btnCerrar.onclick = function () {
+        closeQualityModal(true);
+    };
     let imgCerrar = document.createElement("img");
     imgCerrar.className = "img-cerrar";
     imgCerrar.src = window.cerrarImgUrl;
@@ -1433,7 +1586,11 @@ function getStatusText(liberacion) {
     }
 }
 
-function closeQualityModal() {
+function closeQualityModal(isManual = false) {
+    if (isManual) {
+        window.logUserAction("Abandono de Liberación", "El usuario canceló y cerró la interfaz de liberación de piezas.");
+    }
+    
     let divOpacity = document.getElementById("div-opacity");
     if (divOpacity) {
         divOpacity.remove();
@@ -1449,8 +1606,12 @@ function closeQualityModal() {
 //Evitar doble click en el submit
 document.addEventListener("submit", (e) => {
     const btn = e.target.querySelector("button[type='submit']");
-    console.log(btn);
-    if (btn) btn.disabled = true;
+    if (btn) {
+        if (btn.textContent.trim() === "Registrar") {
+            window.logUserAction("Inicio de Reporte", "El operador inició un nuevo reporte de producción");
+        }
+        btn.disabled = true;
+    }
 });
 
 if (window.arrayData) {
@@ -1488,7 +1649,7 @@ if (window.arrayData) {
     } else {
         createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
         document.querySelector(".div-table-meta").prepend(createBtnMetaEdit()); // Insertar botón de editar meta arriba
-        
+
         let containerCode = document.querySelector(".div-table-code");
         if (containerCode) containerCode.prepend(createBtnTechDocs()); // Insertar botón de documentos arriba a la derecha
 
@@ -1815,9 +1976,22 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
     const divOpacity = document.createElement('div');
     divOpacity.className = 'prod-viewer-portal';
     divOpacity.id = 'div-opacity-dibujos';
+    
+    // REGLA DE ORO: INICIO DE RANGO (OPCIÓN 1)
+    const startTimeDoc = new Date().toLocaleTimeString('it-IT');
 
     const modal = document.createElement('div');
     modal.className = 'prod-viewer-modal';
+
+    // Función para cerrar y loguear automáticamente
+    const closeAndViewerLog = (action, details) => {
+        const endTimeDoc = new Date().toLocaleTimeString('it-IT');
+        window.logUserAction(action, details, {
+            h_inicio: startTimeDoc,
+            h_termino: endTimeDoc
+        });
+        divOpacity.remove();
+    };
 
     // Seccion de Header (Titulo + Filtros)
     const headerDiv = document.createElement('div');
@@ -1828,7 +2002,7 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
     divCerrar.className = 'div-cerrar';
     const btnCerrar = document.createElement('button');
     btnCerrar.className = 'btn-cerrar';
-    btnCerrar.onclick = () => divOpacity.remove();
+    btnCerrar.onclick = () => closeAndViewerLog("Consulta Dibujos Técnicos", `El operador finalizó la revisión de planos.`);
     const imgCerrar = document.createElement('img');
     imgCerrar.className = 'img-cerrar';
     imgCerrar.src = window.cerrarImgUrl;
@@ -1843,7 +2017,7 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
 
     const selOTWrap = _dibujosSelectGroup('Orden de Trabajo', 'd-viewer-ot');
     const selClaseWrap = _dibujosSelectGroup('Clase', 'd-viewer-clase');
-    
+
 
     navDiv.appendChild(selOTWrap);
     navDiv.appendChild(selClaseWrap);
@@ -1862,9 +2036,9 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
     divOpacity.appendChild(modal);
     document.body.appendChild(divOpacity);
 
-    // Cerrar al hacer clic en fondo
+    // Cerrar al hacer clic en fondo con logging
     divOpacity.addEventListener('click', (e) => {
-        if (e.target === divOpacity) divOpacity.remove();
+        if (e.target === divOpacity) closeAndViewerLog("Consulta Dibujos Técnicos", `El operador finalizó la revisión de planos.`);
     });
 
     const selOT = document.getElementById('d-viewer-ot');
@@ -1873,76 +2047,76 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
     fetch(window.baseUrl + '/dibujos/estructura', {
         headers: { 'Accept': 'application/json' }
     })
-    .then(r => r.json())
-    .then(estructura => {
-        let exactActiveOT = activeOT;
-        let otNumMatch = activeOT ? activeOT.match(/\d+/) : null;
-        let otNum = otNumMatch ? otNumMatch[0] : activeOT;
+        .then(r => r.json())
+        .then(estructura => {
+            let exactActiveOT = activeOT;
+            let otNumMatch = activeOT ? activeOT.match(/\d+/) : null;
+            let otNum = otNumMatch ? otNumMatch[0] : activeOT;
 
-        if (activeOT && !estructura[activeOT]) {
-            const foundKey = Object.keys(estructura).find(key => key.includes("OT " + otNum) || key.includes(activeOT));
-            if (foundKey) exactActiveOT = foundKey;
-        }
-
-        selOT.innerHTML = '<option value="">— Seleccionar OT —</option>';
-        Object.keys(estructura).sort().forEach(ot => {
-            let label = ot;
-            if (window.workOrders && window.workOrders[ot] && window.workOrders[ot].moldura) {
-                label = `${ot} — ${window.workOrders[ot].moldura}`;
+            if (activeOT && !estructura[activeOT]) {
+                const foundKey = Object.keys(estructura).find(key => key.includes("OT " + otNum) || key.includes(activeOT));
+                if (foundKey) exactActiveOT = foundKey;
             }
-            const opt = document.createElement('option');
-            opt.value = ot;
-            opt.textContent = label;
-            if (ot === exactActiveOT) opt.selected = true;
-            selOT.appendChild(opt);
-        });
 
-        selOT.addEventListener('change', () => {
-            const selOTVal = selOT.value;
-            selClase.innerHTML = '<option value="">— Seleccionar Clase —</option>';
-            if (selOTVal && estructura[selOTVal]) {
-                estructura[selOTVal].forEach(clase => {
-                    const opt = document.createElement('option');
-                    opt.value = clase;
-                    opt.textContent = clase;
-                    selClase.appendChild(opt);
-                });
-                selClase.disabled = false;
-            } else {
-                selClase.disabled = true;
-            }
-            // Búsqueda automática al cambiar OT (si hay clase)
-            if (selOTVal && selClase.value) {
-                const otText = selOT.options[selOT.selectedIndex].text;
-                _dibujosCargarArchivos(selOTVal, selClase.value, contentDiv, otText);
-            }
-        });
-
-        selClase.addEventListener('change', () => {
-            const ot = selOT.value;
-            const clase = selClase.value;
-            if (ot && clase) {
-                const otText = selOT.options[selOT.selectedIndex].text;
-                _dibujosCargarArchivos(ot, clase, contentDiv, otText);
-            }
-        });
-
-        if (exactActiveOT && estructura[exactActiveOT]) {
-            selOT.value = exactActiveOT;
-            selOT.dispatchEvent(new Event('change'));
-            setTimeout(() => {
-                const opt = selClase.querySelector(`option[value="${activeClase}"]`);
-                if (opt) {
-                    opt.selected = true;
-                    const otText = selOT.options[selOT.selectedIndex].text;
-                    _dibujosCargarArchivos(exactActiveOT, activeClase, contentDiv, otText);
+            selOT.innerHTML = '<option value="">— Seleccionar OT —</option>';
+            Object.keys(estructura).sort().forEach(ot => {
+                let label = ot;
+                if (window.workOrders && window.workOrders[ot] && window.workOrders[ot].moldura) {
+                    label = `${ot} — ${window.workOrders[ot].moldura}`;
                 }
-            }, 50);
-        }
-    })
-    .catch(() => {
-        contentDiv.innerHTML = '<p style="color:#9c0300;text-align:center;">Error al cargar la estructura de carpetas.</p>';
-    });
+                const opt = document.createElement('option');
+                opt.value = ot;
+                opt.textContent = label;
+                if (ot === exactActiveOT) opt.selected = true;
+                selOT.appendChild(opt);
+            });
+
+            selOT.addEventListener('change', () => {
+                const selOTVal = selOT.value;
+                selClase.innerHTML = '<option value="">— Seleccionar Clase —</option>';
+                if (selOTVal && estructura[selOTVal]) {
+                    estructura[selOTVal].forEach(clase => {
+                        const opt = document.createElement('option');
+                        opt.value = clase;
+                        opt.textContent = clase;
+                        selClase.appendChild(opt);
+                    });
+                    selClase.disabled = false;
+                } else {
+                    selClase.disabled = true;
+                }
+                // Búsqueda automática al cambiar OT (si hay clase)
+                if (selOTVal && selClase.value) {
+                    const otText = selOT.options[selOT.selectedIndex].text;
+                    _dibujosCargarArchivos(selOTVal, selClase.value, contentDiv, otText);
+                }
+            });
+
+            selClase.addEventListener('change', () => {
+                const ot = selOT.value;
+                const clase = selClase.value;
+                if (ot && clase) {
+                    const otText = selOT.options[selOT.selectedIndex].text;
+                    _dibujosCargarArchivos(ot, clase, contentDiv, otText);
+                }
+            });
+
+            if (exactActiveOT && estructura[exactActiveOT]) {
+                selOT.value = exactActiveOT;
+                selOT.dispatchEvent(new Event('change'));
+                setTimeout(() => {
+                    const opt = selClase.querySelector(`option[value="${activeClase}"]`);
+                    if (opt) {
+                        opt.selected = true;
+                        const otText = selOT.options[selOT.selectedIndex].text;
+                        _dibujosCargarArchivos(exactActiveOT, activeClase, contentDiv, otText);
+                    }
+                }, 50);
+            }
+        })
+        .catch(() => {
+            contentDiv.innerHTML = '<p style="color:#9c0300;text-align:center;">Error al cargar la estructura de carpetas.</p>';
+        });
 };
 
 /** Crea un grupo de select con label para el visor */
@@ -1971,18 +2145,22 @@ function _dibujosSelectGroup(labelText, selectId) {
 /** Carga y renderiza los archivos PDF de la carpeta OT/Clase indicada */
 function _dibujosCargarArchivos(ot, clase, contentDiv, otText = '') {
     contentDiv.innerHTML = '<p style="color:#666;text-align:center;">Cargando archivos...</p>';
+    // Obtener el nombre completo de la OT de la lista de opciones si está disponible
+    const selOTViewer = document.getElementById('d-viewer-ot');
+    const otDisplay = selOTViewer ? selOTViewer.options[selOTViewer.selectedIndex].text : ot;
+    window.logUserAction("Consulta Dibujos Técnicos", `El operador revisó los dibujos técnicos de ${otDisplay} - ${clase}`);
 
     const url = `${window.baseUrl}/dibujos/archivos?ot=${encodeURIComponent(ot)}&clase=${encodeURIComponent(clase)}`;
     fetch(url, { headers: { 'Accept': 'application/json' } })
-    .then(r => r.json())
-    .then(data => {
-        if (!data.existe || !data.archivos || data.archivos.length === 0) {
-            _dibujosShowEmpty(contentDiv);
-            return;
-        }
-        _dibujosRenderArchivos(data.archivos, otText || ot, clase, contentDiv);
-    })
-    .catch(() => _dibujosShowEmpty(contentDiv));
+        .then(r => r.json())
+        .then(data => {
+            if (!data.existe || !data.archivos || data.archivos.length === 0) {
+                _dibujosShowEmpty(contentDiv);
+                return;
+            }
+            _dibujosRenderArchivos(data.archivos, otText || ot, clase, contentDiv);
+        })
+        .catch(() => _dibujosShowEmpty(contentDiv));
 }
 
 /** Renderiza la cuadricula de tarjetas de archivos PDF con optimización de rendimiento */
@@ -2010,14 +2188,14 @@ function _dibujosRenderArchivos(archivos, otDisplay, clase, contentDiv) {
 
     function renderNextBatch() {
         const end = Math.min(currentIndex + CHUNK_SIZE, archivos.length);
-        
+
         for (let i = currentIndex; i < end; i++) {
             const archivo = archivos[i];
             const card = document.createElement('div');
             card.className = 'prod-viewer-card';
             // Delay escalonado relativo al inicio del lote para maxima fluidez
             card.style.animationDelay = `${(i % CHUNK_SIZE) * 0.05}s`;
-            
+
             card.innerHTML = `
                 <div class="file-icon-wrapper">
                     <img src="${window.baseUrl}/images/pdf-view-shadow.png" class="prod-viewer-icon icon-default">
@@ -2041,19 +2219,8 @@ function _dibujosRenderArchivos(archivos, otDisplay, clase, contentDiv) {
 
 /** Muestra el estado vacio cuando no hay archivos PDF disponibles. */
 function _dibujosShowEmpty(contentDiv) {
-    contentDiv.innerHTML = '';
-    const alertDiv = document.createElement('div');
-    alertDiv.style.cssText = `
-        display:flex;flex-direction:column;align-items:center;
-        padding:2em;background:#fff3cd;border:2px solid #856404;
-        border-radius:8px;text-align:center;
-    `;
-    const msg = document.createElement('label');
-    msg.className = 'label-alert';
-    msg.style.cssText = 'color:#856404;font-weight:700;font-size:1em;line-height:1.5;';
-    msg.textContent = 'No hay dibujos para esta OT o Clase. Favor de reportar con el departamento de Programacion CNC o de Software.';
-    alertDiv.appendChild(msg);
-    contentDiv.appendChild(alertDiv);
+    contentDiv.innerHTML = '<p style="text-align:center; padding: 2em; color: #666; font-style: italic;">No se encontraron archivos en este directorio.</p>';
+    toastpremium('No hay archivos disponibles en esta categoría. Favor de reportar con el departamento de Programacion CNC o de Software.', 'error');
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -2067,8 +2234,21 @@ window.openManualesViewer = function () {
     divOpacity.className = 'prod-viewer-portal';
     divOpacity.id = 'div-opacity-manuales';
 
+    // REGLA DE ORO: INICIO DE RANGO (OPCIÓN 1)
+    const startTimeManual = new Date().toLocaleTimeString('it-IT');
+
     const modal = document.createElement('div');
     modal.className = 'prod-viewer-modal';
+
+    // Función para cerrar y loguear automáticamente
+    const closeManualLog = () => {
+        const endTimeManual = new Date().toLocaleTimeString('it-IT');
+        window.logUserAction("Consulta Documentación Técnica", "El operador finalizó la consulta de manuales de procesos.", {
+            h_inicio: startTimeManual,
+            h_termino: endTimeManual
+        });
+        divOpacity.remove();
+    };
 
     const headerDiv = document.createElement('div');
     headerDiv.className = 'prod-viewer-header';
@@ -2077,7 +2257,7 @@ window.openManualesViewer = function () {
     divCerrar.className = 'div-cerrar';
     const btnCerrar = document.createElement('button');
     btnCerrar.className = 'btn-cerrar';
-    btnCerrar.onclick = () => divOpacity.remove();
+    btnCerrar.onclick = () => closeManualLog();
     const imgCerrar = document.createElement('img');
     imgCerrar.className = 'img-cerrar';
     imgCerrar.src = window.cerrarImgUrl;
@@ -2091,7 +2271,7 @@ window.openManualesViewer = function () {
     navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.2em;';
 
     const selProcesoWrap = _dibujosSelectGroup('Proceso', 'd-viewer-manuales-proceso');
-    
+
 
     navDiv.appendChild(selProcesoWrap);
 
@@ -2109,7 +2289,7 @@ window.openManualesViewer = function () {
     document.body.appendChild(divOpacity);
 
     divOpacity.addEventListener('click', (e) => {
-        if (e.target === divOpacity) divOpacity.remove();
+        if (e.target === divOpacity) closeManualLog();
     });
 
     const selProceso = document.getElementById('d-viewer-manuales-proceso');
@@ -2117,50 +2297,50 @@ window.openManualesViewer = function () {
     fetch(window.baseUrl + '/manuales/estructura', {
         headers: { 'Accept': 'application/json' }
     })
-    .then(r => r.json())
-    .then(estructura => {
-        selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
-        estructura.sort().forEach(proc => {
-            const opt = document.createElement('option');
-            opt.value = proc;
-            opt.textContent = proc;
-            selProceso.appendChild(opt);
-        });
+        .then(r => r.json())
+        .then(estructura => {
+            selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
+            estructura.sort().forEach(proc => {
+                const opt = document.createElement('option');
+                opt.value = proc;
+                opt.textContent = proc;
+                selProceso.appendChild(opt);
+            });
 
-        // Intentar seleccionar el proceso actual
-        const optDefault = selProceso.querySelector(`option[value="${activeProceso}"]`);
-        if (optDefault) optDefault.selected = true;
+            // Intentar seleccionar el proceso actual
+            const optDefault = selProceso.querySelector(`option[value="${activeProceso}"]`);
+            if (optDefault) optDefault.selected = true;
 
-        if (selProceso.value) {
-            _manualesCargarArchivos(selProceso.value, contentDiv);
-        }
-
-        selProceso.addEventListener('change', () => {
             if (selProceso.value) {
                 _manualesCargarArchivos(selProceso.value, contentDiv);
-            } else {
-                _dibujosShowEmpty(contentDiv);
             }
+
+            selProceso.addEventListener('change', () => {
+                if (selProceso.value) {
+                    _manualesCargarArchivos(selProceso.value, contentDiv);
+                } else {
+                    _dibujosShowEmpty(contentDiv);
+                }
+            });
+        })
+        .catch(() => {
+            contentDiv.innerHTML = '<p style="color:#9c0300;text-align:center;">Error al cargar la estructura.</p>';
         });
-    })
-    .catch(() => {
-        contentDiv.innerHTML = '<p style="color:#9c0300;text-align:center;">Error al cargar la estructura.</p>';
-    });
 };
 
 function _manualesCargarArchivos(proceso, contentDiv) {
     contentDiv.innerHTML = '<p style="color:#666;text-align:center;">Cargando archivos...</p>';
     const url = `${window.baseUrl}/manuales/archivos?proceso=${encodeURIComponent(proceso)}`;
     fetch(url, { headers: { 'Accept': 'application/json' } })
-    .then(r => r.json())
-    .then(data => {
-        if (!data.existe || !data.archivos || data.archivos.length === 0) {
-            _dibujosShowEmpty(contentDiv);
-            return;
-        }
-        _dibujosRenderArchivos(data.archivos, proceso, 'General', contentDiv);
-    })
-    .catch(() => _dibujosShowEmpty(contentDiv));
+        .then(r => r.json())
+        .then(data => {
+            if (!data.existe || !data.archivos || data.archivos.length === 0) {
+                _dibujosShowEmpty(contentDiv);
+                return;
+            }
+            _dibujosRenderArchivos(data.archivos, proceso, 'General', contentDiv);
+        })
+        .catch(() => _dibujosShowEmpty(contentDiv));
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -2200,7 +2380,7 @@ window.openAyudasViewer = function () {
 
     const selClaseWrap = _dibujosSelectGroup('Clase', 'd-viewer-ayudas-clase');
     const selProcesoWrap = _dibujosSelectGroup('Proceso', 'd-viewer-ayudas-proceso');
-    
+
 
     navDiv.appendChild(selClaseWrap);
     navDiv.appendChild(selProcesoWrap);
@@ -2228,61 +2408,61 @@ window.openAyudasViewer = function () {
     fetch(window.baseUrl + '/ayudas/estructura', {
         headers: { 'Accept': 'application/json' }
     })
-    .then(r => r.json())
-    .then(estructura => {
-        selClase.innerHTML = '<option value="">— Seleccionar Clase —</option>';
-        Object.keys(estructura).sort().forEach(clase => {
-            if (clase === '-- SIN CLASE --') return;
-            const opt = document.createElement('option');
-            opt.value = clase;
-            opt.textContent = clase;
-            if (clase === activeClase) opt.selected = true;
-            selClase.appendChild(opt);
-        });
+        .then(r => r.json())
+        .then(estructura => {
+            selClase.innerHTML = '<option value="">— Seleccionar Clase —</option>';
+            Object.keys(estructura).sort().forEach(clase => {
+                if (clase === '-- SIN CLASE --') return;
+                const opt = document.createElement('option');
+                opt.value = clase;
+                opt.textContent = clase;
+                if (clase === activeClase) opt.selected = true;
+                selClase.appendChild(opt);
+            });
 
-        selClase.addEventListener('change', () => {
-            const selClaseVal = selClase.value;
-            selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
-            if (selClaseVal && estructura[selClaseVal]) {
-                const procs = [...estructura[selClaseVal]];
-                if (!procs.includes('General')) procs.push('General');
+            selClase.addEventListener('change', () => {
+                const selClaseVal = selClase.value;
+                selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
+                if (selClaseVal && estructura[selClaseVal]) {
+                    const procs = [...estructura[selClaseVal]];
+                    if (!procs.includes('General')) procs.push('General');
 
-                procs.sort().forEach(proc => {
-                    const opt = document.createElement('option');
-                    selClase.appendChild(opt);
-                });
-                selClase.disabled = false;
-            } else {
-                selClase.disabled = true;
+                    procs.sort().forEach(proc => {
+                        const opt = document.createElement('option');
+                        selClase.appendChild(opt);
+                    });
+                    selClase.disabled = false;
+                } else {
+                    selClase.disabled = true;
+                }
+            });
+
+            if (activeProceso && estructura[activeProceso]) {
+                selProceso.dispatchEvent(new Event('change'));
+                setTimeout(() => {
+                    const opt = selClase.querySelector(`option[value="${activeClase}"]`);
+                    if (opt) opt.selected = true;
+                    if (selProceso.value && selClase.value) {
+                        _ayudasCargarArchivos(selProceso.value, selClase.value, contentDiv);
+                    }
+                }, 50);
             }
-        });
 
-        if (activeProceso && estructura[activeProceso]) {
-            selProceso.dispatchEvent(new Event('change'));
-            setTimeout(() => {
-                const opt = selClase.querySelector(`option[value="${activeClase}"]`);
-                if (opt) opt.selected = true;
+            selClase.addEventListener('change', () => {
                 if (selProceso.value && selClase.value) {
                     _ayudasCargarArchivos(selProceso.value, selClase.value, contentDiv);
                 }
-            }, 50);
-        }
-
-        selClase.addEventListener('change', () => {
-            if (selProceso.value && selClase.value) {
-                _ayudasCargarArchivos(selProceso.value, selClase.value, contentDiv);
-            }
+            });
+        })
+        .catch(() => {
+            contentDiv.innerHTML = '<p style="color:#9c0300;text-align:center;">Error al cargar la estructura.</p>';
         });
-    })
-    .catch(() => {
-        contentDiv.innerHTML = '<p style="color:#9c0300;text-align:center;">Error al cargar la estructura.</p>';
-    });
 };
 
 /**
  * Abre el modal técnico con pestañas para Manuales y Ayudas Visuales
  */
-window.openTechDocsModal = function() {
+window.openTechDocsModal = function () {
     let activeProcess = window.arrayData ? window.arrayData["process"] || (window.arrayData["meta"] ? window.arrayData["meta"].proceso : null) : null;
     let activeClass = window.arrayData ? window.arrayData["class"] || (window.arrayData["meta"] ? window.arrayData["meta"].clase : null) : null;
     let activeOT = window.arrayData ? window.arrayData["ot_folio"] || window.arrayData["ot"] || (window.arrayData["meta"] ? window.arrayData["meta"].ot : null) : null;
@@ -2300,6 +2480,9 @@ window.openTechDocsModal = function() {
         mostrarNotificacion("No se pudo identificar el contexto activo.", true);
         return;
     }
+
+    // Loguear acceso a documentación enriquecido
+    window.logUserAction("Consulta Documentación Técnica", `El operador consultó los manuales de proceso o ayudas visuales para el proceso ${activeProcess} de la clase ${activeClass || 'N/A'}`);
 
     const divOpacity = document.createElement('div');
     divOpacity.className = 'prod-viewer-portal';
@@ -2338,11 +2521,11 @@ window.openTechDocsModal = function() {
 
     const navDiv = document.createElement('div');
     navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end; flex:2; min-width: 400px;';
-    
+
     // Solo necesitamos Clase y Proceso
     const selClaseWrap = _dibujosSelectGroup('Clase', 'tech-doc-clase');
     const selProcesoWrap = _dibujosSelectGroup('Proceso', 'tech-doc-proceso');
-    
+
     selClaseWrap.style.display = 'none';
 
     navDiv.appendChild(selClaseWrap);
@@ -2366,7 +2549,7 @@ window.openTechDocsModal = function() {
 
     let activeTab = 'manuales';
     let manualEstructura = [];
-    let ayudasEstructura = {}; 
+    let ayudasEstructura = {};
 
     const selClase = document.getElementById('tech-doc-clase');
     const selProceso = document.getElementById('tech-doc-proceso');
@@ -2377,8 +2560,8 @@ window.openTechDocsModal = function() {
 
     contentDiv.innerHTML = '<p style="color:#666;text-align:center;">Cargando estructuras...</p>';
     Promise.all([
-        fetch(window.baseUrl + '/manuales/estructura').then(r=>r.json()),
-        fetch(window.baseUrl + '/ayudas/estructura').then(r=>r.json())
+        fetch(window.baseUrl + '/manuales/estructura').then(r => r.json()),
+        fetch(window.baseUrl + '/ayudas/estructura').then(r => r.json())
     ]).then(([manData, ayuData]) => {
         manualEstructura = Array.isArray(manData) ? manData : Object.keys(manData);
         ayudasEstructura = ayuData;
@@ -2477,7 +2660,7 @@ window.openTechDocsModal = function() {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             activeTab = tab.dataset.tab;
-            
+
             // Ocultar todos
             selClaseWrap.style.display = 'none';
             selProcesoWrap.style.display = 'none';
@@ -2523,7 +2706,7 @@ window.openTechDocsModal = function() {
 
     function _techDocsCargarArchivos(type, proc, clase, contentDiv) {
         contentDiv.innerHTML = '<p style="color:#666;text-align:center;">Cargando archivos...</p>';
-        
+
         let url = '';
         if (type === 'manuales') {
             url = `${window.baseUrl}/manuales/archivos?proceso=${encodeURIComponent(proc)}`;
@@ -2534,15 +2717,15 @@ window.openTechDocsModal = function() {
         }
 
         fetch(url, { headers: { 'Accept': 'application/json' } })
-        .then(r => r.json())
-        .then(data => {
-            if (!data.archivos || data.archivos.length === 0) {
-                _techDocsShowEmpty(contentDiv);
-                return;
-            }
-            _techDocsRenderArchivos(data.archivos, type, proc, clase, contentDiv);
-        })
-        .catch(() => _techDocsShowEmpty(contentDiv));
+            .then(r => r.json())
+            .then(data => {
+                if (!data.archivos || data.archivos.length === 0) {
+                    _techDocsShowEmpty(contentDiv);
+                    return;
+                }
+                _techDocsRenderArchivos(data.archivos, type, proc, clase, contentDiv);
+            })
+            .catch(() => _techDocsShowEmpty(contentDiv));
     }
 
     function _techDocsRenderArchivos(archivos, type, proc, clase, contentDiv) {
@@ -2571,7 +2754,7 @@ window.openTechDocsModal = function() {
                 const card = document.createElement('div');
                 card.className = 'prod-viewer-card';
                 card.style.animationDelay = `${(i % CHUNK_SIZE) * 0.05}s`;
-                
+
                 const fileName = typeof archivo === 'string' ? archivo : archivo.nombre;
                 const urlFinal = typeof archivo === 'object' ? archivo.url : '#';
 
@@ -2595,3 +2778,13 @@ window.openTechDocsModal = function() {
         requestAnimationFrame(renderNextBatch);
     }
 }
+
+/**
+ * toastpremium
+ * Sistema de alertas premium restaurado para la vista de producción.
+ * Utiliza clases CSS .toastpremium definidas en processProduction.css
+ */
+
+// Alias para compatibilidad con código que use mostrarNotificacion
+window.mostrarNotificacion = toastpremium;
+

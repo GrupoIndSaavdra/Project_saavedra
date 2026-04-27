@@ -66,11 +66,29 @@ class SoldaduraPTAController extends Controller
             return;
         }
 
-        foreach ($pieceIds as $key => $pieceId) {
-            if (!$pieceId) {
-                continue;   // fila nueva sin ID — ignorar
+        // ── Ordenar pieceIds para procesar Hembra (H) antes que Macho (M) ──
+        // Esto asegura que los logs se guarden en el orden lógico H -> M
+        $sortedIds = [];
+        foreach ($pieceIds as $key => $pid) {
+            if (!$pid) continue;
+            $row = SoldaduraPTA_pza::find($pid, ['n_pieza']);
+            if ($row) {
+                $sortedIds[] = [
+                    'key' => $key,
+                    'pid' => $pid,
+                    'n_pieza' => $row->n_pieza
+                ];
             }
+        }
 
+        usort($sortedIds, function($a, $b) {
+            return strcmp($a['n_pieza'], $b['n_pieza']); // H < M alfabéticamente si el número es igual
+        });
+
+        foreach ($sortedIds as $item) {
+            $key = $item['key'];
+            $pieceId = $item['pid'];
+            
             $piece = SoldaduraPTA_pza::find($pieceId, ['*']);
             if (!$piece) {
                 continue;
@@ -109,6 +127,34 @@ class SoldaduraPTAController extends Controller
 
             $piece->estado = 2;
             $piece->save();
+
+            // ── REGISTRO DE LOG OFICIAL (Solo una vez por pieza individual) ──
+            if ($tipo === 'D_Conexion_pico') {
+                $nPiezaRef = $request->n_pieza_ref[$key] ?? $piece->n_pieza;
+                $suffix = strtoupper(substr($nPiezaRef, -1));
+                $tipoPieza = ($suffix === 'H') ? 'Hembra (H)' : (($suffix === 'M') ? 'Macho (M)' : $nPiezaRef);
+                $ptaParent = \App\Models\SoldaduraPTA::find($piece->id_proceso);
+                $meta = \App\Models\Metas::find($piece->id_meta);
+                
+                // Buscar la clase para obtener el nombre completo de la OT y clase
+                $clase = \App\Models\Clase::find($meta->id_clase);
+                $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : ($meta->id_ot ?? 'N/A');
+
+                \App\Models\SystemLog::create([
+                    'user_matricula' => \Illuminate\Support\Facades\Auth::user()->matricula,
+                    'action' => 'Captura Medida',
+                    'details' => "El operador registró la Pieza {$tipoPieza} del juego {$piece->n_juego} (Proceso: PTA).",
+                    'ot' => $otFull,
+                    'clase' => $clase->nombre ?? 'N/A',
+                    'proceso' => 'Soldadura PTA',
+                    'maquina' => $meta->maquina ?? 'N/A',
+                    'n_pieza' => $nPiezaRef,
+                    'h_inicio' => $request->input('h_inicio_solicitud') ?? now()->subMinute()->format('H:i:s'),
+                    'h_termino' => now()->format('H:i:s'),
+                    'id_ot' => $meta->id_ot,
+                    'id_clase' => $meta->id_clase
+                ]);
+            }
 
             // ── 2da pasada (Se crea un ROW separado para toda la pieza) ──
             // Solo lo hacemos UNA VEZ por pieza ($nPiezaRef), usando la iteración de la primera fila
@@ -186,6 +232,22 @@ class SoldaduraPTAController extends Controller
                 $p2Row->p2_perfilado = ($p2Tipo === 'Perfilado') ? $p2Val : null;
 
                 $p2Row->save();
+
+                // ── LOG DE SEGUNDA PASADA (Audit Trail) ──
+                \App\Models\SystemLog::create([
+                    'user_matricula' => \Illuminate\Support\Facades\Auth::user()->matricula,
+                    'action' => 'Segunda Pasada PTA',
+                    'details' => "El operador registró una SEGUNDA PASADA para la Pieza {$tipoPieza} del juego {$piece->n_juego}.",
+                    'ot' => $otFull,
+                    'clase' => $clase->nombre ?? 'N/A',
+                    'proceso' => 'Soldadura PTA',
+                    'maquina' => $meta->maquina ?? 'N/A',
+                    'n_pieza' => $nPiezaRef,
+                    'h_inicio' => $request->input('h_inicio_solicitud') ?? now()->subMinute()->format('H:i:s'),
+                    'h_termino' => now()->format('H:i:s'),
+                    'id_ot' => $meta->id_ot,
+                    'id_clase' => $meta->id_clase
+                ]);
             } elseif ($tipo === 'D_Conexion_pico' && !$p2Activa && $nPiezaRef) {
                 // Si el checkbox se desmarca, se puede borrar la fila de 2da pasada si existía
                 SoldaduraPTA_pza::where('id_proceso', $piece->id_proceso)

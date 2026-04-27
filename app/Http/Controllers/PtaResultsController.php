@@ -10,6 +10,7 @@ use App\Models\SoldaduraPTA;
 use App\Models\SoldaduraPTA_pza;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class PtaResultsController extends Controller
 {
@@ -164,10 +165,8 @@ class PtaResultsController extends Controller
                 }
 
                 imagecopyresampled($lienzo, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $anchoOrig, $altoOrig);
-                imagejpeg($lienzo, $destinoFinal, 80);
 
-                imagedestroy($lienzo);
-                imagedestroy($origen);
+                imagejpeg($lienzo, $destinoFinal, 80);
                 
                 return $relativePath . '/' . $nombre;
             }
@@ -325,6 +324,26 @@ class PtaResultsController extends Controller
         }
 
         $resultado->save();
+
+        // Registrar log de auditoría para PTA (Manual)
+        $meta = \App\Models\Metas::where('id_ot', $request->id_ot)->where('id_usuario', Auth::user()->matricula)->orderBy('created_at', 'desc')->first();
+        $clase = \App\Models\Clase::find($clase_id);
+        $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : $ot_id;
+
+        \App\Models\SystemLog::create([
+            'user_matricula' => Auth::user()->matricula,
+            'action' => 'Captura Medida',
+            'details' => "Registro de resultados PTA para pieza {$request->n_pieza} en OT {$ot_id}.",
+            'ot' => $otFull,
+            'clase' => $clase->nombre ?? 'N/A',
+            'proceso' => 'Soldadura PTA',
+            'maquina' => $meta->maquina ?? 'N/A',
+            'n_pieza' => $request->n_pieza,
+            'h_inicio' => $request->input('h_inicio_solicitud') ?? now()->subMinute()->format('H:i:s'),
+            'h_termino' => now()->format('H:i:s'),
+            'id_ot' => $request->id_ot,
+            'id_clase' => $clase_id
+        ]);
 
         // ── Auto-liberar la pieza actual al guardar ───────────────────────────
         $resultado->liberado_por_admin = true;
@@ -721,6 +740,18 @@ class PtaResultsController extends Controller
             $p2Row->p2_perfilado = ($p2Tipo === 'Perfilado') ? $request->input('p2_valor_principal') : null;
 
             $p2Row->save();
+
+            // Registrar log de auditoría para 2da pasada PTA
+            \App\Models\SystemLog::create([
+                'user_matricula' => Auth::user()->matricula,
+                'action' => 'Segunda Pasada PTA',
+                'details' => "El operador registró una Segunda Pasada para la pieza {$nPieza} (OT: {$piezaBase->id_ot}).",
+                'ot' => $piezaBase->id_ot,
+                'clase' => $piezaBase->id_clase,
+                'n_pieza' => $nPieza,
+                'h_inicio' => now()->subMinute()->format('H:i:s'),
+                'h_termino' => now()->format('H:i:s')
+            ]);
         }
 
         return redirect()->route('pta.segunda_pasada', [

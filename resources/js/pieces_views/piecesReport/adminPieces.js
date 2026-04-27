@@ -115,6 +115,9 @@ function orderedArray(array) {
         process: array[4],
         errors: array[5],
         observations: array.observations ?? "",
+        startTime: array.hora_inicio ?? "N/A",
+        endTime: array.hora_termino ?? "N/A",
+        totalTime: array.tiempo_total ?? "N/A",
         machinedDate: array[6],
         liberationDate: array[7],
         user_liberation: array[8],
@@ -336,54 +339,6 @@ function createFilters() {
         btnClear.className = "btns btn-clear-filters";
         btnClear.type = "button";
 
-        const styleEnabled = () => {
-            btnClear.style.cssText = `
-                margin-left: 10px;
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                padding: 8px 15px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-weight: bold;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.6);
-                transition: all 0.3s ease;
-                opacity: 1;
-            `;
-        };
-
-        const styleDisabled = () => {
-            btnClear.style.cssText = `
-                margin-left: 10px;
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                padding: 8px 15px;
-                border-radius: 4px;
-                cursor: not-allowed;
-                font-weight: bold;
-                box-shadow: none;
-                transition: all 0.3s ease;
-                opacity: 0.4;
-            `;
-        };
-
-        styleDisabled(); // Inicialmente deshabilitado si no hay filtros
-
-        btnClear.addEventListener("mouseenter", () => {
-            if (!btnClear.disabled) {
-                btnClear.style.backgroundColor = "#28a745";
-                btnClear.style.transform = "scale(1.03)";
-            }
-        });
-
-        btnClear.addEventListener("mouseleave", () => {
-            if (!btnClear.disabled) {
-                btnClear.style.backgroundColor = "#6c757d";
-                btnClear.style.transform = "scale(1)";
-            }
-        });
-
         btnClear.addEventListener("click", () => {
             if (btnClear.disabled) return;
             document.querySelectorAll(".select-filter").forEach(select => {
@@ -416,13 +371,7 @@ function createFilters() {
                 if (i.value !== "") hasFilters = true;
             });
 
-            if (hasFilters) {
-                btnClear.disabled = false;
-                styleEnabled();
-            } else {
-                btnClear.disabled = true;
-                styleDisabled();
-            }
+            btnClear.disabled = !hasFilters;
         };
     }
 }

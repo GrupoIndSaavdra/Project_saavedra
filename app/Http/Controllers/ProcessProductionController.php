@@ -12,6 +12,7 @@ use App\Models\Pieza;
 use App\Models\Procesos;
 use App\Models\tiempoproduccion;
 use App\Models\User;
+use App\Models\SystemLog;
 use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
@@ -469,10 +470,25 @@ class ProcessProductionController extends Controller
     public function verifiedPasswordAdmin(Request $request)
     {
         $password = $request->input('passwordAdmin');
-        $this->validatePasswordAdmin($password);
         if ($this->validatePasswordAdmin($password)) {
             $meta = Metas::find($request->input('meta'));
             $process = $meta->proceso;
+
+            // REGLA DE ORO: REGISTRAR AUTORIZACIÓN (OPCIÓN 2)
+            if ($request->has('h_inicio_solicitud')) {
+                SystemLog::create([
+                    'user_matricula' => auth()->user()->matricula,
+                    'action' => 'Autorización de Edición',
+                    'details' => 'El supervisor/administrador autorizó el acceso a edición tras validar su identidad.',
+                    'ot' => $meta->id_ot,
+                    'clase' => $meta->id_clase,
+                    'proceso' => $process,
+                    'maquina' => $meta->maquina,
+                    'h_inicio' => $request->input('h_inicio_solicitud'),
+                    'h_termino' => now()->format('H:i:s'),
+                ]);
+            }
+
             if (!$request->input('editPieces')) {
                 if ($meta) {
                     return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $process, "edit" => 1])->with('success', 'Contraseña correcta. Ahora puedes editar tu meta');
@@ -480,7 +496,7 @@ class ProcessProductionController extends Controller
             }
             return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $process, "edit" => 2])->with('success', 'Contraseña correcta. Ahora puedes editar las piezas que has registrado');
         }
-        return redirect()->back()->with('error', 'Contraseña incorrecta, intenta de nuevo'); // Si la contraseña es incorrecta, retornar error
+        return redirect()->back()->with('error', 'Contraseña incorrecta, intenta de nuevo'); 
     }
     public function verifyNumbersOfPieces($meta)
     {
@@ -506,6 +522,12 @@ class ProcessProductionController extends Controller
         $meta = Metas::find($request->input('meta'));
         $machine = Maquinas::where('id_meta', $meta->id)->first();
         if ($machine) {
+            $user = auth()->user();
+            if ($user && $user->perfil == 2) {
+                // REINICIAR CRONÓMETRO: Se registra actividad de producción (con 00 segs)
+                $user->update(['prod_start_at' => now()->setSeconds(0), 'prod_locked_type' => null]);
+            }
+
             $class = Clase::find($meta->id_clase);
             $this->savePiece($class, $meta->proceso, $request, $meta);
 
@@ -660,6 +682,13 @@ class ProcessProductionController extends Controller
         if (!$machine) {
             return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
+
+        $user = auth()->user();
+        if ($user && $user->perfil == 2) {
+            // REINICIAR CRONÓMETRO: Selección de juego cuenta como inicio de actividad (con 00 segs)
+            $user->update(['prod_start_at' => now()->setSeconds(0), 'prod_locked_type' => null]);
+        }
+
         $class = Clase::find($meta->id_clase);
 
         // Obtener los modelos de la tabla de las piezas del proceso
@@ -856,6 +885,13 @@ class ProcessProductionController extends Controller
         if (!$machine) {
             return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
+
+        $user = auth()->user();
+        if ($user && $user->perfil == 2) {
+            // REINICIAR CRONÓMETRO: La edición manual también cuenta como actividad activa (con 00 segs)
+            $user->update(['prod_start_at' => now()->setSeconds(0), 'prod_locked_type' => null]);
+        }
+
         $class = Clase::find($meta->id_clase);
 
         if ($meta->proceso === 'Soldadura PTA') {
@@ -979,15 +1015,41 @@ class ProcessProductionController extends Controller
                     $this->storeMachine($request, $foundedMeta); // Si la máquina no existe, se crea una nueva máquina ocupada asociada a la meta
                     $meta = $foundedMeta;
                     $successMessage = 'Se ha ingresado correctamente a la meta de ' . auth()->user()->a_paterno . ' ' . auth()->user()->a_materno . ' ' . auth()->user()->nombre;
+                    
+                    SystemLog::create([
+                        'user_matricula' => auth()->user()->matricula,
+                        'action' => 'Ingreso a Meta Existente',
+                        'details' => $successMessage . " (OT: {$request->workOrder}, Clase: {$class->nombre}, Maquina: {$request->machine})",
+                        'ot' => $request->workOrder,
+                        'clase' => $class->nombre,
+                        'maquina' => $request->machine,
+                        'proceso' => $processString,
+                        'h_inicio' => now()->format('H:i:s'),
+                        'h_termino' => now()->format('H:i:s'),
+                        'id_ot' => $request->workOrder
+                    ]);
                 } else { // Si la máquina no existe y tampoco una meta con esos datos, se crea una nueva meta y maquina
                     $meta = $this->storeMeta($request, $class, $startTime, $endTime, $date);
                     $meta = Metas::find($meta->id);
                     $this->storeMachine($request, $meta); // Se crea una nueva máquina ocupada asociada a la meta
                     $successMessage = 'Se ha creado correctamente la meta';
+
+                    SystemLog::create([
+                        'user_matricula' => auth()->user()->matricula,
+                        'action' => 'Nueva Meta Creada',
+                        'details' => $successMessage . " (OT: {$request->workOrder}, Clase: {$class->nombre}, Maquina: {$request->machine})",
+                        'ot' => $request->workOrder,
+                        'clase' => $class->nombre,
+                        'maquina' => $request->machine,
+                        'proceso' => $processString,
+                        'h_inicio' => now()->format('H:i:s'),
+                        'h_termino' => now()->format('H:i:s'),
+                        'id_ot' => $request->workOrder
+                    ]);
                 }
                 return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $processString, "edit" => 0])->with('success', $successMessage);
             }
-            return redirect()->route('processProduction')->with('error', 'La máquina esta ocupada. Por favor, elija otra maquina o pida a un supervisor desbloquearla');
+            return redirect()->route('processProduction')->with('warning', 'La máquina esta ocupada. Por favor, elija otra maquina o pida a un supervisor desbloquearla');
         }
         return redirect()->route('processProduction')->with('error', 'La clase ingresada no existe.'); // Si la clase no existe, retornar error
     }
@@ -1027,6 +1089,19 @@ class ProcessProductionController extends Controller
     {
         $meta = Metas::find($meta);
         if ($meta) {
+            $user = auth()->user();
+            if ($user && $user->perfil == 2) {
+                // Registrar finalización en log técnico de productividad
+                \Illuminate\Support\Facades\Log::channel('productivity')->info("[FINALIZACIÓN] El operador {$user->matricula} ha finalizado su meta de producción (OT: {$meta->id_ot}). El sistema entra en fase de espera.");
+                
+                // Reiniciar estado de productividad al finalizar el reporte para evitar bloqueos fantasmales
+                $user->update([
+                    'prod_status' => 'inicio',
+                    'prod_start_at' => now(),
+                    'prod_locked_type' => null
+                ]);
+            }
+
             $class = Clase::find($meta->id_clase);
             // Desocupar la maquina
             $machineOccupied = Maquinas::where('id_meta', $meta->id)->first();
@@ -2409,6 +2484,12 @@ class ProcessProductionController extends Controller
             5 => 0  // Incompleto
         ];
 
+        $statusPieceNumbers = [
+            1 => [],
+            2 => [],
+            5 => []
+        ];
+
         foreach ($pieces as $pieceData) {
             // Verificar si es un juego completo (tiene múltiples IDs)
             $isSet = isset($pieceData['isSet']) && $pieceData['isSet'] == '1';
@@ -2444,35 +2525,156 @@ class ProcessProductionController extends Controller
 
                             // Incrementar el contador correspondiente
                             $statusCounts[$action]++;
+
+                            // Guardar el número de juego limpio (solo el número + J)
+                            if (isset($statusPieceNumbers[$action])) {
+                                $cleanNum = preg_replace('/[a-zA-Z]/', '', (string)$piece->n_pieza);
+                                if ($cleanNum) {
+                                    $statusPieceNumbers[$action][] = $cleanNum . "J";
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
+        // Obtener el nombre del inspector de calidad
+        $qualityUser = User::where('matricula', $qualityUserMatricula)->first();
+        $qualityName = $qualityUser ? "{$qualityUser->nombre} {$qualityUser->a_paterno}" : "Inspector";
+
         // Limpiar la sesión de calidad
         session()->forget('quality_user');
 
-        // Construir mensaje de éxito con todos los estados procesados
-        $statusMessages = [];
-        $statusLabels = [
-            1 => 'Liberadas',
-            2 => 'Rechazadas',
-            3 => 'Buenas sin liberación',
-            4 => 'Malas sin liberación',
-            5 => 'Incompletas'
-        ];
+        // Construir mensajes diferenciados
+        $statusMessagesToast = [];
+        $htmlLogPartsArr = [];
+        
+        $labelsToast = [1 => 'Liberadas', 2 => 'Rechazadas', 5 => 'Incompletas'];
+        $labelsLog = [1 => 'registro de Liberación', 2 => 'registro de rechazos', 5 => 'registro de incompletas'];
+        $colorsLog = [1 => '#2E86C1', 2 => '#C0392B', 5 => '#B7950B'];
 
-        foreach ($statusCounts as $status => $count) {
+        foreach ([1, 2, 5] as $status) {
+            $count = $statusCounts[$status];
             if ($count > 0) {
-                $statusMessages[] = "{$statusLabels[$status]}: {$count}";
+                $unique = array_unique($statusPieceNumbers[$status]);
+                sort($unique, SORT_NATURAL);
+                $nums = implode(', ', $unique);
+                
+                // Mensaje para el Toast (Directo)
+                $statusMessagesToast[] = "{$labelsToast[$status]}: {$count} [{$nums}]";
+                
+                // Mensaje para el Log (Narrativo + Colores)
+                $labelLog = $labelsLog[$status];
+                $colorLog = $colorsLog[$status];
+                $htmlLogPartsArr[] = "{$labelLog} de los juegos <span style='color:{$colorLog}; font-weight:bold;'>[{$nums}]</span>";
             }
         }
 
-        if (count($statusMessages) > 0) {
-            $message = "Proceso completado. Piezas " . implode(', ', $statusMessages) . ".";
+        if (count($statusMessagesToast) > 0) {
+            // --- CONSTRUCCIÓN DE MENSAJE SIMPLIFICADO PARA EL TOAST (OPERADOR) ---
+            $actionsPerformed = [];
+            if ($statusCounts[1] > 0) $actionsPerformed[] = "liberaciones";
+            if ($statusCounts[2] > 0) $actionsPerformed[] = "rechazos";
+            if ($statusCounts[5] > 0) $actionsPerformed[] = "registro de incompletos";
+
+            $actionsText = "";
+            if (count($actionsPerformed) === 1) {
+                $actionsText = $actionsPerformed[0];
+            } elseif (count($actionsPerformed) === 2) {
+                $actionsText = $actionsPerformed[0] . " y " . $actionsPerformed[1];
+            } else {
+                $lastAct = array_pop($actionsPerformed);
+                $actionsText = implode(', ', $actionsPerformed) . " y " . $lastAct;
+            }
+
+            $message = "El inspector de calidad {$qualityName} realizó {$actionsText} correctamente.";
+            
+            // --- CONSTRUCCIÓN DE NARRATIVA DINÁMICA... (se mantiene igual para el Log)
+            $activeResults = [];
+            
+            // 1. Lógica para LIBERADOS (AZUL)
+            if (!empty($statusPieceNumbers[1])) {
+                $unique = array_unique($statusPieceNumbers[1]);
+                sort($unique, SORT_NATURAL);
+                $nums = implode(', ', $unique);
+                $isPlural = count($unique) > 1;
+                $verb = $isPlural ? "se liberaron los juegos" : "se liberó el juego";
+                $activeResults[] = "<span style='color:#2E86C1; font-weight:bold;'>{$verb} [{$nums}]</span>";
+            }
+            
+            // 2. Lógica para RECHAZADOS (ROJO)
+            if (!empty($statusPieceNumbers[2])) {
+                $unique = array_unique($statusPieceNumbers[2]);
+                sort($unique, SORT_NATURAL);
+                $nums = implode(', ', $unique);
+                $isPlural = count($unique) > 1;
+                $verb = $isPlural ? "los juegos [{$nums}] fueron rechazados" : "el juego [{$nums}] fue rechazado";
+                $activeResults[] = "<span style='color:#C0392B; font-weight:bold;'>{$verb}</span>";
+            }
+            
+            // 3. Lógica para INCOMPLETOS (AMARILLO)
+            if (!empty($statusPieceNumbers[5])) {
+                $unique = array_unique($statusPieceNumbers[5]);
+                sort($unique, SORT_NATURAL);
+                $nums = implode(', ', $unique);
+                $isPlural = count($unique) > 1;
+                $verb = $isPlural ? "los juegos [{$nums}] quedaron registrados como incompletos" : "el juego [{$nums}] quedó registrado como incompleto";
+                $activeResults[] = "<span style='color:#B7950B; font-weight:bold;'>{$verb}</span>";
+            }
+
+            // Construir el cuerpo de la oración con conectores naturales
+            $introText = count($activeResults) > 1 ? "los siguientes resultados" : "el siguiente resultado";
+            $narrative = "";
+            
+            // Construir el cuerpo de la oración con conectores naturales
+            $introText = count($activeResults) > 1 ? "los siguientes resultados" : "el siguiente resultado";
+            $narrative = "";
+            
+            if (count($activeResults) === 1) {
+                $narrative = $activeResults[0];
+            } elseif (count($activeResults) === 2) {
+                $narrative = $activeResults[0] . " mientras que " . $activeResults[1];
+            } else {
+                $last = array_pop($activeResults);
+                $narrative = implode(', ', $activeResults) . " mientras que " . $last;
+            }
+
+            // Obtener nombres descriptivos para los logs (en lugar de IDs)
+            $otObj = Orden_trabajo::with('moldura')->find($meta->id_ot);
+            $otLabel = $otObj ? ($otObj->id . ($otObj->moldura ? " - " . $otObj->moldura->nombre : "")) : $meta->id_ot;
+            
+            $claseObj = Clase::find($meta->id_clase);
+            $classLabel = $claseObj ? $claseObj->nombre : $meta->id_clase;
+
+            // --- LOG 1: RESULTADOS DE PRODUCCIÓN (VERDE / ROJO / AMARILLO) ---
+            SystemLog::create([
+                'user_matricula' => auth()->user()->matricula,
+                'action' => 'Proceso Correcto',
+                'details' => "El inspector <b>{$qualityName}</b> finalizó la revisión de los juegos con {$introText}: {$narrative}.",
+                'ot' => $otLabel,
+                'clase' => $classLabel,
+                'proceso' => $meta->proceso,
+                'maquina' => $meta->maquina,
+                'h_inicio' => 'N/A',
+                'h_termino' => 'N/A'
+            ]);
+
+            // --- LOG 2: CIERRE DE INTERFAZ (AZUL) ---
+            SystemLog::create([
+                'user_matricula' => auth()->user()->matricula,
+                'action' => 'Abandono de Liberación',
+                'details' => "El inspector <b>{$qualityName}</b> finalizó el registro y cerró la interfaz de calidad.",
+                'ot' => $otLabel,
+                'clase' => $classLabel,
+                'proceso' => $meta->proceso,
+                'maquina' => $meta->maquina,
+                'h_inicio' => 'N/A',
+                'h_termino' => 'N/A'
+            ]);
+
         } else {
-            $message = "No se realizaron cambios en las piezas.";
+            $message = "El inspector de calidad {$qualityName} no realizó cambios en las piezas.";
         }
 
         return redirect()->route('showReportFormat', [

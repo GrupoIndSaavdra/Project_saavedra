@@ -96,6 +96,10 @@ export default defineConfig({
                 //Módulo Documentacion Técnica
                 'resources/css/wo_views/manage_documentation.css',
                 'resources/js/wo_views/manage_documentation.js',
+
+                // Views systemLogs
+                "resources/css/reports/systemLogs.css",
+                "resources/js/reports/systemLogs.js",
             ],
             refresh: true,
         }),
