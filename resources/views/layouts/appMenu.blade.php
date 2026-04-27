@@ -6,15 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-<<<<<<< HEAD
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
-=======
 
     @vite(['resources/css/layouts/appMenu.css', 'resources/js/layouts/appMenu.js', 'resources/js/layouts/productivity.js', 'resources/css/layouts/partials/messages.css', 'resources/js/layouts/partials/messages.js'])
 
     <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
->>>>>>> origin/dev/changues
-    @vite(['resources/css/layouts/appMenu.css', 'resources/js/layouts/appMenu.js'])
 
     @yield('head')
     <script>
