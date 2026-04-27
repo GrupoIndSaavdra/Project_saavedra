@@ -115,6 +115,9 @@ function orderedArray(array) {
         process: array[4],
         errors: array[5],
         observations: array.observations ?? "",
+        startTime: array.hora_inicio ?? "N/A",
+        endTime: array.hora_termino ?? "N/A",
+        totalTime: array.tiempo_total ?? "N/A",
         machinedDate: array[6],
         liberationDate: array[7],
         user_liberation: array[8],
@@ -204,28 +207,41 @@ function createFilters() {
                     }
 
                     if (item == "machine") {
-                        // Generar 45 máquinas como en processProduction.js
+                        // Máquinas agrupadas: 1_2, 5_6, 25_26, 27_28 + individuales
+                        const pairedMachines = [1, 5, 25, 27];
                         for (let i = 1; i <= 45; i++) {
-                            if (
-                                i == window.selectedItems[item] ||
-                                (window.selectedItems[item].includes("_") &&
-                                    window.selectedItems[item] == `${i}_${i + 1}`)
-                            ) {
-                                if (i == 1 || i == 25 || i == 27) {
-                                    i++; // Saltar la siguiente iteración para máquinas agrupadas
+                            const pairedVal = pairedMachines.includes(i) ? `${i}_${i + 1}` : null;
+                            if (pairedMachines.includes(i)) {
+                                // Opción agrupada
+                                if (window.selectedItems[item] !== pairedVal) {
+                                    const opt = document.createElement("option");
+                                    opt.value = pairedVal;
+                                    opt.textContent = `Maquina ${i} y ${i + 1}`;
+                                    select.appendChild(opt);
                                 }
-                                continue;
-                            }
-                            const option = document.createElement("option");
-                            if (i == 1 || i == 25 || i == 27) {
-                                option.value = `${i}_${i + 1}`;
-                                option.textContent = `Maquina ${i} y ${i + 1}`;
+                                // Opción individual A
+                                if (window.selectedItems[item] !== String(i)) {
+                                    const optA = document.createElement("option");
+                                    optA.value = `${i}`;
+                                    optA.textContent = `Maquina ${i}`;
+                                    select.appendChild(optA);
+                                }
+                                // Opción individual B
+                                if (window.selectedItems[item] !== String(i + 1)) {
+                                    const optB = document.createElement("option");
+                                    optB.value = `${i + 1}`;
+                                    optB.textContent = `Maquina ${i + 1}`;
+                                    select.appendChild(optB);
+                                }
                                 i++;
                             } else {
-                                option.value = `${i}`;
-                                option.textContent = `Maquina ${i}`;
+                                if (window.selectedItems[item] !== String(i)) {
+                                    const option = document.createElement("option");
+                                    option.value = `${i}`;
+                                    option.textContent = `Maquina ${i}`;
+                                    select.appendChild(option);
+                                }
                             }
-                            select.appendChild(option);
                         }
                     } else {
                         // Ordenar operadores alfabéticamente si es el filtro de operador
@@ -336,54 +352,6 @@ function createFilters() {
         btnClear.className = "btns btn-clear-filters";
         btnClear.type = "button";
 
-        const styleEnabled = () => {
-            btnClear.style.cssText = `
-                margin-left: 10px;
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                padding: 8px 15px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-weight: bold;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.6);
-                transition: all 0.3s ease;
-                opacity: 1;
-            `;
-        };
-
-        const styleDisabled = () => {
-            btnClear.style.cssText = `
-                margin-left: 10px;
-                background-color: #6c757d;
-                color: white;
-                border: none;
-                padding: 8px 15px;
-                border-radius: 4px;
-                cursor: not-allowed;
-                font-weight: bold;
-                box-shadow: none;
-                transition: all 0.3s ease;
-                opacity: 0.4;
-            `;
-        };
-
-        styleDisabled(); // Inicialmente deshabilitado si no hay filtros
-
-        btnClear.addEventListener("mouseenter", () => {
-            if (!btnClear.disabled) {
-                btnClear.style.backgroundColor = "#28a745";
-                btnClear.style.transform = "scale(1.03)";
-            }
-        });
-
-        btnClear.addEventListener("mouseleave", () => {
-            if (!btnClear.disabled) {
-                btnClear.style.backgroundColor = "#6c757d";
-                btnClear.style.transform = "scale(1)";
-            }
-        });
-
         btnClear.addEventListener("click", () => {
             if (btnClear.disabled) return;
             document.querySelectorAll(".select-filter").forEach(select => {
@@ -416,13 +384,7 @@ function createFilters() {
                 if (i.value !== "") hasFilters = true;
             });
 
-            if (hasFilters) {
-                btnClear.disabled = false;
-                styleEnabled();
-            } else {
-                btnClear.disabled = true;
-                styleDisabled();
-            }
+            btnClear.disabled = !hasFilters;
         };
     }
 }
@@ -632,7 +594,11 @@ function applyAllFilters() {
             if (dsWo !== fWo && dsId !== fId) show = false;
         }
         if (f.class && f.class !== "Todos" && String(ds.class).trim() !== f.class) show = false;
-        if (f.operator && f.operator !== "Todos" && String(ds.operator).trim() !== f.operator) show = false;
+        if (f.operator && f.operator !== "Todos") {
+            let rowOperators = String(ds.operator).split('/').map(op => op.trim());
+            if (!rowOperators.includes(f.operator)) show = false;
+        }
+
 
         if (f.machine && f.machine !== "Todos") {
             let mach = f.machine.replace(" y ", "_");

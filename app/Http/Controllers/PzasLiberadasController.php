@@ -29,6 +29,7 @@ use App\Models\SegundaOpeSoldadura_pza;
 use App\Models\SegundaOperacionCabezaSoplo_pza;
 use App\Models\Soldadura_pza;
 use App\Models\SoldaduraPTA_pza;
+use App\Models\SystemLog;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
@@ -99,26 +100,29 @@ class PzasLiberadasController extends Controller
         } else {
             $this->rechazarPieza($this->getPiezasLiberar($request->pieza, $request->proceso, $request->buena), $request->proceso, $request->observationPiece);
         }
-        //Datos de las piezas
+        // Datos de las piezas
         if (isset($request->requestLiberation)) {
-            return redirect()->route('home');
+            // El resto de la función se encargará de procesar los filtros y devolver la vista actualizada
         }
-        $extraRequest = explode(",", $request->extraRequest);
-        $extraRequest[0] = str_replace("_", "/", $extraRequest[0]);
+        $extraRequest = explode("|", $request->extraRequest);
+        
+        // El workOrder usa "!" como reemplazo de "/"
+        $workOrder = isset($extraRequest[0]) ? str_replace("!", "/", $extraRequest[0]) : "Todos";
 
         $datosPiezas = array(
-            "workOrder" => $extraRequest[0],
-            "class" => $extraRequest[1],
-            "operator" => $extraRequest[2],
-            "machine" => $extraRequest[3],
-            "process" => $extraRequest[4],
-            "error" => $extraRequest[5],
-            "dateFrom" => $extraRequest[6],
-            "dateTo" => $extraRequest[7],
-            "n_juego" => $extraRequest[8],
-            "action" => null,
+            "workOrder" => $workOrder,
+            "class"     => $extraRequest[1] ?? "Todos",
+            "operator"  => $extraRequest[2] ?? "Todos",
+            "machine"   => $extraRequest[3] ?? "Todos",
+            "process"   => $extraRequest[4] ?? "Todos",
+            "error"     => $extraRequest[5] ?? "Todos",
+            "dateFrom"  => $extraRequest[6] ?? "Todos",
+            "dateTo"    => $extraRequest[7] ?? "Todos",
+            "n_juego"   => $extraRequest[8] ?? "Todos",
+            "action"    => null,
         );
-        return $this->showPieces($this->controladorPzas->search($datosPiezas, 'quality'));
+        // Regresar a la vista con TODOS los registros para que el frontend pueda seguir filtrando globalmente
+        return $this->show();
     }
 
     public function getPiezasLiberar($juego, $proceso, $buena)
@@ -368,6 +372,21 @@ class PzasLiberadasController extends Controller
                 'observacion_liberacion' => $observacion,
             ]);
 
+            // Logger de Auditoría
+            $claseLog = Clase::find($meta->id_clase);
+            SystemLog::create([
+                'user_matricula' => auth()->user()->matricula,
+                'action' => 'Liberación por Calidad',
+                'details' => "Pieza/Juego $n_pieza LIBERADA en $proceso. Obs: $observacion",
+                'ot' => $claseLog ? ($claseLog->id_ot . ' - ' . ($claseLog->tamanio ?? 'N/A')) : ($meta->id_ot ?? 'N/A'),
+                'clase' => $claseLog->nombre ?? 'N/A',
+                'id_ot' => $meta->id_ot,
+                'id_clase' => $meta->id_clase,
+                'proceso' => $proceso,
+                'n_pieza' => $n_pieza,
+                'maquina' => $meta->maquina
+            ]);
+
             // ── Para Soldadura PTA: liberar también la mitad contraria del par M/H ──
             if ($proceso === 'Soldadura PTA') {
                 $ultimaLetra = substr($n_pieza, -1);
@@ -457,6 +476,21 @@ class PzasLiberadasController extends Controller
                 'fecha_liberacion' => date('Y-m-d H:i:s'),
                 'user_liberacion' => auth()->user()->matricula,
                 'observacion_liberacion' => $observacion,
+            ]);
+
+            // Logger de Auditoría
+            $claseLog = Clase::find($meta->id_clase);
+            SystemLog::create([
+                'user_matricula' => auth()->user()->matricula,
+                'action' => 'Rechazo por Calidad',
+                'details' => "Pieza/Juego $n_pieza RECHAZADA en $proceso. Obs: $observacion",
+                'ot' => $claseLog ? ($claseLog->id_ot . ' - ' . ($claseLog->tamanio ?? 'N/A')) : ($meta->id_ot ?? 'N/A'),
+                'clase' => $claseLog->nombre ?? 'N/A',
+                'id_ot' => $meta->id_ot,
+                'id_clase' => $meta->id_clase,
+                'proceso' => $proceso,
+                'n_pieza' => $n_pieza,
+                'maquina' => $meta->maquina
             ]);
 
             // ── Para Soldadura PTA: rechazar también la mitad contraria del par M/H ──

@@ -12,6 +12,7 @@ export default defineConfig({
                 //Layout appMenu
                 "resources/css/layouts/appMenu.css",
                 "resources/js/layouts/appMenu.js",
+                "resources/js/layouts/productivity.js",
 
                 //View home
                 "resources/css/home.css",
@@ -96,6 +97,10 @@ export default defineConfig({
                 //Módulo Documentacion Técnica
                 'resources/css/wo_views/manage_documentation.css',
                 'resources/js/wo_views/manage_documentation.js',
+
+                // Views systemLogs
+                "resources/css/reports/systemLogs.css",
+                "resources/js/reports/systemLogs.js",
             ],
             refresh: true,
         }),

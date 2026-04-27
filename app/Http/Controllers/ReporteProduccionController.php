@@ -355,6 +355,7 @@ class ReporteProduccionController extends Controller
                             'is_juego'        => true,
                             'es_compartido'   => true,
                             'piezas_incluidas'=> ['H', 'M'],
+                            'maquina'         => $pieza->maquina ?? '—',
                         ];
                     }
                 } else {
@@ -368,6 +369,7 @@ class ReporteProduccionController extends Controller
                             'bg_color'        => $colorFila,
                             'is_juego'        => true,
                             'piezas_incluidas'=> [$sufijo],
+                            'maquina'         => $pieza->maquina ?? '—',
                         ];
                     } else {
                         if (!in_array($sufijo, $coleccion[$keyDict]['piezas_incluidas'])) {
@@ -394,6 +396,7 @@ class ReporteProduccionController extends Controller
                     'obs_calidad' => $obsCalidad,
                     'bg_color'    => $colorFila,
                     'is_juego'    => false,
+                    'maquina'     => $pieza->maquina ?? '—',
                 ];
             }
         }

@@ -253,6 +253,7 @@ class EnviarReporteDiario extends Command
                             'es_compartido'   => true,
                             // Forzamos ambas para que no se regrese a 'H' o 'M' al final
                             'piezas_incluidas'=> ['H', 'M'],
+                            'maquina'         => $pieza->maquina ?? '—',
                         ];
                     }
                 } else {
@@ -267,6 +268,7 @@ class EnviarReporteDiario extends Command
                             'bg_color'        => $colorFila,
                             'is_juego'        => true,
                             'piezas_incluidas'=> [$sufijo],
+                            'maquina'         => $pieza->maquina ?? '—',
                         ];
                     } else {
                         if (!in_array($sufijo, $coleccion[$keyDict]['piezas_incluidas'])) {
@@ -293,6 +295,7 @@ class EnviarReporteDiario extends Command
                     'obs_calidad' => $obsCalidad,
                     'bg_color'    => $colorFila,
                     'is_juego'    => false,
+                    'maquina'     => $pieza->maquina ?? '—',
                 ];
             }
         }

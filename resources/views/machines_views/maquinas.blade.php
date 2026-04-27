@@ -8,6 +8,7 @@
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite('resources/css/maquinas.css')
     <link rel="stylesheet" href="{{asset('bootstrap/css/bootstrap.min.css')}}">
+    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
 </head>
 
 <body background="{{ asset('images/fondoLogin.jpg') }}">

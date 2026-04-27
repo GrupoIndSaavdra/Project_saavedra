@@ -102,7 +102,7 @@ label {
 /* ESTILOS PARA LA TABLA */
 .div-table {
     margin-top: 2em;
-    height: 63%;
+    height: 72%;
     overflow-x: auto;
 }
 table {
@@ -422,4 +422,37 @@ tr:nth-child(even) {
 }
 .soldadura-btn-close:hover {
     background: #055a9e;
+}
+
+/* BOTÓN LIMPIAR FILTROS */
+.btn-clear-filters {
+    margin: 0 10px;
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: 700;
+    transition: 0.2s;
+}
+
+.btn-clear-filters:enabled {
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(108, 117, 125, 0.6);
+    opacity: 1;
+    transform: scale(1);
+}
+
+.btn-clear-filters:disabled {
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.4;
+    transform: scale(0.95);
+}
+
+.btn-clear-filters:hover:enabled {
+    background-color: #28a745;
+    transform: scale(1.2);
+    box-shadow: 0 2px 10px rgba(40, 167, 69, 0.6);
 }
