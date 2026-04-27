@@ -557,7 +557,7 @@ function create_ObservationsField(keys) {
     textArea.setAttribute("row", "5");
     textArea.setAttribute(
         "placeholder",
-        `Agrega una observación para el juego ${keys.pieza[0].slice(0, -2)}J de ${keys.proceso} (Opcional)`
+        `Agrega una observación para el juego ${keys.pieza[0].toString().split(/[HMJ]/i)[0]}J de ${keys.proceso} (Opcional)`
     );
     textArea.classList.add("textArea-liberation");
     textArea.setAttribute("name", "observationPiece");

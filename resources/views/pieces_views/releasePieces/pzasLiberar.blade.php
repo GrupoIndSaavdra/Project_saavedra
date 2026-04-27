@@ -115,7 +115,7 @@
     </div>
     <script>
         window.pieces = @json($pieces);
-        window.infoPieces = @json($infoPieces);
+        window.infoPiezas = @json($infoPieces);
         window.piecesData = @json($piecesData);
         window.selectedItems = @json($selectedItems);
         window.filtersData = @json($filtersData);

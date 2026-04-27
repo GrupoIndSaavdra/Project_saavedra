@@ -2,6 +2,10 @@ var operacion = false;
 
 function crearTabla(piezas, infoPiezas) {
     const table = document.querySelector(".table");
+    // Limpiar cualquier tbody existente para evitar duplicidad y que los filtros respondan correctamente
+    const oldTbodies = table.querySelectorAll("tbody");
+    oldTbodies.forEach(tb => tb.remove());
+    
     const tbody = document.createElement("tbody");
     table.appendChild(tbody);
     
@@ -11,7 +15,7 @@ function crearTabla(piezas, infoPiezas) {
         if (!btn) return;
         e.preventDefault();
 
-        const dataPieza = JSON.parse(btn.getAttribute("data-pieza"));
+        const dataPieza = btn.getAttribute("data-pieza");
         const proceso = btn.getAttribute("data-proceso");
 
         if (btn.classList.contains("btn-action-liberar")) {
@@ -43,10 +47,13 @@ function crearTabla(piezas, infoPiezas) {
         const limit = Math.min(index + CHUNK_SIZE, piezas.length);
 
         for (; index < limit; index++) {
-            let piezaOG = piezas[index];
-            let infoP = infoPiezas[index];
-            let piezasArray = infoP[0]; // Las piezas originales para el JSON
-            let pieza = orderedArray(piezaOG);
+            let data = piezas[index]; // Ahora recibimos objetos ya mapeados { original, info, ordered }
+            let piezaOG = data.original;
+            let infoP = data.info;
+            let pieza = data.ordered;
+            
+            // Para el atributo data-pieza usamos join para ser más rápidos que JSON.stringify
+            let piezasIds = infoP[0].join(",");
             
             chunkHtml += `<tr style="background-color: ${pieza.colorPiece};" 
                 data-color="${esc(pieza.colorPiece).toUpperCase()}"
@@ -69,18 +76,17 @@ function crearTabla(piezas, infoPiezas) {
                         // Logic de negocio original
                         if (!pieza[key][1].includes("Incompleto") && pieza[key][0] != 1) {
                             let bool = (infoP[2] == "Ninguno" && piezaOG[9] != 2);
-                            btnHtml = `<a class="btn-liberar btn-action-liberar" style="cursor:pointer;" data-pieza='${JSON.stringify(piezasArray)}' data-proceso="${infoP[1]}" data-buena="${bool}"><img src="${window.liberar}" alt="Liberar" class="ver"></a>`;
+                            btnHtml = `<a class="btn-liberar btn-action-liberar" style="cursor:pointer;" data-pieza="${piezasIds}" data-proceso="${infoP[1]}" data-buena="${bool}"><img src="${window.liberar}" alt="Liberar" class="ver"></a>`;
                         }
                         chunkHtml += `<td>${btnHtml}</td>`;
                     } else if (key === "btn_decline") {
                         let btnHtml = "";
                         if (pieza[key] != 2) {
-                            btnHtml = `<a class="btn-liberar btn-action-rechazar" style="cursor:pointer;" data-pieza='${JSON.stringify(piezasArray)}' data-proceso="${infoP[1]}"><img src="${window.rechazar}" alt="Rechazar" class="ver"></a>`;
+                            btnHtml = `<a class="btn-liberar btn-action-rechazar" style="cursor:pointer;" data-pieza="${piezasIds}" data-proceso="${infoP[1]}"><img src="${window.rechazar}" alt="Rechazar" class="ver"></a>`;
                         }
                         chunkHtml += `<td>${btnHtml}</td>`;
                     } else if (key === "btn_seePiece") {
-                        let nPiezas = piezasArray.join(",");
-                        let url = `${window.baseUrl}/pieces/${nPiezas}/${infoP[1]}/${profileValue}`;
+                        let url = `${window.baseUrl}/pieces/${piezasIds}/${infoP[1]}/${profileValue}`;
                         chunkHtml += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver" class="ver"></a></td>`;
                     } else {
                         let cellClass = (key === "operator" || key === "observations" || key === "observacion_liberacion") ? ' class="wide-cell"' : '';
@@ -96,6 +102,7 @@ function crearTabla(piezas, infoPiezas) {
         if (index < piezas.length) {
             requestAnimationFrame(renderNextChunk);
         } else {
+            // Solo aplicamos filtros al terminar TODO el renderizado para evitar carga O(N^2)
             applyAllFilters();
             const loading = document.querySelector('.loading');
             if(loading) loading.style.display = 'none';
@@ -198,7 +205,7 @@ function create_ObservationsField(keys) {
     textArea.setAttribute("row", "5");
     textArea.setAttribute(
         "placeholder",
-        `Agrega una observación para el juego ${keys.pieza[0].slice(0, -2)}J de ${keys.proceso} (Opcional)`
+        `Agrega una observación para el juego ${keys.pieza[0].toString().split(/[HMJ]/i)[0]}J de ${keys.proceso} (Opcional)`
     );
     textArea.classList.add("textArea-liberation");
     textArea.setAttribute("name", "observationPiece");
@@ -251,16 +258,22 @@ function obtenerRequest() {
     let names = ["workOrder", "class", "operator", "machine", "process", "error", "dateFrom", "dateTo", "n_juego"];
     let request = [];
     for (let i = 0; i < names.length; i++) {
-        let value = document.getElementsByName(names[i])[0].value;
-        // Solo reemplazar "/" por "_" en workOrder (no en machine que ya usa "_" para agrupadas)
-        if (names[i] === "workOrder") {
-            value = value.replaceAll("/", "|");
+        let el = document.getElementsByName(names[i])[0];
+        let value = el ? el.value : "Todos";
+        
+        // Solo reemplazar "/" por "|" en workOrder (no en machine que ya usa "_" para agrupadas)
+        if (names[i] === "workOrder" && value) {
+            value = value.replaceAll("/", "!"); // Usamos ! para no confundir con el separador de campos |
         }
         request.push(value);
     }
-    return request;
+    return request.join("|");
 }
 function createFilters() {
+    // Si no hay piezas o selectedItems es inválido, mostramos advertencia pero permitimos crear estructura si es posible
+    if (!window.selectedItems || typeof window.selectedItems !== 'object') {
+        console.warn("Filtros con datos limitados: window.selectedItems no es un objeto válido.");
+    }
     let titles = {
         workOrder: "Orden de trabajo",
         class: "Clase",
@@ -445,10 +458,13 @@ function createFilters() {
     // Lógica de activación
     setupGameFilterLogic();
 
-    if (Object.keys(window.selectedItems).length > 0) {
-        document.querySelectorAll(".input-filter, .select-filter").forEach(el => {
-            el.addEventListener("change", applyAllFilters);
-        });
+    // Asegurar que los listeners se agreguen SIEMPRE que existan los inputs
+    document.querySelectorAll(".input-filter, .select-filter").forEach(el => {
+        el.removeEventListener("change", applyAllFilters); // Evitar duplicados
+        el.addEventListener("change", applyAllFilters);
+    });
+
+    if (window.selectedItems && Object.keys(window.selectedItems).length > 0) {
 
         // ============================================
         // NUEVO BOTÓN: Limpiar Filtros
@@ -570,11 +586,10 @@ function setupCascadingFilters() {
             }
         }
 
-        // 1. OT activas globales
+        // 1. OT activas globales - Filtrar solo las OTs que tienen registros en la tabla actual
         let activeOTIds = new Set();
         window.pieces.forEach(p => activeOTIds.add(String(p[0]).trim()));
         refreshSelect(otSelect, originalOTOptions, activeOTIds, true);
-
         // 2. Clases activas para OT
         const finalOT = otSelect.value;
         let activeClasses = new Set();
@@ -782,11 +797,14 @@ function applyAllFilters() {
 
 function sortPiezasDatabaseOrder(piezas, infoPiezas) {
     // 1. Pre-mapear todas las piezas primero para evitar miles de llamadas redundantes a orderedArray
-    let mapped = piezas.map((p, i) => ({
-        original: p,
-        info: infoPiezas[i],
-        ordered: orderedArray(p)
-    }));
+    let mapped = piezas.map((p, i) => {
+        if (!p || i >= infoPiezas.length) return null;
+        return {
+            original: p,
+            info: infoPiezas[i],
+            ordered: orderedArray(p)
+        };
+    }).filter(m => m !== null);
 
     const classOrder = ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo", "Candado Obturador"];
     const processOrder = [
@@ -802,6 +820,8 @@ function sortPiezasDatabaseOrder(piezas, infoPiezas) {
     mapped.sort((a, b) => {
         let pA = a.ordered;
         let pB = b.ordered;
+
+        if (!pA || !pB) return 0; // Guard contra elementos corruptos
 
         // 1. Orden por OT (Numérico)
         let otA = parseInt(pA.workOrder) || 0;
@@ -832,6 +852,7 @@ function sortPiezasDatabaseOrder(piezas, infoPiezas) {
 
     // Reconstruir los arreglos originales en el nuevo orden optimizado
     return {
+        mapped: mapped,
         piezas: mapped.map(m => m.original),
         infoPiezas: mapped.map(m => m.info)
     };
@@ -839,7 +860,8 @@ function sortPiezasDatabaseOrder(piezas, infoPiezas) {
 
 if (window.pieces.length > 0) {
     let sortedData = sortPiezasDatabaseOrder(window.pieces, window.infoPiezas);
-    crearTabla(sortedData.piezas, sortedData.infoPiezas);
+    // Pasamos el array de objetos ya mapeados {original, info, ordered} para evitar re-calculo
+    crearTabla(sortedData.mapped, null); 
 }
 const pdf = document.getElementById("pdf");
 
