@@ -521,6 +521,7 @@ function crearTabla(logs, append = false) {
                 </td>
                 <td>${esc(log.ot)}</td>
                 <td>
+                    ${(() => {
                     let rawPieza = log.n_juego ? String(log.n_juego).trim().toUpperCase() : "";
                     if (!rawPieza || rawPieza === "N/A") return "N/A";
 

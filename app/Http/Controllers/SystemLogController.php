@@ -241,7 +241,8 @@ class SystemLogController extends Controller
                 'Captura Medida', 'Captura Sospechosa', 'Captura Crítica', 'Consulta Dibujos Técnicos', 
                 'Consulta Documentación Técnica', 'Autorización de Edición', 'Terminar Reporte', 
                 'Terminar jornada', 'Proceso Correcto', 'Exceso de Tiempo', 
-                'Abandono de Liberación', 'Exceso de Tiempo de Maquinado', 'Inicio de Reporte Pendiente'
+                'Abandono de Liberación', 'Exceso de Tiempo de Maquinado', 'Inicio de Reporte Pendiente',
+                'Liberación por Calidad', 'Rechazo por Calidad'
             ];
             
             $showTimes = in_array($log->action, $rangeActions);
@@ -276,7 +277,7 @@ class SystemLogController extends Controller
                 'clase' => $log->clase ?? 'N/A',
                 'proceso' => $log->proceso ?? 'N/A',
                 'maquina' => $log->maquina ?? 'N/A',
-                'n_juego' => ($log->n_pieza && preg_match('/[HM]$/i', $log->n_pieza)) ? preg_replace('/[HM]$/i', 'J', $log->n_pieza) : ($log->n_pieza ?? 'N/A'),
+                'n_juego' => $log->n_pieza ?: 'N/A',
                 'is_suspicious' => $isSuspicious,
                 'is_critical' => ($log->action === 'Captura Crítica'),
             ];

@@ -2669,7 +2669,7 @@ class ProcessProductionController extends Controller
 
             // --- LOG 1: RESULTADOS DE PRODUCCIÓN (Liberación o Rechazo) ---
             SystemLog::create([
-                'user_matricula' => $user->matricula,
+                'user_matricula' => $qualityUserMatricula,
                 'action' => $mainAction,
                 'details' => "El inspector <b>{$qualityName}</b> finalizó la revisión de los juegos con {$introText}: {$narrative}.",
                 'ot' => $otLabel,
@@ -2685,7 +2685,7 @@ class ProcessProductionController extends Controller
 
             // --- LOG 2: CIERRE DE INTERFAZ (Abandono de Liberación) ---
             SystemLog::create([
-                'user_matricula' => $user->matricula,
+                'user_matricula' => $qualityUserMatricula,
                 'action' => 'Abandono de Liberación',
                 'details' => "El inspector <b>{$qualityName}</b> finalizó el registro y cerró la interfaz de calidad.",
                 'ot' => $otLabel,

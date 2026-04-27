@@ -374,6 +374,7 @@ class PzasLiberadasController extends Controller
 
             // Logger de Auditoría
             $claseLog = Clase::find($meta->id_clase);
+            $nowTime = date('H:i:s');
             SystemLog::create([
                 'user_matricula' => auth()->user()->matricula,
                 'action' => 'Liberación por Calidad',
@@ -384,7 +385,9 @@ class PzasLiberadasController extends Controller
                 'id_clase' => $meta->id_clase,
                 'proceso' => $proceso,
                 'n_pieza' => $n_pieza,
-                'maquina' => $meta->maquina
+                'maquina' => $meta->maquina,
+                'h_inicio' => $nowTime,
+                'h_termino' => $nowTime
             ]);
 
             // ── Para Soldadura PTA: liberar también la mitad contraria del par M/H ──
@@ -480,6 +483,7 @@ class PzasLiberadasController extends Controller
 
             // Logger de Auditoría
             $claseLog = Clase::find($meta->id_clase);
+            $nowTime = date('H:i:s');
             SystemLog::create([
                 'user_matricula' => auth()->user()->matricula,
                 'action' => 'Rechazo por Calidad',
@@ -490,7 +494,9 @@ class PzasLiberadasController extends Controller
                 'id_clase' => $meta->id_clase,
                 'proceso' => $proceso,
                 'n_pieza' => $n_pieza,
-                'maquina' => $meta->maquina
+                'maquina' => $meta->maquina,
+                'h_inicio' => $nowTime,
+                'h_termino' => $nowTime
             ]);
 
             // ── Para Soldadura PTA: rechazar también la mitad contraria del par M/H ──
