@@ -263,8 +263,12 @@ class DibujosFundicionPdfController extends Controller
     private function sendAlertInternal($otName, $fileName)
     {
         // Se usa la configuración de servicios con el fallback de almacén
-        $email = config('services.almacen.email', 'almacentec@grupoindsaavedra.com');
-        Mail::to($email)->send(new DibujoFundicionAlertMail($otName, $fileName));
+        $emailsStr = config('services.almacen.email', 'almacentec@grupoindsaavedra.com');
+        
+        // Soportar múltiples correos separados por coma
+        $emails = array_filter(array_map('trim', explode(',', $emailsStr)));
+
+        Mail::to($emails)->send(new DibujoFundicionAlertMail($otName, $fileName));
     }
 
     public function deletePdf(Request $request)
