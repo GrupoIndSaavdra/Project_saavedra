@@ -207,28 +207,41 @@ function createFilters() {
                     }
 
                     if (item == "machine") {
-                        // Generar 45 máquinas como en processProduction.js
+                        // Máquinas agrupadas: 1_2, 5_6, 25_26, 27_28 + individuales
+                        const pairedMachines = [1, 5, 25, 27];
                         for (let i = 1; i <= 45; i++) {
-                            if (
-                                i == window.selectedItems[item] ||
-                                (window.selectedItems[item].includes("_") &&
-                                    window.selectedItems[item] == `${i}_${i + 1}`)
-                            ) {
-                                if (i == 1 || i == 25 || i == 27) {
-                                    i++; // Saltar la siguiente iteración para máquinas agrupadas
+                            const pairedVal = pairedMachines.includes(i) ? `${i}_${i + 1}` : null;
+                            if (pairedMachines.includes(i)) {
+                                // Opción agrupada
+                                if (window.selectedItems[item] !== pairedVal) {
+                                    const opt = document.createElement("option");
+                                    opt.value = pairedVal;
+                                    opt.textContent = `Maquina ${i} y ${i + 1}`;
+                                    select.appendChild(opt);
                                 }
-                                continue;
-                            }
-                            const option = document.createElement("option");
-                            if (i == 1 || i == 25 || i == 27) {
-                                option.value = `${i}_${i + 1}`;
-                                option.textContent = `Maquina ${i} y ${i + 1}`;
+                                // Opción individual A
+                                if (window.selectedItems[item] !== String(i)) {
+                                    const optA = document.createElement("option");
+                                    optA.value = `${i}`;
+                                    optA.textContent = `Maquina ${i}`;
+                                    select.appendChild(optA);
+                                }
+                                // Opción individual B
+                                if (window.selectedItems[item] !== String(i + 1)) {
+                                    const optB = document.createElement("option");
+                                    optB.value = `${i + 1}`;
+                                    optB.textContent = `Maquina ${i + 1}`;
+                                    select.appendChild(optB);
+                                }
                                 i++;
                             } else {
-                                option.value = `${i}`;
-                                option.textContent = `Maquina ${i}`;
+                                if (window.selectedItems[item] !== String(i)) {
+                                    const option = document.createElement("option");
+                                    option.value = `${i}`;
+                                    option.textContent = `Maquina ${i}`;
+                                    select.appendChild(option);
+                                }
                             }
-                            select.appendChild(option);
                         }
                     } else {
                         // Ordenar operadores alfabéticamente si es el filtro de operador

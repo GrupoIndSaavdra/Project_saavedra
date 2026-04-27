@@ -492,7 +492,10 @@
             'doc.replace': "{{ route($modulePrefix . '.replace') }}",
             'doc.log': "{{ url('/') }}/{{ $modulePrefix }}/log",
             'doc.deleteFolder': "{{ route($modulePrefix . '.deleteFolder') }}",
-            'doc.deleteParent': "{{ route($modulePrefix . '.deleteParent') }}" 
+            'doc.deleteParent': "{{ route($modulePrefix . '.deleteParent') }}",
+            @if($moduleType === 'fundicion')
+            'fundicion.send_alert': "{{ route('fundicion.send_alert') }}",
+            @endif
         };
         window.csrfToken = "{{ csrf_token() }}";
         window.estructura = @json($estructura);

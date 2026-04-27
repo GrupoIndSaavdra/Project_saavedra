@@ -211,17 +211,31 @@ function createInputs() {
             optionEmpty.textContent = "Selecciona una opción";
             input.appendChild(optionEmpty);
             // Generar 45 máquinas
+            // Máquinas agrupadas: 1_2, 5_6, 25_26, 27_28 (primero la versión agrupada, luego las individuales)
+            const pairedMachines = [1, 5, 25, 27];
             for (let i = 1; i <= 45; i++) {
                 let option = document.createElement("option");
-                if (i == 1 || i == 25 || i == 27) {
+                if (pairedMachines.includes(i)) {
+                    // Opción agrupada (1_2, 5_6, 25_26, 27_28)
                     option.value = `${i}_${i + 1}`;
                     option.textContent = `Maquina ${i} y ${i + 1}`;
-                    i++;
+                    input.appendChild(option);
+                    // Opción individual A
+                    let optA = document.createElement("option");
+                    optA.value = `${i}`;
+                    optA.textContent = `Maquina ${i}`;
+                    input.appendChild(optA);
+                    // Opción individual B
+                    let optB = document.createElement("option");
+                    optB.value = `${i + 1}`;
+                    optB.textContent = `Maquina ${i + 1}`;
+                    input.appendChild(optB);
+                    i++; // Saltar el siguiente ya que ya fue agregado
                 } else {
                     option.value = `${i}`;
                     option.textContent = `Maquina ${i}`;
+                    input.appendChild(option);
                 }
-                input.appendChild(option);
             }
         } else {
             input = document.createElement("input");

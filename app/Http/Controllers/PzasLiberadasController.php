@@ -104,7 +104,8 @@ class PzasLiberadasController extends Controller
             return redirect()->route('home');
         }
         $extraRequest = explode(",", $request->extraRequest);
-        $extraRequest[0] = str_replace("_", "/", $extraRequest[0]);
+        // El workOrder usa "|" como reemplazo de "/" (para no confundir con "_" de máquinas agrupadas)
+        $extraRequest[0] = str_replace("|", "/", $extraRequest[0]);
 
         $datosPiezas = array(
             "workOrder" => $extraRequest[0],
