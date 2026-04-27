@@ -190,6 +190,7 @@ function createFilters() {
                     "Consulta Dibujos Técnicos": { color: "#D7BDE2" },
                     "Solicitud Edición de Piezas": { color: "#8E44AD", dark: true },
                     "Intento de Liberación": { color: "#512E5F", dark: true },
+                    "Liberación por Calidad": { color: "#6C3483", dark: true },
 
                     // ROJO
                     "Exceso de Tiempo": { color: "#F5B7B1" },
@@ -401,6 +402,7 @@ function crearTabla(logs, append = false) {
         "Cambio de Catálogo": "#D7BDE2",
         "Edición de Piezas en Reporte": "#8E44AD", // Morado Normal
         "Solicitud Edición de Piezas": "#8E44AD",
+        "Liberación por Calidad": "#6C3483", // Morado Medio (Calidad)
         "Intento de Liberación de Calidad": "#512E5F", // Morado Oscuro
         "Intento de Liberación": "#512E5F",
 
@@ -447,7 +449,7 @@ function crearTabla(logs, append = false) {
             }
 
             // Determinar contraste (si el fondo es oscuro, texto blanco; si es claro, texto negro)
-            const darkColors = ["#3498DB", "#21618C", "#27AE60", "#186A3B", "#E74C3C", "#943126", "#9A7D0A", "#8E44AD", "#512E5F", "#A6ACAF", "#7F8C8D", "#515A5A"];
+            const darkColors = ["#3498DB", "#21618C", "#27AE60", "#186A3B", "#E74C3C", "#943126", "#9A7D0A", "#8E44AD", "#6C3483", "#512E5F", "#A6ACAF", "#7F8C8D", "#515A5A"];
 
             // Lógica de Exceso de Tiempo (Prioridad para la acción "Exceso de Tiempo" o duraciones largas)
             if (log.action === "Exceso de Tiempo") {
