@@ -466,75 +466,54 @@ function crearTabla(logs, append = false) {
             const isDark = darkColors.includes(color.toUpperCase());
             const textColor = isDark ? "#FFFFFF" : "#000000";
 
-            chunkHtml += `<tr style="background-color: ${color}; color: ${textColor}; font-weight: bold;">
+            // Lógica de visualización de detalles (formateo de HTML y limpieza)
+            let detailsHtml = (() => {
+                let content = log.details || "";
+                content = content.replace(/\[BLOQUEO\] Operador \d+ /i, '');
+                const hasHtml = content.includes('<span') || content.includes('<b>');
+                
+                if (!hasHtml) {
+                    content = esc(content);
+                    content = content.replace(/(El inspector de calidad|El operador) (.*?) (finalizó|registró|sincronizó|completó)/g, '$1 <b>$2</b> $3');
+                }
+
+                if (log.action === "Proceso Correcto" && (content.includes("finalizó la revisión:") || content.includes("realizó:"))) {
+                    if (!hasHtml) {
+                        content = content.replace(/Liberadas: (\d+)( \[[^\]]+\])?/g, '<span style="color:#2E86C1; font-weight:bold;">Liberadas: $1 <small>$2</small></span>');
+                        content = content.replace(/Rechazadas: (\d+)( \[[^\]]+\])?/g, '<span style="color:#C0392B; font-weight:bold; margin-left:12px;">Rechazadas: $1 <small>$2</small></span>');
+                        content = content.replace(/Incompletas: (\d+)( \[[^\]]+\])?/g, '<span style="color:#B7950B; font-weight:bold; margin-left:12px;">Incompletas: $1 <small>$2</small></span>');
+                    }
+                }
+                content = content.replace(/LIBERADA/g, '<b style="color:#1D8348;">LIBERADA</b>');
+                content = content.replace(/RECHAZADA/g, '<b style="color:#943126;">RECHAZADA</b>');
+                return content;
+            })();
+
+            // Lógica de alertas de auditoría
+            let auditAlert = (log.action === "Captura Sospechosa" || (log.action === "Captura Medida" && log.is_suspicious))
+                ? (log.is_critical
+                    ? `<br><strong style="color: #ff0000; font-size:1.1em;"> ALERTA CRÍTICA: Problema recurrente de llenado. El operador está registrando piezas con tiempos insuficientes de forma sistemática. Favor de notificar de inmediato para tomar acciones (${log.diff_mins ?? 0} min)</strong>`
+                    : `<br><strong style="color: #904d02;"> ALERTA: Tiempo insuficiente entre piezas diferentes (${log.diff_mins ?? 0} min)</strong>`
+                ) : "";
+
+            // Lógica de visualización de N# Juego
+            let piezaDisplay = (() => {
+                let rawPieza = log.n_juego ? String(log.n_juego).trim().toUpperCase() : "";
+                if (!rawPieza || rawPieza === "N/A") return "N/A";
+                if (rawPieza.includes(',') || rawPieza.endsWith('H') || rawPieza.endsWith('M') || rawPieza.endsWith('J')) return rawPieza;
+                let numero = rawPieza.replace(/[^0-9]/g, '');
+                return numero ? numero + "J" : rawPieza;
+            })();
+
+            chunkHtml += `
+            <tr style="background-color: ${color}; color: ${textColor}; font-weight: bold;">
                 <td>${esc(log.date)}</td>
                 <td>${esc(log.time)}</td>
                 <td>${esc(log.operador)} - ${esc(log.operador_nombre)}</td>
                 <td>${log.is_critical ? 'Captura Crítica' : esc(log.action)}</td>
-                <td>
-                    ${(() => {
-                    let content = log.details || "";
-
-                    // LIMPIEZA DE MENSAJES DE BLOQUEO: Quitar el prefijo técnico para el reporte visual
-                    content = content.replace(/\[BLOQUEO\] Operador \d+ /i, '');
-
-                    // REGLA DE ORO: Si el contenido ya trae HTML (de calidad), no lo escapamos
-                    const hasHtml = content.includes('<span') || content.includes('<b>');
-                    
-                    if (!hasHtml) {
-                        content = esc(content);
-                        // Aplicar negritas a nombres en logs planos para mejor legibilidad
-                        content = content.replace(/(El inspector de calidad|El operador) (.*?) (finalizó|registró|sincronizó|completó)/g, '$1 <b>$2</b> $3');
-                    }
-
-                    // Lógica de colores para Reporte de Calidad (Estandarización Legacy + New)
-                    if (log.action === "Proceso Correcto" && (content.includes("finalizó la revisión:") || content.includes("realizó:"))) {
-                        // Si es el formato legacy (sin HTML), aplicamos los colores aquí
-                        if (!hasHtml) {
-                            // Liberadas (Azul)
-                            content = content.replace(/Liberadas: (\d+)( \[[^\]]+\])?/g,
-                                '<span style="color:#2E86C1; font-weight:bold;">Liberadas: $1 <small>$2</small></span>');
-
-                            // Rechazadas (Rojo)
-                            content = content.replace(/Rechazadas: (\d+)( \[[^\]]+\])?/g,
-                                '<span style="color:#C0392B; font-weight:bold; margin-left:12px;">Rechazadas: $1 <small>$2</small></span>');
-
-                            // Incompletas (Amarillo Ocre)
-                            content = content.replace(/Incompletas: (\d+)( \[[^\]]+\])?/g,
-                                '<span style="color:#B7950B; font-weight:bold; margin-left:12px;">Incompletas: $1 <small>$2</small></span>');
-                        }
-                    }
-
-                    // Resaltado para Liberaciones/Rechazos de Calidad
-                    content = content.replace(/LIBERADA/g, '<b style="color:#1D8348;">LIBERADA</b>');
-                    content = content.replace(/RECHAZADA/g, '<b style="color:#943126;">RECHAZADA</b>');
-
-                    return content;
-                })()}
-                    ${(log.action === "Captura Sospechosa" || (log.action === "Captura Medida" && log.is_suspicious))
-                    ? (log.is_critical
-                        ? `<br><strong style="color: #ff0000; font-size:1.1em;"> ALERTA CRÍTICA: Problema recurrente de llenado. El operador está registrando piezas con tiempos insuficientes de forma sistemática. Favor de notificar de inmediato para tomar acciones (${log.diff_mins ?? 0} min)</strong>`
-                        : `<br><strong style="color: #904d02;"> ALERTA: Tiempo insuficiente entre piezas diferentes (${log.diff_mins ?? 0} min)</strong>`
-                    )
-                    : ""
-                }
-                </td>
+                <td>${detailsHtml}${auditAlert}</td>
                 <td>${esc(log.ot)}</td>
-                <td>
-                    ${(() => {
-                    let rawPieza = log.n_juego ? String(log.n_juego).trim().toUpperCase() : "";
-                    if (!rawPieza || rawPieza === "N/A") return "N/A";
-
-                    // Si contiene comas (es una lista) o ya tiene letras al final, dejarlo casi tal cual
-                    if (rawPieza.includes(',') || rawPieza.endsWith('H') || rawPieza.endsWith('M') || rawPieza.endsWith('J')) {
-                        return rawPieza;
-                    }
-
-                    // Si es solo número solo, ponerle la J
-                    let numero = rawPieza.replace(/[^0-9]/g, '');
-                    return numero ? numero + "J" : rawPieza;
-                })()}
-                </td>
+                <td>${piezaDisplay}</td>
                 <td>${esc(log.hora_inicio)}</td>
                 <td>${esc(log.hora_termino)}</td>
                 <td>${esc(log.tiempo_total)}</td>
