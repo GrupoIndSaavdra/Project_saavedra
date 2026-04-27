@@ -15,21 +15,21 @@ class ExportWeeklyLogs extends Command
      *
      * @var string
      */
-    protected $signature = 'app:export-logs-weekly';
+    protected $signature = 'app:depurar-logs';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Exporta los logs de la semana a un archivo TXT y limpia la tabla SystemLog';
+    protected $description = 'Exporta los logs y limpia la tabla SystemLog (programado cada 3 días)';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $this->info('Iniciando exportación semanal de logs organizada por operador...');
+        $this->info('Iniciando exportación periódica de logs (cada 3 días) organizada por operador...');
 
         $allLogs = SystemLog::all();
 
@@ -51,7 +51,7 @@ class ExportWeeklyLogs extends Command
             $operatorName = $user ? "{$user->nombre} {$user->a_paterno} {$user->a_materno}" : "Operador_{$matricula}";
             $safeOperatorName = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '', $operatorName); // Limpiar nombre para carpeta
 
-            $fileName = "Reporte de log semanal [{$dateStr}] del Operador [{$safeOperatorName}].txt";
+            $fileName = "Reporte de log [{$dateStr}] del Operador [{$safeOperatorName}].txt";
             
             // Formatear contenido con el orden de columnas solicitado por el USER (separado por espacios/pipes)
             $headerArr = ["Fecha", "Hora", "Operador", "Acción", "Detalles", "Orden de Trabajo", "N# Juego", "Hora de Inicio", "Hora de Término", "Tiempo Total", "Clase", "Proceso", "Máquina"];
@@ -113,6 +113,6 @@ class ExportWeeklyLogs extends Command
 
         $this->info("Se han depurado {$count} registros de la tabla system_logs.");
         
-        \Illuminate\Support\Facades\Log::info("Exportación semanal completada. Archivos generados: {$totalExported}. Registros eliminados: {$count}");
+        \Illuminate\Support\Facades\Log::info("Depuración de logs completada. Archivos generados: {$totalExported}. Registros eliminados: {$count}");
     }
 }

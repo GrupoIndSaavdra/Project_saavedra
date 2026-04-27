@@ -33,13 +33,12 @@ class Kernel extends ConsoleKernel
             ->everyMinute()
             ->withoutOverlapping();
 
-        // ── Depuración Semanal de Logs ──────────────────────────────────
-        // Para la prueba de hoy: 11:15 AM
-        // Programación definitiva: Domingos a las 23:00 (11 PM)
-        $schedule->command('app:export-logs-weekly')
-            ->sundays()
-            ->at('23:00') 
-            ->appendOutputTo(storage_path('logs/depuracion_semanal.log'));
+        // ── Depuración cada 3 días de Logs ──────────────────────────────
+        // Programación: Cada 3 días a las 23:00 (11 PM)
+        $schedule->command('app:depurar-logs')
+            ->dailyAt('23:00')
+            ->everyThreeDays()
+            ->appendOutputTo(storage_path('logs/depuracion_periodica.log'));
     }
 
     /**
