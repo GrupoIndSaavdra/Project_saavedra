@@ -1,20 +1,8 @@
 const newReportDiv = document.querySelector(".div-new-report");
 if (newReportDiv) {
     newReportDiv.addEventListener("click", function () {
-        // Enviar LOG de Inicio de Reporte
-        fetch(window.baseUrl + "/system-logs", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
-            },
-            body: JSON.stringify({
-                action: "Nuevo reporte",
-                details: "Usuario seleccionó crear un Nuevo Reporte"
-            })
-        }).finally(() => {
-            window.location.href = window.reportRoute;
-        });
+        // Redirección directa sin log de telemetría
+        window.location.href = window.reportRoute;
     });
     // Cuando el mouse entra en el área
     newReportDiv.addEventListener("mouseenter", function () {

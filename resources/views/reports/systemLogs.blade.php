@@ -120,36 +120,15 @@
                         class="arrow">▶</span></th>
             </tr>
             <tr class="level-row level-azul" style="display: none;">
-                <td style="background-color: #AED6F1; color: black;">Azul Claro</td>
-                <td>Carga de Formulario</td>
-            </tr>
-            <tr class="level-row level-azul" style="display: none;">
                 <td style="background-color: #3498DB; color: white;">Azul Normal</td>
-                <td>Inicio Sesión y Reporte</td>
+                <td>Inicio de Sesión y Reporte</td>
             </tr>
             <tr class="level-row level-azul" style="display: none;">
                 <td style="background-color: #21618C; color: white;">Azul Oscuro</td>
                 <td>Login Inspector / Logout</td>
             </tr>
 
-            <!-- Familia Gris -->
-            <tr class="level-toggle" data-level="gris" style="cursor: pointer;">
-                <th colspan="2" style="background-color: #626567; color: #ffffff;">Logs Grises (Neutral / Navegación)
-                    <span class="arrow">▶</span>
-                </th>
-            </tr>
-            <tr class="level-row level-gris" style="display: none;">
-                <td style="background-color: #A6ACAF; color: white;">Gris Claro</td>
-                <td>Navegación e Interfaz</td>
-            </tr>
-            <tr class="level-row level-gris" style="display: none;">
-                <td style="background-color: #7F8C8D; color: white;">Gris Normal</td>
-                <td>Confirmaciones y Avisos Pasivos</td>
-            </tr>
-            <tr class="level-row level-gris" style="display: none;">
-                <td style="background-color: #515A5A; color: white;">Gris Oscuro</td>
-                <td>Sistema y Segundo Plano</td>
-            </tr>
+
 
             <!-- Familia Verde -->
             <tr class="level-toggle" data-level="verde" style="cursor: pointer;">
@@ -158,8 +137,8 @@
                 </th>
             </tr>
             <tr class="level-row level-verde" style="display: none;">
-                <td style="background-color: #ABEBC6; color: black;">Verde Claro</td>
-                <td>Proceso Correcto</td>
+                <td style="background-color: #D5F5E3; color: black;">Verde Claro</td>
+                <td>Liberación por Calidad (Correcto)</td>
             </tr>
             <tr class="level-row level-verde" style="display: none;">
                 <td style="background-color: #27AE60; color: white;">Verde Normal</td>
@@ -178,10 +157,6 @@
                 </th>
             </tr>
             <tr class="level-row level-amarillo" style="display: none;">
-                <td style="background-color: #F9E79F; color: black;">Amarillo Claro</td>
-                <td>Documentación Técnica y Avisos</td>
-            </tr>
-            <tr class="level-row level-amarillo" style="display: none;">
                 <td style="background-color: #F1C40F; color: black;">Amarillo Normal</td>
                 <td>Captura Sospechosa (Advertencia)</td>
             </tr>
@@ -196,30 +171,22 @@
                         class="arrow">▶</span></th>
             </tr>
             <tr class="level-row level-morado" style="display: none;">
-                <td style="background-color: #D7BDE2; color: black;">Morado Claro</td>
-                <td>Visor de Planos y Dibujos Técnicos</td>
-            </tr>
-            <tr class="level-row level-morado" style="display: none;">
                 <td style="background-color: #8E44AD; color: white;">Morado Normal</td>
-                <td>Edición de Piezas en Reporte</td>
+                <td>Edición de Juegos en Reporte</td>
             </tr>
             <tr class="level-row level-morado" style="display: none;">
                 <td style="background-color: #512E5F; color: white;">Morado Oscuro</td>
                 <td>Intento de Liberación de Calidad</td>
-            </tr>
-            <tr class="level-row level-morado" style="display: none;">
-                <td style="background-color: #D5F5E3; color: black;">Verde Claro</td>
-                <td>Liberación por Calidad (Correcto)</td>
-            </tr>
-            <tr class="level-row level-morado" style="display: none;">
-                <td style="background-color: #FADBD8; color: black;">Rojo Claro</td>
-                <td>Rechazo por Calidad (Error)</td>
             </tr>
 
             <!-- Familia Roja -->
             <tr class="level-toggle" data-level="rojo" style="cursor: pointer;">
                 <th colspan="2" style="background-color: #943126; color: #ffffff;">Logs Rojos (Fallas / Alertas) <span
                         class="arrow">▼</span></th>
+            </tr>
+            <tr class="level-row level-rojo" style="display: table-row;">
+                <td style="background-color: #FADBD8; color: black;">Rojo Muy Claro</td>
+                <td>Rechazo por Calidad (Error)</td>
             </tr>
             <tr class="level-row level-rojo" style="display: table-row;">
                 <td style="background-color: #F5B7B1; color: black;">Rojo Claro</td>

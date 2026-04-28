@@ -47,13 +47,13 @@ class ExportWeeklyLogs extends Command
 
         foreach ($groupedLogs as $matricula => $logs) {
             // Obtener nombre del operador
-            $user = \App\Models\User::where('matricula', $matricula)->first();
+            $user = \App\Models\User::query()->where('matricula', $matricula)->first();
             $operatorName = $user ? "{$user->nombre} {$user->a_paterno} {$user->a_materno}" : "Operador_{$matricula}";
             $safeOperatorName = str_replace(['/', '\\', ':', '*', '?', '"', '<', '>', '|'], '', $operatorName); // Limpiar nombre para carpeta
 
             $fileName = "Reporte de log [{$dateStr}] del Operador [{$safeOperatorName}].txt";
             
-            // Columnas solicitadas
+            // Columnas solicitadas (Añadida Categoría)
             $headerArr = ["Fecha", "Hora", "Operador", "Acción", "Detalles", "Orden de Trabajo", "N# Juego", "Hora de Inicio", "Hora de Término", "Tiempo Total", "Clase", "Proceso", "Máquina"];
             
             // 1. Preparar datos de todas las filas y calcular anchos máximos
@@ -74,18 +74,36 @@ class ExportWeeklyLogs extends Command
                     }
                 }
 
+                $otDisplay = $log->ot ?? 'N/A';
+                if ($log->id_ot) {
+                    $otObj = \App\Models\Orden_trabajo::with('moldura')->find($log->id_ot);
+                    if ($otObj && $otObj->moldura) {
+                        $baseOt = preg_match('/^(\d+)/', $log->ot, $m) ? $m[1] : (strpos($log->ot, ' - ') !== false ? explode(' - ', $log->ot)[0] : $log->ot);
+                        $otDisplay = "{$baseOt} - {$otObj->moldura->nombre}";
+                    }
+                }
+
+                $claseDisplay = $log->clase ?? 'N/A';
+                if ($log->id_clase) {
+                    $claseObj = \App\Models\Clase::query()->find($log->id_clase);
+                    if ($claseObj) {
+                        $claseDisplay = $claseObj->nombre;
+                    }
+                }
+                if (preg_match('/^\d+$/', $claseDisplay)) $claseDisplay = 'N/A';
+
                 $row = [
                     (string)$log->created_at->format('Y-m-d'),
                     (string)$log->created_at->format('H:i:s'),
                     (string)"{$matricula} - {$operatorName}",
                     (string)($log->action ?? 'N/A'),
                     (string)str_replace([" | ", "\n", "\r"], [" ", " ", ""], $log->details ?? 'N/A'),
-                    (string)($log->ot ?? 'N/A'),
+                    (string)$otDisplay,
                     (string)($log->n_pieza ?? 'N/A'),
                     (string)($log->h_inicio ?? 'N/A'),
                     (string)($log->h_termino ?? 'N/A'),
                     (string)$tiempoTotal,
-                    (string)($log->clase ?? 'N/A'),
+                    (string)$claseDisplay,
                     (string)($log->proceso ?? 'N/A'),
                     (string)($log->maquina ?? 'N/A')
                 ];
@@ -153,7 +171,7 @@ class ExportWeeklyLogs extends Command
     /**
      * Rellena con espacios un string multibyte para ancho fijo.
      */
-    private function pad($str, $len)
+    private function pad(string $str, int $len): string
     {
         $diff = $len - mb_strlen($str);
         return $str . str_repeat(' ', max(0, $diff));

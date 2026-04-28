@@ -326,6 +326,7 @@ class ProcessProductionController extends Controller
 
                         if (!$existingPiece) {
                             //Creación de piezas
+                            $newPiece = null;
                             $newPiece = new $modelPieces();
                             $newPiece->id_pza = $noAssembly . $pieceLetter . $process->id;
                             $newPiece->id_meta = $meta->id;
@@ -697,6 +698,9 @@ class ProcessProductionController extends Controller
         $modelProcess = $this->get_ModelProcess($processString, $class);
         $process = $modelProcess::where("id_proceso", $processIdString)->first();
         $modelPieces = $this->get_ModelProcessPieces($processString, $class);
+
+        $param = null;
+        $message = null;
 
         // Crear las piezas la tabla de piezas del proceso
         if ($request->input('selectedAssembly')) {
@@ -2662,16 +2666,16 @@ class ProcessProductionController extends Controller
             }
             $cleanAffected = implode(', ', array_unique($allAffectedNums));
 
-            // Obtener h_inicio del usuario (operador)
+            // Obtener h_inicio del usuario (prioridad: inicio de solicitud de calidad -> inicio producción)
             $user = auth()->user();
-            $h_inicio = $user->prod_start_at ? Carbon::parse($user->prod_start_at)->format('H:i:s') : 'N/A';
+            $h_inicio = $request->h_inicio_solicitud ?: ($user->prod_start_at ? Carbon::parse($user->prod_start_at)->format('H:i:s') : 'N/A');
             $h_termino = now()->format('H:i:s');
 
-            // --- LOG 1: RESULTADOS DE PRODUCCIÓN (Liberación o Rechazo) ---
+            // --- LOG 1: CIERRE DE INTERFAZ (Abandono de Liberación) ---
             SystemLog::create([
                 'user_matricula' => $qualityUserMatricula,
-                'action' => $mainAction,
-                'details' => "El inspector <b>{$qualityName}</b> finalizó la revisión de los juegos con {$introText}: {$narrative}.",
+                'action' => 'Abandono de Liberación',
+                'details' => "El inspector <b>{$qualityName}</b> finalizó el registro y cerró la interfaz de calidad.",
                 'ot' => $otLabel,
                 'clase' => $classLabel,
                 'proceso' => $meta->proceso,
@@ -2683,11 +2687,11 @@ class ProcessProductionController extends Controller
                 'id_clase' => $meta->id_clase
             ]);
 
-            // --- LOG 2: CIERRE DE INTERFAZ (Abandono de Liberación) ---
+            // --- LOG 2: RESULTADOS DE PRODUCCIÓN (Liberación o Rechazo) ---
             SystemLog::create([
                 'user_matricula' => $qualityUserMatricula,
-                'action' => 'Abandono de Liberación',
-                'details' => "El inspector <b>{$qualityName}</b> finalizó el registro y cerró la interfaz de calidad.",
+                'action' => $mainAction,
+                'details' => "El inspector <b>{$qualityName}</b> finalizó la revisión de los juegos con {$introText}: {$narrative}.",
                 'ot' => $otLabel,
                 'clase' => $classLabel,
                 'proceso' => $meta->proceso,

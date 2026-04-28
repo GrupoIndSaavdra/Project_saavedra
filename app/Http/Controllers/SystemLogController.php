@@ -8,28 +8,66 @@ use App\Models\SystemLog;
 use App\Models\Clase;
 use App\Models\Metas;
 use App\Models\User;
+use App\Models\Orden_trabajo;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SystemLogController extends Controller
 {
     public function store(Request $request)
     {
-        $now = now();
         $action = $request->action;
-        $details = $request->details;
+
+        // 1. FILTRAR SPAM TRANSACCIONAL (TELEMETRÍA DE UI)
+        $ignoredActions = [
+            'Carga de Formulario de Producción', 'Selección de OT', 'Selección de Clase', 
+            'Selección de Proceso', 'Selección de Pieza',
+            'Consulta Dibujos Técnicos', 'Consulta Documentación Técnica'
+        ];
+
+        if (in_array($action, $ignoredActions)) {
+            return response()->json(['success' => true, 'message' => 'Evento de telemetría omitido']);
+        }
+
+        $now = now();
+        $details = str_replace([' (Parte H + M)', 'ALERTA: Tiempo insuficiente entre piezas diferentes (0 min)'], '', $request->details);
         $h_inicio = $request->h_inicio;
-        $h_termino = $request->h_termino ?: $now->format('H:i:s'); // Usar término manual si viene del front (RANGOS)
+        $h_termino = $request->h_termino ?: $now->format('H:i:s');
+        $n_pieza = $request->n_pieza;
 
-        // --- REGLA DE ORO: TRATAMIENTO DE EVENTOS DE RANGO ESPECIALES ---
+        // 3. ESTANDARIZACIÓN DE NOMENCLATURA (Catálogo Maestro)
+        $otString = $request->ot;
+        if ($request->id_ot) {
+            $otModel = Orden_trabajo::query()->with('moldura')->where('id', $request->id_ot)->first();
+            if ($otModel && $otModel->moldura) {
+                $otString = "{$otModel->id} - {$otModel->moldura->nombre}";
+            }
+        }
 
-        // A. Sincronización de Piezas (Log de Maquinado)
-        // Solo buscamos un inicio histórico si el frontend NO envió un h_inicio válido
-        if (($action === 'Captura Medida' || $action === 'Captura Sospechosa') && (!$h_inicio || $h_inicio === 'N/A')) {
-            $syncLog = SystemLog::where('user_matricula', Auth::check() ? Auth::user()->matricula : null)
-                ->where('action', 'Proceso Correcto')
-                ->where('details', 'LIKE', '%sincronizó los datos técnicos%')
+        $claseString = $request->clase;
+        if ($request->id_clase) {
+            $claseModel = Clase::query()->where('id', $request->id_clase)->first();
+            if ($claseModel) {
+                $claseString = $claseModel->nombre;
+            }
+        }
+        if (preg_match('/^\d+$/', $claseString)) $claseString = 'N/A';
+
+        // 4. LIMPIEZA DE MÁQUINAS (IDs Compuestos/Sucios)
+        $maquina = $request->maquina;
+        if (strpos($maquina, '_') !== false) {
+            $maquina = explode('_', $maquina)[0];
+        }
+
+        // 5. TRATAMIENTO DE EVENTOS DE RANGO Y AUDITORÍA
+        if (($action === 'Captura Medida' || $action === 'Captura Sospechosa' || $action === 'Captura Crítica') && (!$h_inicio || $h_inicio === 'N/A')) {
+            $syncLog = SystemLog::query()->where('user_matricula', Auth::check() ? Auth::user()->matricula : null)
                 ->whereDate('created_at', now()->toDateString())
+                ->where(function($q) {
+                    $q->where('details', 'LIKE', '%sincronizó%')->orWhere('action', 'Proceso Correcto');
+                })
                 ->orderBy('created_at', 'desc')
                 ->first();
 
@@ -40,102 +78,152 @@ class SystemLogController extends Controller
             }
         }
 
-        // B. Opción 3: Resumen de la Jornada (Terminar Reporte)
-        // Buscamos el inicio de reporte para calcular el tiempo total acumulado
-        if ($action === 'Terminar Reporte' || $action === 'Terminar jornada') {
-            $startReportLog = SystemLog::where('user_matricula', Auth::check() ? Auth::user()->matricula : null)
-                ->where('action', 'Inicio de Reporte')
-                ->whereDate('created_at', now()->toDateString())
+        if ($action === 'Autorización de Edición' || $request->has('h_inicio_solicitud')) {
+            $h_inicio = $request->h_inicio_solicitud ?: $h_inicio;
+        }
+
+        // LÓGICA DE CONSOLIDACIÓN (H+M) Y SOSPECHA
+        if (($action === 'Captura Medida' || $action === 'Captura Sospechosa' || $action === 'Captura Crítica') && Auth::check()) {
+            $n_pieza = strtoupper($request->n_pieza);
+            $isMacho = str_ends_with($n_pieza, 'M');
+            $isHembra = str_ends_with($n_pieza, 'H');
+
+            // 1. SI ES MACHO: Pausamos el log hasta que llegue la Hembra
+            if ($isMacho) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Log pausado para consolidación (Macho)',
+                    'action' => $action
+                ]);
+            }
+
+            // 2. SI ES HEMBRA: Buscamos el inicio del Macho para consolidar el ciclo
+            if ($isHembra) {
+                $baseNum = preg_replace('/[H]$/', '', $n_pieza);
+                $machoName = $baseNum . 'M';
+                $modelName = $this->getModelForProcess($request->proceso, $request->id_clase);
+                
+                if ($modelName) {
+                    $machoPiece = $modelName::where('n_pieza', $machoName)
+                        ->where('id_meta', $request->meta) // El JS envía el ID en el campo 'meta'
+                        ->orWhere(function($q) use ($machoName, $request) {
+                             $q->where('n_pieza', $machoName)
+                               ->where('id_proceso', 'LIKE', '%' . $request->id_ot . '%');
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->first();
+                    
+                    if ($machoPiece && $machoPiece->h_inicio) {
+                        $h_inicio = $machoPiece->h_inicio;
+                        $n_pieza = $baseNum . 'J';
+                        $details = "El operador completó el maquinado del juego {$baseNum} a las " . substr($h_termino, 0, 5);
+                    }
+                }
+            }
+
+            // 3. AUDITORÍA DE REINCIDENCIA CON REDENCIÓN
+            // Se recorre cronológicamente el historial de la sesión.
+            // Al alcanzar 3 capturas buenas consecutivas (Captura Medida), el contador se reinicia
+            // por completo: si el operador vuelve a fallar, comienza desde Sospechosa otra vez.
+            $lastResetLog = SystemLog::query()->where('user_matricula', Auth::user()->matricula)
+                ->whereIn('action', ['Inicio de Reporte', 'Inicio de Sesión'])
                 ->orderBy('created_at', 'desc')
                 ->first();
 
-            if ($startReportLog) {
-                $h_inicio = $startReportLog->created_at->format('H:i:s');
-                $details = "El operador finalizó oficialmente el reporte de producción. Resumen de tiempo acumulado en el turno.";
-            }
-        }
+            $allCaptures = SystemLog::query()
+                ->where('user_matricula', Auth::user()->matricula)
+                ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'])
+                ->when($lastResetLog, fn($q) => $q->where('created_at', '>', $lastResetLog->created_at))
+                ->when(!$lastResetLog, fn($q) => $q->whereDate('created_at', now()->toDateString()))
+                ->orderBy('created_at', 'asc')
+                ->get(['action', 'created_at']);
 
-        // C. Opción 2: Tiempos de Espera (Supervisor)
-        // Se recibe h_inicio_solicitud desde el formulario de verificación
-        if ($action === 'Autorización de Edición' || $request->has('h_inicio_solicitud')) {
-            if ($request->has('h_inicio_solicitud')) {
-                $h_inicio = $request->h_inicio_solicitud;
-                $action = 'Autorización de Edición'; // Estandarizar nombre de acción
-            }
-        }
+            // Recorrer historial y calcular el estado efectivo actual (consecutivos)
+            $consecutiveBadCount = 0;
+            $hasCriticalInStreak  = false;
 
-        // 1. Lógica de Alerta (Regla de los 5 minutos)
-        // Solo para piezas (Captura Medida)
-        if ($action === 'Captura Medida') {
-            $lastLog = SystemLog::where('user_matricula', Auth::user()->matricula)
+            foreach ($allCaptures as $cap) {
+                if (in_array($cap->action, ['Captura Sospechosa', 'Captura Crítica'])) {
+                    $consecutiveBadCount++;
+                    if ($cap->action === 'Captura Crítica') $hasCriticalInStreak = true;
+                } else {
+                    // Una sola pieza buena (Captura Medida) reinicia el contador totalmente
+                    $consecutiveBadCount = 0;
+                    $hasCriticalInStreak = false;
+                }
+            }
+
+            // Detección temporal: ¿la pieza actual fue completada en tiempo sospechosamente corto?
+            $lastLog = SystemLog::query()->where('user_matricula', Auth::user()->matricula)
                 ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'])
                 ->orderBy('created_at', 'desc')
                 ->first();
 
+            $isTimeSuspicious = false;
+            $diffMins = 0;
             if ($lastLog) {
-                $isSameSet = false;
+                $diffSecs = (int) abs($now->diffInSeconds($lastLog->created_at));
+                $diffMins = floor($diffSecs / 60);
+                $isTimeSuspicious = ($diffSecs < 300 && $diffSecs >= 10);
+            }
 
-                // Extraer base del número de pieza (ej: '101' de '101H')
-                if ($request->n_pieza && $lastLog->n_pieza) {
-                    $currentBase = preg_replace('/[HMJhmj]$/', '', $request->n_pieza);
-                    $lastBase = preg_replace('/[HMJhmj]$/', '', $lastLog->n_pieza);
-                    
-                    // Si es la misma base (ej: 101H vs 101M o 101H vs 101H (2da pasada)), se considera el mismo juego
-                    if ($currentBase === $lastBase) {
-                        $isSameSet = true;
-                    }
+            // LÓGICA DE ASIGNACIÓN DE ACCIÓN
+            if ($isTimeSuspicious) {
+                // Si falla, evaluamos reincidencia consecutiva
+                if ($consecutiveBadCount >= 2 || $hasCriticalInStreak) {
+                    $action = 'Captura Crítica';
+                    $alertMsg = "\nALERTA CRÍTICA: Problema recurrente de llenado. Reincidencia detectada. ({$diffMins} min)";
+                } else {
+                    $action = 'Captura Sospechosa';
+                    $alertMsg = "\nALERTA: Tiempo insuficiente entre juegos diferentes ({$diffMins} min)";
                 }
-
-                if (!$isSameSet) {
-                    $diffMins = $now->diffInMinutes($lastLog->created_at);
-                    if ($diffMins < 5) {
-                        // REGLA DE ORO DE AUDITORÍA:
-                        // Si ya tiene 2 sospechas previas y esta es la 3ra, se vuelve CRÍTICA
-                        $recentSuspiciousCount = SystemLog::where('user_matricula', Auth::user()->matricula)
-                            ->whereDate('created_at', now()->toDateString())
-                            ->whereIn('action', ['Captura Sospechosa', 'Captura Crítica'])
-                            ->where('created_at', '>', now()->subHours(8)) // Solo turno actual
-                            ->count();
-
-                        if ($recentSuspiciousCount >= 2) {
-                            $action = 'Captura Crítica';
-                        } else {
-                            $action = 'Captura Sospechosa';
-                        }
-                    }
+                
+                // Evitar duplicar el mensaje si ya viene del frontend
+                if (!str_contains($details, trim($alertMsg))) {
+                    $details .= $alertMsg;
                 }
+            } else {
+                // Si el tiempo es bueno, siempre es Captura Medida
+                $action = 'Captura Medida';
             }
         }
 
-        // 2. Eventos Puntuales (Inicio = Término = created_at)
-        $pointEvents = [
-            'Inicio de Sesión', 'Cierre de Sesión', 'Inicio de Reporte', 'Terminar Reporte', 
-            'Carga de Formulario de Producción', 'Login Inspector Calidad', 'Consulta Documentación Técnica',
-            'Nuevo reporte', 'Nueva Meta Creada', 'Ingreso a Meta Existente', 
-            'Selección de OT', 'Selección de Clase', 'Selección de Proceso', 'Selección de Pieza',
-            'Autorización de Edición'
-        ];
+        $pointEvents = ['Inicio de Sesión', 'Cierre de Sesión', 'Inicio de Reporte', 'Terminar Reporte', 'Nueva Meta Creada', 'Autorización de Edición'];
         if (in_array($action, $pointEvents)) {
             $h_inicio = $h_termino;
         }
 
-        // 3. Limpieza de Formato (Asegurar que los detalles tengan separadores claros)
-        // Si el detalle viene saturado, podemos formatearlo aquí si fuera necesario.
-
-        SystemLog::create([
-            'user_matricula' => Auth::check() ? Auth::user()->matricula : null,
-            'action' => $action,
-            'details' => $details,
-            'ot' => $request->ot,
-            'clase' => $request->clase,
-            'proceso' => $request->proceso,
-            'maquina' => $request->maquina,
-            'n_pieza' => $request->n_pieza,
-            'h_inicio' => $h_inicio,
-            'h_termino' => $h_termino,
-            'id_ot' => $request->id_ot,
-            'id_clase' => $request->id_clase,
-        ]);
+        // ESCRITURA BLINDADA: DB::transaction + try-catch + Log::error fallback
+        try {
+            DB::transaction(function () use (
+                $action, $details, $otString, $claseString,
+                $maquina, $h_inicio, $h_termino, $request, $n_pieza
+            ) {
+                SystemLog::create([
+                    'user_matricula' => Auth::check() ? Auth::user()->matricula : null,
+                    'action' => $action,
+                    'details' => $details,
+                    'ot' => $otString,
+                    'id_ot' => $request->id_ot,
+                    'clase' => $claseString,
+                    'id_clase' => $request->id_clase,
+                    'proceso' => $request->proceso,
+                    'maquina' => $maquina,
+                    'n_pieza' => $n_pieza ?? $request->n_pieza,
+                    'h_inicio' => $h_inicio,
+                    'h_termino' => $h_termino,
+                ]);
+            });
+        } catch (\Throwable $e) {
+            // Nunca fallamos en silencio: registrar en el log del servidor
+            Log::error('[SystemLog] Fallo al insertar registro de auditoría.', [
+                'action'        => $action,
+                'user'          => Auth::check() ? Auth::user()->matricula : 'guest',
+                'error'         => $e->getMessage(),
+                'trace'         => $e->getTraceAsString(),
+            ]);
+            // No lanzamos el error al usuario para no romper el flujo de producción
+        }
 
         // 4. REINICIAR CRONÓMETRO DE PRODUCTIVIDAD POR ACTIVIDAD TÉCNICA
         // Solo reinicia en fases de espera (Menú/Formulario). 
@@ -155,21 +243,51 @@ class SystemLogController extends Controller
         // 1. Obtener valores ÚNICOS para los filtros usando consultas eficientes y el índice de la DB
         // Esto evita cargar miles de registros en memoria solo para llenar un dropdown
         $filtrosDisponibles = [
-            'ot' => SystemLog::distinct()->whereNotNull('ot')->pluck('ot')
+            'ot' => SystemLog::query()
+                ->select(['system_logs.ot', 'system_logs.id_ot', 'molduras.nombre as moldura_nombre'])
+                ->leftJoin('orden_trabajo', 'system_logs.id_ot', '=', 'orden_trabajo.id')
+                ->leftJoin('molduras', 'orden_trabajo.id_moldura', '=', 'molduras.id')
+                ->whereNotNull('system_logs.ot')
+                ->get()
                 ->map(function($val) {
-                    return preg_match('/^(\d+)/', $val, $m) ? $m[1] : (strpos($val, ' - ') !== false ? explode(' - ', $val)[0] : $val);
-                })->unique()->sort()->values(),
-            'clase' => SystemLog::distinct()->whereNotNull('clase')->pluck('clase')
+                    // Extraer el número base (6473) sin importar qué traiga el string original
+                    $idBase = preg_match('/^(\d+)/', $val->ot, $m) ? $m[1] : $val->ot;
+                    
+                    // Si tenemos el nombre por el JOIN, lo usamos
+                    if ($val->moldura_nombre) {
+                        return "{$idBase} - {$val->moldura_nombre}";
+                    }
+                    
+                    // Si no hay nombre por join, intentamos buscarlo en el catálogo por el ID base
+                    $catalog = Orden_trabajo::with('moldura')->find($idBase);
+                    if ($catalog && $catalog->moldura) {
+                        return "{$idBase} - {$catalog->moldura->nombre}";
+                    }
+
+                    // Si de plano no hay nada en catálogo, al menos devolvemos el string original 
+                    // pero intentamos que no sea solo el número si hay algo más
+                    return $val->ot;
+                })
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values(),
+            'clase' => SystemLog::query()->select(['system_logs.clase', 'clases.nombre as clase_nombre'])
+                ->leftJoin('clases', 'system_logs.id_clase', '=', 'clases.id')
+                ->distinct()
+                ->whereNotNull('clase')
+                ->get()
                 ->map(function($val) {
-                    return preg_match('/^(\d+)/', $val, $m) ? $m[1] : (strpos($val, ' - ') !== false ? explode(' - ', $val)[0] : $val);
-                })->unique()->sort()->values(),
-            'proceso' => SystemLog::distinct()->whereNotNull('proceso')->pluck('proceso')->sort()->values(),
-            'maquina' => SystemLog::distinct()->whereNotNull('maquina')->pluck('maquina')->sort()->values(),
-            'action' => SystemLog::distinct()->whereNotNull('action')->pluck('action')->sort()->values(),
+                    if ($val->clase_nombre) return $val->clase_nombre;
+                    return preg_match('/^\d+$/', $val->clase) ? null : $val->clase;
+                })->filter()->unique()->sort()->values(),
+            'proceso' => SystemLog::query()->distinct()->whereNotNull('proceso')->pluck('proceso')->sort()->values(),
+            'maquina' => SystemLog::query()->distinct()->whereNotNull('maquina')->pluck('maquina')->sort()->values(),
+            'action' => SystemLog::query()->distinct()->whereNotNull('action')->pluck('action')->sort()->values(),
         ];
 
         // Obtener operadores únicos de forma eficiente
-        $filtrosDisponibles['operador'] = SystemLog::select('user_matricula', 'users.nombre', 'users.a_paterno')
+        $filtrosDisponibles['operador'] = SystemLog::query()->select(['user_matricula', 'users.nombre', 'users.a_paterno'])
             ->leftJoin('users', 'system_logs.user_matricula', '=', 'users.matricula')
             ->whereNotNull('user_matricula')
             ->distinct()
@@ -192,18 +310,28 @@ class SystemLogController extends Controller
             ->filter()->unique()->sort()->values();
 
         // 2. Preparar la consulta principal con paginación
-        $query = SystemLog::select('system_logs.*', 'users.nombre', 'users.a_paterno', 'users.a_materno')
-            ->leftJoin('users', 'system_logs.user_matricula', '=', 'users.matricula');
+        $query = SystemLog::query()->select([
+                'system_logs.*', 
+                'users.nombre as user_nombre', 'users.a_paterno', 'users.a_materno',
+                'molduras.nombre as moldura_nombre',
+                'clases.nombre as clase_real_nombre'
+            ])
+            ->leftJoin('users', 'system_logs.user_matricula', '=', 'users.matricula')
+            ->leftJoin('orden_trabajo', 'system_logs.id_ot', '=', 'orden_trabajo.id')
+            ->leftJoin('molduras', 'orden_trabajo.id_moldura', '=', 'molduras.id')
+            ->leftJoin('clases', 'system_logs.id_clase', '=', 'clases.id');
 
         // --- APLICAR FILTROS ---
         if ($request->filled('ot') && $request->ot !== 'Todos') {
-            if (preg_match('/^(\d+)/', $request->ot, $matches)) {
-                $query->where('ot', 'LIKE', $matches[1] . '%');
-            } else {
-                $query->where('ot', $request->ot);
-            }
+            $baseOt = preg_match('/^(\d+)/', $request->ot, $matches) ? $matches[1] : $request->ot;
+            $query->where('system_logs.ot', 'LIKE', $baseOt . '%');
         }
-        if ($request->filled('clase') && $request->clase !== 'Todos') $query->where('clase', $request->clase);
+        if ($request->filled('clase') && $request->clase !== 'Todos') {
+            $query->where(function($q) use ($request) {
+                $q->where('system_logs.clase', 'LIKE', $request->clase . '%')
+                  ->orWhere('clases.nombre', 'LIKE', $request->clase . '%');
+            });
+        }
         if ($request->filled('proceso') && $request->proceso !== 'Todos') $query->where('proceso', $request->proceso);
         if ($request->filled('maquina') && $request->maquina !== 'Todos') $query->where('maquina', $request->maquina);
         if ($request->filled('action') && $request->action !== 'Todos') $query->where('action', $request->action);
@@ -268,6 +396,12 @@ class SystemLogController extends Controller
                 }
             }
 
+            // Extraer diff_mins de los detalles si existen para las alertas
+            $diffMins = 0;
+            if ($isSuspicious && preg_match('/\((\d+)\s*min\)/i', $log->details, $m)) {
+                $diffMins = $m[1];
+            }
+
             $logsRender[] = [
                 'id' => $log->id,
                 'date' => $log->created_at->format('Y-m-d'),
@@ -276,16 +410,17 @@ class SystemLogController extends Controller
                 'hora_termino' => $log->h_termino ?? ($showTimes ? $log->created_at->format('H:i:s') : 'N/A'),
                 'tiempo_total' => $tiempoTotal,
                 'operador' => $log->user_matricula,
-                'operador_nombre' => ($log->nombre . ' ' . $log->a_paterno) ?: 'Sistema',
+                'operador_nombre' => ($log->user_nombre . ' ' . $log->a_paterno) ?: 'Sistema',
                 'action' => $log->action,
                 'details' => $log->details,
-                'ot' => $log->ot ?? 'N/A',
-                'clase' => $log->clase ?? 'N/A',
+                'ot' => $log->moldura_nombre ? (preg_match('/^(\d+)/', $log->ot, $m) ? "{$m[1]} - {$log->moldura_nombre}" : "{$log->ot} - {$log->moldura_nombre}") : ($log->ot ?? 'N/A'),
+                'clase' => $log->clase_real_nombre ?: (preg_match('/^\d+$/', $log->clase) ? 'N/A' : ($log->clase ?? 'N/A')),
                 'proceso' => $log->proceso ?? 'N/A',
                 'maquina' => $log->maquina ?? 'N/A',
-                'n_juego' => $log->n_pieza ?: 'N/A',
+                'n_juego' => ($log->n_pieza && preg_match('/[HM]$/i', $log->n_pieza)) ? preg_replace('/[HM]$/i', 'J', $log->n_pieza) : ($log->n_pieza ?: 'N/A'),
                 'is_suspicious' => $isSuspicious,
                 'is_critical' => ($log->action === 'Captura Crítica'),
+                'diff_mins' => $diffMins,
             ];
         }
 
@@ -339,7 +474,7 @@ class SystemLogController extends Controller
     }
 
 
-    public function generatePdfFilename($selectedItems, $reportType)
+    public function generatePdfFilename(array $selectedItems, string $reportType): string
     {
         $parts = [];
         $date = date('d-m-Y');
@@ -393,5 +528,56 @@ class SystemLogController extends Controller
                 'message' => 'Error al ejecutar la depuración: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Obtiene el nombre del modelo de piezas para un proceso dado.
+     * 
+     * @param string|null $process
+     * @param int|null $id_clase
+     * @return string|null
+     */
+    private function getModelForProcess($process, $id_clase)
+    {
+        if (!$process || !$id_clase) return null;
+        $clase = Clase::find($id_clase);
+        
+        try {
+            $modelName = match ($process) {
+                'Cepillado' => "Pza_cepillado",
+                'Desbaste Exterior' => "Desbaste_pza",
+                'Revision Laterales' => "RevLaterales_pza",
+                'Primera Operacion' => "PrimeraOpeSoldadura_pza",
+                'Barreno Maniobra' => "BarrenoManiobra_pza",
+                'Segunda Operacion' => "SegundaOpeSoldadura_pza",
+                'Rectificado' => "Rectificado_pza",
+                'Asentado' => "Asentado_pza",
+                'Calificado' => "revCalificado_pza",
+                'Acabado Bombillo' => "AcabadoBombilo_pza",
+                'Acabado Molde' => "AcabadoMolde_pza",
+                'Barreno Profundidad' => "BarrenoProfundidad_pza",
+                'Cavidades' => "Cavidades_pza",
+                'Copiado' => "Copiado_pza",
+                'Off Set' => "OffSet_pza",
+                'Palomas' => "Palomas_pza",
+                'Rebajes' => "Rebajes_pza",
+                'Operacion Equipo' => ($clase && $clase->nombre == 'Candado Obturador') ? "CandadoObturador_pza" : "PySOpeSoldadura_pza",
+                'Embudo CM' => "EmbudoCM_pza",
+                'Soldadura' => "Soldadura_pza",
+                'Soldadura PTA' => "SoldaduraPTA_pza",
+                'Primera Operacion Cabeza Soplo' => "PrimeraOperacionCabezaSoplo_pza",
+                'Segunda Operacion Cabeza Soplo' => "SegundaOperacionCabezaSoplo_pza",
+                'Candado Obturador' => "CandadoObturador_pza",
+                default => null,
+            };
+
+            if ($modelName) {
+                return "App\Models\\" . $modelName;
+            }
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        return null;
     }
 }

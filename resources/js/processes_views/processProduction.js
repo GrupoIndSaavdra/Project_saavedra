@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!window.currentPieceStartTime) {
             window.refreshPieceStartTime();
         }
-        window.logUserAction("Carga de Formulario de Producción");
+        // "Carga de Formulario de Producción" eliminado: es telemetría de bajo valor
     }
 });
 
@@ -383,7 +383,7 @@ function insertSelects() {
         selectWO.addEventListener("change", function () {
             let selectedValue = selectWO.value;
             if (selectedValue) {
-                window.logUserAction("Selección de OT", selectedValue);
+                // "Selección de OT" eliminado: es telemetría de bajo valor
                 let classes = window.workOrders[selectedValue];
                 modifySelects(classes, document.querySelector(".class"), "Clase");
             }
@@ -392,7 +392,7 @@ function insertSelects() {
         selectClasses.addEventListener("change", function () {
             let selectedClass = selectClasses.value;
             if (selectedClass) {
-                window.logUserAction("Selección de Clase", selectedClass);
+                // "Selección de Clase" eliminado: es telemetría de bajo valor
                 let processes = window.workOrders[selectWO.value][selectedClass];
                 if (processes.length > 0) {
                     modifySelects(processes, document.querySelector(".process"), "Proceso");
@@ -403,7 +403,7 @@ function insertSelects() {
         selectProcesses.addEventListener("change", function () {
             let selectedProcess = selectProcesses.value;
             if (selectedProcess) {
-                window.logUserAction("Selección de Proceso", selectedProcess);
+                // "Selección de Proceso" eliminado: es telemetría de bajo valor
             }
             let submit = document.querySelector(".btn-submit");
             if (selectedProcess && (selectedProcess === "Operacion Equipo" || selectedProcess === "Candado Obturador")) {
@@ -586,7 +586,7 @@ function createTable() {
                 });
 
                 if (yaExistePareja) {
-                    description = `El operador completó el maquinado del juego ${num} (Parte H + M)`;
+                    description = `El operador completó el maquinado del juego ${num}`;
                 } else {
                     description = `El operador registró la pieza ${raw} (${letra === 'M' ? 'Macho' : 'Hembra'})`;
                 }
@@ -608,7 +608,7 @@ function createTable() {
                     // Si completa el juego, mandamos dos alertas secuenciales
                     toastpremium(`El operador registró la pieza ${raw} (${letra === 'M' ? 'Macho' : 'Hembra'}) a las ${timeFormatted}`, "success");
                     setTimeout(() => {
-                        toastpremium(`El operador completó el maquinado del juego ${num} (Parte H + M) a las ${timeFormatted}`, "success");
+                        toastpremium(`El operador completó el maquinado del juego ${num} a las ${timeFormatted}`, "success");
                     }, 800);
                 } else {
                     // Si es solo la primera pieza del juego
@@ -621,10 +621,11 @@ function createTable() {
 
             // --- LÓGICA DE LOGGING (En el servidor para PTA, en el JS para los demás) ---
             if (window.arrayData.process !== 'Soldadura PTA') {
+                // Registro de captura de pieza (SÍ se mantiene)
                 window.logUserAction(action, description + ` a las ${timeFormatted}`);
             }
         } else {
-            window.logUserAction("Proceso Correcto", "El operador sincronizó los datos técnicos de la pieza con el reporte general.");
+            // "Proceso Correcto" eliminado: sincronización de reporte general es telemetría
             toastpremium(`El operador registró el reporte general a las ${timeFormatted}`, "success");
         }
 
@@ -802,7 +803,7 @@ function insertAvaliablePiecesSelect(form) {
         if (this.value) {
             // Actualizar la hora de inicio al momento exacto de selección de la pieza
             window.refreshPieceStartTime();
-            window.logUserAction("Selección de Pieza", this.value);
+            // "Selección de Pieza" eliminado: es telemetría de bajo valor
         }
     });
 
@@ -1025,6 +1026,8 @@ function showInlinePasswordForm(type, imgElement = null) {
 
     // REGLA DE ORO: INICIO DE RANGO (OPCIÓN 2 - ESPERA SUPERVISOR)
     const h_inicio_solicitud = new Date().toLocaleTimeString('it-IT');
+    window.qualityStartTime = h_inicio_solicitud; // Guardar globalmente
+    
     let inputInicio = document.createElement("input");
     inputInicio.type = "hidden";
     inputInicio.name = "h_inicio_solicitud";
@@ -1037,7 +1040,7 @@ function showInlinePasswordForm(type, imgElement = null) {
         form_group_password = createInputPassword("passwordQuality", "Contraseña de Calidad");
         form.onsubmit = function (e) {
             e.preventDefault();
-            window.logUserAction("Intento de Liberación", "Se abrió el formulario de liberación de calidad");
+            window.logUserAction("Intento de Liberación", "Se abrió el formulario de liberación de calidad", { h_inicio: window.qualityStartTime });
             verifyQualityPasswordAjax(form, imgElement);
         };
     } else if (type === "EditMeta") {
@@ -1300,7 +1303,7 @@ function verifyQualityPasswordAjax(form, imgElement) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                window.logUserAction("Login Inspector Calidad", "Autenticación correcta: " + data.qualityUser);
+                window.logUserAction("Login Inspector Calidad", "Autenticación correcta: " + data.qualityUser, { h_inicio: window.qualityStartTime });
                 // Limpiar UI
                 removePasswordForms();
                 if (imgElement) imgElement.src = window.imgQualityCheck;
@@ -1420,6 +1423,15 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
     inputMeta.name = "meta";
     inputMeta.value = window.arrayData["meta"].id;
     form.appendChild(inputMeta);
+
+    // Input oculto para h_inicio_solicitud (Persistencia de tiempo)
+    if (window.qualityStartTime) {
+        let inputInicio = document.createElement("input");
+        inputInicio.type = "hidden";
+        inputInicio.name = "h_inicio_solicitud";
+        inputInicio.value = window.qualityStartTime;
+        form.appendChild(inputInicio);
+    }
 
     // Contenedor de tabla scrolleable
     let tableContainer = document.createElement("div");
@@ -1602,7 +1614,7 @@ function getStatusText(liberacion) {
 
 function closeQualityModal(isManual = false) {
     if (isManual) {
-        window.logUserAction("Abandono de Liberación", "El usuario canceló y cerró la interfaz de liberación de piezas.");
+        window.logUserAction("Abandono de Liberación", "El usuario canceló y cerró la interfaz de liberación de piezas.", { h_inicio: window.qualityStartTime });
     }
     
     let divOpacity = document.getElementById("div-opacity");

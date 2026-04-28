@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (data.logsData && data.logsData.length > 0) {
                     // Usar la función existente para renderizar los nuevos registros (Append)
                     appendLogsToTable(data.logsData);
-                    
+
                     // Actualizar estado de paginación
                     window.nextPageUrl = data.next_page;
                     window.hasMorePages = data.has_more;
@@ -64,11 +64,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Actualizar contadores visuales
                     const totalFoundSpan = document.getElementById('total-found-count');
                     const currentCountSpan = document.getElementById('current-count');
-                    
+
                     if (totalFoundSpan && data.total_found !== undefined) {
                         totalFoundSpan.textContent = data.total_found;
                     }
-                    
+
                     const currentRows = document.querySelectorAll('.table tbody tr').length;
                     if (currentCountSpan) {
                         currentCountSpan.textContent = currentRows;
@@ -89,7 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-    
+
     // ---------------------------------------------------------
     // LÓGICA DE DEPURACIÓN MANUAL (PUGE)
     // ---------------------------------------------------------
@@ -97,7 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnPurge) {
         btnPurge.addEventListener('click', async () => {
             const confirmed = confirm("¿ESTÁ SEGURO DE DEPURAR LOS LOGS?\n\nEsta acción:\n1. Generará respaldos en archivos .txt por operador.\n2. ELIMINARÁ PERMANENTEMENTE todos los registros de la tabla actual.\n\n¿Desea continuar?");
-            
+
             if (!confirmed) return;
 
             btnPurge.disabled = true;
@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", () => {
  */
 function appendLogsToTable(newLogs) {
     // Reutilizar la lógica de renderizado por trozos (chunks) para no congelar el navegador
-    crearTabla(newLogs, true); 
+    crearTabla(newLogs, true);
 }
 
 function createFilters() {
@@ -519,8 +519,10 @@ function crearTabla(logs, append = false) {
             let detailsHtml = (() => {
                 let content = log.details || "";
                 content = content.replace(/\[BLOQUEO\] Operador \d+ /i, '');
+                content = content.replace(/ALERTA: Tiempo insuficiente entre (piezas|juegos) diferentes \(\d+ min\)/gi, '');
+                content = content.replace(/ALERTA CRÍTICA: Problema recurrente de llenado. Reincidencia detectada. \(\d+ min\)/gi, '');
                 const hasHtml = content.includes('<span') || content.includes('<b>');
-                
+
                 if (!hasHtml) {
                     content = esc(content);
                     content = content.replace(/(El inspector de calidad|El operador) (.*?) (finalizó|registró|sincronizó|completó)/g, '$1 <b>$2</b> $3');
@@ -533,17 +535,23 @@ function crearTabla(logs, append = false) {
                         content = content.replace(/Incompletas: (\d+)( \[[^\]]+\])?/g, '<span style="color:#B7950B; font-weight:bold; margin-left:12px;">Incompletas: $1 <small>$2</small></span>');
                     }
                 }
-                content = content.replace(/LIBERADA/g, '<b style="color:#1D8348;">LIBERADA</b>');
-                content = content.replace(/RECHAZADA/g, '<b style="color:#943126;">RECHAZADA</b>');
+                content = content.replace(/LIBERAD[AO]/gi, (match) => `<b style="color:#1D8348;">${match}</b>`);
+                content = content.replace(/RECHAZAD[AO]/gi, (match) => `<b style="color:#943126;">${match}</b>`);
+
+                // Resaltar proceso en naranja y observaciones en morado
+                content = content.replace(/en (.*?)(\. Obs:|$)/g, 'en <b style="color:#E67E22;">$1</b>$2');
+                content = content.replace(/Obs: (.*)$/g, 'Obs: <b style="color:#8E44AD;">$1</b>');
+
                 return content;
             })();
 
-            // Lógica de alertas de auditoría
-            let auditAlert = (log.action === "Captura Sospechosa" || (log.action === "Captura Medida" && log.is_suspicious))
-                ? (log.is_critical
-                    ? `<br><strong style="color: #ff0000; font-size:1.1em;"> ALERTA CRÍTICA: Problema recurrente de llenado. El operador está registrando piezas con tiempos insuficientes de forma sistemática. Favor de notificar de inmediato para tomar acciones (${log.diff_mins ?? 0} min)</strong>`
-                    : `<br><strong style="color: #904d02;"> ALERTA: Tiempo insuficiente entre piezas diferentes (${log.diff_mins ?? 0} min)</strong>`
-                ) : "";
+            // LÓGICA DE ALERTAS DE AUDITORÍA
+            let auditAlert = "";
+            if (log.is_critical) {
+                auditAlert = `<br><strong style="color: #F1C40F; font-size:1.1em; display: block; margin-top: 5px;">ALERTA CRÍTICA: Problema recurrente de llenado. Reincidencia detectada. (${log.diff_mins ?? 0} min)</strong>`;
+            } else if (log.action === "Captura Sospechosa" || (log.action === "Captura Medida" && log.is_suspicious)) {
+                auditAlert = `<br><strong style="color: #ff0000; display: block; margin-top: 5px;">ALERTA: Tiempo insuficiente entre juegos diferentes (${log.diff_mins ?? 0} min)</strong>`;
+            }
 
             // Lógica de visualización de N# Juego
             let piezaDisplay = (() => {

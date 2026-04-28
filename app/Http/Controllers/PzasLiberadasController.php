@@ -127,6 +127,7 @@ class PzasLiberadasController extends Controller
 
     public function getPiezasLiberar($juego, $proceso, $buena)
     {
+        $pieza = array();
         $juego = explode(",", $juego);
         switch ($proceso) {
             case "Cepillado":
@@ -356,41 +357,26 @@ class PzasLiberadasController extends Controller
     public function liberarPiezas($piezas, $proceso, $buena, $observacion)
     {
         if (empty($piezas) || !$piezas[0]) return;
-        //Algoritmo para liberar solamente 1 juego
         $meta = Metas::find($piezas[0]->id_meta);
-        //Actualizar el estado de liberacion de la pieza
+        $claseLog = Clase::find($meta->id_clase);
+        $nowTime = date('H:i:s');
+        $matricula = auth()->user()->matricula;
+
+        // 1. Actualizar estado de liberación en la tabla Pieza para todas
         foreach ($piezas as $pza) {
-            if ($pza->n_pieza) {
-                $n_pieza = $pza->n_pieza;
-            } else {
-                $n_pieza = $pza->n_juego;
-            }
-            Pieza::where('n_pieza', $n_pieza)->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->update([
-                'liberacion' => 1,
-                'fecha_liberacion' => date('Y-m-d H:i:s'),
-                'user_liberacion' => auth()->user()->matricula,
-                'observacion_liberacion' => $observacion,
-            ]);
+            $n_pieza = $pza->n_pieza ?: $pza->n_juego;
+            
+            Pieza::where('n_pieza', $n_pieza)
+                ->where('id_clase', $meta->id_clase)
+                ->where('proceso', $proceso)
+                ->update([
+                    'liberacion' => 1,
+                    'fecha_liberacion' => date('Y-m-d H:i:s'),
+                    'user_liberacion' => $matricula,
+                    'observacion_liberacion' => $observacion,
+                ]);
 
-            // Logger de Auditoría
-            $claseLog = Clase::find($meta->id_clase);
-            $nowTime = date('H:i:s');
-            SystemLog::create([
-                'user_matricula' => auth()->user()->matricula,
-                'action' => 'Liberación por Calidad',
-                'details' => "Pieza/Juego $n_pieza LIBERADA en $proceso. Obs: $observacion",
-                'ot' => $claseLog ? ($claseLog->id_ot . ' - ' . ($claseLog->tamanio ?? 'N/A')) : ($meta->id_ot ?? 'N/A'),
-                'clase' => $claseLog->nombre ?? 'N/A',
-                'id_ot' => $meta->id_ot,
-                'id_clase' => $meta->id_clase,
-                'proceso' => $proceso,
-                'n_pieza' => $n_pieza,
-                'maquina' => $meta->maquina,
-                'h_inicio' => $nowTime,
-                'h_termino' => $nowTime
-            ]);
-
-            // ── Para Soldadura PTA: liberar también la mitad contraria del par M/H ──
+            // Manejo especial para Soldadura PTA
             if ($proceso === 'Soldadura PTA') {
                 $ultimaLetra = substr($n_pieza, -1);
                 if ($ultimaLetra === 'H' || $ultimaLetra === 'M') {
@@ -402,11 +388,51 @@ class PzasLiberadasController extends Controller
                         ->update([
                             'liberacion' => 1,
                             'fecha_liberacion' => date('Y-m-d H:i:s'),
-                            'user_liberacion' => auth()->user()->matricula,
+                            'user_liberacion' => $matricula,
                             'observacion_liberacion' => $observacion,
                         ]);
                 }
             }
+        }
+
+        // 2. Lógica de Consolidación para Logs
+        $grouped = [];
+        foreach ($piezas as $pza) {
+            $raw = $pza->n_pieza ?: $pza->n_juego;
+            if (preg_match('/^(\d+)([HM])$/', $raw, $m)) {
+                $num = $m[1];
+                $letra = $m[2];
+                if (!isset($grouped[$num])) $grouped[$num] = [];
+                $grouped[$num][] = $letra;
+            } else {
+                $grouped[$raw] = ['UNIQUE'];
+            }
+        }
+
+        foreach ($grouped as $key => $parts) {
+            $displayName = "";
+            if (count($parts) >= 2 && in_array('M', $parts) && in_array('H', $parts)) {
+                $displayName = $key . "J"; // Consolidado a Juego
+            } elseif ($parts[0] === 'UNIQUE') {
+                $displayName = $key;
+            } else {
+                $displayName = $key . $parts[0]; // Solo una mitad
+            }
+
+            SystemLog::create([
+                'user_matricula' => $matricula,
+                'action' => 'Liberación por Calidad',
+                'details' => "Juego $displayName LIBERADO en $proceso. Obs: $observacion",
+                'ot' => $claseLog ? ($claseLog->id_ot . ' - ' . ($claseLog->tamanio ?? 'N/A')) : ($meta->id_ot ?? 'N/A'),
+                'clase' => $claseLog->nombre ?? 'N/A',
+                'id_ot' => $meta->id_ot,
+                'id_clase' => $meta->id_clase,
+                'proceso' => $proceso,
+                'n_pieza' => $displayName,
+                'maquina' => $meta->maquina,
+                'h_inicio' => $nowTime,
+                'h_termino' => $nowTime
+            ]);
         }
 
         //Algoritmo para liberar 5 juegos despues de que se libere uno
@@ -467,39 +493,21 @@ class PzasLiberadasController extends Controller
     {
         if (empty($piezas) || !$piezas[0]) return;
         $meta = Metas::find($piezas[0]->id_meta);
-        //Actualizar el estado de liberacion de la pieza
+        $claseLog = Clase::find($meta->id_clase);
+        $nowTime = date('H:i:s');
+        $matricula = auth()->user()->matricula;
+
+        // 1. Actualizar estado de rechazo
         foreach ($piezas as $pza) {
-            if ($pza->n_pieza) {
-                $n_pieza = $pza->n_pieza;
-            } else {
-                $n_pieza = $pza->n_juego;
-            }
+            $n_pieza = $pza->n_pieza ?: $pza->n_juego;
             Pieza::where('n_pieza', $n_pieza)->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->update([
                 'liberacion' => 2,
                 'fecha_liberacion' => date('Y-m-d H:i:s'),
-                'user_liberacion' => auth()->user()->matricula,
+                'user_liberacion' => $matricula,
                 'observacion_liberacion' => $observacion,
             ]);
 
-            // Logger de Auditoría
-            $claseLog = Clase::find($meta->id_clase);
-            $nowTime = date('H:i:s');
-            SystemLog::create([
-                'user_matricula' => auth()->user()->matricula,
-                'action' => 'Rechazo por Calidad',
-                'details' => "Pieza/Juego $n_pieza RECHAZADA en $proceso. Obs: $observacion",
-                'ot' => $claseLog ? ($claseLog->id_ot . ' - ' . ($claseLog->tamanio ?? 'N/A')) : ($meta->id_ot ?? 'N/A'),
-                'clase' => $claseLog->nombre ?? 'N/A',
-                'id_ot' => $meta->id_ot,
-                'id_clase' => $meta->id_clase,
-                'proceso' => $proceso,
-                'n_pieza' => $n_pieza,
-                'maquina' => $meta->maquina,
-                'h_inicio' => $nowTime,
-                'h_termino' => $nowTime
-            ]);
-
-            // ── Para Soldadura PTA: rechazar también la mitad contraria del par M/H ──
+            // Manejo Soldadura PTA
             if ($proceso === 'Soldadura PTA') {
                 $ultimaLetra = substr($n_pieza, -1);
                 if ($ultimaLetra === 'H' || $ultimaLetra === 'M') {
@@ -511,11 +519,51 @@ class PzasLiberadasController extends Controller
                         ->update([
                             'liberacion' => 2,
                             'fecha_liberacion' => date('Y-m-d H:i:s'),
-                            'user_liberacion' => auth()->user()->matricula,
+                            'user_liberacion' => $matricula,
                             'observacion_liberacion' => $observacion,
                         ]);
                 }
             }
+        }
+
+        // 2. Lógica de Consolidación para Logs
+        $grouped = [];
+        foreach ($piezas as $pza) {
+            $raw = $pza->n_pieza ?: $pza->n_juego;
+            if (preg_match('/^(\d+)([HM])$/', $raw, $m)) {
+                $num = $m[1];
+                $letra = $m[2];
+                if (!isset($grouped[$num])) $grouped[$num] = [];
+                $grouped[$num][] = $letra;
+            } else {
+                $grouped[$raw] = ['UNIQUE'];
+            }
+        }
+
+        foreach ($grouped as $key => $parts) {
+            $displayName = "";
+            if (count($parts) >= 2 && in_array('M', $parts) && in_array('H', $parts)) {
+                $displayName = $key . "J";
+            } elseif ($parts[0] === 'UNIQUE') {
+                $displayName = $key;
+            } else {
+                $displayName = $key . $parts[0];
+            }
+
+            SystemLog::create([
+                'user_matricula' => $matricula,
+                'action' => 'Rechazo por Calidad',
+                'details' => "Juego $displayName RECHAZADO en $proceso. Obs: $observacion",
+                'ot' => $claseLog ? ($claseLog->id_ot . ' - ' . ($claseLog->tamanio ?? 'N/A')) : ($meta->id_ot ?? 'N/A'),
+                'clase' => $claseLog->nombre ?? 'N/A',
+                'id_ot' => $meta->id_ot,
+                'id_clase' => $meta->id_clase,
+                'proceso' => $proceso,
+                'n_pieza' => $displayName,
+                'maquina' => $meta->maquina,
+                'h_inicio' => $nowTime,
+                'h_termino' => $nowTime
+            ]);
         }
     }
     public function juegosMalos($meta, $proceso)

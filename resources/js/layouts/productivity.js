@@ -270,11 +270,13 @@ window.handleProductivityUnlock = function(alertTitle, startTime, alertType = nu
     }
 
     let details = "";
-    const label = alertType === 'produccion' ? 'Exceso de Tiempo de Maquinado' : 'Inactividad';
-    details = `El operador reconoció y aceptó la alerta de ${label} en ${lugar} tras ${timeTaken}.`;
+    const actionName = alertType === 'produccion' ? 'Exceso de Tiempo de Maquinado' : 
+                      (alertType === 'formulario' ? 'Inactividad en Formulario' : 'Inicio de Reporte Pendiente');
     
-    // Registrar el log con el tiempo REAL (desde que salió la alerta por primera vez)
-    window.logUserAction("Proceso Correcto", details, {
+    details = `El operador reconoció y aceptó la alerta de ${alertType === 'produccion' ? 'Exceso de Tiempo' : 'Inactividad'} en ${lugar} tras ${timeTaken}.`;
+    
+    // Registrar el log con el tiempo REAL y una acción NO ignorada
+    window.logUserAction(actionName, details, {
         h_inicio: startTime,
         h_termino: h_termino
     });

@@ -21,6 +21,6 @@ class SystemLog extends Model
         'h_inicio',
         'h_termino',
         'id_ot',
-        'id_clase'
+        'id_clase',
     ];
 }

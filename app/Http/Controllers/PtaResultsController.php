@@ -280,16 +280,16 @@ class PtaResultsController extends Controller
 
         $resultado = PtaResultado::firstOrNew([
             'ot_id' => $ot_id,
-            'pieza_id' => $request->pieza_id,
+            'pieza_id' => $request->input('pieza_id'),
         ]);
 
-        $resultado->n_pieza = $request->n_pieza;
-        $resultado->resultado_pico_llenado = $request->resultado_pico_llenado;
-        $resultado->resultado_pico_soldadura = $request->resultado_pico_soldadura;
-        $resultado->resultado_conexion_llenado = $request->resultado_conexion_llenado;
-        $resultado->resultado_conexion_soldadura = $request->resultado_conexion_soldadura;
-        $resultado->resultado_perfilado_llenado = $request->resultado_perfilado_llenado;
-        $resultado->resultado_perfilado_soldadura = $request->resultado_perfilado_soldadura;
+        $resultado->n_pieza = $request->input('n_pieza');
+        $resultado->resultado_pico_llenado = $request->input('resultado_pico_llenado');
+        $resultado->resultado_pico_soldadura = $request->input('resultado_pico_soldadura');
+        $resultado->resultado_conexion_llenado = $request->input('resultado_conexion_llenado');
+        $resultado->resultado_conexion_soldadura = $request->input('resultado_conexion_soldadura');
+        $resultado->resultado_perfilado_llenado = $request->input('resultado_perfilado_llenado');
+        $resultado->resultado_perfilado_soldadura = $request->input('resultado_perfilado_soldadura');
 
         // Subir imágenes si se enviaron
         if ($request->hasFile('imagen_pico_soldadura')) {
@@ -325,25 +325,54 @@ class PtaResultsController extends Controller
 
         $resultado->save();
 
-        // Registrar log de auditoría para PTA (Manual)
-        $meta = \App\Models\Metas::where('id_ot', $request->id_ot)->where('id_usuario', Auth::user()->matricula)->orderBy('created_at', 'desc')->first();
-        $clase = \App\Models\Clase::find($clase_id);
-        $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : $ot_id;
+        // Registrar log de auditoría para PTA (Consolidado por Juego: Solo en Hembra)
+        $nPiezaRef = $request->input('n_pieza');
+        if ($nPiezaRef && (str_ends_with(strtoupper($nPiezaRef), 'H') || str_ends_with(strtoupper($nPiezaRef), 'J'))) {
+            $meta = \App\Models\Metas::where('id_ot', $ot_id)->where('id_usuario', Auth::user()->matricula)->orderBy('created_at', 'desc')->first();
+            $clase = \App\Models\Clase::find($clase_id);
+            $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : $ot_id;
+            
+            $baseNum = preg_replace('/[HMJ]$/i', '', $nPiezaRef);
+            $h_termino_log = now()->format('H:i:s');
 
-        \App\Models\SystemLog::create([
-            'user_matricula' => Auth::user()->matricula,
-            'action' => 'Captura Medida',
-            'details' => "Registro de resultados PTA para pieza {$request->n_pieza} en OT {$ot_id}.",
-            'ot' => $otFull,
-            'clase' => $clase->nombre ?? 'N/A',
-            'proceso' => 'Soldadura PTA',
-            'maquina' => $meta->maquina ?? 'N/A',
-            'n_pieza' => $request->n_pieza,
-            'h_inicio' => $request->input('h_inicio_solicitud') ?? now()->subMinute()->format('H:i:s'),
-            'h_termino' => now()->format('H:i:s'),
-            'id_ot' => $request->id_ot,
-            'id_clase' => $clase_id
-        ]);
+            // ── LÓGICA DE AUDITORÍA (RESTRICTIVA) ──
+            $lastLog = \App\Models\SystemLog::where('user_matricula', Auth::user()->matricula)
+                ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'])
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $isTimeSuspicious = false;
+            $diffMins = 0;
+            if ($lastLog) {
+                $now = now();
+                $diffSecs = (int) abs($now->diffInSeconds($lastLog->created_at));
+                $diffMins = floor($diffSecs / 60);
+                $isTimeSuspicious = ($diffSecs < 300 && $diffSecs >= 10);
+            }
+
+            $action = 'Captura Medida';
+            $details = "Registro de resultados PTA para el juego {$baseNum} en OT {$ot_id}.";
+            
+            if ($isTimeSuspicious) {
+                $action = 'Captura Sospechosa';
+                $details .= "\nALERTA: Tiempo insuficiente entre juegos diferentes ({$diffMins} min)";
+            }
+
+            \App\Models\SystemLog::create([
+                'user_matricula' => Auth::user()->matricula,
+                'action' => $action,
+                'details' => $details,
+                'ot' => $otFull,
+                'clase' => $clase->nombre ?? 'N/A',
+                'proceso' => 'Soldadura PTA',
+                'maquina' => $meta->maquina ?? 'N/A',
+                'n_pieza' => $baseNum . 'J',
+                'h_inicio' => $request->input('h_inicio_solicitud') ?? now()->subMinute()->format('H:i:s'),
+                'h_termino' => $h_termino_log,
+                'id_ot' => $ot_id,
+                'id_clase' => $clase_id
+            ]);
+        }
 
         // ── Auto-liberar la pieza actual al guardar ───────────────────────────
         $resultado->liberado_por_admin = true;
@@ -374,7 +403,7 @@ class PtaResultsController extends Controller
         $clase_id = $request->get('clase_id');
 
         return redirect()
-            ->route('pta.results', ['ot_id' => $ot_id, 'clase_id' => $clase_id, 'pieza_id' => $request->pieza_id])
+            ->route('pta.results', ['ot_id' => $ot_id, 'clase_id' => $clase_id, 'pieza_id' => $request->input('pieza_id')])
             ->with('success', $msg);
     }
 
@@ -742,13 +771,14 @@ class PtaResultsController extends Controller
             $p2Row->save();
 
             // Registrar log de auditoría para 2da pasada PTA
+            $baseNum = preg_replace('/[HMJ]$/i', '', $nPieza);
             \App\Models\SystemLog::create([
                 'user_matricula' => Auth::user()->matricula,
                 'action' => 'Segunda Pasada PTA',
-                'details' => "El operador registró una Segunda Pasada para la pieza {$nPieza} (OT: {$piezaBase->id_ot}).",
+                'details' => "El operador registró una Segunda Pasada para el juego {$baseNum}.",
                 'ot' => $piezaBase->id_ot,
                 'clase' => $piezaBase->id_clase,
-                'n_pieza' => $nPieza,
+                'n_pieza' => $baseNum . 'J',
                 'h_inicio' => now()->subMinute()->format('H:i:s'),
                 'h_termino' => now()->format('H:i:s')
             ]);

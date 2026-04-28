@@ -128,29 +128,52 @@ class SoldaduraPTAController extends Controller
             $piece->estado = 2;
             $piece->save();
 
-            // ── REGISTRO DE LOG OFICIAL (Solo una vez por pieza individual) ──
-            if ($tipo === 'D_Conexion_pico') {
-                $nPiezaRef = $request->n_pieza_ref[$key] ?? $piece->n_pieza;
-                $suffix = strtoupper(substr($nPiezaRef, -1));
-                $tipoPieza = ($suffix === 'H') ? 'Hembra (H)' : (($suffix === 'M') ? 'Macho (M)' : $nPiezaRef);
-                $ptaParent = \App\Models\SoldaduraPTA::find($piece->id_proceso);
+            // ── REGISTRO DE LOG OFICIAL (Consolidado por Juego: Solo en Hembra) ──
+            $nPiezaRef = $request->n_pieza_ref[$key] ?? $piece->n_pieza;
+            if ($tipo === 'D_Conexion_pico' && (str_ends_with(strtoupper($nPiezaRef), 'H') || str_ends_with(strtoupper($nPiezaRef), 'J'))) {
                 $meta = \App\Models\Metas::find($piece->id_meta);
-                
-                // Buscar la clase para obtener el nombre completo de la OT y clase
                 $clase = \App\Models\Clase::find($meta->id_clase);
                 $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : ($meta->id_ot ?? 'N/A');
 
+                $baseNum = preg_replace('/[HMJ]$/i', '', $nPiezaRef);
+                $h_termino_log = now()->format('H:i:s');
+                
+                // ── LÓGICA DE AUDITORÍA (RESTRICTIVA) ──
+                // Replicamos la lógica de SystemLogController para detectar tiempos sospechosos
+                $lastLog = \App\Models\SystemLog::where('user_matricula', \Illuminate\Support\Facades\Auth::user()->matricula)
+                    ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'])
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                $isTimeSuspicious = false;
+                $diffMins = 0;
+                if ($lastLog) {
+                    $now = now();
+                    $diffSecs = (int) abs($now->diffInSeconds($lastLog->created_at));
+                    $diffMins = floor($diffSecs / 60);
+                    // Menos de 5 minutos es sospechoso (regla estándar del sistema)
+                    $isTimeSuspicious = ($diffSecs < 300 && $diffSecs >= 10);
+                }
+
+                $action = 'Captura Medida';
+                $details = "El operador completó el maquinado del juego {$baseNum} a las " . substr($h_termino_log, 0, 5);
+                
+                if ($isTimeSuspicious) {
+                    $action = 'Captura Sospechosa';
+                    $details .= "\nALERTA: Tiempo insuficiente entre juegos diferentes ({$diffMins} min)";
+                }
+
                 \App\Models\SystemLog::create([
                     'user_matricula' => \Illuminate\Support\Facades\Auth::user()->matricula,
-                    'action' => 'Captura Medida',
-                    'details' => "El operador registró la Pieza {$tipoPieza} del juego {$piece->n_juego} (Proceso: PTA).",
+                    'action' => $action,
+                    'details' => $details,
                     'ot' => $otFull,
                     'clase' => $clase->nombre ?? 'N/A',
                     'proceso' => 'Soldadura PTA',
                     'maquina' => $meta->maquina ?? 'N/A',
-                    'n_pieza' => $nPiezaRef,
+                    'n_pieza' => $baseNum . 'J',
                     'h_inicio' => $request->input('h_inicio_solicitud') ?? now()->subMinute()->format('H:i:s'),
-                    'h_termino' => now()->format('H:i:s'),
+                    'h_termino' => $h_termino_log,
                     'id_ot' => $meta->id_ot,
                     'id_clase' => $meta->id_clase
                 ]);
@@ -234,15 +257,16 @@ class SoldaduraPTAController extends Controller
                 $p2Row->save();
 
                 // ── LOG DE SEGUNDA PASADA (Audit Trail) ──
+                $baseNum = preg_replace('/[HMJ]$/i', '', $nPiezaRef);
                 \App\Models\SystemLog::create([
                     'user_matricula' => \Illuminate\Support\Facades\Auth::user()->matricula,
                     'action' => 'Segunda Pasada PTA',
-                    'details' => "El operador registró una SEGUNDA PASADA para la Pieza {$tipoPieza} del juego {$piece->n_juego}.",
+                    'details' => "El operador registró una SEGUNDA PASADA para el juego {$baseNum}.",
                     'ot' => $otFull,
                     'clase' => $clase->nombre ?? 'N/A',
                     'proceso' => 'Soldadura PTA',
                     'maquina' => $meta->maquina ?? 'N/A',
-                    'n_pieza' => $nPiezaRef,
+                    'n_pieza' => $baseNum . 'J',
                     'h_inicio' => $request->input('h_inicio_solicitud') ?? now()->subMinute()->format('H:i:s'),
                     'h_termino' => now()->format('H:i:s'),
                     'id_ot' => $meta->id_ot,

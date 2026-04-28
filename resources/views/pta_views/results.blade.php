@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>Resultados Sold. PTA — OT {{ $ot->id }}</title>
@@ -260,8 +260,6 @@
                 <button type="submit" class="btn-pta-save" id="btn-guardar">
                     Guardar Resultados
                 </button>
-                <button type="button" onclick="window.location.href='{{ route('showPiecesInProgress') }}'"
-                    class="btn-pta-back">← Regresar</button>
             </div>
 
         </form>

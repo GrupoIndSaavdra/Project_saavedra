@@ -10,7 +10,6 @@ use App\Models\Procesos;
 use App\Models\tiempoproduccion;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use PhpParser\Node\Stmt\Break_;
 
 class tiemposProduccionController extends Controller
 {
@@ -272,6 +271,7 @@ class tiemposProduccionController extends Controller
     public function calcularFechas($procesos, $clase)
     {
         $noProceso = 0;
+        $procesoFechas = null;
         for ($i = 0; $i < count($procesos); $i++) {
             $pos = array_search($procesos[$i], $clase[1]);
             if ($pos !== false) {
@@ -281,15 +281,13 @@ class tiemposProduccionController extends Controller
             }
         }
 
-        //Guardar unicamente la fecha de termino
-        $clase = Clase::find($clase[0]->id);
-        $clase->fecha_termino = Carbon::parse($procesoFechas->fecha_fin)->format('Y-m-d');
-        $clase->hora_termino = Carbon::parse($procesoFechas->fecha_fin)->format('H:i:s');
-        // echo $clase->nombre;
-        // echo $clase->fecha_termino;
-        // echo $clase->hora_termino;
-        // echo "<br>";
-        $clase->save();
+        //Guardar unicamente la fecha de termino si se calculó algún proceso
+        if ($procesoFechas) {
+            $clase = Clase::find($clase[0]->id);
+            $clase->fecha_termino = Carbon::parse($procesoFechas->fecha_fin)->format('Y-m-d');
+            $clase->hora_termino = Carbon::parse($procesoFechas->fecha_fin)->format('H:i:s');
+            $clase->save();
+        }
     }
     public function obtenerMaquinasClase($claseID, $proceso)
     {
