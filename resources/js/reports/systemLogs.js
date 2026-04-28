@@ -89,6 +89,55 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+    
+    // ---------------------------------------------------------
+    // LÓGICA DE DEPURACIÓN MANUAL (PUGE)
+    // ---------------------------------------------------------
+    const btnPurge = document.getElementById('btn-manual-purge');
+    if (btnPurge) {
+        btnPurge.addEventListener('click', async () => {
+            const confirmed = confirm("¿ESTÁ SEGURO DE DEPURAR LOS LOGS?\n\nEsta acción:\n1. Generará respaldos en archivos .txt por operador.\n2. ELIMINARÁ PERMANENTEMENTE todos los registros de la tabla actual.\n\n¿Desea continuar?");
+            
+            if (!confirmed) return;
+
+            btnPurge.disabled = true;
+            btnPurge.textContent = 'Depurando y Respaldando...';
+            btnPurge.style.opacity = '0.7';
+
+            // Obtener base URL segura
+            let baseUrl = window.baseUrl || (window.location.origin + '/');
+            if (!baseUrl.endsWith('/')) baseUrl += '/';
+            const purgeUrl = baseUrl + 'system-logs/purge';
+
+            try {
+                const response = await fetch(purgeUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('ÉXITO: ' + data.message);
+                    // Recargar la página para ver la tabla limpia
+                    window.location.reload();
+                } else {
+                    alert('ERROR: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Error al depurar logs:', error);
+                alert('Ocurrió un error técnico al intentar depurar los logs.');
+            } finally {
+                btnPurge.disabled = false;
+                btnPurge.textContent = 'Depurar logs ahora';
+                btnPurge.style.opacity = '1';
+            }
+        });
+    }
 });
 
 /**

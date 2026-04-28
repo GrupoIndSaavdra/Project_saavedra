@@ -11,6 +11,10 @@
     <link rel="stylesheet" href="{{asset('bootstrap/css/bootstrap.min.css')}}">
     <!-- Link estilos de CSS -->
     @vite(['resources/css/auth/login.css', 'resources/js/layouts/partials/messages.js'])
+
+    <script>
+        window.baseUrl = "{{ url('/') }}";
+    </script>
 </head>
 
 <body background="{{ asset('images/fondoLogin.jpg') }}">

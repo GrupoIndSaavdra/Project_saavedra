@@ -32,8 +32,12 @@ document.addEventListener('DOMContentLoaded', function () {
  * @param {string} type - 'success', 'error', 'warning'
  */
 function toastpremium(message, type = "success") {
-    let baseUrl = window.baseUrl || (window.location.origin + '/');
+    // 1. OBTENER BASE URL (Prioriza window.baseUrl definida en Blade)
+    let baseUrl = window.baseUrl || (window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/') + '/');
     if (!baseUrl.endsWith('/')) baseUrl += '/';
+    
+    // Si baseUrl parece terminar en el nombre del archivo (ej. login), subir un nivel
+    if (baseUrl.includes('/login/')) baseUrl = baseUrl.replace('/login/', '/');
     
     // Contenedor global si no existe
     let container = document.getElementById('toast-container-premium');

@@ -53,9 +53,12 @@ class ExportWeeklyLogs extends Command
 
             $fileName = "Reporte de log [{$dateStr}] del Operador [{$safeOperatorName}].txt";
             
-            // Formatear contenido con el orden de columnas solicitado por el USER (separado por espacios/pipes)
+            // Columnas solicitadas
             $headerArr = ["Fecha", "Hora", "Operador", "Acción", "Detalles", "Orden de Trabajo", "N# Juego", "Hora de Inicio", "Hora de Término", "Tiempo Total", "Clase", "Proceso", "Máquina"];
-            $content = implode(' | ', $headerArr) . "\n";
+            
+            // 1. Preparar datos de todas las filas y calcular anchos máximos
+            $rowsData = [];
+            $widths = array_map('mb_strlen', $headerArr);
 
             foreach ($logs as $log) {
                 // Calcular Tiempo Total (H_Inicio vs H_Termino)
@@ -72,26 +75,57 @@ class ExportWeeklyLogs extends Command
                 }
 
                 $row = [
-                    $log->created_at->format('Y-m-d'),
-                    $log->created_at->format('H:i:s'),
-                    "{$matricula} - {$operatorName}", // Matricula y Nombre completo del operador
-                    $log->action ?? 'N/A',
-                    str_replace([" | ", "\n", "\r"], [" ", " ", ""], $log->details ?? 'N/A'),
-                    $log->ot ?? 'N/A',
-                    $log->n_pieza ?? 'N/A', // Se usa n_pieza como N# Juego
-                    $log->h_inicio ?? 'N/A',
-                    $log->h_termino ?? 'N/A',
-                    $tiempoTotal,
-                    $log->clase ?? 'N/A',
-                    $log->proceso ?? 'N/A',
-                    $log->maquina ?? 'N/A'
+                    (string)$log->created_at->format('Y-m-d'),
+                    (string)$log->created_at->format('H:i:s'),
+                    (string)"{$matricula} - {$operatorName}",
+                    (string)($log->action ?? 'N/A'),
+                    (string)str_replace([" | ", "\n", "\r"], [" ", " ", ""], $log->details ?? 'N/A'),
+                    (string)($log->ot ?? 'N/A'),
+                    (string)($log->n_pieza ?? 'N/A'),
+                    (string)($log->h_inicio ?? 'N/A'),
+                    (string)($log->h_termino ?? 'N/A'),
+                    (string)$tiempoTotal,
+                    (string)($log->clase ?? 'N/A'),
+                    (string)($log->proceso ?? 'N/A'),
+                    (string)($log->maquina ?? 'N/A')
                 ];
-                
-                $content .= implode(' | ', $row) . "\n";
+
+                foreach ($row as $i => $val) {
+                    $widths[$i] = max($widths[$i], mb_strlen($val));
+                }
+                $rowsData[] = $row;
             }
 
-            // Guardar archivo en storage/app/logs_backups/{OperatorName}/{Date}/
-            $subDirectory = "logs_backups/" . trim($safeOperatorName);
+            // 2. Construir el contenido con anchos fijos
+            $lines = [];
+            
+            // Fila de Encabezados
+            $headerLine = [];
+            foreach ($headerArr as $i => $title) {
+                $headerLine[] = $this->pad($title, $widths[$i]);
+            }
+            $lines[] = implode(' | ', $headerLine);
+
+            // Línea separadora de guiones
+            $separatorLine = [];
+            foreach ($widths as $w) {
+                $separatorLine[] = str_repeat('-', $w);
+            }
+            $lines[] = implode('-|-', $separatorLine);
+
+            // Filas de Datos
+            foreach ($rowsData as $row) {
+                $dataLine = [];
+                foreach ($row as $i => $val) {
+                    $dataLine[] = $this->pad($val, $widths[$i]);
+                }
+                $lines[] = implode(' | ', $dataLine);
+            }
+
+            $content = implode("\n", $lines) . "\n";
+
+            // Guardar archivo en storage/app/System_Log Backup/{OperatorName}/
+            $subDirectory = "System_Log Backup/" . trim($safeOperatorName);
             if (!Storage::exists($subDirectory)) {
                 Storage::makeDirectory($subDirectory);
             }
@@ -114,5 +148,14 @@ class ExportWeeklyLogs extends Command
         $this->info("Se han depurado {$count} registros de la tabla system_logs.");
         
         \Illuminate\Support\Facades\Log::info("Depuración de logs completada. Archivos generados: {$totalExported}. Registros eliminados: {$count}");
+    }
+
+    /**
+     * Rellena con espacios un string multibyte para ancho fijo.
+     */
+    private function pad($str, $len)
+    {
+        $diff = $len - mb_strlen($str);
+        return $str . str_repeat(' ', max(0, $diff));
     }
 }

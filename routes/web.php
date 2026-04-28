@@ -432,6 +432,7 @@ Route::middleware(['auth'])->prefix('ayudas')->name('ayudas.')->group(function (
 Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::get('/system-logs-report', [SystemLogController::class, 'index'])->name('systemLogsReport');
     Route::post('/system-logs', [SystemLogController::class, 'store'])->name('system.logs.store');
+    Route::post('/system-logs/purge', [SystemLogController::class, 'purge'])->name('system.logs.purge');
 });
 
 use App\Http\Controllers\ProductivityController;

@@ -357,4 +357,35 @@ class SystemLogController extends Controller
             return "Reporte de " . $reportType . " General - " . $date . ".pdf";
         }
     }
+
+    /**
+     * Activa manualmente el comando de depuración y exportación de logs.
+     */
+    public function purge(Request $request)
+    {
+        try {
+            // Solo administradores (perfil 1) o sistemas
+            if (Auth::user()->perfil != 1) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No tiene permisos para realizar esta acción.'
+                ], 403);
+            }
+
+            // Ejecutar el comando de consola
+            \Illuminate\Support\Facades\Artisan::call('app:depurar-logs');
+            $output = \Illuminate\Support\Facades\Artisan::output();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Depuración manual completada con éxito. Los logs han sido respaldados y la tabla se ha limpiado.',
+                'output' => $output
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al ejecutar la depuración: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
