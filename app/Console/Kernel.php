@@ -36,8 +36,7 @@ class Kernel extends ConsoleKernel
         // ── Depuración cada 3 días de Logs ──────────────────────────────
         // Programación: Cada 3 días a las 23:00 (11 PM)
         $schedule->command('app:depurar-logs')
-            ->dailyAt('23:00')
-            ->everyThreeDays()
+            ->cron('0 23 */3 * *')
             ->appendOutputTo(storage_path('logs/depuracion_periodica.log'));
     }
 
