@@ -155,8 +155,14 @@ class SystemLogController extends Controller
         // 1. Obtener valores ÚNICOS para los filtros usando consultas eficientes y el índice de la DB
         // Esto evita cargar miles de registros en memoria solo para llenar un dropdown
         $filtrosDisponibles = [
-            'ot' => SystemLog::distinct()->whereNotNull('ot')->pluck('ot')->sort()->values(),
-            'clase' => SystemLog::distinct()->whereNotNull('clase')->pluck('clase')->sort()->values(),
+            'ot' => SystemLog::distinct()->whereNotNull('ot')->pluck('ot')
+                ->map(function($val) {
+                    return preg_match('/^(\d+)/', $val, $m) ? $m[1] : (strpos($val, ' - ') !== false ? explode(' - ', $val)[0] : $val);
+                })->unique()->sort()->values(),
+            'clase' => SystemLog::distinct()->whereNotNull('clase')->pluck('clase')
+                ->map(function($val) {
+                    return preg_match('/^(\d+)/', $val, $m) ? $m[1] : (strpos($val, ' - ') !== false ? explode(' - ', $val)[0] : $val);
+                })->unique()->sort()->values(),
             'proceso' => SystemLog::distinct()->whereNotNull('proceso')->pluck('proceso')->sort()->values(),
             'maquina' => SystemLog::distinct()->whereNotNull('maquina')->pluck('maquina')->sort()->values(),
             'action' => SystemLog::distinct()->whereNotNull('action')->pluck('action')->sort()->values(),
