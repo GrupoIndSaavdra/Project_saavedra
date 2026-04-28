@@ -246,6 +246,7 @@ function createFilters() {
                     "Exceso de Tiempo": { color: "#F5B7B1" },
                     "Exceso de Tiempo de Maquinado": { color: "#F5B7B1" },
                     "Inactividad en Formulario": { color: "#F5B7B1" },
+                    "Inactividad en Bienvenida": { color: "#F5B7B1" },
                     "Alerta de Productividad": { color: "#F5B7B1" },
                     "Avisos de Sistema": { color: "#F5B7B1" },
                     "Alerta de Error en Sistema": { color: "#F5B7B1" },
@@ -454,12 +455,15 @@ function crearTabla(logs, append = false) {
         "Solicitud Edición de Piezas": "#8E44AD",
         "Liberación por Calidad": "#D5F5E3", // Verde Claro (Éxito Calidad)
         "Rechazo por Calidad": "#FADBD8",   // Rojo Claro (Falla Calidad)
+        "Abandono de Liberación": "#D7BDE2", // Morado Claro
         "Intento de Liberación de Calidad": "#512E5F", // Morado Oscuro
         "Intento de Liberación": "#512E5F",
 
         // FAMILIA ROJA (Fallas / Alertas / Productividad)
         "Excedió el límite de inactividad": "#F5B7B1", // Rojo Claro (Productividad)
         "Inactividad en Formulario": "#F5B7B1",
+        "Inactividad en Bienvenida": "#F5B7B1",
+        "Inicio de Reporte Pendiente": "#F5B7B1",
         "Alerta de Productividad": "#F5B7B1",
         "Exceso de Tiempo": "#F5B7B1",
         "Exceso de Tiempo de Maquinado": "#F5B7B1",
@@ -515,42 +519,120 @@ function crearTabla(logs, append = false) {
             const isDark = darkColors.includes(color.toUpperCase());
             const textColor = isDark ? "#FFFFFF" : "#000000";
 
+            // LÓGICA MANUAL DE ALTO CONTRASTE (Colores curados para cada fondo)
+            const getManualHLColor = (hex) => {
+                const bg = hex.toUpperCase();
+                // Mapa de fondos a sus colores de resaltado ideales
+                const map = {
+                    // FONDOS CLAROS (Usamos colores oscuros y fuertes)
+                    "#D5F5E3": "#922B21", // Verde Claro -> Rojo Vino
+                    "#F5B7B1": "#922B21", // Rojo Claro -> Rojo Vino
+                    "#FADBD8": "#922B21", // Rosa Claro -> Rojo Vino
+                    "#F9E79F": "#922B21", // Amarillo Pastel -> Rojo Vino
+                    "#D4E6F1": "#1B4F72", // Azul Claro -> Azul Marino
+                    "#FCF3CF": "#9A7D0A", // Crema -> Dorado Oscuro
+                    "#F1C40F": "#922B21", // Amarillo Fuerte -> Rojo Vino
+
+                    // FONDOS OSCUROS (Usamos colores brillantes: Amarillos/Dorados/Blancos)
+                    "#186A3B": "#F1C40F", // Verde Oscuro -> Amarillo
+                    "#21618C": "#F1C40F", // Azul Oscuro -> Amarillo
+                    "#512E5F": "#F1C40F", // Morado Oscuro -> Amarillo
+                    "#943126": "#FAD7A0", // Rojo Sangre -> Durazno/Crema
+                    "#E74C3C": "#F1C40F", // Rojo Brillante -> Amarillo
+                    "#27AE60": "#F1C40F", // Verde Esmeralda -> Amarillo
+                    "#3498DB": "#F1C40F", // Azul Brillante -> Amarillo
+                    "#8E44AD": "#F4D03F", // Púrpura -> Dorado
+                    "#9A7D0A": "#F1C40F", // Dorado Oscuro -> Amarillo
+                    "#515A5A": "#F1C40F", // Gris Oscuro -> Amarillo
+                };
+                return map[bg] || (isDark ? "#F1C40F" : "#922B21");
+            };
+
+            const hlColor = getManualHLColor(color);
+            const userHL = isDark ? '#85C1E9' : '#2E86C1'; // Azul distintivo adaptado al brillo del fondo
+
             // Lógica de visualización de detalles (formateo de HTML y limpieza)
             let detailsHtml = (() => {
                 let content = log.details || "";
+
+                // 1. Limpieza de rastro de depuración y alertas repetitivas
                 content = content.replace(/\[BLOQUEO\] Operador \d+ /i, '');
                 content = content.replace(/ALERTA: Tiempo insuficiente entre (piezas|juegos) diferentes \(\d+ min\)/gi, '');
                 content = content.replace(/ALERTA CRÍTICA: Problema recurrente de llenado. Reincidencia detectada. \(\d+ min\)/gi, '');
-                const hasHtml = content.includes('<span') || content.includes('<b>');
 
+                // Detectar si el backend ya envió HTML para evitar doble escape
+                const hasHtml = content.includes('<span') || content.includes('<b>');
                 if (!hasHtml) {
                     content = esc(content);
-                    content = content.replace(/(El inspector de calidad|El operador) (.*?) (finalizó|registró|sincronizó|completó)/g, '$1 <b>$2</b> $3');
                 }
 
+                // 2. Acciones de Productividad y Bloqueos (Prioridad)
+                // Resaltamos SOLO la variable (el lugar o motivo), dejando el texto genérico en color base
+                content = content.replace(/(reconoció y aceptó la alerta de|Inactividad en|Exceso de Tiempo en)\s+([^.]+?)(?=\.|\stras\s| por | durante | desde |$)/gi, `$1 <b style="color:${hlColor};">$2</b>`);
+
+                // 3. Resaltar nombres de usuarios (Color distintivo con alto contraste)
+                // Añadimos más verbos de acción para detectar nombres en diversos contextos
+                const nameRegex = /(El inspector de calidad|El operador|El inspector|El usuario|El supervisor|El administrador)\s+(?:<b>)?([^.<]+?)(?:<\/b>)?\s+(finalizó|registró|sincronizó|completó|inició|seleccionó|autorizó|solicitó|canceló|abrió|realizó|cerró|ingresó)/gi;
+                content = content.replace(nameRegex, `$1 <strong style="color:${userHL};">$2</strong> $3`);
+
+                // 3. Resaltado de metadatos técnicos (OT, Clase, Máquina, Piezas)
+                // Usamos word boundaries (\b) en ambos lados para evitar errores como resaltar "maquina" dentro de "maquinado"
+                content = content.replace(/\bOT\b:?\s*(\d+)/gi, `<b style="color:${hlColor};">OT $1</b>`);
+                content = content.replace(/\bClase\b:?\s*([^,)\n<]+)/gi, `<b style="color:${hlColor};">Clase $1</b>`);
+                content = content.replace(/\bMaquina\b:?\s*([^,)\n<]+)/gi, `<b style="color:${hlColor};">Máquina $1</b>`);
+                content = content.replace(/\b(juego|pieza)\b:?\s*(\d+[a-zA-Z]?)/gi, `<b style="color:${hlColor};">$1 $2</b>`);
+
+                // 3. Resaltado de Mensajes de Sistema y Acciones Genéricas
+                // Resaltamos el objeto de la acción (el mensaje, el formulario, la interfaz, la solicitud)
+                content = content.replace(/(mensaje al operador|Autenticación correcta|Autenticación fallida|interfaz de|formulario de|acceso a|reporte de|sistema de|meta|contraseña de|solicitud de|registro de|edición de):?\s*([^.<]+?)(?=\.|$)/gi, (match, p1, p2) => {
+                    return `${p1} <b style="color:${hlColor};">${p2}</b>`;
+                });
+
+                // Resaltar palabras clave de estado/lugar en descripciones genéricas
+                content = content.replace(/(?<![">])\b(el sistema|la meta|el reporte|su turno|la máquina|el formulario|reporte de producción|acceso a edición)\b/gi, `<b style="color:${hlColor};">$1</b>`);
+
+                // 4. Lógica específica para Reportes de Producción (Proceso Correcto)
                 if (log.action === "Proceso Correcto" && (content.includes("finalizó la revisión:") || content.includes("realizó:"))) {
                     if (!hasHtml) {
-                        content = content.replace(/Liberadas: (\d+)( \[[^\]]+\])?/g, '<span style="color:#2E86C1; font-weight:bold;">Liberadas: $1 <small>$2</small></span>');
-                        content = content.replace(/Rechazadas: (\d+)( \[[^\]]+\])?/g, '<span style="color:#C0392B; font-weight:bold; margin-left:12px;">Rechazadas: $1 <small>$2</small></span>');
-                        content = content.replace(/Incompletas: (\d+)( \[[^\]]+\])?/g, '<span style="color:#B7950B; font-weight:bold; margin-left:12px;">Incompletas: $1 <small>$2</small></span>');
+                        content = content.replace(/Liberadas: (\d+)( \[[^\]]+\])?/g, `<span style="color:${isDark ? '#85C1E9' : '#2E86C1'}; font-weight:bold;">Liberadas: $1 <small>$2</small></span>`);
+                        content = content.replace(/Rechazadas: (\d+)( \[[^\]]+\])?/g, `<span style="color:${isDark ? '#F1948A' : '#C0392B'}; font-weight:bold; margin-left:12px;">Rechazadas: $1 <small>$2</small></span>`);
+                        content = content.replace(/Incompletas: (\d+)( \[[^\]]+\])?/g, `<span style="color:${isDark ? '#F7DC6F' : '#B7950B'}; font-weight:bold; margin-left:12px;">Incompletas: $1 <small>$2</small></span>`);
                     }
                 }
-                content = content.replace(/LIBERAD[AO]/gi, (match) => `<b style="color:#1D8348;">${match}</b>`);
-                content = content.replace(/RECHAZAD[AO]/gi, (match) => `<b style="color:#943126;">${match}</b>`);
 
-                // Resaltar proceso en naranja y observaciones en morado
-                content = content.replace(/en (.*?)(\. Obs:|$)/g, 'en <b style="color:#E67E22;">$1</b>$2');
-                content = content.replace(/Obs: (.*)$/g, 'Obs: <b style="color:#8E44AD;">$1</b>');
+                // 5. Resaltado de estados de Calidad en los detalles narrativos
+                const greenHL = isDark ? '#58D68D' : '#1D8348';
+                const redHL = isDark ? '#EC7063' : '#943126';
+                const yellowHL = isDark ? '#F7DC6F' : '#B7950B';
+
+                content = content.replace(/LIBERAD[AO]/gi, (match) => `<b style="color:${greenHL};">${match}</b>`);
+                content = content.replace(/RECHAZAD[AO]/gi, (match) => `<b style="color:${redHL};">${match}</b>`);
+
+                // Resaltar frases de resultados de calidad
+                content = content.replace(/(liberó el juego|liberaron los juegos)\s*(\[.*?\])/gi, `$1 <b style="color:${greenHL};">$2</b>`);
+                content = content.replace(/(rechazó el juego|fue rechazado el juego|fueron rechazados los juegos)\s*(\[.*?\])/gi, `$1 <b style="color:${redHL};">$2</b>`);
+                content = content.replace(/(incompletos los juegos|registrados como incompletas)\s*(\[.*?\])?/gi, `$1 <b style="color:${yellowHL};">$2</b>`);
+
+                // 8. Resaltar conectores de lugar/proceso genéricos
+                content = content.replace(/(?<![">])\ben\s+([^.<]+?)(?=\.|\stras\s| por | durante | desde |$)/gi, `en <b style="color:${hlColor};">$1</b>`);
+
+                // 9. Resaltar Duraciones y Tiempos (tras X min Y seg)
+                content = content.replace(/(tras|durante|desde)\s+(\d+\s*(?:seg|min|hr|h|m|s)[^.<]*)(?=\.|$)/gi, `$1 <b style="color:${hlColor};">$2</b>`);
+
+                content = content.replace(/Obs: (.*)$/g, `Obs: <b style="color:${isDark ? '#D7BDE2' : '#8E44AD'};">$1</b>`);
 
                 return content;
             })();
 
-            // LÓGICA DE ALERTAS DE AUDITORÍA
+            // LÓGICA DE ALERTAS DE AUDITORÍA (Ajustamos colores para contraste dinámico complementario)
             let auditAlert = "";
+            const alertColor = hlColor; // Usamos el color complementario ya calculado
+            const criticalColor = isDark ? '#FF5733' : '#900C3F'; // Colores de alerta específicos
+
             if (log.is_critical) {
-                auditAlert = `<br><strong style="color: #F1C40F; font-size:1.1em; display: block; margin-top: 5px;">ALERTA CRÍTICA: Problema recurrente de llenado. Reincidencia detectada. (${log.diff_mins ?? 0} min)</strong>`;
+                auditAlert = `<br><strong style="color: ${alertColor}; font-size:1.1em; display: block; margin-top: 5px;">ALERTA CRÍTICA: Problema recurrente de llenado. Reincidencia detectada. (${log.diff_mins ?? 0} min)</strong>`;
             } else if (log.action === "Captura Sospechosa" || (log.action === "Captura Medida" && log.is_suspicious)) {
-                auditAlert = `<br><strong style="color: #ff0000; display: block; margin-top: 5px;">ALERTA: Tiempo insuficiente entre juegos diferentes (${log.diff_mins ?? 0} min)</strong>`;
+                auditAlert = `<br><strong style="color: ${criticalColor}; display: block; margin-top: 5px;">ALERTA: Tiempo insuficiente entre juegos diferentes (${log.diff_mins ?? 0} min)</strong>`;
             }
 
             // Lógica de visualización de N# Juego
@@ -567,7 +649,7 @@ function crearTabla(logs, append = false) {
                 <td>${esc(log.date)}</td>
                 <td>${esc(log.time)}</td>
                 <td>${esc(log.operador)} - ${esc(log.operador_nombre)}</td>
-                <td>${log.is_critical ? 'Captura Crítica' : esc(log.action)}</td>
+                <td>${log.is_critical ? 'Captura Crítica' : (log.action === 'Inicio de Reporte Pendiente' ? 'Inactividad en Bienvenida' : esc(log.action))}</td>
                 <td>${detailsHtml}${auditAlert}</td>
                 <td>${esc(log.ot)}</td>
                 <td>${piezaDisplay}</td>

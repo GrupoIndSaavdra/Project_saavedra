@@ -21,7 +21,7 @@ window.logUserAction = function(actionName, detailsStr = null, customData = {}) 
             "Inicio de Sesión": "El operador autenticó su matrícula y contraseña para acceder al sistema.",
             "Inactividad en Formulario": "El operador reconoció la alerta por falta de actividad en el formulario de registro.",
             "Exceso de Tiempo de Maquinado": "El operador reconoció que el tiempo de operación de la pieza superó el límite estándar permitido.",
-            "Inicio de Reporte Pendiente": "El operador reconoció que es obligatorio iniciar un reporte para registrar su actividad."
+            "Inactividad en Bienvenida": "El operador reconoció que es obligatorio iniciar un reporte para registrar su actividad."
         };
         detailsStr = defaultDescriptions[actionName] || "Acción registrada sin detalles adicionales.";
     }
@@ -194,7 +194,7 @@ function renderGlobalProductivityAlert(type, standardMinutes = 0) {
     const configs = {
         'inicio': {
             icon: 'Aviso.png',
-            title: 'Inicio de Reporte Pendiente',
+            title: 'Inactividad en Bienvenida',
             message: 'Inicie el nuevo reporte para continuar operando.',
             type: 'notice'
         },
@@ -271,7 +271,7 @@ window.handleProductivityUnlock = function(alertTitle, startTime, alertType = nu
 
     let details = "";
     const actionName = alertType === 'produccion' ? 'Exceso de Tiempo de Maquinado' : 
-                      (alertType === 'formulario' ? 'Inactividad en Formulario' : 'Inicio de Reporte Pendiente');
+                      (alertType === 'formulario' ? 'Inactividad en Formulario' : 'Inactividad en Bienvenida');
     
     details = `El operador reconoció y aceptó la alerta de ${alertType === 'produccion' ? 'Exceso de Tiempo' : 'Inactividad'} en ${lugar} tras ${timeTaken}.`;
     

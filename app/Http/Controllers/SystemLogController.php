@@ -375,7 +375,7 @@ class SystemLogController extends Controller
                 'Captura Medida', 'Captura Sospechosa', 'Captura Crítica', 'Consulta Dibujos Técnicos', 
                 'Consulta Documentación Técnica', 'Autorización de Edición', 'Terminar Reporte', 
                 'Terminar jornada', 'Proceso Correcto', 'Exceso de Tiempo', 
-                'Abandono de Liberación', 'Exceso de Tiempo de Maquinado', 'Inicio de Reporte Pendiente',
+                'Abandono de Liberación', 'Exceso de Tiempo de Maquinado', 'Inicio de Reporte Pendiente', 'Inactividad en Bienvenida',
                 'Liberación por Calidad', 'Rechazo por Calidad'
             ];
             

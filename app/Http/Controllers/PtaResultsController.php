@@ -9,6 +9,7 @@ use App\Models\PtaResultado;
 use App\Models\SoldaduraPTA;
 use App\Models\SoldaduraPTA_pza;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 
@@ -97,7 +98,7 @@ class PtaResultsController extends Controller
      * Sube una imagen al disco public, la redimensiona usando GD nativo y devuelve la ruta.
      * Convierte imágenes a formato JPEG (1000px max, 80% compresión) para optimización extrema.
      */
-    private function subirImagen($file, ?string $rutaAnterior, string $prefijo, string $otId, string $claseNombre, string $nPieza): string
+    private function subirImagen(UploadedFile $file, ?string $rutaAnterior, string $prefijo, string $otId, string $claseNombre, string $nPieza): string
     {
         $claseLimpia = preg_replace('/[^A-Za-z0-9_\-]/', '_', $claseNombre);
         $nPiezaLimpia = preg_replace('/[^A-Za-z0-9_\-]/', '_', $nPieza);
@@ -799,7 +800,7 @@ class PtaResultsController extends Controller
      * Helper para contar piezas como juegos (sets) siguiendo la lógica del Dashboard.
      * Si termina en 'J', cuenta como 1 juego completo. De lo contrario, cuenta como 0.5.
      */
-    private static function countAsGames($piezas): float
+    private static function countAsGames(iterable $piezas): float
     {
         $count = 0.0;
         foreach ($piezas as $p) {
