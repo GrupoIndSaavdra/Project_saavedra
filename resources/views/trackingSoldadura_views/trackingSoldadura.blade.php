@@ -2,6 +2,7 @@
 
 @section('head')
     <title>Tracking de Soldadura</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite(['resources/css/trackingSoldadura/trackingSoldadura.css', 'resources/js/TrackingSoldadura/registerSoldadura.js'])
 @endsection
 

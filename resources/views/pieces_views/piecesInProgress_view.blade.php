@@ -2,6 +2,7 @@
 
 @section('head')
     <title>Progreso de piezas</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     <script>
         window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";
         window.baseUrl = "{{ url('/') }}";

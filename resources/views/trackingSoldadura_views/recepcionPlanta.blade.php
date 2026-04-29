@@ -2,6 +2,7 @@
 
 @section('head')
     <title>Recepción de Soldadura en Planta</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/trackingSoldadura_views/recepcionPlanta.css'])
 @endsection

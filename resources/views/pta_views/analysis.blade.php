@@ -2,6 +2,7 @@
 
 @section('head')
     <title>Análisis Resultados Sold. PTA</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite(['resources/css/pta_views/analysis.css'])
 @endsection
 

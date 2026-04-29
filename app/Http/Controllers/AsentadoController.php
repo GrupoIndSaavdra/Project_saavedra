@@ -10,13 +10,17 @@ class AsentadoController extends Controller
     {
         $this->middleware('auth');
     }
+        /**
+     * @param mixed $request
+     * @param int $index
+     */
     public function storePiece($request, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
             if (!$pieceId)
                 return;
-            $piece = Asentado_pza::find($pieceId);
+            $piece = Asentado_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -49,7 +53,7 @@ class AsentadoController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = Asentado_pza::find($pieceId);
+            $piece = Asentado_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'sin_juego',

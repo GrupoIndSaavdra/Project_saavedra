@@ -13,6 +13,9 @@ class GenerarQRLoteController extends Controller
         return view('trackingSoldadura_views.generarQRLote');
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -38,6 +41,9 @@ class GenerarQRLoteController extends Controller
         return $this->generarPDF($lote);
     }
 
+    /**
+     * @param \App\Models\SoldaduraLote $lote
+     */
     private function generarPDF($lote)
     {
         $qrContent = json_encode([

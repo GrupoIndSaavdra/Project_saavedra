@@ -10,13 +10,19 @@ class PalomasController extends Controller
     {
         $this->middleware('auth');
     }
+        /**
+     * @param mixed $request
+     * @param mixed $cNominal
+     * @param mixed $tolerance
+     * @param int $index
+     */
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
             if (!$pieceId)
                 return;
-            $piece = Palomas_pza::find($pieceId);
+            $piece = Palomas_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -37,7 +43,7 @@ class PalomasController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = Palomas_pza::find($pieceId);
+            $piece = Palomas_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'anchoPaloma',
@@ -64,6 +70,11 @@ class PalomasController extends Controller
         }
         $piece->save();
     }
+        /**
+     * @param mixed $pieza
+     * @param mixed $cNominal
+     * @param mixed $tolerancia
+     */
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
         if ($pieza->anchoPaloma > ($cNominal->anchoPaloma + $tolerancia->anchoPaloma) || $pieza->anchoPaloma < ($cNominal->anchoPaloma - $tolerancia->anchoPaloma) || $pieza->gruesoPaloma > ($cNominal->gruesoPaloma + $tolerancia->gruesoPaloma) || $pieza->gruesoPaloma < ($cNominal->gruesoPaloma - $tolerancia->gruesoPaloma) || $pieza->profundidadPaloma > ($cNominal->profundidadPaloma + $tolerancia->profundidadPaloma) || $pieza->profundidadPaloma < ($cNominal->profundidadPaloma - $tolerancia->profundidadPaloma) || $pieza->rebajeLlanta > ($cNominal->rebajeLlanta + $tolerancia->rebajeLlanta) || $pieza->rebajeLlanta < ($cNominal->rebajeLlanta - $tolerancia->rebajeLlanta)) {

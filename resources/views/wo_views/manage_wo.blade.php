@@ -2,6 +2,7 @@
 
 @section('head')
 <title>Registrar Orden de trabajo</title>
+<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 @vite(['resources/css/wo_views/manage_wo.css', 'resources/js/wo_views/manage_wo.js'])
 @endsection
 

@@ -10,13 +10,19 @@ class PrimeraOpeSoldaduraController extends Controller
     {
         $this->middleware('auth');
     }
+        /**
+     * @param mixed $request
+     * @param mixed $cNominal
+     * @param mixed $tolerance
+     * @param int $index
+     */
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
             if (!$pieceId)
                 return;
-            $piece = PrimeraOpeSoldadura_pza::find($pieceId);
+            $piece = PrimeraOpeSoldadura_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -45,7 +51,7 @@ class PrimeraOpeSoldaduraController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = PrimeraOpeSoldadura_pza::find($pieceId);
+            $piece = PrimeraOpeSoldadura_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'diametro1',
@@ -80,6 +86,11 @@ class PrimeraOpeSoldaduraController extends Controller
         }
         $piece->save();
     }
+        /**
+     * @param mixed $pieza
+     * @param mixed $cNominal
+     * @param mixed $tolerancia
+     */
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
         if ($pieza->diametro1 > ($cNominal->diametro1 + $tolerancia->diametro1) || $pieza->diametro1 < ($cNominal->diametro1 - $tolerancia->diametro1) || $pieza->profundidad1 > ($cNominal->profundidad1 + $tolerancia->profundidad1) || $pieza->profundidad1 < ($cNominal->profundidad1 - $tolerancia->profundidad1) || $pieza->diametro2 > ($cNominal->diametro2 + $tolerancia->diametro2) || $pieza->diametro2 < ($cNominal->diametro2 - $tolerancia->diametro2) || $pieza->profundidad2 > ($cNominal->profundidad2 + $tolerancia->profundidad2) || $pieza->profundidad2 < ($cNominal->profundidad2 - $tolerancia->profundidad2) || $pieza->diametro3 > ($cNominal->diametro3 + $tolerancia->diametro3) || $pieza->diametro3 < ($cNominal->diametro3 - $tolerancia->diametro3) || $pieza->profundidad3 > ($cNominal->profundidad3 + $tolerancia->profundidad3) || $pieza->profundidad3 < ($cNominal->profundidad3 - $tolerancia->profundidad3) || $pieza->diametroSoldadura > ($cNominal->diametroSoldadura + $tolerancia->diametroSoldadura) || $pieza->diametroSoldadura < ($cNominal->diametroSoldadura - $tolerancia->diametroSoldadura) || $pieza->profundidadSoldadura > ($cNominal->profundidadSoldadura + $tolerancia->profundidadSoldadura) || $pieza->profundidadSoldadura < ($cNominal->profundidadSoldadura - $tolerancia->profundidadSoldadura) || $pieza->diametroBarreno > ($cNominal->diametroBarreno + $tolerancia->diametroBarreno1) || $pieza->diametroBarreno < round(($cNominal->diametroBarreno - $tolerancia->diametroBarreno2), 3) || $pieza->simetriaLinea_partida > ($cNominal->simetriaLinea_partida + $tolerancia->simetriaLinea_partida1) || $pieza->simetriaLinea_partida < ($cNominal->simetriaLinea_partida - $tolerancia->simetriaLinea_partida2) || $pieza->pernoAlineacion > ($cNominal->pernoAlineacion + $tolerancia->pernoAlineacion) || $pieza->pernoAlineacion < ($cNominal->pernoAlineacion - $tolerancia->pernoAlineacion) || $pieza->Simetria90G > ($cNominal->Simetria90G + $tolerancia->Simetria90G) || $pieza->Simetria90G < ($cNominal->Simetria90G - $tolerancia->Simetria90G)) {

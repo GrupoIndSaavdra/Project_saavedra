@@ -9,7 +9,9 @@ use App\Models\PtaResultado;
 use App\Models\SoldaduraPTA;
 use App\Models\SoldaduraPTA_pza;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class PtaResultsController extends Controller
 {
@@ -22,6 +24,9 @@ class PtaResultsController extends Controller
     // SESIÓN TEMPORAL
     // ═══════════════════════════════════════════════════════════════════════
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function verifyTempPassword(Request $request)
     {
         $password = $request->input('password');
@@ -64,7 +69,7 @@ class PtaResultsController extends Controller
      */
     private function pasoPorPTA(string $otId, int $claseId): bool
     {
-        return Pieza::where('id_ot', $otId)
+        return Pieza::query()->where('id_ot', $otId)
             ->where('id_clase', $claseId)
             ->where('proceso', 'Soldadura PTA')
             ->exists();
@@ -75,7 +80,7 @@ class PtaResultsController extends Controller
      */
     private function getPiezasPTA(string $otId, int $claseId, bool $soloBuenas = true, bool $incluirRechazados = false)
     {
-        $query = Pieza::where('id_ot', $otId)
+        $query = Pieza::query()->where('id_ot', $otId)
             ->where('id_clase', $claseId)
             ->where('proceso', 'Soldadura PTA');
 
@@ -96,7 +101,7 @@ class PtaResultsController extends Controller
      * Sube una imagen al disco public, la redimensiona usando GD nativo y devuelve la ruta.
      * Convierte imágenes a formato JPEG (1000px max, 80% compresión) para optimización extrema.
      */
-    private function subirImagen($file, ?string $rutaAnterior, string $prefijo, string $otId, string $claseNombre, string $nPieza): string
+    private function subirImagen(UploadedFile $file, ?string $rutaAnterior, string $prefijo, string $otId, string $claseNombre, string $nPieza): string
     {
         $claseLimpia = preg_replace('/[^A-Za-z0-9_\-]/', '_', $claseNombre);
         $nPiezaLimpia = preg_replace('/[^A-Za-z0-9_\-]/', '_', $nPieza);
@@ -164,10 +169,8 @@ class PtaResultsController extends Controller
                 }
 
                 imagecopyresampled($lienzo, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $anchoOrig, $altoOrig);
-                imagejpeg($lienzo, $destinoFinal, 80);
 
-                imagedestroy($lienzo);
-                imagedestroy($origen);
+                imagejpeg($lienzo, $destinoFinal, 80);
                 
                 return $relativePath . '/' . $nombre;
             }
@@ -192,7 +195,7 @@ class PtaResultsController extends Controller
         $ot = Orden_trabajo::findOrFail($ot_id);
         $clase_id = $request->get('clase_id');
 
-        $clasesConPTA = \App\Models\Clase::where('id_ot', $ot_id)
+        $clasesConPTA = \App\Models\Clase::query()->where('id_ot', $ot_id)
             ->whereHas('piezas', function ($q) {
                 $q->where('proceso', 'Soldadura PTA');
             })->get();
@@ -219,7 +222,7 @@ class PtaResultsController extends Controller
         }
 
         // IDs de piezas que ya tienen resultado guardado (o liberado)
-        $resultadosGuardados = PtaResultado::where('ot_id', $ot_id)
+        $resultadosGuardados = PtaResultado::query()->where('ot_id', $ot_id)
             ->whereHas('pieza', fn($q) => $q->where('id_clase', $clase_id))
             ->pluck('pieza_id')
             ->flip();  // flip() para buscar en O(1)
@@ -234,7 +237,7 @@ class PtaResultsController extends Controller
             ?? $piezas->first();
 
         // Todos los resultados de la OT para la tabla resumen (keyed by pieza_id)
-        $todosResultados = PtaResultado::where('ot_id', $ot_id)
+        $todosResultados = PtaResultado::query()->where('ot_id', $ot_id)
             ->whereHas('pieza', fn($q) => $q->where('id_clase', $clase_id))
             ->get()->keyBy('pieza_id');
 
@@ -253,7 +256,7 @@ class PtaResultsController extends Controller
                 ])->orderBy('id', 'desc')->get();
 
         // Resultado ya guardado para la pieza seleccionada (por si se edita)
-        $resultado = PtaResultado::where('ot_id', $ot_id)
+        $resultado = PtaResultado::query()->where('ot_id', $ot_id)
             ->where('pieza_id', $piezaSeleccionada->id)
             ->first();
 
@@ -272,25 +275,29 @@ class PtaResultsController extends Controller
         ));
     }
 
+        /**
+     * @param \Illuminate\Http\Request StorePtaResultadoRequest $request
+     * @param mixed string $ot_id
+     */
     public function store(StorePtaResultadoRequest $request, string $ot_id)
     {
         $ot = Orden_trabajo::findOrFail($ot_id);
         $clase_id = $request->get('clase_id');
-        $clase = \App\Models\Clase::find($clase_id);
+        $clase = \App\Models\Clase::query()->find($clase_id);
         $clase_nombre = $clase ? $clase->nombre : 'Clase_' . $clase_id;
 
         $resultado = PtaResultado::firstOrNew([
             'ot_id' => $ot_id,
-            'pieza_id' => $request->pieza_id,
+            'pieza_id' => $request->input('pieza_id'),
         ]);
 
-        $resultado->n_pieza = $request->n_pieza;
-        $resultado->resultado_pico_llenado = $request->resultado_pico_llenado;
-        $resultado->resultado_pico_soldadura = $request->resultado_pico_soldadura;
-        $resultado->resultado_conexion_llenado = $request->resultado_conexion_llenado;
-        $resultado->resultado_conexion_soldadura = $request->resultado_conexion_soldadura;
-        $resultado->resultado_perfilado_llenado = $request->resultado_perfilado_llenado;
-        $resultado->resultado_perfilado_soldadura = $request->resultado_perfilado_soldadura;
+        $resultado->n_pieza = $request->input('n_pieza');
+        $resultado->resultado_pico_llenado = $request->input('resultado_pico_llenado');
+        $resultado->resultado_pico_soldadura = $request->input('resultado_pico_soldadura');
+        $resultado->resultado_conexion_llenado = $request->input('resultado_conexion_llenado');
+        $resultado->resultado_conexion_soldadura = $request->input('resultado_conexion_soldadura');
+        $resultado->resultado_perfilado_llenado = $request->input('resultado_perfilado_llenado');
+        $resultado->resultado_perfilado_soldadura = $request->input('resultado_perfilado_soldadura');
 
         // Subir imágenes si se enviaron
         if ($request->hasFile('imagen_pico_soldadura')) {
@@ -326,6 +333,58 @@ class PtaResultsController extends Controller
 
         $resultado->save();
 
+        // Registrar log de auditoría para PTA (Consolidado por Juego: Solo en Hembra)
+        $nPiezaRef = $request->input('n_pieza');
+        if ($nPiezaRef && (str_ends_with(strtoupper($nPiezaRef), 'H') || str_ends_with(strtoupper($nPiezaRef), 'J'))) {
+            $user = Auth::user();
+            if (!$user) return; // Omitir log si no hay sesión
+
+            $meta = \App\Models\Metas::query()->where('id_ot', $ot_id)->where('id_usuario', $user->matricula)->orderBy('created_at', 'desc')->first();
+            $clase = \App\Models\Clase::query()->find($clase_id);
+            $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : $ot_id;
+            
+            $baseNum = preg_replace('/[HMJ]$/i', '', $nPiezaRef);
+            $h_termino_log = now()->format('H:i:s');
+
+            // ── LÓGICA DE AUDITORÍA (RESTRICTIVA) ──
+            $lastLog = \App\Models\SystemLog::query()->where('user_matricula', Auth::user()->matricula)
+                ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'], 'and', false)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $isTimeSuspicious = false;
+            $diffMins = 0;
+            if ($lastLog) {
+                $now = now();
+                $diffSecs = (int) abs($now->diffInSeconds($lastLog->created_at));
+                $diffMins = floor($diffSecs / 60);
+                $isTimeSuspicious = ($diffSecs < 300 && $diffSecs >= 10);
+            }
+
+            $action = 'Captura Medida';
+            $details = "El operador completó el maquinado del juego {$baseNum} a las " . substr($h_termino_log, 0, 5);
+            
+            if ($isTimeSuspicious) {
+                $action = 'Captura Sospechosa';
+                $details .= "\nALERTA: Tiempo insuficiente entre juegos diferentes ({$diffMins} min)";
+            }
+
+            \App\Models\SystemLog::create([
+                'user_matricula' => Auth::user()->matricula,
+                'action' => $action,
+                'details' => $details,
+                'ot' => $otFull,
+                'clase' => $clase->nombre ?? 'N/A',
+                'proceso' => 'Soldadura PTA',
+                'maquina' => $meta->maquina ?? 'N/A',
+                'n_pieza' => $baseNum . 'J',
+                'h_inicio' => $request->input('h_inicio_solicitud') ?? now()->subMinute()->format('H:i:s'),
+                'h_termino' => $h_termino_log,
+                'id_ot' => $ot_id,
+                'id_clase' => $clase_id
+            ]);
+        }
+
         // ── Auto-liberar la pieza actual al guardar ───────────────────────────
         $resultado->liberado_por_admin = true;
         $resultado->save();
@@ -340,7 +399,7 @@ class PtaResultsController extends Controller
         if ($esJuegoCompleto && $prefix) {
             $msg = 'Juego ' . $prefix . ' (Juego Completo) guardado y liberado.';
         } elseif ($prefix) {
-            $compañera = PtaResultado::where('ot_id', $ot_id)
+            $compañera = PtaResultado::query()->where('ot_id', $ot_id)
                 ->where('id', '!=', $resultado->id)
                 ->whereHas('pieza', fn($q) => $q->where('n_pieza', 'like', $prefix . '%'))
                 ->first();
@@ -355,7 +414,7 @@ class PtaResultsController extends Controller
         $clase_id = $request->get('clase_id');
 
         return redirect()
-            ->route('pta.results', ['ot_id' => $ot_id, 'clase_id' => $clase_id, 'pieza_id' => $request->pieza_id])
+            ->route('pta.results', ['ot_id' => $ot_id, 'clase_id' => $clase_id, 'pieza_id' => $request->input('pieza_id')])
             ->with('success', $msg);
     }
 
@@ -427,13 +486,13 @@ class PtaResultsController extends Controller
         $claseSeleccionada = null;
 
         if ($otSeleccionadaId && $claseSeleccionadaId) {
-            $ot = Orden_trabajo::find($otSeleccionadaId);
-            $claseSeleccionada = \App\Models\Clase::find($claseSeleccionadaId);
+            $ot = Orden_trabajo::query()->find($otSeleccionadaId);
+            $claseSeleccionada = \App\Models\Clase::query()->find($claseSeleccionadaId);
             // En el análisis queremos VER TODAS, incluso las que tienen errores o están rechazadas
             $piezasPTA = $this->getPiezasPTA($otSeleccionadaId, $claseSeleccionadaId, false, true);
 
             // Cargar resultados con relaciones para no hacer N+1
-            $resultados = PtaResultado::where('ot_id', $otSeleccionadaId)
+            $resultados = PtaResultado::query()->where('ot_id', $otSeleccionadaId)
                 ->whereHas('pieza', fn($q) => $q->where('id_clase', $claseSeleccionadaId))
                 ->with(['pieza'])
                 ->get()
@@ -443,7 +502,7 @@ class PtaResultsController extends Controller
             $nombreClaseLimpio = str_replace(' ', '_', $claseSeleccionada->nombre);
             $procesoStringId = "Soldadura_PTA_{$nombreClaseLimpio}_{$otSeleccionadaId}";
 
-            $procesoPTA = SoldaduraPTA::where('id_ot', $otSeleccionadaId)
+            $procesoPTA = SoldaduraPTA::query()->where('id_ot', $otSeleccionadaId)
                 ->where('id_proceso', $procesoStringId)
                 ->latest()
                 ->first();
@@ -488,7 +547,7 @@ class PtaResultsController extends Controller
         $piezasPTA = $this->getPiezasPTA($otId, $claseId, false, true);
 
         // 2. Cargar resultados
-        $resultados = PtaResultado::where('ot_id', $otId)
+        $resultados = PtaResultado::query()->where('ot_id', $otId)
             ->whereHas('pieza', fn($q) => $q->where('id_clase', $claseId))
             ->with(['pieza'])
             ->get()
@@ -498,7 +557,7 @@ class PtaResultsController extends Controller
         $nombreClaseLimpio = str_replace(' ', '_', $claseSeleccionada->nombre);
         $procesoStringId = "Soldadura_PTA_{$nombreClaseLimpio}_{$otId}";
 
-        $procesoPTA = SoldaduraPTA::where('id_ot', $otId)
+        $procesoPTA = SoldaduraPTA::query()->where('id_ot', $otId)
             ->where('id_proceso', $procesoStringId)
             ->latest()
             ->first();
@@ -564,20 +623,20 @@ class PtaResultsController extends Controller
         $procesoPTA = null;
 
         if ($otSeleccionadaId && $claseSeleccionadaId) {
-            $ot = Orden_trabajo::find($otSeleccionadaId);
-            $claseSeleccionada = \App\Models\Clase::find($claseSeleccionadaId);
+            $ot = Orden_trabajo::query()->find($otSeleccionadaId);
+            $claseSeleccionada = \App\Models\Clase::query()->find($claseSeleccionadaId);
 
             $nombreClaseLimpio = str_replace(' ', '_', $claseSeleccionada->nombre ?? '');
             $procesoStringId = "Soldadura_PTA_{$nombreClaseLimpio}_{$otSeleccionadaId}";
 
-            $procesoPTA = SoldaduraPTA::where('id_ot', $otSeleccionadaId)
+            $procesoPTA = SoldaduraPTA::query()->where('id_ot', $otSeleccionadaId)
                 ->where('id_proceso', $procesoStringId)
                 ->latest()
                 ->first();
 
             if ($procesoPTA) {
                 // n_piezas distintos con estado=2 para este proceso
-                $piezasDisponibles = SoldaduraPTA_pza::where('id_proceso', $procesoPTA->id)
+                $piezasDisponibles = SoldaduraPTA_pza::query()->where('id_proceso', $procesoPTA->id)
                     ->where('estado', 2)
                     ->whereNotNull('n_pieza')
                     ->distinct()
@@ -586,7 +645,7 @@ class PtaResultsController extends Controller
                     ->pluck('n_pieza');
 
                 if ($nPiezaSel) {
-                    $piezasGroup = SoldaduraPTA_pza::where('id_proceso', $procesoPTA->id)
+                    $piezasGroup = SoldaduraPTA_pza::query()->where('id_proceso', $procesoPTA->id)
                         ->where('n_pieza', $nPiezaSel)
                         ->where('estado', 2)
                         ->orderByRaw("FIELD(tipo_medida, 'D_Conexion_pico', 'D_Conexion_obt', 'Perfilado')")
@@ -651,14 +710,14 @@ class PtaResultsController extends Controller
 
         // Buscar el número de juego de cualquier fila de esta pieza para poder
         // asignarlo a la nueva fila si se va a crear.
-        $piezaBase = SoldaduraPTA_pza::where('id_proceso', $idProceso)
+        $piezaBase = SoldaduraPTA_pza::query()->where('id_proceso', $idProceso)
             ->where('n_pieza', $nPieza)
             ->where('estado', 2)
             ->first();
 
         if ($piezaBase) {
             // Buscar si ya existe la fila dedicada a 2da pasada
-            $p2Row = SoldaduraPTA_pza::where('id_proceso', $idProceso)
+            $p2Row = SoldaduraPTA_pza::query()->where('id_proceso', $idProceso)
                 ->where('n_pieza', $nPieza)
                 ->where('p2_activa', 1)
                 ->first();
@@ -721,6 +780,19 @@ class PtaResultsController extends Controller
             $p2Row->p2_perfilado = ($p2Tipo === 'Perfilado') ? $request->input('p2_valor_principal') : null;
 
             $p2Row->save();
+
+            // Registrar log de auditoría para 2da pasada PTA
+            $baseNum = preg_replace('/[HMJ]$/i', '', $nPieza);
+            \App\Models\SystemLog::create([
+                'user_matricula' => Auth::user()->matricula,
+                'action' => 'Segunda Pasada PTA',
+                'details' => "El operador registró una Segunda Pasada para el juego {$baseNum}.",
+                'ot' => $piezaBase->id_ot,
+                'clase' => $piezaBase->id_clase,
+                'n_pieza' => $baseNum . 'J',
+                'h_inicio' => now()->subMinute()->format('H:i:s'),
+                'h_termino' => now()->format('H:i:s')
+            ]);
         }
 
         return redirect()->route('pta.segunda_pasada', [
@@ -738,7 +810,7 @@ class PtaResultsController extends Controller
      * Helper para contar piezas como juegos (sets) siguiendo la lógica del Dashboard.
      * Si termina en 'J', cuenta como 1 juego completo. De lo contrario, cuenta como 0.5.
      */
-    private static function countAsGames($piezas): float
+    private static function countAsGames(iterable $piezas): float
     {
         $count = 0.0;
         foreach ($piezas as $p) {
@@ -758,7 +830,7 @@ class PtaResultsController extends Controller
     public static function buildCardData(string $otId, int $claseId): ?array
     {
         // 1. Obtener TODAS las piezas de esta clase en esta OT
-        $piezasClase = Pieza::where('id_ot', $otId)
+        $piezasClase = Pieza::query()->where('id_ot', $otId)
             ->where('id_clase', $claseId)
             ->get();
 
@@ -768,7 +840,7 @@ class PtaResultsController extends Controller
 
         // 2. Identificar actividad PTA (resultados o piezas en proceso que contenga 'PTA')
         $piezaIds = $piezasClase->pluck('id');
-        $resultados = PtaResultado::whereIn('pieza_id', $piezaIds)
+        $resultados = PtaResultado::query()->whereIn('pieza_id', $piezaIds, 'and', false)
             ->get()
             ->keyBy('pieza_id');
 

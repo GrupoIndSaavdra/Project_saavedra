@@ -10,13 +10,19 @@ class RebajesController extends Controller
     {
         $this->middleware('auth');
     }
+        /**
+     * @param mixed $request
+     * @param mixed $cNominal
+     * @param mixed $tolerance
+     * @param int $index
+     */
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
             if (!$pieceId)
                 return;
-            $piece = Rebajes_pza::find($pieceId);
+            $piece = Rebajes_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -40,7 +46,7 @@ class RebajesController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = Rebajes_pza::find($pieceId);
+            $piece = Rebajes_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'rebaje1',
@@ -70,6 +76,11 @@ class RebajesController extends Controller
         }
         $piece->save();
     }
+        /**
+     * @param mixed $pieza
+     * @param mixed $cNominal
+     * @param mixed $tolerancia
+     */
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
         if ($pieza->rebaje1 > ($cNominal->rebaje1 + $tolerancia->rebaje1) || $pieza->rebaje1 < ($cNominal->rebaje1 - $tolerancia->rebaje1) || $pieza->rebaje2 > ($cNominal->rebaje2 + $tolerancia->rebaje2) || $pieza->rebaje2 < ($cNominal->rebaje2 - $tolerancia->rebaje2) || $pieza->rebaje3 > ($cNominal->rebaje3 + $tolerancia->rebaje3) || $pieza->rebaje3 < ($cNominal->rebaje3 - $tolerancia->rebaje3) || $pieza->profundidad_bordonio > ($cNominal->profundidad_bordonio + $tolerancia->profundidad_bordonio) || $pieza->profundidad_bordonio < ($cNominal->profundidad_bordonio - $tolerancia->profundidad_bordonio) || $pieza->vena1 > ($cNominal->vena1 + $tolerancia->vena1) || $pieza->vena1 < ($cNominal->vena1 - $tolerancia->vena1) || $pieza->vena2 > ($cNominal->vena2 + $tolerancia->vena2) || $pieza->vena2 < ($cNominal->vena2 - $tolerancia->vena2) || $pieza->simetria > ($cNominal->simetria + $tolerancia->simetria) || $pieza->simetria < ($cNominal->simetria - $tolerancia->simetria)) {

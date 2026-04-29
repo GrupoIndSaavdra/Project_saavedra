@@ -3,6 +3,7 @@
 @section('head')
 <title>Registrar molduras</title>
 @vite(['resources/css/moldings_views/create_molding.css'])
+<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 @endsection
 
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")') <!--Body background Image-->

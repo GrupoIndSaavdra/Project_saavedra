@@ -5,6 +5,7 @@ use App\Http\Controllers\DibujosPdfController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LogoutController;
+use App\Http\Controllers\SystemLogController;
 use App\Http\Controllers\ProgresoProcesosController;
 use App\Http\Controllers\PzasGeneralesController;
 use App\Http\Controllers\PzasLiberadasController;
@@ -22,6 +23,8 @@ use App\Http\Controllers\GenerarQRIndividualController;
 use App\Http\Controllers\LiberarQRPlantaController;
 use App\Http\Controllers\RegenerarQRController;
 use App\Http\Controllers\ReporteProduccionController;
+// use App\Http\Controllers\CalidadDashboardController;
+// use App\Http\Controllers\MeasurementsWebController;
 use App\Http\Controllers\PtaResultsController;
 /*
 |--------------------------------------------------------------------------
@@ -411,4 +414,31 @@ Route::middleware(['auth'])->prefix('ayudas')->name('ayudas.')->group(function (
     Route::get('/log', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'getLog'])->name('log');
     Route::post('/deleteFolder', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'deleteFolder'])->name('deleteFolder');
     Route::post('/deleteParent', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'deleteParent'])->name('deleteParent');
+});
+
+//Rutas para la captura de medidas en el sistema web de metrología
+// Route::prefix('metrology')->group(function () {
+//     Route::get('/metaPzas', [CalidadDashboardController::class, 'index'])->name('calidadDashboard.index');
+
+//     //Rutas para obtener y procesar datos de las piezas de la orden de trabajo de manera automatica
+//     Route::get('/metaPzas/obtener', [CalidadDashboardController::class, 'automaticData'])->name('calidadDashboard.obtener');
+
+//     #---------------- RUTAS SECUNDARIAS USADAS EN EL FLUJO ----------------#
+//     Route::get('/measurements_web/OT/{workOrderId}', [MeasurementsWebController::class, 'searchInfoOt'])->name('searchInfoOt');
+//     Route::post('/measurements_web/save_C_nominal', [MeasurementsWebController::class, 'register_C_Nominal'])->name('register_C_Nominal'); //Register nominal quotas and tolerances  of the piece in DB 
+// });
+
+// Logs Controller (Limitado a 60 peticiones por minuto para evitar saturación de red)
+Route::middleware(['auth', 'throttle:60,1'])->group(function () {
+    Route::get('/system-logs-report', [SystemLogController::class, 'index'])->name('systemLogsReport');
+    Route::post('/system-logs', [SystemLogController::class, 'store'])->name('system.logs.store');
+    Route::post('/system-logs/purge', [SystemLogController::class, 'purge'])->name('system.logs.purge');
+});
+
+use App\Http\Controllers\ProductivityController;
+
+// Monitoreo de Productividad (Alertas 3 Niveles)
+Route::middleware(['auth'])->group(function () {
+    Route::post('/productivity/ping', [ProductivityController::class, 'ping'])->name('productivity.ping');
+    Route::post('/productivity/unlock', [ProductivityController::class, 'unlock'])->name('productivity.unlock');
 });

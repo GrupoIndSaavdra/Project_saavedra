@@ -2,6 +2,7 @@
 
 @section('head')
     <title>{{ $pageTitle ?? 'Gestión de Documentación' }}</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite([
         'resources/css/wo_views/manage_documentation.css',
         'resources/js/wo_views/manage_documentation.js'
@@ -492,7 +493,10 @@
             'doc.replace': "{{ route($modulePrefix . '.replace') }}",
             'doc.log': "{{ url('/') }}/{{ $modulePrefix }}/log",
             'doc.deleteFolder': "{{ route($modulePrefix . '.deleteFolder') }}",
-            'doc.deleteParent': "{{ route($modulePrefix . '.deleteParent') }}" 
+            'doc.deleteParent': "{{ route($modulePrefix . '.deleteParent') }}",
+            @if($moduleType === 'fundicion')
+            'fundicion.send_alert': "{{ route('fundicion.send_alert') }}",
+            @endif
         };
         window.csrfToken = "{{ csrf_token() }}";
         window.estructura = @json($estructura);

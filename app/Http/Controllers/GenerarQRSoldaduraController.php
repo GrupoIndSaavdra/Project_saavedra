@@ -24,10 +24,10 @@ class GenerarQRSoldaduraController extends Controller
      */
     public function create()
     {
-        $operadores = User::where('perfil', 2)->get();
+        $operadores = User::query()->where('perfil', 2)->get();
 
         // Agrupar soldaduras por nombre y lote, sumando los kilos disponibles
-        $soldaduras = RegistroSoldadura::where('kilos', '>', 0)
+        $soldaduras = RegistroSoldadura::query()->where('kilos', '>', 0)
             ->selectRaw('nombre, lote, SUM(kilos) as kilos_totales, MIN(id) as id')
             ->groupBy('nombre', 'lote')
             ->having('kilos_totales', '>', 0)
@@ -54,7 +54,7 @@ class GenerarQRSoldaduraController extends Controller
         $lote = $soldaduraInfo[1];
 
         // Verificar disponibilidad
-        $kilosTotales = RegistroSoldadura::where('nombre', $nombre)
+        $kilosTotales = RegistroSoldadura::query()->where('nombre', $nombre)
             ->where('lote', $lote)
             ->where('kilos', '>', 0)
             ->sum('kilos');
@@ -114,7 +114,7 @@ class GenerarQRSoldaduraController extends Controller
         }
 
         // Obtener datos del operador
-        $operador = User::find($request->operador_id);
+        $operador = User::query()->find($request->operador_id);
 
         if (!$operador) {
             return redirect()

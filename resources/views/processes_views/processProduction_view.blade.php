@@ -3,6 +3,7 @@
 <!--Estilos y codigo JS-->
 @section('head')
     <title>Producción</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite(['resources/css/processes_views/processProduction.css', 'resources/js/processes_views/processProduction.js'])
 @endsection
 
@@ -33,6 +34,8 @@
                         <tr>
                             <td>
                                 <input type="text" value="{{ $arrayData['meta']->t_estandar ?? 0}} minutos" readonly>
+                                {{-- Campo oculto para el monitoreo de productividad --}}
+                                <input type="hidden" id="standard_time_hidden" value="{{ $arrayData['meta']->t_estandar ?? 0 }}">
                             </td>
                             <td>
                                 <input type="text" value="{{ $arrayData['meta']->meta ?? 0 }} piezas" readonly>

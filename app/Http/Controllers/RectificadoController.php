@@ -10,13 +10,17 @@ class RectificadoController extends Controller
     {
         $this->middleware('auth');
     }
+        /**
+     * @param mixed $request
+     * @param int $index
+     */
     public function storePiece($request, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
             if (!$pieceId)
                 return;
-            $piece = Rectificado_pza::find($pieceId);
+            $piece = Rectificado_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -42,7 +46,7 @@ class RectificadoController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = Rectificado_pza::find($pieceId);
+            $piece = Rectificado_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'cumple',

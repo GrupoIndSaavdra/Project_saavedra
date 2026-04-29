@@ -18,8 +18,11 @@ use Illuminate\Http\Request;
 
 class WOController extends Controller
 {
+    /** @var \App\Http\Controllers\ClassController */
     protected $classController;
+    /** @var \App\Http\Controllers\ProcessesController */
     protected $processesController;
+    /** @var \App\Http\Controllers\PzasLiberadasController */
     protected $releasedPiecesController;
 
     public function __construct()
@@ -35,7 +38,7 @@ class WOController extends Controller
     {
         // ── OPTIMIZACIÓN: eager loading evita N+1 queries de moldura y clases ──
         $moldings       = Moldura::all();
-        $workOrdersAll  = Orden_trabajo::with(['clases', 'moldura'])->get();
+        $workOrdersAll  = Orden_trabajo::query()->with(['clases', 'moldura'])->get();
         $workOrders     = null;
 
         if ($workOrdersAll->isNotEmpty()) {
@@ -58,6 +61,9 @@ class WOController extends Controller
         return view('wo_views.manage_wo', compact('moldings', 'workOrders'));
     }
 
+        /**
+     * @param \Illuminate\Http\Request OTRequest $request
+     */
     public function store(OTRequest $request) //Funcion para registrar una OT.
     {
         if (isset($request->workOrderAdded)) {
@@ -68,15 +74,18 @@ class WOController extends Controller
             $newWorkOrder->save();
         }
         //Busqueda de la orden de trabajo ingresada o creada
-        $workOrder = Orden_trabajo::find(isset($request->workOrderAdded) ? $request->workOrderAdded : $request->workOrderSelected);
+        $workOrder = Orden_trabajo::query()->find(isset($request->workOrderAdded) ? $request->workOrderAdded : $request->workOrderSelected);
 
         return redirect()->route('showWO', ['workOrder' => $workOrder]);
     }
 
+    /**
+     * @param mixed $workOrder
+     */
     public function show($workOrder)
     {
-        $workOrder = Orden_trabajo::find($workOrder);
-        $molding = Moldura::find($workOrder->id_moldura);
+        $workOrder = Orden_trabajo::query()->find($workOrder);
+        $molding = Moldura::query()->find($workOrder->id_moldura);
 
         //Se obtienen las clases de la Orden de trabajo
         $classes = $this->classController->getClasses($workOrder);
@@ -87,16 +96,19 @@ class WOController extends Controller
         return view('wo_views.show_wo', compact('workOrder', 'molding', 'classes', 'processes'));
     }
 
+    /**
+     * @param mixed $idWOrder
+     */
     public function destroy($idWOrder)
     {
-        $pieces = Pieza::where('id_ot', $idWOrder)->get(); //Busco las piezas de la OT
-        $goal = Metas::where('id_ot', $idWOrder)->get();
+        $pieces = Pieza::query()->where('id_ot', $idWOrder)->get(); //Busco las piezas de la OT
+        $goal = Metas::query()->where('id_ot', $idWOrder)->get();
         if (count($pieces) == 0 && count($goal) == 0) { //Si la OT no tiene piezas ni metas asociadas entonces
-            $classes = Clase::where('id_ot', $idWOrder)->get(); //Busco todas las clases que pertenecen a la OT
+            $classes = Clase::query()->where('id_ot', $idWOrder)->get(); //Busco todas las clases que pertenecen a la OT
             foreach ($classes as $class) { //Recorro las clases de la OT
                 $this->classController->destroy($class->id, $idWOrder); //Elimino las clases
             }
-            $workOrder = Orden_trabajo::find($idWOrder);
+            $workOrder = Orden_trabajo::query()->find($idWOrder);
             if ($workOrder) {
                 $workOrder->delete(); //Eliminar OT
             }
@@ -104,10 +116,13 @@ class WOController extends Controller
         }
         return redirect()->route('showWO', ['workOrder' => $idWOrder])->with('error', '¡La orden de trabajo no se puede eliminar porque tiene piezas o metas asociadas!');
     }
+    /**
+     * @param mixed $idWOrder
+     */
     public function generatePDF($idWOrder)
     {
-        $workOrder = Orden_trabajo::find($idWOrder);
-        $molding = Moldura::find($workOrder->id_moldura);
+        $workOrder = Orden_trabajo::query()->find($idWOrder);
+        $molding = Moldura::query()->find($workOrder->id_moldura);
 
         $classes = $this->classController->getClasses($workOrder);
         $classes = $classes->count() == 0 ? null : $classes;
@@ -134,11 +149,18 @@ class WOController extends Controller
         return view('wo_views.progressPanel_wo');
     }
 
+    /**
+     * @param mixed $moldingId
+     */
     public function getMolding($moldingId)
     {
-        $molding = Moldura::find($moldingId);
+        $molding = Moldura::query()->find($moldingId);
         return $molding ? $molding->nombre : null;
     }
+    /**
+     * @param array $array
+     * @param mixed $class
+     */
     public function insertClassesData(&$array, $class)
     {
         $array[$class->nombre] = array();
@@ -149,10 +171,13 @@ class WOController extends Controller
         $array[$class->nombre]["endDate"] = $class->fecha_termino ? $this->getStringDate($class->fecha_termino, $class->hora_termino) : "-";
         $array[$class->nombre]["processes"] = $this->insertProcessesData($class);
     }
+    /**
+     * @param mixed $class
+     */
     public function insertProcessesData($class)
     {
         $processes = array();
-        $processesFounded = Procesos::where('id_clase', $class->id)->first();
+        $processesFounded = Procesos::query()->where('id_clase', $class->id)->first();
 
         //Establecer el orden de los procesos
         $processesInOrder = array();
@@ -228,9 +253,13 @@ class WOController extends Controller
         return $processes;
 
     }
+    /**
+     * @param mixed $process
+     * @param mixed $class
+     */
     public function getDateEndFromProcess($process, $class)
     {
-        $dateEnd = Fecha_proceso::where('clase', $class)->where('proceso', $process)->first();
+        $dateEnd = Fecha_proceso::query()->where('clase', $class)->where('proceso', $process)->first();
         if ($dateEnd) {
             $formattedDate = new DateTime($dateEnd->fecha_fin);
             $formattedDate = $formattedDate->format('d-m-Y');
@@ -247,12 +276,12 @@ class WOController extends Controller
     {
         // ── OPTIMIZACIÓN: eager loading evita N+1 de clases y moldura ──
         $wOInProgress = array();
-        $workOrders   = Orden_trabajo::with(['clases', 'moldura'])->get();
+        $workOrders   = Orden_trabajo::query()->with(['clases', 'moldura'])->get();
         foreach ($workOrders as $workOrder) {
             $classes = $workOrder->clases->where('finalizada', 0);
             if ($classes->count() > 0) {
                 foreach ($classes as $index => $class) {
-                    $process = Procesos::where('id_clase', $class->id)->first();
+                    $process = Procesos::query()->where('id_clase', $class->id)->first();
                     if ($process) {
                         if ($index === $classes->keys()->first()) {
                             $wOInProgress[$workOrder->id] = array();
@@ -304,6 +333,10 @@ class WOController extends Controller
         }
         return response()->json($data);
     }
+    /**
+     * @param string $date
+     * @param string $time
+     */
     public function getStringDate($date, $time)
     {
         $formattedDate = new DateTime($date);
@@ -342,6 +375,9 @@ class WOController extends Controller
 
         return $dayName . " " . $formattedDate . " " . $formattedTime;
     }
+    /**
+     * @param string $proceso
+     */
     public function nombreProceso($proceso)
     {
         switch ($proceso) {
@@ -398,7 +434,7 @@ class WOController extends Controller
     function finishOrder(Request $request)
     {
         // Algoritmo para finalizar el pedido de una clase
-        $class = Clase::where('id_ot', $request->wOrderName)->where('nombre', $request->className)->first();
+        $class = Clase::query()->where('id_ot', $request->wOrderName)->where('nombre', $request->className)->first();
         $arrayProcesses = $this->insertProcessesData($class);
 
         $counterRejected = 0;
@@ -443,6 +479,11 @@ class WOController extends Controller
         $finishOrder = ["success", "Se ha finalizado el pedido correctamente"];
         return redirect()->route('showPiecesInProgress')->with('finishOrder', $finishOrder);
     }
+    /**
+     * @param mixed $class
+     * @param string $processName
+     * @param array $piecesBadData
+     */
     function getPieces($class, $processName, &$piecesBadData)
     {
         $setStoredParts = array();
@@ -454,8 +495,8 @@ class WOController extends Controller
         // ── OPTIMIZACIÓN: pre-cargar users en memoria para evitar N+1 en getBadPiecesData ──
         $usersCache = User::all()->keyBy('matricula');
 
-        foreach ($processNamesArray as $processName) {
-            $pieces = Pieza::where('proceso', $processName)->where('id_clase', $class->id)->get();
+        foreach ($processNamesArray as $pName) {
+            $pieces = Pieza::query()->where('proceso', $pName)->where('id_clase', $class->id)->get();
 
             if ($pieces->isEmpty()) continue;
 
@@ -557,13 +598,19 @@ class WOController extends Controller
         return $piecesArray;
     }
 
+    /**
+     * @param \App\Models\Pieza $piece
+     * @param mixed $rechazada
+     * @param string $operation
+     * @param mixed $usersCache
+     */
     function getBadPiecesData($piece, $rechazada = null, $operation = '- - - ', $usersCache = null)
     {
         $array    = array();
         // ── Usa cache si está disponible; si no, hace la query ──
         $operador = $usersCache
             ? $usersCache->get($piece->id_operador)
-            : User::where('matricula', $piece->id_operador)->first();
+            : User::query()->where('matricula', $piece->id_operador)->first();
 
         $array['piece']     = $piece->n_pieza;
         preg_match('/^\d+/', $piece->n_pieza, $n_juego);

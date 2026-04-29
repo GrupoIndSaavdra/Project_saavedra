@@ -6,18 +6,25 @@ use App\Models\Cavidades_pza;
 
 class CavidadesController extends Controller
 {
+    /** @var \App\Http\Controllers\PzasLiberadasController */
     protected $controladorPzasLiberadas;
     public function __construct()
     {
         $this->middleware('auth');
     }
+        /**
+     * @param mixed $request
+     * @param mixed $cNominal
+     * @param mixed $tolerance
+     * @param int $index
+     */
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
             if (!$pieceId)
                 return;
-            $piece = Cavidades_pza::find($pieceId);
+            $piece = Cavidades_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -44,7 +51,7 @@ class CavidadesController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = Cavidades_pza::find($pieceId);
+            $piece = Cavidades_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'profundidad1',
@@ -77,6 +84,11 @@ class CavidadesController extends Controller
         }
         $piece->save();
     }
+        /**
+     * @param mixed $pieza
+     * @param mixed $cNominal
+     * @param mixed $tolerancia
+     */
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
         if ($pieza->profundidad1 > $cNominal->profundidad1 + $tolerancia->profundidad1_1 || $pieza->profundidad1 < $cNominal->profundidad1 - $tolerancia->profundidad2_1 || $pieza->diametro1 > $cNominal->diametro1 + $tolerancia->diametro1_1 || $pieza->diametro1 < $cNominal->diametro1 - $tolerancia->diametro2_1 || $pieza->profundidad2 > $cNominal->profundidad2 + $tolerancia->profundidad1_2 || $pieza->profundidad2 < $cNominal->profundidad2 - $tolerancia->profundidad2_2 || $pieza->diametro2 > $cNominal->diametro2 + $tolerancia->diametro1_2 || $pieza->diametro2 < $cNominal->diametro2 - $tolerancia->diametro2_2 || $pieza->profundidad3 > $cNominal->profundidad3 + $tolerancia->profundidad1_3 || $pieza->profundidad3 < $cNominal->profundidad3 - $tolerancia->profundidad2_3 || $pieza->diametro3 > $cNominal->diametro3 + $tolerancia->diametro1_3 || $pieza->diametro3 < $cNominal->diametro3 - $tolerancia->diametro2_3 || $pieza->acetatoBM != 'Bien') {

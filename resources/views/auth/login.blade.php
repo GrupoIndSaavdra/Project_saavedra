@@ -7,11 +7,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
 
     <!-- Bootstrap CSS v5.2.1 -->
     <link rel="stylesheet" href="{{asset('bootstrap/css/bootstrap.min.css')}}">
     <!-- Link estilos de CSS -->
     @vite(['resources/css/auth/login.css', 'resources/js/layouts/partials/messages.js'])
+
+    <script>
+        window.baseUrl = "{{ url('/') }}";
+    </script>
 </head>
 
 <body background="{{ asset('images/fondoLogin.jpg') }}">

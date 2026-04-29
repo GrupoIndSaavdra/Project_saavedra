@@ -32,7 +32,7 @@ class ProgresoProcesosController extends Controller
         $clases = Clase::all();
         if (count($clases) > 0) {
             // ── OPTIMIZACIÓN: pre-cargar OTs y molduras en memoria ──
-            // Sin esto, el switch de 26 casos hacía Orden_trabajo::where() en cada iteración
+            // Sin esto, el switch de 26 casos hacía Orden_trabajo::query()->where() en cada iteración
             $ordenesMap = Orden_trabajo::all()->keyBy('id');
             $moldurasMap = Moldura::all()->keyBy('id');
 
@@ -58,20 +58,20 @@ class ProgresoProcesosController extends Controller
                             break;
                         case 3:
                             $proceso = 'Cepillado_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
-                            $cepillado = Cepillado::where('id_proceso', $proceso)->first();
+                            $cepillado = Cepillado::query()->where('id_proceso', $proceso)->first();
 
                             if ($cepillado != null) {
-                                $ot[$contador][$i] = count(Pza_cepillado::where('estado', 2)->where('correcto', 1)->where('id_proceso', $cepillado->id)->get()) / 2;
+                                $ot[$contador][$i] = count(Pza_cepillado::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $cepillado->id)->get()) / 2;
                             } else {
                                 $ot[$contador][$i] = 0;
                             }
                             break;
                         case 4:
                             $proceso = 'desbaste_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
-                            $desbaste = DesbasteExterior::where('id_proceso', $proceso)->first();
+                            $desbaste = DesbasteExterior::query()->where('id_proceso', $proceso)->first();
 
                             if ($desbaste != null) {
-                                $pzasCorrectas = Desbaste_pza::where('estado', 2)->where('correcto', 1)->where('id_proceso', $desbaste->id)->get();
+                                $pzasCorrectas = Desbaste_pza::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $desbaste->id)->get();
                                 if (isset($pzasCorrectas)) {
                                     $correctas = 0;
                                     $juegosUtilizados = array();
@@ -97,10 +97,10 @@ class ProgresoProcesosController extends Controller
                             break;
                         case 5:
                             $proceso = 'revLaterales_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
-                            $revLaterales = RevLaterales::where('id_proceso', $proceso)->first();
+                            $revLaterales = RevLaterales::query()->where('id_proceso', $proceso)->first();
 
                             if ($revLaterales != null) {
-                                $pzasCorrectas = RevLaterales_pza::where('estado', 2)->where('correcto', 1)->where('id_proceso', $revLaterales->id)->get();
+                                $pzasCorrectas = RevLaterales_pza::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $revLaterales->id)->get();
                                 if (isset($pzasCorrectas)) {
                                     $correctas = 0;
                                     $juegosUtilizados = array();
@@ -126,10 +126,10 @@ class ProgresoProcesosController extends Controller
                             break;
                         case 6:
                             $proceso = '1opeSoldadura_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
-                            $primeraOpeSoldadura = PrimeraOpeSoldadura::where('id_proceso', $proceso)->first();
+                            $primeraOpeSoldadura = PrimeraOpeSoldadura::query()->where('id_proceso', $proceso)->first();
 
                             if ($primeraOpeSoldadura != null) {
-                                $pzasCorrectas = PrimeraOpeSoldadura_pza::where('estado', 2)->where('correcto', 1)->where('id_proceso', $primeraOpeSoldadura->id)->get();
+                                $pzasCorrectas = PrimeraOpeSoldadura_pza::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $primeraOpeSoldadura->id)->get();
                                 if (isset($pzasCorrectas)) {
                                     $correctas = 0;
                                     $juegosUtilizados = array();
@@ -155,10 +155,10 @@ class ProgresoProcesosController extends Controller
                             break;
                         case 7:
                             $proceso = '2opeSoldadura_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
-                            $segundaOpeSoldadura = SegundaOpeSoldadura::where('id_proceso', $proceso)->first();
+                            $segundaOpeSoldadura = SegundaOpeSoldadura::query()->where('id_proceso', $proceso)->first();
 
                             if ($segundaOpeSoldadura != null) {
-                                $pzasCorrectas = SegundaOpeSoldadura_pza::where('estado', 2)->where('correcto', 1)->where('id_proceso', $segundaOpeSoldadura->id)->get();
+                                $pzasCorrectas = SegundaOpeSoldadura_pza::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $segundaOpeSoldadura->id)->get();
                                 if (isset($pzasCorrectas)) {
                                     $correctas = 0;
                                     $juegosUtilizados = array();

@@ -23,9 +23,9 @@ class LiberarSoldaduraController extends Controller
      */
     public function create()
     {
-        $operadores = User::where('perfil', 2)->get();
+        $operadores = User::query()->where('perfil', 2)->get();
 
-        $soldaduras = RegistroSoldadura::where('kilos', '>', 0)
+        $soldaduras = RegistroSoldadura::query()->where('kilos', '>', 0)
             ->selectRaw('nombre, lote, SUM(kilos) as kilos_totales, MIN(id) as id')
             ->groupBy('nombre', 'lote')
             ->having('kilos_totales', '>', 0)
@@ -35,7 +35,7 @@ class LiberarSoldaduraController extends Controller
     }
 
     /**
-     * Validar QR escaneado por ID
+     * @param int|string $qrId
      */
     public function validarQR($qrId)
     {
@@ -43,7 +43,7 @@ class LiberarSoldaduraController extends Controller
             throw new \Exception('ID de QR inválido');
         }
 
-        $qrGenerado = QRGeneradoSoldadura::find($qrId);
+        $qrGenerado = QRGeneradoSoldadura::query()->find($qrId);
 
         if (!$qrGenerado) {
             throw new \Exception('QR no existe en el sistema');
@@ -97,7 +97,7 @@ class LiberarSoldaduraController extends Controller
                 'estado_actual' => $qrGenerado->estado
             ]);
 
-            $inventarioDisponible = RegistroSoldadura::where('nombre', $qrGenerado->nombre)
+            $inventarioDisponible = RegistroSoldadura::query()->where('nombre', $qrGenerado->nombre)
                 ->where('lote', $qrGenerado->lote)
                 ->where('kilos', '>', 0)
                 ->sum('kilos');
@@ -131,7 +131,7 @@ class LiberarSoldaduraController extends Controller
                     'estado' => 'liberado'
                 ]);
 
-                $registros = RegistroSoldadura::where('nombre', $qrGenerado->nombre)
+                $registros = RegistroSoldadura::query()->where('nombre', $qrGenerado->nombre)
                     ->where('lote', $qrGenerado->lote)
                     ->where('kilos', '>', 0)
                     ->orderBy('id')
@@ -189,7 +189,7 @@ class LiberarSoldaduraController extends Controller
         }
         [$nombre, $lote] = $soldaduraInfo;
 
-        $registros = RegistroSoldadura::where('nombre', $nombre)
+        $registros = RegistroSoldadura::query()->where('nombre', $nombre)
             ->where('lote', $lote)
             ->where('kilos', '>', 0)
             ->orderBy('id')
@@ -229,7 +229,7 @@ class LiberarSoldaduraController extends Controller
             }
         });
 
-        $kilosRestantes = RegistroSoldadura::where('nombre', $nombre)
+        $kilosRestantes = RegistroSoldadura::query()->where('nombre', $nombre)
             ->where('lote', $lote)
             ->sum('kilos');
 

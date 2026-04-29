@@ -2,6 +2,7 @@
 
 @section('head')
     <title>QRs Botes</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite(['resources/css/trackingSoldadura_views/generarQRIndividual.css'])
 @endsection
 

@@ -2,6 +2,7 @@
 
 @section('head')
     <title>Panel de OT's</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     <meta http-equiv="refresh" content="10" />
     @vite(['resources/css/wo_views/progressPanel_wo.css', 'resources/js/wo_views/progressPanel_wo.js'])
 @endsection

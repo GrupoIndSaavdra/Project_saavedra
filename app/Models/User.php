@@ -24,7 +24,10 @@ class User extends Authenticatable
         'a_materno',
         'contrasena',
         'perfil',
-
+        'prod_status',
+        'prod_start_at',
+        'prod_locked_type',
+        'prod_standard_min',
     ];
 
     /**

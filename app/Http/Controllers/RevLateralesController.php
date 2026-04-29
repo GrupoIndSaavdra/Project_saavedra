@@ -10,13 +10,19 @@ class RevLateralesController extends Controller
     {
         $this->middleware('auth');
     }
+        /**
+     * @param mixed $request
+     * @param mixed $cNominal
+     * @param mixed $tolerance
+     * @param int $index
+     */
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
             if (!$pieceId)
                 return;
-            $piece = RevLaterales_pza::find($pieceId);
+            $piece = RevLaterales_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -38,7 +44,7 @@ class RevLateralesController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = RevLaterales_pza::find($pieceId);
+            $piece = RevLaterales_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'desfasamiento_entrada',
@@ -66,6 +72,11 @@ class RevLateralesController extends Controller
         }
         $piece->save();
     }
+        /**
+     * @param mixed $pieza
+     * @param mixed $cNominal
+     * @param mixed $tolerancia
+     */
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
         if ($pieza->desfasamiento_entrada > ($cNominal->desfasamiento_entrada + $tolerancia->desfasamiento_entrada1) || $pieza->desfasamiento_entrada < ($cNominal->desfasamiento_entrada - $tolerancia->desfasamiento_entrada2) || $pieza->desfasamiento_salida > ($cNominal->desfasamiento_salida + $tolerancia->desfasamiento_salida1) || $pieza->desfasamiento_salida < ($cNominal->desfasamiento_salida - $tolerancia->desfasamiento_salida2) || $pieza->ancho_simetriaEntrada > ($cNominal->ancho_simetriaEntrada + $tolerancia->ancho_simetriaEntrada1) || $pieza->ancho_simetriaEntrada < ($cNominal->ancho_simetriaEntrada - $tolerancia->ancho_simetriaEntrada2) || $pieza->ancho_simetriaSalida > ($cNominal->ancho_simetriaSalida + $tolerancia->ancho_simetriaSalida1) || $pieza->ancho_simetriaSalida < ($cNominal->ancho_simetriaSalida - $tolerancia->ancho_simetriaSalida2) || $pieza->angulo_corte > ($cNominal->angulo_corte + $tolerancia->angulo_corte1) || $pieza->angulo_corte < ($cNominal->angulo_corte - $tolerancia->angulo_corte2)) {

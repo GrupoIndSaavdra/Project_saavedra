@@ -1,6 +1,7 @@
 @extends('layouts.appMenu')
 @section('head')
 <title>Registrar usuario</title>
+<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 @vite(['resources/css/users_views/createUser.css'])
 @endsection
 

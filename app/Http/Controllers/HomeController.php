@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
+    /** @var \App\Http\Controllers\PzasLiberadasController */
     protected $releasedPiecesController;
     public function __construct()
     {

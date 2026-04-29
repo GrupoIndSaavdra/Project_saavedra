@@ -2,6 +2,7 @@
 
 @section('head')
 <title>Datos de productividad</title>
+<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 @vite(['resources/css/users_views/productionData.css', 'resources/js/users_views/productionData.js'])
 @endsection
 

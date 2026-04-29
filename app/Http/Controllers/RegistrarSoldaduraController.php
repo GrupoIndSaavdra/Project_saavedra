@@ -5,10 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\RegistroSoldadura;
 use Illuminate\Support\Facades\Storage;
-use BaconQrCode\Renderer\ImageRenderer;
-use BaconQrCode\Renderer\Image\SvgImageBackEnd;
-use BaconQrCode\Renderer\RendererStyle\RendererStyle;
-use BaconQrCode\Writer;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class RegistrarSoldaduraController extends Controller
@@ -23,6 +19,9 @@ class RegistrarSoldaduraController extends Controller
         return view('trackingSoldadura_views.registrar');
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -40,18 +39,9 @@ class RegistrarSoldaduraController extends Controller
             'kilos' => $request->kilos,
         ]);
 
-        // Generar QR con nombre y lote
+        // Generar QR con nombre y lote usando la API externa (consistente con el resto del proyecto)
         $textoQR = $request->nombre . "\n" . $request->lote;
-
-        $renderer = new ImageRenderer(
-            new RendererStyle(300),
-            new SvgImageBackEnd()
-        );
-        $writer = new Writer($renderer);
-        $qrString = $writer->writeString($textoQR);
-
-        // Convertir SVG a base64 para el PDF
-        $qrBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrString);
+        $qrBase64 = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($textoQR);
 
         // Generar PDF con la plantilla original
         $pdf = Pdf::loadView('trackingSoldadura_views.qr_soldadura_pdf', [
@@ -71,7 +61,9 @@ class RegistrarSoldaduraController extends Controller
         Storage::disk('public')->put($pdfPath, $pdf->output());
 
         // Mensaje de éxito con enlace de descarga
-        return redirect()->route('registrarSoldadura')
+        // Nota: El nombre de la ruta 'registrarSoldadura' y la vista 'trackingSoldadura_views.registrar'
+        // parecen estar pendientes de definición o fueron removidos en la migración al nuevo sistema.
+        return redirect()->back()
             ->with('success', 'Soldadura registrada y QR generado correctamente.')
             ->with('download_link', Storage::url($pdfPath))
             ->with('download_filename', $pdfFilename);

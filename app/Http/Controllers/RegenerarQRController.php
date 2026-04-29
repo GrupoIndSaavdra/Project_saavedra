@@ -52,7 +52,7 @@ class RegenerarQRController extends Controller
             return redirect()->route('soldadura.regenerarQR')->with('error', 'Debes verificar tu contraseña de administrador primero.');
         }
 
-        $lotes = SoldaduraLote::with('botes')
+        $lotes = SoldaduraLote::query()->with('botes')
             ->orderBy('fecha_ingreso', 'desc')
             ->get();
 
@@ -62,6 +62,7 @@ class RegenerarQRController extends Controller
     /**
      * Valida la contraseña de administrador
      * Usa la misma lógica que ProcessProductionController
+     * @param string $passwordEntered
      */
     public function validatePasswordAdmin($passwordEntered)
     {
@@ -80,6 +81,7 @@ class RegenerarQRController extends Controller
 
     /**
      * Regenera el QR del lote
+     * @param int|string $loteId
      */
     public function regenerarQRLote($loteId)
     {
@@ -94,6 +96,7 @@ class RegenerarQRController extends Controller
 
     /**
      * Regenera los QRs individuales de un lote
+     * @param int|string $loteId
      */
     public function regenerarQRIndividuales($loteId)
     {
@@ -102,7 +105,7 @@ class RegenerarQRController extends Controller
         }
 
         $lote = SoldaduraLote::findOrFail($loteId);
-        $botes = SoldaduraBote::where('lote_id', $lote->id)->orderBy('numero_bote')->get();
+        $botes = SoldaduraBote::query()->where('lote_id', $lote->id)->orderBy('numero_bote')->get();
 
         if ($botes->isEmpty()) {
             return back()->with('error', 'Este lote no tiene botes individuales generados.');
@@ -122,6 +125,7 @@ class RegenerarQRController extends Controller
 
     /**
      * Genera el PDF del QR de lote
+     * @param \App\Models\SoldaduraLote $lote
      */
     private function generarPDFLote($lote)
     {
@@ -142,6 +146,8 @@ class RegenerarQRController extends Controller
 
     /**
      * Genera el PDF de los QRs individuales
+     * @param \Illuminate\Support\Collection $botes
+     * @param \App\Models\SoldaduraLote $lote
      */
     private function generarPDFIndividuales($botes, $lote)
     {

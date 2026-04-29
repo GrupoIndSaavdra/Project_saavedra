@@ -1,7 +1,8 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>Resultados Sold. PTA — OT {{ $ot->id }}</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite(['resources/css/pta_views/results.css'])
 @endsection
 
@@ -259,8 +260,6 @@
                 <button type="submit" class="btn-pta-save" id="btn-guardar">
                     Guardar Resultados
                 </button>
-                <button type="button" onclick="window.location.href='{{ route('showPiecesInProgress') }}'"
-                    class="btn-pta-back">← Regresar</button>
             </div>
 
         </form>

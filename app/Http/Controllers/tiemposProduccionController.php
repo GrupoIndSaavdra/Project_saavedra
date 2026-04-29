@@ -10,11 +10,12 @@ use App\Models\Procesos;
 use App\Models\tiempoproduccion;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use PhpParser\Node\Stmt\Break_;
 
 class tiemposProduccionController extends Controller
 {
+    /** @var \App\Http\Controllers\PzasLiberadasController */
     protected $controladorPzas;
+    /** @var \App\Http\Controllers\ClassController */
     protected $classController;
     public function __construct()
     {
@@ -22,6 +23,9 @@ class tiemposProduccionController extends Controller
         $this->classController = new ClassController();
         $this->middleware('auth');
     }
+        /**
+     * @param mixed $clase
+     */
     public function show($clase = false)
     {
 
@@ -62,12 +66,15 @@ class tiemposProduccionController extends Controller
         }
         return view('processes_views.productionTimes', compact('workOrders'));
     }
+        /**
+     * @param mixed $class
+     */
     public function getProductionTimes($class)
     {
         switch ($class->nombre) {
             case "Bombillo":
                 return match ($class->tamanio) {
-                    'Chico' => ['Cepillado' => 35, 'Desbaste Exterior' => 26, 'Revision Laterales' => 20, 'Primera Operacion' => 24, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 24, 'Soldadura' => 24, 'Soldadura PTA' => 24, 'Rectificado' => 12, 'Asentado' => 20, 'Calificado' => 22, 'Acabado Bombillo' => 25, 'Barreno Profundidad' => 27, 'Cavidades' => 42, 'Copiado' => 27, 'Off Set' => 16, 'Palomas' => 12, 'Rebajes' => 20, 'Grabado' => 12,],
+                    'Chico' => ['Cepillado' => 52, 'Desbaste Exterior' => 22, 'Revision Laterales' => 20, 'Primera Operacion' => 24, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 24, 'Soldadura' => 24, 'Soldadura PTA' => 24, 'Rectificado' => 12, 'Asentado' => 20, 'Calificado' => 22, 'Acabado Bombillo' => 25, 'Barreno Profundidad' => 27, 'Cavidades' => 42, 'Copiado' => 27, 'Off Set' => 16, 'Palomas' => 12, 'Rebajes' => 20, 'Grabado' => 12,],
 
                     'Mediano' => ['Cepillado' => 60, 'Desbaste Exterior' => 30, 'Revision Laterales' => 24, 'Primera Operacion' => 28, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 28, 'Soldadura' => 30, 'Soldadura PTA' => 30, 'Rectificado' => 13, 'Asentado' => 24, 'Calificado' => 24, 'Acabado Bombillo' => 27, 'Barreno Profundidad' => 40, 'Cavidades' => 34, 'Copiado' => 29, 'Off Set' => 16, 'Palomas' => 12, 'Rebajes' => 20, 'Grabado' => 12,],
 
@@ -77,7 +84,7 @@ class tiemposProduccionController extends Controller
 
             case "Molde":
                 return match ($class->tamanio) {
-                    'Chico' => ['Cepillado' => 53, 'Desbaste Exterior' => 26, 'Revision Laterales' => 20, 'Primera Operacion' => 20, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 24, 'Soldadura' => 24, 'Soldadura PTA' => 24, 'Rectificado' => 12, 'Asentado' => 20, 'Calificado' => 22, 'Acabado Molde' => 24, 'Barreno Profundidad' => 28, 'Cavidades' => 21, 'Copiado' => 0, 'Off Set' => 0, 'Palomas' => 0, 'Rebajes' => 0, 'Grabado' => 0,],
+                    'Chico' => ['Cepillado' => 53, 'Desbaste Exterior' => 22, 'Revision Laterales' => 20, 'Primera Operacion' => 20, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 24, 'Soldadura' => 24, 'Soldadura PTA' => 24, 'Rectificado' => 12, 'Asentado' => 20, 'Calificado' => 22, 'Acabado Molde' => 24, 'Barreno Profundidad' => 28, 'Cavidades' => 21, 'Copiado' => 0, 'Off Set' => 0, 'Palomas' => 0, 'Rebajes' => 0, 'Grabado' => 0,],
 
                     'Mediano' => ['Cepillado' => 64, 'Desbaste Exterior' => 30, 'Revision Laterales' => 24, 'Primera Operacion' => 24, 'Barreno Maniobra' => 15, 'Segunda Operacion' => 28, 'Soldadura' => 30, 'Soldadura PTA' => 30, 'Rectificado' => 13, 'Asentado' => 24, 'Calificado' => 24, 'Acabado Molde' => 26, 'Barreno Profundidad' => 40, 'Cavidades' => 17, 'Copiado' => 0, 'Off Set' => 0, 'Palomas' => 0, 'Rebajes' => 0, 'Grabado' => 0,],
 
@@ -85,8 +92,20 @@ class tiemposProduccionController extends Controller
                     default => null,
                 };
             case "Obturador":
+                    return match ($class->tamanio) {
+                        'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Soldadura' => 30, 'Soldadura PTA' => 15],
+                        default => null,
+                    };
             case "Fondo":
+                return match ($class->tamanio) {
+                        'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Soldadura' => 30, 'Soldadura PTA' => 15],
+                        default => null,
+                    };
             case "Embudo":
+                return match ($class->tamanio) {
+                        'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Soldadura' => 30, 'Soldadura PTA' => 15],
+                        default => null,
+                    };
             case "Candado Obturador":
                 return match ($class->tamanio) {
                     'Chico', 'Mediano', 'Grande' => ['Operacion Equipo' => 24, 'Soldadura' => 30, 'Soldadura PTA' => 15],
@@ -113,13 +132,16 @@ class tiemposProduccionController extends Controller
                 return null;
         }
     }
+        /**
+     * @param mixed $class
+     */
     public function setProductionTimes($class)
     {
         $productionTimes = $this->getProductionTimes($class);
         if ($productionTimes != null) {
             foreach ($productionTimes as $process => $time) {
                 $processName = $this->get_processName($process);
-                $tiempo = tiempoproduccion::where('id_clase', $class->id)->where('proceso', $processName)->first();
+                $tiempo = tiempoproduccion::query()->where('id_clase', $class->id)->where('proceso', $processName)->first();
                 if ($tiempo) {
                     if ($tiempo->tamanio == $class->tamanio) {
                         $tiempo->tiempo = $tiempo->tiempo != 0 ? $tiempo->tiempo : $time;
@@ -139,13 +161,16 @@ class tiemposProduccionController extends Controller
             }
         }
     }
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function store(Request $request)
     {
-        $classObj = Clase::where('nombre', $request->input('class'))->where("id_ot", $request->input('workOrder'))->first();
+        $classObj = Clase::query()->where('nombre', $request->input('class'))->where("id_ot", $request->input('workOrder'))->first();
         if (!$classObj) return redirect()->back()->with('error', 'Clase no encontrada.');
         
         $productionTimes = $this->getProductionTimes($classObj);
-        $tiemposClase = tiempoproduccion::where('id_clase', $classObj->id)->get()->keyBy('proceso'); // Pre-cargar tiempos
+        $tiemposClase = tiempoproduccion::query()->where('id_clase', $classObj->id)->get()->keyBy('proceso'); // Pre-cargar tiempos
 
         foreach ($request->all() as $key => $value) {
             if ($key == '_token' || $key == "class" || $key == "workOrder") {
@@ -193,7 +218,7 @@ class tiemposProduccionController extends Controller
     public function guardarClasesInArray()
     {
         //Se obtienen todas las clases de la tabla fechas_procesos
-        $idClase = Procesos::select('id_clase')->distinct()->get();
+        $idClase = Procesos::query()->select('id_clase')->distinct()->get();
 
         if ($idClase->count() == 0) {
             return null;
@@ -203,7 +228,7 @@ class tiemposProduccionController extends Controller
         $clases = array();
         foreach ($idClase as $id) {
             //Obtener la clase por el id
-            $clase = Clase::find($id->id_clase);
+            $clase = Clase::query()->find($id->id_clase);
             $clases[$contadorClases] = array();
             $clases[$contadorClases][0] = $clase;
             $clases[$contadorClases][1] = array();
@@ -216,6 +241,9 @@ class tiemposProduccionController extends Controller
         }
         return $clases;
     }
+        /**
+     * @param mixed $clase
+     */
     public function asignarProcesos($clase)
     {
         switch ($clase) {
@@ -242,9 +270,12 @@ class tiemposProduccionController extends Controller
                 return;
         }
     }
+        /**
+     * @param mixed $clase
+     */
     public function getProcesos($clase)
     {
-        $registroProcesos = Procesos::where('id_clase', $clase->id)->first();
+        $registroProcesos = Procesos::query()->where('id_clase', $clase->id)->first();
         if ($registroProcesos) {
             $columnas = $registroProcesos->getAttributes();
 
@@ -257,9 +288,14 @@ class tiemposProduccionController extends Controller
             return $procesos;
         }
     }
+        /**
+     * @param mixed $procesos
+     * @param mixed $clase
+     */
     public function calcularFechas($procesos, $clase)
     {
         $noProceso = 0;
+        $procesoFechas = null;
         for ($i = 0; $i < count($procesos); $i++) {
             $pos = array_search($procesos[$i], $clase[1]);
             if ($pos !== false) {
@@ -269,19 +305,21 @@ class tiemposProduccionController extends Controller
             }
         }
 
-        //Guardar unicamente la fecha de termino
-        $clase = Clase::find($clase[0]->id);
-        $clase->fecha_termino = Carbon::parse($procesoFechas->fecha_fin)->format('Y-m-d');
-        $clase->hora_termino = Carbon::parse($procesoFechas->fecha_fin)->format('H:i:s');
-        // echo $clase->nombre;
-        // echo $clase->fecha_termino;
-        // echo $clase->hora_termino;
-        // echo "<br>";
-        $clase->save();
+        //Guardar unicamente la fecha de termino si se calculó algún proceso
+        if ($procesoFechas) {
+            $clase = Clase::query()->find($clase[0]->id);
+            $clase->fecha_termino = Carbon::parse($procesoFechas->fecha_fin)->format('Y-m-d');
+            $clase->hora_termino = Carbon::parse($procesoFechas->fecha_fin)->format('H:i:s');
+            $clase->save();
+        }
     }
+        /**
+     * @param mixed $claseID
+     * @param mixed $proceso
+     */
     public function obtenerMaquinasClase($claseID, $proceso)
     {
-        $maquinas = Procesos::where('id_clase', $claseID)->distinct()->value($proceso);
+        $maquinas = Procesos::query()->where('id_clase', $claseID)->distinct()->value($proceso);
         return $maquinas;
     }
     public function updateMetas()
@@ -309,6 +347,10 @@ class tiemposProduccionController extends Controller
             }
         }
     }
+        /**
+     * @param mixed $h_inicio
+     * @param mixed $h_termino
+     */
     public function calculateHrs($h_inicio, $h_termino) //Función para calcular las horas trabajadas.
     {
         // $carbon1 = Carbon::createFromFormat('H:i', $h_inicio);
@@ -326,6 +368,9 @@ class tiemposProduccionController extends Controller
         return $diferencia; //Retorno las horas trabajadas.
     }
 
+        /**
+     * @param mixed $processName
+     */
     public function get_processName($processName)
     {
         $process = match ($processName) {
@@ -359,6 +404,9 @@ class tiemposProduccionController extends Controller
         return $process;
     }
 
+        /**
+     * @param mixed $processName
+     */
     public function get_processNormalName($processName)
     {
         $process = match ($processName) {

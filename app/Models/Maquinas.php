@@ -10,12 +10,9 @@ class Maquinas extends Model
     use HasFactory;
     protected $table = 'maquinas';
     protected $fillable = [
-        'id',
-        'nombre',
-        'descripcion',
-        'estado',
-        'created_at',
-        'updated_at'
+        'maquina',
+        'proceso',
+        'id_meta',
     ];
     public $timestamps = false;
 }

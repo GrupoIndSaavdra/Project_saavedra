@@ -32,6 +32,12 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:heartbeat')
             ->everyMinute()
             ->withoutOverlapping();
+
+        // ── Depuración cada 3 días de Logs ──────────────────────────────
+        // Programación: Cada 3 días a las 23:00 (11 PM)
+        $schedule->command('app:depurar-logs')
+            ->cron('0 23 */3 * *')
+            ->appendOutputTo(storage_path('logs/depuracion_periodica.log'));
     }
 
     /**

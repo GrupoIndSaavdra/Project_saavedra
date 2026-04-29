@@ -10,10 +10,14 @@ class SoldaduraController extends Controller
     {
         $this->middleware('auth');
     }
+        /**
+     * @param mixed $request
+     * @param int $index
+     */
     public function storePiece($request, $index)
     {
         if ($index !== null) {
-            $piece = Soldadura_pza::find($request->piece[$index]);
+            $piece = Soldadura_pza::query()->find($request->piece[$index]);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -32,7 +36,7 @@ class SoldaduraController extends Controller
             }
             $piece->fill($data);
         } else {
-            $piece = Soldadura_pza::find($request->piece);
+            $piece = Soldadura_pza::query()->find($request->piece);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'pesoxpieza',

@@ -2,6 +2,7 @@
 
 @section('head')
     <title>Liberación de piezas</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     <script>
         window.liberar = "{{ asset('images/Liberar.png') }}"
         window.rechazar = "{{ asset('images/Rechazar.png') }}"
@@ -115,7 +116,7 @@
     </div>
     <script>
         window.pieces = @json($pieces);
-        window.infoPieces = @json($infoPieces);
+        window.infoPiezas = @json($infoPieces);
         window.piecesData = @json($piecesData);
         window.selectedItems = @json($selectedItems);
         window.filtersData = @json($filtersData);

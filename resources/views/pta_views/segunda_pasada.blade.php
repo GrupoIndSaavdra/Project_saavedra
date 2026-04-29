@@ -2,6 +2,7 @@
 
 @section('head')
     <title>2da Pasada — Soldadura PTA</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite(['resources/css/pta_views/analysis.css', 'resources/css/processes_views/soldaduraPTA_table_partial.css', 'resources/css/pta_views/segunda_pasada.css'])
 @endsection
 

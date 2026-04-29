@@ -2,6 +2,7 @@
 
 @section('head')
 <title>Recuperar Contraseña</title>
+<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 @vite('resources/css/users_views/recoverPassword.css')
 @endsection
 

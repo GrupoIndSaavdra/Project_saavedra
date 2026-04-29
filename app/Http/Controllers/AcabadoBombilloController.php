@@ -10,13 +10,19 @@ class AcabadoBombilloController extends Controller
     {
         $this->middleware('auth');
     }
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @param mixed $cNominal
+     * @param mixed $tolerance
+     * @param int|null $index
+     */
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
             if (!$pieceId)
                 return;
-            $piece = AcabadoBombilo_pza::find($pieceId);
+            $piece = AcabadoBombilo_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -51,7 +57,7 @@ class AcabadoBombilloController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = AcabadoBombilo_pza::find($pieceId);
+            $piece = AcabadoBombilo_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'diametro_mordaza',
@@ -92,6 +98,12 @@ class AcabadoBombilloController extends Controller
         }
         $piece->save();
     }
+    /**
+     * @param \App\Models\AcabadoBombilo_pza $pieza
+     * @param mixed $cNominal
+     * @param mixed $tolerancia
+     * @return int
+     */
     public function comparePieceData($pieza, $cNominal, $tolerancia)
     {
         $campos = [

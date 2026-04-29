@@ -14,23 +14,30 @@ use Illuminate\Http\Request;
 
 class ClassController extends Controller
 {
+    /** @var \App\Http\Controllers\UserController */
     public $userController;
 
     public function __construct()
     {
         $this->userController = new UserController();
     }
+        /**
+     * @param mixed $workOrder
+     */
     public function getClasses($workOrder)
     {
-        $classes = Clase::where('id_ot', $workOrder->id)->get();
+        $classes = Clase::query()->where('id_ot', '=', $workOrder->id, 'and')->get();
         return $classes;
     }
+        /**
+     * @param mixed $classes
+     */
     public function getClassProcesses($classes)
     {
         if ($classes != null && count($classes) > 0) {
             $processes = [];
             $classIds = $classes->pluck('id')->toArray();
-            $procesosCache = Procesos::whereIn('id_clase', $classIds)->get()->keyBy('id_clase');
+            $procesosCache = Procesos::query()->whereIn('id_clase', $classIds, 'and', false)->get()->keyBy('id_clase');
 
             foreach ($classes as $class) {
                 $process = $procesosCache->get($class->id);
@@ -49,29 +56,35 @@ class ClassController extends Controller
         }
         return null;
     }
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function saveClass(Request $request)
     {
-        if ($request->idClass == null) {
+        if ($request->input('idClass') == null) {
             return $this->store($request);
         } else {
-            return $this->edit($request->idClass, $request);
+            return $this->edit($request->input('idClass'), $request);
         }
     }
+        /**
+     * @param mixed $request
+     */
     public function store($request)
     {
         $with = ["error", "¡La clase ingresada ya existe en la orden de trabajo!"];
         //Verificar si la clase ya existe
-        $foundClass = Clase::where('id_ot', $request->workOrder)->where('nombre', $request->class)->first();
+        $foundClass = Clase::query()->where('id_ot', '=', $request->input('workOrder'), 'and')->where('nombre', '=', $request->input('class'), 'and')->first();
         if (!$foundClass) {
             //Almacenar los datos ingresados de la clase.
             $class = new Clase();
-            $class->id_ot = $request->workOrder;
-            $class->nombre = $request->class;
-            $class->pedido = $request->order;
-            $class->piezas = $request->pieces;
-            $class->fecha_inicio = $request->start_date;
-            $class->hora_inicio = $request->start_time;
-            $class->tamanio = $request->size;
+            $class->id_ot = $request->input('workOrder');
+            $class->nombre = $request->input('class');
+            $class->pedido = $request->input('order');
+            $class->piezas = $request->input('pieces');
+            $class->fecha_inicio = $request->input('start_date');
+            $class->hora_inicio = $request->input('start_time');
+            $class->tamanio = $request->input('size');
             $class->seccion = null;
             $class->save();
 
@@ -80,30 +93,34 @@ class ClassController extends Controller
             $controllerProductionTime->setProductionTimes($class);
 
             //Asignar los procesos a la clase
-            if ($request->operations != null) { //Si se seleccionaron procesos
+            if ($request->input('operations') != null) { //Si se seleccionaron procesos
                 $process = new Procesos();
-                $this->storeProcess($class, $request->operations, $request->machines, $process); //Verifico las casillas.
+                $this->storeProcess($class, $request->input('operations'), $request->input('machines'), $process); //Verifico las casillas.
             }
             $with = ["success", "¡La clase se ha registrado con éxito!"];
         }
-        return redirect()->route('showWO', ['workOrder' => $request->workOrder])->with($with[0], $with[1]);
+        return redirect()->route('showWO', ['workOrder' => $request->input('workOrder')])->with($with[0], $with[1]);
     }
 
+        /**
+     * @param int|string $idClass
+     * @param mixed $request
+     */
     public function edit($idClass, $request)
     {
-        $class = Clase::find($idClass);
-        $workOrder = Orden_trabajo::find($class->id_ot);
+        $class = Clase::query()->find($idClass, ['*']);
+        $workOrder = Orden_trabajo::query()->find($class->id_ot, ['*']);
 
         if (auth()->user()->perfil != 5) {
-            $class->pedido = $request->order;
-            $class->piezas = $request->pieces;
-            $class->fecha_inicio = $request->start_date;
-            $class->hora_inicio = $request->start_time;
-            $class->tamanio = $request->size;
+            $class->pedido = $request->input('order');
+            $class->piezas = $request->input('pieces');
+            $class->fecha_inicio = $request->input('start_date');
+            $class->hora_inicio = $request->input('start_time');
+            $class->tamanio = $request->input('size');
             $class->seccion = null;
         } else {
-            $class->piezas = $request->pieces;
-            $class->pedido = $request->order;
+            $class->piezas = $request->input('pieces');
+            $class->pedido = $request->input('order');
         }
         $class->save(); //Guardo los cambios.
 
@@ -112,7 +129,7 @@ class ClassController extends Controller
         $controllerProductionTime->setProductionTimes($class);
 
         //Actualizar las metas que tengan relacion con la clase
-        $goals = Metas::where('id_clase', $class->id)->get();
+        $goals = Metas::query()->where('id_clase', $class->id)->get();
         if (count($goals) > 0) {
             foreach ($goals as $goal) {
                 $hrsWorked = $this->calculateHrs($goal->h_inicio, $goal->h_termino);
@@ -121,37 +138,41 @@ class ClassController extends Controller
         }
 
         //Actualizar los procesos de la clase
-        $process = Procesos::where('id_clase', $class->id)->first();
-        if ($request->operations != null) { //Si se seleccionaron procesos
+        $process = Procesos::query()->where('id_clase', '=', $class->id, 'and')->first();
+        if ($request->input('operations') != null) { //Si se seleccionaron procesos
             if (!$process) {
                 $process = new Procesos();
             }
         }
-        $this->storeProcess($class, $request->operations, $request->machines, $process); //Verifico las casillas.
-        return redirect()->route('showWO', ['workOrder' => $request->workOrder])->with("success", "¡La clase {$class->nombre} se ha editado con éxito!");
+        $this->storeProcess($class, $request->input('operations'), $request->input('machines'), $process); //Verifico las casillas.
+        return redirect()->route('showWO', ['workOrder' => $request->input('workOrder')])->with("success", "¡La clase {$class->nombre} se ha editado con éxito!");
     }
 
 
+        /**
+     * @param int|string $idClass
+     * @param mixed $workOrderParam
+     */
     public function destroy($idClass, $workOrderParam = null)
     {
-        $class = Clase::find($idClass);
+        $class = Clase::query()->find($idClass, ['*']);
         if (!$class) {
             return redirect()->back()->with("error", "La clase que intentas eliminar no existe");
         }
-        $workOrder = Orden_trabajo::find($class->id_ot); //Busco la OT ingresada
+        $workOrder = Orden_trabajo::query()->find($class->id_ot, ['*']); //Busco la OT ingresada
 
         //Si existen metas asociadas a la clase no se elimina
         $text = "La clase {$class->nombre} no se puede eliminar porque ya tiene metas asociadas";
         $param = "error";
-        $goals = Metas::where('id_clase', $class->id)->get();
+        $goals = Metas::query()->where('id_clase', $class->id)->get();
         if (count($goals) == 0) {
-            $process = Procesos::where('id_clase', $class->id)->first();
+            $process = Procesos::query()->where('id_clase', $class->id)->first();
             //Si el proceso existe.
             if ($process) {
                 $process->delete(); //Elimino el proceso de la clase
 
                 //Eliminar las fechas de los procesos
-                $process_dates = Fecha_proceso::where('clase', $class->id)->get();
+                $process_dates = Fecha_proceso::query()->where('clase', '=', $class->id, 'and')->get();
                 if (count($process_dates) > 0) {
                     foreach ($process_dates as $process_date) {
                         $process_date->delete();
@@ -166,11 +187,18 @@ class ClassController extends Controller
             return redirect()->route('showWO', ['workOrder' => $workOrder->id])->with($param, $text); //Redirecciono a la vista de registro de la OT
         }
     }
+        /**
+     * @param mixed $class
+     * @param mixed $dataProcess
+     * @param mixed $machines
+     * @param mixed $process
+     */
     public function storeProcess($class, $dataProcess, $machines, $process)
     {
         //Obtener la clase que sera registrada
-        $class = Clase::where('id_ot', $class->id_ot)->where('nombre', $class->nombre)->first();
+        $class = Clase::query()->where('id_ot', '=', $class->id_ot, 'and')->where('nombre', '=', $class->nombre, 'and')->first();
 
+        $processNames = [];
         //Asignar los procesos por los que pasara la clase
         switch ($class->nombre) {
             case "Bombillo":
@@ -235,7 +263,7 @@ class ClassController extends Controller
             if (auth()->user()->perfil == 5) {
                 //Asignar los procesos a la clase
                 $noProcess = 0;
-                $processFounded = Procesos::where('id_clase', $class->id)->first();
+                $processFounded = Procesos::query()->where('id_clase', '=', $class->id, 'and')->first();
                 for ($i = 0; $i < count($processNames); $i++) {
                     if ($processFounded) {
                         //Crear el registro de la fecha de inicio del proceso
@@ -259,7 +287,7 @@ class ClassController extends Controller
                         $processDates = $this->registerProcessDates($class, $processNames, $i, $noProcess, $machines[$counterMachines - 1]);
                         $noProcess++;
                     } else {
-                        $dateProcess = Fecha_proceso::where('clase', $class->id)->where('proceso', $processNames[$i])->first();
+                        $dateProcess = Fecha_proceso::query()->where('clase', '=', $class->id, 'and')->where('proceso', '=', $processNames[$i], 'and')->first();
                         if ($dateProcess) {
                             $dateProcess->delete(); //Eliminar el registro de la fecha del proceso si no se selecciono.
                         }
@@ -280,10 +308,17 @@ class ClassController extends Controller
         $class->save();
     }
 
+        /**
+     * @param mixed $class
+     * @param mixed $processes
+     * @param mixed $i
+     * @param mixed $noProcess
+     * @param mixed $machines
+     */
     public function registerProcessDates($class, $processes, $i, $noProcess, $machines)
     {
         //Si exister un registro de la fecha de un proceso se elimina para posteriormente crear uno nuevo
-        $existingProcess = Fecha_proceso::where('clase', $class->id)->where('proceso', $processes[$i])->first();
+        $existingProcess = Fecha_proceso::query()->where('clase', '=', $class->id, 'and')->where('proceso', '=', $processes[$i], 'and')->first();
         if ($existingProcess) {
             $existingProcess->delete();
         }
@@ -300,6 +335,12 @@ class ClassController extends Controller
         return $newProcess;
     }
 
+        /**
+     * @param mixed $class
+     * @param mixed $processes
+     * @param mixed $i
+     * @param mixed $noProceso
+     */
     public function calculateStartDate($class, $processes, $i, $noProceso)
     {
         $startDate = "";
@@ -312,6 +353,12 @@ class ClassController extends Controller
         return $startDate;
     }
 
+        /**
+     * @param mixed $processes
+     * @param mixed $i
+     * @param mixed $class
+     * @param mixed $phase
+     */
     public function delayTime_start_end($processes, $i, $class, $phase)
     {
         //Obtener el anterior proceso
@@ -331,6 +378,7 @@ class ClassController extends Controller
             }
             $dateAux = new DateTime($date->format('Y-m-d H:i:s'));
             //Se calcula cuanto tiempo se tarda en generar una pieza para calcular el tiempo de retraso entre el procesos
+            $piecesProcesses = [];
             switch ($class->nombre) {
                 case "Bombillo":
                     $piecesProcesses = ["cepillado", "desbaste", "revLaterales", "primeraOpeSoldadura", "barrenoManiobra", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoBombillo", "barrenoProfundidad", "cavidades", "copiado", "offset", "palomas", "rebajes", "grabado"];
@@ -359,7 +407,7 @@ class ClassController extends Controller
                     break;
             }
 
-            $delayTime = tiempoproduccion::where('id_clase', $class->id)->where('proceso', $piecesProcesses[$i - $counter])->first();
+            $delayTime = tiempoproduccion::query()->where('id_clase', '=', $class->id, 'and')->where('proceso', '=', $piecesProcesses[$i - $counter], 'and')->first();
             if ($delayTime) {
                 //Agregar el factor de seguridad
                 $safetyFactor = $delayTime->tiempo * .08;
@@ -393,6 +441,14 @@ class ClassController extends Controller
         return $date;
     }
 
+        /**
+     * @param mixed $class
+     * @param mixed $process
+     * @param mixed $i
+     * @param mixed $machines
+     * @param mixed $date
+     * @param mixed $noProcess
+     */
     public function calculateEndDate($class, $process, $i, $machines, $date, $noProcess)
     {
         if ($noProcess == 0) {
@@ -424,17 +480,27 @@ class ClassController extends Controller
     }
 
 
+        /**
+     * @param mixed $processes
+     * @param mixed $i
+     * @param mixed $class
+     */
     public function calculatePreviousProcess($processes, $i, $class)
     {
         $counter = 1;
         do {
-            $previousProcess = Fecha_proceso::where('proceso', $processes[$i - $counter])->where('clase', $class->id)->first();
+            $previousProcess = Fecha_proceso::query()->where('proceso', '=', $processes[$i - $counter], 'and')->where('clase', '=', $class->id, 'and')->first();
             if ($previousProcess == null) {
                 $counter++;
             }
         } while ($previousProcess == null);
         return [$previousProcess, $counter];
     }
+        /**
+     * @param mixed $class
+     * @param mixed $i
+     * @param mixed $machines
+     */
     public function calculateMachiningDays($class, $i, $machines)
     {
         $piecesShift = $machines * $this->pieces_machShift($i, $class);
@@ -448,6 +514,9 @@ class ClassController extends Controller
         }
         return $diasMaq;
     }
+        /**
+     * @param mixed $diasMaq
+     */
     public function convertMachiningDaysToHours($diasMaq)
     {
         $MachiningTime = $diasMaq * 16;
@@ -459,6 +528,11 @@ class ClassController extends Controller
         }
         return [$hrsMach, $mntsMach];
     }
+        /**
+     * @param mixed $date
+     * @param mixed $hours
+     * @param mixed $minutes
+     */
     public function addHrsMnts($date, $hours, $minutes)
     {
         while ($hours != 0) {
@@ -492,6 +566,10 @@ class ClassController extends Controller
         }
         return $date;
     }
+        /**
+     * @param mixed $i
+     * @param mixed $clase
+     */
     public function pieces_machShift($i, $clase)
     {
 
@@ -527,7 +605,7 @@ class ClassController extends Controller
         }
 
         $juegos = 0;
-        $t_estandar = tiempoproduccion::where('id_clase', $clase->id)->where('proceso', $procesos[$i])->first();
+        $t_estandar = tiempoproduccion::query()->where('id_clase', '=', $clase->id, 'and')->where('proceso', '=', $procesos[$i], 'and')->first();
         if ($t_estandar && $t_estandar->tiempo != 0) {
             $juegos = 420 / $t_estandar->tiempo;
             $juegos = floor($juegos * 10) / 10;
@@ -535,6 +613,10 @@ class ClassController extends Controller
         return $juegos;
     }
 
+        /**
+     * @param mixed $h_start
+     * @param mixed $h_end
+     */
     public function calculateHrs($h_start, $h_end) //Función para calcular las horas trabajadas.
     {
         // $carbon1 = Carbon::createFromFormat('H:i', $h_inicio);
@@ -547,18 +629,29 @@ class ClassController extends Controller
         return $diference; //Retorno las horas trabajadas.
     }
 
+        /**
+     * @param mixed $goal
+     * @param mixed $hrsWorked
+     * @param mixed $workOrder
+     * @param mixed $className
+     * @param mixed $process
+     */
     public function AsignMetaData($goal, $hrsWorked, $workOrder, $className, $process) //Función para asignar los datos de la meta.
     {
-        $class = Clase::where('id_ot', $workOrder->id)->where('nombre', $className)->first(); //Busco la clase.
+        $class = Clase::query()->where('id_ot', '=', $workOrder->id, 'and')->where('nombre', '=', $className, 'and')->first(); //Busco la clase.
         $goal->id_clase = $class->id;
 
-        $time = tiempoproduccion::where('id_clase', $class->id)->where('proceso', $process)->first();
+        $time = tiempoproduccion::query()->where('id_clase', '=', $class->id, 'and')->where('proceso', '=', $process, 'and')->first();
         $goal->t_estandar = $time->tiempo ?? 0;
         $goal->meta = $this->calculateGoal($goal->t_estandar, $hrsWorked) ?? 0; //Se calcula la meta.
 
         $goal->save();
         return $class; //Se retorna la clase.
     }
+        /**
+     * @param mixed $t_standard
+     * @param mixed $hrsWorked
+     */
     public function calculateGoal($t_standard, $hrsWorked) //Función para calcular la meta.
     {
         //Calculo de la meta.

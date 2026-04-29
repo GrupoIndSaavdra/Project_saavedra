@@ -13,7 +13,7 @@ class GenerarQRIndividualController extends Controller
     public function index()
     {
         // Obtener lotes que no han generado todos sus botes
-        $lotes = SoldaduraLote::whereRaw('botes_generados < FLOOR(peso_total_kg / 5)')
+        $lotes = SoldaduraLote::query()->whereRaw('botes_generados < FLOOR(peso_total_kg / 5)', [], 'and')
                     ->orWhere('botes_generados', 0)
                     ->orderBy('fecha_ingreso', 'desc')
                     ->get();
@@ -21,6 +21,9 @@ class GenerarQRIndividualController extends Controller
         return view('trackingSoldadura_views.generarQRIndividual', compact('lotes'));
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -56,6 +59,10 @@ class GenerarQRIndividualController extends Controller
         return $this->generarPDF($botes, $lote);
     }
 
+    /**
+     * @param array $botes
+     * @param \App\Models\SoldaduraLote $lote
+     */
     private function generarPDF($botes, $lote)
     {
         $qrCodes = [];

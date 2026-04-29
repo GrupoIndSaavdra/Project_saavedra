@@ -2,6 +2,7 @@
 
 @section('head')
     <title>Reporte de piezas</title>
+    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite(['resources/css/pieces_views/piecesReport/adminPieces.css', 'resources/js/pieces_views/piecesReport/adminPieces.js'])
 @endsection
 <script>
@@ -74,6 +75,9 @@
                             <th>Proceso</th>
                             <th>Errores</th>
                             <th>Observaciones</th>
+                            <th style="width:100px;">Inicio</th>
+                            <th>Término</th>
+                            <th>Total Maquinado</th>
                             <th>Fecha de Maquinado</th>
                             <th>Fecha de Liberacion</th>
                             <th>Liberado por</th>

@@ -18,6 +18,9 @@ class MoldingController extends Controller
     {
         return view('moldings_views.create_molding');
     }
+        /**
+     * @param \Illuminate\Http\Request MoldingRequest $request
+     */
     public function store(MoldingRequest $request)
     {
         $moldura = Moldura::create($request->all());
@@ -30,18 +33,24 @@ class MoldingController extends Controller
         return view('moldings_views.edit_molding', compact('moldings'));
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function update(Request $request)
     {
-        $molding = Moldura::find($request->moldingId);
+        $molding = Moldura::query()->find($request->moldingId);
         $molding->nombre = $request->moldingName;
         $molding->update();
         return redirect()->to('editMolding')->with('success', 'Moldura actualizada correctamente.');
     }
+        /**
+     * @param mixed $moldingId
+     */
     public function destroy($moldingId)
     {
-        $workOrder = Orden_trabajo::where('id_moldura', $moldingId)->first();
+        $workOrder = Orden_trabajo::query()->where('id_moldura', $moldingId)->first();
         if (!$workOrder) {
-            $molding = Moldura::find($moldingId);
+            $molding = Moldura::query()->find($moldingId);
             if ($molding) {
                 $molding->delete();
                 return redirect()->to('editMolding')->with('success', 'Moldura eliminada correctamente.');
@@ -52,10 +61,4 @@ class MoldingController extends Controller
             return redirect()->to('editMolding')->with('error', 'No se puede eliminar la moldura porque está asociada a una orden de trabajo.');
         }
     }
-    // public function destroy(Request $request)
-    // {
-    //     $moldura = Moldura::find($request->id);
-    //     $moldura->delete();
-    //     return redirect()->to('searchMoldura')->with('success', 'Moldura eliminada correctamente.');
-    // }
 }

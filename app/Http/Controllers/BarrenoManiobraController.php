@@ -10,13 +10,19 @@ class BarrenoManiobraController extends Controller
     {
         $this->middleware('auth');
     }
+        /**
+     * @param mixed $request
+     * @param mixed $cNominal
+     * @param mixed $tolerance
+     * @param int $index
+     */
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
             if (!$pieceId)
                 return;
-            $piece = BarrenoManiobra_pza::find($pieceId);
+            $piece = BarrenoManiobra_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -36,7 +42,7 @@ class BarrenoManiobraController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = BarrenoManiobra_pza::find($pieceId);
+            $piece = BarrenoManiobra_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'profundidad_barreno',
@@ -62,6 +68,11 @@ class BarrenoManiobraController extends Controller
         }
         $piece->save();
     }
+        /**
+     * @param mixed $pieza
+     * @param mixed $cNominal
+     * @param mixed $tolerancia
+     */
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
         if ($pieza->profundidad_barreno > ($cNominal->profundidad_barreno + $tolerancia->profundidad_barreno1) || $pieza->profundidad_barreno < ($cNominal->profundidad_barreno - $tolerancia->profundidad_barreno2) || $pieza->diametro_machuelo > ($cNominal->diametro_machuelo + $tolerancia->diametro_machuelo1) || $pieza->diametro_machuelo < ($cNominal->diametro_machuelo - $tolerancia->diametro_machuelo1) || $pieza->diametrodiametro_machuelo2 > ($cNominal->diametro_machuelo + $tolerancia->diametro_machuelo2) || $pieza->acetatoBM == "Mal") {
