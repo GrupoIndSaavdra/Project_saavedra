@@ -36,9 +36,9 @@ class Heartbeat extends Command
 
         // LIMPIEZA DE SESIONES FANTASMA (Abandono de pestaña)
         // Si el usuario no ha mandado ping en más de 2 minutos, lo pasamos a none.
-        User::where('perfil', '2')
-            ->where('prod_status', '!=', 'none')
-            ->where('updated_at', '<', $now->copy()->subMinutes(2))
+        User::query()->where('perfil', '=', '2', 'and')
+            ->where('prod_status', '!=', 'none', 'and')
+            ->where('updated_at', '<', $now->copy()->subMinutes(2), 'and')
             ->update([
                 'prod_status' => 'none',
                 'prod_locked_type' => null,
@@ -46,8 +46,8 @@ class Heartbeat extends Command
             ]);
 
         // Buscar operadores (Perfil 2) que tengan un monitoreo activo
-        $users = User::where('perfil', '2')
-            ->where('prod_status', '!=', 'none')
+        $users = User::query()->where('perfil', '=', '2', 'and')
+            ->where('prod_status', '!=', 'none', 'and')
             ->whereNull('prod_locked_type') // Solo procesar los que no están bloqueados aún
             ->get();
 
@@ -59,7 +59,7 @@ class Heartbeat extends Command
                 case 'welcome':
                 case 'form':
                     // Usar tiempo definido en config/productivity.php (.env)
-                    $idleLimit = config('productivity.idle_mins', 3);
+                    $idleLimit = (int) config('productivity.idle_mins', 3);
                     if ($elapsedMinutes >= $idleLimit) {
                         $user->update(['prod_locked_type' => ($user->prod_status == 'welcome' ? 'inicio' : 'formulario')]);
                         $faseNombre = ($user->prod_status == 'welcome' ? 'Menú Principal' : 'Configuración de Formulario');
@@ -90,13 +90,13 @@ class Heartbeat extends Command
                         Log::channel('productivity')->info($logMsg);
 
                         // Intentar recuperar los metadatos de la meta actual para el log oficial
-                        $maquinaActiva = Maquinas::where('id_meta', function($q) use ($user) {
-                            $q->select('id')->from('metas')->where('id_usuario', $user->matricula)->orderBy('id', 'desc')->limit(1);
-                        })->first();
+                        $maquinaActiva = Maquinas::query()->where('id_meta', '=', function($q) use ($user) {
+                            $q->select('id')->from('metas')->where('id_usuario', '=', $user->matricula, 'and')->orderBy('id', 'desc')->limit(1);
+                        }, 'and')->first();
 
                         $meta = null;
                         if ($maquinaActiva) {
-                            $meta = Metas::find($maquinaActiva->id_meta);
+                            $meta = Metas::query()->find($maquinaActiva->id_meta, ['*']);
                         }
 
                         // REGISTRO EN BITÁCORA OFICIAL (SystemLog) para reporte en pantalla

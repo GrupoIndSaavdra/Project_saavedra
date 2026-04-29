@@ -16,6 +16,9 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class SystemLogController extends Controller
 {
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function store(Request $request)
     {
         $action = $request->action;
@@ -104,7 +107,7 @@ class SystemLogController extends Controller
                 $modelName = $this->getModelForProcess($request->proceso, $request->id_clase);
                 
                 if ($modelName) {
-                    $machoPiece = $modelName::where('n_pieza', $machoName)
+                    $machoPiece = $modelName::query()->where('n_pieza', $machoName)
                         ->where('id_meta', $request->meta) // El JS envía el ID en el campo 'meta'
                         ->orWhere(function($q) use ($machoName, $request) {
                              $q->where('n_pieza', $machoName)
@@ -125,14 +128,17 @@ class SystemLogController extends Controller
             // Se recorre cronológicamente el historial de la sesión.
             // Al alcanzar 3 capturas buenas consecutivas (Captura Medida), el contador se reinicia
             // por completo: si el operador vuelve a fallar, comienza desde Sospechosa otra vez.
-            $lastResetLog = SystemLog::query()->where('user_matricula', Auth::user()->matricula)
-                ->whereIn('action', ['Inicio de Reporte', 'Inicio de Sesión'])
+            $user = Auth::user();
+            if (!$user) return response()->json(['success' => false, 'message' => 'Sesión expirada']);
+
+            $lastResetLog = SystemLog::query()->where('user_matricula', $user->matricula)
+                ->whereIn('action', ['Inicio de Reporte', 'Inicio de Sesión'], 'and', false)
                 ->orderBy('created_at', 'desc')
                 ->first();
 
             $allCaptures = SystemLog::query()
-                ->where('user_matricula', Auth::user()->matricula)
-                ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'])
+                ->where('user_matricula', $user->matricula)
+                ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'], 'and', false)
                 ->when($lastResetLog, fn($q) => $q->where('created_at', '>', $lastResetLog->created_at))
                 ->when(!$lastResetLog, fn($q) => $q->whereDate('created_at', now()->toDateString()))
                 ->orderBy('created_at', 'asc')
@@ -155,7 +161,7 @@ class SystemLogController extends Controller
 
             // Detección temporal: ¿la pieza actual fue completada en tiempo sospechosamente corto?
             $lastLog = SystemLog::query()->where('user_matricula', Auth::user()->matricula)
-                ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'])
+                ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'], 'and', false)
                 ->orderBy('created_at', 'desc')
                 ->first();
 
@@ -164,7 +170,7 @@ class SystemLogController extends Controller
             if ($lastLog) {
                 $diffSecs = (int) abs($now->diffInSeconds($lastLog->created_at));
                 $diffMins = floor($diffSecs / 60);
-                $isTimeSuspicious = ($diffSecs < 300 && $diffSecs >= 10);
+                $isTimeSuspicious = ($diffSecs < 300);
             }
 
             // LÓGICA DE ASIGNACIÓN DE ACCIÓN
@@ -238,6 +244,9 @@ class SystemLogController extends Controller
         return response()->json(['success' => true]);
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function index(Request $request)
     {
         // 1. Obtener valores ÚNICOS para los filtros usando consultas eficientes y el índice de la DB
@@ -259,7 +268,7 @@ class SystemLogController extends Controller
                     }
                     
                     // Si no hay nombre por join, intentamos buscarlo en el catálogo por el ID base
-                    $catalog = Orden_trabajo::with('moldura')->find($idBase);
+                    $catalog = Orden_trabajo::query()->with('moldura')->find($idBase);
                     if ($catalog && $catalog->moldura) {
                         return "{$idBase} - {$catalog->moldura->nombre}";
                     }
@@ -299,7 +308,7 @@ class SystemLogController extends Controller
             ]);
 
         // Obtener N# Pieza (Juegos) simplificado
-        $filtrosDisponibles['n_pieza'] = SystemLog::distinct()
+        $filtrosDisponibles['n_pieza'] = SystemLog::query()->distinct()
             ->whereNotNull('n_pieza')
             ->where('n_pieza', 'NOT LIKE', '%/%')
             ->pluck('n_pieza')
@@ -351,7 +360,7 @@ class SystemLogController extends Controller
             } elseif ($request->audit_status === 'Sospechosos') {
                 $query->where('action', 'Captura Sospechosa');
             } elseif ($request->audit_status === 'Válidos') {
-                $query->whereNotIn('action', ['Captura Sospechosa', 'Captura Crítica']);
+                $query->whereNotIn('action', ['Captura Sospechosa', 'Captura Crítica'], 'and');
             }
         }
 
@@ -474,6 +483,10 @@ class SystemLogController extends Controller
     }
 
 
+        /**
+     * @param array $selectedItems
+     * @param string $reportType
+     */
     public function generatePdfFilename(array $selectedItems, string $reportType): string
     {
         $parts = [];
@@ -540,7 +553,7 @@ class SystemLogController extends Controller
     private function getModelForProcess($process, $id_clase)
     {
         if (!$process || !$id_clase) return null;
-        $clase = Clase::find($id_clase);
+        $clase = Clase::query()->find($id_clase);
         
         try {
             $modelName = match ($process) {

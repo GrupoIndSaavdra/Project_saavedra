@@ -16,9 +16,12 @@ class LoginController extends Controller
     {
         return view('auth.login');
     }
+        /**
+     * @param \Illuminate\Http\Request LoginRequest $request
+     */
     public function login(LoginRequest $request)
     {
-        $user = User::where('matricula', $request->matricula)->first();
+        $user = User::query()->where('matricula', $request->matricula)->first();
 
         if (!$user || !Hash::check($request->contrasena, $user->contrasena)) {
             SystemLog::create([
@@ -31,6 +34,10 @@ class LoginController extends Controller
         Auth::login($user);
         return $this->authenticated($request, $user);
     }
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     * @param mixed $user
+     */
     public function authenticated(Request $request, $user)
     {
         // Si es operador (Perfil 2), inicializamos su cronómetro de productividad desde YA (con 00 segs)

@@ -12,13 +12,19 @@ class CandadoObturadorController extends Controller
         $this->middleware('auth');
     }
 
+        /**
+     * @param mixed $request
+     * @param mixed $cNominal
+     * @param mixed $tolerance
+     * @param int $index
+     */
     public function storePiece($request, $cNominal, $tolerance, $index = null)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
             if (!$pieceId)
                 return;
-            $piece = CandadoObturador_pza::find($pieceId);
+            $piece = CandadoObturador_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -43,7 +49,7 @@ class CandadoObturadorController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = CandadoObturador_pza::find($pieceId);
+            $piece = CandadoObturador_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'altura',
@@ -75,6 +81,11 @@ class CandadoObturadorController extends Controller
         $piece->save();
     }
 
+        /**
+     * @param mixed $pieza
+     * @param mixed $cNominal
+     * @param mixed $tolerance
+     */
     public function comparePieceData($pieza, $cNominal, $tolerance)
     {
         $fields = [

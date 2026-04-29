@@ -24,13 +24,16 @@ class DibujosFundicionPdfController extends Controller
     // VISTAS
     // =========================================================================
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function showManage(Request $request)
     {
         // Estructura del filesystem
         $estructura = $this->buildStructure();
 
         // OTs activas (que tienen al menos una clase NO finalizada)
-        $todasLasOTs = Orden_trabajo::with('moldura')
+        $todasLasOTs = Orden_trabajo::query()->with('moldura')
             ->whereHas('clases', fn($q) => $q->where('finalizada', 0))
             ->orderBy('id', 'asc')
             ->get();
@@ -86,6 +89,9 @@ class DibujosFundicionPdfController extends Controller
         return response()->json($estructura);
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function getFiles(Request $request)
     {
         $ot = $this->sanitizePath($request->query('ot', ''));
@@ -124,6 +130,9 @@ class DibujosFundicionPdfController extends Controller
         ]);
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function serveFile(Request $request): BinaryFileResponse
     {
         $ot = $this->sanitizePath($request->query('ot', ''));
@@ -153,6 +162,9 @@ class DibujosFundicionPdfController extends Controller
     // CRUD ADMINISTRADOR
     // =========================================================================
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function createFolder(Request $request)
     {
         $request->validate([
@@ -160,7 +172,7 @@ class DibujosFundicionPdfController extends Controller
         ]);
 
         $otId = $request->input('ot_id');
-        $otModel = Orden_trabajo::with('moldura')->findOrFail($otId);
+        $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
         $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
         $otFolderName = $this->sanitizePath($otFolderName);
 
@@ -185,6 +197,9 @@ class DibujosFundicionPdfController extends Controller
         ]);
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function uploadPdf(Request $request)
     {
         $request->validate([
@@ -193,7 +208,7 @@ class DibujosFundicionPdfController extends Controller
         ]);
 
         $otId = $request->input('ot_id');
-        $otModel = Orden_trabajo::with('moldura')->findOrFail($otId);
+        $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
         $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
         $otFolderName = $this->sanitizePath($otFolderName);
 
@@ -233,6 +248,9 @@ class DibujosFundicionPdfController extends Controller
         ]);
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function sendEmailAlert(Request $request)
     {
         $request->validate([
@@ -260,6 +278,10 @@ class DibujosFundicionPdfController extends Controller
         }
     }
 
+        /**
+     * @param mixed $otName
+     * @param mixed $fileName
+     */
     private function sendAlertInternal($otName, $fileName)
     {
         // Se usa la configuración de servicios con el fallback de almacén
@@ -271,6 +293,9 @@ class DibujosFundicionPdfController extends Controller
         Mail::to($emails)->send(new DibujoFundicionAlertMail($otName, $fileName));
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function deletePdf(Request $request)
     {
         $request->validate([
@@ -298,6 +323,9 @@ class DibujosFundicionPdfController extends Controller
         ]);
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function deleteFolder(Request $request)
     {
         $request->validate([
@@ -323,6 +351,9 @@ class DibujosFundicionPdfController extends Controller
         ]);
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function replacePdf(Request $request)
     {
         $request->validate([
@@ -382,6 +413,11 @@ class DibujosFundicionPdfController extends Controller
         return $estructura;
     }
 
+    /**
+     * @param string $action
+     * @param string $ruta
+     * @param string|null $archivo
+     */
     private function logAction(string $action, string $ruta, ?string $archivo): void
     {
         $user = Auth::user();
@@ -405,6 +441,9 @@ class DibujosFundicionPdfController extends Controller
         ]);
     }
 
+        /**
+     * @param mixed string $path
+     */
     private function sanitizePath(string $path): string
     {
         $path = preg_replace('/\.\.+/', '', $path);
@@ -413,6 +452,9 @@ class DibujosFundicionPdfController extends Controller
         return $path;
     }
 
+        /**
+     * @param mixed string $name
+     */
     private function sanitizeFileName(string $name): string
     {
         $name = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', $name);

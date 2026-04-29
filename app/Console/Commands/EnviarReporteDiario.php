@@ -98,6 +98,8 @@ class EnviarReporteDiario extends Command
     /**
      * Agrupa los registros en la jerarquía:
      * OT → Clase → Proceso → [ filas de operadores ]
+     *
+     * @param \Illuminate\Support\Collection|\App\Models\Pieza[] $piezas
      */
     private function agruparJerarquicamente($piezas): array
     {
@@ -124,21 +126,21 @@ class EnviarReporteDiario extends Command
         foreach ($piezas as $pieza) {
             $mat = $pieza->id_operador;
             if (!isset($usuariosMap[$mat])) {
-                $u = User::where('matricula', $mat)->first();
+                $u = User::query()->where('matricula', '=', $mat, 'and')->first();
                 $usuariosMap[$mat] = $u ? trim("{$u->nombre} {$u->a_paterno} {$u->a_materno}") : "Operador #{$mat}";
             }
             $operador = $usuariosMap[$mat];
 
             $otId = $pieza->id_ot;
             if (!isset($moldurasMap[$otId])) {
-                $ot = Orden_trabajo::find($otId);
-                $mn = $ot ? optional(Moldura::find($ot->id_moldura))->nombre ?? 'Sin Moldura' : 'Sin Moldura';
+                $ot = Orden_trabajo::query()->find($otId, ['*']);
+                $mn = $ot ? optional(Moldura::query()->find($ot->id_moldura, ['*']))->nombre ?? 'Sin Moldura' : 'Sin Moldura';
                 $moldurasMap[$otId] = "OT #{$otId} — {$mn}";
             }
 
             $claseId = $pieza->id_clase;
             if (!isset($clasesMap[$claseId])) {
-                $cls = Clase::find($claseId);
+                $cls = Clase::query()->find($claseId, ['*']);
                 $clasesMap[$claseId] = ['label' => $cls ? trim($cls->nombre . ' ' . $cls->tamanio) : "Clase #{$claseId}", 'nombre' => $cls->nombre ?? ''];
             }
 
@@ -220,11 +222,11 @@ class EnviarReporteDiario extends Command
                 
                 // Fallback a DB si la otra mitad se hizo otro día y no está en el reporte actual
                 if (!$partnerPza) {
-                    $partnerPza = Pieza::where('id_ot', $pieza->id_ot)
-                        ->where('id_clase', $pieza->id_clase)
-                        ->where('n_pieza', "{$nPiezaBase}{$partnerSuf}")
+                    $partnerPza = Pieza::query()->where('id_ot', '=', $pieza->id_ot, 'and')
+                        ->where('id_clase', '=', $pieza->id_clase, 'and')
+                        ->where('n_pieza', '=', "{$nPiezaBase}{$partnerSuf}", 'and')
                         ->where(function($q) use ($pieza) {
-                            if ($pieza->proceso) { $q->where('proceso', $pieza->proceso); }
+                            if ($pieza->proceso) { $q->where('proceso', '=', $pieza->proceso, 'and'); }
                             else { $q->whereNull('proceso'); }
                         })->orderBy('id', 'desc')->first();
                 }
@@ -234,7 +236,7 @@ class EnviarReporteDiario extends Command
                 if ($esCompartido) {
                     $mOpPartner = $partnerPza->id_operador;
                     if (!isset($usuariosMap[$mOpPartner])) {
-                        $uOp = User::where('matricula', $mOpPartner)->first();
+                        $uOp = User::query()->where('matricula', '=', $mOpPartner, 'and')->first();
                         $usuariosMap[$mOpPartner] = $uOp ? trim("{$uOp->nombre} {$uOp->a_paterno} {$uOp->a_materno}") : "Operador #{$mOpPartner}";
                     }
                     $opPartner = $usuariosMap[$mOpPartner];
@@ -382,11 +384,16 @@ class EnviarReporteDiario extends Command
 
     /**
      * Recupera las observaciones del operador desde las tablas específicas de cada proceso.
+     * 
+     * @param string $procesoRaw
+     * @param int|string $claseId
+     * @param int|string $otId
+     * @param string|null $nJuego
      */
     private function getObservacionesOperador($procesoRaw, $claseId, $otId, $nJuego): string
     {
         try {
-            $clase = Clase::find($claseId);
+            $clase = Clase::query()->find($claseId, ['*']);
             if (!$clase)
                 return '—';
 
@@ -404,7 +411,7 @@ class EnviarReporteDiario extends Command
             if (!$modelPieces || !$modelHeader)
                 return '—';
 
-            $header = $modelHeader::where('id_proceso', $idProcessStr)->first();
+            $header = $modelHeader::query()->where('id_proceso', '=', $idProcessStr, 'and')->first();
             if (!$header)
                 return '—';
 
@@ -432,11 +439,11 @@ class EnviarReporteDiario extends Command
                 $searchNJuego = $cleanNum . "J";
             }
 
-            $pieces = $modelPieces::where('id_proceso', $header->id)
+            $pieces = $modelPieces::query()->where('id_proceso', '=', $header->id, 'and')
                 ->where(function ($query) use ($searchNJuego) {
-                    $query->where('n_juego', $searchNJuego)
-                        ->orWhere('n_pieza', $searchNJuego)
-                        ->orWhere('id_pza', $searchNJuego);
+                    $query->where('n_juego', '=', $searchNJuego, 'and')
+                        ->orWhere('n_pieza', '=', $searchNJuego, 'and')
+                        ->orWhere('id_pza', '=', $searchNJuego, 'and');
                 })
                 ->get();
 
@@ -454,6 +461,10 @@ class EnviarReporteDiario extends Command
         }
     }
 
+    /**
+     * @param string $process
+     * @return string|null
+     */
     private function getModelProcess($process): ?string
     {
         $map = [
@@ -484,6 +495,10 @@ class EnviarReporteDiario extends Command
         return isset($map[$process]) ? "App\\Models\\" . $map[$process] : null;
     }
 
+    /**
+     * @param string $process
+     * @return string|null
+     */
     private function getModelProcessPieces($process): ?string
     {
         $map = [
@@ -514,6 +529,10 @@ class EnviarReporteDiario extends Command
         return isset($map[$process]) ? "App\\Models\\" . $map[$process] : null;
     }
 
+    /**
+     * @param \App\Models\Pieza|null $piece
+     * @return bool
+     */
     private function verifyPiece($piece): bool
     {
         if (!$piece)
@@ -537,6 +556,11 @@ class EnviarReporteDiario extends Command
 
     /**
      * Mapeamos el color en Hex de acuerdo con adminPieces.js
+     * 
+     * @param int|string $status
+     * @param string $error
+     * @param string $process
+     * @return string
      */
     private function asignColorTr($status, $error, $process = '')
     {

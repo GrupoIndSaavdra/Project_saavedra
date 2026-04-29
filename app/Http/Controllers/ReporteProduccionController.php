@@ -119,6 +119,7 @@ class ReporteProduccionController extends Controller
     /**
      * Genera y descarga el PDF del reporte para una fecha específica.
      * GET /reportes/descargar-pdf/{fecha}
+     * @param string $fechaStr
      */
     public function descargarPDF($fechaStr)
     {
@@ -157,7 +158,7 @@ class ReporteProduccionController extends Controller
      */
     private function buscarConFiltros(Request $request)
     {
-        $query = Pieza::with(['clase', 'operador', 'ordenTrabajo']);
+        $query = Pieza::query()->with(['clase', 'operador', 'ordenTrabajo']);
 
         // ── Rango de fechas ───────────────────────────────────────────────
         $desde = $request->fecha_desde ?? Carbon::today()->toDateString();
@@ -174,7 +175,7 @@ class ReporteProduccionController extends Controller
 
         // ── Clase ─────────────────────────────────────────────────────────
         if ($request->clase && $request->clase !== 'Todos') {
-            $clase = Clase::where('nombre', $request->clase)->first();
+            $clase = Clase::query()->where('nombre', $request->clase)->first();
             if ($clase) {
                 $query->where('id_clase', $clase->id);
             }
@@ -197,7 +198,7 @@ class ReporteProduccionController extends Controller
      * @param \Illuminate\Support\Collection $piezas
      * @return array<string, mixed>
      */
-    private function agruparJerarquicamente($piezas): array
+    private function agruparJerarquicamente(\Illuminate\Support\Collection $piezas): array
     {
         /** @var array<string, mixed> $reporteFinal */
         $reporteFinal = [];
@@ -224,9 +225,9 @@ class ReporteProduccionController extends Controller
         $otIds = $piezas->pluck('id_ot')->unique();
         $claseIds = $piezas->pluck('id_clase')->unique();
 
-        $usuariosPrecargados = User::whereIn('matricula', $matIds)->get()->keyBy('matricula');
-        $otsPrecargadas = Orden_trabajo::with('moldura')->whereIn('id', $otIds)->get()->keyBy('id');
-        $clasesPrecargadas = Clase::whereIn('id', $claseIds)->get()->keyBy('id');
+        $usuariosPrecargados = User::query()->whereIn('matricula', $matIds, 'and', false)->get()->keyBy('matricula');
+        $otsPrecargadas = Orden_trabajo::query()->with('moldura')->whereIn('id', $otIds, 'and', false)->get()->keyBy('id');
+        $clasesPrecargadas = Clase::query()->whereIn('id', $claseIds, 'and', false)->get()->keyBy('id');
 
         foreach ($piezas as $pieza) {
             $mat = $pieza->id_operador;
@@ -323,7 +324,7 @@ class ReporteProduccionController extends Controller
                 $partnerPza = $globalJuegoIndex[$hashProceso][$nPiezaBase][$partnerSuf] ?? null;
 
                 if (!$partnerPza) {
-                    $partnerPza = Pieza::where('id_ot', $pieza->id_ot)
+                    $partnerPza = Pieza::query()->where('id_ot', $pieza->id_ot)
                         ->where('id_clase', $pieza->id_clase)
                         ->where('n_pieza', "{$nPiezaBase}{$partnerSuf}")
                         ->where(function($q) use ($pieza) {
@@ -337,7 +338,7 @@ class ReporteProduccionController extends Controller
                 if ($esCompartido) {
                     $mOpPartner = $partnerPza->id_operador;
                     if (!isset($usuariosMap[$mOpPartner])) {
-                        $uOp = User::where('matricula', $mOpPartner)->first();
+                        $uOp = User::query()->where('matricula', $mOpPartner)->first();
                         $usuariosMap[$mOpPartner] = $uOp ? trim("{$uOp->nombre} {$uOp->a_paterno} {$uOp->a_materno}") : "Operador #{$mOpPartner}";
                     }
                     $opPartner = $usuariosMap[$mOpPartner];
@@ -476,6 +477,7 @@ class ReporteProduccionController extends Controller
     /**
      * Recupera las observaciones del operador desde las tablas específicas de cada proceso.
      * Lógica adaptada de PzasGeneralesController/ProcessProductionController.
+     * @param \App\Models\Pieza $pieza
      */
     private function getObservacionesOperador($pieza): string
     {
@@ -488,6 +490,9 @@ class ReporteProduccionController extends Controller
         return '—';
     }
 
+        /**
+     * @param mixed $process
+     */
     private function getModelProcess($process): ?string
     {
         $map = [
@@ -518,6 +523,9 @@ class ReporteProduccionController extends Controller
         return isset($map[$process]) ? "App\\Models\\" . $map[$process] : null;
     }
 
+        /**
+     * @param mixed $process
+     */
     private function getModelProcessPieces($process): ?string
     {
         $map = [
@@ -548,6 +556,9 @@ class ReporteProduccionController extends Controller
         return isset($map[$process]) ? "App\\Models\\" . $map[$process] : null;
     }
 
+        /**
+     * @param mixed $piece
+     */
     private function verifyPiece($piece): bool
     {
         if (!$piece)
@@ -571,6 +582,9 @@ class ReporteProduccionController extends Controller
 
     /**
      * Mapeamos el color en Hex de acuerdo con adminPieces.js
+     * @param int|string $status
+     * @param string|null $error
+     * @param string $process
      */
     private function asignColorTr($status, $error, $process = '')
     {

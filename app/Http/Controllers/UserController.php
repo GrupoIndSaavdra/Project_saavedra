@@ -32,6 +32,9 @@ class UserController extends Controller
         $layout = auth()->user() && ($this->getLayout() == "layouts.appMaster" || $this->getLayout() == "layouts.appAdmin") ? $this->getLayout() : 'layouts.defaultLayout';
         return view("users_views.create_user", compact("layout"));
     }
+        /**
+     * @param \Illuminate\Http\Request CreateUserRequest $request
+     */
     public function store(CreateUserRequest $request){
         $user = User::create($request->validated());
         return redirect()->route('createUser')->with('success', 'Usuario registrado correctamente');
@@ -39,12 +42,15 @@ class UserController extends Controller
     public function showRecoverPassword(){
         return view('users_views.recoverPassword');
     }
+        /**
+     * @param \Illuminate\Http\Request HttpRequest $request
+     */
     public function recoverPassword(HttpRequest $request){
         $request->validate([
             'matricula' => 'required',
             'nueva_contraseña' => ['required', 'string', 'min:8', 'confirmed']
         ]);
-        $user = User::where('matricula', $request->matricula)->first();
+        $user = User::query()->where('matricula', $request->matricula)->first();
         if(!$user){
             return redirect()->to('recoverPassword')->withErrors('Matricula no encontrada.');
         }

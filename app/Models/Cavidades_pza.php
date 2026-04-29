@@ -11,6 +11,13 @@ class Cavidades_pza extends Model
     protected $table = 'cavidades_pza';
 
     protected $fillable = [
+        'id_pza',
+        'id_meta',
+        'id_proceso',
+        'n_pieza',
+        'n_juego',
+        'estado',
+        'error',
         'profundidad1',
         'diametro1',
         'profundidad2',

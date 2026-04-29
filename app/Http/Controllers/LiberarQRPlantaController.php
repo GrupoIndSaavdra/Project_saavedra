@@ -18,6 +18,10 @@ class LiberarQRPlantaController extends Controller
      * Ejemplo de entrada problemática: "¨[tipo[Ñ[bote[,[id[Ñ2,[matricula[Ñ[1401261534ALLTBS'002[,[lote?id[Ñ1,"
      * Formato esperado JSON: {"tipo":"bote","id":2,"matricula":"1401261534ALLTBS-002","lote_id":1}
      */
+    /**
+     * @param string $qrContent
+     * @return array|null
+     */
     private function parseQRContent($qrContent)
     {
         // Primero intentar parsear como JSON normal
@@ -105,14 +109,17 @@ class LiberarQRPlantaController extends Controller
 
     public function indexRecepcion()
     {
-        $almacenistas = User::where('perfil', '5')->get(); // Perfil 5 = Almacén
-        $botesDisponibles = SoldaduraBote::where('estado', 'en_planta')->get();
+        $almacenistas = User::query()->where('perfil', '5')->get(); // Perfil 5 = Almacén
+        $botesDisponibles = SoldaduraBote::query()->where('estado', 'en_planta')->get();
         $botesEnPlanta = $botesDisponibles->count();
         $currentUser = auth()->user(); // Usuario autenticado actual
 
         return view('trackingSoldadura_views.recepcionPlanta', compact('almacenistas', 'botesEnPlanta', 'currentUser'));
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function escanearRecepcion(Request $request)
     {
         $request->validate([
@@ -126,7 +133,7 @@ class LiberarQRPlantaController extends Controller
                 return back()->withErrors(['qr_content' => 'QR no válido o no es de un bote individual. Contenido recibido: ' . substr($request->qr_content, 0, 100)]);
             }
 
-            $bote = SoldaduraBote::with('lote')->find($qrData['id']);
+            $bote = SoldaduraBote::query()->with('lote')->find($qrData['id']);
 
             if (!$bote) {
                 return back()->withErrors(['qr_content' => 'Bote no encontrado con ID: ' . $qrData['id']]);
@@ -145,8 +152,8 @@ class LiberarQRPlantaController extends Controller
                 return back()->withErrors(['qr_content' => 'Este bote no está en tránsito. Estado actual: ' . $bote->estado]);
             }
 
-            $almacenistas = User::where('perfil', '5')->get();
-            $botesEnPlanta = SoldaduraBote::where('estado', 'en_planta')->count();
+            $almacenistas = User::query()->where('perfil', '5')->get();
+            $botesEnPlanta = SoldaduraBote::query()->where('estado', 'en_planta')->count();
             $currentUser = auth()->user(); // Usuario autenticado actual
 
             return view('trackingSoldadura_views.recepcionPlanta', compact('bote', 'almacenistas', 'botesEnPlanta', 'currentUser'));
@@ -156,6 +163,9 @@ class LiberarQRPlantaController extends Controller
         }
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function confirmarRecepcion(Request $request)
     {
         $request->validate([
@@ -196,11 +206,11 @@ class LiberarQRPlantaController extends Controller
 
     public function index()
     {
-        $usuarios = User::whereIn('perfil', ['2', '5'])->get()->groupBy('perfil');
+        $usuarios = User::query()->whereIn('perfil', ['2', '5'], 'and', false)->get()->groupBy('perfil');
         $operadores = $usuarios->get('2', collect());
         $almacenistas = $usuarios->get('5', collect());
 
-        $botesDisponibles = SoldaduraBote::where('estado', 'en_planta')
+        $botesDisponibles = SoldaduraBote::query()->where('estado', 'en_planta')
             ->with('lote')
             ->get();
         $botesEnPlanta = $botesDisponibles->count();
@@ -209,6 +219,9 @@ class LiberarQRPlantaController extends Controller
         return view('trackingSoldadura_views.liberarQRPlanta', compact('operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles', 'currentUser'));
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function escanear(Request $request)
     {
         $request->validate([
@@ -222,7 +235,7 @@ class LiberarQRPlantaController extends Controller
                 return back()->withErrors(['qr_content' => 'QR no válido o no es de un bote individual. Contenido recibido: ' . substr($request->qr_content, 0, 100)]);
             }
 
-            $bote = SoldaduraBote::with('lote')->find($qrData['id']);
+            $bote = SoldaduraBote::query()->with('lote')->find($qrData['id']);
 
             if (!$bote) {
                 return back()->withErrors(['qr_content' => 'Bote no encontrado con ID: ' . $qrData['id']]);
@@ -243,11 +256,11 @@ class LiberarQRPlantaController extends Controller
                 return back()->withErrors(['qr_content' => 'Este bote no está disponible para liberación. Estado actual: ' . $bote->estado]);
             }
 
-            $usuarios = User::whereIn('perfil', ['2', '5'])->get()->groupBy('perfil');
+            $usuarios = User::query()->whereIn('perfil', ['2', '5'], 'and', false)->get()->groupBy('perfil');
             $operadores = $usuarios->get('2', collect());
             $almacenistas = $usuarios->get('5', collect());
 
-            $botesDisponibles = SoldaduraBote::where('estado', 'en_planta')
+            $botesDisponibles = SoldaduraBote::query()->where('estado', 'en_planta')
                 ->with('lote')
                 ->get();
             $botesEnPlanta = $botesDisponibles->count();
@@ -260,6 +273,9 @@ class LiberarQRPlantaController extends Controller
         }
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function liberar(Request $request)
     {
         $request->validate([

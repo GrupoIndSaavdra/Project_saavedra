@@ -11,6 +11,13 @@ class Pza_cepillado extends Model
     protected $table = 'cepillado_pza';
 
     protected $fillable = [
+        'id_pza',
+        'id_meta',
+        'id_proceso',
+        'n_pieza',
+        'n_juego',
+        'estado',
+        'error',
         'radiof_mordaza',
         'radiof_mayor',
         'radiof_sufridera',

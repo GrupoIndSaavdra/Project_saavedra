@@ -33,7 +33,7 @@ class DibujosPdfController extends Controller
         $estructura = $this->buildStructure();
 
         // Cargamos SOLO las OTs que tienen al menos una Clase NO finalizada (activas)
-        $todasLasOTs = Orden_trabajo::with([
+        $todasLasOTs = Orden_trabajo::query()->with([
             'moldura',
             'clases' => fn($q) => $q->where('finalizada', 0)->orderBy('nombre'),
         ])
@@ -209,7 +209,7 @@ class DibujosPdfController extends Controller
         $otId  = $request->input('ot_id');
         $clase = $this->sanitizePath($request->input('clase'));
         
-        $otModel = Orden_trabajo::with('moldura')->findOrFail($otId);
+        $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
         $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
         $otFolderName = $this->sanitizePath($otFolderName);
 
@@ -252,7 +252,7 @@ class DibujosPdfController extends Controller
         $otId  = $request->input('ot_id');
         $clase = $this->sanitizePath($request->input('clase'));
         
-        $otModel = Orden_trabajo::with('moldura')->findOrFail($otId);
+        $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
         $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
         $otFolderName = $this->sanitizePath($otFolderName);
 

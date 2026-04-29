@@ -16,13 +16,14 @@ class LogoutController extends Controller
         $user = Auth::user();
         
         if ($user) {
-            $metasMaquina = Maquinas::all();
-            foreach ($metasMaquina as $metaMaquina) {
-                $meta = Metas::find($metaMaquina->id_meta);
-                if($meta && $meta->id_usuario == $user->matricula){
-                    $metaMaquina->delete();
-                }
-            }
+            // Eliminar las máquinas ocupadas por el usuario al cerrar sesión
+            $userMetasIds = Metas::query()
+                ->where('id_usuario', $user->matricula)
+                ->pluck('id');
+
+            Maquinas::query()
+                ->whereIn('id_meta', $userMetasIds, 'and', false)
+                ->delete();
 
             // Limpiar estado de productividad al salir
             $user->update([

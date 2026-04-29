@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class MachinesController extends Controller
 {
+    /** @var \App\Http\Controllers\ProcessProductionController */
     protected $processProductionController;
     public function __construct()
     {
@@ -33,16 +34,19 @@ class MachinesController extends Controller
         }
         return $occupiedMachines;
     }
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function freeUp(Request $request)
     {
-        $machine = Maquinas::find($request->idMachine);
+        $machine = Maquinas::query()->find($request->idMachine);
         if ($machine) {
             // Desocupar la maquina
             $machine->delete();
             // Desocupar piezas en la meta si es que estaban ocupadas
-            $meta = Metas::find($machine->id_meta);
+            $meta = Metas::query()->find($machine->id_meta);
             $modelProcessPieces = $this->processProductionController->get_ModelProcessPieces($meta->proceso);
-            $occupiedPieces = $modelProcessPieces::where('id_meta', $meta->id)->where('estado', 1)->get();
+            $occupiedPieces = $modelProcessPieces::query()->where('id_meta', $meta->id)->where('estado', 1)->get();
             if (count($occupiedPieces) > 0) {
                 $processesAssemblies = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Embudo CM"];
                 if (in_array($meta->proceso, $processesAssemblies)) {

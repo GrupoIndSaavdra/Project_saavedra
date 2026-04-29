@@ -91,6 +91,9 @@ class ManualesPdfController extends Controller
         return response()->json($estructura);
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function getFiles(Request $request)
     {
         $proceso = $this->sanitizePath($request->query('proceso', ''));
@@ -129,6 +132,9 @@ class ManualesPdfController extends Controller
         ]);
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function serveFile(Request $request): BinaryFileResponse
     {
         $proceso = $this->sanitizePath($request->query('proceso', ''));
@@ -158,6 +164,9 @@ class ManualesPdfController extends Controller
     // CRUD ADMINISTRADOR
     // =========================================================================
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function createFolder(Request $request)
     {
         $request->validate([
@@ -186,6 +195,9 @@ class ManualesPdfController extends Controller
         ]);
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function uploadPdf(Request $request)
     {
         $request->validate([
@@ -226,6 +238,9 @@ class ManualesPdfController extends Controller
         ]);
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function deletePdf(Request $request)
     {
         $request->validate([
@@ -284,6 +299,9 @@ class ManualesPdfController extends Controller
         ]);
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function replacePdf(Request $request)
     {
         $request->validate([
@@ -342,6 +360,11 @@ class ManualesPdfController extends Controller
         return $estructura;
     }
 
+    /**
+     * @param string $action
+     * @param string $ruta
+     * @param string|null $archivo
+     */
     private function logAction(string $action, string $ruta, ?string $archivo): void
     {
         $user     = Auth::user();
@@ -365,6 +388,9 @@ class ManualesPdfController extends Controller
         ]);
     }
 
+        /**
+     * @param mixed string $path
+     */
     private function sanitizePath(string $path): string
     {
         $path = preg_replace('/\.\.+/', '', $path);
@@ -373,6 +399,9 @@ class ManualesPdfController extends Controller
         return $path;
     }
 
+        /**
+     * @param mixed string $name
+     */
     private function sanitizeFileName(string $name): string
     {
         $name = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', $name);

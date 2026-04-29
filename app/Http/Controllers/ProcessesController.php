@@ -58,7 +58,9 @@ use Illuminate\Http\Request;
 
 class ProcessesController extends Controller
 {
+    /** @var \App\Http\Controllers\ClassController */
     protected $classController;
+    /** @var \App\Http\Controllers\PzasLiberadasController */
     protected $releasedPiecesController;
     public function __construct()
     {
@@ -166,6 +168,9 @@ class ProcessesController extends Controller
         [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
         return view('processes_views.cNominals_view', compact('workOrders', 'pieces_Released', 'info_Pieces'));
     }
+        /**
+     * @param mixed string $className
+     */
     public function getDefaultProcessesByClass(string $className): ?array
     {
         return match ($className) {
@@ -195,121 +200,126 @@ class ProcessesController extends Controller
         };
     }
 
-    public function searchCNominals($class, $process, $subprocess = null)
+    /**
+     * @param Clase $class
+     * @param mixed $process
+     * @param mixed $subprocess
+     */
+    public function searchCNominals(Clase $class, $process, $subprocess = null)
     {
         switch ($process) {
             case 'Cepillado':
                 $id_operation = 'Cepillado_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = Cepillado_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = Cepillado_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = Cepillado_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = Cepillado_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Desbaste Exterior':
                 $id_operation = 'Desbaste_Exterior_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = Desbaste_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = Desbaste_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = Desbaste_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = Desbaste_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Revision Laterales':
                 $id_operation = 'Revision_Laterales_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = RevLaterales_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = RevLaterales_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = RevLaterales_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = RevLaterales_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Primera Operacion':
                 $id_operation = 'Primera_Operacion_' . $class->nombre . "_" . $class->id_ot;
                 if ($class->nombre == 'Cabeza de Soplo') {
-                    $cNominal = PrimeraOperacionCabezaSoplo_cnominal::where('id_proceso', '=', $id_operation)->first();
-                    $tolerance = PrimeraOperacionCabezaSoplo_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                    $cNominal = PrimeraOperacionCabezaSoplo_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                    $tolerance = PrimeraOperacionCabezaSoplo_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 } else {
-                    $cNominal = PrimeraOpeSoldadura_cnominal::where('id_proceso', '=', $id_operation)->first();
-                    $tolerance = PrimeraOpeSoldadura_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                    $cNominal = PrimeraOpeSoldadura_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                    $tolerance = PrimeraOpeSoldadura_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 }
                 break;
             case 'Primera Operacion Cabeza Soplo': // Added case
                 $id_operation = 'Primera_Operacion_Cabeza_Soplo_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = PrimeraOperacionCabezaSoplo_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = PrimeraOperacionCabezaSoplo_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = PrimeraOperacionCabezaSoplo_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = PrimeraOperacionCabezaSoplo_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
 
             case 'Segunda Operacion':
                 $id_operation = 'Segunda_Operacion_' . $class->nombre . "_" . $class->id_ot;
                 if ($class->nombre == 'Cabeza de Soplo') {
-                    $cNominal = SegundaOperacionCabezaSoplo_cnominal::where('id_proceso', '=', $id_operation)->first();
-                    $tolerance = SegundaOperacionCabezaSoplo_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                    $cNominal = SegundaOperacionCabezaSoplo_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                    $tolerance = SegundaOperacionCabezaSoplo_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 } else {
-                    $cNominal = SegundaOpeSoldadura_cnominal::where('id_proceso', '=', $id_operation)->first();
-                    $tolerance = SegundaOpeSoldadura_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                    $cNominal = SegundaOpeSoldadura_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                    $tolerance = SegundaOpeSoldadura_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 }
                 break;
             case 'Segunda Operacion Cabeza Soplo': // Added case
                 $id_operation = 'Segunda_Operacion_Cabeza_Soplo_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = SegundaOperacionCabezaSoplo_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = SegundaOperacionCabezaSoplo_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = SegundaOperacionCabezaSoplo_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = SegundaOperacionCabezaSoplo_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Barreno Maniobra':
                 $id_operation = 'Barreno_Maniobra_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = BarrenoManiobra_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = BarrenoManiobra_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = BarrenoManiobra_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = BarrenoManiobra_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
 
             case 'Calificado':
                 $id_operation = 'Calificado_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = revCalificado_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = revCalificado_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = revCalificado_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = revCalificado_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Acabado Bombillo':
                 $id_operation = 'Acabado_Bombillo_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = AcabadoBombilo_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = AcabadoBombilo_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = AcabadoBombilo_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = AcabadoBombilo_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Acabado Molde':
                 $id_operation = 'Acabado_Molde_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = AcabadoMolde_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = AcabadoMolde_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = AcabadoMolde_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = AcabadoMolde_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Barreno Profundidad':
                 $id_operation = 'Barreno_Profundidad_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = BarrenoProfundidad_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = BarrenoProfundidad_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = BarrenoProfundidad_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = BarrenoProfundidad_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Cavidades':
                 $id_operation = 'Cavidades_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = Cavidades_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = Cavidades_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = Cavidades_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = Cavidades_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Copiado':
                 $id_operation = 'Copiado_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = Copiado_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = Copiado_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = Copiado_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = Copiado_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Off Set':
                 $id_operation = 'Off_Set_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = OffSet_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = OffSet_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = OffSet_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = OffSet_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Palomas':
                 $id_operation = 'Palomas_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = Palomas_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = Palomas_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = Palomas_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = Palomas_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Rebajes':
                 $id_operation = 'Rebajes_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = Rebajes_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = Rebajes_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = Rebajes_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = Rebajes_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             case 'Operacion Equipo':
                 $subprocessModified = str_replace(' ', '_', $subprocess);
                 $id_operation = 'Operacion_Equipo_' . $subprocessModified . "_" . $class->nombre . "_" . $class->id_ot;
                 if ($class->nombre == 'Candado Obturador') {
-                    $cNominal = CandadoObturador_cnominal::where('id_proceso', '=', $id_operation)->first();
-                    $tolerance = CandadoObturador_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                    $cNominal = CandadoObturador_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                    $tolerance = CandadoObturador_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 } else {
-                    $cNominal = PySOpeSoldadura_cnominal::where('id_proceso', '=', $id_operation)->first();
-                    $tolerance = PySOpeSoldadura_tolerancia::where('id_proceso', '=', $id_operation)->first();
+                    $cNominal = PySOpeSoldadura_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                    $tolerance = PySOpeSoldadura_tolerancia::query()->where('id_proceso', '=', $id_operation)->first();
                 }
                 break;
             case 'Embudo CM':
                 $id_operation = 'Embudo_CM_' . $class->nombre . "_" . $class->id_ot;
-                $cNominal = EmbudoCM_cnominal::where('id_proceso', '=', $id_operation)->first();
-                $tolerance = EmbudoCM_tolerancias::where('id_proceso', '=', $id_operation)->first();
+                $cNominal = EmbudoCM_cnominal::query()->where('id_proceso', '=', $id_operation)->first();
+                $tolerance = EmbudoCM_tolerancias::query()->where('id_proceso', '=', $id_operation)->first();
                 break;
             default:
                 return null;
@@ -319,6 +329,10 @@ class ProcessesController extends Controller
         }
         return null;
     }
+        /**
+     * @param mixed $cNominal
+     * @param mixed $tolerance
+     */
     public function verifycNominalsExisting($cNominal, $tolerance)
     {
         if ($cNominal && $tolerance) {
@@ -326,10 +340,17 @@ class ProcessesController extends Controller
         }
         return false;
     }
+        /**
+     * @param mixed $workOrder
+     * @param mixed $class
+     * @param mixed $process
+     * @param mixed $subprocess
+     * @param mixed $operation
+     */
     public function updatePieces($workOrder, $class, $process, $subprocess = null, $operation = null)
     {
         $workOrder = explode(" - ", $workOrder)[0];
-        $class = Clase::where('nombre', '=', $class)->where('id_ot', '=', $workOrder)->first(); // Obtener clase
+        $class = Clase::query()->where('nombre', '=', $class)->where('id_ot', '=', $workOrder)->first(); // Obtener clase
 
         if (!$class) {
             return;
@@ -339,7 +360,7 @@ class ProcessesController extends Controller
         $processModified = $process . ($operation ? "_$operation" : '');
 
         // Obtener todas las piezas relacionadas con la orden de trabajo, clase y proceso
-        $metas = Metas::where('id_ot', '=', $workOrder)->where('id_clase', '=', $class->id)->where('proceso', '=', $processModified)->get();
+        $metas = Metas::query()->where('id_ot', '=', $workOrder)->where('id_clase', '=', $class->id)->where('proceso', '=', $processModified)->get();
 
         // Actualizar cada pieza de las meta
         foreach ($metas as $meta) {
@@ -348,6 +369,9 @@ class ProcessesController extends Controller
         }
     }
 
+        /**
+     * @param \Illuminate\Http\Request Request $request
+     */
     public function storeCNominalsData(Request $request)
     {
         $processModified = str_replace(' ', '_', $request->input('process'));
@@ -390,6 +414,9 @@ class ProcessesController extends Controller
         return redirect()->to('cNominals')->with('success', 'Datos de ' . $request->input('process') . ' guardados correctamente.');
     }
 
+        /**
+     * @param mixed $procesos
+     */
     public function convertirString($procesos)
     {
         $stringProcesos = array();
@@ -460,6 +487,9 @@ class ProcessesController extends Controller
         return $stringProcesos;
     }
 
+        /**
+     * @param mixed $process
+     */
     public function convertProcessToString($process)
     {
         switch ($process) {
@@ -513,10 +543,14 @@ class ProcessesController extends Controller
                 return "Soldadura PTA";
         }
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function cepillado($id_proceso, $request)
     {
-        $cNominal = Cepillado_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = Cepillado_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = Cepillado_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = Cepillado_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new Cepillado_cnominal(); //Creación de objeto Cepillado_cnominal.
         }
@@ -580,10 +614,14 @@ class ProcessesController extends Controller
         $tolerance->save();
     }
 
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function desbasteExterior($id_proceso, $request)
     {
-        $cNominal = Desbaste_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = Desbaste_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = Desbaste_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = Desbaste_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new Desbaste_cnominal();
         }
@@ -621,10 +659,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function revisionLaterales($id_proceso, $request)
     {
-        $cNominal = RevLaterales_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = RevLaterales_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = RevLaterales_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = RevLaterales_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new RevLaterales_cnominal();
         }
@@ -655,10 +697,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function primeraOpeSoldadura($id_proceso, $request)
     {
-        $cNominal = PrimeraOpeSoldadura_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = PrimeraOpeSoldadura_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = PrimeraOpeSoldadura_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = PrimeraOpeSoldadura_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new PrimeraOpeSoldadura_cnominal();
         }
@@ -701,10 +747,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function barrenoManiobra($id_proceso, $request)
     {
-        $cNominal = BarrenoManiobra_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = BarrenoManiobra_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = BarrenoManiobra_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = BarrenoManiobra_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new BarrenoManiobra_cnominal();
         }
@@ -727,10 +777,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function segundaOpeSoldadura($id_proceso, $request)
     {
-        $cNominal = SegundaOpeSoldadura_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = SegundaOpeSoldadura_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = SegundaOpeSoldadura_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = SegundaOpeSoldadura_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new SegundaOpeSoldadura_cnominal(); //Creación de objeto segundaOpeSoldadura_cnominal.
         }
@@ -770,10 +824,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function calificado($id_proceso, $request)
     {
-        $cNominal = RevCalificado_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = RevCalificado_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = RevCalificado_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = RevCalificado_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new RevCalificado_cnominal();
         }
@@ -817,10 +875,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function acabadoBombillo($id_proceso, $request)
     {
-        $cNominal = AcabadoBombilo_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = AcabadoBombilo_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = AcabadoBombilo_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = AcabadoBombilo_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new AcabadoBombilo_cnominal();
         }
@@ -879,10 +941,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function acabadoMolde($id_proceso, $request)
     {
-        $cNominal = AcabadoMolde_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = AcabadoMolde_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = AcabadoMolde_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = AcabadoMolde_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new AcabadoMolde_cnominal();
         }
@@ -937,10 +1003,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function barrenoProfundidad($id_proceso, $request)
     {
-        $cNominal = BarrenoProfundidad_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = BarrenoProfundidad_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = BarrenoProfundidad_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = BarrenoProfundidad_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new BarrenoProfundidad_cnominal();
         }
@@ -978,10 +1048,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function pysOpeSoldadura($id_proceso, $request)
     {
-        $cNominal = PySOpeSoldadura_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = PySOpeSoldadura_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = PySOpeSoldadura_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = PySOpeSoldadura_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new PySOpeSoldadura_cnominal();
         }
@@ -1015,10 +1089,14 @@ class ProcessesController extends Controller
         $tolerance->save();
     }
 
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function candadoObturador($id_proceso, $request)
     {
-        $cNominal = CandadoObturador_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = CandadoObturador_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = CandadoObturador_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = CandadoObturador_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new CandadoObturador_cnominal();
         }
@@ -1051,10 +1129,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function cavidades($id_proceso, $request)
     {
-        $cNominal = Cavidades_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = Cavidades_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = Cavidades_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = Cavidades_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new Cavidades_cnominal();
         }
@@ -1096,10 +1178,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function copiado($id_proceso, $request)
     {
-        $cNominal = Copiado_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = Copiado_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = Copiado_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = Copiado_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new Copiado_cnominal();
         }
@@ -1158,10 +1244,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function offSet($id_proceso, $request)
     {
-        $cNominal = OffSet_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = OffSet_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = OffSet_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = OffSet_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new OffSet_cnominal();
         }
@@ -1198,10 +1288,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function palomas($id_proceso, $request)
     {
-        $cNominal = Palomas_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = Palomas_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = Palomas_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = Palomas_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new Palomas_cnominal();
         }
@@ -1226,10 +1320,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function rebajes($id_proceso, $request)
     {
-        $cNominal = Rebajes_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = Rebajes_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = Rebajes_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = Rebajes_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new Rebajes_cnominal();
         }
@@ -1261,10 +1359,14 @@ class ProcessesController extends Controller
         $cNominal->save();
         $tolerance->save();
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function embudoCM($id_proceso, $request)
     {
-        $cNominal = EmbudoCM_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = EmbudoCM_tolerancias::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = EmbudoCM_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = EmbudoCM_tolerancias::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new EmbudoCM_cnominal();
         }
@@ -1289,10 +1391,14 @@ class ProcessesController extends Controller
         $cNominal->save(); //Guardado de datos en tabla Palomas_cnominal.
         $tolerance->save(); //Guardado de datos en tabla Palomas_tolerancia.
     }
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function primeraOperacionCS($id_proceso, $request)
     {
-        $cNominal = PrimeraOperacionCabezaSoplo_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = PrimeraOperacionCabezaSoplo_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = PrimeraOperacionCabezaSoplo_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = PrimeraOperacionCabezaSoplo_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new PrimeraOperacionCabezaSoplo_cnominal();
         }
@@ -1322,10 +1428,14 @@ class ProcessesController extends Controller
         $tolerance->save();
     }
 
+        /**
+     * @param int|string $id_proceso
+     * @param mixed $request
+     */
     public function segundaOperacionCS($id_proceso, $request)
     {
-        $cNominal = SegundaOperacionCabezaSoplo_cnominal::where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = SegundaOperacionCabezaSoplo_tolerancia::where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = SegundaOperacionCabezaSoplo_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = SegundaOperacionCabezaSoplo_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (!$cNominal) {
             $cNominal = new SegundaOperacionCabezaSoplo_cnominal();
         }

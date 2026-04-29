@@ -10,13 +10,19 @@ class DesbasteExteriorController extends Controller
     {
         $this->middleware('auth');
     }
+        /**
+     * @param mixed $request
+     * @param mixed $cNominal
+     * @param mixed $tolerance
+     * @param int $index
+     */
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
             if (!$pieceId)
                 return;
-            $piece = Desbaste_pza::find($pieceId);
+            $piece = Desbaste_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = ['diametro_mordaza', 'diametro_ceja', 'diametro_sufrideraExtra', 'simetria_ceja', 'simetria_mordaza', 'altura_ceja', 'altura_sufridera', 'observaciones',];
@@ -31,7 +37,7 @@ class DesbasteExteriorController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = Desbaste_pza::find($pieceId);
+            $piece = Desbaste_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'diametro_mordaza',
@@ -63,6 +69,11 @@ class DesbasteExteriorController extends Controller
     }
 
 
+        /**
+     * @param mixed $pieza
+     * @param mixed $cNominal
+     * @param mixed $tolerancia
+     */
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
         if ($pieza->diametro_mordaza > ($cNominal->diametro_mordaza + $tolerancia->diametro_mordaza1) || $pieza->diametro_mordaza < ($cNominal->diametro_mordaza - $tolerancia->diametro_mordaza2) || $pieza->diametro_ceja > ($cNominal->diametro_ceja + $tolerancia->diametro_ceja1) || $pieza->diametro_ceja < ($cNominal->diametro_ceja - $tolerancia->diametro_ceja2) || $pieza->diametro_sufrideraExtra > ($cNominal->diametro_sufrideraExtra + $tolerancia->diametro_sufrideraExtra1) || $pieza->diametro_sufrideraExtra < ($cNominal->diametro_sufrideraExtra - $tolerancia->diametro_sufrideraExtra2) || $pieza->simetria_ceja > ($cNominal->simetria_ceja + $tolerancia->simetria_ceja1) || $pieza->simetria_ceja < ($cNominal->simetria_ceja - $tolerancia->simetria_ceja2) || $pieza->simetria_mordaza > ($cNominal->simetria_mordaza + $tolerancia->simetria_mordaza1) || $pieza->simetria_mordaza < ($cNominal->simetria_mordaza - $tolerancia->simetria_mordaza2) || $pieza->altura_ceja > ($cNominal->altura_ceja + $tolerancia->altura_ceja1) || $pieza->altura_ceja < ($cNominal->altura_ceja - $tolerancia->altura_ceja2) || $pieza->altura_sufridera > ($cNominal->altura_sufridera + $tolerancia->altura_sufridera1) || $pieza->altura_sufridera < ($cNominal->altura_sufridera - $tolerancia->altura_sufridera2)) {

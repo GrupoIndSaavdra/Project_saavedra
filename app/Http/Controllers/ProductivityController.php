@@ -92,9 +92,9 @@ class ProductivityController extends Controller
 
             if ($user->prod_status == 'machining') {
                 // Buscamos la máquina ocupada por este usuario (esto nos vincula a la meta)
-                $maquinaActiva = \App\Models\Maquinas::where('id_usuario', $user->id)->first();
+                $maquinaActiva = \App\Models\Maquinas::query()->where('id_usuario', $user->id)->first();
                 if ($maquinaActiva && $maquinaActiva->id_meta) {
-                    $meta = \App\Models\Metas::find($maquinaActiva->id_meta);
+                    $meta = \App\Models\Metas::query()->find($maquinaActiva->id_meta);
                     if ($meta) {
                         $activeOT = $meta->id_ot;
                         $activeClase = $meta->id_clase;
@@ -103,7 +103,7 @@ class ProductivityController extends Controller
                         // Intentar buscar la pieza que está en estado "ocupada" (1) para este operador en esta meta
                         // Nota: El modelo de pieza varía según el proceso, pero podemos intentar buscar en la tabla general de Pieza
                         // o dejarlo como null si es muy complejo, pero al menos OT y Clase son seguros.
-                        $activeNPieza = \App\Models\Pieza::where('id_clase', $activeClase)
+                        $activeNPieza = \App\Models\Pieza::query()->where('id_clase', $activeClase)
                             ->where('proceso', $activeProceso)
                             ->where('id_operador', $user->id)
                             ->orderBy('id', 'desc')

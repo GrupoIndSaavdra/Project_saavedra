@@ -10,13 +10,20 @@ class CopiadoController extends Controller
     {
         $this->middleware('auth');
     }
+        /**
+     * @param mixed $request
+     * @param mixed $cNominal
+     * @param mixed $tolerance
+     * @param int $index
+     * @param mixed $arrayPieces
+     */
     public function storePiece($request, $cNominal, $tolerance, $index, $arrayPieces)
     {
         if ($index !== null) {
             $pieceId = ($arrayPieces ? $arrayPieces[$index] : ($request->piece[$index] ?? null));
             if (!$pieceId)
                 return;
-            $piece = Copiado_pza::find($pieceId);
+            $piece = Copiado_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
             $fields = [
@@ -67,7 +74,7 @@ class CopiadoController extends Controller
             $pieceId = $request->piece;
             if (!$pieceId)
                 return;
-            $piece = Copiado_pza::find($pieceId);
+            $piece = Copiado_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
                 'diametro1_cilindrado',
@@ -111,6 +118,11 @@ class CopiadoController extends Controller
         $piece->estado = 2;
         $piece->save();
     }
+        /**
+     * @param mixed $pieza
+     * @param mixed $cNominal
+     * @param mixed $tolerancia
+     */
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
         $subprocesos = [

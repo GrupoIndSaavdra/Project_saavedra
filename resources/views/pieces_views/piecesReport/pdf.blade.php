@@ -174,8 +174,8 @@
                 <!--Definicion del color de la columna con respecto a sus liberaciones y errores-->
                 <?php
                 $colorColumn = '#FFFFFF'; // default blanco
-                $indexLiberation = (str_contains($pieces[$i][4] ?? '', 'Operacion Equipo')) ? 10 : 9;
-                $indexError      = (str_contains($pieces[$i][4] ?? '', 'Operacion Equipo')) ? 6 : 5;
+                $indexLiberation = 9;
+                $indexError      = 5;
                 $libVal = $pieces[$i][$indexLiberation] ?? null;
                 $errVal = $pieces[$i][$indexError] ?? 'Ninguno';
                 switch (true) {
