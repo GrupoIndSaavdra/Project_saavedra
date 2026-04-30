@@ -17,6 +17,10 @@ return new class extends Migration
 
             // Nombre de la Orden de Trabajo (carpeta raíz)
             $table->string('ot', 100);
+            $table->enum('status', ['activa', 'inactiva'])->default('activa');
+            $table->json('ayudas_config')->nullable();
+            $table->timestamp('alert_sent_at')->nullable();
+            $table->json('almacen_archivos')->nullable();
 
             $table->timestamps();
 

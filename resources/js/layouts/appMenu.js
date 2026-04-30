@@ -169,10 +169,11 @@ function getRoutes(profile) {
                 {
                     title: "Documentación Técnica",
                     routes: [
-                        ["dibujos.manage", "Dibujos de Producción"],
+                        ["dibujos.manage", "Dibujos de Maquinados"],
                         ["fundicion.manage", "Dibujos de Fundición"],
                         ["manuales.manage", "Manuales de Procesos"],
-                        ["ayudas.manage", "Ayudas Visuales"],
+                        ["ayudas.manage", "Ayudas Visuales de Maquinados"],
+                        ["ayudas_fundicion.manage", "Ayudas Visuales de Fundición"],
                     ],
                 },
                 {
@@ -251,6 +252,12 @@ function getRoutes(profile) {
                         // ["showTimes", "Modificar tiempos de producción"],
                     ],
                 },
+                {
+                    title: "Documentación Técnica",
+                    routes: [
+                        ["almacen.fundicion.index", "Dibujos de Fundición"],
+                    ],
+                },
             ];
             break;
         case "5":
@@ -274,6 +281,12 @@ function getRoutes(profile) {
                         ["soldadura.recepcionPlanta", "Registrar entrada de Soldadura"],
                         ["soldadura.liberarQRPlanta", "Entrega de Soldadura a Planta"],
                         ["soldadura.regenerarQR", "Regenerar QRs"]
+                    ],
+                },
+                {
+                    title: "Documentación Técnica",
+                    routes: [
+                        ["almacen.fundicion.index", "Dibujos de Fundición"],
                     ],
                 },
             ];

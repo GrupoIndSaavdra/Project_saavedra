@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AyudaVisualFileLog;
-use App\Models\AyudaVisualHistory;
+use App\Models\AyudaVisualFundicionFileLog;
+use App\Models\AyudaVisualFundicionHistory;
 use App\Models\Procesos;
 use App\Models\Clase;
 use App\Models\Fecha_proceso;
@@ -12,9 +12,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class AyudasVisualesPdfController extends Controller
+class AyudasVisualesFundicionPdfController extends Controller
 {
-    private const BASE_DIR = 'DOCUMENTACION_GIS/AYUDAS_MAQUINADOS';
+    private const BASE_DIR = 'DOCUMENTACION_GIS/AYUDAS_FUNDICION';
 
     /**
      * Directorio legado para compatibilidad con archivos anteriores.
@@ -32,36 +32,26 @@ class AyudasVisualesPdfController extends Controller
     {
         $estructura = $this->buildStructure();
 
-        // 1. Catálogo de Clases Únicas
-        $clasesUnicas = Clase::query()->select('nombre')
-            ->distinct()
-            ->orderBy('nombre')
-            ->get()
-            ->map(function($clase) {
-                return (object)[ 'id' => $clase->nombre, 'nombre' => $clase->nombre ];
-            });
+        // 1. Catálogo de Clases Únicas + Pistones y Guías
+        $clasesBd = Clase::query()->select('nombre')->distinct()->pluck('nombre')->toArray();
+        $clasesCompletas = array_unique(array_merge($clasesBd, ['Pistones', 'Guías']));
+        sort($clasesCompletas);
+
+        $clasesUnicas = collect($clasesCompletas)->map(function($clase) {
+            return (object)[ 'id' => $clase, 'nombre' => $clase ];
+        });
 
         $claseSeleccionadaId   = $request->query('clase_id');
-        $procesoSeleccionadoId = $request->query('proceso_id');
+        // Forzamos que el proceso sea Fundición
+        $procesoSeleccionadoId = 'Fundicion';
 
-        // 2. Catálogo de Procesos Estándar (Completo)
-        $nombresProcesos = [
-            'General', 'Cepillado', 'Desbaste Exterior', 'Revision Laterales', 'Primera Operacion',
-            'Barreno Maniobra', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA',
-            'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo', 'Acabado Molde',
-            'Barreno Profundidad', 'Cavidades', 'Copiado', 'Off Set', 'Palomas',
-            'Rebajes', 'Grabado', 'Operacion Equipo', 'Embudo CM',
-            'Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'
-        ];
-
-        $todosLosProcesos = collect($nombresProcesos)->map(function($nombre) {
-            return (object)[ 'id' => $nombre, 'nombre' => $nombre ];
-        })->sortBy(function($p) {
-            return $p->nombre === 'General' ? '' : $p->nombre; // General siempre primero
-        })->values();
+        // 2. Catálogo de Procesos (Solo Fundición)
+        $todosLosProcesos = collect([
+            (object)[ 'id' => 'Fundicion', 'nombre' => 'Fundicion' ]
+        ]);
 
         $claseActiva = $claseSeleccionadaId ? $clasesUnicas->firstWhere('id', $claseSeleccionadaId) : null;
-        $procesoActivo = $procesoSeleccionadoId ? $todosLosProcesos->firstWhere('id', $procesoSeleccionadoId) : null;
+        $procesoActivo = $todosLosProcesos->firstWhere('id', 'Fundicion');
 
         return view('wo_views.manage_documentation', array_merge(compact(
             'estructura',
@@ -72,19 +62,19 @@ class AyudasVisualesPdfController extends Controller
             'procesoActivo',
             'claseActiva'
         ), [
-            'moduleType' => 'ayudas',
-            'modulePrefix' => 'ayudas',
-            'pageTitle' => 'Gestión de Ayudas Visuales',
-            'directoryName' => 'DOCUMENTACION_GIS / AYUDAS_MAQUINADOS',
+            'moduleType' => 'ayudas_fundicion',
+            'modulePrefix' => 'ayudas_fundicion',
+            'pageTitle' => 'Gestión de Ayudas Visuales de Fundición',
+            'directoryName' => 'DOCUMENTACION_GIS / AYUDAS_FUNDICION',
             'moduleMetadata' => [
-                'description' => 'Selecciona primero la clase y luego el proceso.'
+                'description' => 'Selecciona la clase para administrar sus ayudas maestras.'
             ]
         ]));
     }
 
     public function getLog()
     {
-        $logs = AyudaVisualFileLog::query()
+        $logs = AyudaVisualFundicionFileLog::query()
             ->orderByDesc('created_at')
             ->limit(50)
             ->get(['id', 'user_name', 'action', 'ruta', 'archivo', 'created_at'])
@@ -134,7 +124,7 @@ class AyudasVisualesPdfController extends Controller
             ->map(function($f) use ($proceso, $clase) {
                 return [
                     'nombre' => basename($f),
-                    'url'    => route('ayudas.serve', [
+                    'url'    => route('ayudas_fundicion.serve', [
                         'proceso' => $proceso,
                         'clase'   => $clase,
                         'archivo' => basename($f),
@@ -213,7 +203,7 @@ class AyudasVisualesPdfController extends Controller
 
         Storage::disk('local')->makeDirectory($dirPath);
 
-        AyudaVisualHistory::firstOrCreate(['proceso' => $proceso, 'clase' => $clase]);
+        AyudaVisualFundicionHistory::firstOrCreate(['proceso' => $proceso, 'clase' => $clase]);
         $this->logAction('crear_carpeta', $proceso . '/' . $clase, null);
 
         return response()->json([
@@ -241,7 +231,7 @@ class AyudasVisualesPdfController extends Controller
 
         if (!Storage::disk('local')->exists($dirPath)) {
             Storage::disk('local')->makeDirectory($dirPath);
-            AyudaVisualHistory::firstOrCreate(['proceso' => $proceso, 'clase' => $clase]);
+            AyudaVisualFundicionHistory::firstOrCreate(['proceso' => $proceso, 'clase' => $clase]);
         }
 
         $file         = $request->file('pdf');
@@ -262,7 +252,7 @@ class AyudasVisualesPdfController extends Controller
             'success'  => true,
             'message'  => "PDF '{$originalName}' subido correctamente.",
             'nombre'   => $originalName,
-            'url'      => route('ayudas.serve', [
+            'url'      => route('ayudas_fundicion.serve', [
                 'proceso' => $proceso,
                 'clase'   => $clase,
                 'archivo' => $originalName,
@@ -292,7 +282,7 @@ class AyudasVisualesPdfController extends Controller
             if (Storage::disk('local')->exists($oldPath)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Las ayudas visuales antiguas son de solo lectura.',
+                    'message' => 'Los archivos antiguos son de solo lectura.',
                 ], 403);
             }
 
@@ -425,7 +415,7 @@ class AyudasVisualesPdfController extends Controller
             'success'  => true,
             'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$originalName}'.",
             'nombre'   => $originalName,
-            'url'      => route('ayudas.serve', [
+            'url'      => route('ayudas_fundicion.serve', [
                 'proceso' => $proceso,
                 'clase'   => $clase,
                 'archivo' => $originalName,
@@ -441,40 +431,24 @@ class AyudasVisualesPdfController extends Controller
     {
         $estructura = [];
 
-        // 1. Escaneo del directorio Nuevo
-        if (Storage::disk('local')->exists(self::BASE_DIR)) {
-            $dirs = Storage::disk('local')->directories(self::BASE_DIR);
-            foreach ($dirs as $pDir) {
-                $pName = basename($pDir);
-                $cDirs = Storage::disk('local')->directories($pDir);
-                if (empty($cDirs)) {
-                    $estructura['-- SIN CLASE --'][] = $pName;
-                } else {
-                    foreach ($cDirs as $cDir) {
-                        $cName = basename($cDir);
-                        $estructura[$cName][] = $pName;
-                    }
-                }
+        // 1. Nuevo
+        $newBase = self::BASE_DIR . '/Fundicion';
+        if (Storage::disk('local')->exists($newBase)) {
+            $claseDirs = Storage::disk('local')->directories($newBase);
+            foreach ($claseDirs as $claseDir) {
+                $claseName = basename($claseDir);
+                $estructura[$claseName][] = 'Fundicion';
             }
         }
 
-        // 2. Escaneo del directorio Viejo (Fallback)
-        if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
-            $dirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
-            foreach ($dirs as $pDir) {
-                $pName = basename($pDir);
-                $cDirs = Storage::disk('local')->directories($pDir);
-                if (empty($cDirs)) {
-                    if (!isset($estructura['-- SIN CLASE --']) || !in_array($pName, $estructura['-- SIN CLASE --'])) {
-                        $estructura['-- SIN CLASE --'][] = $pName;
-                    }
-                } else {
-                    foreach ($cDirs as $cDir) {
-                        $cName = basename($cDir);
-                        if (!isset($estructura[$cName]) || !in_array($pName, $estructura[$cName])) {
-                            $estructura[$cName][] = $pName;
-                        }
-                    }
+        // 2. Viejo
+        $oldBase = self::OLD_BASE_DIR . '/Fundicion';
+        if (Storage::disk('local')->exists($oldBase)) {
+            $oldClaseDirs = Storage::disk('local')->directories($oldBase);
+            foreach ($oldClaseDirs as $claseDir) {
+                $claseName = basename($claseDir);
+                if (!isset($estructura[$claseName])) {
+                    $estructura[$claseName][] = 'Fundicion';
                 }
             }
         }
@@ -503,7 +477,7 @@ class AyudasVisualesPdfController extends Controller
             );
         }
 
-        AyudaVisualFileLog::create([
+        AyudaVisualFundicionFileLog::create([
             'user_id'   => $user?->id,
             'user_name' => $userName,
             'action'    => $action,

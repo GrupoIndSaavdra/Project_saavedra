@@ -71,6 +71,11 @@
         <div class="message-content">
             <p>Se suben dibujos de fundicion de la OT: <strong>{{ $otName }}</strong>, verificada y validada. Favor de
                 verificar en el Software en el apartado de <strong>Dibujos de Fundicion</strong>.</p>
+
+            @if (!empty($ayudas))
+                <p><strong>Ayudas Visuales vinculadas:</strong> {{ implode(', ', $ayudas) }}.</p>
+            @endif
+
             @if ($fileName)
                 <p>Archivo subido: {{ $fileName }}</p>
             @endif

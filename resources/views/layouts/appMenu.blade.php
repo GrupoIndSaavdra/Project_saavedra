@@ -88,6 +88,8 @@
         'fundicion.manage': @json(route('fundicion.manage')),
         'manuales.manage': @json(route('manuales.manage')),
         'ayudas.manage': @json(route('ayudas.manage')),
+        'ayudas_fundicion.manage': @json(route('ayudas_fundicion.manage')),
+        'almacen.fundicion.index': @json(route('almacen.fundicion.index')),
         systemLogsReport: @json(route('systemLogsReport'))
     };
 </script>

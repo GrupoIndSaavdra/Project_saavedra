@@ -13,11 +13,12 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DibujosPdfController extends Controller
 {
+    private const BASE_DIR = 'DOCUMENTACION_GIS/DIBUJOS_MAQUINADOS';
+
     /**
-     * Disco local de Laravel donde se almacenan los PDFs.
-     * Carpeta base: storage/app/DIBUJOS_GIS/
+     * Directorio legado para compatibilidad con archivos anteriores.
      */
-    private const BASE_DIR = 'DIBUJOS_GIS';
+    private const OLD_BASE_DIR = 'DIBUJOS_GIS';
 
     // =========================================================================
     // VISTAS
@@ -60,7 +61,7 @@ class DibujosPdfController extends Controller
             'moduleType' => 'dibujos',
             'modulePrefix' => 'dibujos',
             'pageTitle' => 'Gestión de Dibujos / Planos PDF',
-            'directoryName' => 'DIBUJOS_GIS',
+            'directoryName' => 'DOCUMENTACION_GIS / DIBUJOS_MAQUINADOS',
             'moduleMetadata' => [
                 'description' => 'Selecciona la OT y Clase existentes en el sistema.'
             ]
@@ -123,36 +124,32 @@ class DibujosPdfController extends Controller
             return response()->json(['error' => 'Parámetros OT y Clase son requeridos.'], 422);
         }
 
-        $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
+        $newDirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
+        $oldDirPath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
 
-        if (!Storage::disk('local')->exists($dirPath)) {
-            return response()->json([
-                'archivos' => [],
-                'ot'       => $ot,
-                'clase'    => $clase,
-                'existe'   => false,
-            ]);
-        }
+        $newFiles = Storage::disk('local')->exists($newDirPath) ? Storage::disk('local')->files($newDirPath) : [];
+        $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
 
-        $files = Storage::disk('local')->files($dirPath);
-
-        $archivos = collect($files)
+        $allFiles = collect(array_merge($newFiles, $oldFiles))
             ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-            ->map(fn($f) => [
-                'nombre' => basename($f),
-                'url'    => route('dibujos.serve', [
-                    'ot'     => $ot,
-                    'clase'  => $clase,
-                    'archivo'=> basename($f),
-                ]),
-            ])
+            ->map(function($f) use ($ot, $clase) {
+                return [
+                    'nombre' => basename($f),
+                    'url'    => route('dibujos.serve', [
+                        'ot'     => $ot,
+                        'clase'  => $clase,
+                        'archivo'=> basename($f),
+                    ]),
+                ];
+            })
+            ->unique('nombre') // Evitar duplicados si existen en ambas carpetas
             ->values();
 
         return response()->json([
-            'archivos' => $archivos,
+            'archivos' => $allFiles,
             'ot'       => $ot,
             'clase'    => $clase,
-            'existe'   => true,
+            'existe'   => (count($allFiles) > 0),
         ]);
     }
 
@@ -173,6 +170,11 @@ class DibujosPdfController extends Controller
         }
 
         $filePath = self::BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
+        
+        // Fallback al directorio viejo si no existe en el nuevo
+        if (!Storage::disk('local')->exists($filePath)) {
+            $filePath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
+        }
 
         if (!Storage::disk('local')->exists($filePath)) {
             abort(404, 'Archivo no encontrado.');
@@ -309,6 +311,15 @@ class DibujosPdfController extends Controller
         $filePath = self::BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
 
         if (!Storage::disk('local')->exists($filePath)) {
+            // Si no existe en el nuevo, verificamos si existe en el viejo para dar error de solo lectura
+            $oldPath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
+            if (Storage::disk('local')->exists($oldPath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Los archivos del directorio antiguo son de solo lectura y no pueden ser eliminados.',
+                ], 403);
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'El archivo no existe.',
@@ -460,21 +471,31 @@ class DibujosPdfController extends Controller
      */
     private function buildStructure(): array
     {
-        $baseDir = self::BASE_DIR;
         $estructura = [];
 
-        // Si la carpeta base no existe aún, retornar vacío
-        if (!Storage::disk('local')->exists($baseDir)) {
-            return $estructura;
+        // 1. Escanear directorio nuevo
+        if (Storage::disk('local')->exists(self::BASE_DIR)) {
+            $otDirs = Storage::disk('local')->directories(self::BASE_DIR);
+            foreach ($otDirs as $otDir) {
+                $otName = basename($otDir);
+                $claseDirs = Storage::disk('local')->directories($otDir);
+                $estructura[$otName] = array_map('basename', $claseDirs);
+            }
         }
 
-        $otDirs = Storage::disk('local')->directories($baseDir);
-
-        foreach ($otDirs as $otDir) {
-            $otName   = basename($otDir);
-            $claseDirs = Storage::disk('local')->directories($otDir);
-            $clases   = array_map('basename', $claseDirs);
-            $estructura[$otName] = $clases;
+        // 2. Escanear directorio viejo (Fallback)
+        if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
+            $oldOtDirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
+            foreach ($oldOtDirs as $otDir) {
+                $otName = basename($otDir);
+                $claseDirs = array_map('basename', Storage::disk('local')->directories($otDir));
+                
+                if (isset($estructura[$otName])) {
+                    $estructura[$otName] = array_unique(array_merge($estructura[$otName], $claseDirs));
+                } else {
+                    $estructura[$otName] = $claseDirs;
+                }
+            }
         }
 
         ksort($estructura, SORT_NATURAL);

@@ -17,16 +17,18 @@ class DibujoFundicionAlertMail extends Mailable
 
     public $otName;
     public $fileName;
+    public $ayudas;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($otName, $fileName)
+    public function __construct($otName, $fileName, $ayudas = [])
     {
         $this->otName = $otName;
         $this->fileName = $fileName;
+        $this->ayudas = $ayudas;
     }
 
     /**

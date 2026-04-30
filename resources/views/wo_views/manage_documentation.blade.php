@@ -116,6 +116,22 @@
                             @endif
                         </select>
                     </div>
+                @elseif($moduleType === 'ayudas_fundicion')
+                    {{-- Selector de Clase --}}
+                    <div class="dibujos-form-group">
+                        <label for="clase-select">Clase</label>
+                        <select id="clase-select" onchange="changeDocSelector('clase_id', this.value, ['proceso_id'])">
+                            <option value="">— Seleccionar Clase —</option>
+                            @foreach($clasesUnicas as $claseOpt)
+                                <option value="{{ $claseOpt->id }}" {{ $claseSeleccionadaId == $claseOpt->id ? 'selected' : '' }}>
+                                    {{ $claseOpt->nombre }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Proceso Oculto, ya sabemos que es Fundición --}}
+                    <input type="hidden" id="proceso-select" value="Fundicion">
                 @endif
 
                 {{-- Estado de la carpeta y botón crear --}}
@@ -146,18 +162,25 @@
                         $folderPathLabel = $procesoActivo->nombre . " / " . $claseActiva->nombre;
                         $carpetaExiste = isset($estructura[$param2Name]) && in_array($param1Name, $estructura[$param2Name]);
                         $folderProps = ['data-proceso' => $param1Name, 'data-clase' => $param2Name];
+                    } elseif ($moduleType === 'ayudas_fundicion' && $claseSeleccionadaId && $claseActiva) {
+                        $isReady = true;
+                        $param1Name = 'Fundicion';
+                        $param2Name = $claseActiva->nombre;
+                        $folderPathLabel = "Fundicion / " . $claseActiva->nombre;
+                        $carpetaExiste = isset($estructura[$param2Name]) && in_array($param1Name, $estructura[$param2Name]);
+                        $folderProps = ['data-proceso' => $param1Name, 'data-clase' => $param2Name];
                     } elseif ($moduleType === 'fundicion' && $otSeleccionadaId && $otActiva) {
                         $isReady = true;
                         $param1Name = (string) $otActiva->id;
                         $folderPathLabel = "OT " . $otActiva->id . ($otActiva->moldura ? " — " . $otActiva->moldura->nombre : "");
-                        
+
                         // En fundicion, la estructura es lineal (solo OTs en raiz)
                         // Para armar el nombre correcto como devuelve buildStructure
                         $expectedFolderName = "OT " . $otActiva->id . ($otActiva->moldura ? " - " . $otActiva->moldura->nombre : "");
                         // sanear
                         $expectedFolderName = trim(preg_replace('/[\/\\\\]/', '', preg_replace('/\.\.+/', '', $expectedFolderName)));
                         $carpetaExiste = in_array($expectedFolderName, $estructura);
-                        
+
                         $folderProps = ['data-ot' => $param1Name];
                     }
                 @endphp
@@ -167,10 +190,11 @@
                         La carpeta <strong class="folder-label">...</strong> ya existe en el servidor.
                     </div>
                     <div id="alert-ready-not-exists" class="d-alert d-alert-warning d-mt-2" style="display:none;">
-                        La carpeta <strong class="folder-label">...</strong> aun <strong>no existe</strong>. Creala antes de subir PDFs.
+                        La carpeta <strong class="folder-label">...</strong> aun <strong>no existe</strong>. Creala antes de
+                        subir PDFs.
                     </div>
-                    <button class="btn-dibujos d-mt-2" id="btn-crear-carpeta" style="display:none;"
-                        data-ot="" data-clase="" data-proceso="">
+                    <button class="btn-dibujos d-mt-2" id="btn-crear-carpeta" style="display:none;" data-ot="" data-clase=""
+                        data-proceso="">
                         Crear Carpeta
                     </button>
                     <div id="alert-not-ready" class="d-alert d-alert-info d-mt-2">
@@ -201,18 +225,18 @@
                             <span class="dibujos-file-name" id="d-upload-file-name"></span>
                         </div>
 
-                        <button class="btn-dibujos" id="btn-subir-pdf"
-                            data-ot="" data-clase="" data-proceso="" disabled>
+                        <button class="btn-dibujos" id="btn-subir-pdf" data-ot="" data-clase="" data-proceso="" disabled>
                             Subir PDF
                         </button>
                     </div>
-                    
+
                     <div id="upload-not-ready-content" class="d-card-placeholder">
                         <p class="d-text-subtle">Completa la selección en el panel izquierdo para habilitar la subida.</p>
                     </div>
                 </div>
             </div>
         </div>
+
 
         {{-- Panel de archivos de la carpeta seleccionada --}}
         @if($isReady)
@@ -227,6 +251,67 @@
                     <p class="d-text-subtle d-text-center d-w-100">Cargando archivos...</p>
                 </div>
             </div>
+
+            {{-- Panel de Ayudas Visuales (Solo para Fundición) --}}
+            @if($moduleType === 'fundicion')
+                @php
+                    $showAyudas = ($hasDibujos ?? false);
+                @endphp
+                <div class="dibujos-table-section d-mt-3" style="margin-bottom: 2em; display: {{ $showAyudas ? 'block' : 'none' }};"
+                    id="fundicion-ayudas-section">
+                    <h2>Ayudas Visuales Vinculadas a la OT</h2>
+                    <div class="dibujos-card" style="margin-top: 10px;">
+                        <p class="d-text-muted d-mb-2">¿Deseas agregar alguna ayuda visual para estos dibujos? Selecciona las clases
+                            correspondientes:</p>
+                        <form action="{{ route('fundicion.save_ayudas') }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="ot" value="{{ $expectedFolderName ?? $folderPathLabel }}">
+
+                            @if(count($ayudasConEstado) > 0)
+                                <div class="ayudas-grid d-justify-center">
+                                    @foreach($ayudasConEstado as $ayuda)
+                                        <label class="ayuda-chip {{ !$ayuda['is_new'] ? 'ayuda-up-to-date' : '' }}">
+                                            <input type="checkbox" name="ayudas[]" value="{{ $ayuda['nombre'] }}" {{ $ayuda['is_selected'] ? 'checked' : '' }} {{ !$ayuda['is_new'] ? 'disabled' : '' }}>
+
+                                            <div class="ayuda-chip-content">
+                                                <div class="ayuda-chip-icon">
+                                                    @if(!$ayuda['is_new'])
+                                                        <span style="color: #4ade80;">✔</span>
+                                                    @else
+                                                        ✓
+                                                    @endif
+                                                </div>
+                                                <span class="ayuda-chip-label">
+                                                    {{ $ayuda['nombre'] }}
+                                                    @if($ayuda['is_new'])
+                                                        <span class="new-ayuda-badge">NUEVO</span>
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        </label>
+                                    @endforeach
+                                </div>
+                                <div class="d-flex d-justify-center d-mt-2 d-gap-2">
+                                    <button type="submit" class="btn-dibujos"
+                                        style="width: auto; padding: 0.8em 2.5em; border-radius: 50px;">
+                                        Vincular Ayudas Visuales a esta OT
+                                    </button>
+                                    <button type="button" id="btn-desvincular-ayudas" class="btn-dibujos btn-dibujos-danger"
+                                        style="width: auto; padding: 0.8em 2.5em; border-radius: 50px;"
+                                        data-ot="{{ $expectedFolderName ?? $folderPathLabel }}">
+                                        Desvincular Ayudas Actuales
+                                    </button>
+                                </div>
+                            @else
+                                <div class="d-alert d-alert-warning">
+                                    No hay ayudas visuales maestras subidas en el servidor. (Directorio DOCUMENTACION_GIS /
+                                    AYUDAS_FUNDICION vacío)
+                                </div>
+                            @endif
+                        </form>
+                    </div>
+                </div>
+            @endif
         @endif
 
         {{-- Tabla global de estructura --}}
@@ -247,11 +332,14 @@
                                     <th class="d-text-center">Clase</th>
                                 @elseif($moduleType === 'fundicion')
                                     <th class="d-text-center">Orden de Trabajo</th>
+                                    <th class="d-text-center">Ayudas Visuales Vinculadas</th>
                                 @elseif($moduleType === 'manuales')
                                     <th class="d-text-center">Proceso</th>
                                 @elseif($moduleType === 'ayudas')
                                     <th class="d-text-center">Clase</th>
                                     <th class="d-text-center">Proceso</th>
+                                @else
+                                    <th class="d-text-center">Clase</th>
                                 @endif
                                 <th class="d-text-center">Archivos PDF</th>
                                 <th class="d-text-center">Acciones</th>
@@ -263,7 +351,7 @@
                                     @php
                                         // $otName format: "OT 6695 - TALL BOY..."
                                         preg_match('/OT\s*(\d+)/', $otName, $matches);
-                                        $otIdNumber = isset($matches[1]) ? (int)$matches[1] : 0;
+                                        $otIdNumber = isset($matches[1]) ? (int) $matches[1] : 0;
                                         $otReal = $otIdNumber > 0 ? $todasLasOTs->firstWhere('id', $otIdNumber) : null;
                                         $otLabel = $otReal ? ("OT " . $otReal->id . ($otReal->moldura ? " — " . $otReal->moldura->nombre : "")) : $otName;
                                         $otIdBD = $otReal ? $otReal->id : null;
@@ -278,7 +366,7 @@
                                                     <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar OT completa"
                                                         onclick="confirmarEliminarCarpeta('{{ $otName }}', null, '{{ $otLabel }}')">
                                                         <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                        <span>Eliminar</span>
+                                                        <span>Eliminar Carpeta</span>
                                                     </button>
                                                 </div>
                                             </td>
@@ -299,12 +387,12 @@
                                                         <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
                                                             onclick="irACarpeta('{{ $otIdBD ?? $otName }}', '{{ $claseIdBD ?? $claseName }}', {{ $otIdBD ? 'true' : 'false' }})">
                                                             <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                            <span>Ver</span>
+                                                            <span>Ver PDF's</span>
                                                         </button>
                                                         <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                                                             onclick="confirmarEliminarCarpeta('{{ $otName }}', '{{ $claseName }}', '{{ $otLabel }} / {{ $claseName }}')">
                                                             <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                            <span>Eliminar</span>
+                                                            <span>Eliminar Carpeta</span>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -313,7 +401,7 @@
                                     @endif
                                 @endforeach
                             @elseif($moduleType === 'manuales')
-                                @foreach($estructura as $procesoName)
+                                @foreach($estructura as $procesoName => $extra)
                                     @php
                                         $procesoReal = $todosLosProcesos->firstWhere('nombre', $procesoName);
                                         $procesoIdBD = $procesoReal ? $procesoReal->id : null;
@@ -327,22 +415,22 @@
                                                 <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
                                                     onclick="irACarpeta('{{ $procesoIdBD ?? $procesoName }}', null, {{ $procesoIdBD ? 'true' : 'false' }})">
                                                     <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                    <span>Ver</span>
+                                                    <span>Ver PDF's</span>
                                                 </button>
                                                 <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                                                     onclick="confirmarEliminarCarpeta('{{ $procesoName }}', null, '{{ $procesoName }}')">
                                                     <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                    <span>Eliminar</span>
+                                                    <span>Eliminar Carpeta</span>
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
                                 @endforeach
                             @elseif($moduleType === 'fundicion')
-                                @foreach($estructura as $otName)
+                                @foreach($estructura as $otName => $ayudasLinked)
                                     @php
                                         preg_match('/OT\s*(\d+)/', $otName, $matches);
-                                        $otIdNumber = isset($matches[1]) ? (int)$matches[1] : 0;
+                                        $otIdNumber = isset($matches[1]) ? (int) $matches[1] : 0;
                                         $otReal = $otIdNumber > 0 ? $todasLasOTs->firstWhere('id', $otIdNumber) : null;
                                         $otLabel = $otReal ? ("OT " . $otReal->id . ($otReal->moldura ? " — " . $otReal->moldura->nombre : "")) : $otName;
                                         $otIdBD = $otReal ? $otReal->id : null;
@@ -350,13 +438,24 @@
                                     @endphp
                                     <tr data-ot="{{ $otName }}">
                                         <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
+                                        <td class="d-text-center">
+                                            @if(!empty($ayudasLinked))
+                                                <div class="d-flex d-flex-wrap d-justify-center d-gap-1">
+                                                    @foreach($ayudasLinked as $al)
+                                                        <span class="badge-ayuda-tag">{{ $al }}</span>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <span class="d-text-subtle" style="font-size: 0.85em;">Sin ayudas</span>
+                                            @endif
+                                        </td>
                                         <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
                                         <td class="d-text-center">
                                             <div class="td-actions">
                                                 <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
                                                     onclick="irACarpeta('{{ $otIdBD ?? $otName }}', null, {{ $otIdBD ? 'true' : 'false' }})">
                                                     <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                    <span>Ver</span>
+                                                    <span>Ver PDF's</span>
                                                 </button>
                                                 <button class="btn-action-icon btn-alerta-fund" title="Enviar correo de alerta"
                                                     onclick="enviarAlertaFundicion(null, '{{ $otName }}', this)">
@@ -366,7 +465,7 @@
                                                 <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                                                     onclick="confirmarEliminarCarpeta('{{ $otName }}', null, '{{ $otLabel }}')">
                                                     <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                    <span>Eliminar</span>
+                                                    <span>Eliminar Carpeta</span>
                                                 </button>
                                             </div>
                                         </td>
@@ -386,7 +485,9 @@
                                             $esHuerfano = ($claseName === '-- SIN CLASE --');
                                         @endphp
                                         <tr data-proceso="{{ $procesoName }}" data-clase="{{ $claseName }}">
-                                            <td class="d-text-center d-text-primary"><strong>{{ $esHuerfano ? $procesoName : $claseName }}</strong></td>
+                                            <td class="d-text-center d-text-primary">
+                                                <strong>{{ $esHuerfano ? $procesoName : $claseName }}</strong>
+                                            </td>
                                             <td class="d-text-center">
                                                 @if($esHuerfano)
                                                     <em class="d-text-danger d-text-bold">Sin clases</em>
@@ -401,20 +502,50 @@
                                                         <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar proceso completo"
                                                             onclick="confirmarEliminarCarpeta('{{ $procesoName }}', null, '{{ $procesoName }}')">
                                                             <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                            <span>Eliminar</span>
+                                                            <span>Eliminar Carpeta</span>
                                                         </button>
                                                     @else
                                                         <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
                                                             onclick="irACarpeta('{{ $procesoIdBD ?? $procesoName }}', '{{ $claseIdBD ?? $claseName }}', {{ $procesoIdBD && $claseIdBD ? 'true' : 'false' }})">
                                                             <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                            <span>Ver</span>
+                                                            <span>Ver PDF's</span>
                                                         </button>
                                                         <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                                                             onclick="confirmarEliminarCarpeta('{{ $procesoName }}', '{{ $claseName }}', '{{ $claseName }} / {{ $procesoName }}')">
                                                             <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                            <span>Eliminar</span>
+                                                            <span>Eliminar Carpeta</span>
                                                         </button>
                                                     @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endforeach
+                            @elseif($moduleType === 'ayudas_fundicion')
+                                @foreach($estructura as $claseName => $procesos)
+                                    @php
+                                        $claseReal = $clasesUnicas->firstWhere('nombre', $claseName);
+                                        $claseIdBD = $claseReal ? $claseReal->id : null;
+                                    @endphp
+                                    @foreach($procesos as $procesoName)
+                                        @php
+                                            $badgeId = "badge-" . Str::slug($procesoName) . "-" . Str::slug($claseName);
+                                        @endphp
+                                        <tr data-proceso="{{ $procesoName }}" data-clase="{{ $claseName }}">
+                                            <td class="d-text-center d-text-primary"><strong>{{ $claseName }}</strong></td>
+                                            <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
+                                            <td class="d-text-center">
+                                                <div class="td-actions">
+                                                    <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
+                                                        onclick="irACarpeta('{{ $procesoName }}', '{{ $claseIdBD ?? $claseName }}', {{ $claseIdBD ? 'true' : 'false' }})">
+                                                        <img src="{{ asset('images/documento.png') }}" alt="Ver">
+                                                        <span>Ver PDF's</span>
+                                                    </button>
+                                                    <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
+                                                        onclick="confirmarEliminarCarpeta('{{ $procesoName }}', '{{ $claseName }}', '{{ $claseName }} / {{ $procesoName }}')">
+                                                        <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
+                                                        <span>Eliminar Carpeta</span>
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -443,7 +574,8 @@
                     </thead>
                     <tbody id="tbody-log">
                         <tr>
-                            <td colspan="5" class="d-text-center d-text-subtle" style="padding:1em;">Cargando registro...</td>
+                            <td colspan="5" class="d-text-center d-text-subtle" style="padding:1em;">Cargando registro...
+                            </td>
                         </tr>
                     </tbody>
                 </table>
@@ -466,7 +598,8 @@
                     Se va a eliminar de la carpeta principal <br>
                     <strong id="confirm-parent-label" style="color: #033966; font-size: 1.2em;">—</strong> <br>
                     la subcarpeta del <span id="confirm-type-label">...</span>: <br>
-                    <span id="confirm-folder-name" class="confirm-label-highlight" style="display: inline-block; margin-top: 0.3em;">—</span>
+                    <span id="confirm-folder-name" class="confirm-label-highlight"
+                        style="display: inline-block; margin-top: 0.3em;">—</span>
                 </p>
                 <div class="confirm-modal-actions">
                     <button class="btn-confirm-cancel" onclick="cerrarConfirmarEliminar()">Cancelar</button>
@@ -495,9 +628,9 @@
             'doc.deleteFolder': "{{ route($modulePrefix . '.deleteFolder') }}",
             'doc.deleteParent': "{{ route($modulePrefix . '.deleteParent') }}",
             @if($moduleType === 'fundicion')
-            'fundicion.send_alert': "{{ route('fundicion.send_alert') }}",
+                'fundicion.send_alert': "{{ route('fundicion.send_alert') }}",
             @endif
-        };
+                };
         window.csrfToken = "{{ csrf_token() }}";
         window.estructura = @json($estructura);
 

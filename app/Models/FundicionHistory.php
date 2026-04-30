@@ -13,5 +13,15 @@ class FundicionHistory extends Model
 
     protected $fillable = [
         'ot',
+        'ayudas_config',
+        'status',
+        'alert_sent_at',
+        'almacen_archivos',
+    ];
+
+    protected $casts = [
+        'alert_sent_at'    => 'datetime',
+        'almacen_archivos' => 'array',
+        'ayudas_config'    => 'array',
     ];
 }

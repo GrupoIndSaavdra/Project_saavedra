@@ -371,11 +371,32 @@ Route::middleware(['auth'])->prefix('fundicion')->name('fundicion.')->group(func
     Route::post('/createFolder', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'createFolder'])->name('createFolder');
     Route::post('/upload', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'uploadPdf'])->name('upload');
     Route::post('/send-alert', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'sendEmailAlert'])->name('send_alert');
+    Route::post('/save-ayudas', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'saveAyudas'])->name('save_ayudas');
+    Route::post('/unlink-ayudas', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'unlinkAyudas'])->name('unlink_ayudas');
     Route::post('/delete', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'deletePdf'])->name('delete');
     Route::post('/replace', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'replacePdf'])->name('replace');
     Route::get('/log', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getLog'])->name('log');
     Route::post('/deleteFolder', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'deleteFolder'])->name('deleteFolder');
     Route::post('/deleteParent', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'deleteFolder'])->name('deleteParent');
+});
+
+/* ===========================
+   Vista Almacén/Calidad — Dibujos de Fundición (Solo Lectura)
+   Acceso: Departamentos de Almacén y Calidad únicamente.
+=========================== */
+
+Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicion.')->group(function () {
+    // Vista principal con tabla histórica + buscador + filtros de fecha
+    Route::get('/', [\App\Http\Controllers\AlmacenFundicionController::class, 'index'])
+        ->name('index');
+
+    // API: lista de archivos de una OT desde FUNDICION_ALMACEN
+    Route::get('/archivos', [\App\Http\Controllers\AlmacenFundicionController::class, 'getFiles'])
+        ->name('archivos');
+
+    // Servir PDF protegido desde el directorio aislado
+    Route::get('/serve', [\App\Http\Controllers\AlmacenFundicionController::class, 'serveFile'])
+        ->name('serve');
 });
 
 /* ===========================
@@ -414,6 +435,25 @@ Route::middleware(['auth'])->prefix('ayudas')->name('ayudas.')->group(function (
     Route::get('/log', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'getLog'])->name('log');
     Route::post('/deleteFolder', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'deleteFolder'])->name('deleteFolder');
     Route::post('/deleteParent', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'deleteParent'])->name('deleteParent');
+});
+
+/* ===========================
+   Módulo de Ayudas Visuales (Fundición)
+=========================== */
+
+Route::middleware(['auth'])->prefix('ayudas_fundicion')->name('ayudas_fundicion.')->group(function () {
+    Route::get('/manage', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'showManage'])->name('manage');
+    Route::get('/estructura', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'getStructure'])->name('estructura');
+    Route::get('/archivos', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'getFiles'])->name('archivos');
+    Route::get('/serve', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'serveFile'])->name('serve');
+    
+    Route::post('/createFolder', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'createFolder'])->name('createFolder');
+    Route::post('/upload', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'uploadPdf'])->name('upload');
+    Route::post('/delete', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'deletePdf'])->name('delete');
+    Route::post('/replace', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'replacePdf'])->name('replace');
+    Route::get('/log', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'getLog'])->name('log');
+    Route::post('/deleteFolder', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'deleteFolder'])->name('deleteFolder');
+    Route::post('/deleteParent', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'deleteParent'])->name('deleteParent');
 });
 
 //Rutas para la captura de medidas en el sistema web de metrología

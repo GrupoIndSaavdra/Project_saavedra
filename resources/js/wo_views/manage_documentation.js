@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sincronizar UI inicial si hay parámetros cargados (mediante selectores)
     updateDependentSelectors();
     updateAdminUI();
+    initAyudasFundicionForm();
 });
 
 window.changeDocSelector = function(paramName, value, toClear = []) {
@@ -33,7 +34,7 @@ window.irACarpeta = function(p1, p2, isId = false) {
         url.searchParams.set('ot_id', p1);
     } else if (module === 'manuales') {
         url.searchParams.set('proceso_id', p1);
-    } else if (module === 'ayudas') {
+    } else if (module === 'ayudas' || module === 'ayudas_fundicion') {
         if (p2) url.searchParams.set('clase_id', p2);
         url.searchParams.set('proceso_id', p1);
     }
@@ -47,7 +48,7 @@ function updateDependentSelectors() {
     const prSel = document.getElementById('proceso-select');
     const otSel = document.getElementById('ot-select');
 
-    if (module === 'ayudas') {
+    if (module === 'ayudas' || module === 'ayudas_fundicion') {
         if (prSel) {
             prSel.disabled = !clSel.value;
         }
@@ -86,11 +87,15 @@ function updateAdminUI() {
             p1 = prSel.options[prSel.selectedIndex].text.trim();
             label = p1;
         }
-    } else if (module === 'ayudas' && clSel && prSel && clSel.value && prSel.value) {
-        if (clSel.selectedIndex !== -1 && prSel.selectedIndex !== -1) {
+    } else if ((module === 'ayudas' || module === 'ayudas_fundicion') && clSel && prSel && clSel.value && prSel.value) {
+        // En ayudas_fundicion, prSel puede ser un input hidden
+        const isClSelect = clSel.tagName === 'SELECT';
+        const isPrSelect = prSel.tagName === 'SELECT';
+
+        if ((!isClSelect || clSel.selectedIndex !== -1) && (!isPrSelect || prSel.selectedIndex !== -1)) {
             ready = true;
-            p1 = prSel.options[prSel.selectedIndex].text.trim();
-            p2 = clSel.options[clSel.selectedIndex].text.trim();
+            p1 = isPrSelect ? prSel.options[prSel.selectedIndex].text.trim() : prSel.value;
+            p2 = isClSelect ? clSel.options[clSel.selectedIndex].text.trim() : clSel.value;
             label = `${p1} / ${p2}`;
         }
     }
@@ -126,7 +131,7 @@ function updateAdminUI() {
         if (module === 'dibujos') existe = window.estructura[p1] && window.estructura[p1].includes(p2);
         else if (module === 'fundicion') existe = Array.isArray(window.estructura) ? window.estructura.includes(p1) : window.estructura[p1];
         else if (module === 'manuales') existe = Array.isArray(window.estructura) ? window.estructura.includes(p1) : window.estructura[p1];
-        else if (module === 'ayudas') existe = window.estructura[p2] && window.estructura[p2].includes(p1);
+        else if (module === 'ayudas' || module === 'ayudas_fundicion') existe = window.estructura[p2] && window.estructura[p2].includes(p1);
 
         // Visibilidad Alertas Izquierda
         if (alertNotReady) alertNotReady.style.display = 'none';
@@ -137,7 +142,7 @@ function updateAdminUI() {
             if (module === 'dibujos') { btnCrear.dataset.otId = otSel.value; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
             else if (module === 'fundicion') { btnCrear.dataset.otId = otSel.value; btnCrear.dataset.folderParam1 = p1; }
             else if (module === 'manuales') { btnCrear.dataset.proceso = p1; btnCrear.dataset.folderParam1 = p1; }
-            else if (module === 'ayudas') { btnCrear.dataset.proceso = p1; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
+            else if (module === 'ayudas' || module === 'ayudas_fundicion') { btnCrear.dataset.proceso = p1; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
         }
 
         // Visibilidad Panel Derecha (Subir)
@@ -149,7 +154,7 @@ function updateAdminUI() {
             if (module === 'dibujos') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
             else if (module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.folderParam1 = p1; }
             else if (module === 'manuales') { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; }
-            else if (module === 'ayudas') { btnSubir.dataset.proceso = p1; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
+            else if (module === 'ayudas' || module === 'ayudas_fundicion') { btnSubir.dataset.proceso = p1; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
         }
 
         cargarArchivosEnPanel(p1, p2);
@@ -288,7 +293,7 @@ function getPayloadFromBtn(btn) {
         proceso: btn.dataset.proceso, 
         param1: btn.dataset.folderParam1 || btn.dataset.proceso 
     };
-    if (window.moduleType === 'ayudas') return { 
+    if (window.moduleType === 'ayudas' || window.moduleType === 'ayudas_fundicion') return { 
         proceso: btn.dataset.proceso, 
         clase: btn.dataset.clase, 
         param1: btn.dataset.folderParam1 || btn.dataset.proceso, 
@@ -310,7 +315,7 @@ function cargarArchivosEnPanel(param1, param2 = null, payloadObj = null) {
         url += `ot=${encodeURIComponent(param1)}`;
     } else if (window.moduleType === 'manuales') {
         url += `proceso=${encodeURIComponent(param1)}`;
-    } else if (window.moduleType === 'ayudas') {
+    } else if (window.moduleType === 'ayudas' || window.moduleType === 'ayudas_fundicion') {
         url += `proceso=${encodeURIComponent(param1)}&clase=${encodeURIComponent(param2)}`;
     }
 
@@ -324,6 +329,10 @@ function cargarArchivosEnPanel(param1, param2 = null, payloadObj = null) {
 
 function renderArchivosGrid(data, param1, param2) {
     const grid = document.getElementById('archivos-grid');
+    const ayudasSection = document.getElementById('fundicion-ayudas-section');
+    if (window.moduleType === 'fundicion' && ayudasSection) {
+        ayudasSection.style.display = (data.existe && data.archivos.length > 0) ? 'block' : 'none';
+    }
 
     if (!data.existe || data.archivos.length === 0) {
         grid.innerHTML = `
@@ -381,7 +390,7 @@ window.prepararReemplazo = function(nombreArchivo, param1, param2, btnElement) {
         if (window.moduleType === 'dibujos') { payload.ot = param1; payload.clase = param2; }
         else if (window.moduleType === 'fundicion') { payload.ot = param1; }
         else if (window.moduleType === 'manuales') { payload.proceso = param1; }
-        else if (window.moduleType === 'ayudas') { payload.proceso = param1; payload.clase = param2; }
+        else if (window.moduleType === 'ayudas' || window.moduleType === 'ayudas_fundicion') { payload.proceso = param1; payload.clase = param2; }
         
         reemplazarPdf(payload, file, btnElement, () => {
             cargarArchivosEnPanel(param1, param2);
@@ -401,7 +410,7 @@ window.eliminarPdf = function(nombreArchivo, param1, param2) {
     if (window.moduleType === 'dibujos') { payload.ot = param1; payload.clase = param2; }
     else if (window.moduleType === 'fundicion') { payload.ot = param1; }
     else if (window.moduleType === 'manuales') { payload.proceso = param1; }
-    else if (window.moduleType === 'ayudas') { payload.proceso = param1; payload.clase = param2; }
+    else if (window.moduleType === 'ayudas' || window.moduleType === 'ayudas_fundicion') { payload.proceso = param1; payload.clase = param2; }
 
     fetch(window.routes['doc.delete'], {
         method: 'POST',
@@ -503,7 +512,7 @@ function loadBadgeCounts() {
     if (window.moduleType === 'dibujos') rows = document.querySelectorAll('[data-ot][data-clase]');
     else if (window.moduleType === 'fundicion') rows = document.querySelectorAll('[data-ot]');
     else if (window.moduleType === 'manuales') rows = document.querySelectorAll('[data-proceso]');
-    else if (window.moduleType === 'ayudas') rows = document.querySelectorAll('[data-proceso][data-clase]');
+    else if (window.moduleType === 'ayudas' || window.moduleType === 'ayudas_fundicion') rows = document.querySelectorAll('[data-proceso][data-clase]');
     
     if(!rows) return;
 
@@ -511,7 +520,7 @@ function loadBadgeCounts() {
         if (window.moduleType === 'dibujos') actualizarBadge(row.dataset.ot, row.dataset.clase);
         else if (window.moduleType === 'fundicion') actualizarBadge(row.dataset.ot);
         else if (window.moduleType === 'manuales') actualizarBadge(row.dataset.proceso);
-        else if (window.moduleType === 'ayudas') actualizarBadge(row.dataset.proceso, row.dataset.clase);
+        else if (window.moduleType === 'ayudas' || window.moduleType === 'ayudas_fundicion') actualizarBadge(row.dataset.proceso, row.dataset.clase);
     });
 }
 
@@ -520,7 +529,7 @@ function actualizarBadge(param1, param2 = null) {
     if (window.moduleType === 'dibujos') badgeId = `badge-${slugify(param1)}-${slugify(param2)}`;
     else if (window.moduleType === 'fundicion') badgeId = `badge-${slugify(param1)}`;
     else if (window.moduleType === 'manuales') badgeId = `badge-${slugify(param1)}`;
-    else if (window.moduleType === 'ayudas') badgeId = `badge-${slugify(param1)}-${slugify(param2)}`;
+    else if (window.moduleType === 'ayudas' || window.moduleType === 'ayudas_fundicion') badgeId = `badge-${slugify(param1)}-${slugify(param2)}`;
 
     const badge = document.getElementById(badgeId);
     if (!badge) return;
@@ -529,7 +538,7 @@ function actualizarBadge(param1, param2 = null) {
     if (window.moduleType === 'dibujos') url += `ot=${encodeURIComponent(param1)}&clase=${encodeURIComponent(param2)}`;
     else if (window.moduleType === 'fundicion') url += `ot=${encodeURIComponent(param1)}`;
     else if (window.moduleType === 'manuales') url += `proceso=${encodeURIComponent(param1)}`;
-    else if (window.moduleType === 'ayudas') url += `proceso=${encodeURIComponent(param1)}&clase=${encodeURIComponent(param2)}`;
+    else if (window.moduleType === 'ayudas' || window.moduleType === 'ayudas_fundicion') url += `proceso=${encodeURIComponent(param1)}&clase=${encodeURIComponent(param2)}`;
 
     fetch(url, { headers: { 'Accept': 'application/json' } })
         .then(r => r.json())
@@ -568,6 +577,8 @@ function loadAuditLog() {
                 'eliminar_pdf': 'Eliminar PDF',
                 'reemplazar_pdf': 'Reemplazar PDF',
                 'enviar_alerta': 'Enviar correo',
+                'eliminar_carpeta': 'Eliminar carpeta',
+                'guardar_ayudas': 'Vincular ayudas',
             };
             
             const actionLabel = accionEs[log.action] || log.action;
@@ -697,7 +708,7 @@ function eliminarCarpetaAJAX(folder) {
         payload = { ot: folder.p1 };
     } else if (module === 'manuales') {
         payload = { proceso: folder.p1 };
-    } else if (module === 'ayudas') {
+    } else if (module === 'ayudas' || module === 'ayudas_fundicion') {
         if (!folder.p2) {
             payload = { proceso: folder.p1 };
             route = window.routes['doc.deleteParent'];
@@ -795,3 +806,85 @@ window.enviarAlertaFundicion = function(archivo, ot, btnEl) {
         btnEl.innerHTML = originalContent;
     });
 };
+
+function initAyudasFundicionForm() {
+    const section = document.getElementById('fundicion-ayudas-section');
+    if (!section) return;
+
+    const form = section.querySelector('form');
+    if (!form) return;
+
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        const btn = form.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        const formData = new FormData(form);
+        
+        btn.disabled = true;
+        btn.innerHTML = '<span class="dibujos-spinner dibujos-spinner-sm"></span> Guardando...';
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': window.csrfToken,
+                'Accept': 'application/json',
+            },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                mostrarNotificacion(data.message || 'Ayudas visuales vinculadas correctamente.');
+                loadAuditLog();
+                // Recargar página para actualizar la tabla de estructura (columna Ayudas Vinculadas)
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                mostrarNotificacion(data.message || 'No se pudieron vincular las ayudas.', true);
+            }
+        })
+        .catch(() => {
+            mostrarNotificacion('Error de conexión al guardar ayudas.', true);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+    });
+
+    // Botón de Desvincular Manual
+    const btnUnlink = section.querySelector('#btn-desvincular-ayudas');
+    if (btnUnlink) {
+        btnUnlink.addEventListener('click', () => {
+            if (!confirm('¿Seguro que deseas desvincular todas las ayudas visuales de esta OT? Esto también las eliminará de la vista de Almacén.')) return;
+
+            const originalText = btnUnlink.innerHTML;
+            btnUnlink.disabled = true;
+            btnUnlink.innerHTML = '<span class="dibujos-spinner dibujos-spinner-sm"></span>...';
+
+            fetch(window.routes['fundicion.unlink_ayudas'] || '/fundicion/unlink-ayudas', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': window.csrfToken,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ ot: btnUnlink.dataset.ot })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarNotificacion(data.message || 'Ayudas desvinculadas.');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    mostrarNotificacion(data.message || 'No se pudo desvincular.', true);
+                }
+            })
+            .catch(() => mostrarNotificacion('Error de conexión.', true))
+            .finally(() => {
+                btnUnlink.disabled = false;
+                btnUnlink.innerHTML = originalText;
+            });
+        });
+    }
+}

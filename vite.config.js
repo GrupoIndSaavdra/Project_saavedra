@@ -98,6 +98,10 @@ export default defineConfig({
                 'resources/css/wo_views/manage_documentation.css',
                 'resources/js/wo_views/manage_documentation.js',
 
+                //Vista Almacén/Calidad — Dibujos de Fundición
+                'resources/css/almacen_views/almacen_fundicion.css',
+                'resources/js/almacen_views/almacen_fundicion.js',
+
                 // Views systemLogs
                 "resources/css/reports/systemLogs.css",
                 "resources/js/reports/systemLogs.js",

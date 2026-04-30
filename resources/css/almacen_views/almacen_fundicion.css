@@ -1,0 +1,880 @@
+/* ====================================================
+   almacen_fundicion.css — Vista Almacén/Calidad: Dibujos de Fundición
+   Paleta: #033966 (azul GIS), #9c0300 (rojo GIS), #0a8504 (verde acción)
+   Fuente: Poppins (igual que manage_documentation.css y toda la app)
+   ==================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap");
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+    transition: all 0.3s ease-in-out;
+}
+
+body {
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+}
+
+/* ── Contenedor principal ── */
+.alm-wrapper {
+    max-width: 1400px;
+    margin: 2em auto;
+    padding: 0 1.5em 4em;
+}
+
+/* ────────────────────────────────────────────────────
+   HEADER
+──────────────────────────────────────────────────── */
+.alm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #033966;
+    color: #fff;
+    padding: 1em 1.5em;
+    border-radius: 10px;
+    margin-bottom: 1.5em;
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.4);
+    gap: 1em;
+}
+
+.alm-header-icon {
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.alm-header-text h1 {
+    font-size: 1.4em;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1.2;
+}
+
+.alm-header-text p {
+    font-size: 0.85em;
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
+.alm-readonly-badge {
+    margin-left: auto;
+    padding: 0.35em 1em;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+/* ────────────────────────────────────────────────────
+   STATS CARDS
+──────────────────────────────────────────────────── */
+.alm-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+@media (max-width: 640px) {
+    .alm-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+.alm-stat-card {
+    background: #ffffff;
+    border: 5px solid #033966d4;
+    border-radius: 10px;
+    padding: 1.2em 1.5em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s ease;
+}
+
+.alm-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.15);
+}
+
+.alm-stat-icon {
+    font-size: 24px;
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-total .alm-stat-icon {
+    background: #e8f2ff;
+}
+.stat-activas .alm-stat-icon {
+    background: #d4edda;
+}
+.stat-inactivas .alm-stat-icon {
+    background: #f5f5f5;
+}
+
+.alm-stat-value {
+    font-size: 5em;
+    text-align: center;
+    font-weight: 800;
+    line-height: 100%;
+}
+
+.stat-total .alm-stat-value {
+    color: #033966;
+}
+.stat-activas .alm-stat-value {
+    color: #0a8504;
+}
+.stat-inactivas .alm-stat-value {
+    color: #888;
+}
+
+.alm-stat-label {
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 2px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ────────────────────────────────────────────────────
+   FILTROS
+──────────────────────────────────────────────────── */
+.alm-filters-card {
+    background: #ffffff;
+    border: 5px solid #033966d4;
+    border-radius: 10px;
+    padding: 0.5em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1em;
+}
+
+.alm-filters-card h2 {
+    color: #033966;
+    font-size: 1.2em;
+    font-weight: 700;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid #033966;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.filters {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 1.5em;
+    flex-wrap: wrap;
+    margin: 1em 0;
+}
+
+.filter {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 0.5em;
+    min-width: 250px;
+}
+
+.select-filter,
+.input-filter {
+    width: 100%;
+    border-radius: 5px;
+    padding: 0.8em 0.5em;
+    text-align: center;
+    font-family: "Poppins", sans-serif;
+    font-size: 1em;
+    letter-spacing: 1px;
+    background: #033966;
+    border: 5px solid #033966d4;
+    color: #ffffff;
+    outline: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.select-filter:focus,
+.input-filter:focus {
+    border-color: #005194;
+    background: #055a9e;
+    box-shadow: 0 0 12px rgba(3, 57, 102, 0.3);
+}
+
+.filter label {
+    font-size: 1em;
+    font-weight: 700;
+    color: #033966;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btns {
+    padding: 12px 24px;
+    background-color: #0a8504;
+    box-shadow: 0 2px 5px #0a8504ff;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: "Poppins", sans-serif;
+    font-size: 1em;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+}
+
+.btns:hover {
+    background-color: #0a8504;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(10, 133, 4, 0.4);
+}
+
+.btn-clear-filters {
+    background-color: #6c757d;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(108, 117, 125, 0.6);
+}
+
+.btn-clear-filters:hover {
+    background-color: #28a745;
+    transform: scale(1.1);
+}
+
+/* Botón "Ver" PDF */
+.alm-btn-ver {
+    background: #005194;
+    color: #fff;
+    padding: 0.4em 1em;
+    font-size: 0.8em;
+    font-weight: 700;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.alm-btn-ver:hover {
+    background: #0a8504;
+    transform: scale(1.05) translateY(-1px);
+    box-shadow: 0 6px 18px rgba(10, 133, 4, 0.35);
+}
+
+/* ────────────────────────────────────────────────────
+   TABLA PRINCIPAL
+──────────────────────────────────────────────────── */
+.alm-table-card {
+    background: #ffffff;
+    border: 5px solid #033966d4;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.alm-table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1em 1.5em;
+    border-bottom: 2px solid #033966;
+    background: #033966;
+    color: #fff;
+}
+
+.alm-table-header h2 {
+    font-size: 1em;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.alm-results-count {
+    font-size: 0.8em;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 0.2em 0.8em;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.alm-table-scroll {
+    overflow-x: auto;
+}
+
+table.alm-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.alm-table thead th {
+    background: #033966;
+    color: #fff;
+    padding: 0.85em 1em;
+    text-align: left;
+    font-size: 0.85em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid #022847;
+    white-space: nowrap;
+}
+
+.alm-table tbody tr {
+    border-bottom: 1px solid #ddd;
+    transition: background 0.2s ease;
+}
+
+.alm-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.alm-table tbody tr:nth-child(even) {
+    background: #f5f9ff;
+}
+
+.alm-table tbody tr:hover {
+    background: #e8f2ff;
+}
+
+.alm-table tbody td {
+    padding: 0.85em 1em;
+    vertical-align: middle;
+    font-size: 0.95em;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+/* OT label */
+.alm-ot-label {
+    font-weight: 700;
+    color: #033966;
+    font-size: 0.95em;
+}
+
+/* Fecha */
+.alm-date {
+    color: #555;
+    font-size: 0.9em;
+}
+
+/* ────────────────────────────────────────────────────
+   BADGES DE ESTADO
+──────────────────────────────────────────────────── */
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.25em 0.8em;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.badge-activa {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #28a745;
+}
+
+.badge-inactiva {
+    background: #e9ecef;
+    color: #666;
+    border: 1px solid #ccc;
+}
+
+/* Badge conteo PDF */
+.badge-pdf-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #e8f2ff;
+    color: #033966;
+    border: 1px solid #033966;
+    padding: 0.2em 0.7em;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 700;
+}
+
+/* ────────────────────────────────────────────────────
+   FILA EXPANDIBLE DE ARCHIVOS
+──────────────────────────────────────────────────── */
+.btn-toggle-files {
+    background: #005194;
+    color: #fff;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-family: "Poppins", sans-serif;
+    font-size: 0.85em;
+    font-weight: 700;
+    padding: 0.6em 1em;
+    width: 100%;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-toggle-files:hover {
+    background: #033966;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 81, 148, 0.3);
+}
+
+.btn-toggle-files.active {
+    background: #fff;
+    color: #033966;
+    border-color: #033966;
+    box-shadow: none;
+}
+
+.btn-toggle-files.active:hover {
+    background: #5a6268;
+    color: white;
+}
+
+.alm-files-row {
+    display: none;
+}
+.alm-files-row.open {
+    display: table-row;
+}
+
+.alm-files-row > td {
+    padding: 0;
+    background: #f0f6ff;
+}
+
+.alm-files-inner {
+    padding: 1.5em;
+    background: #f8fbff;
+    border-top: 2px solid #033966;
+    box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.alm-files-inner h4 {
+    font-size: 1em;
+    font-weight: 700;
+    color: #033966;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1.5em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid #033966;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alm-files-inner h4::before {
+    content: "";
+}
+
+.alm-pdf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5em;
+    margin-top: 1em;
+}
+
+/* ── Tarjeta PDF (animación igual que dibujos-file-card) ── */
+@keyframes prodCardPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    70% {
+        transform: scale(1.02) translateY(-4px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.dibujos-file-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5em;
+    border: 3px solid #033966;
+    border-radius: 12px;
+    background: #f5f9ff;
+    transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.3s ease,
+        box-shadow 0.3s ease;
+    cursor: pointer;
+    min-height: 180px;
+    position: relative;
+    overflow: hidden;
+    will-change: transform, background-color, box-shadow;
+    animation: prodCardPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.dibujos-file-card:hover {
+    background: #033966;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 18px rgba(3, 57, 102, 0.4);
+}
+
+.dibujos-file-card .file-name {
+    font-size: 0.95em;
+    font-weight: 700;
+    color: #033966;
+    word-break: break-all;
+    text-align: center;
+    margin-bottom: 1em;
+    transition: color 0.3s ease;
+}
+
+.dibujos-file-card:hover .file-name {
+    color: #ffffff;
+}
+
+.dibujos-file-card .file-icon-wrapper {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin-bottom: 0.8em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dibujos-file-card .file-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition:
+        opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity, transform;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.dibujos-file-card .icon-hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+}
+
+.dibujos-file-card:hover .icon-default {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.dibujos-file-card:hover .icon-hover {
+    opacity: 1;
+    transform: scale(1.15) rotate(3deg);
+    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.549));
+}
+
+.dibujos-file-card .file-actions {
+    display: flex;
+    gap: 0.6em;
+    margin-top: auto;
+    width: 100%;
+    justify-content: center;
+}
+
+.dibujos-file-card .btn-dibujos-sm {
+    padding: 0.6em 1.2em;
+    font-size: 0.9em;
+    flex: 1;
+    text-align: center;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: #033966 !important;
+    color: #fff !important;
+    border: none;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    will-change: transform, background-color, box-shadow;
+    transition:
+        transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        background-color 0.3s ease,
+        box-shadow 0.3s ease,
+        border 0.3s ease;
+}
+
+.dibujos-file-card:hover .btn-ver {
+    border: 2px solid #00d06f;
+    background: #006943 !important;
+}
+
+.dibujos-file-card .btn-ver:hover {
+    border: 2px solid #00d06f;
+    background: #00d06f !important;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 208, 111, 0.4) !important;
+}
+
+/* ── Estilos Globales de Botones de Documentos ── */
+.btn-dibujos {
+    width: 100%;
+    background: #005194;
+    color: #ffffff;
+    padding: 0.8em;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-dibujos-sm {
+    padding: 0.6em 1.2em;
+    font-size: 0.85em;
+    width: auto;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+.btn-ver {
+    background: #005194;
+    color: #fff;
+}
+
+.btn-ver:hover {
+    background: #00d06f !important;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 208, 111, 0.4);
+}
+
+/* ────────────────────────────────────────────────────
+   NOTA DE INACTIVA
+──────────────────────────────────────────────────── */
+.alm-inactiva-note {
+    background: #fff3cd;
+    border: 1px solid #856404;
+    border-radius: 5px;
+    padding: 0.4em 0.8em;
+    color: #856404;
+    font-size: 0.78em;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 5px;
+}
+
+/* ────────────────────────────────────────────────────
+   EMPTY STATE
+──────────────────────────────────────────────────── */
+.alm-empty {
+    text-align: center;
+    padding: 3em 2em;
+    color: #999;
+}
+
+.alm-empty-icon {
+    font-size: 3em;
+    margin-bottom: 0.5em;
+    opacity: 0.5;
+}
+
+.alm-empty p {
+    font-size: 1em;
+    color: #999;
+    font-weight: 400;
+}
+
+/* ────────────────────────────────────────────────────
+   TOAST (mismo sistema que dibujos-toast)
+──────────────────────────────────────────────────── */
+.alm-toast {
+    position: fixed;
+    bottom: 2em;
+    right: 2em;
+    background: #033966;
+    color: #fff;
+    padding: 1em 1.5em;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    max-width: 400px;
+}
+
+.alm-toast.error {
+    background: #9c0300;
+}
+
+.alm-toast.fade-out {
+    opacity: 0;
+}
+
+/* ────────────────────────────────────────────────────
+   SPINNER
+──────────────────────────────────────────────────── */
+.alm-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ────────────────────────────────────────────────────
+   RESPONSIVE
+──────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .alm-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+    .alm-table th,
+    .alm-table td {
+        font-size: 0.8em;
+        padding: 0.6em 0.7em;
+    }
+}
+
+@media (max-width: 600px) {
+    .alm-header {
+        flex-wrap: wrap;
+    }
+    .alm-readonly-badge {
+        margin-left: 0;
+    }
+    .alm-stats {
+        grid-template-columns: 1fr;
+    }
+    .alm-filters-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ────────────────────────────────────────────────────
+   UTILITIES
+──────────────────────────────────────────────────── */
+.d-text-center {
+    text-align: center !important;
+}
+
+.d-text-subtle {
+    color: #999;
+}
+
+/* ── Tablas Internas (Detalle de Archivos) ── */
+.alm-inner-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5em;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.alm-inner-table thead th {
+    background: #e8f2ff;
+    color: #033966;
+    font-size: 0.85em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 12px;
+    border-bottom: 2px solid #033966;
+}
+
+.alm-inner-table tbody tr {
+    border-bottom: 1px solid #eee;
+}
+
+.alm-inner-table tbody tr:hover {
+    background: #fdfdfd;
+}
+
+.alm-inner-table tbody td {
+    padding: 10px 12px;
+    font-size: 0.9em;
+    color: #444;
+}
+
+/* Estilo para tabla de ayudas (Color Rojo GIS) */
+.table-ayudas thead th {
+    background: #fff0f0;
+    color: #9c0300;
+    border-bottom-color: #9c0300;
+}
+
+.btn-ayuda-color {
+    background: #9c0300 !important;
+}
+
+.btn-ayuda-color:hover {
+    background: #7a0200 !important;
+    box-shadow: 0 6px 18px rgba(156, 3, 0, 0.35) !important;
+}

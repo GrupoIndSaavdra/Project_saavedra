@@ -12,11 +12,12 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ManualesPdfController extends Controller
 {
+    private const BASE_DIR = 'DOCUMENTACION_GIS/MANUALES_PROCESOS';
+
     /**
-     * Disco local de Laravel donde se almacenan los PDFs.
-     * Carpeta base: storage/app/MANUALES_GIS/
+     * Directorio legado para compatibilidad con archivos anteriores.
      */
-    private const BASE_DIR = 'MANUALES_GIS';
+    private const OLD_BASE_DIR = 'MANUALES_GIS';
 
     // =========================================================================
     // VISTAS
@@ -55,7 +56,7 @@ class ManualesPdfController extends Controller
             'moduleType' => 'manuales',
             'modulePrefix' => 'manuales',
             'pageTitle' => 'Gestión de Manuales de Procesos',
-            'directoryName' => 'MANUALES_GIS',
+            'directoryName' => 'DOCUMENTACION_GIS / MANUALES_PROCESOS',
             'moduleMetadata' => [
                 'description' => 'Selecciona el proceso existente en el sistema.'
             ]
@@ -99,36 +100,33 @@ class ManualesPdfController extends Controller
         $proceso = $this->sanitizePath($request->query('proceso', ''));
 
         if (empty($proceso)) {
-            return response()->json(['error' => 'Parámetro proceso es requerido.'], 422);
+            return response()->json(['error' => 'Parámetro Proceso es requerido.'], 422);
         }
 
-        $dirPath = self::BASE_DIR . '/' . $proceso;
+        $newDirPath = self::BASE_DIR . '/' . $proceso;
+        $oldDirPath = self::OLD_BASE_DIR . '/' . $proceso;
 
-        if (!Storage::disk('local')->exists($dirPath)) {
-            return response()->json([
-                'archivos' => [],
-                'proceso'  => $proceso,
-                'existe'   => false,
-            ]);
-        }
+        $newFiles = Storage::disk('local')->exists($newDirPath) ? Storage::disk('local')->files($newDirPath) : [];
+        $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
 
-        $files = Storage::disk('local')->files($dirPath);
-
-        $archivos = collect($files)
+        $allFiles = collect(array_merge($newFiles, $oldFiles))
             ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-            ->map(fn($f) => [
-                'nombre' => basename($f),
-                'url'    => route('manuales.serve', [
-                    'proceso' => $proceso,
-                    'archivo' => basename($f),
-                ]),
-            ])
+            ->map(function($f) use ($proceso) {
+                return [
+                    'nombre' => basename($f),
+                    'url'    => route('manuales.serve', [
+                        'proceso' => $proceso,
+                        'archivo' => basename($f),
+                    ]),
+                ];
+            })
+            ->unique('nombre')
             ->values();
 
         return response()->json([
-            'archivos' => $archivos,
+            'archivos' => $allFiles,
             'proceso'  => $proceso,
-            'existe'   => true,
+            'existe'   => (count($allFiles) > 0),
         ]);
     }
 
@@ -145,6 +143,11 @@ class ManualesPdfController extends Controller
         }
 
         $filePath = self::BASE_DIR . '/' . $proceso . '/' . $archivo;
+
+        // Fallback
+        if (!Storage::disk('local')->exists($filePath)) {
+            $filePath = self::OLD_BASE_DIR . '/' . $proceso . '/' . $archivo;
+        }
 
         if (!Storage::disk('local')->exists($filePath)) {
             abort(404, 'Archivo no encontrado.');
@@ -253,6 +256,15 @@ class ManualesPdfController extends Controller
         $filePath = self::BASE_DIR . '/' . $proceso . '/' . $archivo;
 
         if (!Storage::disk('local')->exists($filePath)) {
+            // Check fallback for read-only error
+            $oldPath = self::OLD_BASE_DIR . '/' . $proceso . '/' . $archivo;
+            if (Storage::disk('local')->exists($oldPath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Los manuales antiguos son de solo lectura.',
+                ], 403);
+            }
+
             return response()->json([
                 'success' => false,
                 'message' => 'El archivo no existe.',
@@ -342,22 +354,27 @@ class ManualesPdfController extends Controller
 
     private function buildStructure(): array
     {
-        $baseDir = self::BASE_DIR;
         $estructura = [];
 
-        if (!Storage::disk('local')->exists($baseDir)) {
-            return $estructura;
+        // 1. Nuevo
+        if (Storage::disk('local')->exists(self::BASE_DIR)) {
+            $dirs = Storage::disk('local')->directories(self::BASE_DIR);
+            foreach ($dirs as $dir) {
+                $estructura[basename($dir)] = true;
+            }
         }
 
-        // Para manuales, la estructura es un simple array de procesos
-        $procesoDirs = Storage::disk('local')->directories($baseDir);
-
-        foreach ($procesoDirs as $procesoDir) {
-            $estructura[] = basename($procesoDir);
+        // 2. Viejo
+        if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
+            $oldDirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
+            foreach ($oldDirs as $dir) {
+                $estructura[basename($dir)] = true;
+            }
         }
 
-        sort($estructura, SORT_NATURAL);
-        return $estructura;
+        $final = array_keys($estructura);
+        sort($final, SORT_NATURAL);
+        return $final;
     }
 
     /**

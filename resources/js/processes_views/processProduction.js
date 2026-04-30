@@ -2196,7 +2196,7 @@ function _dibujosRenderArchivos(archivos, otDisplay, clase, contentDiv) {
     const breadcrumb = document.createElement('div');
     breadcrumb.className = 'prod-viewer-breadcrumb';
     breadcrumb.innerHTML = `
-        <span class="path-label">Directorio Activo</span>
+        <span class="path-label">DOCUMENTACION_GIS</span>
         <span class="path-ot">${otDisplay}</span>
         <span style="opacity: 0.5;">/</span>
         <span class="path-clase">${clase}</span>
@@ -2759,7 +2759,7 @@ window.openTechDocsModal = function () {
         const breadcrumb = document.createElement('div');
         breadcrumb.className = 'prod-viewer-breadcrumb';
         breadcrumb.innerHTML = `
-            <span class="path-label">Directorio Activo</span>
+            <span class="path-label">DOCUMENTACION_GIS</span>
             <span class="path-ot">${proc}</span>
             ${clase ? `<span style="opacity: 0.5;">/</span><span class="path-clase">${clase}</span>` : ''}
             <span class="path-count">${archivos.length} PDFs</span>
