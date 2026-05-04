@@ -102,6 +102,10 @@ export default defineConfig({
                 'resources/css/almacen_views/almacen_fundicion.css',
                 'resources/js/almacen_views/almacen_fundicion.js',
 
+                //Vista Calidad — Dibujos y Ayudas de Maquinados
+                'resources/css/calidad_views/calidad_maquinados.css',
+                'resources/js/calidad_views/calidad_maquinados.js',
+
                 // Views systemLogs
                 "resources/css/reports/systemLogs.css",
                 "resources/js/reports/systemLogs.js",

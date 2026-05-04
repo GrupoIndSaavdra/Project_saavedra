@@ -1,0 +1,793 @@
+/* ====================================================
+   calidad_maquinados.css — Vista Calidad: Dibujos y Ayudas de Maquinados
+   Paleta: #033966 (azul GIS), #9c0300 (rojo GIS), #0a8504 (verde acción)
+   Fuente: Poppins (misma que el resto de la app)
+   ==================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap");
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+    transition: all 0.3s ease-in-out;
+}
+
+body {
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+}
+
+/* ── Contenedor principal ── */
+.alm-wrapper {
+    max-width: 1400px;
+    margin: 2em auto;
+    padding: 0 1.5em 4em;
+}
+
+/* ────────────────────────────────────────────────────
+   HEADER
+──────────────────────────────────────────────────── */
+.alm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #033966;
+    color: #fff;
+    padding: 1em 1.5em;
+    border-radius: 10px;
+    margin-bottom: 1.5em;
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.4);
+    gap: 1em;
+}
+
+.alm-header-icon {
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.alm-header-text h1 {
+    font-size: 1.4em;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1.2;
+}
+
+.alm-header-text p {
+    font-size: 0.85em;
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
+.alm-readonly-badge {
+    margin-left: auto;
+    padding: 0.35em 1em;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+/* ────────────────────────────────────────────────────
+   STATS CARDS
+──────────────────────────────────────────────────── */
+.alm-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+@media (max-width: 640px) {
+    .alm-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+.alm-stat-card {
+    background: #ffffff;
+    border: 5px solid #033966d4;
+    border-radius: 10px;
+    padding: 1.2em 1.5em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s ease;
+}
+
+.alm-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.15);
+}
+
+.alm-stat-icon {
+    font-size: 24px;
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-dibujos .alm-stat-icon {
+    background: #e8f2ff;
+}
+.stat-ayudas .alm-stat-icon {
+    background: #d0f5e3;
+}
+.stat-inactivos .alm-stat-icon {
+    background: #f5f5f5;
+}
+
+.alm-stat-value {
+    font-size: 5em;
+    text-align: center;
+    font-weight: 800;
+    line-height: 100%;
+}
+
+.stat-dibujos .alm-stat-value {
+    color: #033966;
+}
+.stat-ayudas .alm-stat-value {
+    color: #027a3a;
+}
+.stat-inactivos .alm-stat-value {
+    color: #888;
+}
+
+.alm-stat-label {
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 2px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ────────────────────────────────────────────────────
+   FILTROS
+──────────────────────────────────────────────────── */
+.alm-filters-card {
+    background: #ffffff;
+    border: 5px solid #033966d4;
+    border-radius: 10px;
+    padding: 0.5em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1em;
+}
+
+.alm-filters-card h2 {
+    color: #033966;
+    font-size: 1.2em;
+    font-weight: 700;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid #033966;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.filters {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    gap: 1em;
+    flex-wrap: wrap;
+    margin: 1em 0;
+}
+
+.filter {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 0.5em;
+    min-width: 220px;
+}
+
+.select-filter,
+.input-filter {
+    width: 100%;
+    border-radius: 5px;
+    padding: 0.8em 0.5em;
+    text-align: center;
+    font-family: "Poppins", sans-serif;
+    font-size: 1em;
+    letter-spacing: 1px;
+    background: #033966;
+    border: 5px solid #033966d4;
+    color: #ffffff;
+    outline: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.select-filter:focus,
+.input-filter:focus {
+    border-color: #005194;
+    background: #055a9e;
+    box-shadow: 0 0 12px rgba(3, 57, 102, 0.3);
+}
+
+.filter label {
+    font-size: 1em;
+    font-weight: 700;
+    color: #033966;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Badge de alcance del filtro (Dibujos / Ayudas / ambas) */
+.filter-scope {
+    display: inline-block;
+    font-size: 0.65em;
+    font-weight: 700;
+    padding: 1px 7px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+    line-height: 1.6;
+}
+
+.filter-scope-dibujo {
+    background: #e8f2ff;
+    color: #033966;
+    border: 1px solid #033966;
+}
+
+.filter-scope-ayuda {
+    background: #eafaf2;
+    color: #027a3a;
+    border: 1px solid #027a3a;
+}
+
+.filter-scope-ambas {
+    background: #f0f0f0;
+    color: #555;
+    border: 1px solid #aaa;
+}
+
+.btns {
+    padding: 12px 24px;
+    background-color: #0a8504;
+    box-shadow: 0 2px 5px #0a8504ff;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: "Poppins", sans-serif;
+    font-size: 1em;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+}
+
+.btns:hover {
+    background-color: #0a8504;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(10, 133, 4, 0.4);
+}
+
+.btn-clear-filters {
+    background-color: #6c757d;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(108, 117, 125, 0.6);
+}
+
+.btn-clear-filters:hover {
+    background-color: #28a745;
+    transform: scale(1.1);
+}
+
+/* ────────────────────────────────────────────────────
+   TABLA PRINCIPAL
+──────────────────────────────────────────────────── */
+.alm-table-card {
+    background: #ffffff;
+    border: 5px solid #033966d4;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    margin-bottom: 2em;
+}
+
+.alm-table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1em 1.5em;
+    border-bottom: 2px solid #033966;
+    background: #033966;
+    color: #fff;
+}
+
+/* Variante verde para la tabla de Ayudas */
+.alm-table-header.header-ayudas {
+    background: #027a3a;
+    border-bottom-color: #015c2c;
+}
+
+/* Variante gris para la tabla de Inactivos */
+.alm-table-header.header-inactivos {
+    background: #6c757d;
+    border-bottom-color: #5a6268;
+}
+
+.alm-table-header h2 {
+    font-size: 1em;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.alm-results-count {
+    font-size: 0.8em;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 0.2em 0.8em;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.alm-table-scroll {
+    overflow-x: auto;
+}
+
+table.alm-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.alm-table thead th {
+    background: #033966;
+    color: #fff;
+    padding: 0.85em 1em;
+    text-align: left;
+    font-size: 0.85em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid #022847;
+    white-space: nowrap;
+}
+
+/* Cabecera verde para tabla de Ayudas */
+.alm-table.table-ayudas thead th {
+    background: #027a3a;
+    border-color: #015c2c;
+}
+
+/* Cabecera gris para tabla de Inactivos */
+.alm-table.table-inactivos thead th {
+    background: #6c757d;
+    border-color: #5a6268;
+}
+
+.alm-table tbody tr {
+    border-bottom: 1px solid #ddd;
+    transition: background 0.2s ease;
+}
+
+.alm-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.alm-table tbody tr:nth-child(even) {
+    background: #f5f9ff;
+}
+
+.alm-table tbody tr:hover {
+    background: #e8f2ff;
+}
+
+.alm-table.table-ayudas tbody tr:nth-child(even) {
+    background: #f0fdf6;
+}
+
+.alm-table.table-ayudas tbody tr:hover {
+    background: #d0f5e3;
+}
+
+.alm-table tbody td {
+    padding: 0.85em 1em;
+    vertical-align: middle;
+    font-size: 0.95em;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+/* OT label */
+.alm-ot-label {
+    font-weight: 700;
+    color: #033966;
+    font-size: 0.95em;
+}
+
+/* Fecha */
+.alm-date {
+    color: #555;
+    font-size: 0.9em;
+}
+
+/* ────────────────────────────────────────────────────
+   BADGES
+──────────────────────────────────────────────────── */
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.25em 0.8em;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.badge-activo {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #28a745;
+}
+
+.badge-inactivo {
+    background: #e9ecef;
+    color: #666;
+    border: 1px solid #ccc;
+}
+
+.badge-tipo-dibujo {
+    background: #e8f2ff;
+    color: #033966;
+    border: 1px solid #033966;
+    padding: 0.2em 0.7em;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 700;
+}
+
+.badge-tipo-ayuda {
+    background: #eafaf2;
+    color: #027a3a;
+    border: 1px solid #027a3a;
+    padding: 0.2em 0.7em;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 700;
+}
+
+/* OT label en tabla de ayudas */
+.alm-ot-ayuda {
+    color: #027a3a;
+}
+
+/* ────────────────────────────────────────────────────
+   BOTÓN VER ARCHIVO
+──────────────────────────────────────────────────── */
+.alm-btn-ver {
+    background: #005194;
+    color: #fff;
+    padding: 0.45em 1.1em;
+    font-size: 0.82em;
+    font-weight: 700;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.3s ease,
+        box-shadow 0.3s ease;
+}
+
+.alm-btn-ver:hover {
+    background: #0a8504;
+    transform: scale(1.05) translateY(-1px);
+    box-shadow: 0 6px 18px rgba(10, 133, 4, 0.35);
+}
+
+/* Variante verde para ayudas */
+.alm-btn-ver.btn-ayuda {
+    background: #027a3a;
+}
+
+.alm-btn-ver.btn-ayuda:hover {
+    background: #015c2c;
+    box-shadow: 0 6px 18px rgba(2, 122, 58, 0.35);
+}
+
+/* ── Botones de acción con iconos ── */
+.td-actions {
+    display: flex;
+    gap: 2.5em;
+    justify-content: center;
+}
+
+.btn-action-icon {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    padding: 1em;
+    min-width: 90px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.btn-action-icon span {
+    font-size: 0.85em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-action-icon img {
+    width: 44px;
+    height: 44px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Tema Azul (Ver Dibujos) */
+.btn-ver-dibujos {
+    background: #033966;
+    border-color: #022847;
+    color: #fff;
+}
+
+.btn-ver-dibujos img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-ver-dibujos:hover {
+    background: #e8f2ff;
+    color: #033966;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.15);
+}
+
+.btn-ver-dibujos:hover img {
+    filter: none;
+}
+
+/* Tema Verde (Ver Ayudas) */
+.btn-ver-ayudas {
+    background: #027a3a;
+    border-color: #015c2c;
+    color: #fff;
+}
+
+.btn-ver-ayudas img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-ver-ayudas:hover {
+    background: #eafaf2;
+    color: #027a3a;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(2, 122, 58, 0.15);
+}
+
+.btn-ver-ayudas:hover img {
+    filter: none;
+}
+
+/* Tema Gris (Ver Inactivos) */
+.btn-ver-inactivos {
+    background: #6c757d;
+    border-color: #495057;
+    color: #fff;
+}
+
+.btn-ver-inactivos img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-ver-inactivos:hover {
+    background: #f8f9fa;
+    color: #495057;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(108, 117, 125, 0.15);
+}
+
+.btn-ver-inactivos:hover img {
+    filter: none;
+}
+
+/* Tema Rojo (Eliminar carpeta) */
+.btn-eliminar-carpeta {
+    background: #dc3545;
+    border-color: #c82333;
+    color: #fff;
+}
+
+.btn-eliminar-carpeta img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-eliminar-carpeta:hover {
+    background: #fdf2f2;
+    color: #dc3545;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.15);
+}
+
+.btn-eliminar-carpeta:hover img {
+    filter: none; /* Icono a color original en hover */
+}
+
+.btn-action-icon:active {
+    transform: scale(0.9);
+}
+
+/* ────────────────────────────────────────────────────
+   NOTA DE INACTIVO
+──────────────────────────────────────────────────── */
+.alm-inactiva-note {
+    background: #fff3cd;
+    border: 1px solid #856404;
+    border-radius: 5px;
+    padding: 0.4em 0.8em;
+    color: #856404;
+    font-size: 0.78em;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 5px;
+}
+
+/* ────────────────────────────────────────────────────
+   EMPTY STATE
+──────────────────────────────────────────────────── */
+.alm-empty {
+    text-align: center;
+    padding: 3em 2em;
+    color: #999;
+}
+
+.alm-empty-icon {
+    font-size: 3em;
+    margin-bottom: 0.5em;
+    opacity: 0.5;
+}
+
+.alm-empty p {
+    font-size: 1em;
+    color: #999;
+    font-weight: 400;
+}
+
+/* ────────────────────────────────────────────────────
+   TOAST
+──────────────────────────────────────────────────── */
+.alm-toast {
+    position: fixed;
+    bottom: 2em;
+    right: 2em;
+    background: #033966;
+    color: #fff;
+    padding: 1em 1.5em;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    max-width: 400px;
+}
+
+.alm-toast.error {
+    background: #9c0300;
+}
+
+.alm-toast.fade-out {
+    opacity: 0;
+}
+
+/* ────────────────────────────────────────────────────
+   SPINNER
+──────────────────────────────────────────────────── */
+.alm-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ────────────────────────────────────────────────────
+   UTILITIES
+──────────────────────────────────────────────────── */
+.d-text-center {
+    text-align: center !important;
+}
+.d-text-subtle {
+    color: #999;
+}
+
+.alm-clase-ayuda {
+    font-weight: 700;
+    color: #027a3a; /* Mismo color verde base de la tabla */
+    font-size: 0.95em;
+}
+
+/* ────────────────────────────────────────────────────
+   RESPONSIVE
+──────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .alm-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+    .alm-table th,
+    .alm-table td {
+        font-size: 0.8em;
+        padding: 0.6em 0.7em;
+    }
+}
+
+@media (max-width: 600px) {
+    .alm-header {
+        flex-wrap: wrap;
+    }
+    .alm-readonly-badge {
+        margin-left: 0;
+    }
+    .alm-stats {
+        grid-template-columns: 1fr;
+    }
+    .filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filter {
+        min-width: 100%;
+    }
+}

@@ -482,3 +482,22 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/productivity/ping', [ProductivityController::class, 'ping'])->name('productivity.ping');
     Route::post('/productivity/unlock', [ProductivityController::class, 'unlock'])->name('productivity.unlock');
 });
+
+/* ===========================
+   Vista Calidad — Dibujos y Ayudas Visuales de Maquinados (Solo Lectura)
+   Acceso: Calidad (4) y Administrador (1).
+=========================== */
+
+Route::middleware(['auth'])->prefix('calidad/maquinados')->name('calidad.maquinados.')->group(function () {
+    // Vista principal: tres tablas (Dibujos, Ayudas, Inactivos)
+    Route::get('/', [\App\Http\Controllers\CalidadMaquinadosController::class, 'index'])
+        ->name('index');
+
+    // Servir archivo protegido por ID (validado contra BD)
+    Route::get('/serve', [\App\Http\Controllers\CalidadMaquinadosController::class, 'serveFile'])
+        ->name('serve');
+
+    // API JSON (para uso futuro o filtrado dinámico)
+    Route::get('/docs', [\App\Http\Controllers\CalidadMaquinadosController::class, 'getDocs'])
+        ->name('docs');
+});

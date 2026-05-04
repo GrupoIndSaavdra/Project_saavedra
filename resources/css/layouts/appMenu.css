@@ -152,8 +152,23 @@ body {
 }
 .open-menu {
     border: none;
-    background: transparent;
-    width: 3em;
+    background-color: #ffffff00;
+    width: 4em;
+    height: 4em;
+    padding: 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.open-menu:hover {
+    background-color: #c9c9c99b;
+    transform: translateY(-2px);
+}
+.open-menu:active {
+    transform: translateY(0);
 }
 .text-header {
     font-weight: 700;
@@ -165,23 +180,44 @@ body {
     width: 6em;
 }
 .filter-opacity {
-    position: absolute;
-    background: #000a;
-    top: 5vh;
+    position: fixed; /* Changed from absolute for better overlay */
+    background: rgba(0, 0, 0, 0.35);
+    top: 0;
     left: 0;
     width: 100%;
-    height: calc(100vh - 5vh);
-    z-index: 10;
+    height: 100vh;
+    z-index: 1000;
     visibility: hidden;
     opacity: 0;
+    will-change: opacity, visibility;
+    transition:
+        opacity 0.25s ease,
+        visibility 0.25s step-end;
+}
+.filter-opacity[style*="visibility: visible"],
+.filter-opacity.is-open {
+    visibility: visible;
+    opacity: 1;
+    transition:
+        opacity 0.25s ease,
+        visibility 0s linear;
 }
 .nav {
     position: relative;
     display: flex;
     flex-direction: column;
-    background-color: #fff;
+    background-color: #ffffff;
     width: 320px;
     height: 100%;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.08);
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+    transform: translateX(-100%);
+    will-change: transform;
+    transition: transform 0.25s ease;
+}
+.filter-opacity[style*="visibility: visible"] .nav,
+.filter-opacity.is-open .nav {
+    transform: translateX(0);
 }
 .nav-list {
     list-style-type: none;
@@ -189,24 +225,51 @@ body {
 .nav-link,
 .submenu-toggle {
     text-decoration: none;
-    color: #000000;
-    font-size: 1em;
+    color: #333;
+    font-size: 0.95em;
     font-weight: 600;
-    font-family: sans-serif;
-    display: inline-block;
+    font-family: "Poppins", sans-serif;
+    display: flex;
+    align-items: center;
     width: 100%;
-    padding: 12px 15px;
-    transition: 0.2s;
+    padding: 14px 20px;
+    transition: all 0.3s ease;
+    border-radius: 0 25px 25px 0;
+    margin: 4px 0;
+    margin-right: 15px;
 }
-.nav-link.active {
-    border-left: 4px solid #0a8504;
-    background: #e0e0e0;
+
+/* Opciones principales activas (Verde) - Incluyendo el Inicio y los Toggles desplegados */
+.nav-list > li > .nav-link.active,
+.menu-section.active > .submenu-toggle {
+    background: linear-gradient(90deg, #11998e, #38ef7d) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3);
+    border-left: none !important;
 }
+
+.menu-section.active > .submenu-toggle::after {
+    color: white;
+}
+
+/* Opciones secundarias activas (Azul) */
+.submenu .nav-link.active {
+    background: linear-gradient(90deg, #1e3c72, #2a5298) !important;
+    color: white !important;
+    box-shadow: 0 4px 15px rgba(42, 82, 152, 0.3);
+    border-left: none !important;
+}
+
 .nav-link:hover,
 .submenu-toggle:hover {
-    background: #0a8504;
-    color: #ffffff;
-    transition: 0.2s;
+    background: rgba(17, 153, 142, 0.1);
+    color: #11998e;
+    padding-left: 25px;
+}
+
+.submenu .nav-link:hover {
+    background: rgba(30, 60, 114, 0.1);
+    color: #1e3c72;
 }
 .btn-close-session {
     position: absolute;
@@ -231,15 +294,30 @@ body {
 .submenu {
     display: none;
     list-style: none;
-    padding-left: 20px;
+    padding-left: 15px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .menu-section > .submenu-toggle {
     border-left: 4px solid #033966;
-    background: #fffb;
+    background: transparent;
 }
 .submenu-toggle:hover {
-    background: #033966bb;
+    background: rgba(3, 57, 102, 0.05);
+    color: #033966;
 }
 
 .menu-section.active > .submenu {
@@ -319,4 +397,3 @@ body {
    SISTEMA DE MODALES PREMIUM (prod-viewer-*)
    Globalizado para alertas y visualizadores
    =========================== */
-

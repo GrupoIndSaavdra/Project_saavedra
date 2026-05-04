@@ -90,6 +90,7 @@
         'ayudas.manage': @json(route('ayudas.manage')),
         'ayudas_fundicion.manage': @json(route('ayudas_fundicion.manage')),
         'almacen.fundicion.index': @json(route('almacen.fundicion.index')),
+        'calidad.maquinados.index': @json(route('calidad.maquinados.index')),
         systemLogsReport: @json(route('systemLogsReport'))
     };
 </script>

@@ -9,16 +9,32 @@ let profile = document.getElementById("profile").value;
 createMenu(profile);
 //Agregamos un evento al botón de abrir
 btn_open.addEventListener("click", function () {
-    //Agregamos un evento al botón de abrir
-    if (nav.style.visibility == "hidden" || nav.style.visibility == "") {
-        nav.style.visibility = "visible"; //Cambiamos la visibilidad del nav.
-        nav.style.opacity = "1"; //Cambiamos la opacidad del nav.
+    if (nav.classList.contains("is-open")) {
+        nav.classList.remove("is-open");
+        nav.style.opacity = "0";
+        setTimeout(() => {
+            if (!nav.classList.contains("is-open")) {
+                nav.style.visibility = "hidden";
+            }
+        }, 250);
     } else {
-        nav.style.visibility = "hidden"; //Cambiamos la visibilidad del nav.
-        nav.style.opacity = "0"; //Cambiamos la opacidad del nav.
+        nav.classList.add("is-open");
+        nav.style.visibility = "visible";
+        nav.style.opacity = "1";
     }
-    nav.style.transition = "0.5s ease"; //Agregamos una transición al nav.
-    nav.style.translationX = "0%"; //Agregamos una transición al nav.
+});
+
+// Cerrar al hacer clic fuera del menú
+nav.addEventListener("click", function (e) {
+    if (e.target === nav) {
+        nav.classList.remove("is-open");
+        nav.style.opacity = "0";
+        setTimeout(() => {
+            if (!nav.classList.contains("is-open")) {
+                nav.style.visibility = "hidden";
+            }
+        }, 250);
+    }
 });
 
 //Funcion para crear La lista de rutas para el menu
@@ -169,11 +185,11 @@ function getRoutes(profile) {
                 {
                     title: "Documentación Técnica",
                     routes: [
-                        ["dibujos.manage", "Dibujos de Maquinados"],
-                        ["fundicion.manage", "Dibujos de Fundición"],
-                        ["manuales.manage", "Manuales de Procesos"],
-                        ["ayudas.manage", "Ayudas Visuales de Maquinados"],
                         ["ayudas_fundicion.manage", "Ayudas Visuales de Fundición"],
+                        ["ayudas.manage", "Ayudas Visuales de Maquinados"],
+                        ["fundicion.manage", "Dibujos de Fundición"],
+                        ["dibujos.manage", "Dibujos de Maquinados"],
+                        ["manuales.manage", "Manuales de Procesos"],
                     ],
                 },
                 {
@@ -255,7 +271,8 @@ function getRoutes(profile) {
                 {
                     title: "Documentación Técnica",
                     routes: [
-                        ["almacen.fundicion.index", "Dibujos de Fundición"],
+                        ["almacen.fundicion.index", "Dibujos y Ayudas de Fundición"],
+                        ["calidad.maquinados.index", "Dibujos y Ayudas de Maquinados"],
                     ],
                 },
             ];
@@ -319,11 +336,24 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".submenu-toggle").forEach((toggle) => {
         toggle.addEventListener("click", function (e) {
             e.preventDefault();
-            if (this.parentElement.classList.contains("active")) {
-                this.parentElement.classList.remove("active");
+            const parent = this.parentElement;
+            const isAlreadyActive = parent.classList.contains("active");
+
+            // Cerrar todos los demás submenús abiertos
+            document.querySelectorAll(".menu-section.active").forEach((section) => {
+                if (section !== parent) {
+                    section.classList.remove("active");
+                    const submenu = section.querySelector(".submenu");
+                    if (submenu) submenu.style.display = "none";
+                }
+            });
+
+            // Alternar el actual
+            if (isAlreadyActive) {
+                parent.classList.remove("active");
                 this.nextElementSibling.style.display = "none";
             } else {
-                this.parentElement.classList.add("active");
+                parent.classList.add("active");
                 this.nextElementSibling.style.display = "block";
             }
         });

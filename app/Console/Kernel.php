@@ -33,7 +33,13 @@ class Kernel extends ConsoleKernel
             ->everyMinute()
             ->withoutOverlapping();
 
-        // ── Depuración cada 3 días de Logs ──────────────────────────────
+        // ── Sincronización Calidad Maquinados — cada 5 minutos ────────────────
+        $schedule->command('calidad:sync-maquinados')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/sync_maquinados.log'));
+
+        // ── Depuración cada 3 días de Logs ──────────────────────────────────────────────────────
         // Programación: Cada 3 días a las 23:00 (11 PM)
         $schedule->command('app:depurar-logs')
             ->cron('0 23 */3 * *')
