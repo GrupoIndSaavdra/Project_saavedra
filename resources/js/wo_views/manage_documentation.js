@@ -230,9 +230,12 @@ function initUploadBtn() {
         const fileLabelText = document.getElementById('d-upload-file-label-text');
         const btnSubir = document.getElementById('btn-subir-pdf');
 
-        if (fileInput.files[0]) {
-            if (fileNameLabel) fileNameLabel.textContent = fileInput.files[0].name;
-            if (fileLabelText) fileLabelText.textContent = 'Archivo: ' + fileInput.files[0].name;
+        const files = fileInput.files;
+        if (files.length > 0) {
+            const count = files.length;
+            const text = count === 1 ? files[0].name : `${count} archivos seleccionados`;
+            if (fileNameLabel) fileNameLabel.textContent = text;
+            if (fileLabelText) fileLabelText.textContent = 'Seleccionado: ' + text;
             if (btnSubir) btnSubir.disabled = false;
         } else {
             if (fileNameLabel) fileNameLabel.textContent = '';
@@ -242,26 +245,52 @@ function initUploadBtn() {
     });
 
     // Evento Click para el botón de subir
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', async (e) => {
         const btnSubir = e.target.closest('#btn-subir-pdf');
         if (!btnSubir || btnSubir.disabled) return;
 
         const fileInput = document.getElementById('d-upload-file');
-        const file = fileInput ? fileInput.files[0] : null;
-        if (!file) {
-            mostrarNotificacion('Por favor selecciona un archivo.', true);
+        const files = fileInput ? fileInput.files : [];
+        if (files.length === 0) {
+            mostrarNotificacion('Por favor selecciona al menos un archivo.', true);
             return;
         }
 
         const payload = getPayloadFromBtn(btnSubir);
-        subirPdf(payload, file, btnSubir, () => {
-            // Reset form
-            if (fileInput) fileInput.value = '';
-            const fileNameLabel = document.getElementById('d-upload-file-name');
-            const fileLabelText = document.getElementById('d-upload-file-label-text');
-            if (fileNameLabel) fileNameLabel.textContent = '';
-            if (fileLabelText) fileLabelText.textContent = 'Seleccionar archivo PDF';
-            btnSubir.disabled = true;
+        const originalText = btnSubir.innerHTML;
+        btnSubir.disabled = true;
+
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            btnSubir.innerHTML = `<span class="dibujos-spinner"></span> (${i+1}/${files.length}) Subiendo...`;
+            
+            try {
+                const data = await subirArchivoIndividual(payload, file);
+                if (data.success) successCount++;
+                else {
+                    errorCount++;
+                    mostrarNotificacion(`Error en "${file.name}": ${data.message}`, true);
+                }
+            } catch (err) {
+                errorCount++;
+                mostrarNotificacion(`Error de conexión en "${file.name}"`, true);
+            }
+        }
+
+        // Reset UI
+        btnSubir.disabled = true;
+        btnSubir.innerHTML = originalText;
+        if (fileInput) fileInput.value = '';
+        const fileNameLabel = document.getElementById('d-upload-file-name');
+        const fileLabelText = document.getElementById('d-upload-file-label-text');
+        if (fileNameLabel) fileNameLabel.textContent = '';
+        if (fileLabelText) fileLabelText.textContent = 'Seleccionar archivo PDF';
+
+        if (successCount > 0) {
+            mostrarNotificacion(successCount === 1 ? 'Archivo subido correctamente.' : `${successCount} archivos subidos correctamente.`);
             
             // Recargar vista de archivos y badges
             if (window.moduleType === 'manuales') {
@@ -274,7 +303,9 @@ function initUploadBtn() {
                 cargarArchivosEnPanel(payload.param1, payload.param2);
                 actualizarBadge(payload.param1, payload.param2);
             }
-        });
+            loadBadgeCounts();
+            loadAuditLog();
+        }
     });
 }
 
@@ -436,26 +467,29 @@ window.eliminarPdf = function(nombreArchivo, param1, param2) {
 };
 
 
-function subirPdf(payload, file, btn, onSuccess) {
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="dibujos-spinner"></span> Subiendo...';
-
+function subirArchivoIndividual(payload, file) {
     const formData = new FormData();
     Object.keys(payload).forEach(k => {
         if(k !== 'param1' && k !== 'param2') formData.append(k, payload[k]);
     });
     formData.append('pdf', file);
 
-    fetch(window.routes['doc.upload'], {
+    return fetch(window.routes['doc.upload'], {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': window.csrfToken,
             'Accept': 'application/json',
         },
         body: formData,
-    })
-    .then(r => r.json())
+    }).then(r => r.json());
+}
+
+function subirPdf(payload, file, btn, onSuccess) {
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="dibujos-spinner"></span> Subiendo...';
+
+    subirArchivoIndividual(payload, file)
     .then(data => {
         if (data.success) {
             mostrarNotificacion(data.message || 'Archivo subido correctamente.');

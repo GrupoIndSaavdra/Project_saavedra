@@ -220,7 +220,7 @@
                         <div class="dibujos-form-group">
                             <label class="dibujos-file-label" for="d-upload-file">
                                 <span id="d-upload-file-label-text">Seleccionar archivo PDF</span>
-                                <input type="file" id="d-upload-file" accept=".pdf">
+                                <input type="file" id="d-upload-file" accept=".pdf" multiple>
                             </label>
                             <span class="dibujos-file-name" id="d-upload-file-name"></span>
                         </div>
@@ -401,7 +401,7 @@
                                     @endif
                                 @endforeach
                             @elseif($moduleType === 'manuales')
-                                @foreach($estructura as $procesoName => $extra)
+                                @foreach($estructura as $procesoName)
                                     @php
                                         $procesoReal = $todosLosProcesos->firstWhere('nombre', $procesoName);
                                         $procesoIdBD = $procesoReal ? $procesoReal->id : null;
