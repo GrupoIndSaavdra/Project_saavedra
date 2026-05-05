@@ -303,7 +303,7 @@ function getRoutes(profile) {
                 {
                     title: "Documentación Técnica",
                     routes: [
-                        ["almacen.fundicion.index", "Dibujos de Fundición"],
+                        ["almacen.fundicion.index", "Dibujos y Ayudas de Fundición"],
                     ],
                 },
             ];
