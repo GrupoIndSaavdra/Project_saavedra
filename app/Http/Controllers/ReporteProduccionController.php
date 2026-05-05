@@ -57,8 +57,15 @@ class ReporteProduccionController extends Controller
         ]);
 
         $fecha = Carbon::parse($request->fecha);
-        $correos = $request->correos ?: env('REPORT_RECIPIENTS', '');
-        $destinatarios = array_filter(array_map('trim', explode(',', $correos)));
+        $raw = $request->correos ?: config('mail.report_recipients');
+        
+        // 1. Limpiar comillas y espacios externos
+        $raw = trim($raw, '"\' ');
+        
+        // 2. Separar y limpiar cada correo de caracteres invisibles
+        $destinatarios = array_filter(array_map(function($correo) {
+            return preg_replace('/[^a-zA-Z0-9@._+-]/', '', trim($correo));
+        }, explode(',', $raw)));
         \Illuminate\Support\Facades\Log::info("Reenviando reporte para {$fecha->toDateString()} a: " . implode(', ', $destinatarios));
 
         // Reutilizar la misma lógica del Command
@@ -96,13 +103,19 @@ class ReporteProduccionController extends Controller
 
         $enviados = 0;
         $errores = [];
+        set_time_limit(0); // Evitar timeout en reportes grandes
+        
+        \Illuminate\Support\Facades\Log::info("Iniciando envío a " . count($destinatarios) . " destinatarios.");
+
         foreach ($destinatarios as $correo) {
             try {
                 Mail::to($correo)->send(new ReporteDiarioMail($reporte, $fecha, $pdfPaths));
-                \Illuminate\Support\Facades\Log::info("Mail enviado a {$correo}");
+                \Illuminate\Support\Facades\Log::info("✓ Mail enviado exitosamente a: {$correo}");
                 $enviados++;
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error("Error enviando mail a {$correo}: " . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error("✗ Error enviando mail a {$correo}: " . $e->getMessage(), [
+                    'exception' => $e
+                ]);
                 $errores[] = "{$correo}: " . $e->getMessage();
             }
         }

@@ -378,8 +378,15 @@ class EnviarReporteDiario extends Command
      */
     private function obtenerDestinatarios(): array
     {
-        $raw = env('REPORT_RECIPIENTS', config('mail.from.address'));
-        return array_filter(array_map('trim', explode(',', $raw)));
+        $raw = config('mail.report_recipients', config('mail.from.address'));
+        
+        // 1. Limpiar comillas y espacios externos
+        $raw = trim($raw, '"\' ');
+        
+        // 2. Separar y limpiar cada correo de caracteres invisibles (\r, \n, \t)
+        return array_filter(array_map(function($correo) {
+            return preg_replace('/[^a-zA-Z0-9@._+-]/', '', trim($correo));
+        }, explode(',', $raw)));
     }
 
     /**
