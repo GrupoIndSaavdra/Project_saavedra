@@ -71,64 +71,68 @@
 
                 <div class="filters">
 
-                    {{-- Filtro OT — solo aplica a Dibujos --}}
-                    <div class="filter">
-                        <select id="calmaq-ot" class="select-filter">
-                            <option value="">Todas las OTs</option>
-                            @foreach ($listaOts as $otOpt)
-                                <option value="{{ $otOpt }}" {{ $filtroOt === $otOpt ? 'selected' : '' }}>
-                                    {{ $otOpt }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <label for="calmaq-ot">OT <span class="filter-scope filter-scope-dibujo">Dibujos</span></label>
+                    <div class="filters-row">
+                        {{-- Filtro OT — solo aplica a Dibujos --}}
+                        <div class="filter">
+                            <select id="calmaq-ot" class="select-filter">
+                                <option value="">Todas las OTs</option>
+                                @foreach ($listaOts as $otOpt)
+                                    <option value="{{ $otOpt }}" {{ $filtroOt === $otOpt ? 'selected' : '' }}>
+                                        {{ $otOpt }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <label for="calmaq-ot">OT <span class="filter-scope filter-scope-dibujo">Dibujos</span></label>
+                        </div>
+
+                        {{-- Filtro Clase — aplica a ambas tablas --}}
+                        <div class="filter">
+                            <select id="calmaq-clase" class="select-filter">
+                                <option value="">Todas las Clases</option>
+                                @foreach ($listaClases as $claseOpt)
+                                    <option value="{{ $claseOpt }}" {{ $filtroClase === $claseOpt ? 'selected' : '' }}>
+                                        {{ $claseOpt }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <label for="calmaq-clase">Clase <span class="filter-scope filter-scope-ambas">Dibujos + Ayudas</span></label>
+                        </div>
+
+                        {{-- Filtro Proceso — solo aplica a Ayudas --}}
+                        <div class="filter">
+                            <select id="calmaq-proceso" class="select-filter">
+                                <option value="">Todos los Procesos</option>
+                                @foreach ($listaProcesos as $procesoOpt)
+                                    <option value="{{ $procesoOpt }}" {{ $filtroProceso === $procesoOpt ? 'selected' : '' }}>
+                                        {{ $procesoOpt }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <label for="calmaq-proceso">Proceso <span class="filter-scope filter-scope-ayuda">Ayudas</span></label>
+                        </div>
+
+                        {{-- Rango de fechas (recarga el servidor para filtrar) --}}
+                        <div class="filter">
+                            <input id="calmaq-desde" class="input-filter" type="date" name="desde"
+                                   value="{{ $desde }}" onchange="this.form.submit()">
+                            <label for="calmaq-desde">Desde</label>
+                        </div>
+
+                        <div class="filter">
+                            <input id="calmaq-hasta" class="input-filter" type="date" name="hasta"
+                                   value="{{ $hasta }}" onchange="this.form.submit()">
+                            <label for="calmaq-hasta">Hasta</label>
+                        </div>
                     </div>
 
-                    {{-- Filtro Clase — aplica a ambas tablas --}}
-                    <div class="filter">
-                        <select id="calmaq-clase" class="select-filter">
-                            <option value="">Todas las Clases</option>
-                            @foreach ($listaClases as $claseOpt)
-                                <option value="{{ $claseOpt }}" {{ $filtroClase === $claseOpt ? 'selected' : '' }}>
-                                    {{ $claseOpt }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <label for="calmaq-clase">Clase <span class="filter-scope filter-scope-ambas">Dibujos + Ayudas</span></label>
+                    <div class="filters-actions">
+                        {{-- Botón limpiar (siempre visible, el JS lo activa solo si hay filtros) --}}
+                        <button type="button" id="calmaq-btn-limpiar"
+                                class="btns btn-clear-filters"
+                                style="display:none;">
+                            Limpiar Filtros
+                        </button>
                     </div>
-
-                    {{-- Filtro Proceso — solo aplica a Ayudas --}}
-                    <div class="filter">
-                        <select id="calmaq-proceso" class="select-filter">
-                            <option value="">Todos los Procesos</option>
-                            @foreach ($listaProcesos as $procesoOpt)
-                                <option value="{{ $procesoOpt }}" {{ $filtroProceso === $procesoOpt ? 'selected' : '' }}>
-                                    {{ $procesoOpt }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <label for="calmaq-proceso">Proceso <span class="filter-scope filter-scope-ayuda">Ayudas</span></label>
-                    </div>
-
-                    {{-- Rango de fechas (recarga el servidor para filtrar) --}}
-                    <div class="filter">
-                        <input id="calmaq-desde" class="input-filter" type="date" name="desde"
-                               value="{{ $desde }}" onchange="this.form.submit()">
-                        <label for="calmaq-desde">Desde</label>
-                    </div>
-
-                    <div class="filter">
-                        <input id="calmaq-hasta" class="input-filter" type="date" name="hasta"
-                               value="{{ $hasta }}" onchange="this.form.submit()">
-                        <label for="calmaq-hasta">Hasta</label>
-                    </div>
-
-                    {{-- Botón limpiar (siempre visible, el JS lo activa solo si hay filtros) --}}
-                    <button type="button" id="calmaq-btn-limpiar"
-                            class="btns btn-clear-filters"
-                            style="display:none;">
-                        Limpiar Filtros
-                    </button>
 
                 </div>
             </form>
