@@ -60,7 +60,7 @@
             </div>
             <div class="alm-stat-card stat-inactivas">
                 <div class="alm-stat-icon">
-                    <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Archivadas" style="width: 60px;">
+                    <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Archivadas" style="width: 60px;">
                 </div>
                 <div>
                     <div class="alm-stat-value">{{ $inactivas }}</div>

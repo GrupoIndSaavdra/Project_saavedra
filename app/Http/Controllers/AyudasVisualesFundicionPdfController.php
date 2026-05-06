@@ -64,7 +64,7 @@ class AyudasVisualesFundicionPdfController extends Controller
         ), [
             'moduleType' => 'ayudas_fundicion',
             'modulePrefix' => 'ayudas_fundicion',
-            'pageTitle' => 'Gestión de Ayudas Visuales de Fundición',
+            'pageTitle' => 'Ayudas Visuales de Fundición',
             'directoryName' => 'DOCUMENTACION_GIS / AYUDAS_FUNDICION',
             'moduleMetadata' => [
                 'description' => 'Selecciona la clase para administrar sus ayudas maestras.'

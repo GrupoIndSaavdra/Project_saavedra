@@ -154,7 +154,7 @@ class DibujosFundicionPdfController extends Controller
         ), [
             'moduleType' => 'fundicion',
             'modulePrefix' => 'fundicion',
-            'pageTitle' => 'Gestión de Dibujos de Fundición',
+            'pageTitle' => 'Dibujos de Fundición',
             'directoryName' => 'DOCUMENTACION_GIS / DIBUJOS_FUNDICION',
             'moduleMetadata' => [
                 'description' => 'Selecciona la OT para buscar o subir dibujos de fundición.'

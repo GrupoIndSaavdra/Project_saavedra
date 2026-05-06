@@ -74,7 +74,7 @@ class AyudasVisualesPdfController extends Controller
         ), [
             'moduleType' => 'ayudas',
             'modulePrefix' => 'ayudas',
-            'pageTitle' => 'Gestión de Ayudas Visuales',
+            'pageTitle' => 'Ayudas Visuales de Maquinados',
             'directoryName' => 'DOCUMENTACION_GIS / AYUDAS_MAQUINADOS',
             'moduleMetadata' => [
                 'description' => 'Selecciona primero la clase y luego el proceso.'

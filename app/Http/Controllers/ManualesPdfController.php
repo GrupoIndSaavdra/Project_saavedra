@@ -55,7 +55,7 @@ class ManualesPdfController extends Controller
         ), [
             'moduleType' => 'manuales',
             'modulePrefix' => 'manuales',
-            'pageTitle' => 'Gestión de Manuales de Procesos',
+            'pageTitle' => 'Manuales de Procesos',
             'directoryName' => 'DOCUMENTACION_GIS / MANUALES_PROCESOS',
             'moduleMetadata' => [
                 'description' => 'Selecciona el proceso existente en el sistema.'

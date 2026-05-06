@@ -60,7 +60,7 @@ class DibujosPdfController extends Controller
         ), [
             'moduleType' => 'dibujos',
             'modulePrefix' => 'dibujos',
-            'pageTitle' => 'Gestión de Dibujos / Planos PDF',
+            'pageTitle' => 'Dibujos de Maquinados',
             'directoryName' => 'DOCUMENTACION_GIS / DIBUJOS_MAQUINADOS',
             'moduleMetadata' => [
                 'description' => 'Selecciona la OT y Clase existentes en el sistema.'
