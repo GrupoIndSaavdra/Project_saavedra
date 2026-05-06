@@ -213,7 +213,7 @@ body {
     flex-direction: column-reverse;
     align-items: center;
     gap: 0.5em;
-    min-width: 220px;
+    min-width: 180px;
 }
 
 .filters-actions {
@@ -239,8 +239,8 @@ body {
     cursor: pointer;
 }
 
-.select-filter:focus,
-.input-filter:focus {
+.select-filter:hover,
+.input-filter:hover {
     border-color: #005194;
     background: #055a9e;
     box-shadow: 0 0 12px rgba(3, 57, 102, 0.3);
