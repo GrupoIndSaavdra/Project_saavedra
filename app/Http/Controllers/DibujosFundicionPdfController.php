@@ -593,12 +593,31 @@ class DibujosFundicionPdfController extends Controller
         }
 
         // ─── Borrar SOLO del directorio ADMIN (FUNDICION_GIS) ────────────────────
+        $files = Storage::disk('local')->files($dirPath);
+        if (count($files) > 0) {
+            Storage::disk('local')->delete($files);
+            $this->logAction('vaciar_carpeta', $ot, null);
+            return response()->json([
+                'success' => true,
+                'message' => "Se eliminaron " . count($files) . " archivos del Directorio Raíz '{$ot}'.",
+            ]);
+        }
+
         Storage::disk('local')->deleteDirectory($dirPath);
         $this->logAction('eliminar_carpeta', $ot, 'Eliminación de Carpeta OT (Admin)');
 
-        // ─── Soft-delete en histórico de Almacén ─────────────────────────────────
-        // FUNDICION_ALMACEN/{ot}/ NO se toca. Solo cambiamos el estado visual.
-        FundicionHistory::query()->where('ot', $ot)->update(['status' => 'inactiva']);
+        // ─── Soft-delete en histórico de Almacén y Desvincular Ayudas ────────────
+        // FUNDICION_ALMACEN/{ot}/ (archivos principales) NO se toca. Solo cambiamos el estado visual.
+        FundicionHistory::query()->where('ot', $ot)->update([
+            'status' => 'inactiva',
+            'ayudas_config' => []
+        ]);
+
+        $ayudasDstDir = self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales';
+        if (Storage::disk('local')->exists($ayudasDstDir)) {
+            Storage::disk('local')->deleteDirectory($ayudasDstDir);
+        }
+        $this->logAction('desvincular_ayudas', $ot, 'Se desvincularon todas las ayudas visuales automáticamente.');
 
         return response()->json([
             'success' => true,

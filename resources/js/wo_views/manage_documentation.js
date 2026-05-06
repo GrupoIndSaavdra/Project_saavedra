@@ -563,7 +563,7 @@ function actualizarBadge(param1, param2 = null) {
     if (window.moduleType === 'dibujos') badgeId = `badge-${slugify(param1)}-${slugify(param2)}`;
     else if (window.moduleType === 'fundicion') badgeId = `badge-${slugify(param1)}`;
     else if (window.moduleType === 'manuales') badgeId = `badge-${slugify(param1)}`;
-    else if (window.moduleType === 'ayudas' || window.moduleType === 'ayudas_fundicion') badgeId = `badge-${slugify(param1)}-${slugify(param2)}`;
+    else if (window.moduleType === 'ayudas' || window.moduleType === 'ayudas_fundicion') badgeId = `badge-${slugify(param2)}-${slugify(param1)}`;
 
     const badge = document.getElementById(badgeId);
     if (!badge) return;
@@ -583,6 +583,35 @@ function actualizarBadge(param1, param2 = null) {
             }
             badge.textContent = count;
             badge.classList.toggle('badge-count-empty', count === 0);
+
+            // Actualizar texto del botón de eliminar dinámicamente
+            const row = badge.closest('tr');
+            if (row) {
+                const btnEliminar = row.querySelector('.btn-eliminar-carpeta');
+                if (btnEliminar) {
+                    const btnSpan = btnEliminar.querySelector('span');
+                    const btnImg = btnEliminar.querySelector('img');
+                    // Identificar si es Directorio Raíz
+                    const isRoot = (row.dataset.proceso === '--' || 
+                                    (!row.dataset.clase && !row.dataset.proceso) || 
+                                    (window.moduleType === 'dibujos' && !row.dataset.clase) ||
+                                    window.moduleType === 'manuales' || 
+                                    window.moduleType === 'fundicion');
+                    
+                    if (count > 0) {
+                        if (btnSpan) btnSpan.textContent = 'Vaciar Carpeta';
+                        if (btnImg) btnImg.src = window.baseUrl + '/images/Eliminar-Archivos.png';
+                    } else if (isRoot) {
+                        if (btnSpan) btnSpan.textContent = 'Eliminar Directorio Raíz';
+                        if (btnImg) btnImg.src = window.baseUrl + '/images/Eliminar-Carpeta.png';
+                    } else {
+                        // Etiquetas específicas para subcarpetas vacías
+                        const labelMap = { 'dibujos': 'Clase', 'ayudas': 'Proceso', 'ayudas_fundicion': 'Carpeta' };
+                        if (btnSpan) btnSpan.textContent = 'Eliminar ' + (labelMap[window.moduleType] || 'Carpeta');
+                        if (btnImg) btnImg.src = window.baseUrl + '/images/Eliminar-Carpeta.png';
+                    }
+                }
+            }
         })
         .catch(() => { badge.textContent = '?'; });
 }
@@ -606,16 +635,35 @@ function loadAuditLog() {
         }
         data.logs.forEach(log => {
             const accionEs = {
-                'crear_carpeta': 'Crear carpeta',
-                'subir_pdf': 'Subir PDF',
-                'eliminar_pdf': 'Eliminar PDF',
-                'reemplazar_pdf': 'Reemplazar PDF',
-                'enviar_alerta': 'Enviar correo',
-                'eliminar_carpeta': 'Eliminar carpeta',
-                'guardar_ayudas': 'Vincular ayudas',
+                'crear_carpeta': 'Se ha creado una nueva carpeta en el sistema',
+                'subir_pdf': 'Se subió un nuevo archivo PDF al servidor',
+                'eliminar_pdf': 'Se eliminó definitivamente un archivo PDF',
+                'reemplazar_pdf': 'Se reemplazó un archivo existente por una nueva versión',
+                'enviar_alerta': 'Se envió un correo de alerta a Almacén/Calidad',
+                'eliminar_carpeta': 'Se eliminó la carpeta permanentemente',
+                'vaciar_carpeta': 'Se eliminaron todos los archivos de la carpeta',
+                'guardar_ayudas': 'Se vincularon ayudas visuales a la Orden de Trabajo',
+                'desvincular_ayudas': 'Se desvincularon todas las ayudas de la Orden de Trabajo'
             };
             
-            const actionLabel = accionEs[log.action] || log.action;
+            let actionLabel = accionEs[log.action] || log.action;
+
+            // Refinar descripción para carpetas según profundidad (Raíz vs Subcarpeta)
+            if (log.action === 'eliminar_carpeta') {
+                if (log.ruta && log.ruta.includes('/')) {
+                    actionLabel = 'Se eliminó la subcarpeta permanentemente';
+                } else {
+                    actionLabel = 'Se eliminó el directorio raíz permanentemente';
+                }
+            } else if (log.action === 'vaciar_carpeta') {
+                actionLabel = 'Se eliminaron todos los archivos de la carpeta';
+            } else if (log.action === 'crear_carpeta') {
+                if (log.ruta && log.ruta.includes('/')) {
+                    actionLabel = 'Se creó una subcarpeta para organizar archivos';
+                } else {
+                    actionLabel = 'Se creó el directorio raíz';
+                }
+            }
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -667,50 +715,73 @@ let folderToDelete = null;
 window.confirmarEliminarCarpeta = function(p1, p2, label) {
     folderToDelete = { p1, p2 };
     const modal = document.getElementById('dibujos-confirm-modal');
-    const parentEl = document.getElementById('confirm-parent-label');
-    const typeEl = document.getElementById('confirm-type-label');
-    const nameEl = document.getElementById('confirm-folder-name');
+    const msgContainer = document.getElementById('confirm-message-container');
     const btnConfirm = document.getElementById('btn-confirmar-borrar');
+    const modalIcon = document.getElementById('confirm-modal-icon');
 
-    if (modal && nameEl && typeEl && parentEl) {
+    if (modal && msgContainer) {
         const module = window.moduleType;
-        let parentText = 'Servidor';
-        let typeText = 'Carpeta';
-        let subName = p1;
+        
+        let badgeId = '';
+        if (module === 'dibujos') badgeId = `badge-${slugify(p1)}-${slugify(p2)}`;
+        else if (module === 'fundicion') badgeId = `badge-${slugify(p1)}`;
+        else if (module === 'manuales') badgeId = `badge-${slugify(p1)}`;
+        else if (module === 'ayudas' || module === 'ayudas_fundicion') badgeId = `badge-${slugify(p2)}-${slugify(p1)}`;
+        
+        let count = 0;
+        if (badgeId) {
+            const badge = document.getElementById(badgeId);
+            if (badge) count = parseInt(badge.textContent) || 0;
+        }
+        
+        let isVaciar = (count > 0);
+        let actionWord = isVaciar ? 'vaciar todos los archivos' : 'eliminar completamente';
+        
+        let finalHtml = '';
 
         if (module === 'dibujos') {
-            if (!p2) {
-                parentText = 'DIBUJOS_GIS';
-                typeText = 'OT';
-                subName = p1;
-            } else {
-                parentText = label.split(' / ')[0]; // Rescatamos el label de la OT
-                typeText = 'clase';
-                subName = p2;
+            if (!p2) { // Eliminando OT (Raíz)
+                finalHtml = `Se va a ${actionWord} del Directorio Raíz:<br>
+                             <strong style="color: #033966; font-size: 1.2em;">${p1}</strong>`;
+            } else { // Eliminando Clase (Subcarpeta)
+                finalHtml = `Se va a ${actionWord} de la clase:<br>
+                             <span class="confirm-label-highlight" style="display: inline-block; margin-top: 0.3em;">${p2}</span><br>
+                             <small style="color: #555;">(Orden de Trabajo: ${label.split(' / ')[0]})</small>`;
             }
         } else if (module === 'fundicion') {
-            parentText = 'FUNDICION_GIS';
-            typeText = 'OT';
-            subName = p1;
+            finalHtml = `Se va a ${actionWord} del Directorio Raíz:<br>
+                         <strong style="color: #033966; font-size: 1.2em;">${p1}</strong>`;
         } else if (module === 'manuales') {
-            parentText = 'MANUALES_GIS';
-            typeText = 'proceso';
-            subName = p1;
+            finalHtml = `Se va a ${actionWord} del Directorio Raíz:<br>
+                         <strong style="color: #033966; font-size: 1.2em;">${p1}</strong>`;
         } else if (module === 'ayudas') {
-            if (!p2) {
-                parentText = 'AYUDAS_GIS';
-                typeText = 'proceso';
-                subName = p1;
-            } else {
-                parentText = p2; // En ayudas p2 es la Clase
-                typeText = 'proceso';
-                subName = p1;
+            if (p1 === '--') { // Eliminando Clase (Raíz)
+                finalHtml = `Se va a ${actionWord} del Directorio Raíz:<br>
+                             <strong style="color: #033966; font-size: 1.2em;">${p2}</strong>`;
+            } else { // Eliminando Proceso (Subcarpeta)
+                finalHtml = `Se va a ${actionWord} del proceso:<br>
+                             <span class="confirm-label-highlight" style="display: inline-block; margin-top: 0.3em;">${p1}</span><br>
+                             <small style="color: #555;">(Clase: ${p2})</small>`;
+            }
+        } else if (module === 'ayudas_fundicion') {
+            if (p1 === '--') { // Eliminando Clase (Raíz)
+                finalHtml = `Se va a ${actionWord} del Directorio Raíz:<br>
+                             <strong style="color: #033966; font-size: 1.2em;">${p2}</strong>`;
+            } else { // Eliminando 'Fundicion' (Subcarpeta)
+                finalHtml = `Se va a ${actionWord} de la carpeta:<br>
+                             <span class="confirm-label-highlight" style="display: inline-block; margin-top: 0.3em;">Fundición</span><br>
+                             <small style="color: #555;">(Clase: ${p2})</small>`;
             }
         }
 
-        parentEl.textContent = parentText;
-        typeEl.textContent = typeText;
-        nameEl.textContent = subName;
+        msgContainer.innerHTML = finalHtml;
+        
+        if (modalIcon) {
+            modalIcon.src = window.baseUrl + (isVaciar ? '/images/Eliminar-Archivos.png' : '/images/Eliminar-Carpeta.png');
+        }
+        
+        btnConfirm.textContent = isVaciar ? 'Vaciar Carpeta' : 'Eliminar Permanentemente';
+        
         modal.style.display = 'flex';
         
         btnConfirm.onclick = () => {
@@ -743,8 +814,8 @@ function eliminarCarpetaAJAX(folder) {
     } else if (module === 'manuales') {
         payload = { proceso: folder.p1 };
     } else if (module === 'ayudas' || module === 'ayudas_fundicion') {
-        if (!folder.p2) {
-            payload = { proceso: folder.p1 };
+        if (!folder.p1 || folder.p1 === '--' || folder.p1 === '-- SIN CLASE --') {
+            payload = { proceso: folder.p2 }; // Enviamos la Clase al deleteParent
             route = window.routes['doc.deleteParent'];
         } else {
             payload = { proceso: folder.p1, clase: folder.p2 };

@@ -66,7 +66,7 @@ class ManualesPdfController extends Controller
     public function getLog()
     {
         $logs = ManualFileLog::query()
-            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit(50)
             ->get(['id', 'user_name', 'action', 'ruta', 'archivo', 'created_at'])
             ->map(function ($log) {
@@ -302,8 +302,18 @@ class ManualesPdfController extends Controller
             ], 404);
         }
 
+        $files = Storage::disk('local')->files($dirPath);
+        if (count($files) > 0) {
+            Storage::disk('local')->delete($files);
+            $this->logAction('vaciar_carpeta', $proceso, null);
+            return response()->json([
+                'success' => true,
+                'message' => "Se eliminaron " . count($files) . " archivos del proceso '{$proceso}'.",
+            ]);
+        }
+
         Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_pdf', $proceso, null);
+        $this->logAction('eliminar_carpeta', $proceso, null);
 
         return response()->json([
             'success' => true,
@@ -377,6 +387,40 @@ class ManualesPdfController extends Controller
         return $final;
     }
 
+    public function deleteParent(Request $request)
+    {
+        $request->validate([
+            'proceso' => 'required|string|max:100',
+        ]);
+
+        $proceso = $this->sanitizePath($request->input('proceso'));
+        $dirPath = self::BASE_DIR . '/' . $proceso;
+
+        if (!Storage::disk('local')->exists($dirPath)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La carpeta del proceso no existe.',
+            ], 404);
+        }
+
+        // Seguridad: Verificar que no tenga archivos (Regla Dibujos)
+        $files = Storage::disk('local')->files($dirPath);
+        $dirs  = Storage::disk('local')->directories($dirPath);
+        if (count($files) > 0 || count($dirs) > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se puede eliminar: la carpeta todavía contiene archivos o subcarpetas.',
+            ], 400);
+        }
+
+        Storage::disk('local')->deleteDirectory($dirPath);
+        $this->logAction('eliminar_carpeta', $proceso, null);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Carpeta del proceso '{$proceso}' eliminada correctamente.",
+        ]);
+    }
     /**
      * @param string $action
      * @param string $ruta
@@ -404,6 +448,7 @@ class ManualesPdfController extends Controller
             'archivo'   => $archivo,
         ]);
     }
+
 
         /**
      * @param mixed string $path

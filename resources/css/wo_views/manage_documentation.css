@@ -727,11 +727,11 @@ body {
 
 .action-badge {
     display: inline-block;
-    border-radius: 4px;
-    padding: 0.2em 0.6em;
-    font-size: 0.8em;
-    font-weight: 700;
-    text-transform: uppercase;
+    border-radius: 6px;
+    padding: 0.4em 0.8em;
+    font-size: 0.85em;
+    font-weight: 600;
+    line-height: 1.2;
 }
 
 .action-badge.crear_carpeta {
@@ -761,6 +761,14 @@ body {
 .action-badge.guardar_ayudas {
     background: #e9d8fd;
     color: #553c9a;
+}
+.action-badge.vaciar_carpeta {
+    background: #ffe8cc;
+    color: #855d00;
+}
+.action-badge.desvincular_ayudas {
+    background: #f0f0f0;
+    color: #555;
 }
 
 /* ── Clases de Utilidad para Limpieza de Estilos Inline ── */

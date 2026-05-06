@@ -159,14 +159,14 @@
                         $isReady = true;
                         $param1Name = $procesoActivo->nombre;
                         $param2Name = $claseActiva->nombre;
-                        $folderPathLabel = $procesoActivo->nombre . " / " . $claseActiva->nombre;
+                        $folderPathLabel = $claseActiva->nombre . " / " . $procesoActivo->nombre;
                         $carpetaExiste = isset($estructura[$param2Name]) && in_array($param1Name, $estructura[$param2Name]);
                         $folderProps = ['data-proceso' => $param1Name, 'data-clase' => $param2Name];
                     } elseif ($moduleType === 'ayudas_fundicion' && $claseSeleccionadaId && $claseActiva) {
                         $isReady = true;
                         $param1Name = 'Fundicion';
                         $param2Name = $claseActiva->nombre;
-                        $folderPathLabel = "Fundicion / " . $claseActiva->nombre;
+                        $folderPathLabel = $claseActiva->nombre . " / Fundicion";
                         $carpetaExiste = isset($estructura[$param2Name]) && in_array($param1Name, $estructura[$param2Name]);
                         $folderProps = ['data-proceso' => $param1Name, 'data-clase' => $param2Name];
                     } elseif ($moduleType === 'fundicion' && $otSeleccionadaId && $otActiva) {
@@ -333,8 +333,6 @@
                                 @elseif($moduleType === 'fundicion')
                                     <th class="d-text-center">Orden de Trabajo</th>
                                     <th class="d-text-center">Ayudas Visuales Vinculadas</th>
-                                @elseif($moduleType === 'manuales')
-                                    <th class="d-text-center">Proceso</th>
                                 @elseif($moduleType === 'ayudas')
                                     <th class="d-text-center">Clase</th>
                                     <th class="d-text-center">Proceso</th>
@@ -365,8 +363,8 @@
                                                 <div class="td-actions">
                                                     <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar OT completa"
                                                         onclick="confirmarEliminarCarpeta('{{ $otName }}', null, '{{ $otLabel }}')">
-                                                        <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                        <span>Eliminar Carpeta</span>
+                                                        <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                                                        <span>Eliminar Directorio Raíz</span>
                                                     </button>
                                                 </div>
                                             </td>
@@ -391,8 +389,8 @@
                                                         </button>
                                                         <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                                                             onclick="confirmarEliminarCarpeta('{{ $otName }}', '{{ $claseName }}', '{{ $otLabel }} / {{ $claseName }}')">
-                                                            <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                            <span>Eliminar Carpeta</span>
+                                                            <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                                                            <span>Eliminar Clase</span>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -419,8 +417,8 @@
                                                 </button>
                                                 <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                                                     onclick="confirmarEliminarCarpeta('{{ $procesoName }}', null, '{{ $procesoName }}')">
-                                                    <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                    <span>Eliminar Carpeta</span>
+                                                    <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                                                    <span>Eliminar Directorio Raíz</span>
                                                 </button>
                                             </div>
                                         </td>
@@ -464,8 +462,8 @@
                                                 </button>
                                                 <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                                                     onclick="confirmarEliminarCarpeta('{{ $otName }}', null, '{{ $otLabel }}')">
-                                                    <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                    <span>Eliminar Carpeta</span>
+                                                    <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                                                    <span>Eliminar Directorio Raíz</span>
                                                 </button>
                                             </div>
                                         </td>
@@ -476,46 +474,50 @@
                                     @php
                                         $claseReal = $clasesUnicas->firstWhere('nombre', $claseName);
                                         $claseIdBD = $claseReal ? $claseReal->id : null;
+                                        
+                                        // Si no tiene procesos, mostramos una fila "huérfana" para poder borrar la Clase
+                                        $displayProcesos = count($procesos) > 0 ? $procesos : ['--'];
                                     @endphp
-                                    @foreach($procesos as $procesoName)
+
+                                    @foreach($displayProcesos as $procesoName)
                                         @php
-                                            $procesoReal = $todosLosProcesos->firstWhere('nombre', $procesoName);
+                                            $esHuerfano = ($procesoName === '--');
+                                            $procesoReal = $esHuerfano ? null : $todosLosProcesos->firstWhere('nombre', $procesoName);
                                             $procesoIdBD = $procesoReal ? $procesoReal->id : null;
-                                            $badgeId = "badge-" . Str::slug($procesoName) . "-" . Str::slug($claseName);
-                                            $esHuerfano = ($claseName === '-- SIN CLASE --');
+                                            $badgeId = "badge-" . Str::slug($claseName) . "-" . Str::slug($procesoName);
                                         @endphp
                                         <tr data-proceso="{{ $procesoName }}" data-clase="{{ $claseName }}">
                                             <td class="d-text-center d-text-primary">
-                                                <strong>{{ $esHuerfano ? $procesoName : $claseName }}</strong>
+                                                <strong>{{ $claseName }}</strong>
                                             </td>
                                             <td class="d-text-center">
                                                 @if($esHuerfano)
-                                                    <em class="d-text-danger d-text-bold">Sin clases</em>
+                                                    <em class="d-text-danger d-text-bold">Sin procesos</em>
                                                 @else
                                                     <span class="d-text-success d-text-bold">{{ $procesoName }}</span>
                                                 @endif
                                             </td>
-                                            <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
+                                            <td class="d-text-center">
+                                                @if($esHuerfano)
+                                                    <span class="d-text-subtle">—</span>
+                                                @else
+                                                    <span class="badge-count" id="{{ $badgeId }}">...</span>
+                                                @endif
+                                            </td>
                                             <td class="d-text-center">
                                                 <div class="td-actions">
-                                                    @if($esHuerfano)
-                                                        <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar proceso completo"
-                                                            onclick="confirmarEliminarCarpeta('{{ $procesoName }}', null, '{{ $procesoName }}')">
-                                                            <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                            <span>Eliminar Carpeta</span>
-                                                        </button>
-                                                    @else
+                                                    @if(!$esHuerfano)
                                                         <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                            onclick="irACarpeta('{{ $procesoIdBD ?? $procesoName }}', '{{ $claseIdBD ?? $claseName }}', {{ $procesoIdBD && $claseIdBD ? 'true' : 'false' }})">
+                                                            onclick="irACarpeta('{{ $procesoIdBD ?? $procesoName }}', '{{ $claseIdBD ?? $claseName }}', {{ $procesoIdBD ? 'true' : 'false' }})">
                                                             <img src="{{ asset('images/documento.png') }}" alt="Ver">
                                                             <span>Ver PDF's</span>
                                                         </button>
-                                                        <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                                            onclick="confirmarEliminarCarpeta('{{ $procesoName }}', '{{ $claseName }}', '{{ $claseName }} / {{ $procesoName }}')">
-                                                            <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                            <span>Eliminar Carpeta</span>
-                                                        </button>
                                                     @endif
+                                                    <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
+                                                        onclick="confirmarEliminarCarpeta('{{ $procesoName }}', '{{ $claseName }}', '{{ $claseName }}{{ $esHuerfano ? "" : " / ".$procesoName }}')">
+                                                        <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                                                        <span>Eliminar {{ $esHuerfano ? 'Directorio Raíz' : 'Proceso' }}</span>
+                                                    </button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -527,29 +529,45 @@
                                         $claseReal = $clasesUnicas->firstWhere('nombre', $claseName);
                                         $claseIdBD = $claseReal ? $claseReal->id : null;
                                     @endphp
-                                    @foreach($procesos as $procesoName)
-                                        @php
-                                            $badgeId = "badge-" . Str::slug($procesoName) . "-" . Str::slug($claseName);
-                                        @endphp
-                                        <tr data-proceso="{{ $procesoName }}" data-clase="{{ $claseName }}">
+                                    @if(count($procesos) === 0)
+                                        <tr>
                                             <td class="d-text-center d-text-primary"><strong>{{ $claseName }}</strong></td>
-                                            <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
+                                            <td><span class="badge-count badge-count-empty">0</span></td>
                                             <td class="d-text-center">
                                                 <div class="td-actions">
-                                                    <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                        onclick="irACarpeta('{{ $procesoName }}', '{{ $claseIdBD ?? $claseName }}', {{ $claseIdBD ? 'true' : 'false' }})">
-                                                        <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                        <span>Ver PDF's</span>
-                                                    </button>
-                                                    <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                                        onclick="confirmarEliminarCarpeta('{{ $procesoName }}', '{{ $claseName }}', '{{ $claseName }} / {{ $procesoName }}')">
-                                                        <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
-                                                        <span>Eliminar Carpeta</span>
+                                                    <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar clase completa"
+                                                        onclick="confirmarEliminarCarpeta('{{ $claseName }}', null, '{{ $claseName }}')">
+                                                        <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                                                        <span>Eliminar Directorio Raíz</span>
                                                     </button>
                                                 </div>
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @else
+                                        @foreach($procesos as $procesoName)
+                                            @php
+                                                $badgeId = "badge-" . Str::slug($claseName) . "-" . Str::slug($procesoName);
+                                            @endphp
+                                            <tr data-proceso="{{ $procesoName }}" data-clase="{{ $claseName }}">
+                                                <td class="d-text-center d-text-primary"><strong>{{ $claseName }}</strong></td>
+                                                <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
+                                                <td class="d-text-center">
+                                                    <div class="td-actions">
+                                                        <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
+                                                            onclick="irACarpeta('Fundicion', '{{ $claseIdBD ?? $claseName }}', false)">
+                                                            <img src="{{ asset('images/documento.png') }}" alt="Ver">
+                                                            <span>Ver PDF's</span>
+                                                        </button>
+                                                        <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
+                                                            onclick="confirmarEliminarCarpeta('{{ $procesoName }}', '{{ $claseName }}', '{{ $claseName }} / {{ $procesoName }}')">
+                                                            <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                                                            <span>Eliminar Carpeta</span>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    @endif
                                 @endforeach
                             @endif
                         </tbody>
@@ -592,14 +610,9 @@
             </div>
             <div class="confirm-modal-body">
                 <div class="confirm-icon-wrapper">
-                    <img src="{{ asset('images/papelera-de-reciclaje.png') }}" alt="Eliminar">
+                    <img id="confirm-modal-icon" src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
                 </div>
-                <p style="font-size: 1.1em; line-height: 1.6;">
-                    Se va a eliminar de la carpeta principal <br>
-                    <strong id="confirm-parent-label" style="color: #033966; font-size: 1.2em;">—</strong> <br>
-                    la subcarpeta del <span id="confirm-type-label">...</span>: <br>
-                    <span id="confirm-folder-name" class="confirm-label-highlight"
-                        style="display: inline-block; margin-top: 0.3em;">—</span>
+                <p id="confirm-message-container" style="font-size: 1.1em; line-height: 1.6; text-align: center;">
                 </p>
                 <div class="confirm-modal-actions">
                     <button class="btn-confirm-cancel" onclick="cerrarConfirmarEliminar()">Cancelar</button>
@@ -630,7 +643,7 @@
             @if($moduleType === 'fundicion')
                 'fundicion.send_alert': "{{ route('fundicion.send_alert') }}",
             @endif
-                };
+                    };
         window.csrfToken = "{{ csrf_token() }}";
         window.estructura = @json($estructura);
 

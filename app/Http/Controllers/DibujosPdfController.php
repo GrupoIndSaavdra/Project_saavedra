@@ -76,7 +76,7 @@ class DibujosPdfController extends Controller
     public function getLog()
     {
         $logs = DibujoFileLog::query()
-            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit(50)
             ->get(['id', 'user_name', 'action', 'ruta', 'archivo', 'created_at'])
             ->map(function ($log) {
@@ -359,12 +359,22 @@ class DibujosPdfController extends Controller
             ], 404);
         }
 
+        $files = Storage::disk('local')->files($dirPath);
+        if (count($files) > 0) {
+            Storage::disk('local')->delete($files);
+            $this->logAction('vaciar_carpeta', $ot . '/' . $clase, null);
+            return response()->json([
+                'success' => true,
+                'message' => "Se eliminaron " . count($files) . " archivos de la clase '{$clase}' (OT: {$ot}).",
+            ]);
+        }
+
         Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_pdf', $ot . '/' . $clase, null);
+        $this->logAction('eliminar_carpeta', $ot . '/' . $clase, null);
 
         return response()->json([
             'success' => true,
-            'message' => "Carpeta '{$clase}' (OT: {$ot}) eliminada correctamente.",
+            'message' => "La subcarpeta de la clase '{$clase}' (OT: {$ot}) fue eliminada correctamente.",
         ]);
     }
 
@@ -409,7 +419,7 @@ class DibujosPdfController extends Controller
         }
 
         Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_pdf', $ot, null);
+        $this->logAction('eliminar_carpeta', $ot, null);
 
         return response()->json([
             'success' => true,

@@ -85,7 +85,7 @@ class AyudasVisualesPdfController extends Controller
     public function getLog()
     {
         $logs = AyudaVisualFileLog::query()
-            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit(50)
             ->get(['id', 'user_name', 'action', 'ruta', 'archivo', 'created_at'])
             ->map(function ($log) {
@@ -123,8 +123,8 @@ class AyudasVisualesPdfController extends Controller
             return response()->json(['error' => 'Parámetros Proceso y Clase son requeridos.'], 422);
         }
 
-        $newDirPath = self::BASE_DIR . '/' . $proceso . '/' . $clase;
-        $oldDirPath = self::OLD_BASE_DIR . '/' . $proceso . '/' . $clase;
+        $newDirPath = self::BASE_DIR . '/' . $clase . '/' . $proceso;
+        $oldDirPath = self::OLD_BASE_DIR . '/' . $clase . '/' . $proceso;
 
         $newFiles = Storage::disk('local')->exists($newDirPath) ? Storage::disk('local')->files($newDirPath) : [];
         $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
@@ -165,11 +165,11 @@ class AyudasVisualesPdfController extends Controller
             abort(422, 'Parámetros inválidos.');
         }
 
-        $filePath = self::BASE_DIR . '/' . $proceso . '/' . $clase . '/' . $archivo;
+        $filePath = self::BASE_DIR . '/' . $clase . '/' . $proceso . '/' . $archivo;
 
         // Fallback
         if (!Storage::disk('local')->exists($filePath)) {
-            $filePath = self::OLD_BASE_DIR . '/' . $proceso . '/' . $clase . '/' . $archivo;
+            $filePath = self::OLD_BASE_DIR . '/' . $clase . '/' . $proceso . '/' . $archivo;
         }
 
         if (!Storage::disk('local')->exists($filePath)) {
@@ -202,7 +202,7 @@ class AyudasVisualesPdfController extends Controller
 
         $proceso = $this->sanitizePath($request->input('proceso'));
         $clase   = $this->sanitizePath($request->input('clase'));
-        $dirPath = self::BASE_DIR . '/' . $proceso . '/' . $clase;
+        $dirPath = self::BASE_DIR . '/' . $clase . '/' . $proceso;
 
         if (Storage::disk('local')->exists($dirPath)) {
             return response()->json([
@@ -214,11 +214,11 @@ class AyudasVisualesPdfController extends Controller
         Storage::disk('local')->makeDirectory($dirPath);
 
         AyudaVisualHistory::firstOrCreate(['proceso' => $proceso, 'clase' => $clase]);
-        $this->logAction('crear_carpeta', $proceso . '/' . $clase, null);
+        $this->logAction('crear_carpeta', $clase . '/' . $proceso, null);
 
         return response()->json([
             'success' => true,
-            'message' => "Carpeta {$proceso}/{$clase} creada correctamente.",
+            'message' => "Subcarpeta del proceso '{$proceso}' (Clase: {$clase}) creada correctamente.",
             'proceso' => $proceso,
             'clase'   => $clase,
         ]);
@@ -237,7 +237,7 @@ class AyudasVisualesPdfController extends Controller
 
         $proceso = $this->sanitizePath($request->input('proceso'));
         $clase   = $this->sanitizePath($request->input('clase'));
-        $dirPath = self::BASE_DIR . '/' . $proceso . '/' . $clase;
+        $dirPath = self::BASE_DIR . '/' . $clase . '/' . $proceso;
 
         if (!Storage::disk('local')->exists($dirPath)) {
             Storage::disk('local')->makeDirectory($dirPath);
@@ -256,7 +256,7 @@ class AyudasVisualesPdfController extends Controller
 
         $file->storeAs($dirPath, $originalName, 'local');
 
-        $this->logAction('subir_pdf', $proceso . '/' . $clase, $originalName);
+        $this->logAction('subir_pdf', $clase . '/' . $proceso, $originalName);
 
         return response()->json([
             'success'  => true,
@@ -284,11 +284,11 @@ class AyudasVisualesPdfController extends Controller
         $proceso  = $this->sanitizePath($request->input('proceso'));
         $clase    = $this->sanitizePath($request->input('clase'));
         $archivo  = $this->sanitizeFileName($request->input('archivo'));
-        $filePath = self::BASE_DIR . '/' . $proceso . '/' . $clase . '/' . $archivo;
+        $filePath = self::BASE_DIR . '/' . $clase . '/' . $proceso . '/' . $archivo;
 
         if (!Storage::disk('local')->exists($filePath)) {
             // Fallback for read-only error
-            $oldPath = self::OLD_BASE_DIR . '/' . $proceso . '/' . $clase . '/' . $archivo;
+            $oldPath = self::OLD_BASE_DIR . '/' . $clase . '/' . $proceso . '/' . $archivo;
             if (Storage::disk('local')->exists($oldPath)) {
                 return response()->json([
                     'success' => false,
@@ -303,7 +303,7 @@ class AyudasVisualesPdfController extends Controller
         }
 
         Storage::disk('local')->delete($filePath);
-        $this->logAction('eliminar_pdf', $proceso . '/' . $clase, $archivo);
+        $this->logAction('eliminar_pdf', $clase . '/' . $proceso, $archivo);
 
         return response()->json([
             'success' => true,
@@ -326,7 +326,7 @@ class AyudasVisualesPdfController extends Controller
 
         $proceso = $this->sanitizePath($request->input('proceso'));
         $clase   = $this->sanitizePath($request->input('clase'));
-        $dirPath = self::BASE_DIR . '/' . $proceso . '/' . $clase;
+        $dirPath = self::BASE_DIR . '/' . $clase . '/' . $proceso;
 
         if (!Storage::disk('local')->exists($dirPath)) {
             return response()->json([
@@ -335,12 +335,22 @@ class AyudasVisualesPdfController extends Controller
             ], 404);
         }
 
+        $files = Storage::disk('local')->files($dirPath);
+        if (count($files) > 0) {
+            Storage::disk('local')->delete($files);
+            $this->logAction('vaciar_carpeta', $clase . '/' . $proceso, null);
+            return response()->json([
+                'success' => true,
+                'message' => "Se eliminaron " . count($files) . " archivos del proceso '{$proceso}'.",
+            ]);
+        }
+
         Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_pdf', $proceso . '/' . $clase, null);
+        $this->logAction('eliminar_carpeta', $clase . '/' . $proceso, null);
 
         return response()->json([
             'success' => true,
-            'message' => "Carpeta '{$proceso}' (Clase: {$clase}) eliminada correctamente.",
+            'message' => "La subcarpeta del proceso '{$proceso}' fue eliminada correctamente.",
         ]);
     }
 
@@ -356,8 +366,8 @@ class AyudasVisualesPdfController extends Controller
             'proceso' => 'required|string|max:200',
         ]);
 
-        $proceso = $this->sanitizePath($request->input('proceso'));
-        $dirPath = self::BASE_DIR . '/' . $proceso;
+        $clase   = $this->sanitizePath($request->input('proceso')); // En el swap, el padre es la Clase
+        $dirPath = self::BASE_DIR . '/' . $clase;
 
         if (!Storage::disk('local')->exists($dirPath)) {
             return response()->json([
@@ -385,11 +395,11 @@ class AyudasVisualesPdfController extends Controller
         }
 
         Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_pdf', $proceso, null);
+        $this->logAction('eliminar_carpeta', $clase, null);
 
         return response()->json([
             'success' => true,
-            'message' => "Carpeta principal del proceso '{$proceso}' eliminada correctamente.",
+            'message' => "La carpeta de la clase '{$clase}' fue eliminada correctamente.",
         ]);
     }
 
@@ -408,7 +418,7 @@ class AyudasVisualesPdfController extends Controller
         $proceso         = $this->sanitizePath($request->input('proceso'));
         $clase           = $this->sanitizePath($request->input('clase'));
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
-        $dirPath         = self::BASE_DIR . '/' . $proceso . '/' . $clase;
+        $dirPath         = self::BASE_DIR . '/' . $clase . '/' . $proceso;
         $oldPath         = $dirPath . '/' . $archivoAnterior;
 
         if (Storage::disk('local')->exists($oldPath)) {
@@ -419,7 +429,7 @@ class AyudasVisualesPdfController extends Controller
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
         $file->storeAs($dirPath, $originalName, 'local');
 
-        $this->logAction('reemplazar_pdf', $proceso . '/' . $clase, "{$archivoAnterior} → {$originalName}");
+        $this->logAction('reemplazar_pdf', $clase . '/' . $proceso, "{$archivoAnterior} → {$originalName}");
 
         return response()->json([
             'success'  => true,
@@ -444,14 +454,14 @@ class AyudasVisualesPdfController extends Controller
         // 1. Escaneo del directorio Nuevo
         if (Storage::disk('local')->exists(self::BASE_DIR)) {
             $dirs = Storage::disk('local')->directories(self::BASE_DIR);
-            foreach ($dirs as $pDir) {
-                $pName = basename($pDir);
-                $cDirs = Storage::disk('local')->directories($pDir);
-                if (empty($cDirs)) {
-                    $estructura['-- SIN CLASE --'][] = $pName;
+            foreach ($dirs as $cDir) {
+                $cName = basename($cDir); // Clase
+                $pDirs = Storage::disk('local')->directories($cDir);
+                if (empty($pDirs)) {
+                    $estructura[$cName] = [];
                 } else {
-                    foreach ($cDirs as $cDir) {
-                        $cName = basename($cDir);
+                    foreach ($pDirs as $pDir) {
+                        $pName = basename($pDir); // Proceso
                         $estructura[$cName][] = $pName;
                     }
                 }
@@ -461,16 +471,16 @@ class AyudasVisualesPdfController extends Controller
         // 2. Escaneo del directorio Viejo (Fallback)
         if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
             $dirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
-            foreach ($dirs as $pDir) {
-                $pName = basename($pDir);
-                $cDirs = Storage::disk('local')->directories($pDir);
-                if (empty($cDirs)) {
-                    if (!isset($estructura['-- SIN CLASE --']) || !in_array($pName, $estructura['-- SIN CLASE --'])) {
-                        $estructura['-- SIN CLASE --'][] = $pName;
+            foreach ($dirs as $cDir) {
+                $cName = basename($cDir);
+                $pDirs = Storage::disk('local')->directories($cDir);
+                if (empty($pDirs)) {
+                    if (!isset($estructura[$cName])) {
+                        $estructura[$cName] = [];
                     }
                 } else {
-                    foreach ($cDirs as $cDir) {
-                        $cName = basename($cDir);
+                    foreach ($pDirs as $pDir) {
+                        $pName = basename($pDir);
                         if (!isset($estructura[$cName]) || !in_array($pName, $estructura[$cName])) {
                             $estructura[$cName][] = $pName;
                         }

@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Tabla de índice para los documentos de Calidad — Maquinados.
      * Sincronizada automáticamente por el comando calidad:sync-maquinados
