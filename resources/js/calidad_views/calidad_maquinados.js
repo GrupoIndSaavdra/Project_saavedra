@@ -11,6 +11,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     initFiltrosReactivos();
+    initToggleFiles();
 });
 
 // ── CONFIGURACIÓN DE TABLAS ───────────────────────────────────────────────────
@@ -43,6 +44,52 @@ const TABLAS = [
         usaProc : true,
     },
 ];
+
+// ── TOGGLE FILAS DE ARCHIVOS ──────────────────────────────────────────────────
+
+function initToggleFiles() {
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-toggle-files');
+        if (!btn) return;
+
+        const targetId = btn.dataset.target;
+        const filesRow = document.getElementById(targetId);
+
+        if (!filesRow) return;
+
+        const isOpen = filesRow.classList.contains('open');
+
+        // Cerrar todos los demás del mismo tbody antes de abrir el nuevo (Comportamiento de Acordeón)
+        if (!isOpen) {
+            const tbody = filesRow.closest('tbody');
+            if (tbody) {
+                tbody.querySelectorAll('.alm-files-row.open').forEach(row => {
+                    row.classList.remove('open');
+                    row.style.display = 'none';
+                });
+                tbody.querySelectorAll('.btn-toggle-files.active').forEach(b => {
+                    b.classList.remove('active');
+                    b.setAttribute('aria-expanded', 'false');
+                    b.innerHTML = 'Ver Archivos';
+                });
+            }
+        }
+
+        if (isOpen) {
+            filesRow.classList.remove('open');
+            filesRow.style.display = 'none';
+            btn.classList.remove('active');
+            btn.setAttribute('aria-expanded', 'false');
+            btn.innerHTML = 'Ver Archivos';
+        } else {
+            filesRow.classList.add('open');
+            filesRow.style.display = 'table-row';
+            btn.classList.add('active');
+            btn.setAttribute('aria-expanded', 'true');
+            btn.innerHTML = 'Ocultar';
+        }
+    });
+}
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 
@@ -130,6 +177,22 @@ function filtrarTabla(tabla, ot, clase, proceso) {
 
         const visible = matchOt && matchClase && matchProceso;
         row.style.display = visible ? '' : 'none';
+
+        // Si la fila se oculta, también ocultamos su detalle expandido si lo tuviera
+        const nextRow = row.nextElementSibling;
+        if (nextRow && nextRow.classList.contains('alm-files-row')) {
+            if (!visible) {
+                nextRow.style.display = 'none';
+                nextRow.classList.remove('open');
+                const btn = row.querySelector('.btn-toggle-files');
+                if (btn) {
+                    btn.classList.remove('active');
+                    btn.innerHTML = 'Ver Archivos';
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            }
+        }
+
         if (visible) visibles++;
     });
 

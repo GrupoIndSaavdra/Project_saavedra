@@ -611,23 +611,26 @@ table.alm-table {
 /* Tema Gris (Ver Inactivos) */
 .btn-ver-inactivos {
     background: #6c757d;
-    border-color: #495057;
+    border: 2px solid #495057;
     color: #fff;
+    transition: all 0.3s ease;
 }
 
 .btn-ver-inactivos img {
     filter: brightness(0) invert(1);
+    transition: all 0.3s ease;
 }
 
 .btn-ver-inactivos:hover {
-    background: #f8f9fa;
-    color: #495057;
-    transform: scale(1.1);
-    box-shadow: 0 8px 20px rgba(108, 117, 125, 0.15);
+    background: #005194 !important;
+    color: #fff !important;
+    border: 2px solid #00aaff !important;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 170, 255, 0.7) !important;
 }
 
 .btn-ver-inactivos:hover img {
-    filter: none;
+    filter: brightness(0) invert(1);
 }
 
 /* Tema Rojo (Eliminar carpeta) */
@@ -790,4 +793,313 @@ table.alm-table {
     .filter {
         min-width: 100%;
     }
+}
+
+/* ────────────────────────────────────────────────────
+   FILA EXPANDIBLE DE ARCHIVOS (Grid & Cards)
+──────────────────────────────────────────────────── */
+
+.btn-toggle-files {
+    background: #005194;
+    color: #fff;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-family: "Poppins", sans-serif;
+    font-size: 0.85em;
+    font-weight: 700;
+    padding: 0.6em 1em;
+    width: 100%;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-toggle-files:hover {
+    background: #033966;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 81, 148, 0.3);
+}
+
+.btn-toggle-files.active {
+    background: #fff;
+    color: #033966;
+    border-color: #033966;
+    box-shadow: none;
+}
+
+.btn-toggle-files.active:hover {
+    background: #5a6268;
+    color: white;
+}
+
+.alm-files-row {
+    display: none;
+}
+.alm-files-row.open {
+    display: table-row;
+}
+
+.alm-files-row > td {
+    padding: 0;
+    background: #f0f6ff;
+}
+
+.alm-files-inner {
+    padding: 0.5em;
+    background: #f8fbff;
+    box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.alm-files-inner h4 {
+    font-size: 1em;
+    font-weight: 700;
+    color: #033966;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1.5em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid #033966;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alm-pdf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5em;
+    margin-top: 1em;
+}
+
+/* ── Tarjeta PDF ── */
+@keyframes prodCardPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    70% {
+        transform: scale(1.02) translateY(-4px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.dibujos-file-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5em;
+    border: 3px solid #033966;
+    border-radius: 12px;
+    background: #f5f9ff;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    min-height: 180px;
+    position: relative;
+    overflow: hidden;
+    animation: prodCardPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.dibujos-file-card.card-ayuda {
+    border-color: #027a3a;
+}
+
+.dibujos-file-card:hover {
+    background: #033966;
+    transform: translateY(-5px);
+    box-shadow: 0 8px 18px rgba(3, 57, 102, 0.4);
+}
+
+.dibujos-file-card.card-ayuda:hover {
+    background: #027a3a;
+    box-shadow: 0 8px 18px rgba(2, 122, 58, 0.4);
+}
+
+.dibujos-file-card .file-name {
+    font-size: 0.95em;
+    font-weight: 700;
+    color: #033966;
+    word-break: break-all;
+    text-align: center;
+    margin-bottom: 1em;
+    transition: color 0.3s ease;
+}
+
+.dibujos-file-card.card-ayuda .file-name {
+    color: #027a3a;
+}
+
+.dibujos-file-card:hover .file-name {
+    color: #ffffff;
+}
+
+.dibujos-file-card .file-icon-wrapper {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin-bottom: 0.8em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dibujos-file-card .file-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.dibujos-file-card .icon-hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+}
+
+.dibujos-file-card:hover .icon-default {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.dibujos-file-card:hover .icon-hover {
+    opacity: 1;
+    transform: scale(1.15) rotate(3deg);
+    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.5));
+}
+
+.dibujos-file-card .file-actions {
+    display: flex;
+    gap: 0.6em;
+    margin-top: auto;
+    width: 100%;
+    justify-content: center;
+}
+
+.dibujos-file-card .btn-dibujos-sm {
+    padding: 0.6em 1.2em;
+    font-size: 0.9em;
+    flex: 1;
+    text-align: center;
+    border-radius: 6px;
+    background: #033966 !important;
+    color: #fff !important;
+    border: none;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    transition: all 0.3s ease;
+}
+
+.dibujos-file-card.card-ayuda .btn-dibujos-sm {
+    background: #027a3a !important;
+}
+
+.dibujos-file-card:hover .btn-ver {
+    border: 2px solid #00d06f;
+    background: #006943 !important;
+}
+
+.dibujos-file-card.card-ayuda:hover .btn-ayuda-color {
+    background: #033966 !important;
+    border: 2px solid #00aaff !important;
+}
+
+.dibujos-file-card .btn-ver:hover {
+    border: 2px solid #00d06f;
+    background: #00d06f !important;
+    transform: scale(1.05) translateY(-2px);
+}
+
+.dibujos-file-card.card-ayuda .btn-ayuda-color:hover {
+    background: #00aaff !important;
+    border: 2px solid #00aaff !important;
+    transform: scale(1.05) translateY(-2px);
+}
+
+/* Badge conteo PDF */
+.badge-pdf-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #e8f2ff;
+    color: #033966;
+    border: 1px solid #033966;
+    padding: 0.2em 0.7em;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 700;
+}
+
+.table-ayudas .badge-pdf-count {
+    background: #eafaf2;
+    color: #027a3a;
+    border-color: #027a3a;
+}
+
+/* Botón "Ver" PDF en grid */
+.btn-dibujos {
+    width: 100%;
+    background: #005194;
+    color: #ffffff;
+    padding: 0.8em;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-ver {
+    background: #005194;
+    color: #fff;
+}
+
+.btn-ver:hover {
+    background: #00d06f !important;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 208, 111, 0.4);
+}
+
+.row-dibujo {
+    background-color: #e6f3ff !important; /* Azul más suave y profesional */
+}
+
+.row-ayuda {
+    background-color: #e8fff0 !important; /* Verde más suave y profesional */
+}
+
+/* ── Etiquetas de Texto en Tablas ── */
+.alm-ot-label {
+    font-weight: 700;
+    color: #033966;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.alm-clase-label {
+    font-weight: 700;
+    color: #027a3a;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.alm-proceso-label {
+    font-weight: 700;
+    color: #333;
+    font-family: 'Poppins', sans-serif;
 }

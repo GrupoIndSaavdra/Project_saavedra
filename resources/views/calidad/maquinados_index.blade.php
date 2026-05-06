@@ -137,6 +137,10 @@
         {{-- ══════════════════════════════════════════════════════════
              TABLA 1 — DIBUJOS DE MAQUINADOS (activos)
         ══════════════════════════════════════════════════════════ --}}
+        @php
+            $dibujosAgrupados = $dibujos->groupBy(fn($d) => ($d->ot ?? '—') . '|' . ($d->clase ?? '—'));
+        @endphp
+
         <div class="alm-table-card">
             <div class="alm-table-header">
                 <h2>Dibujos de Maquinados</h2>
@@ -163,37 +167,57 @@
                     <table class="alm-table">
                         <thead>
                             <tr>
-                                <th style="width: 28%">OT</th>
-                                <th style="width: 22%">Clase</th>
-                                <th style="width: 28%">Nombre del Archivo</th>
-                                <th style="width: 12%" class="d-text-center">Fecha Archivo</th>
-                                <th style="width: 10%" class="d-text-center">Accion</th>
+                                <th style="width: 35%">OT</th>
+                                <th style="width: 30%">Clase</th>
+                                <th style="width: 15%" class="d-text-center">Archivos</th>
+                                <th style="width: 20%" class="d-text-center">Accion</th>
                             </tr>
                         </thead>
                         <tbody id="calmaq-tbody-dibujos">
-                            @foreach ($dibujos as $doc)
-                                <tr class="calmaq-fila-doc"
-                                    data-ot="{{ $doc->ot }}"
-                                    data-clase="{{ $doc->clase }}">
+                            @foreach ($dibujosAgrupados as $key => $docs)
+                                @php
+                                    [$ot, $clase] = explode('|', $key);
+                                @endphp
+                                <tr class="calmaq-fila-doc row-dibujo"
+                                    data-ot="{{ $ot }}"
+                                    data-clase="{{ $clase }}">
                                     <td>
-                                        <div class="alm-ot-label">{{ $doc->ot ?? '—' }}</div>
+                                        <div class="alm-ot-label">{{ $ot }}</div>
                                     </td>
-                                    <td>{{ $doc->clase ?? '—' }}</td>
-                                    <td title="{{ $doc->nombre_archivo }}">
-                                        {{ Str::limit($doc->nombre_archivo, 42) }}
-                                    </td>
-                                    <td class="alm-date d-text-center">
-                                        {{ $doc->fecha_archivo ? $doc->fecha_archivo->format('d/m/Y') : '—' }}
+                                    <td><div class="alm-clase-label">{{ $clase }}</div></td>
+                                    <td class="d-text-center">
+                                        <span class="badge-pdf-count">{{ $docs->count() }}</span>
                                     </td>
                                     <td class="d-text-center">
-                                        <div class="td-actions">
-                                            <button class="btn-action-icon btn-ver-dibujos"
-                                                    id="btn-dibujo-{{ $doc->id }}"
-                                                    title="Ver archivos"
-                                                    onclick="calmaqVerArchivo({{ $doc->id }})">
-                                                <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                <span>Ver PDF's</span>
-                                            </button>
+                                        <button class="btn-toggle-files"
+                                                data-target="files-dibujo-{{ $loop->index }}"
+                                                aria-expanded="false">
+                                            Ver Archivos
+                                        </button>
+                                    </td>
+                                </tr>
+                                {{-- Fila desplegable de archivos --}}
+                                <tr class="alm-files-row" id="files-dibujo-{{ $loop->index }}">
+                                    <td colspan="4">
+                                        <div class="alm-files-inner">
+                                            <h4 style="margin-top: 15px; margin-bottom: 10px; color: #005194; border-bottom: 2px solid #005194; padding-bottom: 5px;">
+                                                Dibujos de Maquinados</h4>
+                                            <div class="alm-pdf-grid">
+                                                @foreach ($docs as $doc)
+                                                    <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" style="cursor: pointer;" title="Abrir PDF">
+                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                        </div>
+                                                        <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="calmaqVerArchivo({{ $doc->id }})">
+                                                            {{ $doc->nombre_archivo }}
+                                                        </div>
+                                                        <div class="file-actions">
+                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="calmaqVerArchivo({{ $doc->id }})">Ver</button>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -213,6 +237,10 @@
         {{-- ══════════════════════════════════════════════════════════
              TABLA 2 — AYUDAS VISUALES DE MAQUINADOS (activas)
         ══════════════════════════════════════════════════════════ --}}
+        @php
+            $ayudasAgrupadas = $ayudas->groupBy(fn($a) => ($a->clase ?? '—') . '|' . ($a->proceso ?? '—'));
+        @endphp
+
         <div class="alm-table-card" style="border-color: #027a3ad4;">
             <div class="alm-table-header header-ayudas">
                 <h2>Ayudas Visuales de Maquinados</h2>
@@ -239,35 +267,55 @@
                     <table class="alm-table table-ayudas">
                         <thead>
                             <tr>
-                                <th style="width: 25%">Clase</th>
-                                <th style="width: 21%">Proceso</th>
-                                <th style="width: 32%">Nombre del Archivo</th>
-                                <th style="width: 12%" class="d-text-center">Fecha Archivo</th>
-                                <th style="width: 12%" class="d-text-center">Accion</th>
+                                <th style="width: 35%">Clase</th>
+                                <th style="width: 30%">Proceso</th>
+                                <th style="width: 15%" class="d-text-center">Archivos</th>
+                                <th style="width: 20%" class="d-text-center">Accion</th>
                             </tr>
                         </thead>
                         <tbody id="calmaq-tbody-ayudas">
-                            @foreach ($ayudas as $doc)
-                                <tr class="calmaq-fila-doc"
-                                    data-clase="{{ $doc->clase }}"
-                                    data-proceso="{{ $doc->proceso }}">
-                                    <td><div class="alm-clase-ayuda">{{ $doc->clase ?? '—' }}</div></td>
-                                    <td>{{ $doc->proceso ?? '—' }}</td>
-                                    <td title="{{ $doc->nombre_archivo }}">
-                                        {{ Str::limit($doc->nombre_archivo, 42) }}
-                                    </td>
-                                    <td class="alm-date d-text-center">
-                                        {{ $doc->fecha_archivo ? $doc->fecha_archivo->format('d/m/Y') : '—' }}
+                            @foreach ($ayudasAgrupadas as $key => $docs)
+                                @php
+                                    [$clase, $proceso] = explode('|', $key);
+                                @endphp
+                                <tr class="calmaq-fila-doc row-ayuda"
+                                    data-clase="{{ $clase }}"
+                                    data-proceso="{{ $proceso }}">
+                                    <td><div class="alm-clase-label">{{ $clase }}</div></td>
+                                    <td><div class="alm-proceso-label">{{ $proceso }}</div></td>
+                                    <td class="d-text-center">
+                                        <span class="badge-pdf-count">{{ $docs->count() }}</span>
                                     </td>
                                     <td class="d-text-center">
-                                        <div class="td-actions">
-                                            <button class="btn-action-icon btn-ver-ayudas"
-                                                    id="btn-ayuda-{{ $doc->id }}"
-                                                    title="Ver archivos"
-                                                    onclick="calmaqVerArchivo({{ $doc->id }})">
-                                                <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                <span>Ver PDF's</span>
-                                            </button>
+                                        <button class="btn-toggle-files"
+                                                data-target="files-ayuda-{{ $loop->index }}"
+                                                aria-expanded="false">
+                                            Ver Archivos
+                                        </button>
+                                    </td>
+                                </tr>
+                                {{-- Fila desplegable de archivos --}}
+                                <tr class="alm-files-row" id="files-ayuda-{{ $loop->index }}">
+                                    <td colspan="4">
+                                        <div class="alm-files-inner">
+                                            <h4 style="margin-top: 15px; margin-bottom: 10px; color: #027a3a; border-bottom: 2px solid #027a3a; padding-bottom: 5px;">
+                                                Ayudas Visuales de Maquinados</h4>
+                                            <div class="alm-pdf-grid">
+                                                @foreach ($docs as $doc)
+                                                    <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" style="cursor: pointer;" title="Abrir PDF">
+                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                        </div>
+                                                        <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="calmaqVerArchivo({{ $doc->id }})">
+                                                            {{ $doc->nombre_archivo }}
+                                                        </div>
+                                                        <div class="file-actions">
+                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="calmaqVerArchivo({{ $doc->id }})">Ver</button>
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -287,6 +335,10 @@
         {{-- ══════════════════════════════════════════════════════════
              TABLA 3 — DOCUMENTOS INACTIVOS (todos los tipos)
         ══════════════════════════════════════════════════════════ --}}
+        @php
+            $inactivosAgrupados = $inactivos->groupBy(fn($i) => ($i->tipo ?? '—') . '|' . ($i->ot ?? '—') . '|' . ($i->clase ?? '—') . '|' . ($i->proceso ?? '—'));
+        @endphp
+
         <div class="alm-table-card" style="border-color: #6c757dd4;">
             <div class="alm-table-header header-inactivos">
                 <h2>Documentos Inactivos (Historico)</h2>
@@ -307,59 +359,82 @@
                     <table class="alm-table table-inactivos">
                         <thead>
                             <tr>
-                                <th style="width: 14%">Tipo</th>
-                                <th style="width: 14%">OT</th>
-                                <th style="width: 13%">Clase</th>
-                                <th style="width: 14%">Proceso</th>
-                                <th style="width: 22%">Nombre del Archivo</th>
-                                <th style="width: 12%" class="d-text-center">Ultima deteccion</th>
-                                <th style="width: 10%" class="d-text-center">Estado</th>
-                                <th style="width: 10%" class="d-text-center">Accion</th>
+                                <th style="width: 12%" class="d-text-center">Tipo</th>
+                                <th style="width: 22%">OT</th>
+                                <th style="width: 22%">Clase</th>
+                                <th style="width: 18%">Proceso</th>
+                                <th style="width: 8%" class="d-text-center">Archivos</th>
+                                <th style="width: 18%" class="d-text-center">Accion</th>
                             </tr>
                         </thead>
                         <tbody id="calmaq-tbody-inactivos">
-                            @foreach ($inactivos as $doc)
-                                <tr class="calmaq-fila-doc"
-                                    data-ot="{{ $doc->ot }}"
-                                    data-clase="{{ $doc->clase }}"
-                                    data-proceso="{{ $doc->proceso }}">
+                                @foreach ($inactivosAgrupados as $key => $docs)
+                                @php
+                                    [$tipo, $ot, $clase, $proceso] = explode('|', $key);
+                                    $isAyuda = ($tipo === 'ayuda');
+                                    
+                                    // Limpiar guiones y convertirlos en N/A si es necesario
+                                    $otText      = (trim($ot)      === '—' || !$ot)      ? 'N/A' : $ot;
+                                    $claseText   = (trim($clase)   === '—' || !$clase)   ? 'N/A' : $clase;
+                                    $procesoText = (trim($proceso) === '—' || !$proceso) ? 'N/A' : $proceso;
+                                @endphp
+                                <tr class="calmaq-fila-doc {{ $isAyuda ? 'row-ayuda' : 'row-dibujo' }}"
+                                    data-ot="{{ $ot }}"
+                                    data-clase="{{ $clase }}"
+                                    data-proceso="{{ $proceso }}">
                                     <td class="d-text-center">
-                                        @if ($doc->tipo === 'dibujo')
+                                        @if (!$isAyuda)
                                             <span class="badge-tipo-dibujo">Dibujo</span>
                                         @else
                                             <span class="badge-tipo-ayuda">Ayuda</span>
                                         @endif
                                     </td>
                                     <td>
-                                        <div class="alm-ot-label" style="color: #6c757d;">{{ $doc->ot ?? '—' }}</div>
+                                        <div class="alm-ot-label">{{ $otText }}</div>
                                     </td>
-                                    <td>{{ $doc->clase ?? '—' }}</td>
-                                    <td>{{ $doc->proceso ?? '—' }}</td>
-                                    <td title="{{ $doc->nombre_archivo }}">
-                                        {{ Str::limit($doc->nombre_archivo, 36) }}
-                                        <div class="alm-inactiva-note">
-                                            Carpeta eliminada - Backup conservado
-                                        </div>
-                                    </td>
-                                    <td class="alm-date d-text-center">
-                                        {{ $doc->ultima_deteccion_at ? $doc->ultima_deteccion_at->format('d/m/Y H:i') : '—' }}
+                                    <td><div class="alm-clase-label">{{ $claseText }}</div></td>
+                                    <td><div class="alm-proceso-label">{{ $procesoText }}</div></td>
+                                    <td class="d-text-center">
+                                        <span class="badge-pdf-count">{{ $docs->count() }}</span>
                                     </td>
                                     <td class="d-text-center">
-                                        <span class="badge-status badge-inactivo">Inactivo</span>
+                                        <button class="btn-toggle-files"
+                                                data-target="files-inactivo-{{ $loop->index }}"
+                                                aria-expanded="false">
+                                            Ver Archivos
+                                        </button>
                                     </td>
-                                    <td class="d-text-center">
-                                        <div class="td-actions">
-                                            @if ($doc->existeEnStorage())
-                                                <button class="btn-action-icon btn-ver-inactivos"
-                                                        id="btn-inactivo-{{ $doc->id }}"
-                                                        title="Ver archivos"
-                                                        onclick="calmaqVerArchivo({{ $doc->id }})">
-                                                    <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                    <span>Ver PDF's</span>
-                                                </button>
-                                            @else
-                                                <span class="d-text-subtle" style="font-size: 0.8em;">Sin backup</span>
-                                            @endif
+                                </tr>
+                                {{-- Fila desplegable de archivos --}}
+                                <tr class="alm-files-row" id="files-inactivo-{{ $loop->index }}">
+                                    <td colspan="6">
+                                        <div class="alm-files-inner" style="border-top-color: {{ $isAyuda ? '#027a3a' : '#033966' }};">
+                                            <h4 style="margin-top: 15px; margin-bottom: 10px; color: {{ $isAyuda ? '#027a3a' : '#033966' }}; border-bottom: 2px solid {{ $isAyuda ? '#027a3a' : '#033966' }}; padding-bottom: 5px; display: flex; align-items: center; justify-content: space-between;">
+                                                <span>Documentos Inactivos — {{ $tipo === 'dibujo' ? 'Dibujos' : 'Ayudas' }} de Maquinados</span>
+                                                <div class="alm-inactiva-note" style="color: #6c757d; font-weight: normal;">
+                                                    Carpeta eliminada - Backup conservado
+                                                </div>
+                                            </h4>
+                                            <div class="alm-pdf-grid">
+                                                @foreach ($docs as $doc)
+                                                    <div class="dibujos-file-card {{ $isAyuda ? 'card-ayuda' : '' }}" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" style="cursor: pointer;" title="Abrir PDF">
+                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                        </div>
+                                                        <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="calmaqVerArchivo({{ $doc->id }})">
+                                                            {{ $doc->nombre_archivo }}
+                                                        </div>
+                                                        <div class="file-actions">
+                                                            @if($isAyuda)
+                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="calmaqVerArchivo({{ $doc->id }})">Ver</button>
+                                                            @else
+                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="calmaqVerArchivo({{ $doc->id }})">Ver</button>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
