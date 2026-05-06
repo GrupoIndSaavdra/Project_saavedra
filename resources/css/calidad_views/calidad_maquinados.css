@@ -213,7 +213,7 @@ body {
     flex-direction: column-reverse;
     align-items: center;
     gap: 0.5em;
-    min-width: 180px;
+    min-width: 250px;
 }
 
 .filters-actions {
@@ -1101,19 +1101,19 @@ table.alm-table {
 .alm-ot-label {
     font-weight: 700;
     color: #033966;
-    font-family: 'Poppins', sans-serif;
+    font-family: "Poppins", sans-serif;
     letter-spacing: 0.5px;
 }
 
 .alm-clase-label {
     font-weight: 700;
     color: #027a3a;
-    font-family: 'Poppins', sans-serif;
+    font-family: "Poppins", sans-serif;
     letter-spacing: 0.5px;
 }
 
 .alm-proceso-label {
     font-weight: 700;
     color: #333;
-    font-family: 'Poppins', sans-serif;
+    font-family: "Poppins", sans-serif;
 }
