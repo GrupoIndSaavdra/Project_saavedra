@@ -234,11 +234,36 @@ p {
 }
 
 .input-password {
-    font-size: 1.25em;
-    padding: 0.6em 1em;
-    width: 500px;
+    font-size: 1.1em;
+    padding: 0.5em 2.5em 0.5em 1em; /* Espacio extra a la derecha para el ojo */
+    width: 280px; /* Reducido de 500px */
     cursor: text;
-    margin-right: 1em;
+    margin-right: 0.5em;
+    border-radius: 8px;
+}
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.eye-toggle {
+    position: absolute;
+    right: 1em;
+    cursor: pointer;
+    color: #033966;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+}
+
+.eye-toggle:hover {
+    transform: scale(1.1);
+    opacity: 1;
 }
 
 /* Contenedor para unificar edición de metadatos */
@@ -300,7 +325,7 @@ p {
     gap: 0;
     left: 0;
     padding: 0;
-    z-index: 1500 !important; /* Capa superior */
+    z-index: 11000 !important; /* Capa superior */
 }
 
 .edit-meta-wrapper.is-verifying .action-label {
@@ -319,7 +344,7 @@ p {
     display: flex;
     align-items: center;
     gap: 1em;
-    z-index: 1600;
+    z-index: 11010;
 }
 
 .form-group-password .btn-submit-password {
@@ -332,14 +357,14 @@ p {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 3.5em; /* Estandarizado */
-    padding: 0 1.5em;
+    height: 2.8em; /* Reducido */
+    padding: 0 1.2em;
     border: none;
     border-radius: 8px;
-    font-size: 1.1em;
+    font-size: 0.95em;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 4px 15px rgba(3, 57, 102, 0.3);
@@ -395,14 +420,14 @@ p {
 
 .warning-pieces {
     width: 90%;
-    font-size: 1.1em;
+    font-size: 1em;
     font-weight: 800;
     padding: 1.5em;
     margin: 1em auto;
     border-radius: 12px;
-    background-color: #fff3cd; /* Amarillo de advertencia */
-    border: 3px solid #ffc107;
-    color: #856404;
+    background-color: #42ddd5; /* Amarillo de advertencia */
+    border: 3px solid #89d2db8c;
+    color: #000000;
     display: block;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -415,7 +440,7 @@ p {
 @keyframes alert-breathing {
     0% {
         transform: scale(1);
-        border-color: #ffc107;
+        border-color: #ff0707;
         box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
     }
     50% {
@@ -426,7 +451,7 @@ p {
     }
     100% {
         transform: scale(1);
-        border-color: #ffc107;
+        border-color: #ff0707;
         box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
     }
 }
@@ -508,20 +533,38 @@ p {
     border-collapse: collapse;
     border: 2px solid #032c00cc;
     background: #fff;
-    width: max-content;
-    margin: 0px;
     width: 250%;
+    margin: 0px;
     box-shadow: 0 0 10px rgba(0, 0, 0);
 }
 
 .table-title {
-    border: 3px solid #000;
     background-color: #033966;
+    color: #fff;
     padding: 10px 0;
     text-align: center;
-    color: #fff;
     font-size: 1.1em;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
+
+.table tr td:first-child,
+.table tr th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background-color: #f8f9fa;
+    border-right: 4px solid #033966;
+}
+
+.table tr th:first-child {
+    z-index: 3;
+    top: 0;
+    background-color: #033966;
+    color: #fff;
+}
+
 
 .table input {
     height: 100%;
@@ -539,7 +582,10 @@ p {
     font-size: 1.1em;
     font-weight: 700;
     border: 3px solid #033966;
+    background-color: #fff;
 }
+
+
 
 .input-medio {
     width: 50%;
@@ -646,7 +692,7 @@ td select {
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(5px);
     /* Safari */
-    z-index: 1;
+    z-index: 10000;
 }
 
 .alert-NoCotas {
@@ -1170,8 +1216,8 @@ td select {
 }
 
 .img-action-btn {
-    width: 5em; /* Aumentado para mayor impacto visual */
-    height: 5em; /* Aumentado para mayor impacto visual */
+    width: 3.5em; /* Reducido */
+    height: 3.5em; /* Reducido */
     object-fit: contain;
     transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
@@ -1198,9 +1244,9 @@ td select {
 /* Modo Verificación: Ajustes locales para botones de acción (Sin desplazamiento) */
 .action-btn-wrapper.is-verifying {
     transform: none !important;
-    z-index: 1000 !important;
+    z-index: 11000 !important;
     position: relative;
-    width: 5em; /* Ajustado al nuevo tamaño */
+    width: 3.5em; /* Ajustado al nuevo tamaño reducido */
 }
 
 .action-btn-wrapper.is-verifying .action-label {
@@ -1210,12 +1256,12 @@ td select {
 
 .action-btn-wrapper.is-verifying .form-inline-verification {
     position: absolute;
-    left: 6em; /* Ajustado para el botón más grande */
+    left: 4.5em; /* Ajustado para el botón más pequeño */
     top: 30%;
     transform: translateY(-50%);
     width: max-content;
     white-space: nowrap;
-    z-index: 1010;
+    z-index: 11010;
 }
 
 .btn-disabled {

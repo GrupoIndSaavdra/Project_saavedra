@@ -192,20 +192,25 @@ body {
 }
 
 .filters {
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.5em;
-    flex-wrap: wrap;
     margin: 1em 0;
+}
+
+.filters .btns {
+    margin: 0;
+    white-space: nowrap;
+    grid-column: 1 / -1;
+    justify-self: center;
+    margin-top: 0.5em;
 }
 
 .filter {
     display: flex;
     flex-direction: column-reverse;
-    align-items: center;
+    align-items: stretch;
     gap: 0.5em;
-    min-width: 250px;
 }
 
 .select-filter,
@@ -791,6 +796,13 @@ table.alm-table {
    RESPONSIVE
 ──────────────────────────────────────────────────── */
 @media (max-width: 900px) {
+    .filters {
+        grid-template-columns: 1fr;
+    }
+    .filters .btns {
+        width: 100%;
+        margin-top: 10px;
+    }
     .alm-stats {
         grid-template-columns: 1fr 1fr;
     }

@@ -429,11 +429,11 @@ function insertSelects() {
     }
 }
 
-function createInputPassword(name = "passwordAdmin", placeholderText = "Contraseña de Administrador") {
+function createInputPassword(name = "passwordAdmin", placeholderText = "Password of the Admin") {
     // Creación de contenedor
     let form_group = document.createElement("div");
     form_group.className = "form-group-password";
-    form_group.style.zIndex = "1000";
+    form_group.style.zIndex = "11000";
 
     // Input de contraseña
     let inputPassword = document.createElement("input");
@@ -455,7 +455,36 @@ function createInputPassword(name = "passwordAdmin", placeholderText = "Contrase
     inputMeta.name = "meta";
     inputMeta.value = window.arrayData["meta"].id;
 
-    form_group.appendChild(inputPassword);
+    // Contenedor del input para el ojo
+    let inputWrapper = document.createElement("div");
+    inputWrapper.className = "password-input-wrapper";
+    inputWrapper.style.position = "relative";
+    inputWrapper.style.display = "flex";
+    inputWrapper.style.alignItems = "center";
+
+    // Iconos SVG Premium
+    const eyeOpen = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    const eyeClosed = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+
+    // Icono del ojo
+    let eyeIcon = document.createElement("span");
+    eyeIcon.innerHTML = eyeOpen;
+    eyeIcon.className = "eye-toggle";
+
+    eyeIcon.onclick = () => {
+        if (inputPassword.type === "password") {
+            inputPassword.type = "text";
+            eyeIcon.innerHTML = eyeClosed;
+        } else {
+            inputPassword.type = "password";
+            eyeIcon.innerHTML = eyeOpen;
+        }
+    };
+
+    inputWrapper.appendChild(inputPassword);
+    inputWrapper.appendChild(eyeIcon);
+
+    form_group.appendChild(inputWrapper);
     form_group.appendChild(submit);
     form_group.appendChild(inputMeta);
 
@@ -1027,7 +1056,7 @@ function showInlinePasswordForm(type, imgElement = null) {
     // REGLA DE ORO: INICIO DE RANGO (OPCIÓN 2 - ESPERA SUPERVISOR)
     const h_inicio_solicitud = new Date().toLocaleTimeString('it-IT');
     window.qualityStartTime = h_inicio_solicitud; // Guardar globalmente
-    
+
     let inputInicio = document.createElement("input");
     inputInicio.type = "hidden";
     inputInicio.name = "h_inicio_solicitud";
@@ -1616,7 +1645,7 @@ function closeQualityModal(isManual = false) {
     if (isManual) {
         window.logUserAction("Abandono de Liberación", "El usuario canceló y cerró la interfaz de liberación de piezas.", { h_inicio: window.qualityStartTime });
     }
-    
+
     let divOpacity = document.getElementById("div-opacity");
     if (divOpacity) {
         divOpacity.remove();
@@ -2002,7 +2031,7 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
     const divOpacity = document.createElement('div');
     divOpacity.className = 'prod-viewer-portal';
     divOpacity.id = 'div-opacity-dibujos';
-    
+
     // REGLA DE ORO: INICIO DE RANGO (OPCIÓN 1)
     const startTimeDoc = new Date().toLocaleTimeString('it-IT');
 
