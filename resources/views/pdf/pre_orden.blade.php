@@ -219,7 +219,7 @@
                 <td class="code-cell">{{ $fila['codigo_modelo'] }}</td>
                 @if($index === 0)
                     <td class="date-rowspan" rowspan="{{ count($data['filas']) }}" style="text-align:center; vertical-align:middle;">
-                        {{ \Carbon\Carbon::parse($data['fecha_entrega'])->format('d/m/Y') }}
+                        {{ !empty($data['fecha_entrega']) ? \Carbon\Carbon::parse($data['fecha_entrega'])->format('d/m/Y') : '' }}
                     </td>
                 @endif
             </tr>

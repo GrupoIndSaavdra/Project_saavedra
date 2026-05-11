@@ -1,7 +1,8 @@
 /**
  * almacen_fundicion.js
- * Lógica de la vista de Almacén/Calidad para Dibujos de Fundición.
- */
+  * Lógica de la vista de Almacén/Calidad para Dibujos de Fundición.
+  */
+ console.log('ALMACEN_FUNDICION_JS_V2_LOADED');
 
 document.addEventListener('DOMContentLoaded', () => {
     initToggleFiles();
@@ -144,41 +145,10 @@ window.confirmarModelo = function (ot) {
 let availableClasses = [];   // Caché de clases para las filas nuevas
 let optionsHtmlCache = '';   // Caché del HTML de las opciones para evitar reconstruir en cada fila
 
-/**
- * Clases originales cargadas al abrir el modal (para detectar cuáles se eliminaron).
- * Cada elemento: { claseId, claseNombre }
- */
-let originalClasses = [];
-
 const normalizeStr = (str) => {
     if (!str) return '';
     return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 };
-
-// ── Helpers para leer el estado actual de la tabla ──
-
-/**
- * Devuelve un array con { claseId, claseNombre } de las filas actuales del tbody indicado.
- */
-function getCurrentClasses(tbodyId = 'alm-tbody-preorden') {
-    const tbody = document.getElementById(tbodyId);
-    if (!tbody) return [];
-    return Array.from(tbody.rows).map(row => {
-        const sel = row.querySelector('.po-clase-select');
-        return {
-            claseId: sel ? sel.value : '',
-            claseNombre: sel ? (sel.options[sel.selectedIndex]?.dataset?.nombre || sel.options[sel.selectedIndex]?.text || '') : ''
-        };
-    });
-}
-
-/**
- * Guarda el estado inicial de las clases al abrir el modal.
- * Debe llamarse después de que JS pueble el tbody.
- */
-function captureOriginalClasses() {
-    originalClasses = getCurrentClasses('alm-tbody-preorden');
-}
 
 // ── Apertura / Cierre del modal ──
 
@@ -254,11 +224,9 @@ window.abrirModalPreOrden = function (ot) {
                     tbody.appendChild(createRowElement());
                 }
 
-                // Guardar estado original DESPUÉS de poblar la tabla
-                captureOriginalClasses();
-
+                // Datos cargados con éxito
             } else {
-                mostrarToast('Error al cargar datos de la OT', true);
+                mostrarToast(data.message || 'Error al cargar datos de la OT', true);
                 cerrarModalPreOrden();
             }
         })
@@ -278,83 +246,9 @@ window.cerrarModalPreOrden = function () {
     resetMultiOrderState();
 };
 
-// ── Gestión del estado multi-orden ──
-
-/**
- * Resetea todo el estado relacionado con el flujo de segunda pre-orden.
- */
 function resetMultiOrderState() {
-    originalClasses = [];
-
-    // Ocultar pestañas y volver a página 1
-    document.getElementById('po-tabs-nav').style.display = 'none';
-    document.getElementById('po-page-1').style.display = '';
-    document.getElementById('po-page-2').style.display = 'none';
-    document.getElementById('po-tab-btn-1').classList.add('active');
-    document.getElementById('po-tab-btn-2').classList.remove('active');
-
-    // Limpiar el form de la segunda pre-orden
-    const form2 = document.getElementById('formPreOrden2');
-    if (form2) form2.reset();
-    const tbody2 = document.getElementById('alm-tbody-preorden2');
-    if (tbody2) tbody2.innerHTML = '';
+    // No-op para mantener compatibilidad
 }
-
-/**
- * Activa el sistema de pestañas y llena la segunda pre-orden con las clases eliminadas.
- * @param {Array} removedClasses - Array de { claseId, claseNombre } que no están en la orden 1.
- */
-function activateSecondOrder(removedClasses) {
-    // Copiar datos comunes de la OT
-    document.getElementById('po2-ot').value = document.getElementById('po-ot').value;
-    document.getElementById('po2-moldura').value = document.getElementById('po-moldura').value;
-    document.getElementById('po2-fecha').value = document.getElementById('po-fecha').value;
-    document.getElementById('po2-fecha-entrega').value = document.getElementById('po-fecha-entrega').value;
-    document.getElementById('po2-folio').value = document.getElementById('po-folio').value;
-
-    // Auto-seleccionar el proveedor ALTERNATIVO al de la pre-orden 1
-    const sel1 = document.getElementById('po-proveedor');
-    const sel2 = document.getElementById('po2-proveedor');
-    const selectedVal = sel1.value;
-    // Buscar la primera opción válida que no sea la ya seleccionada
-    const alternativeOpt = Array.from(sel2.options).find(opt => opt.value !== '' && opt.value !== selectedVal);
-    if (alternativeOpt) {
-        sel2.value = alternativeOpt.value;
-    }
-
-    // Poblar tabla de la segunda pre-orden
-    const tbody2 = document.getElementById('alm-tbody-preorden2');
-    tbody2.innerHTML = '';
-    const fragment = document.createDocumentFragment();
-
-    removedClasses.forEach(({ claseNombre }) => {
-        if (claseNombre && claseNombre !== 'Selecciona clase' && claseNombre !== '') {
-            fragment.appendChild(createRowElement(claseNombre, true));
-        }
-    });
-
-    // Si no hay clases recuperables (todas estaban vacías), poner una fila vacía
-    if (fragment.childNodes.length === 0) {
-        fragment.appendChild(createRowElement('', true));
-    }
-
-    tbody2.appendChild(fragment);
-
-    // Mostrar las pestañas y navegar a la 2
-    document.getElementById('po-tabs-nav').style.display = 'flex';
-    switchPoTab(2);
-}
-
-/**
- * Cambia de pestaña en el modal.
- * @param {number} tabNum - 1 o 2
- */
-window.switchPoTab = function (tabNum) {
-    document.getElementById('po-page-1').style.display = tabNum === 1 ? '' : 'none';
-    document.getElementById('po-page-2').style.display = tabNum === 2 ? '' : 'none';
-    document.getElementById('po-tab-btn-1').classList.toggle('active', tabNum === 1);
-    document.getElementById('po-tab-btn-2').classList.toggle('active', tabNum === 2);
-};
 
 // ── Creación de filas de la tabla ──
 
@@ -431,11 +325,6 @@ window.agregarFilaPreOrden = function () {
     syncClassOptions('alm-tbody-preorden');
 };
 
-window.agregarFilaPreOrden2 = function () {
-    document.getElementById('alm-tbody-preorden2').appendChild(createRowElement('', true));
-    syncClassOptions('alm-tbody-preorden2');
-};
-
 window.eliminarFilaPreOrden = function (btn) {
     const row = btn.closest('tr');
     const tbody = document.getElementById('alm-tbody-preorden');
@@ -446,17 +335,6 @@ window.eliminarFilaPreOrden = function (btn) {
         // Mostrar botón de añadir si se elimina una fila
         const btnAdd = document.getElementById('btn-add-clase-po');
         if (btnAdd) btnAdd.style.display = 'inline-block';
-    } else {
-        mostrarToast('Debe haber al menos una clase en la pre-orden', true);
-    }
-};
-
-window.eliminarFilaPreOrden2 = function (btn) {
-    const row = btn.closest('tr');
-    const tbody = document.getElementById('alm-tbody-preorden2');
-    if (tbody.rows.length > 1) {
-        row.remove();
-        syncClassOptions('alm-tbody-preorden2');
     } else {
         mostrarToast('Debe haber al menos una clase en la pre-orden', true);
     }
@@ -537,67 +415,7 @@ function syncClassOptions(tbodyId) {
     });
 }
 
-/**
- * Modal de confirmación premium (reemplaza confirm() nativo).
- * @param {string} title - Título del modal
- * @param {string} message - Cuerpo del mensaje
- * @param {Function} onYes - Callback si el usuario acepta
- * @param {Function} onNo  - Callback si el usuario cancela
- */
-function showConfirmModal(title, message, onYes, onNo) {
-    const existing = document.getElementById('po-confirm-overlay');
-    if (existing) existing.remove();
-
-    let baseUrl = window.baseUrl || (window.location.origin + '/');
-    if (!baseUrl.endsWith('/')) baseUrl += '/';
-
-    const overlay = document.createElement('div');
-    overlay.id = 'po-confirm-overlay';
-    overlay.className = 'alm-modal'; // Usar la misma clase base que el modal principal
-
-    overlay.innerHTML = `
-        <div class="alm-modal-content" style="max-width: 900px; margin-top: 7vh;">
-            <div class="alm-modal-header">
-                <div class="div-cerrar">
-                    <button type="button" class="btn-cerrar" id="po-confirm-close">
-                        <img class="img-cerrar" src="${baseUrl}images/cerrar.png">
-                    </button>
-                </div>
-                <h3>${title}</h3>
-            </div>
-            <div class="alm-modal-body" style="text-align: center; padding: 3em 2.5em;">
-                <div style="margin-bottom: 2em;">
-                    <img src="${baseUrl}images/Aviso.png" style="width: 80px; height: 80px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.1));" alt="Aviso">
-                </div>
-                <div style="font-size: 1.25em; color: #475569; line-height: 1.6; margin-bottom: 2.5em; font-family: 'Poppins', sans-serif;">
-                    ${message}
-                </div>
-                <div style="display: flex; gap: 15px; justify-content: center;">
-                    <button class="btn-alert-confirm" id="po-confirm-yes">
-                        Sí, crear segunda pre-orden
-                    </button>
-                    <button type="button" class="btn-alert-cancel" id="po-confirm-no">
-                        No, solo enviar esta
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(overlay);
-
-    // Abrir con el estilo fluido
-    requestAnimationFrame(() => overlay.classList.add('open'));
-
-    function close() {
-        overlay.classList.remove('open');
-        setTimeout(() => overlay.remove(), 400);
-    }
-
-    overlay.querySelector('#po-confirm-yes').onclick = () => { close(); if (typeof onYes === 'function') onYes(); };
-    overlay.querySelector('#po-confirm-no').onclick = () => { close(); if (typeof onNo === 'function') onNo(); };
-    overlay.querySelector('#po-confirm-close').onclick = () => { close(); if (typeof onNo === 'function') onNo(); };
-}
+// ── Modales de confirmación (ELIMINADOS) ──
 
 /**
  * Construye el payload de una forma a partir del tbody y los campos del form.
@@ -632,7 +450,7 @@ function buildPayload(tbodyId, formIds) {
         ot: otClean,
         ot_raw: document.getElementById('po-ot-raw').value,
         moldura: document.getElementById(formIds.moldura).value,
-        fecha_entrega: document.getElementById(formIds.fecha_entrega).value,
+        fecha_entrega: '', // Se deja vacío para llenado manual del proveedor
         observaciones: document.getElementById(formIds.observaciones).value,
         filas: rows
     };
@@ -705,63 +523,6 @@ document.getElementById('formPreOrden').addEventListener('submit', function (e) 
     const btn = document.getElementById('btn-submit-preorden');
     const originalText = btn.innerText;
 
-    // Detectar clases eliminadas respecto al estado original
-    const currentIds = getCurrentClasses('alm-tbody-preorden').map(c => c.claseId);
-    const removedClasses = originalClasses.filter(orig => {
-        if (!orig.claseId) return false; // ignorar filas vacías
-        return !currentIds.includes(orig.claseId);
-    });
-
-    const hasRemovedClasses = removedClasses.length > 0;
-
-    // Si hay clases eliminadas y todavía no se activó la segunda pre-orden
-    const secondOrderActive = document.getElementById('po-tabs-nav').style.display !== 'none';
-
-    if (hasRemovedClasses && !secondOrderActive) {
-        const removedNames = removedClasses
-            .map(c => c.claseNombre || c.claseId)
-            .filter(Boolean)
-            .join(', ');
-
-        const btn_ref = btn;
-        const originalText_ref = originalText;
-
-        showConfirmModal(
-            'Clases eliminadas detectadas',
-            `Eliminaste <strong>${removedClasses.length}</strong> clase(s) de la lista original:<br><em style="color:#033966;">${removedNames}</em><br><br>¿Deseas generar una segunda pre-orden para estas clases con otro proveedor?`,
-            // onYes
-            () => {
-                btn_ref.disabled = true;
-                btn_ref.innerText = 'Procesando...';
-                const payload1 = buildPayload('alm-tbody-preorden', {
-                    proveedor: 'po-proveedor', fecha: 'po-fecha', folio: 'po-folio',
-                    ot: 'po-ot', moldura: 'po-moldura', fecha_entrega: 'po-fecha-entrega',
-                    observaciones: 'po-observaciones'
-                });
-                submitPreOrden(payload1, btn_ref, originalText_ref, () => {
-                    activateSecondOrder(removedClasses);
-                    if (typeof toastpremium === 'function') {
-                        toastpremium('Pre-Orden 1 generada. Completa la Pre-Orden 2.', 'warning');
-                    }
-                });
-            },
-            // onNo
-            () => {
-                btn_ref.disabled = true;
-                btn_ref.innerText = 'Procesando...';
-                const payload = buildPayload('alm-tbody-preorden', {
-                    proveedor: 'po-proveedor', fecha: 'po-fecha', folio: 'po-folio',
-                    ot: 'po-ot', moldura: 'po-moldura', fecha_entrega: 'po-fecha-entrega',
-                    observaciones: 'po-observaciones'
-                });
-                submitPreOrden(payload, btn_ref, originalText_ref, () => cerrarModalPreOrden());
-            }
-        );
-
-        return;
-    }
-
-    // Flujo normal: enviar y cerrar
     btn.disabled = true;
     btn.innerText = 'Procesando...';
 
@@ -780,31 +541,7 @@ document.getElementById('formPreOrden').addEventListener('submit', function (e) 
     });
 });
 
-// ── Envío Pre-Orden 2 ──
-
-document.getElementById('formPreOrden2').addEventListener('submit', function (e) {
-    e.preventDefault();
-
-    const btn = document.getElementById('btn-submit-preorden2');
-    const originalText = btn.innerText;
-
-    btn.disabled = true;
-    btn.innerText = 'Procesando...';
-
-    const payload = buildPayload('alm-tbody-preorden2', {
-        proveedor: 'po2-proveedor',
-        fecha: 'po2-fecha',
-        folio: 'po2-folio',
-        ot: 'po2-ot',
-        moldura: 'po2-moldura',
-        fecha_entrega: 'po2-fecha-entrega',
-        observaciones: 'po2-observaciones'
-    });
-
-    submitPreOrden(payload, btn, originalText, () => {
-        cerrarModalPreOrden();
-    });
-});
+// ── Envío Pre-Orden 2 (ELIMINADO) ──
 
 /**
  * Actualiza el icono de estado de modelo en la tabla principal (DOM)

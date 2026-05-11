@@ -56,8 +56,8 @@ class AlmacenFundicionController extends Controller
 
         // Filtros desde query string
         $busquedaOt = trim($request->query('ot', ''));
-        $desde      = $request->query('desde', '');
-        $hasta      = $request->query('hasta', '');
+        $desde = $request->query('desde', '');
+        $hasta = $request->query('hasta', '');
 
         $query = FundicionHistory::query()->orderByDesc('alert_sent_at');
 
@@ -120,22 +120,22 @@ class AlmacenFundicionController extends Controller
 
         if (!$history || !$history->alert_sent_at) {
             return response()->json([
-                'existe'   => false,
+                'existe' => false,
                 'archivos' => [],
-                'ot'       => $ot,
+                'ot' => $ot,
             ]);
         }
 
-        $dirPath       = self::ALMACEN_DIR . '/' . $ot;
+        $dirPath = self::ALMACEN_DIR . '/' . $ot;
         $ayudasDirPath = $dirPath . '/ayudas_visuales';
 
         // 1. Obtener dibujos principales (Recursivo, excluyendo ayudas_visuales)
         $dibujos = collect(Storage::disk('local')->allFiles($dirPath))
-            ->filter(function($f) use ($dirPath) {
+            ->filter(function ($f) use ($dirPath) {
                 $rel = str_replace($dirPath . '/', '', $f);
                 return strpos($rel, 'ayudas_visuales/') !== 0 && strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf';
             })
-            ->map(function($f) use ($ot, $dirPath) {
+            ->map(function ($f) use ($ot, $dirPath) {
                 // Normalizar separadores para reemplazo robusto
                 $fNorm = str_replace('\\', '/', $f);
                 $dirPathNorm = str_replace('\\', '/', $dirPath);
@@ -143,11 +143,11 @@ class AlmacenFundicionController extends Controller
 
                 return [
                     'nombre' => $relName,
-                    'tipo'   => 'dibujo',
-                    'url'    => route('almacen.fundicion.serve', [
-                        'ot'      => $ot,
+                    'tipo' => 'dibujo',
+                    'url' => route('almacen.fundicion.serve', [
+                        'ot' => $ot,
                         'archivo' => $relName,
-                        'tipo'    => 'dibujo',
+                        'tipo' => 'dibujo',
                     ]),
                 ];
             });
@@ -157,18 +157,18 @@ class AlmacenFundicionController extends Controller
         if (Storage::disk('local')->exists($ayudasDirPath)) {
             $ayudas = collect(Storage::disk('local')->allFiles($ayudasDirPath))
                 ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-                ->map(function($f) use ($ayudasDirPath, $ot) {
+                ->map(function ($f) use ($ayudasDirPath, $ot) {
                     $fNorm = str_replace('\\', '/', $f);
                     $dirPathNorm = str_replace('\\', '/', $ayudasDirPath);
                     $relName = ltrim(str_replace($dirPathNorm, '', $fNorm), '/');
 
                     return [
                         'nombre' => $relName,
-                        'tipo'   => 'ayuda',
-                        'url'    => route('almacen.fundicion.serve', [
-                            'ot'      => $ot,
+                        'tipo' => 'ayuda',
+                        'url' => route('almacen.fundicion.serve', [
+                            'ot' => $ot,
                             'archivo' => $relName,
-                            'tipo'    => 'ayuda',
+                            'tipo' => 'ayuda',
                         ]),
                     ];
                 });
@@ -177,11 +177,11 @@ class AlmacenFundicionController extends Controller
         $allFiles = $dibujos->merge($ayudas)->values();
 
         return response()->json([
-            'existe'       => true,
-            'archivos'     => $allFiles,
-            'ot'           => $ot,
-            'status'       => $history->status,
-            'tiene_modelo'  => (bool)$history->tiene_modelo,
+            'existe' => true,
+            'archivos' => $allFiles,
+            'ot' => $ot,
+            'status' => $history->status,
+            'tiene_modelo' => (bool) $history->tiene_modelo,
             'alert_sent_at' => $history->alert_sent_at?->format('d/m/Y H:i'),
         ]);
     }
@@ -199,9 +199,9 @@ class AlmacenFundicionController extends Controller
     {
         $this->verificarAcceso();
 
-        $ot      = $this->sanitizePath($request->query('ot', ''));
+        $ot = $this->sanitizePath($request->query('ot', ''));
         $archivo = $this->sanitizeFileNameWithFolder($request->query('archivo', ''));
-        $tipo    = $request->query('tipo', 'dibujo');
+        $tipo = $request->query('tipo', 'dibujo');
 
         if (empty($ot) || empty($archivo)) {
             abort(422, 'Parámetros inválidos.');
@@ -219,11 +219,11 @@ class AlmacenFundicionController extends Controller
         }
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk     = Storage::disk('local');
+        $disk = Storage::disk('local');
         $fullPath = $disk->path($filePath);
 
         return response()->file($fullPath, [
-            'Content-Type'        => 'application/pdf',
+            'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . basename($archivo) . '"',
         ]);
     }
@@ -294,7 +294,7 @@ class AlmacenFundicionController extends Controller
         \Illuminate\Support\Facades\Log::info("getOtData: Consultando OT = " . $otFull);
         // Extraer el número de OT (ej: de "OT 6473 - ..." extraer 6473)
         preg_match('/OT\s*(\d+)/', $otFull, $matches);
-        $otId = isset($matches[1]) ? (int)$matches[1] : 0;
+        $otId = isset($matches[1]) ? (int) $matches[1] : 0;
 
         $ot = Orden_trabajo::with(['moldura', 'clases'])->find($otId);
 
@@ -304,7 +304,7 @@ class AlmacenFundicionController extends Controller
 
         // Obtener TODAS las clases para esta OT (incluyendo las ya finalizadas para historial)
         $clases = $ot->clases->map(fn($c) => [
-            'id'     => $c->id,
+            'id' => $c->id,
             'nombre' => $c->nombre
         ])->values();
 
@@ -312,16 +312,27 @@ class AlmacenFundicionController extends Controller
         $history = FundicionHistory::where('ot', '=', $otFull, 'and')->first();
         $clasesVinculadas = $history ? ($history->ayudas_config ?? []) : [];
 
-        // Calcular siguiente folio (MOD-YYYY-XXXX)
+        // --- Lógica de Folio Autoincremental ---
+        $folioPath = 'DOCUMENTACION_GIS/folio_config.json';
+        $currentFolio = 46; // Valor inicial solicitado
+        
+        if (Storage::disk('local')->exists($folioPath)) {
+            $config = json_decode(Storage::disk('local')->get($folioPath), true);
+            $currentFolio = $config['next_folio'] ?? 46;
+        } else {
+            // Crear el archivo si no existe
+            Storage::disk('local')->put($folioPath, json_encode(['next_folio' => 46]));
+        }
+
         $year = date('Y');
-        $folio = "MOD-{$year}-0001"; 
+        $folioStr = "MOD-{$year}-" . str_pad($currentFolio, 4, '0', STR_PAD_LEFT);
 
         return response()->json([
             'success' => true,
             'moldura' => $ot->moldura ? $ot->moldura->nombre : 'Sin moldura',
-            'clases'  => $clases,
+            'clases' => $clases,
             'clases_vinculadas' => $clasesVinculadas,
-            'folio'   => $folio
+            'folio' => $folioStr
         ]);
     }
 
@@ -347,15 +358,15 @@ class AlmacenFundicionController extends Controller
         ])->setPaper('a4', 'landscape');
 
         // 3. Definir rutas y nombres descriptivos
-        $otName    = $this->sanitizePath($data['ot']);
-        $folio     = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['folio']);
-        $otClean   = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['ot']);
-        $moldura   = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['moldura']);
+        $otName = $this->sanitizePath($data['ot']);
+        $folio = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['folio']);
+        $otClean = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['ot']);
+        $moldura = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['moldura']);
         $proveedor = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['proveedor']);
-        $fecha     = date('d_m_Y_H_i');
-        
+        $fecha = date('d_m_Y_H_i');
+
         $fileName = "PreOrden_{$folio}_OT_{$otClean}_{$moldura}_{$proveedor}_{$fecha}.pdf";
-        $otPath   = self::ALMACEN_DIR . '/' . $otName;
+        $otPath = self::ALMACEN_DIR . '/' . $otName;
         $savePath = $otPath . '/pre_ordenes/' . $fileName;
 
         // Asegurar que el directorio de pre-órdenes existe
@@ -372,28 +383,23 @@ class AlmacenFundicionController extends Controller
 
         // 5. Enviar por Email
         try {
-            // Determinar destinatarios según el proveedor seleccionado
-            $destinatarios = [];
-            if ($data['proveedor'] === 'SS Metal Foundry, S. de R. L. de C. V.') {
-                $destinatarios = ['josecitocx020406@gmail.com'];
-            } elseif ($data['proveedor'] === 'SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS, S. C. L.') {
-                $destinatarios = ['jaxer020406@gmail.com'];
-            } else {
-                // Fallback o destinatarios por defecto
-                $destinatarios = ['josecitocx020406@gmail.com'];
-            }
-            
-            /* 
-            // Destinatarios reales para producción (se pueden concatenar)
-            $destinatariosReales = [
-                'ingenieria3@steelfs.com.mx', 
-                'ingenieria@steelfs.com.mx',
-                'ventas@steelfs.com.mx'
+            // Destinatarios confirmados para SS Metal Foundry
+            $destinatarios = [
+                'produccion@ssmetalf.mx',
+                'laboratorio@ssmetalf.mx',
+                'abraham@grupoindsaavedra.com',
+                'inspecciontec@grupoindsaavedra.com'
             ];
-            // $destinatarios = array_merge($destinatarios, $destinatariosReales);
-            */
 
             Mail::to($destinatarios)->send(new PreOrdenMailable($data, storage_path('app/' . $savePath), Auth::user()->name));
+
+            // 6. Incrementar el Folio tras el envío exitoso
+            $folioPath = 'DOCUMENTACION_GIS/folio_config.json';
+            if (Storage::disk('local')->exists($folioPath)) {
+                $config = json_decode(Storage::disk('local')->get($folioPath), true);
+                $config['next_folio'] = ($config['next_folio'] ?? 46) + 1;
+                Storage::disk('local')->put($folioPath, json_encode($config));
+            }
         } catch (\Exception $e) {
             // Log error but continue for the download
             \Illuminate\Support\Facades\Log::error("Error enviando email de Pre-Orden: " . $e->getMessage());
