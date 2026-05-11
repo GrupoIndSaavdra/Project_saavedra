@@ -374,8 +374,8 @@
                                 <label for="po-proveedor">Proveedor:</label>
                                 <select id="po-proveedor" name="proveedor" class="form-control" required>
                                     <option value="">Selecciona uno</option>
-                                    <option value="Jose">Jose</option>
-                                    <option value="Jaxer">Jaxer</option>
+                                    <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de C. V.</option>
+                                    <option value="SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS, S. C. L.">SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS, S. C. L.</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -455,8 +455,8 @@
                                 <label for="po2-proveedor">Proveedor:</label>
                                 <select id="po2-proveedor" name="proveedor" class="form-control" required>
                                     <option value="">Selecciona uno</option>
-                                    <option value="Jose">Jose</option>
-                                    <option value="Jaxer">Jaxer</option>
+                                    <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de C. V.</option>
+                                    <option value="SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS, S. C. L.">SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS, S. C. L.</option>
                                 </select>
                             </div>
                             <div class="form-group">

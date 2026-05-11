@@ -364,9 +364,9 @@ class AlmacenFundicionController extends Controller
         try {
             // Determinar destinatarios según el proveedor seleccionado
             $destinatarios = [];
-            if ($data['proveedor'] === 'Jose') {
+            if ($data['proveedor'] === 'SS Metal Foundry, S. de R. L. de C. V.') {
                 $destinatarios = ['josecitocx020406@gmail.com'];
-            } elseif ($data['proveedor'] === 'Jaxer') {
+            } elseif ($data['proveedor'] === 'SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS, S. C. L.') {
                 $destinatarios = ['jaxer020406@gmail.com'];
             } else {
                 // Fallback o destinatarios por defecto

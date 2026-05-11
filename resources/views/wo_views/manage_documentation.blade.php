@@ -191,30 +191,40 @@
                         $folderPathLabel = $claseActiva->nombre . " / Fundicion";
                         $carpetaExiste = isset($estructura[$param2Name]) && in_array($param1Name, $estructura[$param2Name]);
                         $folderProps = ['data-proceso' => $param1Name, 'data-clase' => $param2Name];
-                    } elseif ($moduleType === 'fundicion' && $otSeleccionadaId && $otActiva) {
+                    } elseif ($moduleType === 'fundicion' && $otSeleccionadaId && $claseSeleccionadaId && $otActiva) {
                         $isReady = true;
-                        $param1Name = (string) $otActiva->id;
-                        $param2Name = $claseActiva ? $claseActiva->nombre : null;
-                        $otLabel = "OT " . $otActiva->id . ($otActiva->moldura ? " — " . $otActiva->moldura->nombre : "");
-                        $folderPathLabel = $param2Name ? ($otLabel . " / " . $param2Name) : $otLabel;
-                        $carpetaExiste = isset($estructura[$param1Name]);
-                        $folderProps = ['data-ot' => $param1Name, 'data-clase' => $param2Name];
+                        $otLabel = "OT " . $otActiva->id . ($otActiva->moldura ? " - " . $otActiva->moldura->nombre : "");
+                        // Normalización básica para coincidir con el controlador
+                        $normalizedOt = trim(preg_replace('/\s+/', ' ', preg_replace('/\s*-\s*/', ' - ', mb_strtoupper(str_replace(['—', '–', "\xc2\xa0"], '-', $otLabel)))));
+                        
+                        $param1Name = $normalizedOt;
+                        $param2Name = $claseActiva ? $claseActiva->nombre : $claseSeleccionadaId;
+                        $folderPathLabel = $otLabel . " / " . $param2Name;
+                        $carpetaExiste = isset($estructura[$param1Name]) && in_array($param2Name, $estructura[$param1Name]);
+                        $folderProps = ['data-ot' => $param1Name, 'data-clase' => $param2Name, 'data-ot-id' => $otActiva->id];
                     }
                 @endphp
 
                 <div id="admin-status-container">
-                    <div id="alert-ready-exists" class="d-alert d-alert-success d-mt-2" style="display:none;">
-                        La carpeta <strong class="folder-label">...</strong> ya existe en el servidor.
+                    <div id="alert-ready-exists" class="d-alert d-alert-success d-mt-2" style="display: {{ $isReady && $carpetaExiste ? 'block' : 'none' }};">
+                        La carpeta <strong class="folder-label">{{ $folderPathLabel ?? '...' }}</strong> ya existe en el servidor.
                     </div>
-                    <div id="alert-ready-not-exists" class="d-alert d-alert-warning d-mt-2" style="display:none;">
-                        La carpeta <strong class="folder-label">...</strong> aun <strong>no existe</strong>. Creala antes de
+                    <div id="alert-ready-not-exists" class="d-alert d-alert-warning d-mt-2" style="display: {{ $isReady && !$carpetaExiste ? 'block' : 'none' }};">
+                        La carpeta <strong class="folder-label">{{ $folderPathLabel ?? '...' }}</strong> aun <strong>no existe</strong>. Creala antes de
                         subir PDFs.
                     </div>
-                    <button class="btn-dibujos d-mt-2" id="btn-crear-carpeta" style="display:none;" data-ot="" data-clase=""
-                        data-proceso="">
+                    <button class="btn-dibujos d-mt-2" id="btn-crear-carpeta" 
+                        style="display: {{ $isReady && !$carpetaExiste ? 'block' : 'none' }};"
+                        @if(isset($folderProps))
+                            @foreach($folderProps as $k => $v) {{ $k }}="{{ $v }}" @endforeach
+                        @else
+                            data-ot="" data-clase="" data-proceso=""
+                        @endif
+                        data-folder-param1="{{ $param1Name ?? '' }}" 
+                        data-folder-param2="{{ $param2Name ?? '' }}">
                         Crear Carpeta
                     </button>
-                    <div id="alert-not-ready" class="d-alert d-alert-info d-mt-2">
+                    <div id="alert-not-ready" class="d-alert d-alert-info d-mt-2" style="display: {{ $isReady ? 'none' : 'block' }};">
                         {{ $alertContext }}
                     </div>
                 </div>

@@ -288,7 +288,7 @@ class DibujosFundicionPdfController extends Controller
             $otModel = Orden_trabajo::query()->with('moldura')->find($ot);
             if ($otModel) {
                 $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-                $ot = $this->sanitizePath($otLabel);
+                $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
             }
         }
 
@@ -403,7 +403,7 @@ class DibujosFundicionPdfController extends Controller
 
         $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
         $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-        $otFolderName = $this->sanitizePath($otFolderName);
+        $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
         $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
 
@@ -453,7 +453,7 @@ class DibujosFundicionPdfController extends Controller
 
         $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
         $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-        $otFolderName = $this->sanitizePath($otFolderName);
+        $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
         $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
 

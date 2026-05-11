@@ -64,15 +64,15 @@ function updateAdminUI() {
     const clSel = document.getElementById('clase-select');
     const prSel = document.getElementById('proceso-select');
 
-    if (module === 'fundicion' && otSel && otSel.value) {
-        if (otSel.selectedIndex !== -1) {
+    if (module === 'fundicion' && otSel && clSel && otSel.value && clSel.value) {
+        if (otSel.selectedIndex !== -1 && clSel.selectedIndex !== -1) {
             ready = true;
             const otText = otSel.options[otSel.selectedIndex].text.trim();
-            p1 = otText.replace(' — ', ' - '); 
-            let rawP2 = (clSel && clSel.value) ? clSel.options[clSel.selectedIndex].text.trim() : null;
+            p1 = normalizeOTName(otText); 
+            let rawP2 = clSel.options[clSel.selectedIndex].text.trim();
             // Limpiar texto de (Opcional) si existe
-            p2 = rawP2 ? rawP2.replace(' (Opcional)', '') : null;
-            label = p2 ? `${p1} / ${p2}` : p1;
+            p2 = rawP2.replace(' (Opcional)', '');
+            label = `${p1} / ${p2}`;
         }
     } else if (module === 'dibujos' && otSel && clSel && otSel.value && clSel.value) {
         if (otSel.selectedIndex !== -1 && clSel.selectedIndex !== -1) {
@@ -696,6 +696,22 @@ function slugify(text) {
         .replace(/[^a-z0-9\-_]/g, '-')
         .replace(/-+/g, '-').trim()
         .replace(/^-+|-+$/g, '');
+}
+
+/**
+ * Normaliza el nombre de la OT para que coincida con la lógica del servidor (PHP)
+ */
+function normalizeOTName(name) {
+    if (!name) return '';
+    // Reemplazar guiones especiales y espacios de no ruptura (\xA0)
+    let clean = name.replace(/[—–\xA0]/g, '-');
+    // Mayúsculas
+    clean = clean.toUpperCase();
+    // Estandarizar guiones (espacio alrededor)
+    clean = clean.replace(/\s*-\s*/g, ' - ');
+    // Eliminar espacios múltiples
+    clean = clean.replace(/\s+/g, ' ');
+    return clean.trim();
 }
 
 function mostrarNotificacion(mensaje, esError = false) {
