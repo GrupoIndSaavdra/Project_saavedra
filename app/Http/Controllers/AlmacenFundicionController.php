@@ -136,7 +136,11 @@ class AlmacenFundicionController extends Controller
                 return strpos($rel, 'ayudas_visuales/') !== 0 && strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf';
             })
             ->map(function($f) use ($ot, $dirPath) {
-                $relName = str_replace($dirPath . '/', '', $f);
+                // Normalizar separadores para reemplazo robusto
+                $fNorm = str_replace('\\', '/', $f);
+                $dirPathNorm = str_replace('\\', '/', $dirPath);
+                $relName = ltrim(str_replace($dirPathNorm, '', $fNorm), '/');
+
                 return [
                     'nombre' => $relName,
                     'tipo'   => 'dibujo',
@@ -153,15 +157,21 @@ class AlmacenFundicionController extends Controller
         if (Storage::disk('local')->exists($ayudasDirPath)) {
             $ayudas = collect(Storage::disk('local')->allFiles($ayudasDirPath))
                 ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-                ->map(fn($f) => [
-                    'nombre' => str_replace($ayudasDirPath . '/', '', $f),
-                    'tipo'   => 'ayuda',
-                    'url'    => route('almacen.fundicion.serve', [
-                        'ot'      => $ot,
-                        'archivo' => str_replace($ayudasDirPath . '/', '', $f),
-                        'tipo'    => 'ayuda',
-                    ]),
-                ]);
+                ->map(function($f) use ($ayudasDirPath, $ot) {
+                    $fNorm = str_replace('\\', '/', $f);
+                    $dirPathNorm = str_replace('\\', '/', $ayudasDirPath);
+                    $relName = ltrim(str_replace($dirPathNorm, '', $fNorm), '/');
+
+                    return [
+                        'nombre' => $relName,
+                        'tipo'   => 'ayuda',
+                        'url'    => route('almacen.fundicion.serve', [
+                            'ot'      => $ot,
+                            'archivo' => $relName,
+                            'tipo'    => 'ayuda',
+                        ]),
+                    ];
+                });
         }
 
         $allFiles = $dibujos->merge($ayudas)->values();

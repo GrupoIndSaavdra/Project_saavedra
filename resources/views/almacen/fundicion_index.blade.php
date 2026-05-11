@@ -174,8 +174,10 @@
                                             );
                                             foreach ($files as $f) {
                                                 if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
-                                                    // Obtener ruta relativa a ayudas_visuales (ej: "Bombillo/archivo.pdf")
-                                                    $relativePath = str_replace($ayudasDir . '/', '', $f);
+                                                    // Normalizar separadores para reemplazo robusto
+                                                    $fNorm = str_replace('\\', '/', $f);
+                                                    $dirNorm = str_replace('\\', '/', $ayudasDir);
+                                                    $relativePath = ltrim(str_replace($dirNorm, '', $fNorm), '/');
                                                     $ayudasArchivos[] = $relativePath;
                                                 }
                                             }
@@ -421,7 +423,7 @@
                             </table>
                             <div style="margin-top: 10px; text-align: center;">
                                 <button type="button" id="btn-add-clase-po" class="btn-img-action" onclick="agregarFilaPreOrden()" title="Añadir una nueva clase a la pre-orden" style="display: none;">
-                                    <img src="/images/anadir.png" alt="Añadir" style="width: 40px;">
+                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir" style="width: 40px;">
                                 </button>
                             </div>
                         </div>
@@ -443,7 +445,7 @@
                 <div id="po-page-2" class="po-page" style="display: none;">
                     <form id="formPreOrden2">
                         <div class="po-second-order-notice">
-                            <img src="/images/Aviso.png" class="po-notice-icon" alt="Aviso">
+                            <img src="{{ asset('images/Aviso.png') }}" class="po-notice-icon" alt="Aviso">
                             <div class="po-notice-text">
                                 Estás creando una <strong>segunda pre-orden</strong> para las clases que no se incluyeron en la primera.
                                 Selecciona el proveedor correspondiente y genera el documento.
@@ -501,7 +503,7 @@
                             </table>
                             <div style="margin-top: 10px; text-align: center;">
                                 <button type="button" class="btn-img-action" onclick="agregarFilaPreOrden2()" title="Añadir una nueva clase a la pre-orden">
-                                    <img src="/images/anadir.png" alt="Añadir" style="width: 40px;">
+                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir" style="width: 40px;">
                                 </button>
                             </div>
                         </div>

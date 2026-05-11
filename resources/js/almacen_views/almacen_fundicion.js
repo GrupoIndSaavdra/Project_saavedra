@@ -73,7 +73,10 @@ function mostrarToast(mensaje, esError = false) {
     const toast = document.createElement('div');
     toast.className = 'alm-toast ' + (esError ? 'error' : 'success');
     
-    const iconPath = esError ? '/images/delete.png' : '/images/ready.png';
+    let baseUrl = window.baseUrl || (window.location.origin + '/');
+    if (!baseUrl.endsWith('/')) baseUrl += '/';
+
+    const iconPath = esError ? baseUrl + 'images/delete.png' : baseUrl + 'images/ready.png';
     const iconAlt = esError ? 'error' : 'success';
 
     toast.innerHTML = `
@@ -118,10 +121,11 @@ window.confirmarModelo = function (ot) {
             if (data.success) {
                 mostrarToast(data.message);
                 const container = document.getElementById(`status-modelo-${ot}`);
+                const baseUrl = window.baseUrl || (window.location.origin + '/');
                 if (container) {
                     container.innerHTML = `
                     <span class="badge-modelo-ok" title="Modelo disponible">
-                        <img src="/images/aprobado.png" alt="OK" style="width: 35px; height: 35px;">
+                        <img src="${baseUrl}${baseUrl.endsWith('/') ? '' : '/'}images/aprobado.png" alt="OK" style="width: 35px; height: 35px;">
                     </span>
                 `;
                 }
@@ -407,7 +411,7 @@ function createRowElement(claseNombrePredefinida = '', isSecondOrder = false) {
         </td>
         <td style="text-align:center;">
             <button type="button" class="btn-img-action" onclick="${deleteHandler}" title="Quitar esta clase de la lista">
-                <img src="/images/quitar.png" alt="Quitar" style="width: 30px;">
+                <img src="${window.baseUrl || ''}${ (window.baseUrl || '').endsWith('/') ? '' : '/' }images/quitar.png" alt="Quitar" style="width: 30px;">
             </button>
         </td>
     `;

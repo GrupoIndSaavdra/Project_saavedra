@@ -78,15 +78,20 @@ class DibujosFundicionPdfController extends Controller
         foreach ($clasesCompletas as $clase) {
             $bases = [$newBase, $oldBase];
             foreach ($bases as $base) {
-                // La estructura correcta es {Base}/{Clase}/Fundicion
-                $fundicionDir = $base . '/' . $clase . '/Fundicion';
+                // Intentar nueva estructura (1 nivel) y legacy (2 niveles)
+                $candidates = [
+                    $base . '/' . $clase,
+                    $base . '/' . $clase . '/Fundicion'
+                ];
 
-                if (Storage::disk('local')->exists($fundicionDir)) {
-                    $files = Storage::disk('local')->files($fundicionDir);
-                    $hasPdf = collect($files)->contains(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf');
-                    if ($hasPdf) {
-                        $ayudasDisponibles[] = $clase;
-                        break;
+                foreach ($candidates as $dir) {
+                    if (Storage::disk('local')->exists($dir)) {
+                        $files = Storage::disk('local')->files($dir);
+                        $hasPdf = collect($files)->contains(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf');
+                        if ($hasPdf) {
+                            $ayudasDisponibles[] = $clase;
+                            break 2; // Encontrado en esta clase, pasar a la siguiente base o clase
+                        }
                     }
                 }
             }
@@ -244,8 +249,9 @@ class DibujosFundicionPdfController extends Controller
         $ayudas = $history ? ($history->ayudas_config ?? []) : [];
         foreach ($ayudas as $aName) {
             $ayudaBases = [
-                'DOCUMENTACION_GIS/AYUDAS_FUNDICION/' . $aName . '/Fundicion',
-                'AYUDAS_GIS/' . $aName . '/Fundicion'
+                'DOCUMENTACION_GIS/AYUDAS_FUNDICION/' . $aName,           // Nuevo
+                'DOCUMENTACION_GIS/AYUDAS_FUNDICION/' . $aName . '/Fundicion', // Legacy intermedio
+                'AYUDAS_GIS/' . $aName . '/Fundicion'                     // Legacy antiguo
             ];
             foreach ($ayudaBases as $b) {
                 if (Storage::disk('local')->exists($b)) {
@@ -647,16 +653,21 @@ class DibujosFundicionPdfController extends Controller
                     Storage::disk('local')->makeDirectory($claseDstDir);
                 }
 
-                // Obtener archivos maestros actuales para esta clase
+                // Obtener archivos maestros actuales (Nuevo esquema y Legacy)
                 $masterFiles = [];
                 $bases = [$newBase, $oldBase];
                 foreach ($bases as $base) {
-                    $srcClaseDir = $base . '/' . $clase . '/Fundicion';
-                    if (Storage::disk('local')->exists($srcClaseDir)) {
-                        $fList = Storage::disk('local')->files($srcClaseDir);
-                        foreach ($fList as $f) {
-                            if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
-                                $masterFiles[basename($f)] = $f;
+                    $candidates = [
+                        $base . '/' . $clase,
+                        $base . '/' . $clase . '/Fundicion'
+                    ];
+                    foreach ($candidates as $srcClaseDir) {
+                        if (Storage::disk('local')->exists($srcClaseDir)) {
+                            $fList = Storage::disk('local')->files($srcClaseDir);
+                            foreach ($fList as $f) {
+                                if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
+                                    $masterFiles[basename($f)] = $f;
+                                }
                             }
                         }
                     }
