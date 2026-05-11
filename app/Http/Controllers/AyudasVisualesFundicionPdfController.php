@@ -236,26 +236,27 @@ class AyudasVisualesFundicionPdfController extends Controller
 
         $file         = $request->file('pdf');
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
+        $finalName    = $clase . ' - ' . $originalName;
 
-        if (Storage::disk('local')->exists($dirPath . '/' . $originalName)) {
+        if (Storage::disk('local')->exists($dirPath . '/' . $finalName)) {
             return response()->json([
                 'success' => false,
-                'message' => "Ya existe un archivo con el nombre '{$originalName}'. Use la función de Reemplazar.",
+                'message' => "Ya existe un archivo con el nombre '{$finalName}'. Use la función de Reemplazar.",
             ], 409);
         }
 
-        $file->storeAs($dirPath, $originalName, 'local');
+        $file->storeAs($dirPath, $finalName, 'local');
 
-        $this->logAction('subir_pdf', $clase . '/' . $proceso, $originalName);
+        $this->logAction('subir_pdf', $clase . '/' . $proceso, $finalName);
 
         return response()->json([
             'success'  => true,
-            'message'  => "PDF '{$originalName}' subido correctamente.",
-            'nombre'   => $originalName,
+            'message'  => "PDF '{$finalName}' subido correctamente.",
+            'nombre'   => $finalName,
             'url'      => route('ayudas_fundicion.serve', [
                 'proceso' => $proceso,
                 'clase'   => $clase,
-                'archivo' => $originalName,
+                'archivo' => $finalName,
             ]),
         ]);
     }
@@ -417,18 +418,20 @@ class AyudasVisualesFundicionPdfController extends Controller
 
         $file         = $request->file('pdf');
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
-        $file->storeAs($dirPath, $originalName, 'local');
+        $finalName    = $clase . ' - ' . $originalName;
 
-        $this->logAction('reemplazar_pdf', $clase . '/' . $proceso, "{$archivoAnterior} → {$originalName}");
+        $file->storeAs($dirPath, $finalName, 'local');
+
+        $this->logAction('reemplazar_pdf', $clase . '/' . $proceso, "{$archivoAnterior} → {$finalName}");
 
         return response()->json([
             'success'  => true,
-            'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$originalName}'.",
-            'nombre'   => $originalName,
+            'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$finalName}'.",
+            'nombre'   => $finalName,
             'url'      => route('ayudas_fundicion.serve', [
                 'proceso' => $proceso,
                 'clase'   => $clase,
-                'archivo' => $originalName,
+                'archivo' => $finalName,
             ]),
         ]);
     }

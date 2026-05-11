@@ -142,10 +142,12 @@
                             <thead>
                                 <tr>
                                     <th
-                                        style="width:42%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}">
+                                        style="width:30%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}">
                                         Orden de Trabajo</th>
-                                    <th style="width:14%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                                    <th style="width:12%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                         class="d-text-center">Estado</th>
+                                    <th style="width:12%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                                        class="d-text-center">Modelo</th>
                                     <th style="width:18%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                         class="d-text-center">Último envío</th>
                                     <th style="width:10%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
@@ -198,6 +200,23 @@
                                                 {{ $reg->status }}
                                             </span>
                                         </td>
+                                        <td class="d-text-center">
+                                            <div id="status-modelo-{{ $reg->ot }}">
+                                                @if ($reg->tiene_modelo)
+                                                    <span class="badge-modelo-ok" title="Modelo disponible">
+                                                        <img src="{{ asset('images/aprobado.png') }}" alt="OK" style="width: 35px; height: 35px;">
+                                                    </span>
+                                                @elseif($reg->pre_orden_sent)
+                                                    <span class="badge-modelo-pending" title="Pre-orden enviada (Pendiente)">
+                                                        <img src="{{ asset('images/caducado.png') }}" alt="Pendiente" style="width: 35px; height: 35px;">
+                                                    </span>
+                                                @else
+                                                    <span class="badge-modelo-missing" title="Sin modelo">
+                                                        <img src="{{ asset('images/advertencia.png') }}" alt="X" style="width: 35px; height: 35px;">
+                                                    </span>
+                                                @endif
+                                            </div>
+                                        </td>
                                         <td class="alm-date d-text-center">
                                             {{ $reg->alert_sent_at ? $reg->alert_sent_at->format('d/m/Y H:i') : '—' }}
                                         </td>
@@ -222,11 +241,11 @@
                                     {{-- Fila desplegable de archivos --}}
                                     @if ($count > 0)
                                         <tr class="alm-files-row" id="files-{{ $estado }}-{{ $loop->index }}">
-                                            <td colspan="5">
+                                            <td colspan="6">
                                                 @if ($countDibujos > 0)
-                                                    <h4
+                                                    <h3
                                                         style="margin-top: 15px; margin-bottom: 10px; color: #005194; border-bottom: 2px solid #005194; padding-bottom: 5px;">
-                                                        Dibujos de Fundición</h4>
+                                                        Dibujos de Fundición</h3>
                                                     <div class="alm-pdf-grid">
                                                         @foreach ($archivos as $archivo)
                                                             <div class="dibujos-file-card"
@@ -242,7 +261,7 @@
                                                                 <div class="file-name" style="cursor: pointer;"
                                                                     title="Abrir PDF"
                                                                     onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $archivo }}', 'dibujo')">
-                                                                    {{ $archivo }}</div>
+                                                                    {{ basename($archivo) }}</div>
                                                                 <div class="file-actions">
                                                                     <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                         onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $archivo }}', 'dibujo')">Ver</button>
@@ -253,9 +272,9 @@
                                                 @endif
 
                                                 @if ($countAyudas > 0)
-                                                    <h4
+                                                    <h3
                                                         style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
-                                                        Ayudas Visuales</h4>
+                                                        Ayudas Visuales de Fundición</h3>
                                                     <div class="alm-pdf-grid">
                                                         @foreach ($ayudasArchivos as $ayudaArchivo)
                                                             <div class="dibujos-file-card card-ayuda"
@@ -271,7 +290,7 @@
                                                                 <div class="file-name" style="cursor: pointer;"
                                                                     title="Abrir PDF"
                                                                     onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $ayudaArchivo }}', 'ayuda')">
-                                                                    {{ $ayudaArchivo }}</div>
+                                                                    {{ basename($ayudaArchivo) }}</div>
                                                                 <div class="file-actions">
                                                                     <button
                                                                         class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color"
@@ -290,6 +309,26 @@
                                                         administración.
                                                     </div>
                                                 @endif
+
+                                                {{-- ── SECCIÓN CONTROL DE MODELOS (Solo Almacén y OTs Activas) ── --}}
+                                                @if (Auth::user()->perfil != 4 && $estado === 'activa')
+                                                    <div class="alm-modelo-control" style="margin-top: 30px; padding: 20px; background: #f8fafc; border: 1px border-radius: 12px; border: 1px solid #e2e8f0;">
+                                                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                                                            <div>
+                                                                <h4 style="margin: 0; color: #334155; font-size: 1.1em;">Control de Modelos</h4>
+                                                                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9em;">Actualmente, ¿Cuentas con el modelo de esta OT?</p>
+                                                            </div>
+                                                            <div style="display: flex; gap: 10px;">
+                                                                <button class="btn-modelo btn-modelo-si" onclick="confirmarModelo('{{ $reg->ot }}')">
+                                                                    Sí, cuento con él
+                                                                </button>
+                                                                <button class="btn-modelo btn-modelo-no" onclick="abrirModalPreOrden('{{ $reg->ot }}')">
+                                                                    No, solicitar fabricación
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endif
                                             </td>
                                         </tr>
                                     @endif
@@ -301,12 +340,197 @@
             </div>
         @endforeach
 
+
     </div>{{-- /.alm-wrapper --}}
+
+    {{-- ── MODAL: PRE-ORDEN PARA FABRICAR MODELOS ──────────────────── --}}
+    <div id="modalPreOrden" class="alm-modal">
+        <div class="alm-modal-content">
+            <div class="alm-modal-header">
+                <div class="div-cerrar">
+                    <button type="button" class="btn-cerrar" onclick="cerrarModalPreOrden()">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}">
+                    </button>
+                </div>
+                <h3>Pre-Orden para Fabricar Modelos (4ALM-17)</h3>
+
+                {{-- Pestañas (ocultas hasta que se active el flujo multi-orden) --}}
+                <div id="po-tabs-nav" class="po-tabs-nav" style="display: none;">
+                    <button type="button" class="po-tab-btn active" onclick="switchPoTab(1)" id="po-tab-btn-1">
+                        Pre-Orden 1
+                    </button>
+                    <button type="button" class="po-tab-btn" onclick="switchPoTab(2)" id="po-tab-btn-2">
+                        Pre-Orden 2
+                    </button>
+                </div>
+            </div>
+            <div class="alm-modal-body">
+
+                {{-- ══════════════ PESTAÑA 1 ══════════════ --}}
+                <div id="po-page-1" class="po-page">
+                    <form id="formPreOrden">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="po-proveedor">Proveedor:</label>
+                                <select id="po-proveedor" name="proveedor" class="form-control" required>
+                                    <option value="">Selecciona uno</option>
+                                    <option value="Jose">Jose</option>
+                                    <option value="Jaxer">Jaxer</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="po-fecha">Fecha:</label>
+                                <input type="date" id="po-fecha" name="fecha" class="form-control" required
+                                    value="{{ date('Y-m-d') }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="po-folio">Folio:</label>
+                                <input type="text" id="po-folio" name="folio" class="form-control" readonly
+                                    value="MOD-{{ date('Y') }}-0000">
+                            </div>
+                            <div class="form-group">
+                                <label for="po-moldura">Moldura:</label>
+                                <input type="text" id="po-moldura" name="moldura" class="form-control" readonly required>
+                            </div>
+                            <div class="form-group">
+                                <label for="po-ot">Orden de Trabajo (OT):</label>
+                                <input type="text" id="po-ot" name="ot" class="form-control" readonly required>
+                                <input type="hidden" id="po-ot-raw" name="ot_raw">
+                            </div>
+                        </div>
+
+                        <div class="modal-table-container">
+                            <table class="modal-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 16%;">Tipo de Modelo</th>
+                                        <th style="width: 12%;">Impresiones</th>
+                                        <th style="width: 12%;">Cantidad</th>
+                                        <th style="width: 22%;">Descripción</th>
+                                        <th style="width: 22%;">Código de Modelo</th>
+                                        <th style="width: 10%;">
+                                            Fecha Entrega
+                                            <input type="date" id="po-fecha-entrega" name="fecha_entrega" class="form-control" style="font-size: 0.78em; padding: 2px 4px; height: 28px; margin-top: 4px;" required>
+                                        </th>
+                                        <th style="width: 6%; text-align:center;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="alm-tbody-preorden">
+                                    {{-- Se llenará por JS --}}
+                                </tbody>
+                            </table>
+                            <div style="margin-top: 10px; text-align: center;">
+                                <button type="button" id="btn-add-clase-po" class="btn-img-action" onclick="agregarFilaPreOrden()" title="Añadir una nueva clase a la pre-orden" style="display: none;">
+                                    <img src="/images/anadir.png" alt="Añadir" style="width: 40px;">
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label for="po-observaciones">Observaciones:</label>
+                            <textarea id="po-observaciones" name="observaciones" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-actions" style="margin-top: 30px; text-align: center;">
+                            <button type="submit" class="btn-save-preorden" id="btn-submit-preorden">
+                                Generar Pre-Orden y Enviar Email
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                {{-- ══════════════ PESTAÑA 2 ══════════════ --}}
+                <div id="po-page-2" class="po-page" style="display: none;">
+                    <form id="formPreOrden2">
+                        <div class="po-second-order-notice">
+                            <img src="/images/Aviso.png" class="po-notice-icon" alt="Aviso">
+                            <div class="po-notice-text">
+                                Estás creando una <strong>segunda pre-orden</strong> para las clases que no se incluyeron en la primera.
+                                Selecciona el proveedor correspondiente y genera el documento.
+                            </div>
+                        </div>
+
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="po2-proveedor">Proveedor:</label>
+                                <select id="po2-proveedor" name="proveedor" class="form-control" required>
+                                    <option value="">Selecciona uno</option>
+                                    <option value="Jose">Jose</option>
+                                    <option value="Jaxer">Jaxer</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="po2-fecha">Fecha:</label>
+                                <input type="date" id="po2-fecha" name="fecha" class="form-control" required
+                                    value="{{ date('Y-m-d') }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="po2-folio">Folio:</label>
+                                <input type="text" id="po2-folio" name="folio" class="form-control" readonly
+                                    value="MOD-{{ date('Y') }}-0000">
+                            </div>
+                            <div class="form-group">
+                                <label for="po2-moldura">Moldura:</label>
+                                <input type="text" id="po2-moldura" name="moldura" class="form-control" readonly required>
+                            </div>
+                            <div class="form-group">
+                                <label for="po2-ot">Orden de Trabajo (OT):</label>
+                                <input type="text" id="po2-ot" name="ot" class="form-control" readonly required>
+                            </div>
+                        </div>
+
+                        <div class="modal-table-container">
+                            <table class="modal-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 16%;">Tipo de Modelo</th>
+                                        <th style="width: 12%;">Impresiones</th>
+                                        <th style="width: 12%;">Cantidad</th>
+                                        <th style="width: 22%;">Descripción</th>
+                                        <th style="width: 22%;">Código de Modelo</th>
+                                        <th style="width: 10%;">
+                                            Fecha Entrega
+                                            <input type="date" id="po2-fecha-entrega" name="fecha_entrega" class="form-control" style="font-size: 0.78em; padding: 2px 4px; height: 28px; margin-top: 4px;" required>
+                                        </th>
+                                        <th style="width: 6%; text-align:center;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="alm-tbody-preorden2">
+                                    {{-- Se llenará automáticamente con las clases eliminadas --}}
+                                </tbody>
+                            </table>
+                            <div style="margin-top: 10px; text-align: center;">
+                                <button type="button" class="btn-img-action" onclick="agregarFilaPreOrden2()" title="Añadir una nueva clase a la pre-orden">
+                                    <img src="/images/anadir.png" alt="Añadir" style="width: 40px;">
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 20px;">
+                            <label for="po2-observaciones">Observaciones:</label>
+                            <textarea id="po2-observaciones" name="observaciones" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="form-actions" style="margin-top: 30px; text-align: center;">
+                            <button type="submit" class="btn-save-preorden" id="btn-submit-preorden2">
+                                Generar Pre-Orden 2 y Enviar Email
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 
     <script>
         window.almacenRoutes = {
             archivos: "{{ route('almacen.fundicion.archivos') }}",
             serve: "{{ route('almacen.fundicion.serve') }}",
+            confirmarModelo: "{{ route('almacen.fundicion.confirmarModelo') }}",
+            getOtData: "{{ route('almacen.fundicion.getOtData') }}",
+            storePreOrden: "{{ route('almacen.fundicion.storePreOrden') }}",
         };
     </script>
 

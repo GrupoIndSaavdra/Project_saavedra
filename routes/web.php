@@ -366,6 +366,7 @@ Route::middleware(['auth'])->prefix('fundicion')->name('fundicion.')->group(func
     Route::get('/manage', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'showManage'])->name('manage');
     Route::get('/estructura', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getStructure'])->name('estructura');
     Route::get('/archivos', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getFiles'])->name('archivos');
+    Route::get('/total-archivos', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getTotalFiles'])->name('total_archivos');
     Route::get('/serve', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'serveFile'])->name('serve');
     
     Route::post('/createFolder', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'createFolder'])->name('createFolder');
@@ -377,7 +378,7 @@ Route::middleware(['auth'])->prefix('fundicion')->name('fundicion.')->group(func
     Route::post('/replace', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'replacePdf'])->name('replace');
     Route::get('/log', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getLog'])->name('log');
     Route::post('/deleteFolder', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'deleteFolder'])->name('deleteFolder');
-    Route::post('/deleteParent', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'deleteFolder'])->name('deleteParent');
+    Route::post('/deleteParent', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'deleteParent'])->name('deleteParent');
 });
 
 /* ===========================
@@ -394,9 +395,20 @@ Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicio
     Route::get('/archivos', [\App\Http\Controllers\AlmacenFundicionController::class, 'getFiles'])
         ->name('archivos');
 
+
     // Servir PDF protegido desde el directorio aislado
     Route::get('/serve', [\App\Http\Controllers\AlmacenFundicionController::class, 'serveFile'])
         ->name('serve');
+
+    // --- NUEVAS RUTAS: Control de Modelos ---
+    Route::post('/confirmar-modelo', [\App\Http\Controllers\AlmacenFundicionController::class, 'updateModelStatus'])
+        ->name('confirmarModelo');
+
+    Route::get('/ot-data', [\App\Http\Controllers\AlmacenFundicionController::class, 'getOtData'])
+        ->name('getOtData');
+
+    Route::post('/store-preorden', [\App\Http\Controllers\AlmacenFundicionController::class, 'storePreOrden'])
+        ->name('storePreOrden');
 });
 
 /* ===========================
