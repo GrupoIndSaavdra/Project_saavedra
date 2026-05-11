@@ -121,7 +121,7 @@ class DibujosFundicionPdfController extends Controller
                 $masterFiles = [];
                 $bases = [$newBase, $oldBase];
                 foreach ($bases as $base) {
-                    $claseDir = $base . '/' . $clase . '/Fundicion';
+                    $claseDir = $base . '/' . $clase;
                     if (Storage::disk('local')->exists($claseDir)) {
                         $fList = Storage::disk('local')->files($claseDir);
                         foreach ($fList as $f) {
@@ -393,48 +393,56 @@ class DibujosFundicionPdfController extends Controller
      */
     public function createFolder(Request $request)
     {
-        $request->validate([
-            'ot_id' => 'required|exists:orden_trabajo,id',
-            'clase' => 'required|string|max:100',
-        ]);
+        try {
+            $request->validate([
+                'ot_id' => 'required|exists:orden_trabajo,id',
+                'clase' => 'required|string|max:100',
+            ]);
 
-        $otId = $request->input('ot_id');
-        $clase = $this->sanitizePath($request->input('clase'));
+            $otId = $request->input('ot_id');
+            $clase = $this->sanitizePath($request->input('clase'));
 
-        $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
-        $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-        $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
+            $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
+            $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+            $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
-        $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+            $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
 
-        if (Storage::disk('local')->exists($dirPath)) {
+            if (Storage::disk('local')->exists($dirPath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La carpeta ya existe.',
+                ], 409);
+            }
+
+            Storage::disk('local')->makeDirectory($dirPath);
+
+            $history = FundicionHistory::firstOrCreate(['ot' => $otFolderName]);
+
+            // VINCULACIÓN AUTOMÁTICA: Agregar clase a ayudas_config si no existe
+            $ayudas = $history->ayudas_config ?? [];
+            if (!in_array($clase, $ayudas)) {
+                $ayudas[] = $clase;
+                $history->ayudas_config = $ayudas;
+                $history->save();
+                $this->copyToAlmacen($otFolderName); // Sincronizar inmediatamente
+            }
+
+            $this->logAction('crear_carpeta', $otFolderName . '/' . $clase, "Creación de Clase con Vinculación Automática");
+
+            return response()->json([
+                'success' => true,
+                'message' => "Carpeta {$otFolderName}/{$clase} creada correctamente.",
+                'ot' => $otFolderName,
+                'clase' => $clase,
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Error en DibujosFundicionPdfController@createFolder: " . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'La carpeta ya existe.',
-            ], 409);
+                'message' => 'Error interno al crear la carpeta: ' . $e->getMessage(),
+            ], 500);
         }
-
-        Storage::disk('local')->makeDirectory($dirPath);
-
-        $history = FundicionHistory::firstOrCreate(['ot' => $otFolderName]);
-
-        // VINCULACIÓN AUTOMÁTICA: Agregar clase a ayudas_config si no existe
-        $ayudas = $history->ayudas_config ?? [];
-        if (!in_array($clase, $ayudas)) {
-            $ayudas[] = $clase;
-            $history->ayudas_config = $ayudas;
-            $history->save();
-            $this->copyToAlmacen($otFolderName); // Sincronizar inmediatamente
-        }
-
-        $this->logAction('crear_carpeta', $otFolderName . '/' . $clase, "Creación de Clase con Vinculación Automática");
-
-        return response()->json([
-            'success' => true,
-            'message' => "Carpeta {$otFolderName}/{$clase} creada correctamente.",
-            'ot' => $otFolderName,
-            'clase' => $clase,
-        ]);
     }
 
     /**

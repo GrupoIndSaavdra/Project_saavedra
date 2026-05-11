@@ -172,30 +172,38 @@ class ManualesPdfController extends Controller
      */
     public function createFolder(Request $request)
     {
-        $request->validate([
-            'proceso' => 'required|string|max:100',
-        ]);
+        try {
+            $request->validate([
+                'proceso' => 'required|string|max:100',
+            ]);
 
-        $proceso = $this->sanitizePath($request->input('proceso'));
-        $dirPath = self::BASE_DIR . '/' . $proceso;
+            $proceso = $this->sanitizePath($request->input('proceso'));
+            $dirPath = self::BASE_DIR . '/' . $proceso;
 
-        if (Storage::disk('local')->exists($dirPath)) {
+            if (Storage::disk('local')->exists($dirPath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La carpeta ya existe.',
+                ], 409);
+            }
+
+            Storage::disk('local')->makeDirectory($dirPath);
+
+            ManualHistory::firstOrCreate(['proceso' => $proceso]);
+            $this->logAction('crear_carpeta', $proceso, null);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Carpeta {$proceso} creada correctamente.",
+                'proceso' => $proceso,
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Error en ManualesPdfController@createFolder: " . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'La carpeta ya existe.',
-            ], 409);
+                'message' => 'Error interno al crear la carpeta: ' . $e->getMessage(),
+            ], 500);
         }
-
-        Storage::disk('local')->makeDirectory($dirPath);
-
-        ManualHistory::firstOrCreate(['proceso' => $proceso]);
-        $this->logAction('crear_carpeta', $proceso, null);
-
-        return response()->json([
-            'success' => true,
-            'message' => "Carpeta {$proceso} creada correctamente.",
-            'proceso' => $proceso,
-        ]);
     }
 
         /**

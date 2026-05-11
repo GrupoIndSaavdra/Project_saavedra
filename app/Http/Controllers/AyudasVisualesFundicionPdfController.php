@@ -106,26 +106,32 @@ class AyudasVisualesFundicionPdfController extends Controller
      */
     public function getFiles(Request $request)
     {
-        $proceso = $this->sanitizePath($request->query('proceso', ''));
-        $clase   = $this->sanitizePath($request->query('clase', ''));
+        $clase = $this->sanitizePath($request->query('clase', ''));
 
-        if (empty($proceso) || empty($clase)) {
-            return response()->json(['error' => 'Parámetros Proceso y Clase son requeridos.'], 422);
+        if (empty($clase)) {
+            return response()->json(['error' => 'Parámetro Clase es requerido.'], 422);
         }
 
-        $newDirPath = self::BASE_DIR . '/' . $clase . '/' . $proceso;
-        $oldDirPath = self::OLD_BASE_DIR . '/' . $clase . '/' . $proceso;
+        // Buscar en las tres posibles ubicaciones (nuevo, legacy intermedio, legacy antiguo)
+        $paths = [
+            self::BASE_DIR     . '/' . $clase,                        // Nuevo: DOCUMENTACION_GIS/AYUDAS_FUNDICION/{Clase}
+            self::BASE_DIR     . '/' . $clase . '/Fundicion',          // Legacy intermedio: {Clase}/Fundicion
+            self::OLD_BASE_DIR . '/' . $clase . '/Fundicion',          // Legacy antiguo: AYUDAS_GIS/{Clase}/Fundicion
+        ];
 
-        $newFiles = Storage::disk('local')->exists($newDirPath) ? Storage::disk('local')->files($newDirPath) : [];
-        $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
+        $allRawFiles = [];
+        foreach ($paths as $path) {
+            if (Storage::disk('local')->exists($path)) {
+                $allRawFiles = array_merge($allRawFiles, Storage::disk('local')->files($path));
+            }
+        }
 
-        $allFiles = collect(array_merge($newFiles, $oldFiles))
+        $allFiles = collect($allRawFiles)
             ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-            ->map(function($f) use ($proceso, $clase) {
+            ->map(function($f) use ($clase) {
                 return [
                     'nombre' => basename($f),
                     'url'    => route('ayudas_fundicion.serve', [
-                        'proceso' => $proceso,
                         'clase'   => $clase,
                         'archivo' => basename($f),
                     ]),
@@ -136,9 +142,8 @@ class AyudasVisualesFundicionPdfController extends Controller
 
         return response()->json([
             'archivos' => $allFiles,
-            'proceso'  => $proceso,
             'clase'    => $clase,
-            'existe'   => (count($allFiles) > 0),
+            'existe'   => ($allFiles->count() > 0),
         ]);
     }
 
@@ -147,22 +152,29 @@ class AyudasVisualesFundicionPdfController extends Controller
      */
     public function serveFile(Request $request): BinaryFileResponse
     {
-        $proceso = $this->sanitizePath($request->query('proceso', ''));
         $clase   = $this->sanitizePath($request->query('clase', ''));
         $archivo = $this->sanitizeFileName($request->query('archivo', ''));
 
-        if (empty($proceso) || empty($clase) || empty($archivo)) {
+        if (empty($clase) || empty($archivo)) {
             abort(422, 'Parámetros inválidos.');
         }
 
-        $filePath = self::BASE_DIR . '/' . $clase . '/' . $proceso . '/' . $archivo;
+        // Intentar en las tres rutas posibles
+        $candidates = [
+            self::BASE_DIR     . '/' . $clase . '/' . $archivo,
+            self::BASE_DIR     . '/' . $clase . '/Fundicion/' . $archivo,
+            self::OLD_BASE_DIR . '/' . $clase . '/Fundicion/' . $archivo,
+        ];
 
-        // Fallback
-        if (!Storage::disk('local')->exists($filePath)) {
-            $filePath = self::OLD_BASE_DIR . '/' . $clase . '/' . $proceso . '/' . $archivo;
+        $filePath = null;
+        foreach ($candidates as $candidate) {
+            if (Storage::disk('local')->exists($candidate)) {
+                $filePath = $candidate;
+                break;
+            }
         }
 
-        if (!Storage::disk('local')->exists($filePath)) {
+        if (!$filePath) {
             abort(404, 'Archivo no encontrado.');
         }
 
@@ -185,33 +197,38 @@ class AyudasVisualesFundicionPdfController extends Controller
      */
     public function createFolder(Request $request)
     {
-        $request->validate([
-            'proceso' => 'required|string|max:100',
-            'clase'   => 'required|string|max:100',
-        ]);
+        try {
+            $request->validate([
+                'clase'   => 'required|string|max:100',
+            ]);
 
-        $proceso = $this->sanitizePath($request->input('proceso'));
-        $clase   = $this->sanitizePath($request->input('clase'));
-        $dirPath = self::BASE_DIR . '/' . $clase . '/' . $proceso;
+            $clase   = $this->sanitizePath($request->input('clase'));
+            $dirPath = self::BASE_DIR . '/' . $clase;
 
-        if (Storage::disk('local')->exists($dirPath)) {
+            if (Storage::disk('local')->exists($dirPath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La carpeta ya existe.',
+                ], 409);
+            }
+
+            Storage::disk('local')->makeDirectory($dirPath);
+
+            AyudaVisualFundicionHistory::firstOrCreate(['proceso' => 'Fundicion', 'clase' => $clase]);
+            $this->logAction('crear_carpeta', $clase, null);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Carpeta para la clase {$clase} creada correctamente.",
+                'clase'   => $clase,
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Error en AyudasVisualesFundicionPdfController@createFolder: " . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'La carpeta ya existe.',
-            ], 409);
+                'message' => 'Error interno al crear la carpeta: ' . $e->getMessage(),
+            ], 500);
         }
-
-        Storage::disk('local')->makeDirectory($dirPath);
-
-        AyudaVisualFundicionHistory::firstOrCreate(['proceso' => $proceso, 'clase' => $clase]);
-        $this->logAction('crear_carpeta', $clase . '/' . $proceso, null);
-
-        return response()->json([
-            'success' => true,
-            'message' => "Carpeta {$clase}/{$proceso} creada correctamente.",
-            'proceso' => $proceso,
-            'clase'   => $clase,
-        ]);
     }
 
         /**
@@ -220,18 +237,16 @@ class AyudasVisualesFundicionPdfController extends Controller
     public function uploadPdf(Request $request)
     {
         $request->validate([
-            'proceso' => 'required|string|max:100',
             'clase'   => 'required|string|max:100',
             'pdf'     => 'required|file|mimes:pdf',
         ]);
 
-        $proceso = $this->sanitizePath($request->input('proceso'));
         $clase   = $this->sanitizePath($request->input('clase'));
-        $dirPath = self::BASE_DIR . '/' . $clase . '/' . $proceso;
+        $dirPath = self::BASE_DIR . '/' . $clase;
 
         if (!Storage::disk('local')->exists($dirPath)) {
             Storage::disk('local')->makeDirectory($dirPath);
-            AyudaVisualFundicionHistory::firstOrCreate(['proceso' => $proceso, 'clase' => $clase]);
+            AyudaVisualFundicionHistory::firstOrCreate(['proceso' => 'Fundicion', 'clase' => $clase]);
         }
 
         $file         = $request->file('pdf');
@@ -247,14 +262,13 @@ class AyudasVisualesFundicionPdfController extends Controller
 
         $file->storeAs($dirPath, $finalName, 'local');
 
-        $this->logAction('subir_pdf', $clase . '/' . $proceso, $finalName);
+        $this->logAction('subir_pdf', $clase, $finalName);
 
         return response()->json([
             'success'  => true,
             'message'  => "PDF '{$finalName}' subido correctamente.",
             'nombre'   => $finalName,
             'url'      => route('ayudas_fundicion.serve', [
-                'proceso' => $proceso,
                 'clase'   => $clase,
                 'archivo' => $finalName,
             ]),
@@ -267,34 +281,45 @@ class AyudasVisualesFundicionPdfController extends Controller
     public function deletePdf(Request $request)
     {
         $request->validate([
-            'proceso' => 'required|string|max:100',
             'clase'   => 'required|string|max:100',
             'archivo' => 'required|string|max:300',
         ]);
 
-        $proceso  = $this->sanitizePath($request->input('proceso'));
-        $clase    = $this->sanitizePath($request->input('clase'));
-        $archivo  = $this->sanitizeFileName($request->input('archivo'));
-        $filePath = self::BASE_DIR . '/' . $clase . '/' . $proceso . '/' . $archivo;
+        $clase   = $this->sanitizePath($request->input('clase'));
+        $archivo = $this->sanitizeFileName($request->input('archivo'));
 
-        if (!Storage::disk('local')->exists($filePath)) {
-            // Fallback for read-only error
-            $oldPath = self::OLD_BASE_DIR . '/' . $clase . '/' . $proceso . '/' . $archivo;
-            if (Storage::disk('local')->exists($oldPath)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Los archivos antiguos son de solo lectura.',
-                ], 403);
+        // Buscar en las tres posibles ubicaciones
+        $candidates = [
+            self::BASE_DIR     . '/' . $clase . '/' . $archivo,
+            self::BASE_DIR     . '/' . $clase . '/Fundicion/' . $archivo,
+            self::OLD_BASE_DIR . '/' . $clase . '/Fundicion/' . $archivo,
+        ];
+
+        $found = null;
+        foreach ($candidates as $candidate) {
+            if (Storage::disk('local')->exists($candidate)) {
+                $found = $candidate;
+                break;
             }
+        }
 
+        if (!$found) {
             return response()->json([
                 'success' => false,
                 'message' => 'El archivo no existe.',
             ], 404);
         }
 
-        Storage::disk('local')->delete($filePath);
-        $this->logAction('eliminar_pdf', $clase . '/' . $proceso, $archivo);
+        // No permitir eliminar desde el OLD_BASE_DIR (solo lectura)
+        if (str_starts_with($found, self::OLD_BASE_DIR)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Los archivos en la ruta legada (AYUDAS_GIS) son de solo lectura.',
+            ], 403);
+        }
+
+        Storage::disk('local')->delete($found);
+        $this->logAction('eliminar_pdf', $clase, $archivo);
 
         return response()->json([
             'success' => true,
@@ -311,13 +336,12 @@ class AyudasVisualesFundicionPdfController extends Controller
     public function deleteFolder(Request $request)
     {
         $request->validate([
-            'proceso' => 'required|string|max:100',
             'clase'   => 'required|string|max:100',
         ]);
 
-        $proceso = $this->sanitizePath($request->input('proceso'));
-        $clase   = $this->sanitizePath($request->input('clase'));
-        $dirPath = self::BASE_DIR . '/' . $clase . '/' . $proceso;
+        $clase     = $this->sanitizePath($request->input('clase'));
+        $dirPath   = self::BASE_DIR . '/' . $clase;
+        $legacyDir = self::BASE_DIR . '/' . $clase . '/Fundicion'; // Ruta intermedia legacy
 
         if (!Storage::disk('local')->exists($dirPath)) {
             return response()->json([
@@ -326,22 +350,32 @@ class AyudasVisualesFundicionPdfController extends Controller
             ], 404);
         }
 
-        $files = Storage::disk('local')->files($dirPath);
-        if (count($files) > 0) {
-            Storage::disk('local')->delete($files);
-            $this->logAction('vaciar_carpeta', $clase . '/Fundicion', null);
+        // Recopilar archivos directos + archivos en subcarpeta /Fundicion (legacy)
+        $filesDirectos = Storage::disk('local')->files($dirPath);
+        $filesLegacy   = Storage::disk('local')->exists($legacyDir)
+            ? Storage::disk('local')->files($legacyDir)
+            : [];
+        $allFiles = array_merge($filesDirectos, $filesLegacy);
+
+        if (count($allFiles) > 0) {
+            Storage::disk('local')->delete($allFiles);
+            // Si la subcarpeta /Fundicion quedó vacía, eliminarla también
+            if (Storage::disk('local')->exists($legacyDir) && count(Storage::disk('local')->files($legacyDir)) === 0) {
+                Storage::disk('local')->deleteDirectory($legacyDir);
+            }
+            $this->logAction('vaciar_carpeta', $clase, null);
             return response()->json([
                 'success' => true,
-                'message' => "Se eliminaron " . count($files) . " archivos de la subcarpeta 'Fundicion'.",
+                'message' => "Se eliminaron " . count($allFiles) . " archivos de la clase '{$clase}'.",
             ]);
         }
 
         Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_carpeta', $clase . '/Fundicion', null);
+        $this->logAction('eliminar_carpeta', $clase, null);
 
         return response()->json([
             'success' => true,
-            'message' => "La subcarpeta 'Fundicion' (Clase: {$clase}) fue eliminada correctamente.",
+            'message' => "La carpeta de la clase '{$clase}' fue eliminada correctamente.",
         ]);
     }
 
@@ -400,16 +434,14 @@ class AyudasVisualesFundicionPdfController extends Controller
     public function replacePdf(Request $request)
     {
         $request->validate([
-            'proceso'         => 'required|string|max:100',
             'clase'           => 'required|string|max:100',
             'archivo_anterior'=> 'required|string|max:300',
             'pdf'             => 'required|file|mimes:pdf',
         ]);
 
-        $proceso         = $this->sanitizePath($request->input('proceso'));
         $clase           = $this->sanitizePath($request->input('clase'));
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
-        $dirPath         = self::BASE_DIR . '/' . $clase . '/' . $proceso;
+        $dirPath         = self::BASE_DIR . '/' . $clase;
         $oldPath         = $dirPath . '/' . $archivoAnterior;
 
         if (Storage::disk('local')->exists($oldPath)) {
@@ -422,14 +454,13 @@ class AyudasVisualesFundicionPdfController extends Controller
 
         $file->storeAs($dirPath, $finalName, 'local');
 
-        $this->logAction('reemplazar_pdf', $clase . '/' . $proceso, "{$archivoAnterior} → {$finalName}");
+        $this->logAction('reemplazar_pdf', $clase, "{$archivoAnterior} → {$finalName}");
 
         return response()->json([
             'success'  => true,
             'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$finalName}'.",
             'nombre'   => $finalName,
             'url'      => route('ayudas_fundicion.serve', [
-                'proceso' => $proceso,
                 'clase'   => $clase,
                 'archivo' => $finalName,
             ]),
@@ -444,27 +475,29 @@ class AyudasVisualesFundicionPdfController extends Controller
     {
         $estructura = [];
 
-        // 1. Nuevo
         if (Storage::disk('local')->exists(self::BASE_DIR)) {
             $claseDirs = Storage::disk('local')->directories(self::BASE_DIR);
             foreach ($claseDirs as $claseDir) {
                 $claseName = basename($claseDir);
-                // Verificar si tiene la carpeta Fundicion dentro
-                if (Storage::disk('local')->exists($claseDir . '/Fundicion')) {
-                    $estructura[$claseName][] = 'Fundicion';
+                // Detectar como existente si tiene archivos directos O tiene la subcarpeta /Fundicion (legacy)
+                $hasDirectFiles  = count(Storage::disk('local')->files($claseDir)) > 0;
+                $hasLegacySubDir = Storage::disk('local')->exists($claseDir . '/Fundicion');
+                if ($hasDirectFiles || $hasLegacySubDir) {
+                    $estructura[$claseName] = true;
+                } else {
+                    // Carpeta vacía pero existe — la incluimos igualmente para poder eliminarla
+                    $estructura[$claseName] = true;
                 }
             }
         }
 
-        // 2. Viejo
+        // También detectar clases que solo existen en AYUDAS_GIS (legado puro)
         if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
-            $oldClaseDirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
-            foreach ($oldClaseDirs as $claseDir) {
-                $claseName = basename($claseDir);
-                if (Storage::disk('local')->exists($claseDir . '/Fundicion')) {
-                    if (!isset($estructura[$claseName])) {
-                        $estructura[$claseName][] = 'Fundicion';
-                    }
+            $oldClassDirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
+            foreach ($oldClassDirs as $oldClaseDir) {
+                $claseName = basename($oldClaseDir);
+                if (!isset($estructura[$claseName])) {
+                    $estructura[$claseName] = true;
                 }
             }
         }

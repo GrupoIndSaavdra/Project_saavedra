@@ -168,28 +168,28 @@
                         $isReady = true;
                         $param1Name = (string) $otActiva->id;
                         $param2Name = $claseActiva->nombre;
-                        $folderPathLabel = "OT " . $otActiva->id . ($otActiva->moldura ? " — " . $otActiva->moldura->nombre : "") . " / " . $claseActiva->nombre;
+                        $folderPathLabel = "<span class='lvl-1'>OT " . $otActiva->id . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . $claseActiva->nombre . "</span>";
                         $carpetaExiste = isset($estructura[$param1Name]) && in_array($param2Name, $estructura[$param1Name]);
                         $folderProps = ['data-ot' => $param1Name, 'data-clase' => $param2Name];
                     } elseif ($moduleType === 'manuales' && $procesoSeleccionadoId && $procesoActivo) {
                         $isReady = true;
                         $param1Name = $procesoActivo->nombre;
-                        $folderPathLabel = $procesoActivo->nombre;
+                        $folderPathLabel = "<span class='lvl-1'>" . $procesoActivo->nombre . "</span>";
                         $carpetaExiste = in_array($param1Name, $estructura);
                         $folderProps = ['data-proceso' => $param1Name];
                     } elseif ($moduleType === 'ayudas' && $procesoSeleccionadoId && $claseSeleccionadaId && $procesoActivo && $claseActiva) {
                         $isReady = true;
                         $param1Name = $procesoActivo->nombre;
                         $param2Name = $claseActiva->nombre;
-                        $folderPathLabel = $claseActiva->nombre . " / " . $procesoActivo->nombre;
+                        $folderPathLabel = "<span class='lvl-1'>" . $claseActiva->nombre . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . $procesoActivo->nombre . "</span>";
                         $carpetaExiste = isset($estructura[$param2Name]) && in_array($param1Name, $estructura[$param2Name]);
                         $folderProps = ['data-proceso' => $param1Name, 'data-clase' => $param2Name];
                     } elseif ($moduleType === 'ayudas_fundicion' && $claseSeleccionadaId && $claseActiva) {
                         $isReady = true;
                         $param1Name = 'Fundicion';
                         $param2Name = $claseActiva->nombre;
-                        $folderPathLabel = $claseActiva->nombre . " / Fundicion";
-                        $carpetaExiste = isset($estructura[$param2Name]) && in_array($param1Name, $estructura[$param2Name]);
+                        $folderPathLabel = "<span class='lvl-1'>" . $claseActiva->nombre . "</span>";
+                        $carpetaExiste = isset($estructura[$param2Name]);
                         $folderProps = ['data-proceso' => $param1Name, 'data-clase' => $param2Name];
                     } elseif ($moduleType === 'fundicion' && $otSeleccionadaId && $claseSeleccionadaId && $otActiva) {
                         $isReady = true;
@@ -199,7 +199,7 @@
                         
                         $param1Name = $normalizedOt;
                         $param2Name = $claseActiva ? $claseActiva->nombre : $claseSeleccionadaId;
-                        $folderPathLabel = $otLabel . " / " . $param2Name;
+                        $folderPathLabel = "<span class='lvl-1'>" . $otLabel . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . $param2Name . "</span>";
                         $carpetaExiste = isset($estructura[$param1Name]) && in_array($param2Name, $estructura[$param1Name]);
                         $folderProps = ['data-ot' => $param1Name, 'data-clase' => $param2Name, 'data-ot-id' => $otActiva->id];
                     }
@@ -540,50 +540,30 @@
                                     @endforeach
                                 @endforeach
                             @elseif($moduleType === 'ayudas_fundicion')
-                                @foreach($estructura as $claseName => $procesos)
+                                @foreach($estructura as $claseName => $exists)
                                     @php
                                         $claseReal = $clasesUnicas->firstWhere('nombre', $claseName);
                                         $claseIdBD = $claseReal ? $claseReal->id : null;
+                                        $badgeId = "badge-" . Str::slug($claseName);
                                     @endphp
-                                    @if(count($procesos) === 0)
-                                        <tr data-proceso="Fundicion" data-clase="{{ $claseName }}">
-                                            <td class="d-text-center d-text-primary"><strong>{{ $claseName }}</strong></td>
-                                            <td class="d-text-center"><span class="badge-count" id="badge-{{ Str::slug($claseName) }}-raiz">...</span></td>
-                                            <td class="d-text-center">
-                                                <div class="td-actions">
-                                                    <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar clase completa"
-                                                        onclick="confirmarEliminarCarpeta('{{ $claseName }}', null, '{{ $claseName }}')">
-                                                        <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
-                                                        <span>Eliminar Directorio Raíz</span>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @else
-                                        @foreach($procesos as $procesoName)
-                                            @php
-                                                $badgeId = "badge-" . Str::slug($claseName) . "-" . Str::slug($procesoName);
-                                            @endphp
-                                            <tr data-proceso="{{ $procesoName }}" data-clase="{{ $claseName }}">
-                                                <td class="d-text-center d-text-primary"><strong>{{ $claseName }}</strong></td>
-                                                <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
-                                                <td class="d-text-center">
-                                                    <div class="td-actions">
-                                                        <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                            onclick="irACarpeta('Fundicion', '{{ $claseIdBD ?? $claseName }}', false)">
-                                                            <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                            <span>Ver PDF's</span>
-                                                        </button>
-                                                        <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                                            onclick="confirmarEliminarCarpeta('{{ $procesoName }}', '{{ $claseName }}', '{{ $claseName }} / {{ $procesoName }}')">
-                                                            <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
-                                                            <span>Eliminar Carpeta</span>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    @endif
+                                    <tr data-proceso="Fundicion" data-clase="{{ $claseName }}">
+                                        <td class="d-text-center d-text-primary"><strong>{{ $claseName }}</strong></td>
+                                        <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
+                                        <td class="d-text-center">
+                                            <div class="td-actions">
+                                                <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
+                                                    onclick="irACarpeta('Fundicion', '{{ $claseIdBD ?? $claseName }}', false)">
+                                                    <img src="{{ asset('images/documento.png') }}" alt="Ver">
+                                                    <span>Ver PDF's</span>
+                                                </button>
+                                                <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar clase completa"
+                                                    onclick="confirmarEliminarCarpeta('{{ $claseName }}', null, '{{ $claseName }}')">
+                                                    <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                                                    <span>Eliminar Carpeta</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 @endforeach
                             @endif
                         </tbody>
@@ -756,6 +736,9 @@
             window.activeParam2 = @json($claseActiva?->nombre ?? null);
         @elseif($moduleType === 'ayudas')
             window.activeParam1 = @json($procesoActivo?->nombre ?? null);
+            window.activeParam2 = @json($claseActiva?->nombre ?? null);
+        @elseif($moduleType === 'ayudas_fundicion')
+            window.activeParam1 = 'Fundicion';
             window.activeParam2 = @json($claseActiva?->nombre ?? null);
         @endif
     </script>

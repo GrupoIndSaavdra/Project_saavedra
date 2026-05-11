@@ -800,6 +800,21 @@ body {
     font-weight: 700 !important;
 }
 
+/* Niveles de carpetas */
+.lvl-1 {
+    color: #0056b3;
+    font-weight: 800;
+}
+.lvl-2 {
+    color: #d9534f;
+    font-weight: 800;
+}
+.lvl-sep {
+    color: #666;
+    font-weight: 400;
+    margin: 0 4px;
+}
+
 .d-mt-1 {
     margin-top: 0.5em;
 }

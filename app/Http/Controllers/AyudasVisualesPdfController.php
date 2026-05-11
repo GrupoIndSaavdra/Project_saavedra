@@ -195,33 +195,41 @@ class AyudasVisualesPdfController extends Controller
      */
     public function createFolder(Request $request)
     {
-        $request->validate([
-            'proceso' => 'required|string|max:100',
-            'clase'   => 'required|string|max:100',
-        ]);
+        try {
+            $request->validate([
+                'proceso' => 'required|string|max:100',
+                'clase'   => 'required|string|max:100',
+            ]);
 
-        $proceso = $this->sanitizePath($request->input('proceso'));
-        $clase   = $this->sanitizePath($request->input('clase'));
-        $dirPath = self::BASE_DIR . '/' . $clase . '/' . $proceso;
+            $proceso = $this->sanitizePath($request->input('proceso'));
+            $clase   = $this->sanitizePath($request->input('clase'));
+            $dirPath = self::BASE_DIR . '/' . $clase . '/' . $proceso;
 
-        if (Storage::disk('local')->exists($dirPath)) {
+            if (Storage::disk('local')->exists($dirPath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La carpeta ya existe.',
+                ], 409);
+            }
+
+            Storage::disk('local')->makeDirectory($dirPath);
+
+            AyudaVisualHistory::firstOrCreate(['proceso' => $proceso, 'clase' => $clase]);
+            $this->logAction('crear_carpeta', $clase . '/' . $proceso, null);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Subcarpeta del proceso '{$proceso}' (Clase: {$clase}) creada correctamente.",
+                'proceso' => $proceso,
+                'clase'   => $clase,
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Error en AyudasVisualesPdfController@createFolder: " . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'La carpeta ya existe.',
-            ], 409);
+                'message' => 'Error interno al crear la carpeta: ' . $e->getMessage(),
+            ], 500);
         }
-
-        Storage::disk('local')->makeDirectory($dirPath);
-
-        AyudaVisualHistory::firstOrCreate(['proceso' => $proceso, 'clase' => $clase]);
-        $this->logAction('crear_carpeta', $clase . '/' . $proceso, null);
-
-        return response()->json([
-            'success' => true,
-            'message' => "Subcarpeta del proceso '{$proceso}' (Clase: {$clase}) creada correctamente.",
-            'proceso' => $proceso,
-            'clase'   => $clase,
-        ]);
     }
 
         /**
