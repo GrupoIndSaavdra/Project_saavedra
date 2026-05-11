@@ -30,6 +30,15 @@ h2 {
     font-size: 1.5em;
 }
 
+.div-bttns {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 1.5em;
+    margin-top: 1.5em;
+}
+
 .bttns-add-select {
     padding: 10px;
     font-size: 1em;
@@ -37,9 +46,9 @@ h2 {
     color: #fff;
     border: none;
     border-radius: 5px;
-    margin: 1.5em 1.5em 0 1.5em;
     transition: 0.2s;
     background-color: #0a8504;
+    cursor: pointer;
 }
 
 .bttns-add-select:hover {
@@ -150,10 +159,14 @@ h3 {
         background-color: #0a8504;
         transition: 0.2s;
     }
+    .div-bttns {
+        gap: 1em;
+        margin-top: 1em;
+    }
     .bttns-add-select {
         font-size: 1em;
         padding: 0.5em 1em;
-        margin: 1em 1em;
+        margin: 0;
     }
     .form-label {
         font-size: 1em;
