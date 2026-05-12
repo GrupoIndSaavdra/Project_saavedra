@@ -80,7 +80,7 @@ function updateAdminUI() {
         if (otSel.selectedIndex !== -1 && clSel.selectedIndex !== -1) {
             ready = true;
             const otText = otSel.options[otSel.selectedIndex].text.trim();
-            p1 = otText.replace(' — ', ' - '); 
+            p1 = normalizeOTName(otText); 
             p2 = clSel.options[clSel.selectedIndex].text.trim();
             label = `${p1} / ${p2}`;
         }
@@ -399,7 +399,7 @@ function renderArchivosGrid(data, param1, param2) {
                 <img src="${window.baseUrl}/images/pdf-view-shadow.png" class="file-icon icon-default">
                 <img src="${window.baseUrl}/images/pdf-view.png" class="file-icon icon-hover">
             </div>
-            <div class="file-name" style="cursor: pointer;" title="Abrir PDF">${archivo.nombre}</div>
+            <div class="file-name" style="cursor: pointer;" title="Abrir PDF">${escapeHTML(archivo.nombre)}</div>
             <div class="file-actions">
                 <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="abrirPdf('${archivo.url}')">Ver</button>
                 <button class="btn-dibujos btn-dibujos-sm btn-reemplazar" onclick="prepararReemplazo(${deleteParams}, this)">Reemplazar</button>
@@ -703,11 +703,11 @@ function loadAuditLog() {
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${log.created_at}</td>
-                <td>${log.user_name || '—'}</td>
-                <td><span class="action-badge ${log.action}">${actionLabel}</span></td>
-                <td>${log.ruta}</td>
-                <td>${log.archivo || '—'}</td>`;
+                <td>${escapeHTML(log.created_at)}</td>
+                <td>${escapeHTML(log.user_name || '—')}</td>
+                <td><span class="action-badge ${log.action}">${escapeHTML(actionLabel)}</span></td>
+                <td>${escapeHTML(log.ruta)}</td>
+                <td>${escapeHTML(log.archivo || '—')}</td>`;
             tbody.appendChild(tr);
         });
     })
@@ -724,6 +724,16 @@ function slugify(text) {
         .replace(/[^a-z0-9\-_]/g, '-')
         .replace(/-+/g, '-').trim()
         .replace(/^-+|-+$/g, '');
+}
+
+function escapeHTML(str) {
+    if (!str) return "";
+    return str.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 /**
@@ -750,7 +760,7 @@ function mostrarNotificacion(mensaje, esError = false) {
     toast.className = 'dibujos-toast' + (esError ? ' error' : '');
     
     const icono = esError ? '❌ ' : '✅ ';
-    toast.innerHTML = `<span style="margin-right:8px;">${icono}</span> ${mensaje}`;
+    toast.innerHTML = `<span style="margin-right:8px;">${icono}</span> ${escapeHTML(mensaje)}`;
     
     document.body.appendChild(toast);
 

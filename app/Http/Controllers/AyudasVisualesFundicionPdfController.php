@@ -552,7 +552,6 @@ class AyudasVisualesFundicionPdfController extends Controller
     private function sanitizeFileName(string $name): string
     {
         $name = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', $name);
-        $name = preg_replace('/\s+/', '_', $name);
         $name = trim($name, '_.');
         return $name ?: 'archivo.pdf';
     }

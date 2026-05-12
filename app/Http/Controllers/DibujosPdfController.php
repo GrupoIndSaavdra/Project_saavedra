@@ -117,7 +117,7 @@ class DibujosPdfController extends Controller
      */
     public function getFiles(Request $request)
     {
-        $ot    = $this->sanitizePath($request->query('ot', ''));
+        $ot    = $this->normalizeOTName($this->sanitizePath($request->query('ot', '')));
         $clase = $this->sanitizePath($request->query('clase', ''));
 
         if (empty($ot) || empty($clase)) {
@@ -161,7 +161,7 @@ class DibujosPdfController extends Controller
      */
     public function serveFile(Request $request): BinaryFileResponse
     {
-        $ot      = $this->sanitizePath($request->query('ot', ''));
+        $ot      = $this->normalizeOTName($this->sanitizePath($request->query('ot', '')));
         $clase   = $this->sanitizePath($request->query('clase', ''));
         $archivo = $this->sanitizeFileName($request->query('archivo', ''));
 
@@ -214,7 +214,7 @@ class DibujosPdfController extends Controller
             
             $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
             $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-            $otFolderName = $this->sanitizePath($otFolderName);
+            $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
             $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
 
@@ -313,7 +313,7 @@ class DibujosPdfController extends Controller
             'archivo'=> 'required|string|max:300',
         ]);
 
-        $ot      = $this->sanitizePath($request->input('ot'));
+        $ot      = $this->normalizeOTName($this->sanitizePath($request->input('ot')));
         $clase   = $this->sanitizePath($request->input('clase'));
         $archivo = $this->sanitizeFileName($request->input('archivo'));
         $filePath = self::BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
@@ -566,8 +566,21 @@ class DibujosPdfController extends Controller
     {
         // Solo permitir caracteres seguros en nombres de archivo
         $name = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', $name);
-        $name = preg_replace('/\s+/', '_', $name);
         $name = trim($name, '_.');
         return $name ?: 'archivo.pdf';
+    }
+
+    private function normalizeOTName(?string $name): string
+    {
+        if (!$name) return '';
+        // Reemplazar guiones especiales y espacios de no ruptura
+        $name = str_replace(['—', '–', "\xc2\xa0"], '-', $name);
+        // Todo a mayúsculas para evitar problemas de case-sensitivity
+        $name = mb_strtoupper($name, 'UTF-8');
+        // Estandarizar guiones (asegurar espacio alrededor si parece ser el separador principal)
+        $name = preg_replace('/\s*-\s*/', ' - ', $name);
+        // Eliminar espacios múltiples
+        $name = preg_replace('/\s+/', ' ', $name);
+        return trim($name);
     }
 }
