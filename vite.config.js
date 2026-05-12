@@ -93,6 +93,7 @@ export default defineConfig({
                 //Views Reporte Diario
                 'resources/css/reportes/email.css',
                 'resources/css/reportes/reenvio.css',
+                'resources/css/reportes/envio_pta.css',
 
                 //Módulo Documentacion Técnica
                 'resources/css/wo_views/manage_documentation.css',

@@ -23,6 +23,7 @@ use App\Http\Controllers\GenerarQRIndividualController;
 use App\Http\Controllers\LiberarQRPlantaController;
 use App\Http\Controllers\RegenerarQRController;
 use App\Http\Controllers\ReporteProduccionController;
+use App\Http\Controllers\EnvioPtaController;
 // use App\Http\Controllers\CalidadDashboardController;
 // use App\Http\Controllers\MeasurementsWebController;
 use App\Http\Controllers\PtaResultsController;
@@ -318,6 +319,19 @@ Route::middleware(['auth'])->prefix('reportes')->name('reportes.')->group(functi
 // Acción GET: descargar PDF del reporte (fuera del grupo auth para mayor compatibilidad)
 Route::get('/reportes/descargar-pdf/{fecha}', [ReporteProduccionController::class, 'descargarPDF'])
     ->name('reportes.descargar_pdf');
+
+/* ===========================
+   Envío de Reportes PTA
+=========================== */
+Route::middleware(['auth'])->prefix('reportes/pta')->name('reportes.pta')->group(function () {
+    // Vista principal con selector OT/Clase + historial de envíos
+    Route::get('/', [EnvioPtaController::class, 'index'])
+        ->name('');
+
+    // Acción POST: generar PDF y enviar correo
+    Route::post('/enviar', [EnvioPtaController::class, 'enviar'])
+        ->name('.enviar');
+});
 
 /* ===========================
    Módulo de Dibujos / Planos PDF (DIBUJOS_GIS)

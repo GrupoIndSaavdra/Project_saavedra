@@ -546,7 +546,29 @@ p {
     font-size: 1.1em;
     position: sticky;
     top: 0;
-    z-index: 2;
+    z-index: 5; /* Aumentado para estar sobre otras celdas */
+}
+
+/* Filas estáticas de C.Nominal y Tolerancias */
+.table tr.table-row-cNominals:nth-child(2) td {
+    position: sticky;
+    top: 43px; /* Debajo del encabezado (aprox 43px) */
+    z-index: 4;
+    background-color: #fff;
+}
+.table tr.table-row-cNominals:nth-child(3) td {
+    position: sticky;
+    top: 93px; /* Debajo de C.Nominal (43px + 50px de altura) */
+    z-index: 4;
+    background-color: #fff;
+}
+
+/* Celdas de la primera columna para filas estáticas (intersección sticky) */
+.table tr.table-row-cNominals:nth-child(2) td:first-child,
+.table tr.table-row-cNominals:nth-child(3) td:first-child {
+    left: 0;
+    z-index: 6; /* Mayor que el top y el left individual */
+    background-color: #f8f9fa;
 }
 
 .table tr td:first-child,
@@ -559,7 +581,7 @@ p {
 }
 
 .table tr th:first-child {
-    z-index: 3;
+    z-index: 7;
     top: 0;
     background-color: #033966;
     color: #fff;
@@ -1216,8 +1238,8 @@ td select {
 }
 
 .img-action-btn {
-    width: 3.5em; /* Reducido */
-    height: 3.5em; /* Reducido */
+    width: 3.7em; /* Aumentado 3px aprox (0.2em) */
+    height: 3.7em; /* Aumentado 3px aprox (0.2em) */
     object-fit: contain;
     transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
@@ -1246,7 +1268,7 @@ td select {
     transform: none !important;
     z-index: 11000 !important;
     position: relative;
-    width: 3.5em; /* Ajustado al nuevo tamaño reducido */
+    width: 3.7em; /* Ajustado al nuevo tamaño (+3px) */
 }
 
 .action-btn-wrapper.is-verifying .action-label {
@@ -1256,7 +1278,7 @@ td select {
 
 .action-btn-wrapper.is-verifying .form-inline-verification {
     position: absolute;
-    left: 4.5em; /* Ajustado para el botón más pequeño */
+    left: 4.7em; /* Ajustado para el icono ligeramente más grande */
     top: 30%;
     transform: translateY(-50%);
     width: max-content;

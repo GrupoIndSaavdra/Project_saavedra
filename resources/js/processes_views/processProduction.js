@@ -1066,7 +1066,7 @@ function showInlinePasswordForm(type, imgElement = null) {
     // 4. Crear el grupo de contraseña según el tipo
     let form_group_password;
     if (type === "Calidad") {
-        form_group_password = createInputPassword("passwordQuality", "Contraseña de Calidad");
+        form_group_password = createInputPassword("passwordQuality", "Password of the Quality");
         form.onsubmit = function (e) {
             e.preventDefault();
             window.logUserAction("Intento de Liberación", "Se abrió el formulario de liberación de calidad", { h_inicio: window.qualityStartTime });
@@ -1074,10 +1074,10 @@ function showInlinePasswordForm(type, imgElement = null) {
         };
     } else if (type === "EditMeta") {
         window.logUserAction("Solicitud Edición de Reporte", "Se requiere contraseña de administrador para editar metadatos");
-        form_group_password = createInputPassword("passwordAdmin", "Contraseña Admin (Reporte)");
+        form_group_password = createInputPassword("passwordAdmin", "Password of the Admin");
     } else {
         window.logUserAction("Solicitud Edición de Piezas", "Se requiere contraseña de administrador para editar piezas");
-        form_group_password = createInputPassword("passwordAdmin", "Contraseña Admin (Piezas)");
+        form_group_password = createInputPassword("passwordAdmin", "Password of the Admin");
     }
 
     // 5. Ubicar el formulario al lado del botón

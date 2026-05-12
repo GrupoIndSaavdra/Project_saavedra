@@ -1,0 +1,373 @@
+/* ═══════════════════════════════════════════════════════════════════
+   reportes/envio_pta.css  —  Envío de Reportes PTA
+   Paleta y tipografía unificada con reenvio.css
+═══════════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ── Variables de paleta ──────────────────────────────────────── */
+:root {
+    --azul-primario:   #033966;
+    --azul-borde:      #033966d4;
+    --azul-claro:      #e8f0fe;
+    --rojo-accion:     #9c0303;
+    --rojo-oscuro:     #7a0202;
+    --verde-ok:        #0a8504;
+    --verde-fondo:     #e6f4ea;
+    --rojo-fondo:      #fce8e8;
+    --gris-hint:       #64748b;
+    --gris-borde-suave:#e2e8f0;
+    --sombra:          0 4px 15px rgba(0, 0, 0, 0.3);
+    --font:            'Inter', inherit;
+}
+
+/* ── Contenedor principal ─────────────────────────────────────── */
+.envio-pta-container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 24px 60px;
+    font-family: var(--font);
+}
+
+/* ── Header ───────────────────────────────────────────────────── */
+.envio-pta-header {
+    text-align: center;
+    margin-bottom: 28px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 5px solid var(--azul-borde);
+    border-radius: 10px;
+    box-shadow: var(--sombra);
+    padding: 28px 40px 20px;
+}
+
+.envio-pta-header h1 {
+    font-size: 26px;
+    color: var(--azul-primario);
+    margin: 0 0 8px;
+    font-weight: 800;
+}
+
+.envio-pta-header p {
+    font-size: 14px;
+    color: #000;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* ── Alertas ──────────────────────────────────────────────────── */
+.envio-pta-alert {
+    padding: 14px 18px;
+    border-radius: 6px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    border-left: 4px solid;
+    font-family: var(--font);
+}
+
+.envio-pta-alert-success {
+    background: var(--verde-fondo);
+    color: var(--verde-ok);
+    border-color: var(--verde-ok);
+}
+
+.envio-pta-alert-error {
+    background: var(--rojo-fondo);
+    color: var(--rojo-accion);
+    border-color: var(--rojo-accion);
+}
+
+.envio-pta-alert.fade-out {
+    opacity: 0;
+    transition: opacity 1s ease-out;
+}
+
+/* ── Tarjeta formulario ───────────────────────────────────────── */
+.envio-pta-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid var(--azul-primario);
+    border-radius: 10px;
+    box-shadow: var(--sombra);
+    padding: 24px 40px;
+    margin-bottom: 24px;
+}
+
+.envio-pta-card h2 {
+    font-size: 18px;
+    color: var(--azul-primario);
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--gris-borde-suave);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-family: var(--font);
+}
+
+/* ── Fila de campos ───────────────────────────────────────────── */
+.envio-pta-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.envio-pta-field {
+    flex: 1;
+    min-width: 200px;
+    margin-bottom: 20px;
+}
+
+.envio-pta-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--azul-primario);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    font-family: var(--font);
+}
+
+.envio-pta-input,
+.envio-pta-select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 3px solid #03396690;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: var(--font);
+    font-weight: 600;
+    color: #000;
+    background: #fff;
+    transition: all 0.2s;
+    box-sizing: border-box;
+}
+
+.envio-pta-input:focus,
+.envio-pta-select:focus {
+    outline: none;
+    border-color: var(--azul-primario);
+    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.2);
+}
+
+.envio-pta-input:disabled {
+    background: #f1f5f9;
+    color: #475569;
+    cursor: not-allowed;
+}
+
+.envio-pta-hint {
+    font-size: 11px;
+    color: var(--gris-hint);
+    margin: 6px 0 0;
+    font-family: var(--font);
+}
+
+/* ── Info box OT seleccionada ─────────────────────────────────── */
+.envio-pta-ot-info {
+    background: var(--azul-claro);
+    border: 2px solid var(--azul-primario);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--azul-primario);
+    display: none;
+    font-family: var(--font);
+}
+
+.envio-pta-ot-info.visible {
+    display: block;
+}
+
+/* ── Botones ──────────────────────────────────────────────────── */
+.envio-pta-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.envio-pta-btn {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.2s;
+    border: none;
+    flex: 1;
+    font-family: var(--font);
+}
+
+.envio-pta-btn-primary {
+    background: var(--azul-primario);
+    color: #fff;
+}
+
+.envio-pta-btn-primary:hover {
+    transform: scale(1.05);
+    background: #022a4d;
+}
+
+.envio-pta-btn-primary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.envio-pta-btn-secondary {
+    background: var(--rojo-accion);
+    color: #fff;
+    flex: 0 0 auto;
+}
+
+.envio-pta-btn-secondary:hover {
+    transform: scale(1.05);
+    background: var(--rojo-oscuro);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLA DE LOGS — estilo premium
+═══════════════════════════════════════════════════════════════ */
+
+.envio-pta-logs-card {
+    background: rgba(255, 255, 255, 0.95);
+    border: 5px solid var(--azul-borde);
+    border-radius: 10px;
+    box-shadow: var(--sombra);
+    padding: 24px 30px 32px;
+    margin-top: 8px;
+    /* Romper el ancho del contenedor padre para que la tabla respire */
+    width: calc(100% + 120px);
+    margin-left: -60px;
+    box-sizing: border-box;
+}
+
+.envio-pta-logs-card h2 {
+    font-size: 18px;
+    color: var(--azul-primario);
+    margin: 0 0 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--gris-borde-suave);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-family: var(--font);
+}
+
+.envio-pta-table-wrap {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 2px solid #03396640;
+}
+
+.envio-pta-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;  /* ← Verdana */
+    min-width: 1080px;
+}
+
+/* Encabezado */
+.envio-pta-table thead tr {
+    background: var(--azul-primario);
+}
+
+.envio-pta-table th {
+    color: #fff;
+    padding: 13px 16px;
+    text-align: left;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+}
+
+.envio-pta-table th:first-child {
+    border-radius: 0;
+    width: 48px;
+    text-align: center;
+}
+
+/* Cuerpo */
+.envio-pta-table tbody tr {
+    transition: background 0.15s;
+}
+
+.envio-pta-table tbody tr:nth-child(even) td {
+    background: #f8fafc;
+}
+
+.envio-pta-table tbody tr:hover td {
+    background: #e8f0fe !important;
+}
+
+.envio-pta-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--gris-borde-suave);
+    color: #222;
+    vertical-align: middle;
+    font-weight: 500;
+}
+
+.envio-pta-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.envio-pta-table td:first-child {
+    text-align: center;
+    color: var(--gris-hint);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Columna matricula */
+.td-matricula {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: var(--azul-primario);
+    font-size: 12px;
+}
+
+/* Estado badges */
+.badge-enviado {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--verde-fondo);
+    color: var(--verde-ok);
+    border: 1.5px solid var(--verde-ok);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge-error {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--rojo-fondo);
+    color: var(--rojo-accion);
+    border: 1.5px solid var(--rojo-accion);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: help;
+}
+
+/* Sin registros */
+.envio-pta-no-logs {
+    text-align: center;
+    color: var(--gris-hint);
+    font-style: italic;
+    padding: 40px 0;
+    font-size: 14px;
+    font-family: var(--font);
+}

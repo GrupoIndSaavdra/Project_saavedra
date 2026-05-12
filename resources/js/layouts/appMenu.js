@@ -222,6 +222,7 @@ function getRoutes(profile) {
                     title: "Reportes",
                     routes: [
                         ["reportes.reenvio", "Reenviar Reporte Diario"],
+                        ["reportes.pta", "Envío de Reportes PTA"],
                     ],
                 },
             ];
