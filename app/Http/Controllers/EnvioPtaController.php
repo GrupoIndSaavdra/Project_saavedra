@@ -16,10 +16,10 @@ use Illuminate\Support\Facades\Mail;
 class EnvioPtaController extends Controller
 {
     /**
-     * Dirección de correo fija a la que se enviarán los reportes PTA.
-     * Modifica este valor para cambiar el destinatario predeterminado.
+     * Dirección de correo fija a la que SIEMPRE se enviarán los reportes PTA.
+     * Modifica este valor para cambiar el destinatario obligatorio.
      */
-    const DESTINATARIO = 'alemanpereznatali@gmail.com';
+    const DESTINATARIO = 'acabadosmex@grupoindsaavedra.com';
 
     public function __construct()
     {
@@ -68,6 +68,7 @@ class EnvioPtaController extends Controller
     /**
      * POST /reportes/pta/enviar
      * Genera el PDF del análisis PTA y lo envía por correo.
+     * Siempre incluye DESTINATARIO; acepta correos adicionales por coma.
      */
     public function enviar(Request $request)
     {
@@ -75,8 +76,9 @@ class EnvioPtaController extends Controller
         set_time_limit(120);
 
         $request->validate([
-            'ot_id'    => 'required|integer|exists:orden_trabajo,id',
-            'clase_id' => 'required|integer|exists:clases,id',
+            'ot_id'               => 'required|integer|exists:orden_trabajo,id',
+            'clase_id'            => 'required|integer|exists:clases,id',
+            'destinatarios_extra' => 'nullable|string|max:1000',
         ]);
 
         $otId    = $request->input('ot_id');
@@ -88,7 +90,24 @@ class EnvioPtaController extends Controller
         $otNombre    = "OT #{$ot->id}" . ($ot->moldura ? " — {$ot->moldura->nombre}" : '');
         $claseNombre = $clase->nombre . ($clase->tamanio ? " ({$clase->tamanio})" : '');
 
-        // ── 1. Generar PDF (reutilizar lógica de PtaResultsController::analysisPDF) ──
+        // ── 1. Construir lista de destinatarios ──────────────────────────────
+        // El correo fijo siempre va primero
+        $destinatarios = [self::DESTINATARIO];
+
+        $extraRaw = $request->input('destinatarios_extra', '');
+        if ($extraRaw) {
+            $extras = array_filter(array_map(function ($email) {
+                return filter_var(trim($email), FILTER_VALIDATE_EMAIL) ? trim($email) : null;
+            }, explode(',', $extraRaw)));
+
+            foreach ($extras as $extra) {
+                if (!in_array($extra, $destinatarios)) {
+                    $destinatarios[] = $extra;
+                }
+            }
+        }
+
+        // ── 2. Generar PDF ───────────────────────────────────────────────────
         $piezasPTA = \App\Models\Pieza::query()
             ->where('id_ot', $otId)
             ->where('id_clase', $claseId)
@@ -109,7 +128,6 @@ class EnvioPtaController extends Controller
             ->get()
             ->keyBy('pieza_id');
 
-        // Datos técnicos de soldadura
         $nombreClaseLimpio = str_replace(' ', '_', $clase->nombre);
         $procesoStringId   = "Soldadura_PTA_{$nombreClaseLimpio}_{$otId}";
 
@@ -133,8 +151,7 @@ class EnvioPtaController extends Controller
 
         $pdf->setPaper('a4', 'landscape');
 
-        // Guardar PDF temporal
-        $baseDir    = storage_path('app/public/reportes/PTA');
+        $baseDir = storage_path('app/public/reportes/PTA');
         if (!file_exists($baseDir)) {
             mkdir($baseDir, 0755, true);
         }
@@ -142,39 +159,46 @@ class EnvioPtaController extends Controller
         $pdfPath  = "{$baseDir}/{$filename}";
         $pdf->save($pdfPath);
 
-        // ── 2. Enviar correo ─────────────────────────────────────────────────
-        $destinatario = self::DESTINATARIO;
-        $estado       = 'enviado';
-        $mensajeError = null;
+        // ── 3. Enviar a todos los destinatarios ──────────────────────────────
+        $errores = [];
+        $enviados = [];
 
-        try {
-            Mail::to($destinatario)->send(new PtaReporteMail($otNombre, $claseNombre, $pdfPath));
-        } catch (\Throwable $e) {
-            $estado       = 'error';
-            $mensajeError = $e->getMessage();
-            \Illuminate\Support\Facades\Log::error("Error enviando reporte PTA a {$destinatario}: " . $e->getMessage(), [
-                'exception' => $e,
-            ]);
+        foreach ($destinatarios as $correo) {
+            try {
+                Mail::to($correo)->send(new PtaReporteMail($otNombre, $claseNombre, $pdfPath));
+                $enviados[] = $correo;
+            } catch (\Throwable $e) {
+                $errores[] = "{$correo}: " . $e->getMessage();
+                \Illuminate\Support\Facades\Log::error("Error enviando PTA a {$correo}: " . $e->getMessage());
+            }
         }
 
-        // ── 3. Registrar en log ──────────────────────────────────────────────
+        $estado       = empty($errores) ? 'enviado' : 'error';
+        $mensajeError = !empty($errores) ? implode(' | ', $errores) : null;
+
+        // ── 4. Registrar en log ──────────────────────────────────────────────
         PtaReporteLog::create([
-            'ot_id'        => $otId,
-            'clase_id'     => $claseId,
-            'ot_nombre'    => $otNombre,
-            'clase_nombre' => $claseNombre,
-            'destinatario' => $destinatario,
-            'estado'       => $estado,
+            'ot_id'         => $otId,
+            'clase_id'      => $claseId,
+            'ot_nombre'     => $otNombre,
+            'clase_nombre'  => $claseNombre,
+            'destinatario'  => implode(', ', $destinatarios),  // todos separados por coma
+            'estado'        => $estado,
             'mensaje_error' => $mensajeError,
-            'enviado_por'  => Auth::user()?->matricula,
+            'enviado_por'   => Auth::user()?->matricula,
         ]);
 
-        if ($estado === 'enviado') {
+        if (empty($errores)) {
             return redirect()->route('reportes.pta')
-                ->with('success', "✅ Reporte PTA enviado correctamente a {$destinatario}.");
+                ->with('success', "Reporte PTA enviado correctamente a: " . implode(', ', $enviados) . ".");
+        }
+
+        if (!empty($enviados)) {
+            return redirect()->route('reportes.pta')
+                ->with('error', "Enviado parcialmente a: " . implode(', ', $enviados) . ". Errores: " . implode(' | ', $errores));
         }
 
         return redirect()->route('reportes.pta')
-            ->with('error', "❌ No se pudo enviar el reporte: {$mensajeError}");
+            ->with('error', "No se pudo enviar el reporte: " . implode(' | ', $errores));
     }
 }

@@ -258,6 +258,8 @@
 
 .envio-pta-table-wrap {
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: 297px;   /* ~5 filas (aprox 55px/fila + 47px thead) */
     border-radius: 8px;
     border: 2px solid #03396640;
 }
@@ -284,6 +286,11 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     white-space: nowrap;
+    /* thead fijo al hacer scroll vertical */
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: var(--azul-primario);
 }
 
 .envio-pta-table th:first-child {
@@ -370,4 +377,81 @@
     padding: 40px 0;
     font-size: 14px;
     font-family: var(--font);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BARRA DE FILTROS DE LOGS
+═══════════════════════════════════════════════════════════════ */
+
+.logs-filtros {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 18px;
+    padding: 16px 18px;
+    background: var(--azul-claro);
+    border: 2px solid #03396650;
+    border-radius: 8px;
+}
+
+.logs-filtro-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.logs-filtro-item label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--azul-primario);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-family: var(--font);
+}
+
+.logs-filtro-input {
+    padding: 7px 10px;
+    font-size: 13px;
+    min-width: 130px;
+}
+
+.logs-filtro-ot .logs-filtro-input {
+    min-width: 220px;
+}
+
+.logs-filtro-acciones {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-left: auto;
+}
+
+.logs-btn-limpiar {
+    padding: 8px 16px;
+    background: var(--rojo-accion);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font);
+    white-space: nowrap;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.logs-btn-limpiar:hover {
+    background: var(--rojo-oscuro);
+    transform: scale(1.04);
+}
+
+.logs-contador {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--azul-primario);
+    font-family: var(--font);
+    white-space: nowrap;
+    align-self: flex-end;
+    padding-bottom: 8px;
 }
