@@ -112,11 +112,13 @@ class ManualesPdfController extends Controller
         $allFiles = collect(array_merge($newFiles, $oldFiles))
             ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
             ->map(function($f) use ($proceso) {
+                $rawName = basename($f);
+                $utf8Name = $this->toUtf8($rawName);
                 return [
-                    'nombre' => basename($f),
+                    'nombre' => $utf8Name,
                     'url'    => route('manuales.serve', [
                         'proceso' => $proceso,
-                        'archivo' => basename($f),
+                        'archivo' => $utf8Name,
                     ]),
                 ];
             })
@@ -142,20 +144,35 @@ class ManualesPdfController extends Controller
             abort(422, 'Parámetros inválidos.');
         }
 
-        $filePath = self::BASE_DIR . '/' . $proceso . '/' . $archivo;
+        $dirPath = self::BASE_DIR . '/' . $proceso;
 
         // Fallback
-        if (!Storage::disk('local')->exists($filePath)) {
-            $filePath = self::OLD_BASE_DIR . '/' . $proceso . '/' . $archivo;
+        if (!Storage::disk('local')->exists($dirPath)) {
+            $dirPath = self::OLD_BASE_DIR . '/' . $proceso;
         }
 
-        if (!Storage::disk('local')->exists($filePath)) {
+        if (!Storage::disk('local')->exists($dirPath)) {
+            abort(404, 'Archivo no encontrado.');
+        }
+
+        $files = Storage::disk('local')->files($dirPath);
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivo) {
+                $foundFile = $f;
+                break;
+            }
+        }
+
+        if (!$foundFile) {
             abort(404, 'Archivo no encontrado.');
         }
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk     = Storage::disk('local');
-        $fullPath = $disk->path($filePath);
+        $fullPath = $disk->path($foundFile);
 
         return response()->file($fullPath, [
             'Content-Type'        => 'application/pdf',
@@ -261,16 +278,32 @@ class ManualesPdfController extends Controller
 
         $proceso  = $this->sanitizePath($request->input('proceso'));
         $archivo  = $this->sanitizeFileName($request->input('archivo'));
-        $filePath = self::BASE_DIR . '/' . $proceso . '/' . $archivo;
+        
+        $dirPath = self::BASE_DIR . '/' . $proceso;
+        $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivo) {
+                $foundFile = $f;
+                break;
+            }
+        }
 
-        if (!Storage::disk('local')->exists($filePath)) {
+        if (!$foundFile) {
             // Check fallback for read-only error
-            $oldPath = self::OLD_BASE_DIR . '/' . $proceso . '/' . $archivo;
-            if (Storage::disk('local')->exists($oldPath)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Los manuales antiguos son de solo lectura.',
-                ], 403);
+            $oldDirPath = self::OLD_BASE_DIR . '/' . $proceso;
+            $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
+            foreach ($oldFiles as $f) {
+                $rawName = basename($f);
+                $utf8Name = $this->toUtf8($rawName);
+                if ($utf8Name === $archivo) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Los manuales antiguos son de solo lectura.',
+                    ], 403);
+                }
             }
 
             return response()->json([
@@ -279,7 +312,7 @@ class ManualesPdfController extends Controller
             ], 404);
         }
 
-        Storage::disk('local')->delete($filePath);
+        Storage::disk('local')->delete($foundFile);
         $this->logAction('eliminar_pdf', $proceso, $archivo);
 
         return response()->json([
@@ -343,10 +376,20 @@ class ManualesPdfController extends Controller
         $proceso         = $this->sanitizePath($request->input('proceso'));
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
         $dirPath         = self::BASE_DIR . '/' . $proceso;
-        $oldPath         = $dirPath . '/' . $archivoAnterior;
+        
+        $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivoAnterior) {
+                $foundFile = $f;
+                break;
+            }
+        }
 
-        if (Storage::disk('local')->exists($oldPath)) {
-            Storage::disk('local')->delete($oldPath);
+        if ($foundFile) {
+            Storage::disk('local')->delete($foundFile);
         }
 
         $file         = $request->file('pdf');
@@ -378,7 +421,7 @@ class ManualesPdfController extends Controller
         if (Storage::disk('local')->exists(self::BASE_DIR)) {
             $dirs = Storage::disk('local')->directories(self::BASE_DIR);
             foreach ($dirs as $dir) {
-                $estructura[basename($dir)] = true;
+                $estructura[$this->toUtf8(basename($dir))] = true;
             }
         }
 
@@ -386,7 +429,7 @@ class ManualesPdfController extends Controller
         if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
             $oldDirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
             foreach ($oldDirs as $dir) {
-                $estructura[basename($dir)] = true;
+                $estructura[$this->toUtf8(basename($dir))] = true;
             }
         }
 
@@ -469,13 +512,18 @@ class ManualesPdfController extends Controller
         return $path;
     }
 
-        /**
-     * @param mixed string $name
-     */
     private function sanitizeFileName(string $name): string
     {
-        $name = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', $name);
-        $name = trim($name, '_.');
-        return $name ?: 'archivo.pdf';
+        $name = preg_replace('/[\/\\\\]/', '', $name);
+        $name = preg_replace('/\.\.+/', '', $name);
+        return trim($name) ?: 'archivo.pdf';
+    }
+
+    private function toUtf8(string $string): string
+    {
+        if (!mb_check_encoding($string, 'UTF-8')) {
+            return mb_convert_encoding($string, 'UTF-8', 'Windows-1252');
+        }
+        return $string;
     }
 }

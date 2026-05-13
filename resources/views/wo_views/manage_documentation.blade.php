@@ -195,7 +195,7 @@
                         $isReady = true;
                         $otLabel = "OT " . $otActiva->id . ($otActiva->moldura ? " - " . $otActiva->moldura->nombre : "");
                         // Normalización básica para coincidir con el controlador
-                        $normalizedOt = trim(preg_replace('/\s+/', ' ', preg_replace('/\s*-\s*/', ' - ', mb_strtoupper(str_replace(['—', '–', "\xc2\xa0"], '-', $otLabel)))));
+                        $normalizedOt = trim(preg_replace('/\s+/', ' ', mb_strtoupper(str_replace(['—', '–', "\xc2\xa0"], '-', $otLabel))));
                         
                         $param1Name = $normalizedOt;
                         $param2Name = $claseActiva ? $claseActiva->nombre : $claseSeleccionadaId;

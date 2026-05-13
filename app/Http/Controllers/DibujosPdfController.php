@@ -133,12 +133,14 @@ class DibujosPdfController extends Controller
         $allFiles = collect(array_merge($newFiles, $oldFiles))
             ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
             ->map(function($f) use ($ot, $clase) {
+                $rawName = basename($f);
+                $utf8Name = $this->toUtf8($rawName);
                 return [
-                    'nombre' => basename($f),
+                    'nombre' => $utf8Name,
                     'url'    => route('dibujos.serve', [
                         'ot'     => $ot,
                         'clase'  => $clase,
-                        'archivo'=> basename($f),
+                        'archivo'=> $utf8Name,
                     ]),
                 ];
             })
@@ -169,20 +171,33 @@ class DibujosPdfController extends Controller
             abort(422, 'Parámetros inválidos.');
         }
 
-        $filePath = self::BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
-        
-        // Fallback al directorio viejo si no existe en el nuevo
-        if (!Storage::disk('local')->exists($filePath)) {
-            $filePath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
+        $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
+        if (!Storage::disk('local')->exists($dirPath)) {
+            $dirPath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
         }
 
-        if (!Storage::disk('local')->exists($filePath)) {
+        if (!Storage::disk('local')->exists($dirPath)) {
+            abort(404, 'Archivo no encontrado.');
+        }
+
+        $files = Storage::disk('local')->files($dirPath);
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivo) {
+                $foundFile = $f;
+                break;
+            }
+        }
+
+        if (!$foundFile) {
             abort(404, 'Archivo no encontrado.');
         }
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk     = Storage::disk('local');
-        $fullPath = $disk->path($filePath);
+        $fullPath = $disk->path($foundFile);
 
         return response()->file($fullPath, [
             'Content-Type'        => 'application/pdf',
@@ -316,16 +331,33 @@ class DibujosPdfController extends Controller
         $ot      = $this->normalizeOTName($this->sanitizePath($request->input('ot')));
         $clase   = $this->sanitizePath($request->input('clase'));
         $archivo = $this->sanitizeFileName($request->input('archivo'));
-        $filePath = self::BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
+        
+        $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
+        $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
+        
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivo) {
+                $foundFile = $f;
+                break;
+            }
+        }
 
-        if (!Storage::disk('local')->exists($filePath)) {
+        if (!$foundFile) {
             // Si no existe en el nuevo, verificamos si existe en el viejo para dar error de solo lectura
-            $oldPath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
-            if (Storage::disk('local')->exists($oldPath)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Los archivos del directorio antiguo son de solo lectura y no pueden ser eliminados.',
-                ], 403);
+            $oldDirPath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
+            $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
+            foreach ($oldFiles as $f) {
+                $rawName = basename($f);
+                $utf8Name = $this->toUtf8($rawName);
+                if ($utf8Name === $archivo) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Los archivos del directorio antiguo son de solo lectura y no pueden ser eliminados.',
+                    ], 403);
+                }
             }
 
             return response()->json([
@@ -334,7 +366,7 @@ class DibujosPdfController extends Controller
             ], 404);
         }
 
-        Storage::disk('local')->delete($filePath);
+        Storage::disk('local')->delete($foundFile);
         $this->logAction('eliminar_pdf', $ot . '/' . $clase, $archivo);
 
         return response()->json([
@@ -454,11 +486,21 @@ class DibujosPdfController extends Controller
         $clase           = $this->sanitizePath($request->input('clase'));
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
         $dirPath         = self::BASE_DIR . '/' . $ot . '/' . $clase;
-        $oldPath         = $dirPath . '/' . $archivoAnterior;
+        
+        $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivoAnterior) {
+                $foundFile = $f;
+                break;
+            }
+        }
 
         // Eliminar el archivo anterior si existe
-        if (Storage::disk('local')->exists($oldPath)) {
-            Storage::disk('local')->delete($oldPath);
+        if ($foundFile) {
+            Storage::disk('local')->delete($foundFile);
         }
 
         $file         = $request->file('pdf');
@@ -495,9 +537,9 @@ class DibujosPdfController extends Controller
         if (Storage::disk('local')->exists(self::BASE_DIR)) {
             $otDirs = Storage::disk('local')->directories(self::BASE_DIR);
             foreach ($otDirs as $otDir) {
-                $otName = basename($otDir);
+                $otName = $this->toUtf8(basename($otDir));
                 $claseDirs = Storage::disk('local')->directories($otDir);
-                $estructura[$otName] = array_map('basename', $claseDirs);
+                $estructura[$otName] = array_map(fn($d) => $this->toUtf8(basename($d)), $claseDirs);
             }
         }
 
@@ -505,8 +547,8 @@ class DibujosPdfController extends Controller
         if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
             $oldOtDirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
             foreach ($oldOtDirs as $otDir) {
-                $otName = basename($otDir);
-                $claseDirs = array_map('basename', Storage::disk('local')->directories($otDir));
+                $otName = $this->toUtf8(basename($otDir));
+                $claseDirs = array_map(fn($d) => $this->toUtf8(basename($d)), Storage::disk('local')->directories($otDir));
                 
                 if (isset($estructura[$otName])) {
                     $estructura[$otName] = array_unique(array_merge($estructura[$otName], $claseDirs));
@@ -559,15 +601,23 @@ class DibujosPdfController extends Controller
         return $path;
     }
 
-    /**
-     * Sanitiza el nombre de un archivo PDF.
-     */
     private function sanitizeFileName(string $name): string
     {
-        // Solo permitir caracteres seguros en nombres de archivo
-        $name = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', $name);
-        $name = trim($name, '_.');
-        return $name ?: 'archivo.pdf';
+        // Evitar path traversal pero permitir acentos, paréntesis, espacios y otros caracteres seguros
+        $name = preg_replace('/[\/\\\\]/', '', $name);
+        $name = preg_replace('/\.\.+/', '', $name);
+        return trim($name) ?: 'archivo.pdf';
+    }
+
+    /**
+     * Convierte una cadena a UTF-8 si no lo está (e.g. nombres de archivos en Windows CP1252)
+     */
+    private function toUtf8(string $string): string
+    {
+        if (!mb_check_encoding($string, 'UTF-8')) {
+            return mb_convert_encoding($string, 'UTF-8', 'Windows-1252');
+        }
+        return $string;
     }
 
     private function normalizeOTName(?string $name): string
@@ -577,8 +627,6 @@ class DibujosPdfController extends Controller
         $name = str_replace(['—', '–', "\xc2\xa0"], '-', $name);
         // Todo a mayúsculas para evitar problemas de case-sensitivity
         $name = mb_strtoupper($name, 'UTF-8');
-        // Estandarizar guiones (asegurar espacio alrededor si parece ser el separador principal)
-        $name = preg_replace('/\s*-\s*/', ' - ', $name);
         // Eliminar espacios múltiples
         $name = preg_replace('/\s+/', ' ', $name);
         return trim($name);

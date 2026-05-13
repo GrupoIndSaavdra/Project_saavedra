@@ -129,11 +129,13 @@ class AyudasVisualesFundicionPdfController extends Controller
         $allFiles = collect($allRawFiles)
             ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
             ->map(function($f) use ($clase) {
+                $rawName = basename($f);
+                $utf8Name = $this->toUtf8($rawName);
                 return [
-                    'nombre' => basename($f),
+                    'nombre' => $utf8Name,
                     'url'    => route('ayudas_fundicion.serve', [
                         'clase'   => $clase,
-                        'archivo' => basename($f),
+                        'archivo' => $utf8Name,
                     ]),
                 ];
             })
@@ -159,28 +161,35 @@ class AyudasVisualesFundicionPdfController extends Controller
             abort(422, 'Parámetros inválidos.');
         }
 
-        // Intentar en las tres rutas posibles
-        $candidates = [
-            self::BASE_DIR     . '/' . $clase . '/' . $archivo,
-            self::BASE_DIR     . '/' . $clase . '/Fundicion/' . $archivo,
-            self::OLD_BASE_DIR . '/' . $clase . '/Fundicion/' . $archivo,
+        // Buscar en los tres posibles directorios
+        $candidateDirs = [
+            self::BASE_DIR     . '/' . $clase,
+            self::BASE_DIR     . '/' . $clase . '/Fundicion',
+            self::OLD_BASE_DIR . '/' . $clase . '/Fundicion',
         ];
 
-        $filePath = null;
-        foreach ($candidates as $candidate) {
-            if (Storage::disk('local')->exists($candidate)) {
-                $filePath = $candidate;
-                break;
+        $foundFile = null;
+        foreach ($candidateDirs as $dir) {
+            if (Storage::disk('local')->exists($dir)) {
+                $files = Storage::disk('local')->files($dir);
+                foreach ($files as $f) {
+                    $rawName = basename($f);
+                    $utf8Name = $this->toUtf8($rawName);
+                    if ($utf8Name === $archivo) {
+                        $foundFile = $f;
+                        break 2;
+                    }
+                }
             }
         }
 
-        if (!$filePath) {
+        if (!$foundFile) {
             abort(404, 'Archivo no encontrado.');
         }
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk     = Storage::disk('local');
-        $fullPath = $disk->path($filePath);
+        $fullPath = $disk->path($foundFile);
 
         return response()->file($fullPath, [
             'Content-Type'        => 'application/pdf',
@@ -288,18 +297,25 @@ class AyudasVisualesFundicionPdfController extends Controller
         $clase   = $this->sanitizePath($request->input('clase'));
         $archivo = $this->sanitizeFileName($request->input('archivo'));
 
-        // Buscar en las tres posibles ubicaciones
-        $candidates = [
-            self::BASE_DIR     . '/' . $clase . '/' . $archivo,
-            self::BASE_DIR     . '/' . $clase . '/Fundicion/' . $archivo,
-            self::OLD_BASE_DIR . '/' . $clase . '/Fundicion/' . $archivo,
+        // Buscar en las tres posibles ubicaciones (directorios)
+        $candidateDirs = [
+            self::BASE_DIR     . '/' . $clase,
+            self::BASE_DIR     . '/' . $clase . '/Fundicion',
+            self::OLD_BASE_DIR . '/' . $clase . '/Fundicion',
         ];
 
         $found = null;
-        foreach ($candidates as $candidate) {
-            if (Storage::disk('local')->exists($candidate)) {
-                $found = $candidate;
-                break;
+        foreach ($candidateDirs as $dir) {
+            if (Storage::disk('local')->exists($dir)) {
+                $files = Storage::disk('local')->files($dir);
+                foreach ($files as $f) {
+                    $rawName = basename($f);
+                    $utf8Name = $this->toUtf8($rawName);
+                    if ($utf8Name === $archivo) {
+                        $found = $f;
+                        break 2;
+                    }
+                }
             }
         }
 
@@ -442,10 +458,20 @@ class AyudasVisualesFundicionPdfController extends Controller
         $clase           = $this->sanitizePath($request->input('clase'));
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
         $dirPath         = self::BASE_DIR . '/' . $clase;
-        $oldPath         = $dirPath . '/' . $archivoAnterior;
+        
+        $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivoAnterior) {
+                $foundFile = $f;
+                break;
+            }
+        }
 
-        if (Storage::disk('local')->exists($oldPath)) {
-            Storage::disk('local')->delete($oldPath);
+        if ($foundFile) {
+            Storage::disk('local')->delete($foundFile);
         }
 
         $file         = $request->file('pdf');
@@ -478,7 +504,7 @@ class AyudasVisualesFundicionPdfController extends Controller
         if (Storage::disk('local')->exists(self::BASE_DIR)) {
             $claseDirs = Storage::disk('local')->directories(self::BASE_DIR);
             foreach ($claseDirs as $claseDir) {
-                $claseName = basename($claseDir);
+                $claseName = $this->toUtf8(basename($claseDir));
                 // Detectar como existente si tiene archivos directos O tiene la subcarpeta /Fundicion (legacy)
                 $hasDirectFiles  = count(Storage::disk('local')->files($claseDir)) > 0;
                 $hasLegacySubDir = Storage::disk('local')->exists($claseDir . '/Fundicion');
@@ -495,7 +521,7 @@ class AyudasVisualesFundicionPdfController extends Controller
         if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
             $oldClassDirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
             foreach ($oldClassDirs as $oldClaseDir) {
-                $claseName = basename($oldClaseDir);
+                $claseName = $this->toUtf8(basename($oldClaseDir));
                 if (!isset($estructura[$claseName])) {
                     $estructura[$claseName] = true;
                 }
@@ -546,13 +572,18 @@ class AyudasVisualesFundicionPdfController extends Controller
         return $path;
     }
 
-        /**
-     * @param mixed string $name
-     */
     private function sanitizeFileName(string $name): string
     {
-        $name = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', $name);
-        $name = trim($name, '_.');
-        return $name ?: 'archivo.pdf';
+        $name = preg_replace('/[\/\\\\]/', '', $name);
+        $name = preg_replace('/\.\.+/', '', $name);
+        return trim($name) ?: 'archivo.pdf';
+    }
+
+    private function toUtf8(string $string): string
+    {
+        if (!mb_check_encoding($string, 'UTF-8')) {
+            return mb_convert_encoding($string, 'UTF-8', 'Windows-1252');
+        }
+        return $string;
     }
 }

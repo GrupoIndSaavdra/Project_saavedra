@@ -132,12 +132,14 @@ class AyudasVisualesPdfController extends Controller
         $allFiles = collect(array_merge($newFiles, $oldFiles))
             ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
             ->map(function($f) use ($proceso, $clase) {
+                $rawName = basename($f);
+                $utf8Name = $this->toUtf8($rawName);
                 return [
-                    'nombre' => basename($f),
+                    'nombre' => $utf8Name,
                     'url'    => route('ayudas.serve', [
                         'proceso' => $proceso,
                         'clase'   => $clase,
-                        'archivo' => basename($f),
+                        'archivo' => $utf8Name,
                     ]),
                 ];
             })
@@ -165,20 +167,35 @@ class AyudasVisualesPdfController extends Controller
             abort(422, 'Parámetros inválidos.');
         }
 
-        $filePath = self::BASE_DIR . '/' . $clase . '/' . $proceso . '/' . $archivo;
+        $dirPath = self::BASE_DIR . '/' . $clase . '/' . $proceso;
 
         // Fallback
-        if (!Storage::disk('local')->exists($filePath)) {
-            $filePath = self::OLD_BASE_DIR . '/' . $clase . '/' . $proceso . '/' . $archivo;
+        if (!Storage::disk('local')->exists($dirPath)) {
+            $dirPath = self::OLD_BASE_DIR . '/' . $clase . '/' . $proceso;
         }
 
-        if (!Storage::disk('local')->exists($filePath)) {
+        if (!Storage::disk('local')->exists($dirPath)) {
+            abort(404, 'Archivo no encontrado.');
+        }
+
+        $files = Storage::disk('local')->files($dirPath);
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivo) {
+                $foundFile = $f;
+                break;
+            }
+        }
+
+        if (!$foundFile) {
             abort(404, 'Archivo no encontrado.');
         }
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk     = Storage::disk('local');
-        $fullPath = $disk->path($filePath);
+        $fullPath = $disk->path($foundFile);
 
         return response()->file($fullPath, [
             'Content-Type'        => 'application/pdf',
@@ -293,16 +310,33 @@ class AyudasVisualesPdfController extends Controller
         $proceso  = $this->sanitizePath($request->input('proceso'));
         $clase    = $this->sanitizePath($request->input('clase'));
         $archivo  = $this->sanitizeFileName($request->input('archivo'));
-        $filePath = self::BASE_DIR . '/' . $clase . '/' . $proceso . '/' . $archivo;
+        
+        $dirPath = self::BASE_DIR . '/' . $clase . '/' . $proceso;
+        $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
+        
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivo) {
+                $foundFile = $f;
+                break;
+            }
+        }
 
-        if (!Storage::disk('local')->exists($filePath)) {
+        if (!$foundFile) {
             // Fallback for read-only error
-            $oldPath = self::OLD_BASE_DIR . '/' . $clase . '/' . $proceso . '/' . $archivo;
-            if (Storage::disk('local')->exists($oldPath)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Las ayudas visuales antiguas son de solo lectura.',
-                ], 403);
+            $oldDirPath = self::OLD_BASE_DIR . '/' . $clase . '/' . $proceso;
+            $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
+            foreach ($oldFiles as $f) {
+                $rawName = basename($f);
+                $utf8Name = $this->toUtf8($rawName);
+                if ($utf8Name === $archivo) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Las ayudas visuales antiguas son de solo lectura.',
+                    ], 403);
+                }
             }
 
             return response()->json([
@@ -311,7 +345,7 @@ class AyudasVisualesPdfController extends Controller
             ], 404);
         }
 
-        Storage::disk('local')->delete($filePath);
+        Storage::disk('local')->delete($foundFile);
         $this->logAction('eliminar_pdf', $clase . '/' . $proceso, $archivo);
 
         return response()->json([
@@ -428,10 +462,20 @@ class AyudasVisualesPdfController extends Controller
         $clase           = $this->sanitizePath($request->input('clase'));
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
         $dirPath         = self::BASE_DIR . '/' . $clase . '/' . $proceso;
-        $oldPath         = $dirPath . '/' . $archivoAnterior;
+        
+        $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivoAnterior) {
+                $foundFile = $f;
+                break;
+            }
+        }
 
-        if (Storage::disk('local')->exists($oldPath)) {
-            Storage::disk('local')->delete($oldPath);
+        if ($foundFile) {
+            Storage::disk('local')->delete($foundFile);
         }
 
         $file         = $request->file('pdf');
@@ -466,13 +510,13 @@ class AyudasVisualesPdfController extends Controller
         if (Storage::disk('local')->exists(self::BASE_DIR)) {
             $dirs = Storage::disk('local')->directories(self::BASE_DIR);
             foreach ($dirs as $cDir) {
-                $cName = basename($cDir); // Clase
+                $cName = $this->toUtf8(basename($cDir)); // Clase
                 $pDirs = Storage::disk('local')->directories($cDir);
                 if (empty($pDirs)) {
                     $estructura[$cName] = [];
                 } else {
                     foreach ($pDirs as $pDir) {
-                        $pName = basename($pDir); // Proceso
+                        $pName = $this->toUtf8(basename($pDir)); // Proceso
                         $estructura[$cName][] = $pName;
                     }
                 }
@@ -483,7 +527,7 @@ class AyudasVisualesPdfController extends Controller
         if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
             $dirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
             foreach ($dirs as $cDir) {
-                $cName = basename($cDir);
+                $cName = $this->toUtf8(basename($cDir));
                 $pDirs = Storage::disk('local')->directories($cDir);
                 if (empty($pDirs)) {
                     if (!isset($estructura[$cName])) {
@@ -491,7 +535,7 @@ class AyudasVisualesPdfController extends Controller
                     }
                 } else {
                     foreach ($pDirs as $pDir) {
-                        $pName = basename($pDir);
+                        $pName = $this->toUtf8(basename($pDir));
                         if (!isset($estructura[$cName]) || !in_array($pName, $estructura[$cName])) {
                             $estructura[$cName][] = $pName;
                         }
@@ -549,8 +593,16 @@ class AyudasVisualesPdfController extends Controller
      */
     private function sanitizeFileName(string $name): string
     {
-        $name = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', $name);
-        $name = trim($name, '_.');
-        return $name ?: 'archivo.pdf';
+        $name = preg_replace('/[\/\\\\]/', '', $name);
+        $name = preg_replace('/\.\.+/', '', $name);
+        return trim($name) ?: 'archivo.pdf';
+    }
+
+    private function toUtf8(string $string): string
+    {
+        if (!mb_check_encoding($string, 'UTF-8')) {
+            return mb_convert_encoding($string, 'UTF-8', 'Windows-1252');
+        }
+        return $string;
     }
 }

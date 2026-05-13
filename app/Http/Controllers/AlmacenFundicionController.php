@@ -140,13 +140,14 @@ class AlmacenFundicionController extends Controller
                 $fNorm = str_replace('\\', '/', $f);
                 $dirPathNorm = str_replace('\\', '/', $dirPath);
                 $relName = ltrim(str_replace($dirPathNorm, '', $fNorm), '/');
+                $utf8RelName = $this->toUtf8($relName);
 
                 return [
-                    'nombre' => $relName,
+                    'nombre' => $utf8RelName,
                     'tipo' => 'dibujo',
                     'url' => route('almacen.fundicion.serve', [
                         'ot' => $ot,
-                        'archivo' => $relName,
+                        'archivo' => $utf8RelName,
                         'tipo' => 'dibujo',
                     ]),
                 ];
@@ -161,13 +162,14 @@ class AlmacenFundicionController extends Controller
                     $fNorm = str_replace('\\', '/', $f);
                     $dirPathNorm = str_replace('\\', '/', $ayudasDirPath);
                     $relName = ltrim(str_replace($dirPathNorm, '', $fNorm), '/');
+                    $utf8RelName = $this->toUtf8($relName);
 
                     return [
-                        'nombre' => $relName,
+                        'nombre' => $utf8RelName,
                         'tipo' => 'ayuda',
                         'url' => route('almacen.fundicion.serve', [
                             'ot' => $ot,
-                            'archivo' => $relName,
+                            'archivo' => $utf8RelName,
                             'tipo' => 'ayuda',
                         ]),
                     ];
@@ -207,20 +209,37 @@ class AlmacenFundicionController extends Controller
             abort(422, 'Parámetros inválidos.');
         }
 
-        if ($tipo === 'ayuda') {
-            // $archivo ya contiene "Clase/archivo.pdf" si es necesario
-            $filePath = self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales/' . $archivo;
-        } else {
-            $filePath = self::ALMACEN_DIR . '/' . $ot . '/' . $archivo;
+        $baseDir = ($tipo === 'ayuda') 
+            ? self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales'
+            : self::ALMACEN_DIR . '/' . $ot;
+
+        if (!Storage::disk('local')->exists($baseDir)) {
+            abort(404, 'Directorio no encontrado.');
         }
 
-        if (!Storage::disk('local')->exists($filePath)) {
+        $files = Storage::disk('local')->allFiles($baseDir);
+        $foundFile = null;
+        foreach ($files as $f) {
+            $fNorm = str_replace('\\', '/', $f);
+            $baseDirNorm = str_replace('\\', '/', $baseDir);
+            $relName = ltrim(str_replace($baseDirNorm, '', $fNorm), '/');
+            
+            $utf8RelName = $this->toUtf8($relName);
+            if ($utf8RelName === $archivo) {
+                if ($tipo === 'dibujo' && strpos($relName, 'ayudas_visuales/') === 0) continue;
+                
+                $foundFile = $f;
+                break;
+            }
+        }
+
+        if (!$foundFile) {
             abort(404, 'Archivo no encontrado en el directorio de Almacén.');
         }
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk = Storage::disk('local');
-        $fullPath = $disk->path($filePath);
+        $fullPath = $disk->path($foundFile);
 
         return response()->file($fullPath, [
             'Content-Type' => 'application/pdf',
@@ -252,8 +271,15 @@ class AlmacenFundicionController extends Controller
     {
         $name = preg_replace('/\.\.+/', '', $name);
         $name = preg_replace('/[\/\\\\]/', '', $name);
-        $name = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', $name);
-        return trim($name, '_.') ?: 'archivo.pdf';
+        return trim($name) ?: 'archivo.pdf';
+    }
+
+    private function toUtf8(string $string): string
+    {
+        if (!mb_check_encoding($string, 'UTF-8')) {
+            return mb_convert_encoding($string, 'UTF-8', 'Windows-1252');
+        }
+        return $string;
     }
 
     // =========================================================================

@@ -323,18 +323,19 @@ class DibujosFundicionPdfController extends Controller
         $allFiles = collect($files)
             ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
             ->map(function ($f) use ($ot, $clase, $newClasePath, $oldClasePath, $newRootPath, $oldRootPath) {
-                $nombre = basename($f);
+                $rawName = basename($f);
+                $utf8Name = $this->toUtf8($rawName);
                 $fullPath = $f;
 
                 // Determinar si el archivo está en la raíz o en una clase para generar la URL de servicio correcta
-                $esRaiz = (strpos($fullPath, $newRootPath . '/' . $nombre) !== false || strpos($fullPath, $oldRootPath . '/' . $nombre) !== false);
+                $esRaiz = (strpos($fullPath, $newRootPath . '/' . $rawName) !== false || strpos($fullPath, $oldRootPath . '/' . $rawName) !== false);
 
                 return [
-                    'nombre' => $nombre,
+                    'nombre' => $utf8Name,
                     'url' => route('fundicion.serve', [
                         'ot' => $ot,
                         'clase' => $esRaiz ? '--' : $clase,
-                        'archivo' => $nombre,
+                        'archivo' => $utf8Name,
                     ]),
                     'es_raiz' => $esRaiz
                 ];
@@ -365,24 +366,39 @@ class DibujosFundicionPdfController extends Controller
 
         // Si la clase es '--', buscamos en la raíz de la OT
         if ($clase === '--' || empty($clase)) {
-            $filePath = self::BASE_DIR . '/' . $ot . '/' . $archivo;
-            if (!Storage::disk('local')->exists($filePath)) {
-                $filePath = self::OLD_BASE_DIR . '/' . $ot . '/' . $archivo;
+            $dirPath = self::BASE_DIR . '/' . $ot;
+            if (!Storage::disk('local')->exists($dirPath)) {
+                $dirPath = self::OLD_BASE_DIR . '/' . $ot;
             }
         } else {
-            $filePath = self::BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
-            if (!Storage::disk('local')->exists($filePath)) {
-                $filePath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
+            $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
+            if (!Storage::disk('local')->exists($dirPath)) {
+                $dirPath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
             }
         }
 
-        if (!Storage::disk('local')->exists($filePath)) {
+        if (!Storage::disk('local')->exists($dirPath)) {
+            abort(404, 'Archivo no encontrado.');
+        }
+
+        $files = Storage::disk('local')->files($dirPath);
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivo) {
+                $foundFile = $f;
+                break;
+            }
+        }
+
+        if (!$foundFile) {
             abort(404, 'Archivo no encontrado.');
         }
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk = Storage::disk('local');
-        $fullPath = $disk->path($filePath);
+        $fullPath = $disk->path($foundFile);
 
         return response()->file($fullPath, [
             'Content-Type' => 'application/pdf',
@@ -732,19 +748,35 @@ class DibujosFundicionPdfController extends Controller
         $ot = $this->sanitizePath($request->input('ot'));
         $clase = $this->sanitizePath($request->input('clase'));
         $archivo = $this->sanitizeFileName($request->input('archivo'));
-        $filePath = ($clase === '--')
-            ? self::BASE_DIR . '/' . $ot . '/' . $archivo
-            : self::BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
+        $dirPath = ($clase === '--')
+            ? self::BASE_DIR . '/' . $ot
+            : self::BASE_DIR . '/' . $ot . '/' . $clase;
 
-        if (!Storage::disk('local')->exists($filePath)) {
-            $oldPath = ($clase === '--')
-                ? self::OLD_BASE_DIR . '/' . $ot . '/' . $archivo
-                : self::OLD_BASE_DIR . '/' . $ot . '/' . $clase . '/' . $archivo;
-            if (Storage::disk('local')->exists($oldPath)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Los archivos antiguos son de solo lectura.',
-                ], 403);
+        $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivo) {
+                $foundFile = $f;
+                break;
+            }
+        }
+
+        if (!$foundFile) {
+            $oldDirPath = ($clase === '--')
+                ? self::OLD_BASE_DIR . '/' . $ot
+                : self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
+            $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
+            foreach ($oldFiles as $f) {
+                $rawName = basename($f);
+                $utf8Name = $this->toUtf8($rawName);
+                if ($utf8Name === $archivo) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Los archivos antiguos son de solo lectura.',
+                    ], 403);
+                }
             }
 
             return response()->json([
@@ -753,7 +785,7 @@ class DibujosFundicionPdfController extends Controller
             ], 404);
         }
 
-        Storage::disk('local')->delete($filePath);
+        Storage::disk('local')->delete($foundFile);
         $this->logAction('eliminar_pdf', $ot . '/' . $clase, $archivo);
 
         return response()->json([
@@ -862,10 +894,20 @@ class DibujosFundicionPdfController extends Controller
         $clase = $this->sanitizePath($request->input('clase'));
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
         $dirPath = ($clase === '--') ? self::BASE_DIR . '/' . $ot : self::BASE_DIR . '/' . $ot . '/' . $clase;
-        $oldPath = $dirPath . '/' . $archivoAnterior;
+        
+        $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
+        $foundFile = null;
+        foreach ($files as $f) {
+            $rawName = basename($f);
+            $utf8Name = $this->toUtf8($rawName);
+            if ($utf8Name === $archivoAnterior) {
+                $foundFile = $f;
+                break;
+            }
+        }
 
-        if (Storage::disk('local')->exists($oldPath)) {
-            Storage::disk('local')->delete($oldPath);
+        if ($foundFile) {
+            Storage::disk('local')->delete($foundFile);
         }
 
         $file = $request->file('pdf');
@@ -986,8 +1028,8 @@ class DibujosFundicionPdfController extends Controller
                 $otDirs = Storage::disk('local')->directories($base);
                 foreach ($otDirs as $dir) {
                     $otNameRaw = basename($dir);
-                    $otName = $this->normalizeOTName($otNameRaw);
-                    $clases = array_map('basename', Storage::disk('local')->directories($dir));
+                    $otName = $this->toUtf8($this->normalizeOTName($otNameRaw));
+                    $clases = array_map(fn($d) => $this->toUtf8(basename($d)), Storage::disk('local')->directories($dir));
 
                     // Verificar si hay archivos en la raíz
                     $hasFilesAtRoot = collect(Storage::disk('local')->files($dir))
@@ -1049,14 +1091,19 @@ class DibujosFundicionPdfController extends Controller
         return $path;
     }
 
-    /**
-     * @param mixed string $name
-     */
     private function sanitizeFileName(string $name): string
     {
-        $name = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', $name);
-        $name = trim($name, '_.');
-        return $name ?: 'archivo.pdf';
+        $name = preg_replace('/[\/\\\\]/', '', $name);
+        $name = preg_replace('/\.\.+/', '', $name);
+        return trim($name) ?: 'archivo.pdf';
+    }
+
+    private function toUtf8(string $string): string
+    {
+        if (!mb_check_encoding($string, 'UTF-8')) {
+            return mb_convert_encoding($string, 'UTF-8', 'Windows-1252');
+        }
+        return $string;
     }
 
     /**
@@ -1069,8 +1116,6 @@ class DibujosFundicionPdfController extends Controller
         $name = str_replace(['—', '–', "\xc2\xa0"], '-', $name);
         // Todo a mayúsculas para evitar problemas de case-sensitivity
         $name = mb_strtoupper($name, 'UTF-8');
-        // Estandarizar guiones (asegurar espacio alrededor si parece ser el separador principal)
-        $name = preg_replace('/\s*-\s*/', ' - ', $name);
         // Eliminar espacios múltiples
         $name = preg_replace('/\s+/', ' ', $name);
         return trim($name);

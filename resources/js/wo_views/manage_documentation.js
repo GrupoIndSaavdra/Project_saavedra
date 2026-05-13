@@ -745,8 +745,6 @@ function normalizeOTName(name) {
     let clean = name.replace(/[—–\xA0]/g, '-');
     // Mayúsculas
     clean = clean.toUpperCase();
-    // Estandarizar guiones (espacio alrededor)
-    clean = clean.replace(/\s*-\s*/g, ' - ');
     // Eliminar espacios múltiples
     clean = clean.replace(/\s+/g, ' ');
     return clean.trim();
