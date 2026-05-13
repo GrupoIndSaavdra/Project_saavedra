@@ -44,14 +44,14 @@ class EnvioPtaController extends Controller
         // OTs que tienen al menos una clase con Soldadura PTA
         $otsConPTA = Orden_trabajo::whereHas('clases', function ($q) {
             $q->whereHas('piezas', function ($q2) {
-                $q2->where('proceso', 'Soldadura PTA');
-            });
-        })->with([
+                $q2->where('proceso', '=', 'Soldadura PTA', 'and');
+            }, '>=', 1);
+        }, '>=', 1)->with([
             'moldura',
             'clases' => function ($q) {
                 $q->whereHas('piezas', function ($q2) {
-                    $q2->where('proceso', 'Soldadura PTA');
-                });
+                    $q2->where('proceso', '=', 'Soldadura PTA', 'and');
+                }, '>=', 1);
             }
         ])->orderBy('id', 'desc')->get();
 
@@ -109,9 +109,9 @@ class EnvioPtaController extends Controller
 
         // ── 2. Generar PDF ───────────────────────────────────────────────────
         $piezasPTA = \App\Models\Pieza::query()
-            ->where('id_ot', $otId)
-            ->where('id_clase', $claseId)
-            ->where('proceso', 'Soldadura PTA')
+            ->where('id_ot', '=', $otId, 'and')
+            ->where('id_clase', '=', $claseId, 'and')
+            ->where('proceso', '=', 'Soldadura PTA', 'and')
             ->orderByRaw('CAST(n_pieza AS UNSIGNED) ASC')
             ->orderByRaw("RIGHT(n_pieza, 1) DESC")
             ->get();
@@ -122,8 +122,8 @@ class EnvioPtaController extends Controller
         }
 
         $resultados = PtaResultado::query()
-            ->where('ot_id', $otId)
-            ->whereHas('pieza', fn($q) => $q->where('id_clase', $claseId))
+            ->where('ot_id', '=', $otId, 'and')
+            ->whereHas('pieza', fn($q) => $q->where('id_clase', '=', $claseId, 'and'), '>=', 1)
             ->with(['pieza'])
             ->get()
             ->keyBy('pieza_id');
@@ -132,8 +132,8 @@ class EnvioPtaController extends Controller
         $procesoStringId   = "Soldadura_PTA_{$nombreClaseLimpio}_{$otId}";
 
         $procesoPTA = SoldaduraPTA::query()
-            ->where('id_ot', $otId)
-            ->where('id_proceso', $procesoStringId)
+            ->where('id_ot', '=', $otId, 'and')
+            ->where('id_proceso', '=', $procesoStringId, 'and')
             ->latest()
             ->first();
 

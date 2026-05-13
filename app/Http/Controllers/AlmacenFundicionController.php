@@ -379,7 +379,7 @@ class AlmacenFundicionController extends Controller
 
         // Actualizar estado en historial (Pendiente de modelo)
         $otToUpdate = $data['ot_raw'] ?? $data['ot'];
-        FundicionHistory::where('ot', $otToUpdate)->update(['pre_orden_sent' => true]);
+        FundicionHistory::where('ot', '=', $otToUpdate, 'and')->update(['pre_orden_sent' => true]);
 
         // 5. Enviar por Email
         try {
