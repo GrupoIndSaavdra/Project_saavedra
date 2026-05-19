@@ -423,6 +423,9 @@ Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicio
 
     Route::post('/store-preorden', [\App\Http\Controllers\AlmacenFundicionController::class, 'storePreOrden'])
         ->name('storePreOrden');
+
+    Route::post('/send-email-preorden', [\App\Http\Controllers\AlmacenFundicionController::class, 'sendEmailPreOrden'])
+        ->name('sendEmailPreOrden');
 });
 
 /* ===========================

@@ -185,7 +185,7 @@
         <td class="gen-label">Proveedor</td>
         <td class="gen-value" style="width: 25%;">{{ $data['proveedor'] }}</td>
         <td class="gen-label">Fecha</td>
-        <td class="gen-value" style="width: 14%;">{{ \Carbon\Carbon::parse($data['fecha'])->format('d/m/Y') }}</td>
+        <td class="gen-value" style="width: 14%;">{{ \Carbon\Carbon::parse($data['fecha_creacion'])->format('d/m/Y') }}</td>
         <td class="gen-label">Folio</td>
         <td class="gen-value-folio" style="width: 14%;">{{ $data['folio'] }}</td>
     </tr>
@@ -193,7 +193,7 @@
         <td class="gen-label">Moldura</td>
         <td class="gen-value" colspan="3">{{ $data['moldura'] }}</td>
         <td class="gen-label">Orden de Trabajo</td>
-        <td class="gen-value">{{ $data['ot'] }}</td>
+        <td class="gen-value">{{ preg_replace('/[^0-9]/', '', $data['ot']) ?: $data['ot'] }}</td>
     </tr>
 </table>
 
@@ -215,11 +215,12 @@
                 <td>{{ $fila['tipo_modelo'] }}</td>
                 <td>{{ $fila['impresiones'] }}</td>
                 <td>{{ $fila['cantidad'] }}</td>
+                {{-- clase_nombre ya trae el prefijo correcto: "Templadera [Clase]" o "Modelo [Clase]" --}}
                 <td class="desc-cell">{{ $fila['clase_nombre'] }}</td>
                 <td class="code-cell">{{ $fila['codigo_modelo'] }}</td>
                 @if($index === 0)
                     <td class="date-rowspan" rowspan="{{ count($data['filas']) }}" style="text-align:center; vertical-align:middle;">
-                        {{ !empty($data['fecha_entrega']) ? \Carbon\Carbon::parse($data['fecha_entrega'])->format('d/m/Y') : '' }}
+                        {{ !empty($data['fecha_entrega']) ? \Carbon\Carbon::parse($data['fecha_entrega'])->format('d/m/Y') : 'Llenado manual' }}
                     </td>
                 @endif
             </tr>

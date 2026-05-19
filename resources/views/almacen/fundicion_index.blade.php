@@ -320,13 +320,26 @@
                                                                 <h4 style="margin: 0; color: #334155; font-size: 1.1em;">Control de Modelos</h4>
                                                                 <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9em;">Actualmente, ¿Cuentas con el modelo de esta OT?</p>
                                                             </div>
-                                                            <div style="display: flex; gap: 10px;">
-                                                                <button class="btn-modelo btn-modelo-si" onclick="confirmarModelo('{{ $reg->ot }}')">
-                                                                    Sí, cuento con él
+                                                            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 5px;">
+                                                                <button class="btn-modelo btn-modelo-si" onclick="confirmarModelo('{{ $reg->ot }}')" title="Sí, cuento con el modelo de esta OT">
+                                                                    <img src="{{ asset('images/aprobado.png') }}" alt="Sí">
+                                                                    <span>Tengo el Modelo</span>
                                                                 </button>
-                                                                <button class="btn-modelo btn-modelo-no" onclick="abrirModalPreOrden('{{ $reg->ot }}')">
-                                                                    No, solicitar fabricación
-                                                                </button>
+                                                                @if($reg->pre_orden_sent)
+                                                                    <button class="btn-modelo btn-modelo-edit" onclick="abrirModalPreOrden('{{ $reg->ot }}')" title="Editar información de la preorden existente">
+                                                                        <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
+                                                                        <span>Editar Datos</span>
+                                                                    </button>
+                                                                    <button class="btn-modelo btn-modelo-email" onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}')" title="Enviar pre-orden por correo electrónico">
+                                                                        <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
+                                                                        <span>Enviar Correo</span>
+                                                                    </button>
+                                                                @else
+                                                                    <button class="btn-modelo btn-modelo-no" onclick="abrirModalPreOrden('{{ $reg->ot }}')" title="No cuento con él, generar formato PDF">
+                                                                        <img src="{{ asset('images/pdf.png') }}" alt="PDF">
+                                                                        <span>No, generar formato</span>
+                                                                    </button>
+                                                                @endif
                                                             </div>
                                                         </div>
                                                     </div>
@@ -364,28 +377,27 @@
                 <div id="po-page-1" class="po-page">
                     <form id="formPreOrden">
                         <div class="form-grid">
-                            <div class="form-group">
+                            <div class="form-group po-proveedor-group">
                                 <label for="po-proveedor">Proveedor:</label>
-                                <select id="po-proveedor" name="proveedor" class="form-control" required>
-                                    <option value="SS Metal Foundry, S. de R. L. de C. V." selected>SS Metal Foundry, S. de R. L. de C. V.</option>
-                                </select>
+                                <input type="text" id="po-proveedor" name="proveedor" class="form-control" readonly required
+                                    value="SS Metal Foundry, S. de R. L. de C. V.">
                             </div>
-                            <div class="form-group">
+                            <div class="form-group po-fecha-group">
                                 <label for="po-fecha">Fecha:</label>
                                 <input type="date" id="po-fecha" name="fecha" class="form-control" required
                                     value="{{ date('Y-m-d') }}">
                             </div>
-                            <div class="form-group">
+                            <div class="form-group po-folio-group">
                                 <label for="po-folio">Folio:</label>
                                 <input type="text" id="po-folio" name="folio" class="form-control" readonly
                                     value="MOD-{{ date('Y') }}-0000">
                             </div>
-                            <div class="form-group">
+                            <div class="form-group po-moldura-group">
                                 <label for="po-moldura">Moldura:</label>
                                 <input type="text" id="po-moldura" name="moldura" class="form-control" readonly required>
                             </div>
-                            <div class="form-group">
-                                <label for="po-ot">Orden de Trabajo (OT):</label>
+                            <div class="form-group po-ot-group">
+                                <label for="po-ot">Orden de Trabajo:</label>
                                 <input type="text" id="po-ot" name="ot" class="form-control" readonly required>
                                 <input type="hidden" id="po-ot-raw" name="ot_raw">
                             </div>
@@ -400,10 +412,7 @@
                                         <th style="width: 12%;">Cantidad</th>
                                         <th style="width: 22%;">Descripción</th>
                                         <th style="width: 22%;">Código de Modelo</th>
-                                        <th style="width: 10%;">
-                                            Fecha Entrega
-                                            <div style="font-size: 0.7em; color: #64748b; font-weight: normal; margin-top: 4px;">(Llenado manual)</div>
-                                        </th>
+                                        <th style="width: 12%;">Fecha Entrega</th>
                                         <th style="width: 6%; text-align:center;">Acciones</th>
                                     </tr>
                                 </thead>
@@ -412,7 +421,7 @@
                                 </tbody>
                             </table>
                             <div style="margin-top: 10px; text-align: center;">
-                                <button type="button" id="btn-add-clase-po" class="btn-img-action" onclick="agregarFilaPreOrden()" title="Añadir una nueva clase a la pre-orden" style="display: none;">
+                                <button type="button" id="btn-add-clase-po" class="btn-img-action" onclick="agregarFilaPreOrden()" title="Añadir una nueva clase a la pre-orden" style="display: inline-block;">
                                     <img src="{{ asset('images/anadir.png') }}" alt="Añadir" style="width: 40px;">
                                 </button>
                             </div>
@@ -425,7 +434,7 @@
 
                         <div class="form-actions" style="margin-top: 30px; text-align: center;">
                             <button type="submit" class="btn-save-preorden" id="btn-submit-preorden">
-                                Generar Pre-Orden y Enviar Email
+                                Guardar y Descargar Pre-Orden (Fase 1)
                             </button>
                         </div>
                     </form>
@@ -433,6 +442,66 @@
 
                 {{-- Pestaña 2 eliminada --}}
 
+            </div>
+        </div>
+    </div>
+
+    {{-- ── MODAL: ENVIAR PRE-ORDEN POR CORREO CON ADJUNTOS (FASE 2) ── --}}
+    <div id="modalEnviarPreOrden" class="alm-modal">
+        <div class="alm-modal-content" style="max-width: 1100px;">
+            <div class="alm-modal-header">
+                <div class="div-cerrar">
+                    <button type="button" class="btn-cerrar" onclick="cerrarModalEnviarPreOrden()">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}">
+                    </button>
+                </div>
+                <h3>Enviar Pre-Orden por Correo (4ALM-17 - Fase 2)</h3>
+            </div>
+            <div class="alm-modal-body">
+                <form id="formEnviarPreOrden" enctype="multipart/form-data">
+                    <input type="hidden" id="env-ot" name="ot">
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="env-destinatario">Destinatario(s):</label>
+                        <input type="text" id="env-destinatario" name="destinatario" class="form-control" required value="jaxer020406@gmail.com">
+                        <span style="font-size: 0.8em; color: #64748b; margin-top: 4px;">Separa múltiples correos usando comas (,).</span>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="env-fecha-entrega">Fecha de Entrega:</label>
+                        <input type="date" id="env-fecha-entrega" name="fecha_entrega" class="form-control" required>
+                        <span style="font-size: 0.8em; color: #64748b; margin-top: 4px;">Indica la fecha de entrega acordada para imprimirla en el reporte.</span>
+                    </div>
+
+
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label>Archivos de la OT disponibles para adjuntar:</label>
+                        <div id="env-server-files-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 220px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; justify-items: center;">
+                            <div class="alm-spinner" style="border-top-color: #033966; display: block; margin: 10px auto; grid-column: 1 / -1;"></div>
+                            <span style="text-align: center; color: #64748b; grid-column: 1 / -1;">Cargando archivos de la OT...</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 30px;">
+                        <label class="custom-file-upload-label" style="font-weight: 700; color: #033966; display: block; margin-bottom: 8px;">Adjuntar archivos adicionales desde tu equipo:</label>
+                        <div class="custom-file-dropzone">
+                            <input type="file" id="env-archivos-adicionales" name="archivos_adicionales[]" class="custom-file-input" multiple>
+                            <div class="dropzone-content">
+                                <img src="{{ asset('images/anadir.png') }}" class="dropzone-icon" style="width: 40px; height: 40px; margin-bottom: 8px; object-fit: contain;">
+                                <span class="dropzone-text">Arrastra archivos aquí o haz clic para buscar</span>
+                                <span class="dropzone-subtext">Soporta múltiples archivos PDF o imágenes</span>
+                            </div>
+                        </div>
+                        <div id="env-archivos-adicionales-list" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                    </div>
+
+                    <div class="form-actions" style="text-align: center;">
+                        <button type="submit" class="btn-save-preorden" id="btn-submit-envio" style="background: #005194; box-shadow: 0 4px 15px rgba(0, 81, 148, 0.3);">
+                            Enviar Correo con Adjuntos
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -445,6 +514,7 @@
             confirmarModelo: "{{ route('almacen.fundicion.confirmarModelo') }}",
             getOtData: "{{ route('almacen.fundicion.getOtData') }}",
             storePreOrden: "{{ route('almacen.fundicion.storePreOrden') }}",
+            sendEmailPreOrden: "{{ route('almacen.fundicion.sendEmailPreOrden') }}",
         };
     </script>
 

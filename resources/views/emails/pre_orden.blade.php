@@ -69,7 +69,7 @@
             <ul>
                 <li><strong>Folio:</strong> {{ $data['folio'] }}</li>
                 <li><strong>Proveedor:</strong> {{ $data['proveedor'] }}</li>
-                <li><strong>Fecha:</strong> {{ $data['fecha'] }}</li>
+                <li><strong>Fecha:</strong> {{ $data['fecha_creacion'] }}</li>
                 <li><strong>Moldura:</strong> {{ $data['moldura'] }}</li>
             </ul>
 
