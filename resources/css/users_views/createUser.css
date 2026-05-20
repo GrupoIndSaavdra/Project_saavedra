@@ -4,138 +4,198 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
 }
-/*Estilos para el contenedor del formulario*/
+
+/* Contenedor centrado */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 40px 20px;
+    position: relative;
+    top: 50px;
+}
+
+/* Tarjeta del formulario compacta y elegante */
 .cascading-right {
     box-sizing: border-box;
-    position: absolute;
-    background: #fffb;
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
-    width: 60em;
-    height: 60em;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    width: 100%;
+    max-width: 520px;
     border-radius: 10px;
-    top: 50%;
-    left: 30%;
-    transform: translate(-30%, -50%);
-}
-.lg-saavedra {
+    border: 5px solid #033966;
+    box-shadow: 0 8px 32px rgba(3, 57, 102, 0.2);
+    padding: 2.5rem;
     display: flex;
-    width: 300px;
-    margin: 3em auto;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeInUp 0.4s ease both;
 }
+
+/* Logo */
+.lg-saavedra {
+    width: 180px;
+    margin: 0 auto 1.5rem auto;
+    display: block;
+}
+
+/* Subtítulo */
 .sub-title {
     text-align: center;
-    font-size: 1.8em;
-    color: #404040;
-    font-weight: 100;
+    font-size: 1.5rem;
+    color: #033966;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 2rem;
 }
+
 .form-container {
-    padding: 1rem;
+    width: 100%;
 }
+
+/* Layout del formulario usando CSS Grid */
 .row {
     display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
 }
+
 .col-md-12 {
-    width: 200%;
+    grid-column: span 2;
 }
+
 .col-md-6 {
-    grid-row: 2;
+    grid-column: span 1;
 }
+
+.mb-2 {
+    margin-bottom: 0.75rem;
+}
+
 .form-outline {
     display: flex;
     flex-direction: column;
-    text-align: center;
+    gap: 4px;
 }
+
+/* Inputs y Selects */
 .form-control,
 .form-select {
-    font-size: 1.2em;
-    border-radius: 5px;
+    width: 100%;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 6px;
     outline: none;
     padding: 10px;
-    margin: 10px;
     text-align: center;
-    border: 1px solid #00000033;
-    background: #03396610;
+    border: 2px solid rgba(3, 57, 102, 0.25);
+    background: #ffffff;
+    color: #033966;
+    transition: all 0.3s ease;
 }
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #033966;
+    background: #f0f6fc;
+    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
+}
+
 .form-control:hover,
 .form-select:hover {
-    border: 1px solid #0a8504;
+    border-color: #033966;
+}
 
-}
 .form-label {
-    font-size: 1.2em;
+    font-size: 0.82rem;
     color: #033966;
-    font-weight: 600;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
 }
+
+/* Botón de envío */
 .custom-btn {
-    display: flex;
-    margin: 5rem auto;
+    width: 100%;
     background-color: #033966;
     color: #fff;
-    padding: .8em;
-    border-radius: 5px;
+    padding: 0.8rem;
+    border-radius: 6px;
     border: none;
-    font-size: 1.2em;
-    letter-spacing: 1px;
-    transition: 0.2s;
+    font-size: 1.05rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    margin-top: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.3);
 }
+
 .custom-btn:hover {
-    transform: scale(1.1);
-    background: #0a8504;
-    transition: 0.2s;
+    background-color: #28a745;
+    transform: scale(1.03) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
 }
+
+.custom-btn:active {
+    transform: scale(0.97);
+}
+
+/* Ilustración lateral oculta por defecto para mantenerlo limpio */
 .img-saavedra {
-    position: absolute;
-    z-index: -1;
-    height: 80vh;
-    right: 30rem;
-    top: 8rem;
-    border-radius: 5px;
+    display: none;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* Estilos responsivos */
-@media (max-width: 991.98px) {
-    /* FORMULARIO */
+@media (max-width: 768px) {
+    .container {
+        padding: 20px 10px;
+        top: 20px;
+    }
     .cascading-right {
-        width: 95%;
-        height: auto;
-        top: 50%;
-        left: 7%; 
-        transform: translate(-5%, -50%); 
+        padding: 1.5rem;
+        border-width: 4px;
     }
     .lg-saavedra {
-        width: 45%;
+        width: 140px;
     }
-
     .sub-title {
-        font-size: 1.2em;
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
     }
-
-    .form-label,
+    .row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    .col-md-6 {
+        grid-column: span 2;
+    }
     .form-control,
     .form-select {
-        font-size: 0.8em;
-    }
-    .img-saavedra{
-        display: none;
+        font-size: 0.9rem;
+        padding: 8px;
     }
     .custom-btn {
-    display: flex;
-    margin: 5rem auto;
-    background-color: #033966;
-    color: #fff;
-    padding: .7em;
-    border-radius: 5px;
-    border: none;
-    font-size: 0.8em;
-    letter-spacing: 1px;
-    transition: 0.2s;
-    }
-    .custom-btn{
-        transform: scale(1.1);
-    background: #0a8504;
-    transition: 0.2s;
-        margin: 2rem auto;
+        font-size: 0.95rem;
+        padding: 0.7rem;
     }
 }
