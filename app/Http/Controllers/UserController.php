@@ -26,7 +26,8 @@ class UserController extends Controller
     }
     public function show(){
         $layout = $this->getLayout();
-        return view("processesMaster.users", compact("layout"));
+        $users = User::all();
+        return view("users_views.users", compact("layout", "users"));
     }
     public function create(){
         $layout = auth()->user() && ($this->getLayout() == "layouts.appMaster" || $this->getLayout() == "layouts.appAdmin") ? $this->getLayout() : 'layouts.defaultLayout';
@@ -38,6 +39,45 @@ class UserController extends Controller
     public function store(CreateUserRequest $request){
         $user = User::create($request->validated());
         return redirect()->route('createUser')->with('success', 'Usuario registrado correctamente');
+    }
+
+    public function altaUsuario(HttpRequest $request, $id){
+        $user = User::findOrFail($id);
+        $user->estatus = 1;
+        $user->save();
+        return redirect()->back()->with('success', 'Usuario marcado como activo.');
+    }
+
+    public function bajaUsuario(HttpRequest $request, $id){
+        $user = User::findOrFail($id);
+        $user->estatus = 0;
+        $user->save();
+        return redirect()->back()->with('success', 'Usuario marcado como inactivo.');
+    }
+
+    public function eliminarUsuario(HttpRequest $request, $id){
+        try {
+            $user = User::findOrFail($id);
+            if(auth()->check() && auth()->user()->id == $user->id) {
+                return redirect()->back()->with('error', 'No puedes eliminar tu propio usuario.');
+            }
+            $user->delete();
+            return redirect()->back()->with('success', 'Usuario eliminado correctamente.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->back()->with('error', 'No se puede eliminar el usuario porque tiene registros asociados (o error de base de datos).');
+        }
+    }
+
+    public function updateUsuario(HttpRequest $request, $id){
+        $user = User::findOrFail($id);
+        $data = $request->validate([
+            'nombre' => 'required',
+            'a_paterno' => 'required',
+            'a_materno' => 'required',
+            'perfil' => 'required'
+        ]);
+        $user->update($data);
+        return redirect()->back()->with('success', 'Usuario actualizado correctamente.');
     }
     public function showRecoverPassword(){
         return view('users_views.recoverPassword');

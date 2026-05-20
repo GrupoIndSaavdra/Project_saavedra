@@ -50,7 +50,7 @@ function createTable(moldings, form) {
                 e.preventDefault();
 
                 if (editButton.textContent === "Cancelar") {
-                    editButton.style.background = "#0a8504";
+                    editButton.style.background = "#033966";
                     input.value = molding.nombre;
                     input.disabled = true;
                     form.removeChild(
