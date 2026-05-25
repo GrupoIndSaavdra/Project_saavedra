@@ -1,191 +1,468 @@
-body {
-    font-family: Arial, sans-serif;
+/* =============================================================
+   Gestión de Usuarios — Estilos
+   Basado en el sistema de diseño de processProduction.css
+   ============================================================= */
+
+* {
     margin: 0;
     padding: 0;
-    background-color: #f0f8ff;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
 }
 
-h1 {
-    margin: 20px 0;
-    color: #333;
-    animation: fadeInDown 1s;
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 34px;
+/* ── Variables de diseño (mismo sistema que processProduction) ── */
+:root {
+    --color-primary:       #033966;
+    --color-primary-dim:   #033966;
+    --color-primary-light: #03396610;
+    --color-primary-hover: #022847;
+    --color-success:       #28a745;
+    --color-success-bg:    rgba(40, 167, 69, 0.12);
+    --color-danger:        #9c0300;
+    --color-danger-hover:  #d30400;
+    --color-danger-bg:     rgba(156, 3, 0, 0.10);
+    --color-border:        #033966;
+    --color-text:          #033966;
+    --color-muted:         #5a7a99;
+    --color-row-even:      #f0f6fc;
+    --radius-card:         10px;
+    --radius-btn:          8px;
+    --shadow-btn:          0 4px 15px rgba(3, 57, 102, 0.3);
+    --shadow-card:         0 8px 32px rgba(3, 57, 102, 0.18);
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+/* ── Body con fondo ─────────────────────────────────────────── */
+body {
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+}
+
+/* ── Contenedor principal ───────────────────────────────────── */
+.container1 {
+    width: 94%;
+    max-width: 1400px;
+    margin: 100px auto 60px;
+    background: #ffffff;
+    border-radius: var(--radius-card);
+    border: 5px solid var(--color-border);
+    box-shadow: var(--shadow-card);
+    padding: 32px 36px 40px;
+    animation: fadeInUp 0.4s ease both;
+}
+
+/* ── Encabezado de sección ──────────────────────────────────── */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+    border-bottom: 4px solid var(--color-primary);
+}
+
+.page-header h1 {
+    font-size: 1.7rem;
+    font-weight: 900;
+    color: var(--color-primary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0;
+}
+
+/* Contador de registros */
+.record-count {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: var(--color-primary);
+    padding: 5px 16px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+
+/* ── Alertas (mismo esquema de colores) ─────────────────────── */
+.alert-success,
+.alert-error {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: var(--radius-card);
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 18px;
+    animation: fadeIn 0.4s ease;
+}
+
+.alert-success {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+    border-left: 5px solid var(--color-success);
+}
+
+.alert-error {
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+    border-left: 5px solid var(--color-danger);
+}
+
+/* ── Barra de herramientas ──────────────────────────────────── */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+/* Wrapper del buscador */
+.search-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 220px;
+    max-width: 420px;
+}
+
+.search-wrapper svg {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-primary);
+    pointer-events: none;
+    width: 18px;
+    height: 18px;
+    opacity: 0.7;
 }
 
 .search-input {
-    width: 90%; 
-    max-width: 500px; 
-    padding: 10px; 
-    font-size: 1rem; 
-    border: 1px solid #ccc; 
-    border-radius: 5px; 
-    background-color: #f9f9f9; 
-    color: #333; 
-    outline: none; 
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); 
-    transition: all 0.3s ease; 
+    width: 100%;
+    padding: 8px 14px 8px 40px;
+    font-size: 1em;
+    font-family: "Poppins", sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    border: 5px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background: #ffffff;
+    color: var(--color-primary);
+    outline: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
 }
 
 .search-input:focus {
-    border-color: #007bff; 
+    background: #eaf1f8;
+    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
 }
 
-.container1 {
-    width: 150%; 
-    max-width: 1450px;
-    border-radius: 10px;
-    position: relative; 
-    top: 180px; 
-    margin-left: auto;
-    margin-right: auto;
-    padding: 30px 40px;
-    box-shadow: 20px 20px 80px rgb(0, 0, 0);
-}
-
-.search-container {
-    text-align: center; /* Centra el contenido dentro */
-    margin-top: 20px; /* Ajusta según tu diseño */
-    margin-bottom: 20px; /* Ajusta según tu diseño */
-    animation: fadeIn 1s;
-}
-
-.search-container input[type="text"] {
-    padding: 10px;
-    width: 50%;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    transition: box-shadow 0.3s;
-}
-
-.search-container input[type="text"]:focus {
-    box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+/* Selects de filtro — mismo estilo que .form-control del referencia */
+.role-select-toolbar {
+    padding: 8px 14px;
+    font-size: 1em;
+    font-family: "Poppins", sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    border: 5px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background: var(--color-primary);
+    color: #ffffff;
     outline: none;
-    font-family: arial;
-}
-
-.search-container button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: #fff;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 14px;
-    border: none;
-    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
 }
 
-.search-container button:hover {
-    background-color: #0056b3;
+.role-select-toolbar:focus,
+.role-select-toolbar:hover {
+    background: var(--color-primary-hover);
+    transform: scale(1.02);
+}
+
+/* Botón limpiar filtros */
+.btn-clear-filters {
+    padding: 8px 16px;
+    font-size: 0.9em;
+    font-family: "Poppins", sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border: 5px solid var(--color-primary);
+    border-radius: var(--radius-card);
+    background: #ffffff;
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    white-space: nowrap;
+    text-transform: uppercase;
+}
+
+.btn-clear-filters:hover {
+    background: var(--color-danger);
+    border-color: var(--color-danger);
+    color: #ffffff;
+    transform: scale(1.04);
+    box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3);
+}
+
+.btn-clear-filters:active {
+    transform: scale(0.97);
+}
+
+/* ── Tabla ──────────────────────────────────────────────────── */
+.table-wrapper {
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    overflow-y: auto;
+    max-height: 60vh;
+    border: 5px solid var(--color-border);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.18);
 }
 
 table {
     width: 100%;
-    margin-top: 20px; /* Ajusta según tu diseño */
     border-collapse: collapse;
-    animation: fadeIn 1s;
-    background-color: #fff;
-    text-align: center;
+    font-family: "Poppins", sans-serif;
+    background: #ffffff;
 }
 
+/* Cabecera — idéntica a .table-meta th / .table-title */
 table thead th {
-    background-color: #65b6db8f; 
-    font-weight: bold;
-    font-size: 19px;
+    background: var(--color-primary-dim);
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 14px 16px;
+    text-align: center;
+    border: none;
+    white-space: nowrap;
+    /* Sticky header */
+    position: sticky;
+    top: 0;
+    z-index: 5;
 }
 
-table td, table th {
-    border: 1px solid #ddd; 
-    font-size: 17px;
-    padding: 10px;
+/* Filas del cuerpo */
+table tbody tr {
+    transition: background 0.2s ease;
+    border-bottom: 3px solid var(--color-border);
+}
+
+table tbody tr:nth-child(even) {
+    background: var(--color-row-even);
+}
+
+table tbody tr:nth-child(odd) {
+    background: #ffffff;
 }
 
 table tbody tr:hover {
-    background-color: rgba(56, 59, 61, 0.267); 
-    transition: background-color 0.3s ease; 
+    background: #d0e4f5;
 }
 
-table thead tr:hover {
-    background-color: transparent; 
+table tbody tr:last-child {
+    border-bottom: none;
 }
 
-/* Botones */
-.btn {
-    padding: 5px 10px;
+/* Celdas — idénticas a .table td */
+table td {
+    padding: 13px 16px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text);
+    vertical-align: middle;
+    text-align: center;
     border: none;
-    border-radius: 4px;
-    color: white;
+    border-right: 2px solid rgba(3, 57, 102, 0.12);
+}
+
+table td:last-child {
+    border-right: none;
+}
+
+/* ── Badges de Rol ──────────────────────────────────────────── */
+.badge-rol {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.badge-admin    { background: #033966; color: #ffffff; }
+.badge-operador { background: #0e6db5; color: #ffffff; }
+.badge-master   { background: #6d1a5e; color: #ffffff; }
+.badge-calidad  { background: #057a55; color: #ffffff; }
+.badge-almacen  { background: #9a4a0e; color: #ffffff; }
+.badge-default  { background: #475569; color: #ffffff; }
+
+/* ── Badges de Estatus ──────────────────────────────────────── */
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.badge-status::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.badge-activo {
+    background: rgba(40, 167, 69, 0.15);
+    color: #1a6b33;
+    border: 2px solid #28a745;
+}
+.badge-activo::before   { background: #28a745; }
+
+.badge-inactivo {
+    background: rgba(156, 3, 0, 0.12);
+    color: #9c0300;
+    border: 2px solid #9c0300;
+}
+.badge-inactivo::before { background: #9c0300; }
+
+/* ── Botones de acción (mismo sistema que processProduction) ── */
+.actions-cell {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0;
+    height: 2.4em;
+    padding: 0 1em;
+    border: none;
+    border-radius: var(--radius-btn);
+    font-size: 0.82rem;
+    font-weight: 800;
+    font-family: "Poppins", sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
     cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.role-select {
-    width: 100%; 
-    height: 100%;
-    padding: 5px; 
-    font-weight: bold;
-    font-size: 19px; 
-    border: none; 
-    background-color: transparent;
-    color: #333; 
-    text-align: center; 
-    border-radius: 4px;
-    outline: none; 
-}
-
-/* Elimina los iconos de las flechas en navegadores como IE y Edge */
-.role-select::-ms-expand {
-    display: none;
-}
-
-/* Estilo al enfocar el select (cuando el usuario hace clic o navega con el teclado) */
-.role-select:focus {
-    border-color: #007bff; 
-}
-
-/* Menú Contextual */
-.context-menu {
-    display: none;
-    position: absolute;
-    background-color: #fff;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-    list-style: none;
-    padding: 5px;
-    margin: 0;
-    border-radius: 5px;
-    z-index: 1000; /* Ensures it's above other content */
-}
-
-.context-menu a {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    white-space: nowrap;
     text-decoration: none;
-    color: #333;
-    display: block;
-    padding: 8px 12px;
-    border-bottom: 1px solid #ddd;
 }
 
-.context-menu a:last-child {
-    border-bottom: none; /* Eliminar borde inferior de la última opción */
+/* Activar → color primario, hover verde (igual que .btn-submit) */
+.btn-activate {
+    background: var(--color-primary);
+    color: #ffffff;
+    box-shadow: var(--shadow-btn);
+}
+.btn-activate:hover {
+    background: var(--color-success);
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
 }
 
-/* Efecto hover general */
-#context-menu .menu-item:hover {
-    background-color: rgba(45, 49, 54, 0.274); 
-    color: #111111; 
+/* Inactivar → ámbar */
+.btn-inactivate {
+    background: #b45309;
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(180, 83, 9, 0.3);
+}
+.btn-inactivate:hover {
+    background: #d97706;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(217, 119, 6, 0.4);
 }
 
-/* Efecto hover específico para "Eliminar" */
-#context-menu .eliminar-option:hover {
-    background-color: rgba(238, 114, 92, 0.445);
-    color: #131212; 
+/* Eliminar → igual que .btn-cancel-report */
+.btn-delete {
+    background: var(--color-danger);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3);
+}
+.btn-delete:hover {
+    background: var(--color-danger-hover);
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(156, 3, 0, 0.5);
+}
+
+.btn-action:active {
+    transform: scale(0.97);
+}
+
+/* ── Fila vacía ─────────────────────────────────────────────── */
+.empty-row td {
+    text-align: center;
+    padding: 40px;
+    color: var(--color-muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ── Fecha ──────────────────────────────────────────────────── */
+.date-cell {
+    font-size: 0.88rem;
+    color: var(--color-muted);
+    font-weight: 600;
+}
+
+/* ── Animaciones ────────────────────────────────────────────── */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .container1 {
+        padding: 18px 12px;
+        margin-top: 80px;
+        width: 98%;
+    }
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .search-wrapper {
+        max-width: 100%;
+    }
+    table thead th,
+    table td {
+        font-size: 0.78rem;
+        padding: 10px 8px;
+    }
+    .btn-action {
+        font-size: 0.72rem;
+        padding: 0 0.7em;
+    }
 }

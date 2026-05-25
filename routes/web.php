@@ -58,9 +58,10 @@ Route::controller(UserController::class)->group(function () {
     Route::get('/users/recoverPassword', 'showRecoverPassword')->name('recoverPassword'); //Vista recuperar contraseña
     Route::post('/users/recoverPassword', 'recoverPassword')->name('recover'); //Recuperar contraseña
 
-    // Route::get('/alta-usuario', [UserController::class, 'altaUsuario'])->name('alta_usuario');
-    // Route::get('/baja-usuario', [UserController::class, 'bajaUsuario'])->name('baja_usuario');
-    // Route::get('/eliminar-usuario', [UserController::class, 'eliminarUsuario'])->name('eliminar_usuario');
+    Route::post('/alta-usuario/{id}', 'altaUsuario')->name('alta_usuario');
+    Route::post('/baja-usuario/{id}', 'bajaUsuario')->name('baja_usuario');
+    Route::delete('/eliminar-usuario/{id}', 'eliminarUsuario')->name('eliminar_usuario');
+    Route::post('/users/{id}', 'updateUsuario')->name('update_usuario');
 });
 
 //Grupo de ruta para el controlador MolduraController

@@ -195,8 +195,8 @@ function getRoutes(profile) {
                 {
                     title: "Usuarios",
                     routes: [
-                        // ['users', 'Ver usuarios'],
-                        // ["createUser", "Registrar usuario"],
+                        ['users', 'Ver usuarios'],
+                        ["createUser", "Registrar usuario"],
                         ["recoverPassword", "Recuperar contraseña"],
                     ],
                 },

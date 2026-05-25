@@ -29,8 +29,19 @@ class LoginController extends Controller
                 'action' => 'Intento de Login Fallido',
                 'details' => 'Intento de inicio de sesión fallido por matrícula o contraseña incorrecta.',
             ]);
-            return redirect()->to('/login')->withErrors('Matricula y/o contraseña incorrecta');
+            return redirect()->to('/login')->withErrors('Matrícula y/o contraseña incorrecta.');
         }
+
+        // Bloquear acceso a usuarios inactivos
+        if (!$user->estatus) {
+            SystemLog::create([
+                'user_matricula' => $user->matricula,
+                'action' => 'Intento de Login Bloqueado',
+                'details' => 'El usuario intentó iniciar sesión pero su cuenta está inactiva.',
+            ]);
+            return redirect()->to('/login')->withErrors('Tu cuenta está inactiva. Contacta al administrador del sistema.');
+        }
+
         Auth::login($user);
         return $this->authenticated($request, $user);
     }
