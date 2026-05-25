@@ -19,13 +19,14 @@ class FundicionHistory extends Model
         'almacen_archivos',
         'tiene_modelo',
         'pre_orden_sent',
+        'calidad_revision_status',
     ];
 
     protected $casts = [
-        'alert_sent_at'    => 'datetime',
-        'almacen_archivos' => 'array',
-        'ayudas_config'    => 'array',
-        'tiene_modelo'     => 'boolean',
-        'pre_orden_sent'   => 'boolean',
+        'alert_sent_at'           => 'datetime',
+        'almacen_archivos'        => 'array',
+        'ayudas_config'           => 'array',
+        'tiene_modelo'            => 'boolean',
+        'pre_orden_sent'          => 'boolean',
     ];
 }

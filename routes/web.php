@@ -426,6 +426,13 @@ Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicio
 
     Route::post('/send-email-preorden', [\App\Http\Controllers\AlmacenFundicionController::class, 'sendEmailPreOrden'])
         ->name('sendEmailPreOrden');
+
+    // --- RUTAS: Liberacion de Modelos (Calidad) ---
+    Route::get('/liberacion', [\App\Http\Controllers\AlmacenFundicionController::class, 'getLiberacion'])
+        ->name('getLiberacion');
+
+    Route::post('/submit-liberacion', [\App\Http\Controllers\AlmacenFundicionController::class, 'submitLiberacion'])
+        ->name('submitLiberacion');
 });
 
 /* ===========================

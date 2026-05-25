@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\FundicionHistory;
+use App\Models\LiberacionModeloFundicion;
 use App\Models\Orden_trabajo;
 use App\Models\Clase;
 use App\Models\PreOrdenFundicion;
+use App\Mail\LiberacionModeloMailable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PreOrdenMailable;
@@ -198,11 +201,11 @@ class AlmacenFundicionController extends Controller
 
                         return [
                             'nombre' => $fullName,
-                            'tipo' => 'ayuda',
+                            'tipo' => 'otro',
                             'url' => route('almacen.fundicion.serve', [
                                 'ot' => $ot,
                                 'archivo' => $fullName,
-                                'tipo' => 'ayuda',
+                                'tipo' => 'otro',
                             ]),
                         ];
                     });
@@ -250,9 +253,13 @@ class AlmacenFundicionController extends Controller
             abort(422, 'Parámetros inválidos.');
         }
 
-        $baseDir = ($tipo === 'ayuda') 
-            ? self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales'
-            : self::ALMACEN_DIR . '/' . $ot;
+        if ($tipo === 'liberacion') {
+            $baseDir = 'public/liberaciones_pdf';
+        } else {
+            $baseDir = ($tipo === 'ayuda' || $tipo === 'otro') 
+                ? self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales'
+                : self::ALMACEN_DIR . '/' . $ot;
+        }
 
         if (!Storage::disk('local')->exists($baseDir)) {
             abort(404, 'Directorio no encontrado.');
@@ -340,7 +347,8 @@ class AlmacenFundicionController extends Controller
     // =========================================================================
 
     /**
-     * Actualiza el estado del modelo para una OT (Botón "Sí").
+     * Actualiza el estado del modelo para una OT (Boton "Si").
+     * Marca calidad_revision_status como pendiente para que Calidad actue.
      */
     public function updateModelStatus(Request $request)
     {
@@ -353,12 +361,18 @@ class AlmacenFundicionController extends Controller
             return response()->json(['success' => false, 'message' => 'Registro no encontrado.'], 404);
         }
 
-        $history->tiene_modelo = true;
+        $history->tiene_modelo              = true;
         $history->save();
+
+        // Crear o actualizar el registro de liberacion indicando el origen
+        LiberacionModeloFundicion::updateOrCreate(
+            ['ot' => $ot],
+            ['estado' => 'pendiente', 'tipo_origen' => 'con_modelo']
+        );
 
         return response()->json([
             'success' => true,
-            'message' => "Se ha registrado que la OT {$ot} ya cuenta con modelo."
+            'message' => "Se ha registrado que la OT {$ot} ya cuenta con modelo. Calidad debe revisar."
         ]);
     }
 
@@ -370,7 +384,7 @@ class AlmacenFundicionController extends Controller
         $this->verificarAcceso();
 
         $otFull = $request->query('ot', '');
-        \Illuminate\Support\Facades\Log::info("getOtData: Consultando OT = " . $otFull);
+        Log::info("getOtData: Consultando OT = " . $otFull);
         // Extraer el número de OT (ej: de "OT 6473 - ..." extraer 6473)
         preg_match('/OT\s*(\d+)/', $otFull, $matches);
         $otId = isset($matches[1]) ? (int) $matches[1] : 0;
@@ -479,6 +493,7 @@ class AlmacenFundicionController extends Controller
         }
 
         // 3. Generar el PDF en orientación horizontal
+        ini_set('memory_limit', '512M');
         $pdf = Pdf::loadView('pdf.pre_orden', [
             'data' => $data,
             'user' => $user
@@ -489,7 +504,12 @@ class AlmacenFundicionController extends Controller
         $moldura  = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['moldura'] ?? '');
         $proveedor = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['proveedor']);
         $fechaStamp = date('d_m_Y_H_i');
-        $fileName = "Pre-Orden_Fundicion-{$folio}_OT_{$otClean}_{$moldura}_{$proveedor}_{$fechaStamp}.pdf";
+        
+        // Extraer solo el número de OT para que el nombre del archivo no exceda el MAX_PATH de Windows (260 chars)
+        preg_match('/OT\s*(\d+)/i', $otRaw, $matches);
+        $otId = $matches[1] ?? (preg_replace('/[^0-9]/', '', $otRaw) ?: 'SN');
+        
+        $fileName = "Pre-Orden_Fundicion-{$folio}_OT_{$otId}_{$fechaStamp}.pdf";
 
         $folderName = $this->sanitizePath($this->normalizeOTName($otRaw));
         $otPath = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes';
@@ -535,8 +555,17 @@ class AlmacenFundicionController extends Controller
             ]
         );
 
-        // 7. Actualizar flag de pre_orden_sent en historial de Fundición
-        FundicionHistory::where('ot', '=', $otRaw, 'and')->update(['pre_orden_sent' => true]);
+        // 7. Actualizar flag de pre_orden_sent en historial de Fundicion
+        //    y marcar como pendiente de revision por Calidad
+        FundicionHistory::where('ot', '=', $otRaw, 'and')->update([
+            'pre_orden_sent'          => true,
+        ]);
+
+        // Crear o actualizar registro de liberacion con origen pre_orden
+        LiberacionModeloFundicion::updateOrCreate(
+            ['ot' => $otRaw],
+            ['estado' => 'pendiente', 'tipo_origen' => 'pre_orden']
+        );
 
         // 8. Incrementar Folio global SOLO si es una pre-orden completamente nueva
         if (!$existeEnBD) {
@@ -549,7 +578,7 @@ class AlmacenFundicionController extends Controller
                     Storage::disk('local')->put($folioPath, json_encode($config));
                 }
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Error incrementando Folio: " . $e->getMessage());
+                Log::error("Error incrementando Folio: " . $e->getMessage());
             }
         }
 
@@ -734,19 +763,14 @@ class AlmacenFundicionController extends Controller
         // 2. Archivos adicionales cargados desde la computadora
         if ($request->hasFile('archivos_adicionales')) {
             $uploadedFiles = $request->file('archivos_adicionales');
-            if (is_array($uploadedFiles)) {
-                foreach ($uploadedFiles as $file) {
-                    $attachments[] = [
-                        'path' => $file->getRealPath(),
-                        'name' => 'Escaneado_Fundicion-' . $file->getClientOriginalName(),
-                        'mime' => $file->getClientMimeType()
-                    ];
-                }
-            } else {
+            $filesArray = is_array($uploadedFiles) ? $uploadedFiles : [$uploadedFiles];
+            foreach ($filesArray as $file) {
+                $name = 'Escaneado_Fundicion-' . $file->getClientOriginalName();
+                $savedPath = $file->storeAs($ayudasDirPath . '/preordenes', $name, 'local');
                 $attachments[] = [
-                    'path' => $uploadedFiles->getRealPath(),
-                    'name' => 'Escaneado_Fundicion-' . $uploadedFiles->getClientOriginalName(),
-                    'mime' => $uploadedFiles->getClientMimeType()
+                    'path' => storage_path('app/' . $savedPath),
+                    'name' => $name,
+                    'mime' => $file->getClientMimeType()
                 ];
             }
         }
@@ -777,10 +801,286 @@ class AlmacenFundicionController extends Controller
                 'message' => 'El correo electrónico de la pre-orden con sus adjuntos ha sido enviado con éxito.'
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Error al enviar pre-orden con adjuntos: " . $e->getMessage());
+            Log::error("Error al enviar pre-orden con adjuntos: " . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error al enviar el correo: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // =========================================================================
+    // LIBERACION DE MODELOS (Flujo de Calidad)
+    // =========================================================================
+
+    /**
+     * Devuelve los datos de liberacion existentes para una OT.
+     * Usado para pre-llenar el formulario cuando Calidad vuelve a abrirlo.
+     */
+    public function getLiberacion(Request $request)
+    {
+        $this->verificarAcceso();
+
+        $ot = $request->query('ot', '');
+        if (empty($ot)) {
+            return response()->json(['success' => false, 'message' => 'OT requerida.'], 422);
+        }
+
+        $liberaciones = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->get();
+
+        if ($liberaciones->isEmpty()) {
+            return response()->json([
+                'success'    => true,
+                'liberacion' => null,
+            ]);
+        }
+
+        // Devolver los registros de forma independiente por cada tipo_modelo
+        $registrosPorTipo = [];
+        $ultimoRegistro = null;
+        
+        foreach ($liberaciones as $lib) {
+            $registrosPorTipo[$lib->tipo_modelo] = $lib;
+            $ultimoRegistro = $lib;
+        }
+
+        return response()->json([
+            'success'            => true,
+            'liberacion'         => $ultimoRegistro, // Para retro-compatibilidad inicial o default
+            'registros_por_tipo' => $registrosPorTipo,
+        ]);
+    }
+
+    /**
+     * Guarda o actualiza el formulario de liberacion de modelos.
+     * El parametro `accion` determina el flujo:
+     *   - 'guardar'  => Solo persiste datos, sin cambiar estado ni enviar correo.
+     *   - 'aprobar'  => Persiste datos, estado = aprobado, envia correo de aprobacion.
+     *   - 'rechazar' => Persiste datos, estado = rechazado, envia correo de alerta.
+     */
+    public function submitLiberacion(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if (!$user || !in_array($user->perfil, ['1', '4'], true)) {
+            return response()->json(['success' => false, 'message' => 'Acceso restringido a Calidad.'], 403);
+        }
+
+        $ot     = $request->input('ot', '');
+        $accion = $request->input('accion', 'guardar');
+
+        if (empty($ot)) {
+            return response()->json(['success' => false, 'message' => 'OT requerida.'], 422);
+        }
+
+        if ($accion === 'rechazar' && empty(trim($request->input('motivo_rechazo', '')))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El motivo de rechazo es obligatorio al rechazar la liberacion.',
+            ], 422);
+        }
+
+        $nuevoEstado = match ($accion) {
+            'aprobar'  => 'aprobado',
+            'rechazar' => 'rechazado',
+            default    => 'pendiente',
+        };
+
+        /**
+         * Sanitizar y normalizar los arrays de medidas enviados desde el formulario.
+         * Cada valor numerico se convierte a float. Los campos vacios se guardan como 0.000.
+         */
+        $sanitizarMedidas = function (?array $grupo): ?array {
+            if (empty($grupo)) return null;
+            $resultado = [];
+            foreach ($grupo as $item => $cols) {
+                if (!is_array($cols)) continue;
+                foreach ($cols as $col => $val) {
+                    if ($val !== null && $val !== '') {
+                        $valStr = (string)$val;
+                        if (strpos($valStr, '.') !== false) {
+                            $parts = explode('.', $valStr);
+                            $integerPart = $parts[0];
+                            $decimalPart = substr($parts[1], 0, 3);
+                            $valStr = $integerPart . '.' . $decimalPart;
+                        }
+                        $resultado[$item][$col] = (float)$valStr;
+                    } else {
+                        $resultado[$item][$col] = 0.000;
+                    }
+                }
+            }
+            return $resultado;
+        };
+
+        $tipo = $request->input('tipo_modelo');
+        $campos = [
+            'estado'                  => $nuevoEstado,
+            'tipo_modelo'             => $tipo,
+            'medidas_modelo'          => in_array($tipo, ['Molde', 'Bombillo']) ? $sanitizarMedidas($request->input('modelo')) : null,
+            'medidas_plantilla'       => in_array($tipo, ['Molde', 'Bombillo']) ? $sanitizarMedidas($request->input('plantilla')) : null,
+            'medidas_fondo'           => $tipo === 'Fondo' ? $sanitizarMedidas($request->input('fondo')) : null,
+            'medidas_obturador'       => $tipo === 'Obturador' ? $sanitizarMedidas($request->input('obturador')) : null,
+            'observaciones_modelo'    => in_array($tipo, ['Molde', 'Bombillo']) ? $request->input('observaciones_modelo') : null,
+            'observaciones_plantilla' => in_array($tipo, ['Molde', 'Bombillo']) ? $request->input('observaciones_plantilla') : null,
+            'observaciones_fondo'     => $tipo === 'Fondo' ? $request->input('observaciones_fondo') : null,
+            'observaciones_obturador' => $tipo === 'Obturador' ? $request->input('observaciones_obturador') : null,
+            'motivo_rechazo'          => $accion === 'rechazar' ? $request->input('motivo_rechazo') : null,
+            'user_id_calidad'         => $user->id,
+            'user_nombre_calidad'     => $user->name,
+            'fecha_revision'          => in_array($accion, ['aprobar', 'rechazar']) ? now() : null,
+        ];
+
+        // Requerimiento 2: Actualizar SOLO los campos del tipo activo.
+        // Si existe un registro inicial (tipo_modelo = null), lo actualizamos.
+        $liberacionInicial = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->whereNull('tipo_modelo')->first();
+        if ($liberacionInicial) {
+            $liberacionInicial->update(['tipo_modelo' => $tipo]);
+            $liberacion = $liberacionInicial;
+        } else {
+            $liberacion = LiberacionModeloFundicion::firstOrCreate([
+                'ot'          => $ot,
+                'tipo_modelo' => $tipo,
+            ], [
+                'estado'      => 'pendiente',
+            ]);
+        }
+
+        // Construir el arreglo de actualizacion con solo los campos pertinentes al tipo
+        $actualizacion = [
+            'estado'      => $nuevoEstado,
+            'user_id_calidad'     => $user->id,
+            'user_nombre_calidad' => $user->name,
+        ];
+        if (in_array($accion, ['aprobar', 'rechazar'])) {
+            $actualizacion['fecha_revision'] = now();
+        }
+        // Solo toca los campos del tipo seleccionado
+        if (in_array($tipo, ['Molde', 'Bombillo'])) {
+            $actualizacion['medidas_modelo']       = $sanitizarMedidas($request->input('modelo'));
+            $actualizacion['observaciones_modelo'] = $request->input('observaciones_modelo');
+            $actualizacion['medidas_plantilla']       = $sanitizarMedidas($request->input('plantilla'));
+            $actualizacion['observaciones_plantilla'] = $request->input('observaciones_plantilla');
+        } elseif ($tipo === 'Fondo') {
+            $actualizacion['medidas_fondo']       = $sanitizarMedidas($request->input('fondo'));
+            $actualizacion['observaciones_fondo'] = $request->input('observaciones_fondo');
+        } elseif ($tipo === 'Obturador') {
+            $actualizacion['medidas_obturador']       = $sanitizarMedidas($request->input('obturador'));
+            $actualizacion['observaciones_obturador'] = $request->input('observaciones_obturador');
+        }
+        if ($accion === 'rechazar') {
+            $actualizacion['motivo_rechazo'] = $request->input('motivo_rechazo');
+        }
+
+        $liberacion->update($actualizacion);
+        $liberacion->refresh();
+
+        $pdfUrl      = null;
+        $pdfFilename = null;
+        // Generar y guardar PDF en orientacion horizontal
+        try {
+            // Nombre estetico: F-CCL-LDM_[Tipo]_[OT-sanitizada]_[Fecha-hora].pdf
+            $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
+            $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
+            $fechaStamp   = now()->format('Ymd_His');
+            $tipoLabel    = $tipo ? strtoupper($tipo) : 'GENERAL';
+            $pdfFilename  = "F-CCL-LDM_{$tipoLabel}_{$otSanitizada}_{$fechaStamp}.pdf";
+            $pdfPath = storage_path("app/public/liberaciones_pdf");
+            if (!file_exists($pdfPath)) {
+                mkdir($pdfPath, 0755, true);
+            } else {
+                // Eliminar PDFs anteriores para este Tipo y OT para no acumular archivos
+                $pattern = "{$pdfPath}/F-CCL-LDM_{$tipoLabel}_{$otSanitizada}_*.pdf";
+                foreach (glob($pattern) as $oldFile) {
+                    @unlink($oldFile);
+                }
+            }
+            ini_set('memory_limit', '512M');
+            $pdf = Pdf::loadView('almacen.pdf_liberacion', ['liberacion' => $liberacion])
+                      ->setPaper('letter', 'landscape');
+            $pdf->save("{$pdfPath}/{$pdfFilename}");
+            $pdfUrl = asset("storage/liberaciones_pdf/{$pdfFilename}");
+            $liberacion->update(['pdf_filename' => $pdfFilename]);
+        } catch (\Exception $e) {
+            Log::error('Error al generar PDF de liberacion: ' . $e->getMessage());
+        }
+
+        // Actualizar calidad_revision_status en fundicion_history para todos los flujos
+        FundicionHistory::where('ot', '=', $ot, 'and')
+            ->update(['calidad_revision_status' => $nuevoEstado]);
+
+        if ($accion === 'guardar') {
+            return response()->json([
+                'success'      => true,
+                'message'      => 'Informacion guardada correctamente.',
+                'pdf_url'      => $pdfUrl,
+                'pdf_filename' => $pdfFilename,
+                'nuevo_estado' => $nuevoEstado,
+                'ot'           => $ot,
+            ]);
+        }
+
+        $destinatarios = array_filter(
+            array_map('trim', explode(',', $request->input('destinatario', 'jaxer020406@gmail.com')))
+        );
+        if (empty($destinatarios)) {
+            $destinatarios = ['jaxer020406@gmail.com'];
+        }
+
+        // Recopilar todos los adjuntos para la liberación
+        $folderName = $this->sanitizePath($this->normalizeOTName($ot));
+        $dirPath = self::ALMACEN_DIR . '/' . $folderName;
+        $ayudasDirPath = $dirPath . '/ayudas_visuales';
+        $preordenesPath = $ayudasDirPath . '/preordenes';
+
+        $attachments = [];
+
+        // 1. Dibujos principales y ayudas visuales
+        if (Storage::disk('local')->exists($dirPath)) {
+            $files = Storage::disk('local')->allFiles($dirPath);
+            foreach ($files as $file) {
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                if (in_array($ext, ['pdf', 'png', 'jpg', 'jpeg'])) {
+                    $attachments[] = [
+                        'path' => storage_path('app/' . $file),
+                        'name' => basename($file),
+                        'mime' => mime_content_type(storage_path('app/' . $file)) ?: 'application/octet-stream'
+                    ];
+                }
+            }
+        }
+
+        // 2. Formatos de liberacion generados para esta OT
+        $todasLiberaciones = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->whereNotNull('pdf_filename')->get();
+        foreach ($todasLiberaciones as $libRow) {
+            $pdfPathLib = storage_path("app/public/liberaciones_pdf/" . $libRow->pdf_filename);
+            if (file_exists($pdfPathLib)) {
+                $attachments[] = [
+                    'path' => $pdfPathLib,
+                    'name' => $libRow->pdf_filename,
+                    'mime' => 'application/pdf'
+                ];
+            }
+        }
+
+        try {
+            Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, $nuevoEstado, $liberacion, $attachments));
+
+            $msgAccion = $accion === 'aprobar' ? 'aprobada' : 'rechazada';
+            return response()->json([
+                'success'      => true,
+                'message'      => "Liberacion {$msgAccion} y notificacion enviada con exito.",
+                'nuevo_estado' => $nuevoEstado,
+                'pdf_url'      => $pdfUrl,
+                'pdf_filename' => $pdfFilename,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al enviar correo de liberacion: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Los datos se guardaron pero el correo no pudo enviarse: ' . $e->getMessage(),
+                'pdf_url' => $pdfUrl,
+                'pdf_filename' => $pdfFilename,
             ], 500);
         }
     }

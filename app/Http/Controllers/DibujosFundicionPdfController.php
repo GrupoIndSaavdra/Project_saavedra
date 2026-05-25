@@ -296,6 +296,8 @@ class DibujosFundicionPdfController extends Controller
                 $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
                 $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
             }
+        } else {
+            $ot = $this->normalizeOTName($ot);
         }
 
         // 1. Directorios de Clase (Nuevo esquema)
@@ -362,6 +364,16 @@ class DibujosFundicionPdfController extends Controller
 
         if (empty($ot) || empty($archivo)) {
             abort(422, 'Parámetros inválidos.');
+        }
+
+        if (is_numeric($ot)) {
+            $otModel = Orden_trabajo::query()->with('moldura')->find($ot);
+            if ($otModel) {
+                $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+                $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+            }
+        } else {
+            $ot = $this->normalizeOTName($ot);
         }
 
         // Si la clase es '--', buscamos en la raíz de la OT
@@ -616,7 +628,7 @@ class DibujosFundicionPdfController extends Controller
 
             $dstFilesRel = $dstFilesFull->map(fn($f) => str_replace($dstDir . '/', '', $f))->toArray();
 
-            // Eliminar huérfanos
+            // Sincronizar espejo: Eliminar dibujos en Almacén que ya no existen en la carpeta de Ingeniería
             foreach ($dstFilesRel as $dfRel) {
                 if (!in_array($dfRel, $srcFilesRel)) {
                     Storage::disk('local')->delete($dstDir . '/' . $dfRel);
@@ -645,11 +657,11 @@ class DibujosFundicionPdfController extends Controller
         $ayudasVinculadas = $history ? ($history->ayudas_config ?? []) : [];
         $ayudasDstDir = $dstDir . '/ayudas_visuales';
 
-        // Sincronizar carpetas de clases en Almacén
+        // Sincronizar carpetas de clases en Almacén: Eliminar clases desvinculadas
         if (Storage::disk('local')->exists($ayudasDstDir)) {
             $clasesEnAlmacen = array_map('basename', Storage::disk('local')->directories($ayudasDstDir));
             foreach ($clasesEnAlmacen as $claseAlmacen) {
-                if (!in_array($claseAlmacen, $ayudasVinculadas)) {
+                if ($claseAlmacen !== 'preordenes' && !in_array($claseAlmacen, $ayudasVinculadas)) {
                     Storage::disk('local')->deleteDirectory($ayudasDstDir . '/' . $claseAlmacen);
                 }
             }
@@ -724,12 +736,20 @@ class DibujosFundicionPdfController extends Controller
                 ->toArray();
         }
 
+        // 4. Limpiar los registros antiguos de Almacén y Calidad
+        // Esto garantiza que cada vez que se envía un correo, el flujo se reinicia (borrón y cuenta nueva)
+        \App\Models\PreOrdenFundicion::where('ot', '=', $otName, 'and')->delete();
+        \App\Models\LiberacionModeloFundicion::where('ot', '=', $otName, 'and')->delete();
+
         FundicionHistory::updateOrCreate(
             ['ot' => $otName],
             [
                 'status' => 'activa',
                 'alert_sent_at' => now(), // Asegurar que aparezca en Almacén inmediatamente
                 'almacen_archivos' => $almacenFiles,
+                'tiene_modelo' => false,
+                'pre_orden_sent' => false,
+                'calidad_revision_status' => null,
             ]
         );
     }
@@ -856,21 +876,24 @@ class DibujosFundicionPdfController extends Controller
             return response()->json(['success' => false, 'message' => 'La carpeta no existe.'], 404);
         }
 
-        $subDirs = Storage::disk('local')->directories($dirPath);
-        $files = Storage::disk('local')->files($dirPath);
+        // Eliminamos todo el contenido (archivos y subcarpetas) de forma recursiva
+        // (Restricción removida a petición del usuario para facilitar el borrado completo)
 
-        if (count($subDirs) > 0 || count($files) > 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No se puede eliminar: la carpeta todavía contiene clases o archivos.',
-            ], 400);
-        }
-
+        $otNorm = $this->normalizeOTName($ot);
+        
         Storage::disk('local')->deleteDirectory($dirPath);
+        // Eliminar también la copia en Almacén
+        Storage::disk('local')->deleteDirectory(self::ALMACEN_DIR . '/' . $otNorm);
         $this->logAction('eliminar_carpeta', $ot, 'Eliminación de Directorio Raíz OT');
 
-        // Desactivar en histórico si ya no existe carpeta física
-        FundicionHistory::where('ot', '=', $ot, 'and')->update(['status' => 'inactiva']);
+        // Respaldar registros de historial, pre-orden y liberación renombrando el OT para liberar el original
+        $timestamp = date('_Ymd_His_del');
+        FundicionHistory::where('ot', '=', $otNorm, 'and')
+            ->update(['ot' => \Illuminate\Support\Facades\DB::raw("CONCAT(ot, '{$timestamp}')"), 'status' => 'inactiva']);
+        \App\Models\PreOrdenFundicion::where('ot', '=', $otNorm, 'and')
+            ->update(['ot' => \Illuminate\Support\Facades\DB::raw("CONCAT(ot, '{$timestamp}')")]);
+        \App\Models\LiberacionModeloFundicion::where('ot', '=', $otNorm, 'and')
+            ->update(['ot' => \Illuminate\Support\Facades\DB::raw("CONCAT(ot, '{$timestamp}')")]);
 
         return response()->json([
             'success' => true,
@@ -1000,11 +1023,11 @@ class DibujosFundicionPdfController extends Controller
 
         FundicionHistory::where('ot', '=', $ot, 'and')->update(['ayudas_config' => []]);
 
-        // Limpiar carpeta física en Almacén
+        // Limpiar carpeta física en Almacén (Se deshabilita para preservar histórico)
         $ayudasDstDir = self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales';
-        if (Storage::disk('local')->exists($ayudasDstDir)) {
-            Storage::disk('local')->deleteDirectory($ayudasDstDir);
-        }
+        // if (Storage::disk('local')->exists($ayudasDstDir)) {
+        //     Storage::disk('local')->deleteDirectory($ayudasDstDir);
+        // }
 
         $this->logAction('desvincular_ayudas', $ot, 'Se desvincularon todas las ayudas visuales.');
 

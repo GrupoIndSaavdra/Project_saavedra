@@ -1,7 +1,11 @@
 @extends('layouts.appMenu')
 
 @section('head')
-    <title>Almacén — Dibujos de Fundición | GIS</title>
+    @php
+        $perfil = Auth::user()->perfil;
+        $deptName = $perfil == 4 ? 'Calidad' : 'Almacén';
+    @endphp
+    <title>{{ $deptName }} — Dibujos de Fundición | GIS</title>
     <meta name="description"
         content="Consulta histórica de dibujos de fundición enviados a Almacén y Calidad. Vista de solo lectura.">
     @vite(['resources/css/almacen_views/almacen_fundicion.css', 'resources/js/almacen_views/almacen_fundicion.js'])
@@ -168,6 +172,7 @@
                                         $ayudasDir =
                                             'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otName . '/ayudas_visuales';
                                         $ayudasArchivos = [];
+                                        $otrosArchivos = [];
                                         if (\Illuminate\Support\Facades\Storage::disk('local')->exists($ayudasDir)) {
                                             $files = \Illuminate\Support\Facades\Storage::disk('local')->allFiles(
                                                 $ayudasDir,
@@ -178,12 +183,42 @@
                                                     $fNorm = str_replace('\\', '/', $f);
                                                     $dirNorm = str_replace('\\', '/', $ayudasDir);
                                                     $relativePath = ltrim(str_replace($dirNorm, '', $fNorm), '/');
-                                                    $ayudasArchivos[] = $relativePath;
+                                                    
+                                                    if (str_starts_with($relativePath, 'preordenes/')) {
+                                                        $otrosArchivos[] = [
+                                                            'nombre' => $relativePath,
+                                                            'url' => route('almacen.fundicion.serve', ['ot' => $reg->ot, 'archivo' => $relativePath, 'tipo' => 'otro']),
+                                                            'tipo' => 'otro'
+                                                        ];
+                                                    } else {
+                                                        $ayudasArchivos[] = [
+                                                            'nombre' => $relativePath,
+                                                            'url' => route('almacen.fundicion.serve', ['ot' => $reg->ot, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
+                                                            'tipo' => 'ayuda'
+                                                        ];
+                                                    }
                                                 }
                                             }
                                         }
+                                        
+                                        // Buscar liberaciones PDF
+                                        $liberacionesPath = storage_path('app/public/liberaciones_pdf');
+                                        $otSanitizada = preg_replace('/[^\w\s\-]/', '', $reg->ot);
+                                        $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
+                                        if (file_exists($liberacionesPath)) {
+                                            $pattern = "{$liberacionesPath}/F-CCL-LDM_*_{$otSanitizada}_*.pdf";
+                                            foreach (glob($pattern) as $f) {
+                                                $otrosArchivos[] = [
+                                                    'nombre' => basename($f),
+                                                    'url' => route('almacen.fundicion.serve', ['ot' => $reg->ot, 'archivo' => basename($f), 'tipo' => 'liberacion']),
+                                                    'tipo' => 'liberacion'
+                                                ];
+                                            }
+                                        }
+
                                         $countAyudas = count($ayudasArchivos);
-                                        $count = $countDibujos + $countAyudas;
+                                        $countOtros = count($otrosArchivos);
+                                        $count = $countDibujos + $countAyudas + $countOtros;
                                     @endphp
 
                                     {{-- Fila principal --}}
@@ -192,7 +227,7 @@
                                             <div class="alm-ot-label">{{ $reg->ot }}</div>
                                             @if ($reg->status === 'inactiva')
                                                 <div class="alm-inactiva-note">
-                                                    La carpeta fue eliminada por el administrador. Los PDFs de Almacén se
+                                                    La carpeta fue eliminada por el administrador. Los PDFs de {{ $deptName }} se
                                                     conservan.
                                                 </div>
                                             @endif
@@ -204,18 +239,53 @@
                                         </td>
                                         <td class="d-text-center">
                                             <div id="status-modelo-{{ $reg->ot }}">
-                                                @if ($reg->tiene_modelo)
-                                                    <span class="badge-modelo-ok" title="Modelo disponible">
-                                                        <img src="{{ asset('images/aprobado.png') }}" alt="OK" style="width: 35px; height: 35px;">
-                                                    </span>
-                                                @elseif($reg->pre_orden_sent)
-                                                    <span class="badge-modelo-pending" title="Pre-orden enviada (Pendiente)">
-                                                        <img src="{{ asset('images/caducado.png') }}" alt="Pendiente" style="width: 35px; height: 35px;">
-                                                    </span>
+                                                @php
+                                                    $libStatus = $reg->calidad_revision_status ?? null;
+                                                    $perfil = Auth::user()->perfil;
+                                                @endphp
+                                                @if ($perfil == 4)
+                                                    {{-- VISTA CALIDAD --}}
+                                                    @if ($libStatus === 'aprobado')
+                                                        <span class="badge-modelo-ok" title="Modelo liberado y aprobado por Calidad">
+                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado" style="width: 38px; height: 38px;">
+                                                        </span>
+                                                    @elseif ($libStatus === 'rechazado')
+                                                        <span class="badge-modelo-rechazado" title="Modelo rechazado por Calidad">
+                                                            <img src="{{ asset('images/Rechazado.png') }}" alt="Rechazado" style="width: 38px; height: 38px;">
+                                                        </span>
+                                                    @elseif ($libStatus === 'pendiente')
+                                                        <span class="badge-modelo-guardado" title="Datos capturados por Calidad (borrador)">
+                                                            <img src="{{ asset('images/Guardado.png') }}" alt="Guardado" style="width: 38px; height: 38px;">
+                                                        </span>
+                                                    @elseif ($reg->tiene_modelo || $reg->pre_orden_sent)
+                                                        <span class="badge-modelo-recibido" title="Almacén ha procesado el modelo, pendiente de revisión por Calidad">
+                                                            <img src="{{ asset('images/Recibido.png') }}" alt="Recibido" style="width: 38px; height: 38px;">
+                                                        </span>
+                                                    @else
+                                                        <span class="badge-modelo-missing" title="En espera de que Almacén procese el modelo">
+                                                            <img src="{{ asset('images/Espera.png') }}" alt="En Espera" style="width: 38px; height: 38px;">
+                                                        </span>
+                                                    @endif
                                                 @else
-                                                    <span class="badge-modelo-missing" title="Sin modelo">
-                                                        <img src="{{ asset('images/advertencia.png') }}" alt="X" style="width: 35px; height: 35px;">
-                                                    </span>
+                                                    {{-- VISTA ALMACÉN --}}
+                                                    @if ($libStatus === 'aprobado')
+                                                        <span class="badge-modelo-ok" title="Modelo liberado y aprobado por Calidad">
+                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado" style="width: 38px; height: 38px;">
+                                                        </span>
+                                                    @elseif ($libStatus === 'rechazado')
+                                                        <span class="badge-modelo-rechazado" title="Modelo rechazado por Calidad">
+                                                            <img src="{{ asset('images/Rechazado.png') }}" alt="Rechazado" style="width: 38px; height: 38px;">
+                                                        </span>
+
+                                                    @elseif ($reg->tiene_modelo || $reg->pre_orden_sent)
+                                                        <span class="badge-modelo-espera" title="Procesado por Almacén, en espera de respuesta de Calidad">
+                                                            <img src="{{ asset('images/Espera.png') }}" alt="En Espera" style="width: 38px; height: 38px;">
+                                                        </span>
+                                                    @else
+                                                        <span class="badge-modelo-recibido" title="Alerta inicial recibida, pendiente de procesar modelo">
+                                                            <img src="{{ asset('images/Recibido.png') }}" alt="Recibido" style="width: 38px; height: 38px;">
+                                                        </span>
+                                                    @endif
                                                 @endif
                                             </div>
                                         </td>
@@ -282,7 +352,7 @@
                                                             <div class="dibujos-file-card card-ayuda"
                                                                 style="animation-delay: {{ $loop->index * 0.05 }}s;">
                                                                 <div class="file-icon-wrapper"
-                                                                    onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $ayudaArchivo }}', 'ayuda')"
+                                                                    onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')"
                                                                     style="cursor: pointer;" title="Abrir PDF">
                                                                     <img src="{{ asset('images/pdf-view-shadow.png') }}"
                                                                         class="file-icon icon-default">
@@ -291,12 +361,12 @@
                                                                 </div>
                                                                 <div class="file-name" style="cursor: pointer;"
                                                                     title="Abrir PDF"
-                                                                    onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $ayudaArchivo }}', 'ayuda')">
-                                                                    {{ basename($ayudaArchivo) }}</div>
+                                                                    onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
+                                                                    {{ basename($ayudaArchivo['nombre']) }}</div>
                                                                 <div class="file-actions">
                                                                     <button
                                                                         class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color"
-                                                                        onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $ayudaArchivo }}', 'ayuda')">Ver</button>
+                                                                        onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">Ver</button>
                                                                 </div>
                                                             </div>
                                                         @endforeach
@@ -306,43 +376,150 @@
                                                         style="margin-top: 20px; padding: 15px; background: #fff5f5; border: 1px solid #feb2b2; border-radius: 8px; color: #9c0300;">
                                                         <strong>Aviso:</strong> Se han vinculado
                                                         {{ count($reg->ayudas_config) }} clases de ayudas visuales, pero
-                                                        los archivos aún no se han sincronizado con Almacén. Por favor,
+                                                        los archivos aún no se han sincronizado con {{ $deptName }}. Por favor,
                                                         <strong>Vuelve a Vincular</strong> las ayudas desde la vista de
                                                         administración.
                                                     </div>
                                                 @endif
 
+                                                @if ($countOtros > 0)
+                                                    <h3
+                                                        style="margin-top: 25px; margin-bottom: 10px; color: #155724; border-bottom: 2px solid #155724; padding-bottom: 5px;">
+                                                        Otros documentos</h3>
+                                                    <div class="alm-pdf-grid">
+                                                        @foreach ($otrosArchivos as $otroArchivo)
+                                                            <div class="dibujos-file-card card-otro"
+                                                                style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
+                                                                <div class="file-icon-wrapper"
+                                                                    onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
+                                                                    style="cursor: pointer;" title="Abrir PDF">
+                                                                    <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                        class="file-icon icon-default">
+                                                                    <img src="{{ asset('images/pdf-view.png') }}"
+                                                                        class="file-icon icon-hover">
+                                                                </div>
+                                                                <div class="file-name" style="cursor: pointer;"
+                                                                    title="Abrir PDF"
+                                                                    onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                    {{ basename($otroArchivo['nombre']) }}</div>
+                                                                <div class="file-actions">
+                                                                    <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #155724; color: white;"
+                                                                        onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+
                                                 {{-- ── SECCIÓN CONTROL DE MODELOS (Solo Almacén y OTs Activas) ── --}}
                                                 @if (Auth::user()->perfil != 4 && $estado === 'activa')
-                                                    <div class="alm-modelo-control" style="margin-top: 30px; padding: 20px; background: #f8fafc; border: 1px border-radius: 12px; border: 1px solid #e2e8f0;">
-                                                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
-                                                            <div>
-                                                                <h4 style="margin: 0; color: #334155; font-size: 1.1em;">Control de Modelos</h4>
-                                                                <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.9em;">Actualmente, ¿Cuentas con el modelo de esta OT?</p>
+                                                    @php
+                                                        $controlDisabled = $reg->tiene_modelo ? 'opacity: 0.5; pointer-events: none;' : '';
+                                                        $hideSiNo = $reg->pre_orden_sent ? 'display: none;' : '';
+                                                        $hideEditMail = !$reg->pre_orden_sent ? 'display: none;' : '';
+                                                    @endphp
+                                                    <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}" style="{{ $controlDisabled }}">
+                                                        <div class="lib-calidad-card-header">
+                                                            <img src="{{ asset('images/almacen.png') }}" alt="Almacén" style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
+                                                            <div style="overflow:hidden;">
+                                                                <span class="lib-calidad-card-title">Control de Modelos &mdash; Almacén</span>
+                                                                <span class="lib-calidad-card-ot">{{ $reg->ot }}</span>
                                                             </div>
-                                                            <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 5px;">
-                                                                <button class="btn-modelo btn-modelo-si" onclick="confirmarModelo('{{ $reg->ot }}')" title="Sí, cuento con el modelo de esta OT">
-                                                                    <img src="{{ asset('images/aprobado.png') }}" alt="Sí">
-                                                                    <span>Tengo el Modelo</span>
-                                                                </button>
-                                                                @if($reg->pre_orden_sent)
-                                                                    <button class="btn-modelo btn-modelo-edit" onclick="abrirModalPreOrden('{{ $reg->ot }}')" title="Editar información de la preorden existente">
-                                                                        <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
-                                                                        <span>Editar Datos</span>
+                                                        </div>
+                                                        <div class="lib-calidad-card-body">
+                                                            <div class="lib-calidad-action-row">
+                                                                <h4 class="lib-calidad-card-prompt">
+                                                                    @if ($reg->tiene_modelo)
+                                                                        ¡Modelo recibido y procesado! Pendiente de que Calidad lo revise.
+                                                                    @elseif ($reg->pre_orden_sent)
+                                                                        Pre-orden lista. Puedes seguir editando los datos o enviarla por correo.
+                                                                    @else
+                                                                        ¿Ya cuentas con el modelo de esta OT o necesitas generar una pre-orden?
+                                                                    @endif
+                                                                </h4>
+                                                                <div class="lib-calidad-card-btns">
+                                                                    <button class="btn-modelo btn-modelo-si" onclick="confirmarModelo('{{ $reg->ot }}', '{{ md5($reg->ot) }}')" title="Sí, cuento con el modelo de esta OT" style="{{ $hideSiNo }}">
+                                                                        <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
+                                                                        <span>Tengo el Modelo</span>
                                                                     </button>
-                                                                    <button class="btn-modelo btn-modelo-email" onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}')" title="Enviar pre-orden por correo electrónico">
-                                                                        <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
-                                                                        <span>Enviar Correo</span>
-                                                                    </button>
-                                                                @else
-                                                                    <button class="btn-modelo btn-modelo-no" onclick="abrirModalPreOrden('{{ $reg->ot }}')" title="No cuento con él, generar formato PDF">
+                                                                    <button class="btn-modelo btn-modelo-no" onclick="abrirModalPreOrden('{{ $reg->ot }}')" title="No cuento con él, generar formato PDF" style="{{ $hideSiNo }}">
                                                                         <img src="{{ asset('images/pdf.png') }}" alt="PDF">
                                                                         <span>No, generar formato</span>
                                                                     </button>
-                                                                @endif
+                                                                    <button class="btn-modelo btn-modelo-edit" onclick="abrirModalPreOrden('{{ $reg->ot }}')" title="Editar información de la preorden existente" style="{{ $hideEditMail }}">
+                                                                        <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
+                                                                        <span>Editar Datos</span>
+                                                                    </button>
+                                                                    <button class="btn-modelo btn-modelo-email" onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', '{{ md5($reg->ot) }}')" title="Enviar pre-orden por correo electrónico" style="{{ $hideEditMail }}">
+                                                                        <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
+                                                                        <span>Enviar Correo</span>
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                @endif
+
+                                                {{-- ── ACCIONES DE CALIDAD (Solo perfil 4 y OTs activas) ── --}}
+                                                @if (Auth::user()->perfil == 4 && $estado === 'activa')
+                                                    @if (in_array($reg->calidad_revision_status, [null, 'pendiente', 'rechazado']))
+                                                    <div class="lib-calidad-card">
+                                                        <div class="lib-calidad-card-header">
+                                                            <img src="{{ asset('images/Quality.png') }}" alt="Calidad" style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
+                                                            <div style="overflow:hidden;">
+                                                                <span class="lib-calidad-card-title">Acciones de Liberacion &mdash; Calidad</span>
+                                                                <span class="lib-calidad-card-ot">{{ $reg->ot }}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div class="lib-calidad-card-body">
+                                                        @if ($reg->calidad_revision_status === 'rechazado')
+                                                            <div class="lib-estado-badge lib-estado-rechazado">
+                                                                <img src="{{ asset('images/Rechazado.png') }}" alt="" style="width:18px;height:18px;object-fit:contain;flex-shrink:0;">
+                                                                Liberacion rechazada anteriormente. Puedes revisar y volver a emitir un veredicto.
+                                                            </div>
+                                                        @elseif (is_null($reg->calidad_revision_status) && !$reg->pre_orden_sent && !$reg->tiene_modelo)
+                                                            <div class="lib-estado-badge lib-estado-info">
+                                                                Sin accion de Almacen registrada aun para esta OT.
+                                                            </div>
+                                                        @elseif ($reg->calidad_revision_status === 'pendiente')
+                                                            <div class="lib-estado-badge lib-estado-guardado">
+                                                                <img src="{{ asset('images/Guardado.png') }}" alt="" style="width:18px;height:18px;object-fit:contain;flex-shrink:0;">
+                                                                Datos capturados como borrador.
+                                                            </div>
+                                                        @endif
+                                                        <div class="lib-calidad-action-row">
+                                                            <h4 class="lib-calidad-card-prompt">
+                                                                @if ($reg->calidad_revision_status === 'rechazado')
+                                                                    El modelo fue rechazado antes. ¿Quieres revisarlo de nuevo?
+                                                                @elseif ($reg->calidad_revision_status === 'pendiente')
+                                                                    Tienes un borrador guardado. ¿Deseas terminar de revisarlo ahora?
+                                                                @else
+                                                                    ¿Qué deseas hacer con este modelo? ¿Lo apruebas o lo rechazas?
+                                                                @endif
+                                                            </h4>
+                                                            <div class="lib-calidad-card-btns">
+                                                                <button class="btn-calidad-action btn-calidad-aprobar"
+                                                                        onclick="abrirModalLiberacion('{{ $reg->ot }}', 'aprobar')"
+                                                                        title="Abrir formato y aprobar la liberacion de este modelo">
+                                                                    <img src="{{ asset('images/Aprobado.png') }}" alt="">
+                                                                    <span>Aprobar Liberacion</span>
+                                                                </button>
+                                                                <button class="btn-calidad-action btn-calidad-rechazar"
+                                                                        onclick="abrirModalLiberacion('{{ $reg->ot }}', 'rechazar')"
+                                                                        title="Abrir formato y rechazar la liberacion de este modelo">
+                                                                    <img src="{{ asset('images/Rechazado.png') }}" alt="">
+                                                                    <span>Rechazar Liberacion</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        </div>{{-- /.lib-calidad-card-body --}}
+                                                    </div>
+                                                    @elseif ($reg->calidad_revision_status === 'aprobado')
+                                                    <div class="lib-estado-badge lib-estado-aprobado" style="margin-top: 20px;">
+                                                        <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado" style="width:22px;">
+                                                        Modelo liberado y aprobado por Calidad.
+                                                    </div>
+                                                    @endif
                                                 @endif
                                             </td>
                                         </tr>
@@ -460,7 +637,7 @@
             <div class="alm-modal-body">
                 <form id="formEnviarPreOrden" enctype="multipart/form-data">
                     <input type="hidden" id="env-ot" name="ot">
-                    
+
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label for="env-destinatario">Destinatario(s):</label>
                         <input type="text" id="env-destinatario" name="destinatario" class="form-control" required value="jaxer020406@gmail.com">
@@ -507,6 +684,9 @@
     </div>
 
 
+    {{-- ── MODAL: LIBERACIÓN DE MODELOS (Calidad) ──────────────────── --}}
+    @include('almacen.partials._modal_liberacion_modelos')
+
     <script>
         window.almacenRoutes = {
             archivos: "{{ route('almacen.fundicion.archivos') }}",
@@ -515,6 +695,18 @@
             getOtData: "{{ route('almacen.fundicion.getOtData') }}",
             storePreOrden: "{{ route('almacen.fundicion.storePreOrden') }}",
             sendEmailPreOrden: "{{ route('almacen.fundicion.sendEmailPreOrden') }}",
+            getLiberacion: "{{ route('almacen.fundicion.getLiberacion') }}",
+            submitLiberacion: "{{ route('almacen.fundicion.submitLiberacion') }}",
+        };
+        window.almacenAppAssets = {
+            liberar    : "{{ asset('images/Liberar.png') }}",
+            descarga   : "{{ asset('images/Descarga.png') }}",
+            recibido   : "{{ asset('images/Recibido.png') }}",
+            aprobado   : "{{ asset('images/Aprobado.png') }}",
+            rechazado  : "{{ asset('images/Rechazado.png') }}",
+            guardado   : "{{ asset('images/Guardado.png') }}",
+            revisando  : "{{ asset('images/Revisando.png') }}",
+            espera     : "{{ asset('images/Espera.png') }}",
         };
     </script>
 
