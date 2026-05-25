@@ -131,10 +131,10 @@ class SoldaduraPTAController extends Controller
             // ── REGISTRO DE LOG OFICIAL (Consolidado por Juego: Solo en Hembra) ──
             $nPiezaRef = $request->n_pieza_ref[$key] ?? $piece->n_pieza;
             $meta = \App\Models\Metas::query()->find($piece->id_meta);
-            if ($tipo === 'D_Conexion_pico' && (str_ends_with(strtoupper($nPiezaRef), 'H') || str_ends_with(strtoupper($nPiezaRef), 'J'))) {
-                $clase = \App\Models\Clase::query()->find($meta->id_clase);
-                $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : ($meta->id_ot ?? 'N/A');
+            $clase = \App\Models\Clase::query()->find($meta->id_clase);
+            $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : ($meta->id_ot ?? 'N/A');
 
+            if ($tipo === 'D_Conexion_pico' && (str_ends_with(strtoupper($nPiezaRef), 'H') || str_ends_with(strtoupper($nPiezaRef), 'J'))) {
                 $baseNum = preg_replace('/[HMJ]$/i', '', $nPiezaRef);
                 $h_termino_log = now()->format('H:i:s');
                 
