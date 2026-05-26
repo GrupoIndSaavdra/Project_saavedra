@@ -130,8 +130,8 @@ class SoldaduraPTAController extends Controller
 
             // ── REGISTRO DE LOG OFICIAL (Consolidado por Juego: Solo en Hembra) ──
             $nPiezaRef = $request->n_pieza_ref[$key] ?? $piece->n_pieza;
-            $meta = \App\Models\Metas::query()->find($piece->id_meta);
-            $clase = \App\Models\Clase::query()->find($meta->id_clase);
+            $meta = \App\Models\Metas::query()->where('id', '=', $piece->id_meta, 'and')->first();
+            $clase = \App\Models\Clase::query()->where('id', '=', $meta->id_clase, 'and')->first();
             $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : ($meta->id_ot ?? 'N/A');
 
             if ($tipo === 'D_Conexion_pico' && (str_ends_with(strtoupper($nPiezaRef), 'H') || str_ends_with(strtoupper($nPiezaRef), 'J'))) {
@@ -140,7 +140,7 @@ class SoldaduraPTAController extends Controller
                 
                 // ── LÓGICA DE AUDITORÍA (RESTRICTIVA) ──
                 // Replicamos la lógica de SystemLogController para detectar tiempos sospechosos
-                $lastLog = \App\Models\SystemLog::query()->where('user_matricula', \Illuminate\Support\Facades\Auth::user()->matricula)
+                $lastLog = \App\Models\SystemLog::query()->where('user_matricula', '=', \Illuminate\Support\Facades\Auth::user()->matricula, 'and')
                     ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'], 'and', false)
                     ->orderBy('created_at', 'desc')
                     ->first();
@@ -187,9 +187,9 @@ class SoldaduraPTAController extends Controller
 
             if ($tipo === 'D_Conexion_pico' && $p2Activa && $nPiezaRef) {
                 // Buscar si ya existe la fila de 2da pasada para esta pieza
-                $p2Row = SoldaduraPTA_pza::query()->where('id_proceso', $piece->id_proceso)
-                    ->where('n_pieza', $nPiezaRef)
-                    ->where('p2_activa', '=', 1)
+                $p2Row = SoldaduraPTA_pza::query()->where('id_proceso', '=', $piece->id_proceso, 'and')
+                    ->where('n_pieza', '=', $nPiezaRef, 'and')
+                    ->where('p2_activa', '=', 1, 'and')
                     ->first();
 
                 if (!$p2Row) {
@@ -274,9 +274,9 @@ class SoldaduraPTAController extends Controller
                 ]);
             } elseif ($tipo === 'D_Conexion_pico' && !$p2Activa && $nPiezaRef) {
                 // Si el checkbox se desmarca, se puede borrar la fila de 2da pasada si existía
-                SoldaduraPTA_pza::query()->where('id_proceso', $piece->id_proceso)
-                    ->where('n_pieza', $nPiezaRef)
-                    ->where('p2_activa', 1)
+                SoldaduraPTA_pza::query()->where('id_proceso', '=', $piece->id_proceso, 'and')
+                    ->where('n_pieza', '=', $nPiezaRef, 'and')
+                    ->where('p2_activa', '=', 1, 'and')
                     ->delete();
             }
         }
@@ -303,8 +303,8 @@ class SoldaduraPTAController extends Controller
         // El orden por defecto en SQL para strings pone '1H' antes que '1M' (H antes que M en alfabeto).
         // Usamos una extracción numérica seguida del sufijo para que ordene 1, 2, 3... y luego M, H.
         // Dado que típicamente es "Número + Letra", ordenamos numéricamente primero, y luego forzamos 'M' antes de 'H' si es necesario.
-        return SoldaduraPTA_pza::query()->where('id_proceso', $idProceso)
-            ->where('estado', 2)
+        return SoldaduraPTA_pza::query()->where('id_proceso', '=', $idProceso, 'and')
+            ->where('estado', '=', 2, 'and')
             ->orderByRaw('CAST(n_pieza AS UNSIGNED) ASC') // Ordena por el número: '1M' y '1H' serán ambos 1
             ->orderByRaw("RIGHT(n_pieza, 1) DESC")        // Letra final: 'M' (Macho) antes que 'H' (Hembra) porque M > H lexicográficamente en DESC
             ->orderByRaw("FIELD(tipo_medida, 'D_Conexion_pico', 'D_Conexion_obt', 'Perfilado')")
@@ -333,9 +333,9 @@ class SoldaduraPTAController extends Controller
         $nPieza = $request->input('n_pieza');
         $p2Tipo = $request->input('p2_tipo_medida'); // tipo que lleva el valor principal
 
-        $rows = SoldaduraPTA_pza::query()->where('id_proceso', $idProceso)
-            ->where('n_pieza', $nPieza)
-            ->where('estado', 2)
+        $rows = SoldaduraPTA_pza::query()->where('id_proceso', '=', $idProceso, 'and')
+            ->where('n_pieza', '=', $nPieza, 'and')
+            ->where('estado', '=', 2, 'and')
             ->get()
             ->keyBy('tipo_medida');
 
