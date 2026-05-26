@@ -593,15 +593,42 @@ function actualizarTotalBadge(ot, badgeElement) {
         .catch(err => console.error('Error cargando total:', err));
 }
 
-function actualizarBadge(param1, param2 = null) {
+function getBadgeElement(param1, param2 = null) {
+    let rowSelector = '';
+    const safeParam1 = param1 ? param1.replace(/"/g, '\\"') : '';
+    const safeParam2 = param2 ? param2.replace(/"/g, '\\"') : '';
+
+    if (window.moduleType === 'dibujos' || window.moduleType === 'fundicion') {
+        rowSelector = `tr[data-ot="${safeParam1}"][data-clase="${safeParam2}"]`;
+    } else if (window.moduleType === 'manuales') {
+        rowSelector = `tr[data-proceso="${safeParam1}"]`;
+    } else if (window.moduleType === 'ayudas') {
+        rowSelector = `tr[data-proceso="${safeParam1}"][data-clase="${safeParam2}"]`;
+    } else if (window.moduleType === 'ayudas_fundicion') {
+        rowSelector = `tr[data-clase="${safeParam2}"]`;
+    }
+
+    if (rowSelector) {
+        const row = document.querySelector(rowSelector);
+        if (row) {
+            const badge = row.querySelector('.badge-count');
+            if (badge) return badge;
+        }
+    }
+
+    // Fallback original con IDs
     let badgeId = '';
-    if (window.moduleType === 'dibujos') badgeId = `badge-${slugify(param1)}-${slugify(param2)}`;
+    if (window.moduleType === 'dibujos') badgeId = `badge-${slugify(param1)}-${param2 ? slugify(param2) : 'raiz'}`;
     else if (window.moduleType === 'fundicion') badgeId = `badge-${slugify(param1)}-${slugify(param2 || 'Raíz OT')}`;
     else if (window.moduleType === 'manuales') badgeId = `badge-${slugify(param1)}`;
     else if (window.moduleType === 'ayudas') badgeId = `badge-${slugify(param2)}-${slugify(param1)}`;
     else if (window.moduleType === 'ayudas_fundicion') badgeId = `badge-${slugify(param2)}`;
+    
+    return document.getElementById(badgeId);
+}
 
-    const badge = document.getElementById(badgeId);
+function actualizarBadge(param1, param2 = null) {
+    const badge = getBadgeElement(param1, param2);
     if (!badge) return;
 
     let url = window.routes['doc.archivos'] + '?';
@@ -719,11 +746,10 @@ function loadAuditLog() {
 function slugify(text) {
     if (!text) return '';
     return text.toString().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, "") // Quitar acentos (transliteración básica)
-        .replace(/\s+/g, '-')
-        .replace(/[^a-z0-9\-_]/g, '-')
-        .replace(/-+/g, '-').trim()
-        .replace(/^-+|-+$/g, '');
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, "") // Quitar acentos
+        .replace(/[^a-z0-9\s-]/g, "") // Eliminar caracteres no alfanuméricos excepto espacios y guiones
+        .replace(/[\s-]+/g, '-') // Reemplazar espacios y guiones consecutivos por un solo guion
+        .replace(/^-+|-+$/g, ''); // Quitar guiones de los extremos
 }
 
 function escapeHTML(str) {
@@ -782,17 +808,11 @@ window.confirmarEliminarCarpeta = function(p1, p2, label) {
     if (modal && msgContainer) {
         const module = window.moduleType;
         
-        let badgeId = '';
-        if (module === 'dibujos') badgeId = `badge-${slugify(p1)}-${slugify(p2)}`;
-        else if (module === 'fundicion') badgeId = `badge-${slugify(p1)}`;
-        else if (module === 'manuales') badgeId = `badge-${slugify(p1)}`;
-        else if (module === 'ayudas') badgeId = `badge-${slugify(p2)}-${slugify(p1)}`;
-        else if (module === 'ayudas_fundicion') badgeId = `badge-${slugify(p1)}`;
+        const badge = getBadgeElement(p1, p2);
         
         let count = 0;
-        if (badgeId) {
-            const badge = document.getElementById(badgeId);
-            if (badge) count = parseInt(badge.textContent) || 0;
+        if (badge) {
+            count = parseInt(badge.textContent) || 0;
         }
         
         let isVaciar = (count > 0);
