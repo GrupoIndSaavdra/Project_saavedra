@@ -292,13 +292,40 @@ class SystemLogController extends Controller
                 })->filter()->unique()->sort()->values(),
             'proceso' => SystemLog::query()->distinct()->whereNotNull('proceso')->pluck('proceso')->sort()->values(),
             'maquina' => SystemLog::query()->distinct()->whereNotNull('maquina')->pluck('maquina')->sort()->values(),
-            'action' => SystemLog::query()->distinct()->whereNotNull('action')->pluck('action')->sort()->values(),
+            'action' => $request->filled('admin_only') && $request->admin_only == 1
+                ? collect([
+                    'Inicio de Sesión',
+                    'Cierre de Sesión',
+                    'Cargo de OT',
+                    'Cargo de Clase de OT',
+                    'Modificación de OT',
+                    'Cargo/Modificación Cotas Nominales',
+                    'Desocupación de Máquina',
+                    'Subida de Dibujo',
+                    'Eliminación de Dibujo',
+                    'Reemplazo de Dibujo',
+                    'Creación de Carpeta',
+                    'Subida de Manual',
+                    'Eliminación de Manual',
+                    'Reemplazo de Manual',
+                    'Subida de Ayuda Visual',
+                    'Eliminación de Ayuda Visual',
+                    'Reemplazo de Ayuda Visual',
+                    'Subida de Dibujo Fundición',
+                    'Eliminación de Dibujo Fundición',
+                    'Reemplazo de Dibujo Fundición',
+                    'Visualización de Dibujo',
+                    'Autorización de Edición',
+                ])->sort()->values()
+                : SystemLog::query()->distinct()->whereNotNull('action')->pluck('action')->sort()->values(),
         ];
 
         // Obtener operadores únicos de forma eficiente
-        $filtrosDisponibles['operador'] = SystemLog::query()->select(['user_matricula', 'users.nombre', 'users.a_paterno'])
+        // En modo admin_only, solo mostrar administradores (perfil == 1)
+        $filtrosDisponibles['operador'] = SystemLog::query()->select(['system_logs.user_matricula', 'users.nombre', 'users.a_paterno', 'users.perfil'])
             ->leftJoin('users', 'system_logs.user_matricula', '=', 'users.matricula')
-            ->whereNotNull('user_matricula')
+            ->whereNotNull('system_logs.user_matricula')
+            ->when($request->filled('admin_only') && $request->admin_only == 1, fn($q) => $q->where('users.perfil', 1))
             ->distinct()
             ->get()
             ->map(fn($o) => (object)[
@@ -351,6 +378,61 @@ class SystemLogController extends Controller
         if ($request->filled('n_pieza') && $request->n_pieza !== 'Todos') {
             $baseSearch = preg_replace('/[a-zA-Z]/', '', $request->n_pieza);
             $query->where('n_pieza', 'REGEXP', '^' . $baseSearch . '[a-zA-Z]?$');
+        }
+
+        // --- FILTRO LOGS DE ADMINISTRADORES ---
+        if ($request->filled('admin_only') && $request->admin_only == 1) {
+            // Filtrar SOLO usuarios con perfil de administrador (perfil == 1)
+            $query->whereExists(function($subQ) {
+                $subQ->select(DB::raw(1))
+                    ->from('users')
+                    ->whereColumn('users.matricula', 'system_logs.user_matricula')
+                    ->where('users.perfil', 1);
+            });
+
+            // Filtrar solo acciones propias de administradores
+            $query->whereIn('action', [
+                'Inicio de Sesión',
+                'Cierre de Sesión',
+                'Cargo de OT',
+                'Cargo de Clase de OT',
+                'Modificación de OT',
+                'Cargo/Modificación Cotas Nominales',
+                'Desocupación de Máquina',
+                'Subida de Dibujo',
+                'Eliminación de Dibujo',
+                'Reemplazo de Dibujo',
+                'Creación de Carpeta',
+                'Subida de Manual',
+                'Eliminación de Manual',
+                'Reemplazo de Manual',
+                'Subida de Ayuda Visual',
+                'Eliminación de Ayuda Visual',
+                'Reemplazo de Ayuda Visual',
+                'Subida de Dibujo Fundición',
+                'Eliminación de Dibujo Fundición',
+                'Reemplazo de Dibujo Fundición',
+                'Visualización de Dibujo',
+                'Autorización de Edición',
+            ]);
+        } else {
+            // Modo normal: excluir acciones exclusivas de gestión documental de administradores
+            // para que el log de producción se mantenga limpio (solo operadores/producción)
+            $query->whereNotIn('action', [
+                'Subida de Dibujo',
+                'Eliminación de Dibujo',
+                'Reemplazo de Dibujo',
+                'Subida de Dibujo Fundición',
+                'Eliminación de Dibujo Fundición',
+                'Reemplazo de Dibujo Fundición',
+                'Subida de Manual',
+                'Eliminación de Manual',
+                'Reemplazo de Manual',
+                'Subida de Ayuda Visual',
+                'Eliminación de Ayuda Visual',
+                'Reemplazo de Ayuda Visual',
+                'Creación de Carpeta',
+            ]);
         }
 
         // --- FILTRO DE AUDITORÍA (NIVELES DE SOSPECHA) ---
@@ -464,12 +546,20 @@ class SystemLogController extends Controller
                     'proceso' => $log->proceso ?? 'N/A',
                     'maquina' => $log->maquina ?? 'N/A',
                     'n_juego' => ($log->n_pieza && preg_match('/[HM]$/i', $log->n_pieza)) ? preg_replace('/[HM]$/i', 'J', $log->n_pieza) : ($log->n_pieza ?? 'N/A'),
-                    'tiempo_total' => 'N/A' // Opcional calcularlo aquí también
+                    'tiempo_total' => 'N/A',
+                    'is_suspicious' => false,
                 ];
             });
 
-            $pdf = Pdf::loadView('reports.systemLogsPdf', ['logsRender' => $pdfLogs, 'selectedItems' => $selectedItems]);
-            return $pdf->download($this->generatePdfFilename($selectedItems, "Logs de Sistema"));
+            $isAdminOnly = $request->filled('admin_only') && $request->admin_only == 1;
+            $reportType  = $isAdminOnly ? 'Logs de Administradores' : 'Logs de Sistema';
+
+            $pdf = Pdf::loadView('reports.systemLogsPdf', [
+                'logsRender'   => $pdfLogs,
+                'selectedItems' => $selectedItems,
+                'isAdminOnly'  => $isAdminOnly,
+            ]);
+            return $pdf->download($this->generatePdfFilename($selectedItems, $reportType));
         }
 
         return view('reports.systemLogs', [

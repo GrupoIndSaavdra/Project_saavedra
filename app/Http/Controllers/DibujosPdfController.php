@@ -6,6 +6,7 @@ use App\Models\DibujoFileLog;
 use App\Models\DibujoOtHistory;
 use App\Models\Orden_trabajo;
 use App\Models\Clase;
+use App\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -586,6 +587,32 @@ class DibujosPdfController extends Controller
             'ruta'      => $ruta,
             'archivo'   => $archivo,
         ]);
+
+        // Mapeo de acciones técnicas a acciones legibles para system_logs
+        $actionMap = [
+            'subir_pdf'        => 'Subida de Dibujo',
+            'eliminar_pdf'     => 'Eliminación de Dibujo',
+            'reemplazar_pdf'   => 'Reemplazo de Dibujo',
+            'crear_carpeta'    => 'Creación de Carpeta',
+            'vaciar_carpeta'   => 'Eliminación de Dibujo',
+            'eliminar_carpeta' => 'Eliminación de Dibujo',
+        ];
+        $systemAction = $actionMap[$action] ?? null;
+        if ($systemAction && $user) {
+            $detailsMap = [
+                'subir_pdf'        => "El administrador subió el dibujo '{$archivo}' en la ruta {$ruta}.",
+                'eliminar_pdf'     => "El administrador eliminó el archivo '{$archivo}' de la ruta {$ruta}.",
+                'reemplazar_pdf'   => "El administrador reemplazó el dibujo en {$ruta}: {$archivo}.",
+                'crear_carpeta'    => "El administrador creó la carpeta de dibujos: {$ruta}.",
+                'vaciar_carpeta'   => "El administrador vació la carpeta de dibujos: {$ruta}.",
+                'eliminar_carpeta' => "El administrador eliminó la carpeta de dibujos: {$ruta}.",
+            ];
+            SystemLog::create([
+                'user_matricula' => $user->matricula,
+                'action'         => $systemAction,
+                'details'        => $detailsMap[$action] ?? "Administrador realizó la acción '{$action}' en {$ruta}.",
+            ]);
+        }
     }
 
     /**

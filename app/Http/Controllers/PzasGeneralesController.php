@@ -151,6 +151,14 @@ class PzasGeneralesController extends Controller
         $pieces = $pieces == null ? array() : $pieces;
         $this->saveInfoPzas($infoPieces, $pieces);
 
+        if ($profile == 'admin' && ($piecesData['action'] ?? null) !== null) {
+            \App\Models\SystemLog::create([
+                'user_matricula' => auth()->user()->matricula,
+                'action' => 'Consulta Reporte de OT',
+                'details' => 'El administrador consultó el reporte de piezas generales con filtros: OT (' . ($selectedItems['workOrder'] ?? 'Todos') . '), Clase (' . ($selectedItems['class'] ?? 'Todos') . '), Proceso (' . ($selectedItems['process'] ?? 'Todos') . ').',
+            ]);
+        }
+
         if (!$isPdf) {
             if ($profile == 'quality') {
                 return [true, $pieces, $piecesData, $infoPieces, $selectedItems, $filtersData];

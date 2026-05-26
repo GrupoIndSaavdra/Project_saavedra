@@ -1101,6 +1101,32 @@ class DibujosFundicionPdfController extends Controller
             'ruta' => $ruta,
             'archivo' => $archivo,
         ]);
+
+        // Mapeo de acciones técnicas a acciones legibles para system_logs
+        $actionMap = [
+            'subir_pdf'        => 'Subida de Dibujo Fundición',
+            'eliminar_pdf'     => 'Eliminación de Dibujo Fundición',
+            'reemplazar_pdf'   => 'Reemplazo de Dibujo Fundición',
+            'crear_carpeta'    => 'Creación de Carpeta',
+            'vaciar_carpeta'   => 'Eliminación de Dibujo Fundición',
+            'eliminar_carpeta' => 'Eliminación de Dibujo Fundición',
+        ];
+        $systemAction = $actionMap[$action] ?? null;
+        if ($systemAction && $user) {
+            $detailsMap = [
+                'subir_pdf'        => "El administrador subió el dibujo de fundición '{$archivo}' en la ruta {$ruta}.",
+                'eliminar_pdf'     => "El administrador eliminó el dibujo de fundición '{$archivo}' de la ruta {$ruta}.",
+                'reemplazar_pdf'   => "El administrador reemplazó el dibujo de fundición en {$ruta}: {$archivo}.",
+                'crear_carpeta'    => "El administrador creó la carpeta de fundición: {$ruta}.",
+                'vaciar_carpeta'   => "El administrador vació la carpeta de fundición: {$ruta}.",
+                'eliminar_carpeta' => "El administrador eliminó la carpeta de fundición: {$ruta}.",
+            ];
+            \App\Models\SystemLog::create([
+                'user_matricula' => $user->matricula,
+                'action'         => $systemAction,
+                'details'        => $detailsMap[$action] ?? "Administrador realizó la acción '{$action}' en {$ruta}.",
+            ]);
+        }
     }
 
     /**

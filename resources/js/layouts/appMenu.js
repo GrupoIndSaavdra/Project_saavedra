@@ -96,8 +96,17 @@ function createList(sections) {
                     window.location.href = a.href;
                 });
 
-                const linkPath = new URL(a.href, window.location.origin).pathname;
-                if (currentPath === linkPath) {
+                const linkUrl  = new URL(a.href, window.location.origin);
+                const linkPath = linkUrl.pathname;
+                const linkSearch = linkUrl.search; // query string del enlace (?admin_only=1 o vacío)
+
+                // Comparar pathname siempre. Si el enlace tiene query string, compararlo también.
+                const pathMatch   = currentPath === linkPath;
+                const searchMatch = linkSearch
+                    ? window.location.search === linkSearch
+                    : window.location.search === '' || !window.location.search.includes('admin_only=1');
+
+                if (pathMatch && searchMatch) {
                     a.classList.add("active");
                     liSection.classList.add("active"); // para mostrar sección activa
                     ulSubmenu.style.display = "block";
@@ -141,8 +150,16 @@ function createList(sections) {
                     window.location.href = a.href;
                 });
 
-                const linkPath = new URL(a.href, window.location.origin).pathname;
-                if (currentPath === linkPath) {
+                const linkUrl2   = new URL(a.href, window.location.origin);
+                const linkPath2  = linkUrl2.pathname;
+                const linkSearch2 = linkUrl2.search;
+
+                const pathMatch2   = currentPath === linkPath2;
+                const searchMatch2 = linkSearch2
+                    ? window.location.search === linkSearch2
+                    : window.location.search === '' || !window.location.search.includes('admin_only=1');
+
+                if (pathMatch2 && searchMatch2) {
                     a.classList.add("active");
                 }
 
@@ -209,6 +226,7 @@ function getRoutes(profile) {
                         // ["showTimes", "Modificar tiempos de producción"],
                         ["show_panelWO", "Panel de progreso de O.T"],
                         ["systemLogsReport", "Auditoría de Producción"],
+                        ["adminLogsReport", "Logs de Administradores"],
                     ],
                 },
                 {

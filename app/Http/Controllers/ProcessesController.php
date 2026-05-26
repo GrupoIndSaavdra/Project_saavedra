@@ -54,6 +54,7 @@ use App\Models\SegundaOperacionCabezaSoplo_cnominal;
 use App\Models\SegundaOperacionCabezaSoplo_tolerancia;
 use App\Models\CandadoObturador_cnominal;
 use App\Models\CandadoObturador_tolerancia;
+use App\Models\SystemLog;
 use Illuminate\Http\Request;
 
 class ProcessesController extends Controller
@@ -411,6 +412,17 @@ class ProcessesController extends Controller
             'Segunda Operacion Cabeza Soplo' => $this->segundaOperacionCS($id_process, $request),
         };
         $this->updatePieces($workOrderId, $request->input('class'), $request->input('process'), $request->input('subProcess') ?? null, $request->input('operation') ?? null);
+        
+        SystemLog::create([
+            'user_matricula' => auth()->user()->matricula,
+            'action' => 'Cargo/Modificación Cotas Nominales',
+            'details' => "El administrador registró/modificó las cotas nominales de {$request->input('process')} para OT {$workOrderId}, Clase {$request->input('class')}.",
+            'ot' => $workOrderId,
+            'clase' => $request->input('class'),
+            'proceso' => $request->input('process'),
+            'id_ot' => $workOrderId,
+        ]);
+
         return redirect()->to('cNominals')->with('success', 'Datos de ' . $request->input('process') . ' guardados correctamente.');
     }
 

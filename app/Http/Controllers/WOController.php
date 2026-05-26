@@ -10,6 +10,7 @@ use App\Models\Moldura;
 use App\Models\Orden_trabajo;
 use App\Models\Pieza;
 use App\Models\Procesos;
+use App\Models\SystemLog;
 use App\Models\User;
 use App\Http\Controllers\PtaResultsController;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
@@ -72,6 +73,14 @@ class WOController extends Controller
             $newWorkOrder->id = $request->workOrderAdded;
             $newWorkOrder->id_moldura = $request->moldingSelected;
             $newWorkOrder->save();
+            
+            SystemLog::create([
+                'user_matricula' => auth()->user()->matricula,
+                'action' => 'Cargo de OT',
+                'details' => "El administrador registró la OT {$request->workOrderAdded} con id_moldura {$request->moldingSelected}.",
+                'ot' => $request->workOrderAdded,
+                'id_ot' => $request->workOrderAdded,
+            ]);
         }
         //Busqueda de la orden de trabajo ingresada o creada
         $workOrder = Orden_trabajo::query()->find(isset($request->workOrderAdded) ? $request->workOrderAdded : $request->workOrderSelected);

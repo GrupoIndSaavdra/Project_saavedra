@@ -7,6 +7,7 @@ use App\Models\AyudaVisualFundicionHistory;
 use App\Models\Procesos;
 use App\Models\Clase;
 use App\Models\Fecha_proceso;
+use App\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -559,6 +560,32 @@ class AyudasVisualesFundicionPdfController extends Controller
             'ruta'      => $ruta,
             'archivo'   => $archivo,
         ]);
+
+        // Mapeo de acciones técnicas a acciones legibles para system_logs
+        $actionMap = [
+            'subir_pdf'        => 'Subida de Ayuda Visual',
+            'eliminar_pdf'     => 'Eliminación de Ayuda Visual',
+            'reemplazar_pdf'   => 'Reemplazo de Ayuda Visual',
+            'crear_carpeta'    => 'Creación de Carpeta',
+            'vaciar_carpeta'   => 'Eliminación de Ayuda Visual',
+            'eliminar_carpeta' => 'Eliminación de Ayuda Visual',
+        ];
+        $systemAction = $actionMap[$action] ?? null;
+        if ($systemAction && $user) {
+            $detailsMap = [
+                'subir_pdf'        => "El administrador subió la ayuda visual de fundición '{$archivo}' (Clase: {$ruta}).",
+                'eliminar_pdf'     => "El administrador eliminó la ayuda visual de fundición '{$archivo}' (Clase: {$ruta}).",
+                'reemplazar_pdf'   => "El administrador reemplazó la ayuda visual de fundición (Clase: {$ruta}): {$archivo}.",
+                'crear_carpeta'    => "El administrador creó la carpeta de ayudas de fundición: {$ruta}.",
+                'vaciar_carpeta'   => "El administrador vació la carpeta de ayudas de fundición: {$ruta}.",
+                'eliminar_carpeta' => "El administrador eliminó la carpeta de ayudas de fundición: {$ruta}.",
+            ];
+            SystemLog::create([
+                'user_matricula' => $user->matricula,
+                'action'         => $systemAction,
+                'details'        => $detailsMap[$action] ?? "Administrador realizó la acción '{$action}' en {$ruta}.",
+            ]);
+        }
     }
 
         /**

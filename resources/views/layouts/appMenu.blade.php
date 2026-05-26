@@ -92,7 +92,8 @@
         'ayudas_fundicion.manage': @json(route('ayudas_fundicion.manage')),
         'almacen.fundicion.index': @json(route('almacen.fundicion.index')),
         'calidad.maquinados.index': @json(route('calidad.maquinados.index')),
-        systemLogsReport: @json(route('systemLogsReport'))
+        systemLogsReport: @json(route('systemLogsReport')),
+        adminLogsReport: @json(route('systemLogsReport', ['admin_only' => 1]))
     };
 </script>
 @isset($pieces_Released)

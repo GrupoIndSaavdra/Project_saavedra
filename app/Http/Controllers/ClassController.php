@@ -10,6 +10,7 @@ use App\Models\Procesos;
 use App\Models\tiempoproduccion;
 use Carbon\Carbon;
 use DateTime;
+use App\Models\SystemLog;
 use Illuminate\Http\Request;
 
 class ClassController extends Controller
@@ -97,6 +98,16 @@ class ClassController extends Controller
                 $process = new Procesos();
                 $this->storeProcess($class, $request->input('operations'), $request->input('machines'), $process); //Verifico las casillas.
             }
+            
+            SystemLog::create([
+                'user_matricula' => auth()->user()->matricula,
+                'action' => 'Cargo de Clase de OT',
+                'details' => "Se registró la clase {$request->input('class')} en la OT {$request->input('workOrder')} con {$request->input('pieces')} piezas.",
+                'ot' => $request->input('workOrder'),
+                'clase' => $request->input('class'),
+                'id_ot' => $request->input('workOrder'),
+            ]);
+
             $with = ["success", "¡La clase se ha registrado con éxito!"];
         }
         return redirect()->route('showWO', ['workOrder' => $request->input('workOrder')])->with($with[0], $with[1]);
@@ -145,6 +156,17 @@ class ClassController extends Controller
             }
         }
         $this->storeProcess($class, $request->input('operations'), $request->input('machines'), $process); //Verifico las casillas.
+        
+        SystemLog::create([
+            'user_matricula' => auth()->user()->matricula,
+            'action' => 'Modificación de OT',
+            'details' => "Se modificó la clase {$class->nombre} en la OT {$workOrder->id}. Piezas: {$class->piezas}, Pedido: {$class->pedido}.",
+            'ot' => $workOrder->id,
+            'clase' => $class->nombre,
+            'id_ot' => $workOrder->id,
+            'id_clase' => $class->id,
+        ]);
+
         return redirect()->route('showWO', ['workOrder' => $request->input('workOrder')])->with("success", "¡La clase {$class->nombre} se ha editado con éxito!");
     }
 

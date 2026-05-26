@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ManualFileLog;
 use App\Models\ManualHistory;
 use App\Models\Procesos;
+use App\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -498,6 +499,32 @@ class ManualesPdfController extends Controller
             'ruta'      => $ruta,
             'archivo'   => $archivo,
         ]);
+
+        // Mapeo de acciones técnicas a acciones legibles para system_logs
+        $actionMap = [
+            'subir_pdf'        => 'Subida de Manual',
+            'eliminar_pdf'     => 'Eliminación de Manual',
+            'reemplazar_pdf'   => 'Reemplazo de Manual',
+            'crear_carpeta'    => 'Creación de Carpeta',
+            'vaciar_carpeta'   => 'Eliminación de Manual',
+            'eliminar_carpeta' => 'Eliminación de Manual',
+        ];
+        $systemAction = $actionMap[$action] ?? null;
+        if ($systemAction && $user) {
+            $detailsMap = [
+                'subir_pdf'        => "El administrador subió el manual '{$archivo}' para el proceso {$ruta}.",
+                'eliminar_pdf'     => "El administrador eliminó el manual '{$archivo}' del proceso {$ruta}.",
+                'reemplazar_pdf'   => "El administrador reemplazó el manual en {$ruta}: {$archivo}.",
+                'crear_carpeta'    => "El administrador creó la carpeta de manuales: {$ruta}.",
+                'vaciar_carpeta'   => "El administrador vació la carpeta de manuales: {$ruta}.",
+                'eliminar_carpeta' => "El administrador eliminó la carpeta de manuales: {$ruta}.",
+            ];
+            SystemLog::create([
+                'user_matricula' => $user->matricula,
+                'action'         => $systemAction,
+                'details'        => $detailsMap[$action] ?? "Administrador realizó la acción '{$action}' en {$ruta}.",
+            ]);
+        }
     }
 
 
