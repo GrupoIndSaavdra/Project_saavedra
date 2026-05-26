@@ -1,33 +1,80 @@
-# Guía de Controladores (Controllers Skill) - Project_saavedra
+# ⚙️ Guía de Controladores (Controllers Skill) - Máximo Nivel
 
-Esta guía define las reglas y convenciones para crear y mantener controladores en el proyecto Laravel `Project_saavedra`.
+Los controladores en `Project_saavedra` son el corazón del sistema. Deben ser robustos, a prueba de fallos y estrictamente optimizados. No se permite código espagueti.
 
-## Ubicación y Nombres
-- **Ubicación:** `app/Http/Controllers/`
-- **Convención de Nombres:** `[NombreEntidad o Caracteristica]Controller.php` (e.g., `WOController.php`, `PtaResultsController.php`).
+## 1. Nomenclatura, Rutas y Middlewares
+- **Convención:** `[Entidad]Controller.php` (Ej. `PtaResultsController.php`).
+- **Middlewares en el Constructor:** Todo controlador que maneje datos confidenciales debe bloquear el acceso a invitados.
+```php
+public function __construct() {
+    $this->middleware('auth');
+    // Instanciar servicios o helpers compartidos
+    $this->classController = new ClassController();
+}
+```
 
-## Estructura de Métodos
-Se siguen convenciones similares a recursos de Laravel, pero con métodos adicionales según la lógica de negocio:
-- `manage()` o `index()`: Para mostrar la vista principal o un dashboard de una sección.
-- `store(Request $request)`: Para guardar registros.
-- `show($id)`: Para mostrar detalles específicos.
-- `destroy($id)`: Para eliminar lógicamente o físicamente un registro.
-- `generatePDF($id)`: Usado frecuentemente para exportar datos usando la fachada `Barryvdh\DomPDF\Facade\Pdf`.
+## 2. Protección de Integridad (Transacciones y Excepciones)
+Cualquier método que afecte múltiples modelos (`insert`, `update`, `delete`) **DEBE** usar `DB::transaction()` y un bloque `try/catch` para evitar bases de datos corruptas si el script falla a la mitad.
 
-## Optimización y Consultas
-- **Eager Loading:** Siempre evita el problema de *N+1 queries*. Si un modelo tiene relaciones que se usarán en bucles, precárgalas en la consulta principal:
+```php
+use Illuminate\Support\Facades\DB;
+
+public function store(Request $request) {
+    // 1. Validaciones previas
+    $request->validate(['n_pieza' => 'required', 'estado' => 'required']);
+
+    try {
+        DB::beginTransaction();
+
+        // 2. Operaciones Críticas
+        $orden = Orden_trabajo::find($request->ot_id);
+        $orden->estado = 'Completado';
+        $orden->save();
+
+        Pieza::where('id_ot', $orden->id)->update(['liberacion' => 1]);
+
+        DB::commit(); // Todo se guarda si llega aquí
+        return response()->json(['success' => 'Operación completada']);
+
+    } catch (\Exception $e) {
+        DB::rollBack(); // Revertir todo si hay un error
+        // Guardar log si es necesario
+        \Log::error("Error al guardar OT: " . $e->getMessage());
+        return response()->json(['error' => 'Ocurrió un error interno'], 500);
+    }
+}
+```
+
+## 3. Resolución de Rendimiento (Eager Loading Avanzado)
+El problema N+1 es el enemigo número uno. No basta con usar `with()`, a veces necesitas filtrar relaciones precargadas.
+
+```php
+// ✅ EXCELENTE: Precarga la moldura y SOLO las clases que NO están finalizadas
+$workOrders = Orden_trabajo::query()
+    ->with(['moldura', 'clases' => function($query) {
+        $query->where('finalizada', 0);
+    }])
+    ->get();
+```
+
+## 4. Tipos de Respuestas (Blade vs JSON vs Redirect)
+
+El desarrollador debe saber exactamente cómo debe responder el controlador basándose en quién hizo la solicitud (El Navegador o JavaScript).
+
+- **Renderizado Completo (Blade):** Para navegación de menús. 
   ```php
-  $workOrders = Orden_trabajo::query()->with(['clases', 'moldura'])->get();
+  return view('wo_views.show', compact('orden', 'piezas'));
   ```
-- **Uso de Caché de Modelos:** Para consultas repetitivas de catálogos (como usuarios u operadores), trae los datos antes de iterar y mapealos en memoria:
+- **Petición Fetch/AJAX:** Responder JSON siempre, controlando los códigos HTTP (200, 400, 404, 500).
   ```php
-  $usersCache = User::all()->keyBy('matricula');
+  return response()->json([
+      'success' => true,
+      'data' => $resultadosHtml // Puedes mandar HTML pre-renderizado aquí
+  ], 200);
   ```
-
-## Retornos y Respuestas
-- **Vistas:** Se utiliza `return view('carpeta_views.nombre_vista', compact('variable1', 'variable2'));`. Asegúrate de usar `compact()` para mantener limpieza.
-- **AJAX / APIs Internas:** Si el método responde a una petición asíncrona, retorna respuestas JSON limpias usando `response()->json(['data' => $data], 200);`.
-- **Redirecciones:** Usa `redirect()->route('nombre_ruta')->with('success', 'Mensaje');` para pasar datos temporales (flash) tras operaciones de escritura (crear, editar, eliminar).
-
-## Dependencias
-- Los controladores suelen instanciar otros controladores auxiliares directamente en su constructor o métodos si es estrictamente necesario, aunque se sugiere abstraer lógica compleja a Traits o los propios Modelos cuando sea posible para mantener controladores delgados.
+- **Formularios Síncronos (`<form action="...">`):** Redirige a la vista anterior con mensajes de estado.
+  ```php
+  return redirect()->back()->with('success', 'La clase ha sido cerrada.');
+  // O con errores:
+  return redirect()->route('home')->withErrors(['error' => 'No tienes permiso']);
+  ```

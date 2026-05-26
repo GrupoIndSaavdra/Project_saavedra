@@ -1,28 +1,86 @@
-# Guía de Lógica y Modelos (Logic Skill) - Project_saavedra
+# 🧠 Guía de Lógica y Modelos (Logic Skill) - Máximo Nivel
 
-Esta guía establece cómo manejar la capa de lógica de negocio, los modelos de base de datos y la seguridad en `Project_saavedra`.
+Los modelos en `Project_saavedra` gestionan la estructura profunda de datos. Esta guía define cómo filtrar de forma masiva, cómo manipular fechas correctamente y cómo orquestar permisos de usuario complejos.
 
-## Ubicación y Modelos
-- **Ubicación:** `app/Models/`
-- **Nomenclatura de Modelos:** Los modelos siguen nombres en PascalCase pero a veces mezclan underscores para coincidir o clarificar conceptos de base de datos legacy (ej. `Orden_trabajo`, `Fecha_proceso`, `Moldura`, `User`).
+## 1. El Pilar de Perfiles (`auth()->user()->perfil`)
 
-## Uso de Eloquent ORM
-- Se prioriza fuertemente el uso de Eloquent `Model::query()->where(...)->first();` y colecciones.
-- **Evitar consultas N+1:** Ver la guía de Controladores sobre cómo usar el método `with()` para Eager Loading.
+Todo el flujo de negocio cambia dependiendo de quién sea el usuario. El perfil numérico debe usarse para condicionales tempranos (Early Returns).
 
-## Reglas de Negocio en Controladores vs Modelos
-- En este proyecto, mucha de la lógica de negocio se encuentra en los controladores. Al crear nuevas funcionalidades, mantén la consistencia, pero siempre trata de aislar lógicas de validación o procesos pesados de datos (como la recolección de metadatos o cálculos) en funciones separadas auxiliares o en los mismos Modelos.
+```php
+public function procesarReporte() {
+    $perfil = auth()->user()->perfil;
 
-## Autenticación y Autorización basada en Perfiles
-- El proyecto determina permisos y renderizado dinámico basado en el campo `perfil` del modelo `User`.
-- Las comprobaciones lógicas típicas se hacen evaluando `auth()->user()->perfil`.
-- **Perfiles Comunes Documentados:**
-  - `1`: Admin / Sistemas
-  - `4`: Perfil que revisa reportes / Piezas
-  - `5`: Un tipo de usuario especial (afecta la lógica de mostrado de clases).
-  - `6`: Gerencia
-  - `8`: Calidad / Ingeniería
-- Al programar lógica condicional, utiliza estructuras claras o arrays para agrupar roles (ej. `in_array(auth()->user()->perfil, ['1', '6', '8'])`).
+    // Early return para usuarios no autorizados
+    if (!in_array($perfil, [1, 6, 8])) {
+        return redirect()->route('home')->with('error', 'Acceso denegado. Se requiere nivel Gerencial o Calidad.');
+    }
 
-## Sesiones Temporales
-- El sistema utiliza fuertemente el helper `session()` para almacenar variables de estado y accesos temporales (como `pta_temp_auth`, `pta_temp_ot_id`). Asegúrate de considerar el ciclo de vida de estas sesiones al manipular accesos de usuario o lógicas cruzadas entre departamentos.
+    // Lógica para el perfil 8 (Calidad específica)
+    if ($perfil == 8) {
+        $query->where('proceso', 'LIKE', '%Soldadura%');
+    }
+}
+```
+
+## 2. Eloquent Queries - Optimizaciones de Búsqueda
+
+Evita iterar sobre `->get()` para hacer sumatorias. Usa métodos de agregación directos en la BD para ahorrar memoria del servidor.
+
+```php
+// ❌ PÉSIMO (Usa MBs de memoria RAM):
+$piezas = Pieza::where('id_ot', 10)->get();
+$totalBuenas = $piezas->where('error', 'Ninguno')->count();
+
+// ✅ EXCELENTE (La base de datos hace el trabajo):
+$totalBuenas = Pieza::where('id_ot', 10)->where('error', 'Ninguno')->count();
+```
+
+## 3. Manipulación de Fechas con Carbon
+Fechas y tiempos deben manejarse estrictamente con `\Carbon\Carbon` de Laravel para evitar inconsistencias de zonas horarias o formatos.
+
+```php
+use Carbon\Carbon;
+
+// Crear fechas formateadas para bases de datos
+$fechaFin = Carbon::now()->format('Y-m-d H:i:s');
+
+// Formatear fechas legibles para el humano (Vistas o PDFs)
+$fechaLegible = Carbon::parse($registro->fecha_inicio)->translatedFormat('l d \d\e F \d\e Y, h:i A'); 
+// Output: Lunes 25 de Octubre de 2026, 08:30 PM
+```
+
+## 4. Sesiones y Estados Temporales (Flujos Multi-paso)
+
+Los flujos como **PTA (Procedimiento de Trabajo Autorizado)** exigen que el usuario haga operaciones parciales que no se guardan permanentemente de inmediato.
+
+- **Variables de Estado en Sesión:**
+```php
+// Paso 1: Iniciar el proceso de PTA y atarlo a la OT temporalmente
+session()->put('pta_state', [
+    'ot_id' => $ot->id,
+    'step' => 'revisando_soldadura',
+    'timestamp' => now()
+]);
+
+// Paso 2: El middleware o el controlador verifica si hay un proceso activo
+if (session()->has('pta_state')) {
+    $data = session('pta_state');
+}
+
+// Paso 3: Limpiar una vez que el proceso es finalizado o cancelado
+session()->forget('pta_state');
+```
+
+## 5. Colecciones vs Consultas (Maps y KeyBy)
+Para relacionar IDs y descripciones cuando no hay Foreign Keys estrictas o cuando quieres cruzar información masiva:
+
+```php
+// Cargar catálogo a memoria
+$maquinasDb = Maquinas::all()->keyBy('id'); // Indexado por ID
+
+// Ahora en tu bucle, en vez de hacer 100 queries:
+foreach($registros as $reg) {
+    // 0 costo, búsqueda en hash map O(1)
+    $nombreMaquina = $maquinasDb->get($reg->maquina_id)?->nombre ?? 'N/A';
+}
+```

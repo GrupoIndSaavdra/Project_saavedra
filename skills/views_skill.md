@@ -1,55 +1,81 @@
-# Guía de Vistas (Views Skill) - Project_saavedra
+# 👁️ Guía de Vistas Blade (Views Skill) - Máximo Nivel
 
-Esta guía detalla cómo crear, modificar y estructurar las interfaces de usuario (Vistas) en el proyecto utilizando **Laravel Blade**.
+`Project_saavedra` usa Blade como motor de renderizado. Las vistas deben ser ligeras, modulares y seguras. 
 
-## Ubicación y Estructura
-- **Ubicación:** `resources/views/`
-- **Carpetas Modulares:** Las vistas no están sueltas en la raíz, sino agrupadas por entidad o módulo (ej. `wo_views` para órdenes de trabajo, `pieces_views` para piezas, `pta_views` para PTA, etc.).
+## 1. Directivas de Seguridad (CSRF y Method Spofing)
+Todo formulario POST/PUT/DELETE tradicional **DEBE** incluir las directivas protectoras.
 
-## Uso de Layouts y Secciones Blade
-- Las vistas deben extender del layout principal para mantener un diseño unificado y un encabezado (header) persistente.
-- El layout principal común es `layouts.appMenu`.
+```blade
+<form action="{{ route('wo.guardar') }}" method="POST">
+    {{-- Token de seguridad obligatorio --}}
+    @csrf 
+    {{-- Falsificación de método si necesitas actualizar --}}
+    @method('PUT') 
+    
+    <input type="text" name="n_pieza" required>
+    <button type="submit" class="btns">Actualizar</button>
+</form>
+```
 
-### Estructura base de una vista:
+## 2. Estructura Exacta y Uso de `@vite`
+La inclusión de scripts es estricta. Nunca incluyas scripts en el medio del documento. Usa `@section('head')` para assets estáticos Vite.
+
 ```blade
 @extends('layouts.appMenu')
 
 @section('head')
-    <!-- Títulos y metas adicionales -->
-    <title>Título de la Vista</title>
-    <!-- Incluir CSS y JS específicos para la vista usando Vite -->
-    @vite(['resources/css/carpeta/estilo.css', 'resources/js/carpeta/script.js'])
-@endsection
-
-@section('background-body')
-    <!-- Si la vista requiere un fondo especial en el body -->
-    background-color: #f4f4f4;
-@endsection
-
-@section('content')
-    <!-- Contenido HTML de la vista -->
-    <main class="contenedor-principal">
-        <h1>Mi Vista</h1>
-    </main>
+    <title>Gestión Avanzada</title>
+    {{-- Vite inyectará los hashes y el hot-reload en desarrollo --}}
+    @vite(['resources/css/wo_views/avanzada.css', 'resources/js/wo_views/avanzada.js'])
 @endsection
 ```
 
-## Importación de Assets
-- **Vite:** Es mandatorio cargar los estilos y scripts mediante `@vite([...])`.
-- **Imágenes:** Siempre utilizar el helper de Blade `asset()` para las rutas de imágenes: `<img src="{{ asset('images/logo.png') }}" />`.
+## 3. Comunicación a JavaScript (`window.routes` y Variables)
+Nunca quemes URLs ni tokens dentro del JS externo. Usa este patrón exacto antes de que cierre el `@section('content')` o dentro del mismo.
 
-## Integración con JavaScript
-- Para pasar variables desde el servidor (PHP/Controlador) hacia JavaScript, se sigue la convención de utilizar el objeto global `window` mediante `@json()`.
-- **Mapeo de Rutas para JS:** En el layout base (`appMenu.blade.php`), existe un objeto global `window.routes` que contiene la url pre-renderizada de cada ruta de Laravel.
-  ```html
-  <script>
-      window.routes = {
-          ...(window.routes || {}),
-          miRuta: @json(route('nombre.de.la.ruta'))
-      };
-  </script>
-  ```
-  Esto permite que los scripts (`.js`) llamen internamente a `window.routes.miRuta` sin quemar las URLs ni causar errores de ruteo.
+```blade
+<script>
+    // Se recomienda poner esto al final del content
+    window.routes = {
+        ...(window.routes || {}),
+        apiActualizar: @json(route('api.actualizar.pieza')),
+        apiEliminar: @json(route('api.eliminar.pieza', ['id' => ':id'])) // Truco para reemplazar luego
+    };
+    
+    window.usuarioConfig = {
+        perfil: @json(auth()->user()->perfil),
+        nombre: @json(auth()->user()->nombre),
+        modoOscuro: false // Configuración extra
+    };
+</script>
+```
 
-## Componentes y Partials
-- Si hay bloques de código repetitivos (como alertas, o modales), extráelos a vistas parciales en carpetas como `partials/` e inclúyelos con `@include('partials.mi_componente')`.
+## 4. Uso de Componentes / Partials (Blade Components)
+Para evitar repetir HTML (como Modales o tarjetas), usa la etiqueta `@include`. Puedes pasarle variables directamente:
+
+```blade
+{{-- En views/wo_views/index.blade.php --}}
+<div class="lista">
+    @foreach($ordenes as $orden)
+        {{-- Llamamos a la sub-vista pasándole la variable $orden y renombrándola --}}
+        @include('partials.tarjeta_orden', ['data' => $orden, 'modo' => 'reducido'])
+    @endforeach
+</div>
+```
+
+## 5. Renderizado Condicional Limpio
+Evita usar PHP crudo (`<?php ?>`). Usa directivas Blade siempre.
+
+```blade
+@auth
+    <span>Usuario Logueado</span>
+@endauth
+
+@if($clase->piezas_buenas >= $clase->total)
+    <span class="badge bg-green">Completado</span>
+@elseif($clase->piezas_malas > 0)
+    <span class="badge bg-red">Scrap Detectado</span>
+@else
+    <span class="badge bg-blue">En Proceso</span>
+@endif
+```
