@@ -4,6 +4,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     createFilters();
 
+    // Adaptar tabla al modo admin
+    if (window.isAdminOnly) {
+        // Renombrar encabezado Operador -> Administrador
+        const labelTh = document.querySelector('.col-admin-label');
+        if (labelTh) labelTh.textContent = 'Administrador';
+        // Inyectar CSS para ocultar columnas de operador
+        const style = document.createElement('style');
+        style.textContent = '.col-operador-only { display: none !important; } .col-operador-only-td { display: none !important; }';
+        document.head.appendChild(style);
+    }
+
     // Lógica para colapsar/expandir niveles en la tabla de colores
     document.querySelectorAll(".level-toggle").forEach(header => {
         header.addEventListener("click", () => {
@@ -12,13 +23,16 @@ document.addEventListener("DOMContentLoaded", () => {
             const targetArrow = header.querySelector(".arrow");
             const isExpanding = targetRows[0].style.display === "none";
 
-            // Cerrar todos los niveles primero
-            document.querySelectorAll(".level-row").forEach(row => {
-                row.style.display = "none";
-            });
-            document.querySelectorAll(".arrow").forEach(arrow => {
-                arrow.textContent = "▶";
-            });
+            // Cerrar todos los niveles de la misma tabla primero
+            const parentTable = header.closest('table');
+            if (parentTable) {
+                parentTable.querySelectorAll(".level-row").forEach(row => {
+                    row.style.display = "none";
+                });
+                parentTable.querySelectorAll(".arrow").forEach(arrow => {
+                    arrow.textContent = "▶";
+                });
+            }
 
             // Si estábamos expandiendo, abrir solo el objetivo
             if (isExpanding) {
@@ -29,6 +43,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     });
+
+    // Alternar tabla de colores según modo admin
+    if (window.isAdminOnly) {
+        const tableNormal = document.querySelector('.table-colors:not(.table-colors-admin)');
+        const tableAdmin  = document.querySelector('.table-colors-admin');
+        if (tableNormal) tableNormal.style.display = 'none';
+        if (tableAdmin)  tableAdmin.style.display  = '';
+    }
 
     // ---------------------------------------------------------
     // LÓGICA DE CARGA DINÁMICA (PAGINACIÓN AJAX)
@@ -149,6 +171,9 @@ function appendLogsToTable(newLogs) {
 }
 
 function createFilters() {
+    // Filtros que solo aplican a logs de operadores (no admin)
+    const operatorOnlyFilters = ['ot', 'clase', 'maquina', 'proceso', 'audit_status', 'n_pieza'];
+
     let titles = {
         ot: "Orden de trabajo",
         clase: "Clase",
@@ -167,6 +192,9 @@ function createFilters() {
     container.innerHTML = ""; // Limpiar antes de crear
 
     Object.keys(titles).forEach((key) => {
+        // En modo admin, omitir filtros exclusivos de operadores
+        if (window.isAdminOnly && operatorOnlyFilters.includes(key)) return;
+
         let div = document.createElement("div");
         div.className = "filter filter-" + key;
 
@@ -221,12 +249,17 @@ function createFilters() {
                     "Ingreso a Meta Existente": { color: "#3498DB", dark: true },
                     "Login Inspector Calidad": { color: "#21618C", dark: true },
                     "Cierre de Sesión": { color: "#21618C", dark: true },
+                    "Desbloqueo de PC": { color: "#3498DB", dark: true },
 
                     // VERDE
                     "Proceso Correcto": { color: "#ABEBC6" },
                     "Captura Medida": { color: "#27AE60", dark: true },
                     "Captura Medida / Reporte": { color: "#27AE60", dark: true },
+                    "Cargo de OT": { color: "#27AE60", dark: true },
+                    "Cargo de Clase de OT": { color: "#27AE60", dark: true },
                     "Terminar Reporte": { color: "#186A3B", dark: true },
+                    "Cargo/Modificación Cotas Nominales": { color: "#186A3B", dark: true },
+                    "Desocupación de Máquina": { color: "#1A8C5F", dark: true },
 
                     // AMARILLO (AUDITORÍA / AUTORIZACIÓN)
                     "Consulta Documentación Técnica": { color: "#F9E79F" },
@@ -234,9 +267,26 @@ function createFilters() {
                     "Captura Sospechosa": { color: "#F1C40F" },
                     "Autorización de Edición": { color: "#9A7D0A", dark: true },
                     "Solicitud Edición de Reporte": { color: "#9A7D0A", dark: true },
+                    "Modificación de OT": { color: "#9A7D0A", dark: true },
+
+                    // NARANJA (DOCUMENTACIÓN - DIBUJOS / MANUALES / AYUDAS)
+                    "Subida de Dibujo": { color: "#E67E22", dark: true },
+                    "Eliminación de Dibujo": { color: "#CA6F1E", dark: true },
+                    "Reemplazo de Dibujo": { color: "#F39C12", dark: true },
+                    "Subida de Dibujo Fundición": { color: "#E67E22", dark: true },
+                    "Eliminación de Dibujo Fundición": { color: "#CA6F1E", dark: true },
+                    "Reemplazo de Dibujo Fundición": { color: "#F39C12", dark: true },
+                    "Subida de Manual": { color: "#5DADE2", dark: true },
+                    "Eliminación de Manual": { color: "#2E86C1", dark: true },
+                    "Reemplazo de Manual": { color: "#2874A6", dark: true },
+                    "Subida de Ayuda Visual": { color: "#A569BD", dark: true },
+                    "Eliminación de Ayuda Visual": { color: "#7D3C98", dark: true },
+                    "Reemplazo de Ayuda Visual": { color: "#6C3483", dark: true },
+                    "Creación de Carpeta": { color: "#82E0AA", dark: false },
 
                     // MORADO
                     "Consulta Dibujos Técnicos": { color: "#D7BDE2" },
+                    "Consulta Reporte de OT": { color: "#D7BDE2" },
                     "Solicitud Edición de Piezas": { color: "#8E44AD", dark: true },
                     "Intento de Liberación": { color: "#512E5F", dark: true },
                     "Liberación por Calidad": { color: "#D5F5E3" },
@@ -259,8 +309,29 @@ function createFilters() {
                 const actionOrder = Object.keys(actionStyles);
                 const availableActions = window.filtrosDisponibles[key] || [];
 
+                // Acciones que NO aplican al reporte de administrador
+                const adminExcludedActions = [
+                    "Captura Sospechosa", "Autorización de Edición", "Captura Crítica",
+                    "Carga de Formulario de Producción", "Selección de Pieza", "Selección de OT",
+                    "Selección de Clase", "Selección de Proceso", "Abandono de Liberación",
+                    "Nuevo reporte", "Inicio de Reporte", "Nueva Meta Creada", "Ingreso a Meta Existente",
+                    "Login Inspector Calidad", "Desbloqueo de PC", "Proceso Correcto",
+                    "Captura Medida", "Captura Medida / Reporte", "Terminar Reporte",
+                    "Consulta Documentación Técnica", "Aviso de Sistema (Ventana)",
+                    "Solicitud Edición de Reporte", "Consulta Dibujos Técnicos",
+                    "Consulta Reporte de OT", "Solicitud Edición de Piezas",
+                    "Intento de Liberación", "Liberación por Calidad", "Rechazo por Calidad",
+                    "Exceso de Tiempo", "Exceso de Tiempo de Maquinado", "Inactividad en Formulario",
+                    "Inactividad en Bienvenida", "Alerta de Productividad", "Avisos de Sistema",
+                    "Alerta de Error en Sistema", "Error Inspector Calidad", "Intento de Login Fallido",
+                    "Mensaje de Error"
+                ];
+
                 actionOrder.forEach(actionName => {
-                    if (availableActions.includes(actionName) || actionName === "Captura Sospechosa" || actionName === "Captura Crítica") {
+                    // En modo admin, omitir acciones de operadores
+                    if (window.isAdminOnly && adminExcludedActions.includes(actionName)) return;
+
+                    if (availableActions.includes(actionName) || (!window.isAdminOnly && (actionName === "Captura Sospechosa" || actionName === "Captura Crítica"))) {
                         let opt = document.createElement("option");
                         opt.value = actionName;
                         opt.textContent = actionName;
@@ -315,7 +386,8 @@ function createFilters() {
         }
 
         let label = document.createElement("label");
-        label.textContent = titles[key] + ": ";
+        // En modo admin, el filtro de operador se llama "Administrador"
+        label.textContent = (key === 'operador' && window.isAdminOnly ? 'Administrador' : titles[key]) + ": ";
         div.appendChild(label);
 
         container.appendChild(div);
@@ -413,6 +485,7 @@ function crearTabla(logs, append = false) {
         "Login Inspector Calidad": "#21618C", // Azul Oscuro (Audit)
         "Cierre de Sesión": "#21618C",
         "Logout": "#21618C",
+        "Desbloqueo de PC": "#3498DB",
 
         // FAMILIA GRIS (Neutral / Interfaz)
         "Navegación": "#A6ACAF", // Gris Claro (Ruido)
@@ -433,8 +506,11 @@ function crearTabla(logs, append = false) {
         "Captura de Medida": "#27AE60",
         "Captura Medida / Reporte": "#27AE60",
         "Guardado de Liberaciones": "#27AE60",
+        "Cargo de OT": "#27AE60",
+        "Cargo de Clase de OT": "#27AE60",
         "Terminar Reporte": "#186A3B", // Verde Oscuro
         "Término de Reporte": "#186A3B",
+        "Cargo/Modificación Cotas Nominales": "#186A3B",
 
         // FAMILIA AMARILLA / OCRE (Auditoría / Autorización)
         "Avisos de Sistema": "#F9E79F", // Amarillo Claro (Avisos)
@@ -445,11 +521,13 @@ function crearTabla(logs, append = false) {
         "Autorización de Supervisor": "#9A7D0A",
         "Solicitud Edición de Reporte": "#9A7D0A",
         "Autorización de Edición": "#9A7D0A",
+        "Modificación de OT": "#9A7D0A",
 
         // FAMILIA MORADA (Dibujos / Edición)
         "Visor de Planos": "#D7BDE2", // Morado Claro
         "Dibujos Técnicos": "#D7BDE2",
         "Consulta Dibujos Técnicos": "#D7BDE2",
+        "Consulta Reporte de OT": "#D7BDE2",
         "Cambio de Catálogo": "#D7BDE2",
         "Edición de Piezas en Reporte": "#8E44AD", // Morado Normal
         "Solicitud Edición de Piezas": "#8E44AD",
@@ -475,6 +553,22 @@ function crearTabla(logs, append = false) {
         "Intento de Login Fallido": "#E74C3C",
         "Intento Fallido de Acceso": "#E74C3C",
         "Captura Crítica": "#943126", // Rojo Oscuro (Problema Recurrente)
+
+        // FAMILIA NARANJA (Documentación - Dibujos / Manuales / Ayudas)
+        "Subida de Dibujo": "#E67E22",
+        "Eliminación de Dibujo": "#CA6F1E",
+        "Reemplazo de Dibujo": "#F39C12",
+        "Subida de Dibujo Fundición": "#E67E22",
+        "Eliminación de Dibujo Fundición": "#CA6F1E",
+        "Reemplazo de Dibujo Fundición": "#F39C12",
+        "Subida de Manual": "#5DADE2",
+        "Eliminación de Manual": "#2E86C1",
+        "Reemplazo de Manual": "#2874A6",
+        "Subida de Ayuda Visual": "#A569BD",
+        "Eliminación de Ayuda Visual": "#7D3C98",
+        "Reemplazo de Ayuda Visual": "#6C3483",
+        "Creación de Carpeta": "#82E0AA",
+        "Desocupación de Máquina": "#1A8C5F",
 
         "Default": "#FFFFFF"
     };
@@ -651,15 +745,18 @@ function crearTabla(logs, append = false) {
                 <td>${esc(log.operador)} - ${esc(log.operador_nombre)}</td>
                 <td>${log.is_critical ? 'Captura Crítica' : (log.action === 'Inicio de Reporte Pendiente' ? 'Inactividad en Bienvenida' : esc(log.action))}</td>
                 <td>${detailsHtml}${auditAlert}</td>
-                <td>${esc(log.ot)}</td>
-                <td>${piezaDisplay}</td>
-                <td>${esc(log.hora_inicio)}</td>
-                <td>${esc(log.hora_termino)}</td>
-                <td>${esc(log.tiempo_total)}</td>
-                <td>${esc(log.clase)}</td>
-                <td>${esc(log.proceso)}</td>
-                <td>${esc(log.maquina)}</td>
+                ${window.isAdminOnly ? '' : `
+                <td class="col-operador-only-td">${esc(log.ot)}</td>
+                <td class="col-operador-only-td">${piezaDisplay}</td>
+                <td class="col-operador-only-td">${esc(log.hora_inicio)}</td>
+                <td class="col-operador-only-td">${esc(log.hora_termino)}</td>
+                <td class="col-operador-only-td">${esc(log.tiempo_total)}</td>
+                <td class="col-operador-only-td">${esc(log.clase)}</td>
+                <td class="col-operador-only-td">${esc(log.proceso)}</td>
+                <td class="col-operador-only-td">${esc(log.maquina)}</td>
+                `}
             </tr>`;
+
         }
 
         tbody.innerHTML += chunkHtml;

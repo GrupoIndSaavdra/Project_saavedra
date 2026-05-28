@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Maquinas;
 use App\Models\Metas;
+use App\Models\SystemLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class MachinesController extends Controller
 {
@@ -41,10 +43,15 @@ class MachinesController extends Controller
     {
         $machine = Maquinas::query()->find($request->idMachine);
         if ($machine) {
+            // Guardar datos para el log antes de eliminar
+            $machineName   = $machine->maquina;
+            $machineProcess = $machine->proceso;
+            $metaId        = $machine->id_meta;
+
             // Desocupar la maquina
             $machine->delete();
             // Desocupar piezas en la meta si es que estaban ocupadas
-            $meta = Metas::query()->find($machine->id_meta);
+            $meta = Metas::query()->find($metaId);
             $modelProcessPieces = $this->processProductionController->get_ModelProcessPieces($meta->proceso);
             $occupiedPieces = $modelProcessPieces::query()->where('id_meta', $meta->id)->where('estado', 1)->get();
             if (count($occupiedPieces) > 0) {
@@ -66,6 +73,18 @@ class MachinesController extends Controller
                     }
                 }
             }
+
+            // Registrar auditoría de desocupación
+            SystemLog::create([
+                'user_matricula' => Auth::check() ? Auth::user()->matricula : null,
+                'action'         => 'Desocupación de Máquina',
+                'details'        => "El administrador desocupó la máquina '{$machineName}' del proceso '{$machineProcess}' (Meta ID: {$metaId}).",
+                'maquina'        => $machineName,
+                'proceso'        => $machineProcess,
+                'id_ot'          => $meta->id_ot ?? null,
+                'ot'             => $meta->id_ot ?? null,
+            ]);
+
             return redirect()->route('machinesOccupied')->with(['success' => 'La máquina ha sido desocupada correctamente.']);
         }
         return redirect()->route('machinesOccupied')->with(['error' => 'La máquina no está ocupada.']);

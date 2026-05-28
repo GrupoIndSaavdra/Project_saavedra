@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\SystemLog;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -83,6 +84,12 @@ class ProductivityController extends Controller
 
             // 1. Log técnico de archivo
             \Illuminate\Support\Facades\Log::channel('productivity')->info("[RECUPERACIÓN] Operador {$user->matricula} aceptó la alerta y reanudó su actividad en fase: {$faseAnterior}.");
+
+            SystemLog::create([
+                'user_matricula' => $user->matricula,
+                'action' => 'Desbloqueo de PC',
+                'details' => "El usuario aceptó la alerta de productividad ({$lockedType}) y reanudó actividad en fase: {$faseAnterior}.",
+            ]);
 
             // 2. Intentar recuperar metadatos activos del operador
             $activeOT = null;
