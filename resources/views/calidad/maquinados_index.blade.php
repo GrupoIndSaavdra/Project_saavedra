@@ -78,7 +78,7 @@
                                 <option value="">Todas las OTs</option>
                                 @foreach ($listaOts as $otOpt)
                                     <option value="{{ $otOpt }}" {{ $filtroOt === $otOpt ? 'selected' : '' }}>
-                                        {{ $otOpt }}
+                                        {{ preg_replace('/_\d{8}_\d{6}_.*/', '', $otOpt) }}
                                     </option>
                                 @endforeach
                             </select>
@@ -186,7 +186,7 @@
                                     data-ot="{{ $ot }}"
                                     data-clase="{{ $clase }}">
                                     <td>
-                                        <div class="alm-ot-label">{{ $ot }}</div>
+                                        <div class="alm-ot-label">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $ot) }}</div>
                                     </td>
                                     <td><div class="alm-clase-label">{{ $clase }}</div></td>
                                     <td class="d-text-center">
@@ -394,7 +394,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <div class="alm-ot-label">{{ $otText }}</div>
+                                        <div class="alm-ot-label">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $otText) }}</div>
                                     </td>
                                     <td><div class="alm-clase-label">{{ $claseText }}</div></td>
                                     <td><div class="alm-proceso-label">{{ $procesoText }}</div></td>

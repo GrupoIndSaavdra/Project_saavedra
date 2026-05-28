@@ -7,6 +7,7 @@ use App\Models\LiberacionModeloFundicion;
 use App\Models\Orden_trabajo;
 use App\Models\Clase;
 use App\Models\PreOrdenFundicion;
+use App\Models\ScarModelo;
 use App\Mail\LiberacionModeloMailable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -26,10 +27,15 @@ class AlmacenFundicionController extends Controller
     private const ALMACEN_DIR = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION';
 
     /**
-     * Perfiles de usuario que tienen acceso a esta vista.
-     * 4 = Calidad | 5 = Almacen
+     * Directorio aislado donde se guardan las copias protegidas de Calidad.
      */
-    private const PERFILES_PERMITIDOS = ['4', '5'];
+    private const CALIDAD_DIR = 'DOCUMENTACION_GIS/CALIDAD_FUNDICION';
+
+    /**
+     * Perfiles de usuario que tienen acceso a esta vista.
+     * 1 = Admin | 2 = Admin | 4 = Calidad | 5 = Almacen
+     */
+    private const PERFILES_PERMITIDOS = ['1', '2', '4', '5'];
 
     // =========================================================================
     // GATE DE ACCESO
@@ -131,85 +137,143 @@ class AlmacenFundicionController extends Controller
             ]);
         }
 
-        $dirPath = self::ALMACEN_DIR . '/' . $ot;
-        $ayudasDirPath = $dirPath . '/ayudas_visuales';
-        $soloPreorden = $request->query('solo_preorden', '0') === '1';
+        $user = Auth::user();
+        $isQuality = ($user->perfil == 4);
+        $isAdmin = ($user->perfil == 1 || $user->perfil == 2);
+
+        // Dibujos y Ayudas Visuales (no pre-ordenes) son cargados por Admin y compartidos.
+        // Se almacenan en ALMACEN_DIR/{OT} y ALMACEN_DIR/{OT}/ayudas_visuales
+        $sharedDir = self::ALMACEN_DIR . '/' . $ot;
+        $sharedAyudasDir = $sharedDir . '/ayudas_visuales';
 
         $dibujos = collect([]);
         $ayudas = collect([]);
 
+        $soloPreorden = $request->query('solo_preorden', '0') === '1';
+
         if (!$soloPreorden) {
-            // 1. Obtener dibujos principales (Recursivo, excluyendo ayudas_visuales)
-            $dibujos = collect(Storage::disk('local')->allFiles($dirPath))
-                ->filter(function ($f) use ($dirPath) {
-                    $rel = str_replace($dirPath . '/', '', $f);
-                    return strpos($rel, 'ayudas_visuales/') !== 0 && strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf';
-                })
-                ->map(function ($f) use ($ot, $dirPath) {
-                    // Normalizar separadores para reemplazo robusto
-                    $fNorm = str_replace('\\', '/', $f);
-                    $dirPathNorm = str_replace('\\', '/', $dirPath);
-                    $relName = ltrim(str_replace($dirPathNorm, '', $fNorm), '/');
-                    $utf8RelName = $this->toUtf8($relName);
-
-                    return [
-                        'nombre' => $utf8RelName,
-                        'tipo' => 'dibujo',
-                        'url' => route('almacen.fundicion.serve', [
-                            'ot' => $ot,
-                            'archivo' => $utf8RelName,
-                            'tipo' => 'dibujo',
-                        ]),
-                    ];
-                });
-
-            // 2. Obtener ayudas visuales (subdirectorio ayudas_visuales - ESCANEO RECURSIVO)
-            if (Storage::disk('local')->exists($ayudasDirPath)) {
-                $ayudas = collect(Storage::disk('local')->allFiles($ayudasDirPath))
-                    ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-                    ->map(function ($f) use ($ayudasDirPath, $ot) {
+            // 1. Obtener dibujos principales (desde sharedDir)
+            if (Storage::disk('local')->exists($sharedDir)) {
+                $dibujos = collect(Storage::disk('local')->allFiles($sharedDir))
+                    ->filter(function ($f) use ($sharedDir) {
+                        $rel = str_replace($sharedDir . '/', '', $f);
+                        return strpos($rel, 'ayudas_visuales/') !== 0 && strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf';
+                    })
+                    ->map(function ($f) use ($ot, $sharedDir) {
                         $fNorm = str_replace('\\', '/', $f);
-                        $dirPathNorm = str_replace('\\', '/', $ayudasDirPath);
+                        $dirPathNorm = str_replace('\\', '/', $sharedDir);
                         $relName = ltrim(str_replace($dirPathNorm, '', $fNorm), '/');
                         $utf8RelName = $this->toUtf8($relName);
 
                         return [
                             'nombre' => $utf8RelName,
-                            'tipo' => 'ayuda',
+                            'tipo' => 'dibujo',
                             'url' => route('almacen.fundicion.serve', [
                                 'ot' => $ot,
                                 'archivo' => $utf8RelName,
-                                'tipo' => 'ayuda',
+                                'tipo' => 'dibujo',
                             ]),
                         ];
                     });
             }
+
+            // 2a. Ayudas visuales reales: PDFs que NO están bajo preordenes/ (desde sharedAyudasDir)
+            if (Storage::disk('local')->exists($sharedAyudasDir)) {
+                $ayudas = collect(Storage::disk('local')->allFiles($sharedAyudasDir))
+                    ->filter(function ($f) use ($sharedAyudasDir) {
+                        $fNorm      = str_replace('\\', '/', $f);
+                        $dirNorm    = str_replace('\\', '/', $sharedAyudasDir);
+                        $relName    = ltrim(str_replace($dirNorm, '', $fNorm), '/');
+                        $ext        = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                        return $ext === 'pdf' && !str_starts_with($relName, 'preordenes/');
+                    })
+                    ->map(function ($f) use ($sharedAyudasDir, $ot) {
+                        $fNorm       = str_replace('\\', '/', $f);
+                        $dirNorm     = str_replace('\\', '/', $sharedAyudasDir);
+                        $relName     = ltrim(str_replace($dirNorm, '', $fNorm), '/');
+                        $utf8RelName = $this->toUtf8($relName);
+                        return [
+                            'nombre' => $utf8RelName,
+                            'tipo'   => 'ayuda',
+                            'url'    => route('almacen.fundicion.serve', ['ot' => $ot, 'archivo' => $utf8RelName, 'tipo' => 'ayuda']),
+                        ];
+                    });
+            }
+        }
+
+        // 3. Documentos generados (Preordenes, Evidencias, Confirmaciones, LDM, SCAR)
+        // Se leen según el perfil.
+        $generatedFiles = collect([]);
+
+        // Si es Admin, lee de AMBOS directorios
+        $dirsToScan = [];
+        if ($isAdmin) {
+            $dirsToScan[] = [
+                'path' => self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales/preordenes',
+                'origin' => 'almacen'
+            ];
+            $dirsToScan[] = [
+                'path' => self::CALIDAD_DIR . '/' . $ot . '/ayudas_visuales/preordenes',
+                'origin' => 'calidad'
+            ];
+        } elseif ($isQuality) {
+            // Calidad lee de su propio directorio
+            $dirsToScan[] = [
+                'path' => self::CALIDAD_DIR . '/' . $ot . '/ayudas_visuales/preordenes',
+                'origin' => 'calidad'
+            ];
         } else {
-            // Solo obtener las pre-órdenes generadas
-            $preordenesPath = $ayudasDirPath . '/preordenes';
-            if (Storage::disk('local')->exists($preordenesPath)) {
-                $ayudas = collect(Storage::disk('local')->allFiles($preordenesPath))
-                    ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-                    ->map(function ($f) use ($preordenesPath, $ot) {
+            // Almacén lee de su propio directorio
+            $dirsToScan[] = [
+                'path' => self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales/preordenes',
+                'origin' => 'almacen'
+            ];
+        }
+
+        foreach ($dirsToScan as $scanInfo) {
+            $scanPath = $scanInfo['path'];
+            $origin = $scanInfo['origin'];
+            if (Storage::disk('local')->exists($scanPath)) {
+                $files = collect(Storage::disk('local')->allFiles($scanPath))
+                    ->filter(function ($f) {
+                        $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                        return in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp']);
+                    })
+                    ->map(function ($f) use ($scanPath, $ot, $origin) {
                         $fNorm = str_replace('\\', '/', $f);
-                        $dirPathNorm = str_replace('\\', '/', $preordenesPath);
-                        $relName = ltrim(str_replace($dirPathNorm, '', $fNorm), '/');
+                        $dirNorm = str_replace('\\', '/', $scanPath);
+                        $relName = ltrim(str_replace($dirNorm, '', $fNorm), '/');
                         $utf8RelName = $this->toUtf8($relName);
 
-                        // Retornar con el prefijo de la carpeta para que serveFile lo encuentre
                         $fullName = 'preordenes/' . $utf8RelName;
 
                         return [
                             'nombre' => $fullName,
                             'tipo' => 'otro',
+                            'origin' => $origin,
                             'url' => route('almacen.fundicion.serve', [
                                 'ot' => $ot,
                                 'archivo' => $fullName,
                                 'tipo' => 'otro',
+                                'origin' => $origin,
                             ]),
                         ];
                     });
+                $generatedFiles = $generatedFiles->merge($files);
             }
+        }
+
+        // De-duplicar documentos por nombre si vienen de ambos lados (Admin)
+        $generatedFiles = $generatedFiles->unique('nombre')->values();
+
+        if ($soloPreorden) {
+            // Filtrar solo las pre-órdenes (PDFs que empiezan con 'Pre-Orden' o 'PreOrden')
+            $ayudas = $generatedFiles->filter(function ($f) {
+                $base = basename($f['nombre']);
+                return str_starts_with($base, 'Pre-Orden') || str_starts_with($base, 'PreOrden');
+            });
+        } else {
+            $ayudas = $ayudas->merge($generatedFiles);
         }
 
         $allFiles = $dibujos->merge($ayudas)->values();
@@ -248,21 +312,70 @@ class AlmacenFundicionController extends Controller
         $ot = $this->sanitizePath($request->query('ot', ''));
         $archivo = $this->sanitizeFileNameWithFolder($request->query('archivo', ''));
         $tipo = $request->query('tipo', 'dibujo');
+        $origin = $request->query('origin', '');
 
         if (empty($ot) || empty($archivo)) {
             abort(422, 'Parámetros inválidos.');
         }
 
+        // Aplicar filtros de visibilidad según perfil de usuario
+        $user = Auth::user();
+        if ($user->perfil != 1 && $user->perfil != 2) { // 1 o 2 = Admin (ve todo)
+            $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
+            if (!$history) {
+                abort(404, 'Historial de OT no encontrado.');
+            }
+
+            if ($user->perfil == 4) { // Calidad
+                // Calidad solo ve preordenes si pre_orden_email_sent es true
+                $isPreorden = ($tipo === 'otro' || str_starts_with($archivo, 'preordenes/'));
+                if ($isPreorden && !$history->pre_orden_email_sent) {
+                    abort(403, 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.');
+                }
+            } elseif ($user->perfil == 5) { // Almacén
+                // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
+                $isCalidadDoc = ($tipo === 'liberacion' || 
+                                 str_contains($archivo, 'F-CCL-LDM') || 
+                                 str_contains($archivo, 'F-CCL-SCAR') || 
+                                 str_contains($archivo, 'SCAR'));
+                if ($isCalidadDoc) {
+                    $calidadAlertaEnviada = ($history->calidad_revision_status === 'aprobado' || 
+                        ScarModelo::where('ot', '=', $ot, 'and')->where('estatus', '=', 'alertado', 'and')->exists());
+                    if (!$calidadAlertaEnviada) {
+                        abort(403, 'Acceso denegado. Calidad no ha enviado la alerta de rechazo o aprobación.');
+                    }
+                }
+            }
+        }
+
         if ($tipo === 'liberacion') {
             $baseDir = 'public/liberaciones_pdf';
         } else {
-            $baseDir = ($tipo === 'ayuda' || $tipo === 'otro') 
-                ? self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales'
-                : self::ALMACEN_DIR . '/' . $ot;
+            if ($tipo === 'ayuda' || $tipo === 'otro') {
+                if ($origin === 'calidad' || ($user->perfil == 4 && empty($origin))) {
+                    $baseDir = self::CALIDAD_DIR . '/' . $ot . '/ayudas_visuales';
+                } else {
+                    $baseDir = self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales';
+                }
+            } else {
+                $baseDir = self::ALMACEN_DIR . '/' . $ot;
+            }
         }
 
         if (!Storage::disk('local')->exists($baseDir)) {
-            abort(404, 'Directorio no encontrado.');
+            // Fallback para admin/copias
+            if ($tipo === 'ayuda' || $tipo === 'otro') {
+                $fallbackDir = ($baseDir === self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales')
+                    ? self::CALIDAD_DIR . '/' . $ot . '/ayudas_visuales'
+                    : self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales';
+                if (Storage::disk('local')->exists($fallbackDir)) {
+                    $baseDir = $fallbackDir;
+                } else {
+                    abort(404, 'Directorio no encontrado.');
+                }
+            } else {
+                abort(404, 'Directorio no encontrado.');
+            }
         }
 
         $files = Storage::disk('local')->allFiles($baseDir);
@@ -282,17 +395,119 @@ class AlmacenFundicionController extends Controller
         }
 
         if (!$foundFile) {
-            abort(404, 'Archivo no encontrado en el directorio de Almacén.');
+            abort(404, 'Archivo no encontrado.');
         }
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
         $disk = Storage::disk('local');
         $fullPath = $disk->path($foundFile);
 
+        $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+        $mimeMap = [
+            'pdf'  => 'application/pdf',
+            'jpg'  => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+            'png'  => 'image/png',
+            'gif'  => 'image/gif',
+            'webp' => 'image/webp',
+        ];
+        $mimeType = $mimeMap[$ext] ?? (mime_content_type($fullPath) ?: 'application/octet-stream');
+
         return response()->file($fullPath, [
-            'Content-Type' => 'application/pdf',
+            'Content-Type'        => $mimeType,
             'Content-Disposition' => 'inline; filename="' . basename($archivo) . '"',
         ]);
+    }
+
+    /**
+     * Elimina un archivo PDF de Otros documentos o preordenes.
+     *
+     * @param \Illuminate\Http\Request $request
+     */
+    public function deleteFile(Request $request)
+    {
+        $this->verificarAcceso();
+
+        $ot = $this->sanitizePath($request->input('ot', ''));
+        $archivo = $this->sanitizeFileNameWithFolder($request->input('archivo', ''));
+        $tipo = $request->input('tipo', 'otro');
+
+        if (empty($ot) || empty($archivo)) {
+            return response()->json(['success' => false, 'error' => 'Parámetros inválidos.'], 422);
+        }
+
+        // Aplicar filtros de visibilidad según perfil de usuario
+        $user = Auth::user();
+        if ($user->perfil != 1 && $user->perfil != 2) { // 1 o 2 = Admin (ve todo)
+            $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
+            if (!$history) {
+                return response()->json(['success' => false, 'error' => 'Historial de OT no encontrado.'], 404);
+            }
+
+            if ($user->perfil == 4) { // Calidad
+                // Calidad solo ve preordenes si pre_orden_email_sent es true
+                $isPreorden = ($tipo === 'otro' || str_starts_with($archivo, 'preordenes/'));
+                if ($isPreorden && !$history->pre_orden_email_sent) {
+                    return response()->json(['success' => false, 'error' => 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.'], 403);
+                }
+            } elseif ($user->perfil == 5) { // Almacén
+                // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
+                $isCalidadDoc = ($tipo === 'liberacion' || 
+                                 str_contains($archivo, 'F-CCL-LDM') || 
+                                 str_contains($archivo, 'F-CCL-SCAR') || 
+                                 str_contains($archivo, 'SCAR'));
+                if ($isCalidadDoc) {
+                    $calidadAlertaEnviada = ($history->calidad_revision_status === 'aprobado' || 
+                        ScarModelo::where('ot', '=', $ot, 'and')->where('estatus', '=', 'alertado', 'and')->exists());
+                    if (!$calidadAlertaEnviada) {
+                        return response()->json(['success' => false, 'error' => 'Acceso denegado. Calidad no ha enviado la alerta de rechazo o aprobación.'], 403);
+                    }
+                }
+            }
+        }
+
+        $origin = $request->input('origin', '');
+        if ($tipo === 'liberacion') {
+            $baseDir = 'public/liberaciones_pdf';
+        } else {
+            if ($tipo === 'ayuda' || $tipo === 'otro') {
+                if ($origin === 'calidad' || ($user->perfil == 4 && empty($origin))) {
+                    $baseDir = self::CALIDAD_DIR . '/' . $ot . '/ayudas_visuales';
+                } else {
+                    $baseDir = self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales';
+                }
+            } else {
+                $baseDir = self::ALMACEN_DIR . '/' . $ot;
+            }
+        }
+
+        if (!Storage::disk('local')->exists($baseDir)) {
+            return response()->json(['success' => false, 'error' => 'Directorio no encontrado.'], 404);
+        }
+
+        $files = Storage::disk('local')->allFiles($baseDir);
+        $foundFile = null;
+        foreach ($files as $f) {
+            $fNorm = str_replace('\\', '/', $f);
+            $baseDirNorm = str_replace('\\', '/', $baseDir);
+            $relName = ltrim(str_replace($baseDirNorm, '', $fNorm), '/');
+            
+            $utf8RelName = $this->toUtf8($relName);
+            if ($utf8RelName === $archivo) {
+                if ($tipo === 'dibujo' && strpos($relName, 'ayudas_visuales/') === 0) continue;
+                
+                $foundFile = $f;
+                break;
+            }
+        }
+
+        if (!$foundFile) {
+            return response()->json(['success' => false, 'error' => 'Archivo no encontrado.'], 404);
+        }
+
+        Storage::disk('local')->delete($foundFile);
+
+        return response()->json(['success' => true, 'message' => 'Archivo eliminado correctamente.']);
     }
 
     // =========================================================================
@@ -361,7 +576,25 @@ class AlmacenFundicionController extends Controller
             return response()->json(['success' => false, 'message' => 'Registro no encontrado.'], 404);
         }
 
-        $history->tiene_modelo              = true;
+        // ── Guardar archivos de recepción adjuntos (Bloque 2) ──────────────────
+        if ($request->hasFile('archivos')) {
+            $folderName   = $this->sanitizePath($this->normalizeOTName($ot));
+            $destDir      = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/confirmacion_modelo';
+
+            if (!Storage::disk('local')->exists($destDir)) {
+                Storage::disk('local')->makeDirectory($destDir);
+            }
+
+            foreach ($request->file('archivos') as $file) {
+                $ext      = $file->getClientOriginalExtension();
+                $safeName = preg_replace('/[^A-Za-z0-9_\-.]/', '_', pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
+                $stamp    = date('d_m_Y_H_i_s');
+                $fileName = "ConfirmacionModelo_{$safeName}_{$stamp}.{$ext}";
+                Storage::disk('local')->put($destDir . '/' . $fileName, file_get_contents($file->getRealPath()));
+            }
+        }
+
+        $history->tiene_modelo = true;
         $history->save();
 
         // Crear o actualizar el registro de liberacion indicando el origen
@@ -395,15 +628,48 @@ class AlmacenFundicionController extends Controller
             return response()->json(['success' => false, 'message' => 'OT no encontrada.'], 404);
         }
 
-        // Obtener TODAS las clases para esta OT
+        // Obtener TODAS las clases para esta OT y filtrarlas por aprobados en liberación
         $clases = $ot->clases->map(fn($c) => [
             'id' => $c->id,
             'nombre' => $c->nombre
-        ])->values();
+        ])->filter(function($c) use ($otFull) {
+            $clLow = strtolower($c['nombre']);
+            $tipo = null;
+            if (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+            elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+            elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+            elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
+
+            if ($tipo) {
+                $isAprobado = LiberacionModeloFundicion::where('ot', '=', $otFull, 'and')
+                    ->where('tipo_modelo', '=', $tipo, 'and')
+                    ->where('estado', '=', 'aprobado', 'and')
+                    ->exists();
+                return !$isAprobado;
+            }
+            return true;
+        })->values();
 
         // Obtener clases vinculadas desde FundicionHistory (Ayudas Visuales asignadas)
         $history = FundicionHistory::where('ot', '=', $otFull, 'and')->first();
         $clasesVinculadas = $history ? ($history->ayudas_config ?? []) : [];
+        $clasesVinculadas = collect($clasesVinculadas)->filter(function($claseNombre) use ($otFull) {
+            $clLow = strtolower($claseNombre);
+            $tipo = null;
+            if (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+            elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+            elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+            elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
+
+            if ($tipo) {
+                $isAprobado = LiberacionModeloFundicion::where('ot', '=', $otFull, 'and')
+                    ->where('tipo_modelo', '=', $tipo, 'and')
+                    ->where('estado', '=', 'aprobado', 'and')
+                    ->exists();
+                return !$isAprobado;
+            }
+            return true;
+        })->values()->toArray();
 
         // --- Recuperar pre-orden existente desde la BASE DE DATOS ---
         $preOrdenDB = PreOrdenFundicion::where('ot', '=', $otFull, 'and')->first();
@@ -414,6 +680,32 @@ class AlmacenFundicionController extends Controller
         if ($preOrdenDB) {
             // Pre-orden existente: recuperar folio y datos para prellenar el formulario
             $folioStr = $preOrdenDB->folio;
+            
+            // Filtrar las filas ya guardadas de la pre-orden para remover clases aprobadas
+            $filasFiltradas = [];
+            if (!empty($preOrdenDB->filas)) {
+                foreach ($preOrdenDB->filas as $fila) {
+                    $claseNombre = $fila['clase'] ?? '';
+                    $clLow = strtolower($claseNombre);
+                    $tipo = null;
+                    if (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+                    elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+                    elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+                    elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
+
+                    if ($tipo) {
+                        $isAprobado = LiberacionModeloFundicion::where('ot', '=', $otFull, 'and')
+                            ->where('tipo_modelo', '=', $tipo, 'and')
+                            ->where('estado', '=', 'aprobado', 'and')
+                            ->exists();
+                        if ($isAprobado) {
+                            continue;
+                        }
+                    }
+                    $filasFiltradas[] = $fila;
+                }
+            }
+
             $preordenData = [
                 'folio'        => $preOrdenDB->folio,
                 'proveedor'    => $preOrdenDB->proveedor,
@@ -421,7 +713,7 @@ class AlmacenFundicionController extends Controller
                 'fecha_entrega'=> $preOrdenDB->fecha_entrega ? ($preOrdenDB->fecha_entrega instanceof \DateTimeInterface ? $preOrdenDB->fecha_entrega->format('Y-m-d') : substr((string)$preOrdenDB->fecha_entrega, 0, 10)) : null,
                 'moldura'      => $preOrdenDB->moldura,
                 'observaciones'=> $preOrdenDB->observaciones,
-                'filas'        => $preOrdenDB->filas,
+                'filas'        => $filasFiltradas,
                 'version'      => $preOrdenDB->version,
                 'pdf_filename' => $preOrdenDB->pdf_filename,
             ];
@@ -479,6 +771,32 @@ class AlmacenFundicionController extends Controller
             $history = FundicionHistory::where('ot', 'LIKE', '%OT ' . $otClean . '%', 'and')->first();
             $otRaw = $history ? $history->ot : ('OT ' . $otClean);
         }
+
+        // Filtrar filas para no guardar ni imprimir las clases ya aprobadas
+        $filasFiltradas = [];
+        if (!empty($data['filas'])) {
+            foreach ($data['filas'] as $fila) {
+                $claseNombre = $fila['clase'] ?? '';
+                $clLow = strtolower($claseNombre);
+                $tipo = null;
+                if (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+                elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+                elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+                elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
+
+                if ($tipo) {
+                    $isAprobado = LiberacionModeloFundicion::where('ot', '=', $otRaw, 'and')
+                        ->where('tipo_modelo', '=', $tipo, 'and')
+                        ->where('estado', '=', 'aprobado', 'and')
+                        ->exists();
+                    if ($isAprobado) {
+                        continue;
+                    }
+                }
+                $filasFiltradas[] = $fila;
+            }
+        }
+        $data['filas'] = $filasFiltradas;
 
         // 2. Determinar si la pre-orden ya existe en BD para decidir si incrementar folio
         $preOrdenDB = PreOrdenFundicion::where('ot', '=', $otRaw, 'and')->first();
@@ -796,6 +1114,17 @@ class AlmacenFundicionController extends Controller
                 }
             });
 
+            // Copiar los archivos de preordenes al directorio de Calidad
+            $this->copyDirectoryRecursive(
+                self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes',
+                self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes'
+            );
+
+            // Actualizar flag de correo de pre-orden enviado en historial
+            FundicionHistory::where('ot', '=', $ot, 'and')->update([
+                'pre_orden_email_sent' => true,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => 'El correo electrónico de la pre-orden con sus adjuntos ha sido enviado con éxito.'
@@ -862,18 +1191,19 @@ class AlmacenFundicionController extends Controller
     {
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
-        if (!$user || !in_array($user->perfil, ['1', '4'], true)) {
+        if (!$user || !in_array($user->perfil, ['1', '2', '4'], true)) {
             return response()->json(['success' => false, 'message' => 'Acceso restringido a Calidad.'], 403);
         }
 
-        $ot     = $request->input('ot', '');
-        $accion = $request->input('accion', 'guardar');
+        $ot        = $request->input('ot', '');
+        $accion    = $request->input('accion', 'guardar');
+        $decision  = $request->input('decision', 'aprobar');
 
         if (empty($ot)) {
             return response()->json(['success' => false, 'message' => 'OT requerida.'], 422);
         }
 
-        if ($accion === 'rechazar' && empty(trim($request->input('motivo_rechazo', '')))) {
+        if ($decision === 'rechazar' && empty(trim($request->input('motivo_rechazo', '')))) {
             return response()->json([
                 'success' => false,
                 'message' => 'El motivo de rechazo es obligatorio al rechazar la liberacion.',
@@ -949,6 +1279,7 @@ class AlmacenFundicionController extends Controller
         // Construir el arreglo de actualizacion con solo los campos pertinentes al tipo
         $actualizacion = [
             'estado'      => $nuevoEstado,
+            'decision'    => $decision,
             'user_id_calidad'     => $user->id,
             'user_nombre_calidad' => $user->name,
         ];
@@ -968,7 +1299,9 @@ class AlmacenFundicionController extends Controller
             $actualizacion['medidas_obturador']       = $sanitizarMedidas($request->input('obturador'));
             $actualizacion['observaciones_obturador'] = $request->input('observaciones_obturador');
         }
-        if ($accion === 'rechazar') {
+        if ($nuevoEstado === 'aprobado' || ($accion === 'guardar' && $decision === 'aprobar')) {
+            $actualizacion['motivo_rechazo'] = null;
+        } elseif ($request->has('motivo_rechazo')) {
             $actualizacion['motivo_rechazo'] = $request->input('motivo_rechazo');
         }
 
@@ -979,28 +1312,39 @@ class AlmacenFundicionController extends Controller
         $pdfFilename = null;
         // Generar y guardar PDF en orientacion horizontal
         try {
-            // Nombre estetico: F-CCL-LDM_[Tipo]_[OT-sanitizada]_[Fecha-hora].pdf
+            // Nombre estetico: F-CCL-LDM_[Tipo]_[OT-sanitizada]_[Estado].pdf
             $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
             $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
-            $fechaStamp   = now()->format('Ymd_His');
             $tipoLabel    = $tipo ? strtoupper($tipo) : 'GENERAL';
-            $pdfFilename  = "F-CCL-LDM_{$tipoLabel}_{$otSanitizada}_{$fechaStamp}.pdf";
+            $estadoLabel  = strtoupper($nuevoEstado);
+            $pdfFilename  = "F-CCL-LDM_{$tipoLabel}_{$otSanitizada}_{$estadoLabel}.pdf";
             $pdfPath = storage_path("app/public/liberaciones_pdf");
             if (!file_exists($pdfPath)) {
                 mkdir($pdfPath, 0755, true);
             } else {
-                // Eliminar PDFs anteriores para este Tipo y OT para no acumular archivos
-                $pattern = "{$pdfPath}/F-CCL-LDM_{$tipoLabel}_{$otSanitizada}_*.pdf";
+                // Eliminar PDFs anteriores (incluyendo posibles historiales con timestamp) para este Tipo y OT
+                $pattern = "{$pdfPath}/F-CCL-LDM_{$tipoLabel}_{$otSanitizada}*.pdf";
                 foreach (glob($pattern) as $oldFile) {
                     @unlink($oldFile);
                 }
             }
             ini_set('memory_limit', '512M');
-            $pdf = Pdf::loadView('almacen.pdf_liberacion', ['liberacion' => $liberacion])
+            $hasRechazo = ($nuevoEstado === 'rechazado') || 
+                           ($nuevoEstado === 'pendiente' && $decision === 'rechazar');
+            $viewName = $hasRechazo ? 'almacen.pdf_rechazo' : 'almacen.pdf_liberacion';
+            $pdf = Pdf::loadView($viewName, ['liberacion' => $liberacion])
                       ->setPaper('letter', 'landscape');
             $pdf->save("{$pdfPath}/{$pdfFilename}");
-            $pdfUrl = asset("storage/liberaciones_pdf/{$pdfFilename}");
+            $pdfUrl = asset('storage/liberaciones_pdf/' . $pdfFilename);
             $liberacion->update(['pdf_filename' => $pdfFilename]);
+
+            // Copiar a la carpeta de la OT en ayudas_visuales/preordenes de Calidad para que se liste en Otros documentos
+            $folderName = $this->sanitizePath($this->normalizeOTName($ot));
+            $otPath = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes';
+            if (!Storage::disk('local')->exists($otPath)) {
+                Storage::disk('local')->makeDirectory($otPath);
+            }
+            Storage::disk('local')->put($otPath . '/' . $pdfFilename, file_get_contents("{$pdfPath}/{$pdfFilename}"));
         } catch (\Exception $e) {
             Log::error('Error al generar PDF de liberacion: ' . $e->getMessage());
         }
@@ -1009,10 +1353,10 @@ class AlmacenFundicionController extends Controller
         FundicionHistory::where('ot', '=', $ot, 'and')
             ->update(['calidad_revision_status' => $nuevoEstado]);
 
-        if ($accion === 'guardar') {
+        if ($accion === 'guardar' || $accion === 'rechazar') {
             return response()->json([
                 'success'      => true,
-                'message'      => 'Informacion guardada correctamente.',
+                'message'      => $accion === 'rechazar' ? 'Rechazo registrado con éxito.' : 'Informacion guardada correctamente.',
                 'pdf_url'      => $pdfUrl,
                 'pdf_filename' => $pdfFilename,
                 'nuevo_estado' => $nuevoEstado,
@@ -1066,6 +1410,12 @@ class AlmacenFundicionController extends Controller
         try {
             Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, $nuevoEstado, $liberacion, $attachments));
 
+            // Copiar los archivos de Calidad a Almacén
+            $this->copyDirectoryRecursive(
+                self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes',
+                self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes'
+            );
+
             $msgAccion = $accion === 'aprobar' ? 'aprobada' : 'rechazada';
             return response()->json([
                 'success'      => true,
@@ -1082,6 +1432,695 @@ class AlmacenFundicionController extends Controller
                 'pdf_url' => $pdfUrl,
                 'pdf_filename' => $pdfFilename,
             ], 500);
+        }
+    }
+
+    public function enviarAlertaLiberacion(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if (!$user || !in_array($user->perfil, ['1', '2', '4'], true)) {
+            return response()->json(['success' => false, 'message' => 'Acceso restringido a Calidad.'], 403);
+        }
+
+        $ot          = $request->input('ot', '');
+        $decision    = $request->input('decision', ''); // 'aprobar' | 'rechazar'
+        $tipoModelo  = $request->input('tipo_modelo', '');
+        $fecha       = $request->input('fecha', '');
+        $nameScar    = null;
+
+        if (empty($ot) || empty($decision) || empty($tipoModelo) || empty($fecha)) {
+            return response()->json(['success' => false, 'message' => 'Campos obligatorios incompletos.'], 422);
+        }
+
+        // Obtener el registro de liberación correspondiente
+        $liberacion = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
+            ->where('tipo_modelo', '=', $tipoModelo, 'and')
+            ->first();
+
+        if (!$liberacion) {
+            return response()->json(['success' => false, 'message' => 'No se encontró un borrador guardado para esta liberación.'], 404);
+        }
+
+        // Validar y guardar Formato Escaneado
+        if (!$request->hasFile('formato_escaneado')) {
+            return response()->json(['success' => false, 'message' => 'El formato escaneado es obligatorio.'], 422);
+        }
+
+        $folderName = $this->sanitizePath($this->normalizeOTName($ot));
+        $otPath = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes';
+        if (!Storage::disk('local')->exists($otPath)) {
+            Storage::disk('local')->makeDirectory($otPath);
+        }
+
+        // Subir formato escaneado
+        $fileFormato = $request->file('formato_escaneado');
+        $nameFormato = "F-CCL-LDM_" . strtoupper($tipoModelo) . "_" . preg_replace('/[^A-Za-z0-9\-]/', '_', $ot) . "_FIRMADO_" . date('Ymd_His') . ".pdf";
+        $fileFormato->storeAs($otPath, $nameFormato, 'local');
+
+        $attachments = [];
+        $attachments[] = [
+            'path' => storage_path('app/' . $otPath . '/' . $nameFormato),
+            'name' => $nameFormato,
+            'mime' => 'application/pdf'
+        ];
+
+        // Si es rechazo, validar y guardar SCAR escaneado y fotos/anexos
+        if ($decision === 'rechazar') {
+            if (!$request->hasFile('scar_escaneado')) {
+                return response()->json(['success' => false, 'message' => 'El formato SCAR escaneado es obligatorio para rechazos.'], 422);
+            }
+
+            $fileScar = $request->file('scar_escaneado');
+            $nameScar = "SCAR_" . strtoupper($tipoModelo) . "_" . preg_replace('/[^A-Za-z0-9\-]/', '_', $ot) . "_FIRMADO_" . date('Ymd_His') . ".pdf";
+            $fileScar->storeAs($otPath, $nameScar, 'local');
+
+            $attachments[] = [
+                'path' => storage_path('app/' . $otPath . '/' . $nameScar),
+                'name' => $nameScar,
+                'mime' => 'application/pdf'
+            ];
+
+            // Comprobar si se requieren fotos y archivos
+            $scarModelo = ScarModelo::where('ot', '=', $ot, 'and')->first();
+            $reqFotos = $scarModelo && ($scarModelo->evidencia_fotos || $scarModelo->evidencia_otro);
+
+            if ($reqFotos) {
+                if (!$request->hasFile('fotos')) {
+                    return response()->json(['success' => false, 'message' => 'Se requieren fotos y/o archivos adicionales según el SCAR.'], 422);
+                }
+
+                $fotos = $request->file('fotos');
+                foreach ($fotos as $idx => $foto) {
+                    $ext = $foto->getClientOriginalExtension();
+                    $nameFoto = "SCAR_EVIDENCIA_" . strtoupper($tipoModelo) . "_" . preg_replace('/[^A-Za-z0-9\-]/', '_', $ot) . "_" . ($idx + 1) . "_" . date('Ymd_His') . "." . $ext;
+                    $foto->storeAs($otPath, $nameFoto, 'local');
+
+                    $attachments[] = [
+                        'path' => storage_path('app/' . $otPath . '/' . $nameFoto),
+                        'name' => $nameFoto,
+                        'mime' => $foto->getClientMimeType() ?: 'application/octet-stream'
+                    ];
+                }
+            }
+        }
+
+        // Actualizar el estado de la liberación en base de datos
+        $nuevoEstado = ($decision === 'aprobar') ? 'aprobado' : 'rechazado';
+        $liberacion->update([
+            'estado'         => $nuevoEstado,
+            'fecha_revision' => $fecha,
+            'pdf_filename'   => $nameFormato // Actualizar con el escaneado/firmado
+        ]);
+
+        // Si es rechazo, marcar también en el SCAR que ha sido alertado
+        if ($decision === 'rechazar' && isset($scarModelo)) {
+            $scarModelo->update([
+                'estatus'              => 'alertado',
+                'pdf_firmado_filename' => $nameScar
+            ]);
+        }
+
+        // Actualizar calidad_revision_status en fundicion_history
+        FundicionHistory::where('ot', '=', $ot, 'and')->update([
+            'calidad_revision_status' => $nuevoEstado
+        ]);
+
+        // Si es RECHAZO: reiniciar el ciclo de Almacén para los elementos de esta OT
+        if ($decision === 'rechazar') {
+            FundicionHistory::where('ot', '=', $ot, 'and')->update([
+                'pre_orden_sent'       => false,
+                'pre_orden_email_sent' => false,
+                'tiene_modelo'         => false
+            ]);
+        }
+
+        // Enviar correos
+        $destinatarios = ['jaxer020406@gmail.com'];
+        $libDest = $liberacion->destinatario ?? '';
+        if (!empty($libDest)) {
+            $destArray = array_filter(array_map('trim', explode(',', $libDest)));
+            if (!empty($destArray)) {
+                $destinatarios = $destArray;
+            }
+        }
+
+        try {
+            Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, $nuevoEstado, $liberacion, $attachments));
+
+            // Copiar los archivos de Calidad a Almacén
+            $this->copyDirectoryRecursive(
+                self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes',
+                self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes'
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Alerta enviada y estado finalizado con éxito.'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al enviar correo de alerta de liberacion: ' . $e->getMessage());
+            return response()->json([
+                'success' => true,
+                'message' => 'El estado se actualizó correctamente, pero hubo un detalle al enviar la notificación por correo: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Genera el PDF del formato SCAR (Solicitud de Accion Correctiva de Rechazo)
+     * a partir de los campos del formulario modal + el motivo_rechazo ya guardado en la BD.
+     *
+     * Acciones:
+     *   'guardar' → genera y descarga el PDF del SCAR
+     *   'enviar'  → genera el PDF del SCAR y envía correo de alerta con el PDF adjunto
+     *
+     * Perfil restringido: solo Calidad (perfil 4) o Administrador (perfil 1).
+     */
+    public function generateScar(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if (!$user || !in_array($user->perfil, ['1', '2', '4'], true)) {
+            return response()->json(['success' => false, 'message' => 'Acceso restringido a Calidad.'], 403);
+        }
+
+        $ot     = $request->input('ot', '');
+        $accion = $request->input('accion', 'guardar'); // 'guardar' | 'enviar'
+
+        if (empty($ot)) {
+            return response()->json(['success' => false, 'message' => 'OT requerida.'], 422);
+        }
+
+        // Recuperar la liberacion para obtener el motivo de rechazo guardado en BD
+        $liberacion = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
+            ->whereIn('estado', ['rechazado', 'pendiente'])
+            ->latest()
+            ->first();
+
+        $existingScar = ScarModelo::where('ot', '=', $ot, 'and')->first();
+        if ($existingScar) {
+            $noScar = $existingScar->no_scar;
+        } else {
+            $scarFolioPath = 'DOCUMENTACION_GIS/scar_folio_config.json';
+            $nextScarFolio = 1;
+
+            if (Storage::disk('local')->exists($scarFolioPath)) {
+                try {
+                    $config = json_decode(Storage::disk('local')->get($scarFolioPath), true);
+                    $nextScarFolio = $config['next_folio'] ?? 1;
+                } catch (\Exception $e) {
+                    $config = ['next_folio' => 1];
+                }
+            } else {
+                $config = ['next_folio' => 1];
+            }
+
+            $noScar = 'F-SDM-' . date('Ymd') . '-' . str_pad($nextScarFolio, 4, '0', STR_PAD_LEFT);
+
+            $config['next_folio'] = $nextScarFolio + 1;
+            Storage::disk('local')->put($scarFolioPath, json_encode($config));
+        }
+
+        // Construir objeto de datos para la vista del SCAR
+        $scarData = (object) [
+            'ot'                         => $ot,
+            'no_scar'                    => $noScar,
+            'proveedor'                  => $request->input('proveedor', 'SS Metal Foundry, S. de R.L. de C.V.'),
+            'descripcion_no_conformidad' => $request->input('descripcion_no_conformidad')
+                                           ?: ($liberacion?->motivo_rechazo ?? ''),
+            'causa_raiz'                 => $request->input('causa_raiz', ''),
+            'acciones_correctivas'       => $request->input('acciones_correctivas', ''),
+            'fecha_emision'              => $request->input('fecha_compromiso', ''),
+            'fecha_compromiso'           => null,
+            'codigo_modelo'              => $request->input('codigo_modelo', ''),
+            'user_nombre_calidad'        => $user->name,
+            'inspector'                  => $user->name,
+            'created_at'                 => now(),
+            
+            // Nuevos campos
+            'cliente_empresa'            => $request->input('cliente_empresa', 'Industrial Saavedra'),
+            'area_solicitante'           => $request->input('area_solicitante', 'Calidad'),
+            'nombre_solicitante'         => $request->input('nombre_solicitante', $user->name),
+            'nombre_moldura'             => $request->input('nombre_moldura', ''),
+            
+            'evidencia_reporte'          => $request->boolean('evidencia_reporte', true),
+            'evidencia_dibujos'          => $request->boolean('evidencia_dibujos', false),
+            'evidencia_ayudas'           => $request->boolean('evidencia_ayudas', false),
+            'evidencia_fotos'            => $request->boolean('evidencia_fotos', false),
+            'evidencia_otro'             => $request->boolean('evidencia_otro', false),
+            
+            'accion_regreso'             => $request->boolean('accion_regreso', false),
+            'accion_fabricacion'         => $request->boolean('accion_fabricacion', false),
+            'accion_otro'                => $request->boolean('accion_otro', false),
+            'accion_otro_texto'          => $request->input('accion_otro_texto', ''),
+        ];
+
+        try {
+            // ── Generar el PDF ──────────────────────────────────────────
+            $otSanitizada = preg_replace('/[\s]+/', '_', trim(preg_replace('/[^\w\s\-]/', '', $ot)));
+            $pdfFilename  = "F-CCL-SCAR_{$otSanitizada}.pdf";
+            $pdfDir       = storage_path('app/public/liberaciones_pdf');
+
+            if (!file_exists($pdfDir)) {
+                mkdir($pdfDir, 0755, true);
+            }
+
+            // Reemplazar SCAR anterior de la misma OT
+            foreach (glob("{$pdfDir}/F-CCL-SCAR_{$otSanitizada}*.pdf") as $old) {
+                @unlink($old);
+            }
+
+            ini_set('memory_limit', '512M');
+            $pdf = Pdf::loadView('almacen.pdf_scar', ['scar' => $scarData])
+                      ->setPaper('letter', 'portrait');
+            $pdf->save("{$pdfDir}/{$pdfFilename}");
+            $pdfUrl = asset('storage/liberaciones_pdf/' . $pdfFilename);
+
+            // Copiar a la carpeta de la OT en ayudas_visuales/preordenes de Calidad para que se liste en Otros documentos
+            $folderName = $this->sanitizePath($this->normalizeOTName($ot));
+            $otPath = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes';
+            if (!Storage::disk('local')->exists($otPath)) {
+                Storage::disk('local')->makeDirectory($otPath);
+            }
+            Storage::disk('local')->put($otPath . '/' . $pdfFilename, file_get_contents("{$pdfDir}/{$pdfFilename}"));
+
+            // ── Guardar datos en BD (Tabla: scar_modelos) ───────────────────
+            ScarModelo::updateOrCreate(
+                ['ot' => $ot],
+                [
+                    'no_scar'                    => $scarData->no_scar,
+                    'tipo_modelo'                => $request->input('tipo_modelo') ?: ($liberacion?->tipo_modelo ?? ''),
+                    'codigo_modelo'              => $scarData->codigo_modelo,
+                    'proveedor'                  => $scarData->proveedor,
+                    'descripcion_no_conformidad' => $scarData->descripcion_no_conformidad,
+                    'causa_raiz'                 => $scarData->causa_raiz,
+                    'acciones_correctivas'       => $scarData->acciones_correctivas,
+                    'fecha_emision'              => $scarData->fecha_emision ?: null,
+                    'fecha_compromiso'           => null,
+                    'estatus'                    => 'abierto',
+                    'user_id'                    => $user->id,
+                    'user_nombre'                => $user->name,
+                    'pdf_filename'               => $pdfFilename,
+                    'cliente_empresa'            => $scarData->cliente_empresa,
+                    'area_solicitante'           => $scarData->area_solicitante,
+                    'nombre_solicitante'         => $scarData->nombre_solicitante,
+                    'nombre_moldura'             => $scarData->nombre_moldura,
+                    'evidencia_reporte'          => $scarData->evidencia_reporte,
+                    'evidencia_dibujos'          => $scarData->evidencia_dibujos,
+                    'evidencia_ayudas'           => $scarData->evidencia_ayudas,
+                    'evidencia_fotos'            => $scarData->evidencia_fotos,
+                    'evidencia_otro'             => $scarData->evidencia_otro,
+                    'accion_regreso'             => $scarData->accion_regreso,
+                    'accion_fabricacion'         => $scarData->accion_fabricacion,
+                    'accion_otro'                => $scarData->accion_otro,
+                    'accion_otro_texto'          => $scarData->accion_otro_texto,
+                ]
+            );
+
+            // ── Si accion === 'enviar', mandar correo con el SCAR adjunto ───
+            if ($accion === 'enviar') {
+                $destinatarios = array_filter(
+                    array_map('trim', explode(',', $request->input('destinatario', 'jaxer020406@gmail.com')))
+                );
+                if (empty($destinatarios)) {
+                    $destinatarios = ['jaxer020406@gmail.com'];
+                }
+
+                // Adjuntar el SCAR recién generado + el PDF del F-CCL-LDM si existe
+                $attachments = [];
+                $attachments[] = [
+                    'path' => "{$pdfDir}/{$pdfFilename}",
+                    'name' => $pdfFilename,
+                    'mime' => 'application/pdf',
+                ];
+
+                // Incluir también el F-CCL-LDM de liberación si existe para esta OT
+                $todasLiberaciones = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
+                    ->whereNotNull('pdf_filename')
+                    ->get();
+                foreach ($todasLiberaciones as $libRow) {
+                    $libPath = storage_path("app/public/liberaciones_pdf/{$libRow->pdf_filename}");
+                    if (file_exists($libPath)) {
+                        $attachments[] = [
+                            'path' => $libPath,
+                            'name' => $libRow->pdf_filename,
+                            'mime' => 'application/pdf',
+                        ];
+                    }
+                }
+
+                try {
+                    Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, 'rechazado', $liberacion, $attachments));
+                    
+                    // Copiar los archivos de Calidad a Almacén
+                    $this->copyDirectoryRecursive(
+                        self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes',
+                        self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes'
+                    );
+                } catch (\Exception $mailEx) {
+                    Log::error('Error al enviar correo SCAR: ' . $mailEx->getMessage());
+                    // El PDF se generó bien; reportamos el error de correo como advertencia, no como fallo
+                    return response()->json([
+                        'success'      => true,
+                        'message'      => 'SCAR generado, pero el correo no pudo enviarse: ' . $mailEx->getMessage(),
+                        'pdf_url'      => $pdfUrl,
+                        'pdf_filename' => $pdfFilename,
+                    ]);
+                }
+
+                return response()->json([
+                    'success'      => true,
+                    'message'      => 'SCAR generado y alerta enviada correctamente.',
+                    'pdf_url'      => $pdfUrl,
+                    'pdf_filename' => $pdfFilename,
+                ]);
+            }
+
+            // Accion 'guardar': solo devolver URL del PDF
+            return response()->json([
+                'success'      => true,
+                'message'      => 'SCAR generado exitosamente.',
+                'pdf_url'      => $pdfUrl,
+                'pdf_filename' => $pdfFilename,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error al generar SCAR: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al generar el SCAR: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Paso 2 del Flujo SCAR:
+     * Recibe la fecha compromiso, el archivo del SCAR firmado físicamente (PDF),
+     * y los archivos adicionales seleccionados por el usuario para enviar la alerta de correo al proveedor.
+     */
+    public function sendScarAlert(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if (!$user || !in_array($user->perfil, ['1', '2', '4'], true)) {
+            return response()->json(['success' => false, 'message' => 'Acceso restringido a Calidad.'], 403);
+        }
+
+        $ot              = $request->input('ot', '');
+        $fechaCompromiso = $request->input('fecha_compromiso', '');
+
+        if (empty($ot)) {
+            return response()->json(['success' => false, 'message' => 'OT requerida.'], 422);
+        }
+
+        if (empty($fechaCompromiso)) {
+            return response()->json(['success' => false, 'message' => 'La fecha compromiso es obligatoria para enviar la alerta.'], 422);
+        }
+
+        if (!$request->hasFile('pdf_firmado')) {
+            return response()->json(['success' => false, 'message' => 'El PDF del SCAR firmado es obligatorio para enviar la alerta.'], 422);
+        }
+
+        $scar = ScarModelo::where('ot', '=', $ot, 'and')->first();
+        if (!$scar) {
+            return response()->json(['success' => false, 'message' => 'No se encontró un registro SCAR para esta OT. Debe generarlo primero.'], 404);
+        }
+
+        $liberacion = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
+            ->whereIn('estado', ['rechazado', 'pendiente'])
+            ->latest()
+            ->first();
+
+        // 1. Guardar el PDF firmado
+        $file = $request->file('pdf_firmado');
+        $otSanitizada = preg_replace('/[\s]+/', '_', trim(preg_replace('/[^\w\s\-]/', '', $ot)));
+        $pdfFirmadoName = "Escaner_F-CCL-SCAR_{$otSanitizada}." . $file->getClientOriginalExtension();
+        $pdfDir = storage_path('app/public/liberaciones_pdf');
+
+        if (!file_exists($pdfDir)) {
+            mkdir($pdfDir, 0755, true);
+        }
+
+        // Eliminar PDF firmado anterior si existe
+        if ($scar->pdf_firmado_filename && file_exists("{$pdfDir}/{$scar->pdf_firmado_filename}")) {
+            @unlink("{$pdfDir}/{$scar->pdf_firmado_filename}");
+        }
+
+        $file->move($pdfDir, $pdfFirmadoName);
+
+        // Copiar a la carpeta de la OT en ayudas_visuales/preordenes de Calidad para que se liste en Otros documentos
+        $folderName = $this->sanitizePath($this->normalizeOTName($ot));
+        $otPath = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes';
+        if (!Storage::disk('local')->exists($otPath)) {
+            Storage::disk('local')->makeDirectory($otPath);
+        }
+        Storage::disk('local')->put($otPath . '/' . $pdfFirmadoName, file_get_contents("{$pdfDir}/{$pdfFirmadoName}"));
+
+        // 2. Actualizar el modelo
+        $scar->update([
+            'fecha_compromiso' => $fechaCompromiso,
+            'pdf_firmado_filename' => $pdfFirmadoName,
+            'estatus' => 'alertado',
+        ]);
+
+        // 2.5 Regenerar el PDF digital del SCAR para que plasme la fecha de compromiso
+        try {
+            ini_set('memory_limit', '512M');
+            $pdf = Pdf::loadView('almacen.pdf_scar', ['scar' => $scar])
+                      ->setPaper('letter', 'portrait');
+            $pdf->save("{$pdfDir}/{$scar->pdf_filename}");
+            
+            // Copiar a la carpeta de la OT en ayudas_visuales/preordenes para que se liste en Otros documentos
+            Storage::disk('local')->put($otPath . '/' . $scar->pdf_filename, file_get_contents("{$pdfDir}/{$scar->pdf_filename}"));
+        } catch (\Exception $pdfEx) {
+            Log::error('Error al regenerar PDF digital de SCAR en alerta: ' . $pdfEx->getMessage());
+        }
+
+        // 3. Destinatarios
+        $destinatarios = array_filter(
+            array_map('trim', explode(',', $request->input('destinatario', 'jaxer020406@gmail.com')))
+        );
+        if (empty($destinatarios)) {
+            $destinatarios = ['jaxer020406@gmail.com'];
+        }
+
+        // 4. Compilar adjuntos
+        $attachments = [];
+
+        // SCAR Firmado (Escaneado)
+        $attachments[] = [
+            'path' => "{$pdfDir}/{$pdfFirmadoName}",
+            'name' => $pdfFirmadoName,
+            'mime' => 'application/pdf',
+        ];
+
+        // SCAR Digital Regenerado (con las fechas actualizadas)
+        if ($scar->pdf_filename && file_exists("{$pdfDir}/{$scar->pdf_filename}")) {
+            $attachments[] = [
+                'path' => "{$pdfDir}/{$scar->pdf_filename}",
+                'name' => $scar->pdf_filename,
+                'mime' => 'application/pdf',
+            ];
+        }
+
+        // LDM / Reporte de liberación (se marca en automático)
+        if ($liberacion && $liberacion->pdf_filename) {
+            $libPath = "{$pdfDir}/{$liberacion->pdf_filename}";
+            if (file_exists($libPath)) {
+                $attachments[] = [
+                    'path' => $libPath,
+                    'name' => $liberacion->pdf_filename,
+                    'mime' => 'application/pdf',
+                ];
+            }
+        }
+
+        // Dibujos y Ayudas del servidor (filtrados por los archivos seleccionados en el modal)
+        $folderName = $this->sanitizePath($this->normalizeOTName($ot));
+        
+        $files = [];
+        $dirPathAlmacen = self::ALMACEN_DIR . '/' . $folderName;
+        $dirPathCalidad = self::CALIDAD_DIR . '/' . $folderName;
+
+        if (Storage::disk('local')->exists($dirPathAlmacen)) {
+            $files = array_merge($files, Storage::disk('local')->allFiles($dirPathAlmacen));
+        }
+        if (Storage::disk('local')->exists($dirPathCalidad)) {
+            $files = array_merge($files, Storage::disk('local')->allFiles($dirPathCalidad));
+        }
+        $files = array_unique($files);
+
+        $dibujosSelected = $request->input('dibujos', []);
+        $ayudasSelected  = $request->input('ayudas', []);
+        $otrosSelected   = $request->input('otros_documentos', []);
+
+        foreach ($files as $file) {
+            $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+            if (in_array($ext, ['pdf', 'png', 'jpg', 'jpeg'])) {
+                
+                // Normalizar ruta para evitar problemas con contrabarras en Windows
+                $fNorm = str_replace('\\', '/', $file);
+                
+                // Determinar el directorio base
+                if (strpos($fNorm, self::CALIDAD_DIR . '/' . $folderName) !== false) {
+                    $currentDir = self::CALIDAD_DIR . '/' . $folderName;
+                } else {
+                    $currentDir = self::ALMACEN_DIR . '/' . $folderName;
+                }
+                
+                $dirPathNorm = str_replace('\\', '/', $currentDir);
+                $ayudasPathNorm = $dirPathNorm . '/ayudas_visuales';
+
+                $isSelected = false;
+
+                // Comprobar si el archivo está en la subcarpeta ayudas_visuales
+                if (str_starts_with($fNorm, $ayudasPathNorm . '/')) {
+                    $relName = ltrim(str_replace($ayudasPathNorm, '', $fNorm), '/');
+                    $utf8RelName = $this->toUtf8($relName);
+
+                    if (str_starts_with($relName, 'preordenes/')) {
+                        $isSelected = in_array($utf8RelName, $otrosSelected);
+                    } else {
+                        $isSelected = in_array($utf8RelName, $ayudasSelected);
+                    }
+                } else {
+                    // Está en la raíz de la OT (tipo dibujo)
+                    $relName = ltrim(str_replace($dirPathNorm, '', $fNorm), '/');
+                    $utf8RelName = $this->toUtf8($relName);
+
+                    if (!str_contains($relName, '/')) {
+                        $isSelected = in_array($utf8RelName, $dibujosSelected);
+                    }
+                }
+
+                if (!$isSelected) {
+                    continue;
+                }
+
+                $bName = basename($file);
+                // Evitar duplicar archivos
+                $alreadyAttached = false;
+                foreach ($attachments as $att) {
+                    if ($att['name'] === $bName) {
+                        $alreadyAttached = true;
+                        break;
+                    }
+                }
+                if (!$alreadyAttached) {
+                    $attachments[] = [
+                        'path' => storage_path('app/' . $file),
+                        'name' => $bName,
+                        'mime' => mime_content_type(storage_path('app/' . $file)) ?: 'application/octet-stream'
+                    ];
+                }
+            }
+        }
+
+        // Fotografías subidas en el momento (si las hay) - se guardan en el directorio de Calidad
+        $evidenciasPath = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/evidencias';
+        if (!Storage::disk('local')->exists($evidenciasPath)) {
+            Storage::disk('local')->makeDirectory($evidenciasPath);
+        }
+
+        if ($request->hasFile('evidencia_fotos_files')) {
+            foreach ($request->file('evidencia_fotos_files') as $idx => $photoFile) {
+                if ($photoFile->isValid()) {
+                    $photoName = "evidencia_foto_{$idx}_{$otSanitizada}." . $photoFile->getClientOriginalExtension();
+                    $photoPath = $photoFile->move(storage_path('app/public/liberaciones_pdf/evidencia'), $photoName);
+                    $attachments[] = [
+                        'path' => $photoPath->getRealPath(),
+                        'name' => $photoName,
+                        'mime' => $photoFile->getClientMimeType(),
+                    ];
+                    // Copiar a la carpeta de la OT para que aparezca en Otros Documentos
+                    Storage::disk('local')->put(
+                        $evidenciasPath . '/' . $photoName,
+                        file_get_contents($photoPath->getRealPath())
+                    );
+                }
+            }
+        }
+
+        // Otros archivos PDF subidos en el momento (si los hay)
+        if ($request->hasFile('evidencia_otro_files')) {
+            foreach ($request->file('evidencia_otro_files') as $idx => $otherFile) {
+                if ($otherFile->isValid()) {
+                    $otherName = "evidencia_otro_{$idx}_{$otSanitizada}." . $otherFile->getClientOriginalExtension();
+                    $otherPath = $otherFile->move(storage_path('app/public/liberaciones_pdf/evidencia'), $otherName);
+                    $attachments[] = [
+                        'path' => $otherPath->getRealPath(),
+                        'name' => $otherName,
+                        'mime' => $otherFile->getClientMimeType(),
+                    ];
+                    // Copiar a la carpeta de la OT para que aparezca en Otros Documentos
+                    Storage::disk('local')->put(
+                        $evidenciasPath . '/' . $otherName,
+                        file_get_contents($otherPath->getRealPath())
+                    );
+                }
+            }
+        }
+
+        // 5. Enviar el correo
+        try {
+            Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, 'rechazado', $liberacion, $attachments));
+            
+            // Copiar los archivos de Calidad a Almacén
+            $this->copyDirectoryRecursive(
+                self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes',
+                self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes'
+            );
+        } catch (\Exception $mailEx) {
+            Log::error('Error al enviar correo SCAR Firmado: ' . $mailEx->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Los datos se guardaron pero la alerta por correo no pudo enviarse: ' . $mailEx->getMessage(),
+            ], 500);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Alerta SCAR firmada enviada exitosamente al proveedor.',
+        ]);
+    }
+
+    public function getScar(Request $request)
+    {
+        $ot = $request->input('ot');
+        if (empty($ot)) {
+            return response()->json(['success' => false, 'message' => 'OT requerida.'], 422);
+        }
+        $scar = ScarModelo::where('ot', '=', $ot, 'and')->first();
+        return response()->json([
+            'success' => true,
+            'scar' => $scar
+        ]);
+    }
+
+    /**
+     * Copia recursivamente todos los archivos de un directorio a otro en el Storage 'local'.
+     */
+    private function copyDirectoryRecursive(string $src, string $dst): void
+    {
+        if (!Storage::disk('local')->exists($src)) {
+            return;
+        }
+
+        $files = Storage::disk('local')->allFiles($src);
+        foreach ($files as $file) {
+            // Reemplazar la ruta origen por la de destino
+            $relPath = ltrim(substr($file, strlen($src)), '/');
+            $targetPath = $dst . '/' . $relPath;
+
+            // Asegurar directorio destino
+            $targetDir = dirname($targetPath);
+            if (!Storage::disk('local')->exists($targetDir)) {
+                Storage::disk('local')->makeDirectory($targetDir);
+            }
+
+            // Copiar el archivo (reemplazar si ya existe)
+            Storage::disk('local')->put($targetPath, Storage::disk('local')->get($file));
         }
     }
 }

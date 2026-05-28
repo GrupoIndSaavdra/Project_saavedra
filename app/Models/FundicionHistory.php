@@ -19,6 +19,7 @@ class FundicionHistory extends Model
         'almacen_archivos',
         'tiene_modelo',
         'pre_orden_sent',
+        'pre_orden_email_sent',
         'calidad_revision_status',
     ];
 
@@ -28,5 +29,6 @@ class FundicionHistory extends Model
         'ayudas_config'           => 'array',
         'tiene_modelo'            => 'boolean',
         'pre_orden_sent'          => 'boolean',
+        'pre_orden_email_sent'    => 'boolean',
     ];
 }

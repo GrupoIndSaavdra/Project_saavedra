@@ -221,7 +221,7 @@ window.abrirModalPreOrden = function (ot) {
     if (ot.includes(' - ')) {
         const parts = ot.split(' - ');
         otNum = parts[0].trim();
-        molduraName = parts.slice(1).join(' - ').trim();
+        molduraName = parts.slice(1).join(' - ').trim().replace(/_\d{8}_\d{6}_.*/, '');
     }
     // Dejar solo los números de la OT (por ejemplo, "OT 6748" pasa a "6748")
     otNum = otNum.replace(/[^0-9]/g, '');
@@ -306,6 +306,10 @@ window.abrirModalPreOrden = function (ot) {
                     }
                 }
 
+                // Bloque 3a: Aplicar bloqueo de Impresiones a todas las filas ya cargadas
+                // (Molde y Bombillo siempre N/A sin importar el origen de los datos)
+                setTimeout(() => aplicarBloqueoImpresionesEnTodas('alm-tbody-preorden'), 0);
+
                 // Datos cargados con éxito
             } else {
                 mostrarToast(data.message || 'Error al cargar datos de la OT', true);
@@ -380,13 +384,13 @@ function createRowElement(claseNombrePredefinida = '', isSecondOrder = false, ro
             </select>
         </td>
         <td>
-            <input type="text" name="impresiones[]" class="form-control" style="text-align:center;" placeholder="Ej. 1" required value="${impresionesVal}">
+            <input type="text" name="impresiones[]" class="form-control po-impresiones" style="text-align:center;" placeholder="Ej. 1" required value="${impresionesVal}">
         </td>
         <td>
             <input type="number" name="cantidad[]" class="form-control" style="text-align:center;" min="1" placeholder="0" required value="${cantidadVal}">
         </td>
         <td>
-            <select name="id_clase[]" class="form-control po-clase-select" required onchange="generarCodigoFila(this)">
+            <select name="id_clase[]" class="form-control po-clase-select" required onchange="generarCodigoFila(this); actualizarInputImpresiones(this);">
                 ${options}
             </select>
         </td>
@@ -410,8 +414,15 @@ function createRowElement(claseNombrePredefinida = '', isSecondOrder = false, ro
         tr.querySelector('.po-codigo-input').value = calculateModelCode(ot, nombreClase);
     }
 
+    // Bloque 3a: Si la fila ya tiene clase seleccionada (carga de datos existentes),
+    // aplicar el bloqueo de impresiones si aplica
+    if (select.value) {
+        setTimeout(() => window.actualizarInputImpresiones(select), 0);
+    }
+
     return tr;
 }
+
 
 window.agregarFilaPreOrden = function () {
     document.getElementById('alm-tbody-preorden').appendChild(createRowElement());
@@ -663,6 +674,11 @@ window.abrirModalEnviarPreOrden = function (ot) {
 
     inputOt.value = ot;
 
+    const subtitle = document.getElementById('env-po-modal-subtitle');
+    if (subtitle) {
+        subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, '')}`;
+    }
+
     // Reset file inputs and badges
     adicionalesSelectedFiles = [];
     renderSelectedFilesBadges();
@@ -786,6 +802,9 @@ document.getElementById('formEnviarPreOrden').addEventListener('submit', functio
                 if (window.ModeloStateMachine) {
                     window.ModeloStateMachine.onCorreoEnviado(ot);
                 }
+                // Bloque 3b: bloquear controles del modal de pre-orden
+                bloquearModalPreOrden();
+                setTimeout(() => location.reload(), 1500);
             } else {
                 mostrarToast(data.message || 'Error al enviar el correo.', true);
             }
@@ -891,7 +910,7 @@ window.abrirModalLiberacion = function (ot, tipo) {
     if (formEl) formEl.reset();
 
     // Mostrar OT en la cabecera del formato
-    if (otDisplay) otDisplay.textContent = ot;
+    if (otDisplay) otDisplay.textContent = ot.replace(/_\d{8}_\d{6}_.*/, '');
 
     // Configurar apariencia segun tipo de accion
     const esRechazo = tipo === 'rechazar';
@@ -899,47 +918,26 @@ window.abrirModalLiberacion = function (ot, tipo) {
     if (esRechazo) {
         header.classList.add('lib-modal-header-rechazo');
         if (title)    title.textContent    = 'Formato de Rechazo de Modelo — F-CCL-LDM';
-        if (subtitle) subtitle.textContent = `OT: ${ot}  |  Modo: Rechazo`;
+        if (subtitle) subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, '')}  |  Modo: Rechazo`;
         if (rechazoBlock) rechazoBlock.style.display = '';
     } else {
         header.classList.remove('lib-modal-header-rechazo');
         if (title)    title.textContent    = 'Formato de Liberacion de Modelos — F-CCL-LDM';
-        if (subtitle) subtitle.textContent = `OT: ${ot}  |  Modo: Aprobacion`;
+        if (subtitle) subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, '')}  |  Modo: Aprobacion`;
         if (rechazoBlock) rechazoBlock.style.display = 'none';
     }
 
-    // Renderizar botones de accion con imagen Liberar.png
-    const imgBase = window.almacenAppAssets?.liberar ?? '/images/Liberar.png';
     if (actionsEl) {
-        if (esRechazo) {
-            actionsEl.innerHTML = `
-                <button type="button" class="btn-lib-save" id="lib-btn-guardar">
-                    <img src="${window.almacenAppAssets?.descarga ?? '/images/Descarga.png'}" alt="">
-                    Guardar y Descargar PDF
-                </button>
-                <button type="button" class="btn-lib-rechazar-send" id="lib-btn-accion">
-                    <img src="${imgBase}" alt="">
-                    Rechazar y Enviar Alerta
-                </button>
-            `;
-        } else {
-            actionsEl.innerHTML = `
-                <button type="button" class="btn-lib-save" id="lib-btn-guardar">
-                    <img src="${window.almacenAppAssets?.descarga ?? '/images/Descarga.png'}" alt="">
-                    Guardar y Descargar PDF
-                </button>
-                <button type="button" class="btn-lib-aprobar-send" id="lib-btn-accion">
-                    <img src="${imgBase}" alt="">
-                    Aprobar y Notificar
-                </button>
-            `;
-        }
+        actionsEl.innerHTML = `
+            <button type="button" class="btn-lib-save" id="lib-btn-guardar" style="width: 100%; max-width: 350px; margin: 0 auto; justify-content: center; display: flex; gap: 8px; align-items: center;">
+                <img src="${window.almacenAppAssets?.descarga ?? '/images/Descarga.png'}" alt="" style="width:18px;height:18px;">
+                Guardar y Descargar PDF
+            </button>
+        `;
 
         // Asignar eventos a los botones recien creados
         document.getElementById('lib-btn-guardar')
             ?.addEventListener('click', () => _libSubmit('guardar'));
-        document.getElementById('lib-btn-accion')
-            ?.addEventListener('click', () => _libSubmit(esRechazo ? 'rechazar' : 'aprobar'));
     }
 
     if (hiddenOt)     hiddenOt.value     = ot;
@@ -998,6 +996,8 @@ function _libActualizarBadgeEstado(ot, nuevoEstado) {
 // Cerrar al hacer clic en el backdrop
 document.addEventListener('click', (e) => {
     if (e.target.id === 'modalLiberacionModelo') cerrarModalLiberacion();
+    if (e.target.id === 'modalScar') cerrarModalScar();
+    if (e.target.id === 'modalEnviarScar') cerrarModalEnviarScar();
 });
 
 // Cerrar lightbox con Escape, cerrar modal con Escape si lightbox cerrado
@@ -1008,6 +1008,8 @@ document.addEventListener('keydown', (e) => {
         libCerrarLightbox();
     } else {
         cerrarModalLiberacion();
+        cerrarModalScar();
+        cerrarModalEnviarScar();
     }
 });
 
@@ -1047,6 +1049,15 @@ window.libCambiarTipo = function (tipo) {
     });
 
     if (aviso) aviso.style.display = visibles.length > 0 ? 'none' : '';
+
+    const decisionSelector = document.getElementById('lib-decision-selector');
+    if (decisionSelector) {
+        decisionSelector.style.display = tipo ? 'flex' : 'none';
+    }
+
+    if (typeof _libActualizarColorSelectPropio === 'function') {
+        _libActualizarColorSelectPropio();
+    }
 
     // Si tenemos registros cacheados especificos para este tipo, poblamos la UI
     if (tipo && window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[tipo]) {
@@ -1182,6 +1193,9 @@ async function _libCargarDatos(ot) {
         // Guardamos el cache completo de registros independientes
         window.cacheLiberacionGlobal = data.registros_por_tipo || {};
         
+        // Colorear las opciones del select según su estado
+        _libActualizarColoresSelect();
+
         if (!data.success) return;
 
         const lastLib = data.liberacion;
@@ -1196,6 +1210,81 @@ async function _libCargarDatos(ot) {
         console.error('Error al cargar datos de liberacion:', err);
     }
 }
+
+/**
+ * Colorea las opciones del select #lib-tipo según la decisión guardada o seleccionada.
+ */
+function _libActualizarColoresSelect() {
+    const select = document.getElementById('lib-tipo');
+    if (!select) return;
+
+    select.querySelectorAll('option').forEach(opt => {
+        const val = opt.value;
+        if (!val) {
+            opt.style.backgroundColor = '';
+            opt.style.color = '';
+            return;
+        }
+
+        const record = window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[val];
+        if (record) {
+            if (record.decision === 'aprobar') {
+                opt.style.backgroundColor = '#d1fae5'; // Verde suave
+                opt.style.color = '#065f46';
+            } else if (record.decision === 'rechazar') {
+                opt.style.backgroundColor = '#fee2e2'; // Rojo suave
+                opt.style.color = '#991b1b';
+            } else {
+                opt.style.backgroundColor = '';
+                opt.style.color = '';
+            }
+        } else {
+            opt.style.backgroundColor = '';
+            opt.style.color = '';
+        }
+    });
+
+    _libActualizarColorSelectPropio();
+}
+window._libActualizarColoresSelect = _libActualizarColoresSelect;
+
+/**
+ * Colorea el select en sí de acuerdo al valor y estado actual.
+ */
+function _libActualizarColorSelectPropio() {
+    const select = document.getElementById('lib-tipo');
+    if (!select) return;
+
+    const val = select.value;
+    if (!val) {
+        select.style.backgroundColor = '';
+        select.style.color = '';
+        select.style.borderColor = '#e2e8f0';
+        return;
+    }
+
+    const record = window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[val];
+    if (record) {
+        if (record.decision === 'aprobar') {
+            select.style.backgroundColor = '#d1fae5'; // Verde suave
+            select.style.color = '#065f46';
+            select.style.borderColor = '#34d399';
+        } else if (record.decision === 'rechazar') {
+            select.style.backgroundColor = '#fee2e2'; // Rojo suave
+            select.style.color = '#991b1b';
+            select.style.borderColor = '#fca5a5';
+        } else {
+            select.style.backgroundColor = '';
+            select.style.color = '';
+            select.style.borderColor = '#e2e8f0';
+        }
+    } else {
+        select.style.backgroundColor = '';
+        select.style.color = '';
+        select.style.borderColor = '#e2e8f0';
+    }
+}
+window._libActualizarColorSelectPropio = _libActualizarColorSelectPropio;
 
 /**
  * Rellena los inputs con un objeto "lib" especifico de un tipo de modelo.
@@ -1324,8 +1413,11 @@ async function _libSubmit(accion) {
         return;
     }
 
+    const activeDecisionEl = document.querySelector('.lib-decision-card.active');
+    const decisionVal = activeDecisionEl && activeDecisionEl.id === 'lib-dec-rechazar' ? 'rechazar' : 'aprobar';
+
     // Validacion obligatoria de motivo de rechazo
-    if (accion === 'rechazar') {
+    if (decisionVal === 'rechazar') {
         const motivo = document.getElementById('lib-motivo-rechazo')?.value?.trim();
         if (!motivo) {
             almacenToast('El campo "Motivo de Rechazo" es obligatorio para rechazar la liberacion.', 'error');
@@ -1345,6 +1437,7 @@ async function _libSubmit(accion) {
     const form = document.getElementById('formLiberacion');
     const fd   = new FormData(form);
     fd.set('accion', accion);
+    fd.set('decision', decisionVal);
     fd.set('ot', ot);
 
     // Bloquear botones durante la peticion
@@ -1383,6 +1476,10 @@ async function _libSubmit(accion) {
                 if (data.ot && data.nuevo_estado) {
                     _libActualizarBadgeEstado(data.ot, data.nuevo_estado);
                 }
+                setTimeout(() => {
+                    cerrarModalLiberacion();
+                    window.location.reload();
+                }, 1800);
             } else {
                 // ── Máquina de estados: disparar evento de liberación final ──
                 // Permite que el state machine muestre el estado final (aprobado/rechazado)
@@ -1723,3 +1820,832 @@ document.addEventListener('DOMContentLoaded', () => ModeloStateMachine.init());
         if (accion === 'rechazar') ModeloStateMachine.onRechazado(ot);
     });
 })();
+
+// =========================================================================
+// MODAL SCAR (Solicitud de Acción Correctiva de Rechazo)
+// =========================================================================
+
+/**
+ * Abre el modal del formato SCAR pre-llenando los datos del rechazo.
+ */
+window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
+    const modal = document.getElementById('modalScar');
+    if (!modal) return;
+
+    // Resetear formulario para no conservar datos previos
+    const formEl = document.getElementById('formScar');
+    if (formEl) formEl.reset();
+
+    // Mostrar datos en el modal
+    const otInput = document.getElementById('scar-ot');
+    if (otInput) otInput.value = ot;
+    const otDisplay = document.getElementById('scar-ot-display');
+    if (otDisplay) otDisplay.textContent = ot.replace(/_\d{8}_\d{6}_.*/, '');
+
+    const tipoInput = document.getElementById('scar-tipo');
+    if (tipoInput) tipoInput.value = tipoModelo || '';
+    const tipoDisplay = document.getElementById('scar-tipo-display');
+    if (tipoDisplay) tipoDisplay.textContent = tipoModelo || 'General';
+
+    const motivoInput = document.getElementById('scar-motivo');
+    if (motivoInput) motivoInput.value = motivoRechazo || '';
+    const descTextarea = document.getElementById('scar-descripcion');
+    if (descTextarea) descTextarea.value = motivoRechazo || '';
+
+    // Fetch existing SCAR data if any
+    fetch(`${window.almacenRoutes.getScar}?ot=${encodeURIComponent(ot)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.scar) {
+                const s = data.scar;
+                if (s.cliente_empresa) document.getElementById('scar-cliente-empresa').value = s.cliente_empresa;
+                if (s.area_solicitante) document.getElementById('scar-area-solicitante').value = s.area_solicitante;
+                if (s.nombre_solicitante) document.getElementById('scar-nombre-solicitante').value = s.nombre_solicitante;
+                if (s.nombre_moldura) document.getElementById('scar-nombre-moldura').value = s.nombre_moldura;
+                if (s.proveedor) document.getElementById('scar-proveedor').value = s.proveedor;
+                if (s.descripcion_no_conformidad) document.getElementById('scar-descripcion').value = s.descripcion_no_conformidad;
+                if (s.causa_raiz) document.getElementById('scar-causa-raiz').value = s.causa_raiz;
+                if (s.acciones_correctivas) document.getElementById('scar-acciones').value = s.acciones_correctivas;
+                if (s.codigo_modelo) document.getElementById('scar-codigo-modelo').value = s.codigo_modelo;
+
+                if (s.fecha_emision) {
+                    const fcInput = document.getElementById('scar-fecha-compromiso');
+                    if (fcInput) fcInput.value = s.fecha_emision.split(' ')[0].split('T')[0];
+                }
+
+                // Checkboxes y sus contenedores correspondientes
+                const chkDibujos = document.getElementById('scar-evidencia-dibujos');
+                if (chkDibujos) chkDibujos.checked = !!s.evidencia_dibujos;
+
+                const chkAyudas = document.getElementById('scar-evidencia-ayudas');
+                if (chkAyudas) chkAyudas.checked = !!s.evidencia_ayudas;
+
+                const chkFotos = document.getElementById('scar-evidencia-fotos');
+                if (chkFotos) {
+                    chkFotos.checked = !!s.evidencia_fotos;
+                    const group = document.getElementById('scar-fotos-upload-group');
+                    if (group) group.style.display = chkFotos.checked ? 'block' : 'none';
+                }
+
+                const chkOtro = document.getElementById('scar-evidencia-otro');
+                if (chkOtro) {
+                    chkOtro.checked = !!s.evidencia_otro;
+                    const group = document.getElementById('scar-otro-upload-group');
+                    if (group) group.style.display = chkOtro.checked ? 'block' : 'none';
+                }
+
+                const chkRegreso = document.getElementById('scar-accion-regreso');
+                if (chkRegreso) chkRegreso.checked = !!s.accion_regreso;
+
+                const chkFabricacion = document.getElementById('scar-accion-fabricacion');
+                if (chkFabricacion) chkFabricacion.checked = !!s.accion_fabricacion;
+
+                const chkAccionOtro = document.getElementById('scar-accion-otro');
+                if (chkAccionOtro) {
+                    chkAccionOtro.checked = !!s.accion_otro;
+                    const group = document.getElementById('scar-accion-otro-text-group');
+                    if (group) group.style.display = chkAccionOtro.checked ? 'block' : 'none';
+                }
+
+                if (s.accion_otro_texto) document.getElementById('scar-accion-otro-texto').value = s.accion_otro_texto;
+            }
+        })
+        .catch(err => console.error("Error loading SCAR:", err));
+
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+};
+
+/**
+ * Cierra el modal de SCAR.
+ */
+window.cerrarModalScar = function () {
+    const modal = document.getElementById('modalScar');
+    if (modal) modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+};
+
+/**
+ * Envía el formulario del SCAR para generar el PDF y guardarlo en la BD.
+ */
+window.scarSubmit = function (accion) {
+    const form = document.getElementById('formScar');
+    if (!form) return;
+
+    const ot = document.getElementById('scar-ot')?.value;
+    if (!ot) {
+        mostrarToast('OT es requerida.', true);
+        return;
+    }
+
+    const btn = document.getElementById('scar-btn-guardar');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="alm-spinner" style="display:inline-block; border-top-color:#ffffff; width:15px; height:15px; margin-right:8px; vertical-align:middle;"></span> Procesando...';
+    }
+
+    const formData = new FormData(form);
+    formData.append('accion', accion);
+
+    fetch(window.almacenRoutes.generateScar, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+        if (data.success) {
+            mostrarToast(data.message || 'SCAR procesado correctamente.');
+            cerrarModalScar();
+            
+            if (data.pdf_url) {
+                const link = document.createElement('a');
+                link.href = data.pdf_url;
+                link.download = data.pdf_filename || `SCAR_${ot}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            mostrarToast(data.message || 'Error al procesar SCAR.', true);
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+        console.error("Error submitting SCAR:", err);
+        mostrarToast('Error de conexión con el servidor.', true);
+    });
+};
+
+// =========================================================================
+// MODAL: ENVIAR ALERTA SCAR (Paso 2)
+// =========================================================================
+
+/**
+ * Abre el modal para enviar el SCAR firmado al proveedor.
+ */
+window.abrirModalEnviarScar = function (ot) {
+    const modal = document.getElementById('modalEnviarScar');
+    if (!modal) return;
+
+    const inputOt = document.getElementById('env-scar-ot');
+    if (inputOt) inputOt.value = ot;
+
+    const subtitle = document.getElementById('env-scar-modal-subtitle');
+    if (subtitle) {
+        subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, '')}`;
+    }
+
+    // Resetear formulario
+    const form = document.getElementById('formEnviarScar');
+    if (form) form.reset();
+
+    const dibujosContainer = document.getElementById('env-scar-dibujos-container');
+    const ayudasContainer = document.getElementById('env-scar-ayudas-container');
+    const otrosContainer = document.getElementById('env-scar-otros-container');
+
+    const loadingSpinner = `<div style="padding: 10px; color: #64748b;"><div class="alm-spinner" style="display:inline-block; border-top-color:#9c0300; width:15px; height:15px; margin-right:8px; vertical-align:middle;"></div> Cargando...</div>`;
+    if (dibujosContainer) dibujosContainer.innerHTML = loadingSpinner;
+    if (ayudasContainer) ayudasContainer.innerHTML = loadingSpinner;
+    if (otrosContainer) otrosContainer.innerHTML = loadingSpinner;
+
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+
+    // Fetch existing SCAR details to prefill fecha_compromiso
+    fetch(`${window.almacenRoutes.getScar}?ot=${encodeURIComponent(ot)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.scar) {
+                const s = data.scar;
+                const fcInput = document.getElementById('env-scar-fecha-compromiso');
+                if (fcInput && s.fecha_compromiso) {
+                    fcInput.value = s.fecha_compromiso.split(' ')[0].split('T')[0];
+                }
+            }
+        })
+        .catch(err => console.error("Error loading SCAR details:", err));
+
+    // Fetch files from server
+    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.existe && data.archivos && data.archivos.length > 0) {
+                let htmlDibujos = '';
+                let htmlAyudas = '';
+                let htmlOtros = '';
+
+                data.archivos.forEach(file => {
+                    const dispName = file.nombre.split('/').pop();
+
+                    // Los archivos bajo preordenes/ (LDM, SCAR, Pre-Orden) van siempre a "Otros Documentos"
+                    const esPreorden = file.nombre.startsWith('preordenes/');
+                    const categoria = esPreorden ? 'otro' : file.tipo;
+                    const inputName = categoria === 'dibujo' ? 'dibujos[]' : (categoria === 'ayuda' ? 'ayudas[]' : 'otros_documentos[]');
+
+                    const checkbox = `
+                        <div style="margin-bottom: 6px;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" name="${inputName}" value="${file.nombre}" checked style="width:16px; height:16px;">
+                                <span>${dispName}</span>
+                            </label>
+                        </div>
+                    `;
+                    if (categoria === 'dibujo') {
+                        htmlDibujos += checkbox;
+                    } else if (categoria === 'ayuda') {
+                        htmlAyudas += checkbox;
+                    } else {
+                        htmlOtros += checkbox;
+                    }
+                });
+
+                if (dibujosContainer) dibujosContainer.innerHTML = htmlDibujos || '<span style="font-size:0.9em; color:#64748b;">No hay dibujos disponibles</span>';
+                if (ayudasContainer) ayudasContainer.innerHTML = htmlAyudas || '<span style="font-size:0.9em; color:#64748b;">No hay ayudas visuales disponibles</span>';
+                if (otrosContainer) otrosContainer.innerHTML = htmlOtros || '<span style="font-size:0.9em; color:#64748b;">No hay otros documentos disponibles</span>';
+            } else {
+                const emptyMsg = '<span style="font-size:0.9em; color:#64748b;">No hay archivos disponibles</span>';
+                if (dibujosContainer) dibujosContainer.innerHTML = emptyMsg;
+                if (ayudasContainer) ayudasContainer.innerHTML = emptyMsg;
+                if (otrosContainer) otrosContainer.innerHTML = emptyMsg;
+            }
+        })
+        .catch(err => {
+            console.error("Error loading files for SCAR:", err);
+            const errMsg = '<span style="font-size:0.9em; color:#ef4444;">Error al cargar archivos</span>';
+            if (dibujosContainer) dibujosContainer.innerHTML = errMsg;
+            if (ayudasContainer) ayudasContainer.innerHTML = errMsg;
+            if (otrosContainer) otrosContainer.innerHTML = errMsg;
+        });
+};
+
+/**
+ * Cierra el modal de Enviar SCAR.
+ */
+window.cerrarModalEnviarScar = function () {
+    const modal = document.getElementById('modalEnviarScar');
+    if (modal) modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+};
+
+(function _initScarEvents() {
+    document.addEventListener('DOMContentLoaded', () => {
+        const formEnvScar = document.getElementById('formEnviarScar');
+        if (formEnvScar) {
+            formEnvScar.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const ot = document.getElementById('env-scar-ot').value;
+                const fechaCompromiso = document.getElementById('env-scar-fecha-compromiso').value;
+                const pdfFirmado = document.getElementById('env-scar-pdf-firmado').files[0];
+
+                if (!fechaCompromiso) {
+                    mostrarToast('Por favor, indica la fecha compromiso.', true);
+                    return;
+                }
+                if (!pdfFirmado) {
+                    mostrarToast('Por favor, sube el SCAR firmado físicamente.', true);
+                    return;
+                }
+
+                const btn = this.querySelector('button[type="submit"]');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<span class="alm-spinner" style="display:inline-block; border-top-color:#ffffff; width:15px; height:15px; margin-right:8px; vertical-align:middle;"></span> Enviando alerta...';
+
+                const formData = new FormData(this);
+
+                fetch(window.almacenRoutes.sendScarAlert, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    if (data.success) {
+                        mostrarToast(data.message || 'Alerta SCAR firmada enviada con éxito.');
+                        cerrarModalEnviarScar();
+                        if (window.ModeloStateMachine) {
+                            window.ModeloStateMachine.onCorreoEnviado(ot);
+                        }
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        mostrarToast(data.message || 'Error al enviar alerta SCAR.', true);
+                    }
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    console.error("Error sending SCAR alert:", err);
+                    mostrarToast('Error al enviar la solicitud.', true);
+                });
+            });
+        }
+    });
+})();
+
+// =============================================================================
+// BLOQUE 2 — MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS
+// =============================================================================
+
+window.abrirModalConfirmarModelo = function (ot, idHash) {
+    const modal = document.getElementById('modalConfirmarModelo');
+    if (!modal) return;
+    document.getElementById('cm-ot').value = ot;
+    document.getElementById('cm-id-hash').value = idHash || '';
+    // Reset del form
+    const form = document.getElementById('formConfirmarModelo');
+    if (form) form.reset();
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+};
+
+window.cerrarModalConfirmarModelo = function () {
+    const modal = document.getElementById('modalConfirmarModelo');
+    if (modal) modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+};
+
+(function _initConfirmarModelo() {
+    document.addEventListener('DOMContentLoaded', () => {
+        const form = document.getElementById('formConfirmarModelo');
+        if (!form) return;
+
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const ot     = document.getElementById('cm-ot')?.value;
+            const idHash = document.getElementById('cm-id-hash')?.value;
+            const files  = document.getElementById('cm-archivos')?.files;
+
+            if (!ot) return;
+            if (!files || files.length === 0) {
+                almacenToast('Debes adjuntar al menos un documento de recepción.', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit-confirmar-modelo');
+            const origText = btn ? btn.innerHTML : '';
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="alm-spinner" style="display:inline-block;border-top-color:#fff;width:14px;height:14px;margin-right:8px;vertical-align:middle;"></span> Guardando...'; }
+
+            const fd = new FormData(this);
+
+            try {
+                const resp = await fetch(window.almacenRoutes.confirmarModelo, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN'    : document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: fd,
+                });
+                const data = await resp.json();
+
+                if (data.success) {
+                    almacenToast(data.message, 'success');
+                    cerrarModalConfirmarModelo();
+                    // Actualizar FSM y bloquear card visualmente
+                    if (window.ModeloStateMachine) window.ModeloStateMachine.onConfirmarModelo(ot);
+                    if (idHash) {
+                        const container = document.getElementById('control-modelo-' + idHash);
+                        if (container) { container.style.opacity = '0.5'; container.style.pointerEvents = 'none'; }
+                    }
+                    setTimeout(() => location.reload(), 1600);
+                } else {
+                    almacenToast(data.message || 'Error al registrar el modelo.', 'error');
+                }
+            } catch (err) {
+                console.error('Error confirmando modelo:', err);
+                almacenToast('Error de red al registrar el modelo.', 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = origText; }
+            }
+        });
+    });
+})();
+
+// =============================================================================
+// BLOQUE 3a — PRE-ORDEN: BLOQUEAR IMPRESIONES PARA BOMBILLO Y MOLDE (N/A)
+// =============================================================================
+
+/**
+ * Clases que usan N/A en impresiones (sin distinción de mayúsculas).
+ * Molde y Bombillo nunca llevan impresiones.
+ */
+const CLASES_SIN_IMPRESIONES = ['bombillo', 'molde'];
+
+/**
+ * Bloquea / desbloquea el input de Impresiones de la fila según la clase seleccionada.
+ * Expuesto en window para ser llamable desde onchange inline en el HTML generado.
+ */
+window.actualizarInputImpresiones = function (selectEl) {
+    const row = selectEl.closest('tr');
+    if (!row) return;
+    const impInput = row.querySelector('input.po-impresiones');
+    if (!impInput) return;
+
+    const nombreClase = selectEl.options[selectEl.selectedIndex]?.text?.toLowerCase() ?? '';
+    const esNA = CLASES_SIN_IMPRESIONES.some(c => nombreClase.includes(c));
+
+    impInput.disabled         = esNA;
+    impInput.value            = esNA ? 'N/A' : (impInput.value === 'N/A' ? '' : impInput.value);
+    impInput.placeholder      = esNA ? 'N/A' : 'Ej. 1';
+    impInput.style.background = esNA ? '#f1f5f9' : '';
+    impInput.style.color      = esNA ? '#94a3b8' : '';
+    impInput.style.cursor     = esNA ? 'not-allowed' : '';
+    impInput.title            = esNA ? 'Esta clase no lleva impresiones (N/A)' : '';
+};
+
+/**
+ * Recorre TODAS las filas del tbody de pre-orden y aplica el bloqueo.
+ * Se debe llamar al abrir el modal y al cargar filas existentes.
+ */
+function aplicarBloqueoImpresionesEnTodas(tbodyId = 'alm-tbody-preorden') {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    tbody.querySelectorAll('.po-clase-select').forEach(sel => {
+        window.actualizarInputImpresiones(sel);
+    });
+}
+
+// Listener delegado: reaplica el bloqueo al cambiar cualquier select de clase
+// (cubre filas creadas dinámicamente sin necesidad del onchange inline)
+(function _initImpresionesDelegate() {
+    document.addEventListener('change', function (e) {
+        if (e.target.classList.contains('po-clase-select')) {
+            window.actualizarInputImpresiones(e.target);
+        }
+    });
+})();
+
+// =============================================================================
+// BLOQUE 3b — PRE-ORDEN: BLOQUEAR CONTROLES TRAS ENVIAR NOTIFICACIÓN
+// =============================================================================
+
+/**
+ * Bloquea todos los campos del modal de pre-orden para solo lectura.
+ * Se llama después de un envío exitoso de la notificación por correo.
+ */
+function bloquearModalPreOrden() {
+    const form = document.getElementById('formPreOrden');
+    if (!form) return;
+    form.querySelectorAll('input:not([type="hidden"]), select, textarea').forEach(el => {
+        el.disabled = true;
+        el.style.background = '#f1f5f9';
+        el.style.cursor     = 'not-allowed';
+    });
+    const btnSubmit = document.getElementById('btn-submit-preorden');
+    if (btnSubmit) {
+        btnSubmit.disabled  = true;
+        btnSubmit.innerHTML = '✔ Notificación enviada — Solo lectura';
+        btnSubmit.style.background = '#94a3b8';
+    }
+    const btnAdd = document.getElementById('btn-add-clase-po');
+    if (btnAdd) { btnAdd.disabled = true; btnAdd.style.opacity = '0.4'; }
+}
+
+// =============================================================================
+// BLOQUE 5a/5b — MODAL UNIFICADO DE CALIDAD CON SELECTOR Y FILTRO DE TIPOS
+// =============================================================================
+
+/**
+ * Abre el modal de liberación con el selector Aprobar/Rechazar y filtra los
+ * tipos de modelo disponibles según las clases activas de la OT.
+ *
+ * @param {string}   ot           - Nombre completo de la OT
+ * @param {string[]} clasesActivas - Array de nombres de clases activas
+ * @param {string[]} todasClases  - Array de todas las clases vinculadas (incluye opcionales)
+ */
+window.abrirModalLiberacionUnificado = function (ot, clasesActivas, todasClases) {
+    // Llamar al opener original para mantener lógica de FSM
+    if (typeof abrirModalLiberacion === 'function') {
+        abrirModalLiberacion(ot, 'aprobar');
+    }
+
+    // Resetear selector visual a "Aprobar"
+    libSeleccionarDecision('aprobar');
+
+    // Filtrar el <select id="lib-tipo"> según las clases activas
+    _libFiltrarTiposModelo(clasesActivas);
+};
+
+/**
+ * Filtra las opciones del select #lib-tipo según las clases activas de la OT.
+ * Mapa: nombre de clase contiene → valor de option
+ */
+function _libFiltrarTiposModelo(clasesActivas) {
+    const select = document.getElementById('lib-tipo');
+    if (!select) return;
+
+    // Si no hay clases activas, mostrar todas las opciones
+    if (!clasesActivas || clasesActivas.length === 0) {
+        select.querySelectorAll('option').forEach(opt => { opt.hidden = false; });
+        return;
+    }
+
+    const MAPA_TIPO = {
+        'fondo'     : 'Fondo',
+        'obturador' : 'Obturador',
+        'molde'     : 'Molde',
+        'bombillo'  : 'Bombillo',
+    };
+
+    // Calcular qué tipos están disponibles
+    const tiposDisponibles = new Set();
+    clasesActivas.forEach(clase => {
+        const clLow = clase.toLowerCase();
+        Object.entries(MAPA_TIPO).forEach(([key, val]) => {
+            if (clLow.includes(key)) tiposDisponibles.add(val);
+        });
+    });
+
+    // Si ninguna clase coincide con el mapa, mostrar todas (fallback)
+    if (tiposDisponibles.size === 0) {
+        select.querySelectorAll('option').forEach(opt => { opt.hidden = false; });
+        return;
+    }
+
+    select.querySelectorAll('option').forEach(opt => {
+        if (!opt.value) { opt.hidden = false; return; } // Mantener placeholder
+        opt.hidden = !tiposDisponibles.has(opt.value);
+    });
+}
+
+/**
+ * Cambia visualmente el selector Aprobar/Rechazar y actualiza el hidden `lib-accion`.
+ * Si elige "rechazar" muestra el bloque de motivo de rechazo.
+ */
+window.libSeleccionarDecision = function (decision) {
+    const accionInput = document.getElementById('lib-accion');
+    if (accionInput) accionInput.value = decision;
+
+    const cardAprobar  = document.getElementById('lib-dec-aprobar');
+    const cardRechazar = document.getElementById('lib-dec-rechazar');
+    const bloqueRechazo = document.getElementById('lib-rechazo-block');
+
+    if (decision === 'aprobar') {
+        if (cardAprobar)  { cardAprobar.style.border  = '2px solid #0a8504'; cardAprobar.style.background  = 'rgba(10,133,4,0.08)'; }
+        if (cardRechazar) { cardRechazar.style.border = '2px solid #e2e8f0'; cardRechazar.style.background = '#fff'; }
+        if (bloqueRechazo) bloqueRechazo.style.display = 'none';
+    } else {
+        if (cardRechazar) { cardRechazar.style.border  = '2px solid #9c0300'; cardRechazar.style.background  = 'rgba(156,3,0,0.07)'; }
+        if (cardAprobar)  { cardAprobar.style.border   = '2px solid #e2e8f0'; cardAprobar.style.background   = '#fff'; }
+        if (bloqueRechazo) bloqueRechazo.style.display = 'block';
+    }
+
+    // Actualizar los botones de acción del modal
+    _libActualizarBotonesAccion(decision);
+
+    // Actualizar la decisión en caché de forma reactiva y actualizar el color del select
+    const select = document.getElementById('lib-tipo');
+    if (select && select.value) {
+        const val = select.value;
+        if (!window.cacheLiberacionGlobal) window.cacheLiberacionGlobal = {};
+        if (!window.cacheLiberacionGlobal[val]) window.cacheLiberacionGlobal[val] = {};
+        window.cacheLiberacionGlobal[val].decision = decision;
+        if (typeof _libActualizarColoresSelect === 'function') {
+            _libActualizarColoresSelect();
+        }
+    }
+};
+
+/**
+ * Actualiza el contenido del div #lib-actions con el botón correcto
+ * según la decisión seleccionada.
+ */
+function _libActualizarBotonesAccion(decision) {
+    const actionsEl = document.getElementById('lib-actions');
+    if (!actionsEl) return;
+
+    // Mantener solo el botón de guardar borrador + el de acción principal
+    // que se regenera según la decisión actual
+    const btnGuardar = actionsEl.querySelector('#lib-btn-guardar');
+    const btnAccion  = actionsEl.querySelector('#lib-btn-accion');
+
+    if (btnAccion) {
+        if (decision === 'aprobar') {
+            btnAccion.className   = 'btn-lib-send btn-lib-aprobar';
+            btnAccion.innerHTML   = '<img src="' + (window.almacenAppAssets?.aprobado ?? '') + '" alt="" style="width:16px;height:16px;"> Aprobar y Notificar';
+        } else {
+            btnAccion.className   = 'btn-lib-send btn-lib-rechazar';
+            btnAccion.innerHTML   = '<img src="' + (window.almacenAppAssets?.rechazado ?? '') + '" alt="" style="width:16px;height:16px;"> Rechazar y Generar SCAR';
+        }
+    }
+}
+
+/**
+ * Elimina un documento adicional (tipo imagen u otro) del servidor.
+ */
+window.almacenEliminarOtroArchivo = function (ot, archivo, tipo, buttonEl) {
+    if (!confirm('¿Estás seguro de que deseas eliminar permanentemente este archivo? Esta acción no se puede deshacer.')) {
+        return;
+    }
+
+    const card = buttonEl.closest('.dibujos-file-card');
+    if (buttonEl) buttonEl.disabled = true;
+
+    fetch(window.almacenRoutes.deleteFile, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            ot: ot,
+            archivo: archivo,
+            tipo: tipo
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            mostrarToast(data.message || 'Archivo eliminado correctamente.');
+            if (card) {
+                card.style.transition = 'all 0.4s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    card.remove();
+                    // Si ya no quedan archivos, recargar la página para limpiar la vista
+                    const grid = card.closest('.alm-pdf-grid');
+                    if (grid && grid.querySelectorAll('.dibujos-file-card').length === 0) {
+                        location.reload();
+                    }
+                }, 400);
+            } else {
+                setTimeout(() => location.reload(), 1000);
+            }
+        } else {
+            if (buttonEl) buttonEl.disabled = false;
+            mostrarToast(data.error || 'No se pudo eliminar el archivo.', true);
+        }
+    })
+    .catch(err => {
+        if (buttonEl) buttonEl.disabled = false;
+        console.error('Error al eliminar archivo:', err);
+        mostrarToast('Error de conexión al eliminar el archivo.', true);
+    });
+};
+
+
+// =========================================================================
+// MODAL: ENVIAR ALERTA DE LIBERACIÓN (APROBADO/RECHAZADO)
+// =========================================================================
+
+window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tipoModelo, reqFotos) {
+    const modal = document.getElementById('modalEnviarAlertaLiberacion');
+    if (!modal) return;
+
+    // Resetear formulario
+    const form = document.getElementById('formEnviarAlertaLiberacion');
+    if (form) form.reset();
+
+    // Rellenar hiddens
+    document.getElementById('al-ot').value = ot;
+    document.getElementById('al-decision').value = decision;
+    document.getElementById('al-tipo-modelo').value = tipoModelo || '';
+
+    // Configurar fecha de hoy
+    const fechaInp = document.getElementById('al-fecha');
+    if (fechaInp) {
+        const hoy = new Date();
+        const yyyy = hoy.getFullYear();
+        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dd = String(hoy.getDate()).padStart(2, '0');
+        fechaInp.value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    const header = document.getElementById('alerta-lib-header');
+    const title = document.getElementById('alerta-lib-title');
+    const promptText = document.getElementById('al-prompt-text');
+    const scarContainer = document.getElementById('al-scar-container');
+    const scarInput = document.getElementById('al-scar-escaneado');
+    const fotosContainer = document.getElementById('al-fotos-container');
+    const fotosInput = document.getElementById('al-fotos');
+
+    const otClean = ot.replace(/_\d{8}_\d{6}_.*/, '');
+
+    if (decision === 'aprobar') {
+        if (header) {
+            header.style.background = 'linear-gradient(135deg, #0a8504, #064e03)';
+            header.style.borderBottom = '2px solid #064e03';
+        }
+        if (title) title.textContent = `Enviar Alerta de Aprobación — ${otClean}`;
+        if (promptText) promptText.textContent = `Vas a notificar la liberación del modelo (${tipoModelo || ''}) para la OT ${otClean}. Adjunta el Formato F-CCL-LDM escaneado y firmado.`;
+        if (scarContainer) scarContainer.style.display = 'none';
+        if (scarInput) scarInput.required = false;
+        if (fotosContainer) fotosContainer.style.display = 'none';
+        if (fotosInput) fotosInput.required = false;
+    } else {
+        if (header) {
+            header.style.background = 'linear-gradient(135deg, #9c0300, #7a0200)';
+            header.style.borderBottom = '2px solid #7a0200';
+        }
+        if (title) title.textContent = `Enviar Alerta de Rechazo — ${otClean}`;
+        if (promptText) promptText.textContent = `Vas a notificar el rechazo del modelo (${tipoModelo || ''}) para la OT ${otClean}. Adjunta el Formato F-CCL-LDM firmado y el formato SCAR firmado correspondientes.`;
+        
+        if (scarContainer) scarContainer.style.display = 'block';
+        if (scarInput) scarInput.required = true;
+
+        if (reqFotos) {
+            if (fotosContainer) fotosContainer.style.display = 'block';
+            if (fotosInput) fotosInput.required = true;
+        } else {
+            if (fotosContainer) fotosContainer.style.display = 'none';
+            if (fotosInput) fotosInput.required = false;
+        }
+    }
+
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+};
+
+window.cerrarModalEnviarAlertaLiberacion = function () {
+    const modal = document.getElementById('modalEnviarAlertaLiberacion');
+    if (modal) modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+};
+
+// Interceptar clicks de backdrop y Escape para modalEnviarAlertaLiberacion
+document.addEventListener('click', (e) => {
+    if (e.target.id === 'modalEnviarAlertaLiberacion') cerrarModalEnviarAlertaLiberacion();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') cerrarModalEnviarAlertaLiberacion();
+});
+
+// Handler para enviar alerta de liberación por AJAX
+document.getElementById('formEnviarAlertaLiberacion')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const ot = document.getElementById('al-ot').value;
+    const decision = document.getElementById('al-decision').value;
+    const btn = document.getElementById('btn-submit-alerta-liberacion');
+
+    if (!ot || !decision) return;
+
+    const fd = new FormData(this);
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<img src="/images/enviando.png" class="spinning" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;"> Enviando...`;
+
+    try {
+        const resp = await fetch(window.almacenRoutes.enviarAlertaLiberacion, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+            },
+            body: fd,
+        });
+
+        const data = await resp.json();
+
+        if (data.success) {
+            almacenToast(data.message, 'success');
+            
+            // Notificar a la máquina de estados local
+            if (window.ModeloStateMachine) {
+                if (decision === 'aprobar') {
+                    window.ModeloStateMachine.onAprobado(ot);
+                } else {
+                    window.ModeloStateMachine.onRechazado(ot);
+                }
+            }
+
+            setTimeout(() => {
+                cerrarModalEnviarAlertaLiberacion();
+                window.location.reload();
+            }, 1800);
+        } else {
+            almacenToast(data.message || 'Error al enviar la alerta.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (err) {
+        console.error('Error al enviar alerta liberación:', err);
+        almacenToast('Error de conexión al enviar la alerta.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+});
+
+
+

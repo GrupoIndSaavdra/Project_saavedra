@@ -556,7 +556,7 @@ class DibujosFundicionPdfController extends Controller
             'archivo' => 'nullable|string|max:300',
         ]);
 
-        $otFolderName = $this->sanitizePath($request->input('ot'));
+        $otFolderName = $this->normalizeOTName($this->sanitizePath($request->input('ot')));
         $originalName = $request->input('archivo') ? $this->sanitizeFileName($request->input('archivo')) : null;
 
         try {
@@ -766,11 +766,12 @@ class DibujosFundicionPdfController extends Controller
         ]);
 
         $ot = $this->sanitizePath($request->input('ot'));
+        $otNorm = $this->normalizeOTName($ot);
         $clase = $this->sanitizePath($request->input('clase'));
         $archivo = $this->sanitizeFileName($request->input('archivo'));
         $dirPath = ($clase === '--')
-            ? self::BASE_DIR . '/' . $ot
-            : self::BASE_DIR . '/' . $ot . '/' . $clase;
+            ? self::BASE_DIR . '/' . $otNorm
+            : self::BASE_DIR . '/' . $otNorm . '/' . $clase;
 
         $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
         $foundFile = null;
@@ -785,8 +786,8 @@ class DibujosFundicionPdfController extends Controller
 
         if (!$foundFile) {
             $oldDirPath = ($clase === '--')
-                ? self::OLD_BASE_DIR . '/' . $ot
-                : self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
+                ? self::OLD_BASE_DIR . '/' . $otNorm
+                : self::OLD_BASE_DIR . '/' . $otNorm . '/' . $clase;
             $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
             foreach ($oldFiles as $f) {
                 $rawName = basename($f);
@@ -806,7 +807,7 @@ class DibujosFundicionPdfController extends Controller
         }
 
         Storage::disk('local')->delete($foundFile);
-        $this->logAction('eliminar_pdf', $ot . '/' . $clase, $archivo);
+        $this->logAction('eliminar_pdf', $otNorm . '/' . $clase, $archivo);
 
         return response()->json([
             'success' => true,
@@ -825,28 +826,29 @@ class DibujosFundicionPdfController extends Controller
         ]);
 
         $ot = $this->sanitizePath($request->input('ot'));
+        $otNorm = $this->normalizeOTName($ot);
         $clase = $this->sanitizePath($request->input('clase'));
-        $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
+        
+        $dirPath = self::BASE_DIR . '/' . $otNorm . '/' . $clase;
+        $oldDirPath = self::OLD_BASE_DIR . '/' . $otNorm . '/' . $clase;
 
-        if (!Storage::disk('local')->exists($dirPath)) {
+        $existsBase = Storage::disk('local')->exists($dirPath);
+        $existsOld = Storage::disk('local')->exists($oldDirPath);
+
+        if (!$existsBase && !$existsOld) {
             return response()->json(['success' => false, 'message' => 'La carpeta no existe.'], 404);
         }
 
-        $files = Storage::disk('local')->files($dirPath);
-        if (count($files) > 0) {
-            Storage::disk('local')->delete($files);
-            $this->logAction('vaciar_carpeta', $ot . '/' . $clase, null);
-            return response()->json([
-                'success' => true,
-                'message' => "Se eliminaron " . count($files) . " archivos de la clase '{$clase}'.",
-            ]);
+        if ($existsBase) {
+            Storage::disk('local')->deleteDirectory($dirPath);
+        }
+        if ($existsOld) {
+            Storage::disk('local')->deleteDirectory($oldDirPath);
         }
 
-        Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_carpeta', $ot . '/' . $clase, 'Eliminación de Clase');
+        $this->logAction('eliminar_carpeta', $otNorm . '/' . $clase, 'Eliminación de Clase');
 
         // Sincronizar con histórico (eliminar vinculación si existe)
-        $otNorm = $this->normalizeOTName($ot);
         $history = FundicionHistory::where('ot', '=', $otNorm, 'and')->first();
         if ($history) {
             $ayudas = $history->ayudas_config ?? [];
@@ -870,26 +872,49 @@ class DibujosFundicionPdfController extends Controller
     {
         $request->validate(['ot' => 'required|string|max:200']);
         $ot = $this->sanitizePath($request->input('ot'));
-        $dirPath = self::BASE_DIR . '/' . $ot;
+        $otNorm = $this->normalizeOTName($ot);
+        
+        $dirPath = self::BASE_DIR . '/' . $otNorm;
+        $oldDirPath = self::OLD_BASE_DIR . '/' . $otNorm;
 
-        if (!Storage::disk('local')->exists($dirPath)) {
+        $existsBase = Storage::disk('local')->exists($dirPath);
+        $existsOld = Storage::disk('local')->exists($oldDirPath);
+
+        if (!$existsBase && !$existsOld) {
             return response()->json(['success' => false, 'message' => 'La carpeta no existe.'], 404);
         }
 
-        // Eliminamos todo el contenido (archivos y subcarpetas) de forma recursiva
-        // (Restricción removida a petición del usuario para facilitar el borrado completo)
+        if ($existsBase) {
+            Storage::disk('local')->deleteDirectory($dirPath);
+        }
+        if ($existsOld) {
+            Storage::disk('local')->deleteDirectory($oldDirPath);
+        }
 
-        $otNorm = $this->normalizeOTName($ot);
-        
-        Storage::disk('local')->deleteDirectory($dirPath);
         // Eliminar también la copia en Almacén
         Storage::disk('local')->deleteDirectory(self::ALMACEN_DIR . '/' . $otNorm);
-        $this->logAction('eliminar_carpeta', $ot, 'Eliminación de Directorio Raíz OT');
+
+        // Eliminar también los PDFs de liberación generados para esta OT
+        $liberacionesPath = storage_path('app/public/liberaciones_pdf');
+        $otSanitizada = preg_replace('/[^\w\s\-]/', '', $otNorm);
+        $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
+        if (file_exists($liberacionesPath)) {
+            $pattern = "{$liberacionesPath}/F-CCL-LDM_*_{$otSanitizada}*.pdf";
+            foreach (glob($pattern) as $oldFile) {
+                @unlink($oldFile);
+            }
+        }
+
+        $this->logAction('eliminar_carpeta', $otNorm, 'Eliminación de Directorio Raíz OT');
 
         // Respaldar registros de historial, pre-orden y liberación renombrando el OT para liberar el original
         $timestamp = date('_Ymd_His_del');
         FundicionHistory::where('ot', '=', $otNorm, 'and')
-            ->update(['ot' => \Illuminate\Support\Facades\DB::raw("CONCAT(ot, '{$timestamp}')"), 'status' => 'inactiva']);
+            ->update([
+                'ot' => \Illuminate\Support\Facades\DB::raw("CONCAT(ot, '{$timestamp}')"),
+                'status' => 'inactiva',
+                'almacen_archivos' => json_encode([])
+            ]);
         \App\Models\PreOrdenFundicion::where('ot', '=', $otNorm, 'and')
             ->update(['ot' => \Illuminate\Support\Facades\DB::raw("CONCAT(ot, '{$timestamp}')")]);
         \App\Models\LiberacionModeloFundicion::where('ot', '=', $otNorm, 'and')
@@ -914,9 +939,10 @@ class DibujosFundicionPdfController extends Controller
         ]);
 
         $ot = $this->sanitizePath($request->input('ot'));
+        $otNorm = $this->normalizeOTName($ot);
         $clase = $this->sanitizePath($request->input('clase'));
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
-        $dirPath = ($clase === '--') ? self::BASE_DIR . '/' . $ot : self::BASE_DIR . '/' . $ot . '/' . $clase;
+        $dirPath = ($clase === '--') ? self::BASE_DIR . '/' . $otNorm : self::BASE_DIR . '/' . $otNorm . '/' . $clase;
         
         $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
         $foundFile = null;
@@ -943,14 +969,14 @@ class DibujosFundicionPdfController extends Controller
 
         $file->storeAs($dirPath, $newName, 'local');
 
-        $this->logAction('reemplazar_pdf', $ot . '/' . $clase, "{$archivoAnterior} → {$newName}");
+        $this->logAction('reemplazar_pdf', $otNorm . '/' . $clase, "{$archivoAnterior} → {$newName}");
 
         return response()->json([
             'success' => true,
             'message' => "PDF reemplazado correctamente por '{$newName}'.",
             'nombre' => $newName,
             'url' => route('fundicion.serve', [
-                'ot' => $ot,
+                'ot' => $otNorm,
                 'clase' => $clase,
                 'archivo' => $newName,
             ]),

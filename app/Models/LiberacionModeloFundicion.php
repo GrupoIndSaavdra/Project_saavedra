@@ -14,6 +14,7 @@ class LiberacionModeloFundicion extends Model
     protected $fillable = [
         'ot',
         'estado',
+        'decision',
         'tipo_origen',
         'tipo_modelo',
         // Medidas en JSON
@@ -31,6 +32,7 @@ class LiberacionModeloFundicion extends Model
         'user_id_calidad',
         'user_nombre_calidad',
         'fecha_revision',
+        'pdf_filename',
     ];
 
     protected $casts = [

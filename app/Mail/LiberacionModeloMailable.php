@@ -23,19 +23,24 @@ class LiberacionModeloMailable extends Mailable
     /**
      * @param string                        $ot
      * @param string                        $estado         'aprobado' o 'rechazado'
-     * @param LiberacionModeloFundicion     $liberacion
+     * @param LiberacionModeloFundicion|null $liberacion
      */
     public function __construct(
         string $ot,
         string $estado,
-        LiberacionModeloFundicion $liberacion,
+        ?LiberacionModeloFundicion $liberacion = null,
         array $attachments = []
     ) {
         $this->ot            = $ot;
         $this->estado        = $estado;
-        $this->motivoRechazo = $liberacion->motivo_rechazo;
-        $this->observaciones = $liberacion->observaciones;
-        $this->userCalidad   = $liberacion->user_nombre_calidad;
+        $this->motivoRechazo = $liberacion?->motivo_rechazo;
+        $this->observaciones = $liberacion ? (match ($liberacion->tipo_modelo) {
+            'Molde', 'Bombillo' => trim(($liberacion->observaciones_modelo ?? '') . ' ' . ($liberacion->observaciones_plantilla ?? '')),
+            'Fondo' => $liberacion->observaciones_fondo,
+            'Obturador' => $liberacion->observaciones_obturador,
+            default => null,
+        }) : null;
+        $this->userCalidad   = $liberacion?->user_nombre_calidad;
         $this->emailAttachments = $attachments;
     }
 

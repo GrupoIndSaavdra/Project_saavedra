@@ -19,6 +19,10 @@ No asumas patrones comunes si no están definidos aquí. Sigue el flujo de traba
    *Qué aprenderás:* Peticiones Fetch API con `X-CSRF-TOKEN`, manejo del DOM, FormData (Subida de archivos) y alertas con SweetAlert2.
 6. **[📄 Generación de PDFs (PDF)](pdf_skill.md):** 
    *Qué aprenderás:* Limitaciones estrictas de DOMPDF, maquetación con tablas HTML obsoletas (obligatorio), paginación y rutas absolutas para imágenes.
+7. **[💾 Migraciones (Migrations)](migrations_skill.md):**
+   *Qué aprenderás:* Reglas para añadir columnas en la migración original (tablas locales/nuevas) versus crear migraciones incremental (tablas de producción).
+8. **[❌ No Pruebas (No Testing Rule)](no_testing_skill.md):**
+   *Qué aprenderás:* El agente no realiza pruebas en navegador o con el DOM; el foco es puramente el desarrollo y el programador realiza las pruebas.
 
 ---
 

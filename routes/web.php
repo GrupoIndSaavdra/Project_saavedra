@@ -415,6 +415,10 @@ Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicio
     Route::get('/serve', [\App\Http\Controllers\AlmacenFundicionController::class, 'serveFile'])
         ->name('serve');
 
+    // Eliminar PDF (Otros documentos / preordenes)
+    Route::post('/delete-file', [\App\Http\Controllers\AlmacenFundicionController::class, 'deleteFile'])
+        ->name('deleteFile');
+
     // --- NUEVAS RUTAS: Control de Modelos ---
     Route::post('/confirmar-modelo', [\App\Http\Controllers\AlmacenFundicionController::class, 'updateModelStatus'])
         ->name('confirmarModelo');
@@ -434,6 +438,18 @@ Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicio
 
     Route::post('/submit-liberacion', [\App\Http\Controllers\AlmacenFundicionController::class, 'submitLiberacion'])
         ->name('submitLiberacion');
+
+    Route::post('/generate-scar', [\App\Http\Controllers\AlmacenFundicionController::class, 'generateScar'])
+        ->name('generateScar');
+
+    Route::get('/get-scar', [\App\Http\Controllers\AlmacenFundicionController::class, 'getScar'])
+        ->name('getScar');
+
+    Route::post('/send-scar-alert', [\App\Http\Controllers\AlmacenFundicionController::class, 'sendScarAlert'])
+        ->name('sendScarAlert');
+
+    Route::post('/enviar-alerta-liberacion', [\App\Http\Controllers\AlmacenFundicionController::class, 'enviarAlertaLiberacion'])
+        ->name('enviarAlertaLiberacion');
 });
 
 /* ===========================

@@ -677,6 +677,18 @@ table.alm-table {
     box-shadow: 0 6px 18px rgba(0, 208, 111, 0.4) !important;
 }
 
+.dibujos-file-card:hover .btn-eliminar {
+    border: 2px solid #ff4d4d;
+    background: #a80000 !important;
+}
+
+.dibujos-file-card .btn-eliminar:hover {
+    border: 2px solid #ff4d4d;
+    background: #ff4d4d !important;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 18px rgba(255, 77, 77, 0.4) !important;
+}
+
 /* ── Estilos Globales de Botones de Documentos ── */
 .btn-dibujos {
     width: 100%;
@@ -716,6 +728,17 @@ table.alm-table {
     background: #00d06f !important;
     transform: scale(1.05) translateY(-2px);
     box-shadow: 0 6px 15px rgba(0, 208, 111, 0.4);
+}
+
+.btn-eliminar {
+    background: #dc3545;
+    color: #fff;
+}
+
+.btn-eliminar:hover {
+    background: #ff4d4d !important;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255, 77, 77, 0.4);
 }
 
 /* ────────────────────────────────────────────────────
@@ -1555,7 +1578,7 @@ table.alm-table {
     border: 2px solid #e2e8f0 !important;
     opacity: 0.7;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    min-height: 140px !important;
+    min-height: 180px !important;
     padding: 15px !important;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04) !important;
 }
@@ -1604,6 +1627,12 @@ table.alm-table {
     line-clamp: 2 !important;
     -webkit-box-orient: vertical;
     line-height: 1.3 !important;
+    flex-shrink: 0 !important;
+}
+
+.select-file-card:hover .file-name,
+.select-file-card.checked-card:hover .file-name {
+    color: #334155 !important;
 }
 
 .select-file-card .btn-ver {
@@ -2259,65 +2288,134 @@ table.alm-table {
 }
 .btn-lib-save,
 .btn-lib-aprobar-send,
-.btn-lib-rechazar-send {
+.btn-lib-rechazar-send,
+.btn-lib-enviar-scar {
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
-    gap: 10px;
-    padding: 18px 40px;
-    border: none;
-    border-radius: 50px;
+    justify-content: center;
+    gap: 8px;
+    padding: 18px 16px !important;
+    min-width: 155px;
+    min-height: 110px;
+    border: 2px solid rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
     font-weight: 800;
     font-family: "Poppins", sans-serif;
-    font-size: 1.15em;
+    font-size: 0.85em;
     text-transform: uppercase;
-    letter-spacing: 1.2px;
+    letter-spacing: 0.5px;
     cursor: pointer;
+    text-align: center;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .btn-lib-save {
-    background: #033966;
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.25);
+    background: #033966 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.25) !important;
+    border: 2px solid #022c50 !important;
+}
+.btn-lib-save img {
+    filter: brightness(0) invert(1) !important;
 }
 .btn-lib-save:hover {
-    background: #022847;
-    transform: scale(1.05) translateY(-2px);
-    box-shadow: 0 8px 25px rgba(3, 57, 102, 0.35);
+    background: #e6f0fa !important;
+    color: #033966 !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.25) !important;
 }
+.btn-lib-save:hover img {
+    filter: none !important;
+}
+
 .btn-lib-aprobar-send {
-    background: #0a8504;
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(10, 133, 4, 0.3);
+    background: #0a8504 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(10, 133, 4, 0.3) !important;
+    border: 2px solid #086d03 !important;
+}
+.btn-lib-aprobar-send img {
+    filter: brightness(0) invert(1) !important;
 }
 .btn-lib-aprobar-send:hover {
-    background: #086d03;
-    transform: scale(1.05) translateY(-2px);
-    box-shadow: 0 8px 25px rgba(10, 133, 4, 0.4);
+    background: #e6f9ed !important;
+    color: #0a8504 !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(10, 133, 4, 0.25) !important;
 }
+.btn-lib-aprobar-send:hover img {
+    filter: none !important;
+}
+
 .btn-lib-rechazar-send {
-    background: #9c0300;
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3);
+    background: #9c0300 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3) !important;
+    border: 2px solid #7a0200 !important;
+}
+.btn-lib-rechazar-send img {
+    filter: brightness(0) invert(1) !important;
 }
 .btn-lib-rechazar-send:hover {
-    background: #7a0200;
-    transform: scale(1.05) translateY(-2px);
-    box-shadow: 0 8px 25px rgba(156, 3, 0, 0.4);
+    background: #fdf2f2 !important;
+    color: #9c0300 !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
 }
+.btn-lib-rechazar-send:hover img {
+    filter: none !important;
+}
+
+.btn-lib-enviar-scar {
+    background: #0f172a !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.3) !important;
+    border: 2px solid #020617 !important;
+}
+.btn-lib-enviar-scar img {
+    filter: brightness(0) invert(1) !important;
+}
+.btn-lib-enviar-scar:hover {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25) !important;
+}
+.btn-lib-enviar-scar:hover img {
+    filter: none !important;
+}
+
 .btn-lib-save:disabled,
 .btn-lib-aprobar-send:disabled,
-.btn-lib-rechazar-send:disabled {
+.btn-lib-rechazar-send:disabled,
+.btn-lib-enviar-scar:disabled {
     opacity: 0.55;
     cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
+    transform: none !important;
+    box-shadow: none !important;
+}
+.btn-lib-save span,
+.btn-lib-aprobar-send span,
+.btn-lib-rechazar-send span,
+.btn-lib-enviar-scar span {
+    font-size: 0.78em !important;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
 }
 .btn-lib-save img,
 .btn-lib-aprobar-send img,
-.btn-lib-rechazar-send img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
+.btn-lib-rechazar-send img,
+.btn-lib-enviar-scar img {
+    width: 32px !important;
+    height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+    object-fit: contain !important;
+    flex-shrink: 0 !important;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    transition: all 0.3s ease;
 }
 
 /* ── Responsive ─── */
@@ -2342,7 +2440,8 @@ table.alm-table {
     }
     .btn-lib-save,
     .btn-lib-aprobar-send,
-    .btn-lib-rechazar-send {
+    .btn-lib-rechazar-send,
+    .btn-lib-enviar-scar {
         justify-content: center;
     }
 }

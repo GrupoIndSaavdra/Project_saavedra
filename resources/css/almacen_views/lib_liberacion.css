@@ -534,65 +534,138 @@
 }
 .btn-lib-save,
 .btn-lib-aprobar-send,
-.btn-lib-rechazar-send {
+.btn-lib-rechazar-send,
+.btn-lib-enviar-scar,
+.btn-lib-send {
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
-    gap: 10px;
-    padding: 18px 40px;
-    border: none;
-    border-radius: 50px;
+    justify-content: center;
+    gap: 8px;
+    padding: 18px 16px !important;
+    min-width: 155px;
+    min-height: 110px;
+    border: 2px solid rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
     font-weight: 800;
     font-family: "Poppins", sans-serif;
-    font-size: 1.15em;
+    font-size: 0.85em;
     text-transform: uppercase;
-    letter-spacing: 1.2px;
+    letter-spacing: 0.5px;
     cursor: pointer;
+    text-align: center;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .btn-lib-save {
-    background: #033966;
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.25);
+    background: #033966 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.25) !important;
+    border: 2px solid #022c50 !important;
+}
+.btn-lib-save img {
+    filter: brightness(0) invert(1) !important;
 }
 .btn-lib-save:hover {
-    background: #022847;
-    transform: scale(1.05) translateY(-2px);
-    box-shadow: 0 8px 25px rgba(3, 57, 102, 0.35);
+    background: #e6f0fa !important;
+    color: #033966 !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.25) !important;
 }
+.btn-lib-save:hover img {
+    filter: none !important;
+}
+
 .btn-lib-aprobar-send {
-    background: #0a8504;
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(10, 133, 4, 0.3);
+    background: #0a8504 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(10, 133, 4, 0.3) !important;
+    border: 2px solid #086d03 !important;
+}
+.btn-lib-aprobar-send img {
+    filter: brightness(0) invert(1) !important;
 }
 .btn-lib-aprobar-send:hover {
-    background: #086d03;
-    transform: scale(1.05) translateY(-2px);
-    box-shadow: 0 8px 25px rgba(10, 133, 4, 0.4);
+    background: #e6f9ed !important;
+    color: #0a8504 !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(10, 133, 4, 0.25) !important;
 }
+.btn-lib-aprobar-send:hover img {
+    filter: none !important;
+}
+
 .btn-lib-rechazar-send {
-    background: #9c0300;
-    color: #fff;
-    box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3);
+    background: #9c0300 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3) !important;
+    border: 2px solid #7a0200 !important;
+}
+.btn-lib-rechazar-send img {
+    filter: brightness(0) invert(1) !important;
 }
 .btn-lib-rechazar-send:hover {
-    background: #7a0200;
-    transform: scale(1.05) translateY(-2px);
-    box-shadow: 0 8px 25px rgba(156, 3, 0, 0.4);
+    background: #fdf2f2 !important;
+    color: #9c0300 !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
 }
+.btn-lib-rechazar-send:hover img {
+    filter: none !important;
+}
+
+.btn-lib-enviar-scar {
+    background: #0f172a !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.3) !important;
+    border: 2px solid #020617 !important;
+}
+.btn-lib-enviar-scar img {
+    filter: brightness(0) invert(1) !important;
+}
+.btn-lib-enviar-scar:hover {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25) !important;
+}
+.btn-lib-enviar-scar:hover img {
+    filter: none !important;
+}
+
 .btn-lib-save:disabled,
 .btn-lib-aprobar-send:disabled,
-.btn-lib-rechazar-send:disabled {
+.btn-lib-rechazar-send:disabled,
+.btn-lib-enviar-scar:disabled,
+.btn-lib-send:disabled {
     opacity: 0.55;
     cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
+    transform: none !important;
+    box-shadow: none !important;
+}
+.btn-lib-save span,
+.btn-lib-aprobar-send span,
+.btn-lib-rechazar-send span,
+.btn-lib-enviar-scar span,
+.btn-lib-send span {
+    font-size: 0.78em !important;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: block;
 }
 .btn-lib-save img,
 .btn-lib-aprobar-send img,
-.btn-lib-rechazar-send img {
-    width: 24px;
-    height: 24px;
-    object-fit: contain;
+.btn-lib-rechazar-send img,
+.btn-lib-enviar-scar img,
+.btn-lib-send img {
+    width: 32px !important;
+    height: 32px !important;
+    max-width: 32px !important;
+    max-height: 32px !important;
+    object-fit: contain !important;
+    flex-shrink: 0 !important;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    transition: all 0.3s ease;
 }
 
 /* ── Responsive ─── */
@@ -617,9 +690,31 @@
     }
     .btn-lib-save,
     .btn-lib-aprobar-send,
-    .btn-lib-rechazar-send {
+    .btn-lib-rechazar-send,
+    .btn-lib-enviar-scar,
+    .btn-lib-send {
         justify-content: center;
     }
+}
+
+/* ── Boton Enviar Alerta SCAR (amarillo — alineado con controles normales) ─── */
+.btn-lib-send {
+    background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%) !important;
+    color: #1a1a00 !important;
+    box-shadow: 0 4px 15px rgba(217, 119, 6, 0.35) !important;
+    border: 2px solid #b45309 !important;
+}
+.btn-lib-send img {
+    filter: brightness(0) saturate(100%) !important;
+}
+.btn-lib-send:hover {
+    background: #fef3c7 !important;
+    color: #92400e !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(217, 119, 6, 0.35) !important;
+}
+.btn-lib-send:hover img {
+    filter: none !important;
 }
 
 /* ── Tarjeta de acciones Calidad (rediseno premium) ─── */
@@ -822,3 +917,90 @@
         max-width: 200px;
     }
 }
+
+.btn-calidad-borrador {
+    background: #475569 !important;
+    border: 2px solid #334155 !important;
+    color: #ffffff !important;
+}
+.btn-calidad-borrador img {
+    filter: brightness(0) invert(1) !important;
+}
+.btn-calidad-borrador:hover {
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(71, 85, 105, 0.25) !important;
+}
+.btn-calidad-borrador:hover img {
+    filter: none !important;
+}
+
+.btn-calidad-enviar {
+    background: #0284c7 !important;
+    border: 2px solid #0369a1 !important;
+    color: #ffffff !important;
+}
+.btn-calidad-enviar img {
+    filter: brightness(0) invert(1) !important;
+}
+.btn-calidad-enviar:hover {
+    background: #e0f2fe !important;
+    color: #0284c7 !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(2, 132, 199, 0.25) !important;
+}
+.btn-calidad-enviar:hover img {
+    filter: none !important;
+}
+
+.btn-calidad-edit {
+    background: #005194 !important;
+    border: 2px solid #003d70 !important;
+    color: #ffffff !important;
+}
+.btn-calidad-edit img {
+    filter: brightness(0) invert(1) !important;
+}
+.btn-calidad-edit:hover {
+    background: #f0f6ff !important;
+    color: #005194 !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(0, 81, 148, 0.25) !important;
+}
+.btn-calidad-edit:hover img {
+    filter: none !important;
+}
+
+.btn-calidad-email {
+    background: #d97706 !important;
+    border: 2px solid #b45309 !important;
+    color: #ffffff !important;
+}
+.btn-calidad-email img {
+    filter: brightness(0) invert(1) !important;
+}
+.btn-calidad-email:hover {
+    background: #fef3c7 !important;
+    color: #d97706 !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(217, 119, 6, 0.25) !important;
+}
+.btn-calidad-email:hover img {
+    filter: none !important;
+}
+
+
+/* === BLOQUE 5 � Estilos nuevos === */
+.btn-calidad-iniciar { background: linear-gradient(135deg,#c4870a,#e2a020) !important; border: 2px solid #a36c06 !important; color: #fff8e8 !important; }
+.btn-calidad-iniciar img { filter: brightness(0) invert(1) !important; }
+.btn-calidad-iniciar:hover { background: #fffbf0 !important; color: #c4870a !important; transform: scale(1.08) translateY(-2px) !important; }
+.btn-calidad-iniciar:hover img { filter: none !important; }
+.lib-decision-card { user-select: none; }
+.lib-decision-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
+.btn-lib-aprobar { background: #0a8504 !important; color: #fff !important; border: 2px solid #086d03 !important; }
+.btn-lib-aprobar img { filter: brightness(0) invert(1) !important; }
+.btn-lib-aprobar:hover { background: #e6f9ed !important; color: #0a8504 !important; }
+.btn-lib-rechazar { background: #9c0300 !important; color: #fff !important; border: 2px solid #7a0200 !important; }
+.btn-lib-rechazar img { filter: brightness(0) invert(1) !important; }
+.btn-lib-rechazar:hover { background: #fdf2f2 !important; color: #9c0300 !important; }

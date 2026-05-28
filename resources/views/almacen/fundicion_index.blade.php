@@ -3,7 +3,7 @@
 @section('head')
     @php
         $perfil = Auth::user()->perfil;
-        $deptName = $perfil == 4 ? 'Calidad' : 'Almacén';
+        $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
     @endphp
     <title>{{ $deptName }} — Dibujos de Fundición | GIS</title>
     <meta name="description"
@@ -20,7 +20,7 @@
         {{-- ── HEADER ─────────────────────────────────────────────── --}}
         @php
             $perfil = Auth::user()->perfil;
-            $deptName = $perfil == 4 ? 'Calidad' : 'Almacén';
+            $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
             $deptIcon = $perfil == 4 ? 'Quality.png' : 'almacen.png';
         @endphp
 
@@ -83,7 +83,7 @@
                             <option value="">Todas las OTs</option>
                             @foreach ($listaOts as $otOption)
                                 <option value="{{ $otOption }}" {{ $busquedaOt === $otOption ? 'selected' : '' }}>
-                                    {{ $otOption }}
+                                    {{ preg_replace('/_\d{8}_\d{6}_.*/', '', $otOption) }}
                                 </option>
                             @endforeach
                         </select>
@@ -178,42 +178,99 @@
                                                 $ayudasDir,
                                             );
                                             foreach ($files as $f) {
-                                                if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
-                                                    // Normalizar separadores para reemplazo robusto
+                                                    $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                                                    $isPdf   = $ext === 'pdf';
+                                                    $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+
+                                                    if (!$isPdf && !$isImage) continue;
+
                                                     $fNorm = str_replace('\\', '/', $f);
                                                     $dirNorm = str_replace('\\', '/', $ayudasDir);
                                                     $relativePath = ltrim(str_replace($dirNorm, '', $fNorm), '/');
-                                                    
+
                                                     if (str_starts_with($relativePath, 'preordenes/')) {
                                                         $otrosArchivos[] = [
                                                             'nombre' => $relativePath,
-                                                            'url' => route('almacen.fundicion.serve', ['ot' => $reg->ot, 'archivo' => $relativePath, 'tipo' => 'otro']),
-                                                            'tipo' => 'otro'
+                                                            'url'    => route('almacen.fundicion.serve', ['ot' => $reg->ot, 'archivo' => $relativePath, 'tipo' => 'otro']),
+                                                            'tipo'   => $isImage ? 'imagen' : 'otro',
                                                         ];
-                                                    } else {
+                                                    } elseif ($isPdf) {
                                                         $ayudasArchivos[] = [
                                                             'nombre' => $relativePath,
-                                                            'url' => route('almacen.fundicion.serve', ['ot' => $reg->ot, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
-                                                            'tipo' => 'ayuda'
+                                                            'url'    => route('almacen.fundicion.serve', ['ot' => $reg->ot, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
+                                                            'tipo'   => 'ayuda',
                                                         ];
                                                     }
                                                 }
-                                            }
                                         }
                                         
-                                        // Buscar liberaciones PDF
+                                        // Buscar liberaciones y SCARs PDF
                                         $liberacionesPath = storage_path('app/public/liberaciones_pdf');
                                         $otSanitizada = preg_replace('/[^\w\s\-]/', '', $reg->ot);
                                         $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
+                                        
+                                        $baseNames = array_map(function($item) {
+                                            return basename($item['nombre']);
+                                        }, $otrosArchivos);
+
                                         if (file_exists($liberacionesPath)) {
-                                            $pattern = "{$liberacionesPath}/F-CCL-LDM_*_{$otSanitizada}_*.pdf";
-                                            foreach (glob($pattern) as $f) {
-                                                $otrosArchivos[] = [
-                                                    'nombre' => basename($f),
-                                                    'url' => route('almacen.fundicion.serve', ['ot' => $reg->ot, 'archivo' => basename($f), 'tipo' => 'liberacion']),
-                                                    'tipo' => 'liberacion'
-                                                ];
+                                            // Buscar LDM PDFs
+                                            $ldmPattern = "{$liberacionesPath}/F-CCL-LDM_*_{$otSanitizada}*.pdf";
+                                            foreach (glob($ldmPattern) ?: [] as $f) {
+                                                $base = basename($f);
+                                                if (!in_array($base, $baseNames)) {
+                                                    $otrosArchivos[] = [
+                                                        'nombre' => $base,
+                                                        'url' => route('almacen.fundicion.serve', ['ot' => $reg->ot, 'archivo' => $base, 'tipo' => 'liberacion']),
+                                                        'tipo' => 'liberacion'
+                                                    ];
+                                                    $baseNames[] = $base;
+                                                }
                                             }
+
+                                            // Buscar SCAR PDFs (digital y firmado)
+                                            $scarPattern = "{$liberacionesPath}/F-CCL-SCAR_*_{$otSanitizada}*.pdf";
+                                            $scarPattern2 = "{$liberacionesPath}/F-CCL-SCAR_{$otSanitizada}.pdf";
+                                            $scarFiles = array_merge(glob($scarPattern) ?: [], glob($scarPattern2) ?: []);
+                                            foreach (array_unique($scarFiles) as $f) {
+                                                $base = basename($f);
+                                                if (!in_array($base, $baseNames)) {
+                                                    $otrosArchivos[] = [
+                                                        'nombre' => $base,
+                                                        'url' => route('almacen.fundicion.serve', ['ot' => $reg->ot, 'archivo' => $base, 'tipo' => 'liberacion']),
+                                                        'tipo' => 'liberacion'
+                                                    ];
+                                                    $baseNames[] = $base;
+                                                }
+                                            }
+                                        }
+
+                                        // Aplicar filtros de visibilidad según perfil de usuario
+                                        $userPerfil = Auth::user()->perfil;
+                                        if ($userPerfil != 1 && $userPerfil != 2) {
+                                            $filteredOtros = [];
+                                            foreach ($otrosArchivos as $archivo) {
+                                                $isPreorden = (in_array($archivo['tipo'], ['otro', 'imagen']) || str_starts_with($archivo['nombre'], 'preordenes/'));
+                                                
+                                                if ($userPerfil == 4) { // Calidad
+                                                    // Calidad solo ve preordenes si pre_orden_email_sent es true
+                                                    if (!$isPreorden || $reg->pre_orden_email_sent) {
+                                                        $filteredOtros[] = $archivo;
+                                                    }
+                                                } elseif ($userPerfil == 5) { // Almacén
+                                                    // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
+                                                    if ($isPreorden) {
+                                                        $filteredOtros[] = $archivo;
+                                                    } else {
+                                                        $calidadAlertaEnviada = ($reg->calidad_revision_status === 'aprobado' || 
+                                                            \App\Models\ScarModelo::where('ot', '=', $reg->ot, 'and')->where('estatus', '=', 'alertado', 'and')->exists());
+                                                        if ($calidadAlertaEnviada) {
+                                                            $filteredOtros[] = $archivo;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            $otrosArchivos = $filteredOtros;
                                         }
 
                                         $countAyudas = count($ayudasArchivos);
@@ -224,7 +281,7 @@
                                     {{-- Fila principal --}}
                                     <tr data-ot="{{ $reg->ot }}">
                                         <td>
-                                            <div class="alm-ot-label">{{ $reg->ot }}</div>
+                                            <div class="alm-ot-label">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</div>
                                             @if ($reg->status === 'inactiva')
                                                 <div class="alm-inactiva-note">
                                                     La carpeta fue eliminada por el administrador. Los PDFs de {{ $deptName }} se
@@ -314,7 +371,8 @@
                                     @if ($count > 0)
                                         <tr class="alm-files-row" id="files-{{ $estado }}-{{ $loop->index }}">
                                             <td colspan="6">
-                                                @if ($countDibujos > 0)
+                                                {{-- BLOQUE 1: Dibujos solo visibles si la alerta fue enviada desde manage_documentation.js --}}
+                                                @if ($countDibujos > 0 && $reg->alert_sent_at)
                                                     <h3
                                                         style="margin-top: 15px; margin-bottom: 10px; color: #005194; border-bottom: 2px solid #005194; padding-bottom: 5px;">
                                                         Dibujos de Fundición</h3>
@@ -340,6 +398,11 @@
                                                                 </div>
                                                             </div>
                                                         @endforeach
+                                                    </div>
+                                                @elseif ($countDibujos > 0 && !$reg->alert_sent_at)
+                                                    {{-- Dibujos existentes pero alerta aún no enviada desde Ingeniería --}}
+                                                    <div style="margin-top: 15px; padding: 14px 18px; background: rgba(0,81,148,0.06); border: 1.5px dashed #005194; border-radius: 10px; color: #005194; font-size: 0.93em;">
+                                                        <strong>Dibujos pendientes:</strong> Los dibujos estarán disponibles una vez que Ingeniería envíe la alerta oficial desde el sistema de gestión documental.
                                                     </div>
                                                 @endif
 
@@ -382,31 +445,60 @@
                                                     </div>
                                                 @endif
 
+                                                {{-- BLOQUE 4: Renombrar sección a "Documentos Aprobados" --}}
                                                 @if ($countOtros > 0)
                                                     <h3
                                                         style="margin-top: 25px; margin-bottom: 10px; color: #155724; border-bottom: 2px solid #155724; padding-bottom: 5px;">
-                                                        Otros documentos</h3>
+                                                        Documentos Aprobados</h3>
                                                     <div class="alm-pdf-grid">
                                                         @foreach ($otrosArchivos as $otroArchivo)
-                                                            <div class="dibujos-file-card card-otro"
-                                                                style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
-                                                                <div class="file-icon-wrapper"
-                                                                    onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
-                                                                    style="cursor: pointer;" title="Abrir PDF">
-                                                                    <img src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                        class="file-icon icon-default">
-                                                                    <img src="{{ asset('images/pdf-view.png') }}"
-                                                                        class="file-icon icon-hover">
+                                                            @if ($otroArchivo['tipo'] === 'imagen')
+                                                                {{-- Tarjeta para imágenes (fotos de evidencia) --}}
+                                                                <div class="dibujos-file-card card-otro card-imagen"
+                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0369a1;">
+                                                                    <div class="file-icon-wrapper"
+                                                                        onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', 'otro')"
+                                                                        style="cursor: pointer;" title="Ver imagen">
+                                                                        <img src="{{ $otroArchivo['url'] }}"
+                                                                            class="file-icon-img-thumb"
+                                                                            alt="{{ basename($otroArchivo['nombre']) }}"
+                                                                            style="width:100%; height:80px; object-fit:cover; border-radius:6px; border:1px solid #bae6fd;">
+                                                                    </div>
+                                                                    <div class="file-name" style="cursor: pointer;"
+                                                                        title="Ver imagen"
+                                                                        onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
+                                                                        {{ basename($otroArchivo['nombre']) }}</div>
+                                                                    <div class="file-actions" style="display: flex; gap: 5px;">
+                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #0369a1; color: white;"
+                                                                            onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
+                                                                        <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;"
+                                                                            onclick="almacenEliminarOtroArchivo('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', 'otro', this)">Eliminar</button>
+                                                                    </div>
                                                                 </div>
-                                                                <div class="file-name" style="cursor: pointer;"
-                                                                    title="Abrir PDF"
-                                                                    onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                    {{ basename($otroArchivo['nombre']) }}</div>
-                                                                <div class="file-actions">
-                                                                    <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #155724; color: white;"
-                                                                        onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                            @else
+                                                                {{-- Tarjeta para PDFs y otros documentos --}}
+                                                                <div class="dibujos-file-card card-otro"
+                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
+                                                                    <div class="file-icon-wrapper"
+                                                                        onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
+                                                                        style="cursor: pointer;" title="Abrir PDF">
+                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                            class="file-icon icon-default">
+                                                                        <img src="{{ asset('images/pdf-view.png') }}"
+                                                                            class="file-icon icon-hover">
+                                                                    </div>
+                                                                    <div class="file-name" style="cursor: pointer;"
+                                                                        title="Abrir PDF"
+                                                                        onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                        {{ basename($otroArchivo['nombre']) }}</div>
+                                                                    <div class="file-actions" style="display: flex; gap: 5px;">
+                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #155724; color: white;"
+                                                                            onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                        <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;"
+                                                                            onclick="almacenEliminarOtroArchivo('{{ $reg->ot }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this)">Eliminar</button>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
+                                                            @endif
                                                         @endforeach
                                                     </div>
                                                 @endif
@@ -414,16 +506,16 @@
                                                 {{-- ── SECCIÓN CONTROL DE MODELOS (Solo Almacén y OTs Activas) ── --}}
                                                 @if (Auth::user()->perfil != 4 && $estado === 'activa')
                                                     @php
-                                                        $controlDisabled = $reg->tiene_modelo ? 'opacity: 0.5; pointer-events: none;' : '';
-                                                        $hideSiNo = $reg->pre_orden_sent ? 'display: none;' : '';
-                                                        $hideEditMail = !$reg->pre_orden_sent ? 'display: none;' : '';
+                                                        $controlDisabled = ($reg->tiene_modelo || $reg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '';
+                                                        $hideSiNo = ($reg->pre_orden_sent || $reg->pre_orden_email_sent) ? 'display: none;' : '';
+                                                        $hideEditMail = ($reg->pre_orden_sent && !$reg->pre_orden_email_sent) ? '' : 'display: none;';
                                                     @endphp
                                                     <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}" style="{{ $controlDisabled }}">
                                                         <div class="lib-calidad-card-header">
                                                             <img src="{{ asset('images/almacen.png') }}" alt="Almacén" style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
                                                             <div style="overflow:hidden;">
                                                                 <span class="lib-calidad-card-title">Control de Modelos &mdash; Almacén</span>
-                                                                <span class="lib-calidad-card-ot">{{ $reg->ot }}</span>
+                                                                <span class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                             </div>
                                                         </div>
                                                         <div class="lib-calidad-card-body">
@@ -431,6 +523,8 @@
                                                                 <h4 class="lib-calidad-card-prompt">
                                                                     @if ($reg->tiene_modelo)
                                                                         ¡Modelo recibido y procesado! Pendiente de que Calidad lo revise.
+                                                                    @elseif ($reg->pre_orden_email_sent)
+                                                                        Pre-orden enviada por correo. En espera de revisión por Calidad.
                                                                     @elseif ($reg->pre_orden_sent)
                                                                         Pre-orden lista. Puedes seguir editando los datos o enviarla por correo.
                                                                     @else
@@ -438,7 +532,7 @@
                                                                     @endif
                                                                 </h4>
                                                                 <div class="lib-calidad-card-btns">
-                                                                    <button class="btn-modelo btn-modelo-si" onclick="confirmarModelo('{{ $reg->ot }}', '{{ md5($reg->ot) }}')" title="Sí, cuento con el modelo de esta OT" style="{{ $hideSiNo }}">
+                                                                    <button class="btn-modelo btn-modelo-si" onclick="abrirModalConfirmarModelo('{{ $reg->ot }}', '{{ md5($reg->ot) }}')" title="Sí, cuento con el modelo de esta OT" style="{{ $hideSiNo }}">
                                                                         <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
                                                                         <span>Tengo el Modelo</span>
                                                                     </button>
@@ -468,18 +562,20 @@
                                                             <img src="{{ asset('images/Quality.png') }}" alt="Calidad" style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
                                                             <div style="overflow:hidden;">
                                                                 <span class="lib-calidad-card-title">Acciones de Liberacion &mdash; Calidad</span>
-                                                                <span class="lib-calidad-card-ot">{{ $reg->ot }}</span>
+                                                                <span class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                             </div>
                                                         </div>
                                                         <div class="lib-calidad-card-body">
                                                         @if ($reg->calidad_revision_status === 'rechazado')
-                                                            <div class="lib-estado-badge lib-estado-rechazado">
-                                                                <img src="{{ asset('images/Rechazado.png') }}" alt="" style="width:18px;height:18px;object-fit:contain;flex-shrink:0;">
-                                                                Liberacion rechazada anteriormente. Puedes revisar y volver a emitir un veredicto.
+                                                            <div class="lib-estado-badge lib-estado-rechazado" style="padding: 12px 16px;">
+                                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                                    <img src="{{ asset('images/Rechazado.png') }}" alt="" style="width:18px;height:18px;object-fit:contain;flex-shrink:0;">
+                                                                    <span>Liberacion rechazada anteriormente. Puedes revisar y volver a emitir un veredicto.</span>
+                                                                </div>
                                                             </div>
                                                         @elseif (is_null($reg->calidad_revision_status) && !$reg->pre_orden_sent && !$reg->tiene_modelo)
                                                             <div class="lib-estado-badge lib-estado-info">
-                                                                Sin accion de Almacen registrada aun para esta OT.
+                                                                En espera de que Almacén envíe la información necesaria para realizar la liberación.
                                                             </div>
                                                         @elseif ($reg->calidad_revision_status === 'pendiente')
                                                             <div class="lib-estado-badge lib-estado-guardado">
@@ -487,32 +583,136 @@
                                                                 Datos capturados como borrador.
                                                             </div>
                                                         @endif
-                                                        <div class="lib-calidad-action-row">
-                                                            <h4 class="lib-calidad-card-prompt">
-                                                                @if ($reg->calidad_revision_status === 'rechazado')
-                                                                    El modelo fue rechazado antes. ¿Quieres revisarlo de nuevo?
-                                                                @elseif ($reg->calidad_revision_status === 'pendiente')
-                                                                    Tienes un borrador guardado. ¿Deseas terminar de revisarlo ahora?
-                                                                @else
-                                                                    ¿Qué deseas hacer con este modelo? ¿Lo apruebas o lo rechazas?
-                                                                @endif
-                                                            </h4>
-                                                            <div class="lib-calidad-card-btns">
-                                                                <button class="btn-calidad-action btn-calidad-aprobar"
-                                                                        onclick="abrirModalLiberacion('{{ $reg->ot }}', 'aprobar')"
-                                                                        title="Abrir formato y aprobar la liberacion de este modelo">
-                                                                    <img src="{{ asset('images/Aprobado.png') }}" alt="">
-                                                                    <span>Aprobar Liberacion</span>
-                                                                </button>
-                                                                <button class="btn-calidad-action btn-calidad-rechazar"
-                                                                        onclick="abrirModalLiberacion('{{ $reg->ot }}', 'rechazar')"
-                                                                        title="Abrir formato y rechazar la liberacion de este modelo">
-                                                                    <img src="{{ asset('images/Rechazado.png') }}" alt="">
-                                                                    <span>Rechazar Liberacion</span>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                        </div>{{-- /.lib-calidad-card-body --}}
+                                                        @php
+                                                            $borradorPendiente = \App\Models\LiberacionModeloFundicion::where('ot', $reg->ot)
+                                                                ->where('estado', 'pendiente')
+                                                                ->first();
+                                                            $scarModelo = \App\Models\ScarModelo::where('ot', $reg->ot)->first();
+                                                            $reqFotos = $scarModelo && ($scarModelo->evidencia_fotos || $scarModelo->evidencia_otro);
+                                                            $clasesActivas = collect($reg->ayudas_config ?? [])
+                                                                ->filter(fn($c) => !str_contains(strtolower($c), 'opcional'))
+                                                                ->values()
+                                                                ->toArray();
+
+                                                            // Determinar si todas las clases activas tienen datos guardados (como borrador pendiente)
+                                                            $todosGuardados = true;
+                                                            $contClasesConDatos = 0;
+                                                            foreach ($clasesActivas as $clName) {
+                                                                $clLow = strtolower($clName);
+                                                                $tipo = null;
+                                                                if (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+                                                                elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+                                                                elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+                                                                elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
+
+                                                                if ($tipo) {
+                                                                    $hasDraft = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot, 'and')
+                                                                        ->where('tipo_modelo', '=', $tipo, 'and')
+                                                                        ->where('estado', '=', 'pendiente', 'and')
+                                                                        ->exists();
+                                                                    if (!$hasDraft) {
+                                                                        $todosGuardados = false;
+                                                                    } else {
+                                                                        $contClasesConDatos++;
+                                                                    }
+                                                                }
+                                                            }
+                                                            if (empty($clasesActivas)) {
+                                                                $todosGuardados = false;
+                                                            }
+
+                                                            // Determinar si hay al menos una clase con decisión de rechazo
+                                                            $hasRechazoBorrador = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot, 'and')
+                                                                ->where('estado', '=', 'pendiente', 'and')
+                                                                ->where('decision', '=', 'rechazar', 'and')
+                                                                ->exists();
+
+                                                            $borradorRechazado = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot, 'and')
+                                                                ->where('estado', '=', 'pendiente', 'and')
+                                                                ->where('decision', '=', 'rechazar', 'and')
+                                                                ->first();
+
+                                                            $tiposGuardados = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot, 'and')
+                                                                ->where('estado', '=', 'pendiente', 'and')
+                                                                ->pluck('tipo_modelo')
+                                                                ->toArray();
+                                                            $tiposLabel = implode(', ', $tiposGuardados);
+                                                         @endphp
+                                                         <div class="lib-calidad-action-row">
+                                                             <h4 class="lib-calidad-card-prompt">
+                                                                 @if ($todosGuardados)
+                                                                     @if ($hasRechazoBorrador)
+                                                                         Borrador de rechazo guardado para esta OT. ¿Qué deseas hacer?
+                                                                     @else
+                                                                         Borrador de aprobación guardado para esta OT. ¿Qué deseas hacer?
+                                                                     @endif
+                                                                 @elseif ($contClasesConDatos > 0)
+                                                                     Proceso de liberación en curso (capturados: {{ $contClasesConDatos }} de {{ count($clasesActivas) }}).
+                                                                 @elseif ($reg->calidad_revision_status === 'rechazado')
+                                                                     El modelo fue rechazado antes. ¿Quieres revisarlo de nuevo?
+                                                                 @else
+                                                                     ¿Qué deseas hacer con este modelo? ¿Lo apruebas o lo rechazas?
+                                                                 @endif
+                                                             </h4>
+                                                             <div class="lib-calidad-card-btns">
+                                                                 @if ($todosGuardados)
+                                                                     {{-- Todas las clases están guardadas: se puede editar o enviar alerta --}}
+                                                                     <button class="btn-calidad-action btn-calidad-iniciar"
+                                                                             onclick="abrirModalLiberacionUnificado('{{ $reg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($reg->ayudas_config ?? []) }})"
+                                                                             title="Editar borrador del formato de liberación F-CCL-LDM">
+                                                                         <img src="{{ asset('images/editar-informacion.png') }}" alt="">
+                                                                         <span>Editar Datos</span>
+                                                                     </button>
+
+                                                                     @if ($hasRechazoBorrador)
+                                                                         @if (!$scarModelo)
+                                                                             <button class="btn-calidad-action btn-calidad-borrador"
+                                                                                     onclick="abrirModalScar('{{ $reg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
+                                                                                     title="Generar el formato de acción correctiva SCAR">
+                                                                                 <img src="{{ asset('images/pdf.png') }}" alt="">
+                                                                                 <span>Generar Formato SCAR</span>
+                                                                             </button>
+                                                                         @else
+                                                                             <button class="btn-calidad-action btn-calidad-edit"
+                                                                                     onclick="abrirModalScar('{{ $reg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
+                                                                                     title="Editar el formato de acción correctiva SCAR">
+                                                                                 <img src="{{ asset('images/editar-informacion.png') }}" alt="">
+                                                                                 <span>Editar SCAR</span>
+                                                                             </button>
+                                                                             <button class="btn-calidad-action btn-calidad-email"
+                                                                                     onclick="abrirModalEnviarAlertaLiberacion('{{ $reg->ot }}', 'rechazar', '{{ $tiposLabel }}', {{ $reqFotos ? 'true' : 'false' }})"
+                                                                                     title="Subir documentos firmados y enviar alerta global de rechazo">
+                                                                                 <img src="{{ asset('images/enviando.png') }}" alt="">
+                                                                                 <span>Enviar Alerta</span>
+                                                                             </button>
+                                                                         @endif
+                                                                     @else
+                                                                         {{-- Borrador Aprobado: no necesita SCAR --}}
+                                                                         <button class="btn-calidad-action btn-calidad-email"
+                                                                                 onclick="abrirModalEnviarAlertaLiberacion('{{ $reg->ot }}', 'aprobar', '{{ $tiposLabel }}', false)"
+                                                                                 title="Subir formato escaneado y enviar alerta global de aprobación">
+                                                                             <img src="{{ asset('images/enviando.png') }}" alt="">
+                                                                             <span>Enviar Alerta</span>
+                                                                         </button>
+                                                                     @endif
+                                                                 @else
+                                                                     {{-- No todas las clases están capturadas --}}
+                                                                     <button class="btn-calidad-action btn-calidad-iniciar"
+                                                                             @if (!$reg->pre_orden_email_sent && !$reg->tiene_modelo)
+                                                                                 disabled
+                                                                                 style="opacity: 0.55; cursor: not-allowed;"
+                                                                                 title="En espera de que Almacén envíe la información necesaria para realizar la liberación"
+                                                                             @else
+                                                                                 title="{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Iniciar el proceso de liberación' }}"
+                                                                             @endif
+                                                                             onclick="abrirModalLiberacionUnificado('{{ $reg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($reg->ayudas_config ?? []) }})">
+                                                                         <img src="{{ asset('images/Liberar.png') }}" alt="">
+                                                                         <span>{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Empezar con el proceso de liberación' }}</span>
+                                                                     </button>
+                                                                 @endif
+                                                             </div>
+                                                         </div>
+                                                         </div>{{-- /.lib-calidad-card-body --}}
                                                     </div>
                                                     @elseif ($reg->calidad_revision_status === 'aprobado')
                                                     <div class="lib-estado-badge lib-estado-aprobado" style="margin-top: 20px;">
@@ -534,6 +734,119 @@
 
 
     </div>{{-- /.alm-wrapper --}}
+
+    {{-- ── MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS ── --}}
+    <div id="modalConfirmarModelo" class="alm-modal" role="dialog" aria-modal="true">
+        <div class="alm-modal-content" style="max-width: 560px;">
+            <div class="alm-modal-header" style="background: linear-gradient(135deg, #0a8504, #064e03); border-bottom: 2px solid #064e03;">
+                <div class="div-cerrar">
+                    <button type="button" class="btn-cerrar" onclick="cerrarModalConfirmarModelo()">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
+                    </button>
+                </div>
+                <h3 style="color:#fff; margin:0; font-size:1.15em;">Confirmar disponibilidad del Modelo Físico</h3>
+            </div>
+            <div class="alm-modal-body">
+                <form id="formConfirmarModelo" enctype="multipart/form-data">
+                    <input type="hidden" id="cm-ot" name="ot">
+                    <input type="hidden" id="cm-id-hash" name="id_hash">
+
+                    <div style="padding: 6px 0 14px; color: #334155; font-size:0.97em;">
+                        <p style="margin-bottom:10px;">¿Confirmas que cuentas físicamente con el modelo para esta OT?</p>
+                        <p style="background:#fef9c3; border:1px solid #fde047; border-radius:8px; padding:10px 14px; color:#713f12; font-size:0.9em;">
+                            <strong>⚠ Documentos requeridos:</strong> Debes adjuntar los documentos que acrediten la recepción del modelo (ej. remisión, hoja de entrega, fotos).
+                        </p>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 18px;">
+                        <label for="cm-archivos" style="font-weight:700; color:#334155; display:block; margin-bottom:6px;">
+                            Adjuntar documentos de recepción <span style="color:#9c0300;">*</span>
+                        </label>
+                        <input type="file" id="cm-archivos" name="archivos[]" class="form-control"
+                            multiple accept=".pdf,image/*" required>
+                        <span style="font-size:0.82em; color:#64748b; margin-top:4px; display:block;">PDFs o imágenes (fotos, hojas de entrega, remisiones).</span>
+                    </div>
+
+                    <div class="form-actions" style="text-align:center; margin-top:20px;">
+                        <button type="button" onclick="cerrarModalConfirmarModelo()" style="margin-right:10px; padding:10px 20px; background:#e2e8f0; border:none; border-radius:8px; font-weight:600; cursor:pointer;">Cancelar</button>
+                        <button type="submit" class="btn-save-preorden" id="btn-submit-confirmar-modelo"
+                            style="background: linear-gradient(135deg, #0a8504, #064e03); box-shadow: 0 4px 15px rgba(10,133,4,0.35);">
+                            <img src="{{ asset('images/Aprobado.png') }}" alt="" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;">
+                            Confirmar y Registrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {{-- ── MINI-MODAL: ENVIAR ALERTA DE LIBERACION (APROBADO/RECHAZADO) ── --}}
+    <div id="modalEnviarAlertaLiberacion" class="alm-modal" role="dialog" aria-modal="true">
+        <div class="alm-modal-content" style="max-width: 560px;">
+            <div class="alm-modal-header" id="alerta-lib-header" style="background: linear-gradient(135deg, #0284c7, #0369a1); border-bottom: 2px solid #0369a1;">
+                <div class="div-cerrar">
+                    <button type="button" class="btn-cerrar" onclick="cerrarModalEnviarAlertaLiberacion()">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
+                    </button>
+                </div>
+                <h3 style="color:#fff; margin:0; font-size:1.15em;" id="alerta-lib-title">Enviar Alerta de Liberación</h3>
+            </div>
+            <div class="alm-modal-body">
+                <form id="formEnviarAlertaLiberacion" enctype="multipart/form-data">
+                    @csrf
+                    <input type="hidden" id="al-ot" name="ot">
+                    <input type="hidden" id="al-decision" name="decision">
+                    <input type="hidden" id="al-tipo-modelo" name="tipo_modelo">
+
+                    <div style="padding: 6px 0 14px; color: #334155; font-size:0.97em;">
+                        <p style="margin-bottom:10px;" id="al-prompt-text"></p>
+                        <p style="background:#fef9c3; border:1px solid #fde047; border-radius:8px; padding:10px 14px; color:#713f12; font-size:0.9em;">
+                            <strong>⚠ Campos obligatorios:</strong> Todos los campos marcados con (*) son estrictamente requeridos para finalizar el proceso.
+                        </p>
+                    </div>
+
+                    {{-- FECHA --}}
+                    <div class="form-group" style="margin-bottom: 18px;">
+                        <label for="al-fecha" style="font-weight:700; color:#334155; display:block; margin-bottom:6px;">
+                            Fecha de Emisión / Entrega <span style="color:#9c0300;">*</span>
+                        </label>
+                        <input type="date" id="al-fecha" name="fecha" class="form-control" required>
+                    </div>
+
+                    {{-- FORMATO ESCANEADO --}}
+                    <div class="form-group" style="margin-bottom: 18px;">
+                        <label for="al-formato-escaneado" style="font-weight:700; color:#334155; display:block; margin-bottom:6px;">
+                            Formato de Liberación Escaneado (PDF) <span style="color:#9c0300;">*</span>
+                        </label>
+                        <input type="file" id="al-formato-escaneado" name="formato_escaneado" class="form-control" accept=".pdf" required>
+                    </div>
+
+                    {{-- SCAR ESCANEADO (SÓLO SI ES RECHAZO) --}}
+                    <div class="form-group" id="al-scar-container" style="margin-bottom: 18px; display: none;">
+                        <label for="al-scar-escaneado" style="font-weight:700; color:#334155; display:block; margin-bottom:6px;">
+                            Formato SCAR Escaneado (PDF) <span style="color:#9c0300;">*</span>
+                        </label>
+                        <input type="file" id="al-scar-escaneado" name="scar_escaneado" class="form-control" accept=".pdf">
+                    </div>
+
+                    {{-- FOTOS Y OTROS ARCHIVOS (SÓLO SI ES RECHAZO Y TIENE CONFIG) --}}
+                    <div class="form-group" id="al-fotos-container" style="margin-bottom: 18px; display: none;">
+                        <label for="al-fotos" style="font-weight:700; color:#334155; display:block; margin-bottom:6px;">
+                            Fotografías y otros archivos adicionales <span style="color:#9c0300;">*</span>
+                        </label>
+                        <input type="file" id="al-fotos" name="fotos[]" class="form-control" multiple accept="image/*,.pdf,.zip">
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; margin-top:24px; padding-top:16px; border-top:1px solid #e2e8f0;">
+                        <button type="button" onclick="cerrarModalEnviarAlertaLiberacion()" style="margin-right:10px; padding:10px 20px; background:#e2e8f0; border:none; border-radius:8px; font-weight:600; cursor:pointer;">Cancelar</button>
+                        <button type="submit" class="btn-save-preorden" id="btn-submit-alerta-liberacion" style="background:#0284c7; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:600; cursor:pointer;">
+                            Enviar Alerta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     {{-- ── MODAL: PRE-ORDEN PARA FABRICAR MODELOS ──────────────────── --}}
     <div id="modalPreOrden" class="alm-modal">
@@ -633,6 +946,7 @@
                     </button>
                 </div>
                 <h3>Enviar Pre-Orden por Correo (4ALM-17 - Fase 2)</h3>
+                <p id="env-po-modal-subtitle" class="lib-modal-subtitle" style="color: #bae6fd; font-size: 0.9em; margin-top: 4px; margin-bottom: 0;"></p>
             </div>
             <div class="alm-modal-body">
                 <form id="formEnviarPreOrden" enctype="multipart/form-data">
@@ -654,7 +968,7 @@
 
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label>Archivos de la OT disponibles para adjuntar:</label>
-                        <div id="env-server-files-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 220px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; justify-items: center;">
+                        <div id="env-server-files-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; justify-items: center;">
                             <div class="alm-spinner" style="border-top-color: #033966; display: block; margin: 10px auto; grid-column: 1 / -1;"></div>
                             <span style="text-align: center; color: #64748b; grid-column: 1 / -1;">Cargando archivos de la OT...</span>
                         </div>
@@ -684,8 +998,116 @@
     </div>
 
 
+    {{-- ── MODAL: ENVIAR ALERTA SCAR (Paso 2) ── --}}
+    <div id="modalEnviarScar" class="alm-modal" role="dialog" aria-modal="true">
+        <div class="alm-modal-content lib-modal-content" style="max-width: 800px;">
+            <div class="alm-modal-header lib-modal-header lib-modal-header-rechazo">
+                <div class="div-cerrar">
+                    <button type="button" class="btn-cerrar" onclick="cerrarModalEnviarScar()">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
+                    </button>
+                </div>
+                <div class="lib-header-top">
+                    <h3 class="lib-modal-title-text" style="color: #ffffff;">Enviar Alerta SCAR (Paso 2)</h3>
+                    <p id="env-scar-modal-subtitle" class="lib-modal-subtitle" style="color: #ffd1d1;"></p>
+                </div>
+            </div>
+            <div class="alm-modal-body lib-modal-body">
+                <form id="formEnviarScar" enctype="multipart/form-data" autocomplete="off">
+                    <input type="hidden" id="env-scar-ot" name="ot">
+
+                    {{-- Destinatario --}}
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="env-scar-destinatario" style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">
+                            Destinatario(s) (separados por coma):
+                        </label>
+                        <input type="text" id="env-scar-destinatario" name="destinatario" class="form-control" required value="jaxer020406@gmail.com">
+                    </div>
+
+                    {{-- Fecha Compromiso (Paso 2 Mandatorio) --}}
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="env-scar-fecha-compromiso" style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">
+                            Fecha Compromiso de Devolución (Obligatoria):
+                        </label>
+                        <input type="date" id="env-scar-fecha-compromiso" name="fecha_compromiso" class="form-control" required>
+                    </div>
+
+                    {{-- SCAR Firmado (PDF, Mandatorio) --}}
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="env-scar-pdf-firmado" style="font-weight: 700; color: #9c0300; display: block; margin-bottom: 4px;">
+                            Subir SCAR Firmado Físicamente (PDF Obligatorio):
+                        </label>
+                        <input type="file" id="env-scar-pdf-firmado" name="pdf_firmado" class="form-control" accept=".pdf" required>
+                    </div>
+
+                    {{-- Evidencia adjunta checklists --}}
+                    <div class="lib-section-block" style="margin-bottom: 20px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+                        <h5 style="font-weight: 700; color: #334155; margin-bottom: 8px;">Documentos a Adjuntar:</h5>
+
+                        {{-- Dibujos del Servidor --}}
+                        <div style="margin-bottom: 12px;">
+                            <label style="font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Dibujos Autorizados:</label>
+                            <div id="env-scar-dibujos-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; max-height: 120px; overflow-y: auto;">
+                                <span style="font-size:0.9em; color:#64748b;">No hay dibujos disponibles</span>
+                            </div>
+                        </div>
+
+                        {{-- Ayudas del Servidor --}}
+                        <div style="margin-bottom: 12px;">
+                            <label style="font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Ayudas Visuales:</label>
+                            <div id="env-scar-ayudas-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; max-height: 120px; overflow-y: auto;">
+                                <span style="font-size:0.9em; color:#64748b;">No hay ayudas visuales disponibles</span>
+                            </div>
+                        </div>
+
+                        {{-- Otros Documentos del Servidor (LDM, SCAR, Pre-Orden, etc.) --}}
+                        <div style="margin-bottom: 12px;">
+                            <label style="font-weight: 700; color: #475569; display: block; margin-bottom: 4px;">Otros Documentos (LDM, SCAR, Pre-Orden…):</label>
+                            <div id="env-scar-otros-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; max-height: 120px; overflow-y: auto;">
+                                <span style="font-size:0.9em; color:#64748b;">No hay otros documentos disponibles</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Fotografias y otros archivos a adjuntar en este envío --}}
+                    <div class="lib-section-block" style="margin-bottom: 20px; background-color: #fff8f8; border: 1px solid #fecaca; border-radius: 8px; padding: 14px;">
+                        <h5 style="font-weight: 700; color: #9c0300; margin-bottom: 12px;">Subir Evidencia Adicional al Envío:</h5>
+
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label for="env-scar-evidencia-fotos" style="font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">
+                                Fotografías (Imágenes):
+                            </label>
+                            <input type="file" id="env-scar-evidencia-fotos" name="evidencia_fotos_files[]"
+                                multiple accept="image/*" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="env-scar-evidencia-otro" style="font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">
+                                Otros Archivos (PDFs adicionales):
+                            </label>
+                            <input type="file" id="env-scar-evidencia-otro" name="evidencia_otro_files[]"
+                                multiple accept=".pdf" class="form-control">
+                        </div>
+                    </div>
+
+                    {{-- Boton de Envio --}}
+                    <div class="lib-actions" style="display: flex; justify-content: center; margin-top: 8px;">
+                        <button type="submit" class="btn-lib-send">
+                            <img src="{{ asset('images/enviando.png') }}" alt="" style="width: 18px; height: 18px;">
+                            Enviar Alerta SCAR al Proveedor
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- ── MODAL: LIBERACIÓN DE MODELOS (Calidad) ──────────────────── --}}
     @include('almacen.partials._modal_liberacion_modelos')
+
+    {{-- ── MODAL: SCAR (Solicitud de Acción Correctiva de Rechazo) ─── --}}
+    @include('almacen.partials._modal_scar')
 
     <script>
         window.almacenRoutes = {
@@ -697,6 +1119,11 @@
             sendEmailPreOrden: "{{ route('almacen.fundicion.sendEmailPreOrden') }}",
             getLiberacion: "{{ route('almacen.fundicion.getLiberacion') }}",
             submitLiberacion: "{{ route('almacen.fundicion.submitLiberacion') }}",
+            generateScar: "{{ route('almacen.fundicion.generateScar') }}",
+            getScar: "{{ route('almacen.fundicion.getScar') }}",
+            sendScarAlert: "{{ route('almacen.fundicion.sendScarAlert') }}",
+            enviarAlertaLiberacion: "{{ route('almacen.fundicion.enviarAlertaLiberacion') }}",
+            deleteFile: "{{ route('almacen.fundicion.deleteFile') }}",
         };
         window.almacenAppAssets = {
             liberar    : "{{ asset('images/Liberar.png') }}",

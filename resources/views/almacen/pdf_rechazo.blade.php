@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Liberacion de Modelos - {{ $liberacion->ot }}</title>
+    <title>Rechazo de Modelos - {{ $liberacion->ot }}</title>
     <style>
         /* === BASE === */
         @page {
@@ -50,7 +50,7 @@
             font-size: 9.5px;
             font-weight: bold;
             text-transform: uppercase;
-            color: #033966;
+            color: #9c0300;
         }
 
         .header-meta {
@@ -70,7 +70,7 @@
         .section-title {
             font-size: 7.5px;
             font-weight: bold;
-            background-color: #033966;
+            background-color: #9c0300;
             color: #fff;
             padding: 1.5px 3px;
             margin-top: 3px;
@@ -91,7 +91,7 @@
         }
 
         .data-table th {
-            background-color: #033966;
+            background-color: #9c0300;
             color: #fff;
             border: 1px solid #000;
             padding: 1.5px 2px;
@@ -101,7 +101,7 @@
         }
 
         .data-table th.sub-header {
-            background-color: #1a5e9e;
+            background-color: #7c1a1a;
         }
 
         .data-table td {
@@ -116,15 +116,14 @@
         }
 
         .bg-row-label {
-            background-color: #e8f2ff;
+            background-color: #fef2f2;
             font-weight: bold;
-            color: #033966;
+            color: #9c0300;
             text-align: left !important;
         }
 
         .val-na {
-            color: #033966;
-            /* Azul fuerte para resaltar */
+            color: #9c0300;
             font-weight: bold;
             font-size: 6.8px;
         }
@@ -136,13 +135,13 @@
             min-height: 20px;
             font-size: 7px;
             line-height: 1.15;
-            background: #fafcff;
+            background: #fdf8f8;
             margin-bottom: 5px;
         }
 
         .obs-label {
             font-weight: bold;
-            color: #033966;
+            color: #9c0300;
         }
 
         /* === FIRMAS === */
@@ -244,7 +243,7 @@
                 $molduraName = '';
             }
         }
-        $esRechazo = ($liberacion->estado === 'rechazado' || !empty(trim($liberacion->motivo_rechazo ?? '')));
+        $esRechazo = true;
     @endphp
 
     <table class="header-table">
@@ -256,8 +255,8 @@
                 @endif
             </td>
             <td class="header-title" colspan="4"
-                style="width: 63%; text-align: center; font-size: 11px; font-weight: bold; color: #033966; text-transform: uppercase;">
-                FORMATO DE LIBERACION DE MODELOS
+                style="width: 63%; text-align: center; font-size: 11px; font-weight: bold; color: #9c0300; text-transform: uppercase;">
+                FORMATO DE RECHAZO DE MODELOS
             </td>
             <td class="header-meta" style="width: 25%; font-size: 7.5px; line-height: 1.3;">
                 <strong>Codigo:</strong> F-CCL-LDM<br>
@@ -289,7 +288,7 @@
             </td>
             <td style="width: 15%; font-size: 7px; padding: 2px 4px; vertical-align: middle; border: 1px solid #000;">
                 <strong>ESTADO:</strong> <span
-                    style="font-weight: bold; color: {{ $liberacion->estado === 'aprobado' ? '#0b6623' : ($liberacion->estado === 'rechazado' ? '#9c0300' : '#b45309') }};">{{ strtoupper($liberacion->estado) }}</span>
+                    style="font-weight: bold; color: #9c0300;">RECHAZADO</span>
             </td>
             <td colspan="2"
                 style="width: 37.5%; font-size: 7px; padding: 2px 4px; vertical-align: middle; border: 1px solid #000;">
@@ -491,13 +490,11 @@
                     @endif
                 </div>
 
-                @if ($esRechazo)
-                    <div class="section-title" style="margin-top: 5px; background-color: #9c0300;">MOTIVO DE RECHAZO</div>
-                    <div class="obs-box"
-                        style="border: 1px solid #fca5a5; background-color: #fef2f2; color: #9c0300; min-height: 25px; margin-bottom: 5px;">
-                        {!! nl2br(e($liberacion->motivo_rechazo ?: 'No especificado.')) !!}
-                    </div>
-                @endif
+                <div class="section-title" style="margin-top: 5px; background-color: #9c0300;">MOTIVO DE RECHAZO</div>
+                <div class="obs-box"
+                    style="border: 1px solid #fca5a5; background-color: #fef2f2; color: #9c0300; min-height: 25px; margin-bottom: 5px;">
+                    {!! nl2br(e($liberacion->motivo_rechazo ?: 'No especificado.')) !!}
+                </div>
 
                 {{-- SUB-TABLA INFERIOR: IMAGENES DE PLANTILLA --}}
                 <table style="width: 100%; text-align: center; border-collapse: collapse; margin-top: 3px;">
@@ -505,20 +502,20 @@
                         <td style="width: 50%; vertical-align: middle; padding-right: 10px;">
                             @if($toBase64('images/Liberación Calidad/Figura 4.jpg'))
                                 <img src="{{ $toBase64('images/Liberación Calidad/Figura 4.jpg') }}"
-                                    style="max-height: {{ $esRechazo ? '150px' : '300px' }}; max-width: 100%;">
+                                    style="max-height: 150px; max-width: 100%;">
                             @endif
                         </td>
                         <td style="width: 50%; vertical-align: middle; padding-left: 10px;">
                             @if($toBase64('images/Liberación Calidad/Figura 5.jpg'))
                                 <img src="{{ $toBase64('images/Liberación Calidad/Figura 5.jpg') }}"
-                                    style="max-height: {{ $esRechazo ? '150px' : '250px' }}; max-width: 100%;">
+                                    style="max-height: 150px; max-width: 100%;">
                             @endif
                         </td>
                     </tr>
                 </table>
 
                 {{-- FIRMAS DENTRO DE LA COLUMNA DERECHA --}}
-                <table class="footer-table" style="margin-top: {{ $esRechazo ? '20px' : '100px' }};">
+                <table class="footer-table" style="margin-top: 20px;">
                     <tr>
                         <td>
                             <div class="signature-line"></div>

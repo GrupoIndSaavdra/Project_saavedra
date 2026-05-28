@@ -49,13 +49,16 @@
     <div class="alm-modal-body lib-modal-body">
       <form id="formLiberacion" autocomplete="off">
         <input type="hidden" id="lib-ot"     name="ot">
-        <input type="hidden" id="lib-accion" name="accion">
+        <input type="hidden" id="lib-accion" name="accion" value="aprobar">
+
+
 
         {{-- DATOS DEL FORMATO --}}
         <div class="lib-format-datos">
           <div class="lib-datos-grid">
             <div class="lib-dato-group">
               <label for="lib-tipo" class="lib-dato-label">Tipo de Modelo:</label>
+              {{-- El select se filtra por JS según las clases activas de la OT --}}
               <select id="lib-tipo" name="tipo_modelo" class="lib-select" onchange="libCambiarTipo(this.value)">
                 <option value="">-- Seleccionar tipo --</option>
                 <option value="Fondo">Fondo</option>
@@ -81,11 +84,11 @@
           <p class="lib-section-hint">Haz clic en cualquier imagen para verla en tamano completo en una nueva pestana.</p>
           <div class="lib-img-strip">
             @foreach ([
-              ['url'=>asset('images/Liberación Calidad/Figura 1.png'), 'label'=>'Vista General (A, A1, B, C, D)'],
-              ['url'=>asset('images/Liberación Calidad/Figura 2.png'), 'label'=>'Vista Lateral (E1, E2)'],
-              ['url'=>asset('images/Liberación Calidad/Figura 3.png'), 'label'=>'Vista Superior (D2, G1, G2)'],
-              ['url'=>asset('images/Liberación Calidad/Figura 4.png'), 'label'=>'Plantilla y Templadera'],
-              ['url'=>asset('images/Liberación Calidad/Figura 5.png'), 'label'=>'Referencia 3D'],
+              ['url'=>asset('images/Liberación Calidad/Figura 1.jpg'), 'label'=>'Vista General (A, A1, B, C, D)'],
+              ['url'=>asset('images/Liberación Calidad/Figura 2.jpg'), 'label'=>'Vista Lateral (E1, E2)'],
+              ['url'=>asset('images/Liberación Calidad/Figura 3.jpg'), 'label'=>'Vista Superior (D2, G1, G2)'],
+              ['url'=>asset('images/Liberación Calidad/Figura 4.jpg'), 'label'=>'Plantilla y Templadera'],
+              ['url'=>asset('images/Liberación Calidad/Figura 5.jpg'), 'label'=>'Referencia 3D'],
             ] as $img)
               <div class="lib-img-card">
                 <div class="lib-img-zoom-wrapper"
@@ -94,7 +97,7 @@
                      role="button" tabindex="0"
                      onkeydown="if(event.key==='Enter')window.open(this.dataset.src,'_blank')"
                      title="Clic para ver en tamano completo">
-                  <img src="{{ $img['url'] }}" alt="{{ $img['label'] }}" class="lib-ref-img" loading="lazy">
+                  <img src="{{ $img['url'] }}" alt="{{ $img['label'] }}" class="lib-ref-img">
                   <div class="lib-img-overlay-hint"><span>Ver completa</span></div>
                 </div>
                 <div class="lib-img-label">{{ $img['label'] }}</div>
@@ -370,7 +373,23 @@
           Selecciona el Tipo de Modelo para visualizar la tabla de captura correspondiente.
         </div>
 
-
+        {{-- BLOQUE 5b: SELECTOR VISUAL APROBAR / RECHAZAR --}}
+        <div class="lib-decision-selector" id="lib-decision-selector" style="display:none; gap:14px; margin-bottom:22px; padding:16px; background:linear-gradient(135deg,rgba(3,0,65,0.04),rgba(10,133,4,0.04)); border-radius:12px; border:1.5px solid #e2e8f0;">
+          <div class="lib-decision-card lib-decision-aprobar active" id="lib-dec-aprobar"
+               onclick="libSeleccionarDecision('aprobar')"
+               style="flex:1; padding:14px 10px; border-radius:10px; cursor:pointer; text-align:center; border:2px solid #0a8504; background:rgba(10,133,4,0.08); transition:all 0.25s;">
+             <img src="{{ asset('images/Aprobado.png') }}" alt="" style="width:32px; margin-bottom:6px;">
+             <div style="font-weight:700; color:#0a8504; font-size:0.95em;">Aprobar</div>
+             <div style="font-size:0.8em; color:#64748b; margin-top:2px;">El modelo cumple con las especificaciones</div>
+           </div>
+          <div class="lib-decision-card lib-decision-rechazar" id="lib-dec-rechazar"
+               onclick="libSeleccionarDecision('rechazar')"
+               style="flex:1; padding:14px 10px; border-radius:10px; cursor:pointer; text-align:center; border:2px solid #e2e8f0; background:#fff; transition:all 0.25s;">
+             <img src="{{ asset('images/Rechazado.png') }}" alt="" style="width:32px; margin-bottom:6px;">
+             <div style="font-weight:700; color:#9c0300; font-size:0.95em;">Rechazar</div>
+             <div style="font-size:0.8em; color:#64748b; margin-top:2px;">El modelo no cumple, generar SCAR</div>
+           </div>
+        </div>
 
         {{-- MOTIVO DE RECHAZO (condicional) --}}
         <div class="lib-section-block lib-rechazo-block" id="lib-rechazo-block" style="display:none;">
