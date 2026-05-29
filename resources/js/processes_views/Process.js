@@ -477,7 +477,15 @@ export class Process {
     crearTabla(names, divisionsCNomi, divisionsTole, values, divisionsTitles = [], fields = [], positionSelects = []) {
         // Crear tabla
         const table = document.createElement("table"); // Crear tabla
-        table.className = this.nameProcess != "Copiado" ? "table" : `table ${this.subprocess}`; // Agregar clase a la tabla
+        const compactProcesses = ["Soldadura", "Asentado", "Rectificado", "Soldadura PTA"];
+        const isCompact = compactProcesses.includes(this.nameProcess);
+        if (this.nameProcess == "Copiado") {
+            table.className = `table ${this.subprocess}`;
+        } else if (isCompact) {
+            table.className = "table table-compact";
+        } else {
+            table.className = "table";
+        }
 
 
         for (let i = 0; i < 5; i++) {
@@ -496,9 +504,9 @@ export class Process {
                             th.className = "table-title";
                             th.innerHTML = title;
                             if (index == 0) {
-                                th.style = "width:300px;";
+                                th.style = isCompact ? "width:150px;" : "width:300px;";
                             } else if (title == "Observaciones") {
-                                th.style = "width:500px;";
+                                th.style = isCompact ? "width:220px;" : "width:500px;";
                             }
 
                             if (this.nameProcess == "Cavidades" && title.includes("Altura")) {

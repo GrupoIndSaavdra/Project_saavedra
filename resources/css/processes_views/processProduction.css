@@ -538,6 +538,7 @@ p {
     box-shadow: 0 0 10px rgba(0, 0, 0);
 }
 
+
 .table-title {
     background-color: #033966;
     color: #fff;
@@ -605,6 +606,26 @@ p {
     font-weight: 700;
     border: 3px solid #033966;
     background-color: #fff;
+}
+
+/* Tabla compacta para procesos con pocas columnas (Soldadura, Asentado, etc.) */
+.table.table-compact {
+    width: auto;
+}
+
+
+.table.table-compact th.table-title {
+    width: 80px;
+    max-width: 80px;
+    padding: 8px 4px;
+}
+
+.table.table-compact td {
+    height: 35px;
+}
+
+.table.table-compact td select {
+    width: 100%;
 }
 
 

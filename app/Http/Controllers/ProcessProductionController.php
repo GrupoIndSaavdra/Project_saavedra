@@ -190,7 +190,7 @@ class ProcessProductionController extends Controller
 
     /**
      * Prepare all data needed for the report view
-     * 
+     *
      * @param Metas $meta
      * @param Clase $class
      * @param bool|int $edit
@@ -542,7 +542,7 @@ class ProcessProductionController extends Controller
             }
             return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $process, "edit" => 2])->with('success', 'Contraseña correcta. Ahora puedes editar las piezas que has registrado');
         }
-        return redirect()->back()->with('error', 'Contraseña incorrecta, intenta de nuevo'); 
+        return redirect()->back()->with('error', 'Contraseña incorrecta, intenta de nuevo');
     }
         /**
      * @param mixed $meta
@@ -1090,7 +1090,7 @@ class ProcessProductionController extends Controller
                     $this->storeMachine($request, $foundedMeta); // Si la máquina no existe, se crea una nueva máquina ocupada asociada a la meta
                     $meta = $foundedMeta;
                     $successMessage = 'Se ha ingresado correctamente a la meta de ' . auth()->user()->a_paterno . ' ' . auth()->user()->a_materno . ' ' . auth()->user()->nombre;
-                    
+
                     SystemLog::create([
                         'user_matricula' => auth()->user()->matricula,
                         'action' => 'Ingreso a Meta Existente',
@@ -1184,7 +1184,7 @@ class ProcessProductionController extends Controller
             if ($user && $user->perfil == 2) {
                 // Registrar finalización en log técnico de productividad
                 \Illuminate\Support\Facades\Log::channel('productivity')->info("[FINALIZACIÓN] El operador {$user->matricula} ha finalizado su meta de producción (OT: {$meta->id_ot}). El sistema entra en fase de espera.");
-                
+
                 // Reiniciar estado de productividad al finalizar el reporte para evitar bloqueos fantasmales
                 $user->update([
                     'prod_status' => 'inicio',
@@ -2014,10 +2014,10 @@ class ProcessProductionController extends Controller
                 $prePieces = $modelPiecesPreProcess::query()->where('id_proceso', $preProcessDB->id)->where('estado', 2)->get();
                 if ($prePieces->isNotEmpty()) {
                     [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($process, $class); //Obtener las piezas maquinadas en el proceso actual
-                    
+
                     // Pre-fetch all general pieces for this OT and class to avoid N+1 in the loop
                     $generalPieces = Pieza::query()->where('id_clase', $class->id)->get()->groupBy('proceso');
-                    
+
                     $countedAssemblies = array();
                     // Piece assembly cache
                     $assembliesByGame = $prePieces->groupBy('n_juego');
@@ -2046,7 +2046,7 @@ class ProcessProductionController extends Controller
                                         $intermediateProcess = $process == "Revision Laterales" ? "Desbaste Exterior" : "Revision Laterales";
                                         $id_process_int = str_replace(" ", "_", $intermediateProcess) . "_" . $class->nombre . "_" . $class->id_ot;
                                         $processIntermediateDB = $this->get_ModelProcess($intermediateProcess, $class)::query()->where('id_proceso', $id_process_int)->first();
-                                        
+
                                         if ($processIntermediateDB) {
                                             $pieceIntermedio = $this->get_ModelProcessPieces($intermediateProcess, $class)::query()->where('n_pieza', $piece->n_pieza)->where('id_proceso', $processIntermediateDB->id)->first();
                                             if ($pieceIntermedio) {
@@ -2557,7 +2557,7 @@ class ProcessProductionController extends Controller
     /**
      * Agrupar piezas en juegos completos (M + H = J)
      * Solo retorna juegos completos, ignora piezas sueltas
-     * 
+     *
      * @param array $pieces
      * @return array
      */
@@ -2737,7 +2737,7 @@ class ProcessProductionController extends Controller
         // Construir mensajes diferenciados
         $statusMessagesToast = [];
         $htmlLogPartsArr = [];
-        
+
         $labelsToast = [1 => 'Liberadas', 2 => 'Rechazadas', 5 => 'Incompletas'];
         $labelsLog = [1 => 'registro de Liberación', 2 => 'registro de rechazos', 5 => 'registro de incompletas'];
         $colorsLog = [1 => '#2E86C1', 2 => '#C0392B', 5 => '#B7950B'];
@@ -2748,10 +2748,10 @@ class ProcessProductionController extends Controller
                 $unique = array_unique($statusPieceNumbers[$status]);
                 sort($unique, SORT_NATURAL);
                 $nums = implode(', ', $unique);
-                
+
                 // Mensaje para el Toast (Directo)
                 $statusMessagesToast[] = "{$labelsToast[$status]}: {$count} [{$nums}]";
-                
+
                 // Mensaje para el Log (Narrativo + Colores)
                 $labelLog = $labelsLog[$status];
                 $colorLog = $colorsLog[$status];
@@ -2777,10 +2777,10 @@ class ProcessProductionController extends Controller
             }
 
             $message = "El inspector de calidad {$qualityName} realizó {$actionsText} correctamente.";
-            
+
             // --- CONSTRUCCIÓN DE NARRATIVA DINÁMICA... (se mantiene igual para el Log)
             $activeResults = [];
-            
+
             // 1. Lógica para LIBERADOS (AZUL)
             if (!empty($statusPieceNumbers[1])) {
                 $unique = array_unique($statusPieceNumbers[1]);
@@ -2790,7 +2790,7 @@ class ProcessProductionController extends Controller
                 $verb = $isPlural ? "se liberaron los juegos" : "se liberó el juego";
                 $activeResults[] = "<span style='color:#2E86C1; font-weight:bold;'>{$verb} [{$nums}]</span>";
             }
-            
+
             // 2. Lógica para RECHAZADOS (ROJO)
             if (!empty($statusPieceNumbers[2])) {
                 $unique = array_unique($statusPieceNumbers[2]);
@@ -2800,7 +2800,7 @@ class ProcessProductionController extends Controller
                 $verb = $isPlural ? "los juegos [{$nums}] fueron rechazados" : "el juego [{$nums}] fue rechazado";
                 $activeResults[] = "<span style='color:#C0392B; font-weight:bold;'>{$verb}</span>";
             }
-            
+
             // 3. Lógica para INCOMPLETOS (AMARILLO)
             if (!empty($statusPieceNumbers[5])) {
                 $unique = array_unique($statusPieceNumbers[5]);
@@ -2814,11 +2814,11 @@ class ProcessProductionController extends Controller
             // Construir el cuerpo de la oración con conectores naturales
             $introText = count($activeResults) > 1 ? "los siguientes resultados" : "el siguiente resultado";
             $narrative = "";
-            
+
             // Construir el cuerpo de la oración con conectores naturales
             $introText = count($activeResults) > 1 ? "los siguientes resultados" : "el siguiente resultado";
             $narrative = "";
-            
+
             if (count($activeResults) === 1) {
                 $narrative = $activeResults[0];
             } elseif (count($activeResults) === 2) {
@@ -2831,7 +2831,7 @@ class ProcessProductionController extends Controller
             // Obtener nombres descriptivos para los logs (en lugar de IDs)
             $otObj = Orden_trabajo::query()->with('moldura')->find($meta->id_ot);
             $otLabel = $otObj ? ($otObj->id . ($otObj->moldura ? " - " . $otObj->moldura->nombre : "")) : $meta->id_ot;
-            
+
             $claseObj = Clase::query()->find($meta->id_clase);
             $classLabel = $claseObj ? $claseObj->nombre : $meta->id_clase;
 
