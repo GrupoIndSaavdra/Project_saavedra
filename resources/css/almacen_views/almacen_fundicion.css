@@ -2445,3 +2445,110 @@ table.alm-table {
         justify-content: center;
     }
 }
+
+/* ── Estilos Premium para Modal Enviar Alerta de Liberación ── */
+#modalEnviarAlertaLiberacion .alm-modal-content {
+    border: 2px solid #cbd5e1;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Form control custom overrides for this modal */
+#modalEnviarAlertaLiberacion .form-control {
+    font-family: "Poppins", sans-serif;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 0.95em;
+    padding: 10px 14px;
+    transition: all 0.2s ease;
+    background: #f8fafc;
+}
+
+#modalEnviarAlertaLiberacion .form-control:focus {
+    background: #ffffff;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+}
+
+/* Buttons inside footer */
+.btn-alerta-cancel {
+    padding: 10px 20px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9em;
+    font-family: "Poppins", sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-alerta-cancel:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+    border-color: #94a3b8;
+}
+
+.btn-alerta-submit {
+    padding: 10px 24px;
+    background: #0284c7;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9em;
+    font-family: "Poppins", sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-alerta-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(2, 132, 199, 0.3);
+}
+
+.btn-alerta-submit:active {
+    transform: translateY(0);
+}
+
+/* Dropzones transitions and styles */
+#modalEnviarAlertaLiberacion .custom-file-dropzone {
+    min-height: 80px !important;
+    border-width: 2px;
+    border-style: dashed;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 14px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#modalEnviarAlertaLiberacion .custom-file-dropzone:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.04);
+}
+
+/* Close button custom style and hover micro-animation */
+.btn-cerrar-alerta {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.btn-cerrar-alerta:hover {
+    background: rgba(255, 255, 255, 0.28) !important;
+    border-color: rgba(255, 255, 255, 0.65) !important;
+    transform: scale(1.1) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+}
+.btn-cerrar-alerta:hover img {
+    transform: rotate(90deg) scale(1.05) !important;
+}

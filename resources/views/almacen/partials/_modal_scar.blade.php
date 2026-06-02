@@ -52,26 +52,37 @@
                 </div>
 
                 {{-- DATOS COMPLEMENTARIOS --}}
-                <div class="lib-section-block" style="margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
-                    <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 8px;">Datos del Solicitante</h5>
+                <div class="lib-section-block"
+                    style="margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
+                    <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 8px;">Datos del
+                        Solicitante</h5>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div>
                             <label class="lib-dato-label" for="scar-cliente-empresa">Cliente / Empresa:</label>
-                            <input type="text" id="scar-cliente-empresa" name="cliente_empresa" class="form-control" value="Industrial Saavedra">
+                            <input type="text" id="scar-cliente-empresa" name="cliente_empresa" class="form-control"
+                                value="Industrial Saavedra" readonly
+                                style="background-color: #f8fafc; cursor: not-allowed; color: #64748b; border-color: #e2e8f0;">
                         </div>
                         <div>
                             <label class="lib-dato-label" for="scar-area-solicitante">Área Solicitante:</label>
-                            <input type="text" id="scar-area-solicitante" name="area_solicitante" class="form-control" value="Calidad">
+                            <input type="text" id="scar-area-solicitante" name="area_solicitante" class="form-control"
+                                value="Calidad" readonly
+                                style="background-color: #f8fafc; cursor: not-allowed; color: #64748b; border-color: #e2e8f0;">
                         </div>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div>
                             <label class="lib-dato-label" for="scar-nombre-solicitante">Nombre del Solicitante:</label>
-                            <input type="text" id="scar-nombre-solicitante" name="nombre_solicitante" class="form-control" value="{{ Auth::user() ? Auth::user()->name : '' }}" placeholder="Inspector de Calidad">
+                            <input type="text" id="scar-nombre-solicitante" name="nombre_solicitante"
+                                class="form-control" value="{{ Auth::user() ? Auth::user()->name : '' }}"
+                                placeholder="Inspector de Calidad" readonly
+                                style="background-color: #f8fafc; cursor: not-allowed; color: #64748b; border-color: #e2e8f0;">
                         </div>
                         <div>
                             <label class="lib-dato-label" for="scar-nombre-moldura">Nombre de la Moldura:</label>
-                            <input type="text" id="scar-nombre-moldura" name="nombre_moldura" class="form-control" placeholder="Nombre de la moldura">
+                            <input type="text" id="scar-nombre-moldura" name="nombre_moldura" class="form-control"
+                                placeholder="Nombre de la moldura" readonly
+                                style="background-color: #f8fafc; cursor: not-allowed; color: #64748b; border-color: #e2e8f0;">
                         </div>
                     </div>
                 </div>
@@ -95,73 +106,132 @@
                         Proveedor
                     </h5>
                     <input type="text" id="scar-proveedor" name="proveedor" class="form-control"
-                        value="SS Metal Foundry, S. de R.L. de C.V." placeholder="Nombre del proveedor del modelo">
+                        value="SS Metal Foundry, S. de R.L. de C.V." placeholder="Nombre del proveedor del modelo"
+                        readonly
+                        style="background-color: #f8fafc; cursor: not-allowed; color: #64748b; border-color: #e2e8f0;">
                 </div>
 
                 {{-- EVIDENCIA ADJUNTA --}}
-                <div class="lib-section-block" style="margin-bottom: 16px; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding-top: 16px; padding-bottom: 16px;">
-                    <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 8px;">Evidencia Adjunta</h5>
+                <div class="lib-section-block"
+                    style="margin-bottom: 16px; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding-top: 16px; padding-bottom: 16px;">
+                    <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 8px;">Evidencia
+                        Adjunta</h5>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div>
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
-                                <input type="checkbox" id="scar-evidencia-reporte" name="evidencia_reporte" value="1" checked onclick="return false;" style="width: 16px; height: 16px;">
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" id="scar-evidencia-reporte" name="evidencia_reporte" value="1"
+                                    checked onclick="return false;" style="width: 16px; height: 16px;">
                                 <span>Reporte dimensional de Calidad (Obligatorio)</span>
                             </label>
                         </div>
                         <div>
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
-                                <input type="checkbox" id="scar-evidencia-dibujos" name="evidencia_dibujos" value="1" style="width: 16px; height: 16px;">
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" id="scar-evidencia-dibujos" name="evidencia_dibujos" value="1"
+                                    style="width: 16px; height: 16px;">
                                 <span>Dibujos autorizados</span>
                             </label>
                         </div>
                         <div>
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
-                                <input type="checkbox" id="scar-evidencia-ayudas" name="evidencia_ayudas" value="1" style="width: 16px; height: 16px;">
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" id="scar-evidencia-ayudas" name="evidencia_ayudas" value="1"
+                                    style="width: 16px; height: 16px;">
                                 <span>Ayudas visuales</span>
                             </label>
                         </div>
                         <div>
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
-                                <input type="checkbox" id="scar-evidencia-fotos" name="evidencia_fotos" value="1" style="width: 16px; height: 16px;">
-                                <span>Fotografías <span style="font-size:0.82em; color:#64748b;">(se adjuntarán al enviar alerta)</span></span>
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" id="scar-evidencia-fotos" name="evidencia_fotos" value="1"
+                                    style="width: 16px; height: 16px;" onchange="document.getElementById('scar-fotos-upload-group').style.display = this.checked ? 'block' : 'none'">
+                                <span>Fotografías</span>
                             </label>
                         </div>
                         <div style="grid-column: span 2;">
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
-                                <input type="checkbox" id="scar-evidencia-otro" name="evidencia_otro" value="1" style="width: 16px; height: 16px;">
-                                <span>Otro / PDFs adicionales <span style="font-size:0.82em; color:#64748b;">(se adjuntarán al enviar alerta)</span></span>
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" id="scar-evidencia-otro" name="evidencia_otro" value="1"
+                                    style="width: 16px; height: 16px;" onchange="document.getElementById('scar-otro-upload-group').style.display = this.checked ? 'block' : 'none'">
+                                <span>Otro / PDFs adicionales</span>
                             </label>
                         </div>
+                    </div>
+
+                    {{-- UPLOAD DE FOTOS --}}
+                    <div class="form-group" id="scar-fotos-upload-group" style="margin-top: 16px; display: none;">
+                        <label for="scar-fotos" style="font-weight:700; color:#334155; display:block; margin-bottom:6px; font-size:0.9em;">
+                            Subir Fotografías <span style="color:#9c0300;">*</span>
+                        </label>
+                        <div class="custom-file-dropzone" style="border: 2px dashed #d97706; background: #fffbeb; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
+                            <input type="file" id="scar-fotos" name="fotos[]" class="custom-file-input" multiple accept="image/*" style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
+                            <div class="dropzone-content" style="display: flex; flex-direction: column; align-items: center; pointer-events: none;">
+                                <img src="{{ asset('images/anadir.png') }}" style="width: 24px; height: 24px; margin-bottom: 4px;" alt="Añadir">
+                                <span id="scar-fotos-text" style="font-weight: 700; color: #d97706; font-size: 0.85em; text-align: center;">Adjuntar fotos *</span>
+                                <span style="font-size: 0.7em; color: #64748b; margin-top: 2px;">Solo archivos de imagen</span>
+                            </div>
+                        </div>
+                        <div id="scar-fotos-list" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
+                    </div>
+
+                    {{-- UPLOAD DE OTROS ARCHIVOS --}}
+                    <div class="form-group" id="scar-otro-upload-group" style="margin-top: 16px; display: none;">
+                        <label for="scar-otro-archivos" style="font-weight:700; color:#334155; display:block; margin-bottom:6px; font-size:0.9em;">
+                            Subir Otros Archivos / PDFs adicionales <span style="color:#9c0300;">*</span>
+                        </label>
+                        <div class="custom-file-dropzone" style="border: 2px dashed #0369a1; background: #f0f9ff; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
+                            <input type="file" id="scar-otro-archivos" name="otros_archivos[]" class="custom-file-input" multiple accept="*/*" style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
+                            <div class="dropzone-content" style="display: flex; flex-direction: column; align-items: center; pointer-events: none;">
+                                <img src="{{ asset('images/anadir.png') }}" style="width: 24px; height: 24px; margin-bottom: 4px;" alt="Añadir">
+                                <span id="scar-otro-text" style="font-weight: 700; color: #0369a1; font-size: 0.85em; text-align: center;">Adjuntar otros archivos *</span>
+                                <span style="font-size: 0.7em; color: #64748b; margin-top: 2px;">Cualquier tipo de archivo</span>
+                            </div>
+                        </div>
+                        <div id="scar-otro-archivos-list" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
+                    </div>
+
+                    {{-- ARCHIVOS EVIDENCIA DEL SERVIDOR --}}
+                    <div id="scar-server-files-container" class="alm-pdf-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                        <!-- Aquí se inyectarán las fotos y archivos previamente subidos al SCAR -->
                     </div>
                 </div>
 
                 {{-- ACCIÓN CORRECTIVA INMEDIATA REQUERIDA --}}
                 <div class="lib-section-block" style="margin-bottom: 16px;">
-                    <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 8px;">Acción Correctiva Inmediata Requerida</h5>
+                    <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 8px;">Acción
+                        Correctiva Inmediata Requerida</h5>
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
-                            <input type="checkbox" id="scar-accion-regreso" name="accion_regreso" value="1" style="width: 16px; height: 16px;">
+                            <input type="checkbox" id="scar-accion-regreso" name="accion_regreso" value="1"
+                                style="width: 16px; height: 16px;">
                             <span>Regreso del modelo al proveedor para su corrección</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
-                            <input type="checkbox" id="scar-accion-fabricacion" name="accion_fabricacion" value="1" style="width: 16px; height: 16px;">
+                            <input type="checkbox" id="scar-accion-fabricacion" name="accion_fabricacion" value="1"
+                                style="width: 16px; height: 16px;">
                             <span>Fabricación de un modelo nuevo</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
-                            <input type="checkbox" id="scar-accion-otro" name="accion_otro" value="1" style="width: 16px; height: 16px;" onchange="document.getElementById('scar-accion-otro-text-group').style.display = this.checked ? 'block' : 'none'">
+                            <input type="checkbox" id="scar-accion-otro" name="accion_otro" value="1"
+                                style="width: 16px; height: 16px;"
+                                onchange="document.getElementById('scar-accion-otro-text-group').style.display = this.checked ? 'block' : 'none'">
                             <span>Otro</span>
                         </label>
-                        
-                        <div id="scar-accion-otro-text-group" style="display: none; margin-top: 4px; padding-left: 24px;">
-                            <input type="text" id="scar-accion-otro-texto" name="accion_otro_texto" class="form-control" placeholder="Escriba la acción correctiva inmediata requerida...">
+
+                        <div id="scar-accion-otro-text-group"
+                            style="display: none; margin-top: 4px; padding-left: 24px;">
+                            <input type="text" id="scar-accion-otro-texto" name="accion_otro_texto" class="form-control"
+                                placeholder="Escriba la acción correctiva inmediata requerida...">
                         </div>
                     </div>
                 </div>
 
                 {{-- CAUSA RAÍZ --}}
-                <div class="lib-section-block" style="margin-bottom: 16px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+                <div class="lib-section-block"
+                    style="margin-bottom: 16px; border-top: 1px solid #e2e8f0; padding-top: 16px;">
                     <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 6px;">
-                        Causa Raíz del Defecto (a cargo del Proveedor)
+                        Causa Raíz del Defecto
                     </h5>
                     <textarea id="scar-causa-raiz" name="causa_raiz" class="form-control lib-textarea" rows="3"
                         placeholder="Indique la causa raíz identificada por el proveedor..."></textarea>
@@ -176,16 +246,9 @@
                         placeholder="Indique las acciones correctivas planificadas para evitar recurrencia..."></textarea>
                 </div>
 
-                {{-- CÓDIGO DEL MODELO Y FECHA COMPROMISO (Vacio inicial) --}}
+                {{-- CÓDIGO DEL MODELO --}}
                 <div class="lib-section-block" style="margin-bottom: 16px;">
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                        <div>
-                            <label for="scar-fecha-compromiso"
-                                style="font-weight: 700; color: #334155; font-size: 0.95em; display: block; margin-bottom: 4px;">
-                                Fecha de Emisión / Compromiso de Correctivas:
-                            </label>
-                            <input type="date" id="scar-fecha-compromiso" name="fecha_compromiso" class="form-control">
-                        </div>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
                         <div>
                             <label for="scar-codigo-modelo"
                                 style="font-weight: 700; color: #334155; font-size: 0.95em; display: block; margin-bottom: 4px;">
@@ -198,10 +261,10 @@
                 </div>
 
                 {{-- BOTONES --}}
-                <div class="lib-actions" style="margin-top: 24px; display: flex; justify-content: center; gap: 12px;">
-                    <button type="button" class="btn-lib-save" id="scar-btn-guardar" onclick="scarSubmit('guardar')">
-                        <img src="{{ asset('images/Descarga.png') }}" alt="">
-                        <span>Guardar y Descargar SCAR</span>
+                <div class="form-actions" style="text-align: center; margin-top: 24px;">
+                    <button type="button" class="btn-lib-rechazar-send" id="scar-btn-guardar" onclick="scarSubmit('guardar')" style="background: rgb(156, 3, 0); border: 2px solid rgb(122, 2, 0); box-shadow: rgba(156, 3, 0, 0.3) 0px 4px 15px; font-size:1.15em; padding:14px 28px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight:700; height:auto; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
+                        <img src="{{ asset('images/Descarga.png') }}" alt="" style="width:20px;height:20px;">
+                        Guardar y Generar Formato SCAR
                     </button>
                 </div>
 

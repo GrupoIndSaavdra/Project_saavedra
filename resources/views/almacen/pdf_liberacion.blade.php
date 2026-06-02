@@ -244,7 +244,9 @@
                 $molduraName = '';
             }
         }
-        $esRechazo = ($liberacion->estado === 'rechazado' || !empty(trim($liberacion->motivo_rechazo ?? '')));
+        
+        $estadoDisplay = ($liberacion->decision === 'aprobar') ? 'aprobado' : (($liberacion->decision === 'rechazar') ? 'rechazado' : $liberacion->estado);
+        $esRechazo = ($estadoDisplay === 'rechazado' || !empty(trim($liberacion->motivo_rechazo ?? '')));
     @endphp
 
     <table class="header-table">
@@ -289,7 +291,7 @@
             </td>
             <td style="width: 15%; font-size: 7px; padding: 2px 4px; vertical-align: middle; border: 1px solid #000;">
                 <strong>ESTADO:</strong> <span
-                    style="font-weight: bold; color: {{ $liberacion->estado === 'aprobado' ? '#0b6623' : ($liberacion->estado === 'rechazado' ? '#9c0300' : '#b45309') }};">{{ strtoupper($liberacion->estado) }}</span>
+                    style="font-weight: bold; color: {{ $estadoDisplay === 'aprobado' ? '#0b6623' : ($estadoDisplay === 'rechazado' ? '#9c0300' : '#b45309') }};">{{ strtoupper($estadoDisplay) }}</span>
             </td>
             <td colspan="2"
                 style="width: 37.5%; font-size: 7px; padding: 2px 4px; vertical-align: middle; border: 1px solid #000;">

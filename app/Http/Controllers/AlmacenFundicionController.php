@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\FundicionHistory;
 use App\Models\LiberacionModeloFundicion;
 use App\Models\Orden_trabajo;
-use App\Models\Clase;
 use App\Models\PreOrdenFundicion;
 use App\Models\ScarModelo;
 use App\Mail\LiberacionModeloMailable;
@@ -15,7 +14,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\PreOrdenMailable;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -506,6 +504,7 @@ class AlmacenFundicionController extends Controller
         }
 
         Storage::disk('local')->delete($foundFile);
+        $this->eliminarCarpetasVacias($ot);
 
         return response()->json(['success' => true, 'message' => 'Archivo eliminado correctamente.']);
     }
@@ -598,9 +597,14 @@ class AlmacenFundicionController extends Controller
         $history->save();
 
         // Crear o actualizar el registro de liberacion indicando el origen
+        $fecha = $request->input('fecha');
         LiberacionModeloFundicion::updateOrCreate(
             ['ot' => $ot],
-            ['estado' => 'pendiente', 'tipo_origen' => 'con_modelo']
+            [
+                'estado'      => 'pendiente',
+                'tipo_origen' => 'con_modelo',
+                'fecha_revision' => $fecha ? date('Y-m-d H:i:s', strtotime($fecha)) : now()
+            ]
         );
 
         return response()->json([
@@ -1316,7 +1320,7 @@ class AlmacenFundicionController extends Controller
             $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
             $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
             $tipoLabel    = $tipo ? strtoupper($tipo) : 'GENERAL';
-            $estadoLabel  = strtoupper($nuevoEstado);
+            $estadoLabel  = strtoupper($decision === 'aprobar' ? 'aprobado' : 'rechazado');
             $pdfFilename  = "F-CCL-LDM_{$tipoLabel}_{$otSanitizada}_{$estadoLabel}.pdf";
             $pdfPath = storage_path("app/public/liberaciones_pdf");
             if (!file_exists($pdfPath)) {
@@ -1340,11 +1344,43 @@ class AlmacenFundicionController extends Controller
 
             // Copiar a la carpeta de la OT en ayudas_visuales/preordenes de Calidad para que se liste en Otros documentos
             $folderName = $this->sanitizePath($this->normalizeOTName($ot));
-            $otPath = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes';
+            $basePath = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes';
+            $subFolder = $hasRechazo ? 'documentos_rechazados' : 'documentos_aprobados';
+            $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($tipo)));
+            if (empty($classSubFolder)) {
+                $classSubFolder = 'general';
+            }
+            $otPath = $basePath . '/' . $subFolder . '/' . $classSubFolder;
+            
+            // Eliminar versiones previas de F-CCL-LDM para esta clase/modelo en ambas carpetas, la raíz y subcarpetas de clases
+            foreach (['', 'documentos_aprobados', 'documentos_rechazados'] as $folder) {
+                $checkPath = $folder === '' ? $basePath : $basePath . '/' . $folder;
+                if (Storage::disk('local')->exists($checkPath)) {
+                    // Limpiar de la carpeta principal
+                    $files = Storage::disk('local')->files($checkPath);
+                    foreach ($files as $f) {
+                        if (str_contains(basename($f), "F-CCL-LDM_{$tipoLabel}_")) {
+                            Storage::disk('local')->delete($f);
+                        }
+                    }
+                    // Limpiar de la subcarpeta de la clase específica
+                    $classCheckPath = $checkPath . '/' . $classSubFolder;
+                    if (Storage::disk('local')->exists($classCheckPath)) {
+                        $classFiles = Storage::disk('local')->files($classCheckPath);
+                        foreach ($classFiles as $f) {
+                            if (str_contains(basename($f), "F-CCL-LDM_{$tipoLabel}_")) {
+                                Storage::disk('local')->delete($f);
+                            }
+                        }
+                    }
+                }
+            }
+
             if (!Storage::disk('local')->exists($otPath)) {
                 Storage::disk('local')->makeDirectory($otPath);
             }
             Storage::disk('local')->put($otPath . '/' . $pdfFilename, file_get_contents("{$pdfPath}/{$pdfFilename}"));
+            $this->eliminarCarpetasVacias($ot);
         } catch (\Exception $e) {
             Log::error('Error al generar PDF de liberacion: ' . $e->getMessage());
         }
@@ -1353,85 +1389,68 @@ class AlmacenFundicionController extends Controller
         FundicionHistory::where('ot', '=', $ot, 'and')
             ->update(['calidad_revision_status' => $nuevoEstado]);
 
-        if ($accion === 'guardar' || $accion === 'rechazar') {
-            return response()->json([
-                'success'      => true,
-                'message'      => $accion === 'rechazar' ? 'Rechazo registrado con éxito.' : 'Informacion guardada correctamente.',
-                'pdf_url'      => $pdfUrl,
-                'pdf_filename' => $pdfFilename,
-                'nuevo_estado' => $nuevoEstado,
-                'ot'           => $ot,
-            ]);
-        }
+        return response()->json([
+            'success'      => true,
+            'message'      => $decision === 'rechazar' ? 'Rechazo registrado con éxito.' : 'Informacion guardada correctamente.',
+            'pdf_url'      => $pdfUrl,
+            'pdf_filename' => $pdfFilename,
+            'nuevo_estado' => $nuevoEstado,
+            'ot'           => $ot,
+        ]);
+    }
 
-        $destinatarios = array_filter(
-            array_map('trim', explode(',', $request->input('destinatario', 'jaxer020406@gmail.com')))
-        );
-        if (empty($destinatarios)) {
-            $destinatarios = ['jaxer020406@gmail.com'];
+    private function updateScarPdf(ScarModelo $scar)
+    {
+        $ot = $scar->ot;
+        $tipoModelo = $scar->tipo_modelo;
+        
+        $clases = array_map('trim', explode(',', $tipoModelo));
+        $firstClassSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($clases[0] ?? 'general')));
+        $firstClassSuffix = strtoupper($firstClassSubFolder);
+        
+        $otSanitizada = preg_replace('/[\s]+/', '_', trim(preg_replace('/[^\w\s\-]/', '', $ot)));
+        $pdfDir       = storage_path('app/public/liberaciones_pdf');
+        if (!file_exists($pdfDir)) {
+            mkdir($pdfDir, 0755, true);
         }
-
-        // Recopilar todos los adjuntos para la liberación
+        
+        // Borrar PDFs viejos
+        foreach (glob("{$pdfDir}/F-CCL-SCAR_{$firstClassSuffix}_{$otSanitizada}.pdf") as $old) {
+            @unlink($old);
+        }
+        
         $folderName = $this->sanitizePath($this->normalizeOTName($ot));
-        $dirPath = self::ALMACEN_DIR . '/' . $folderName;
-        $ayudasDirPath = $dirPath . '/ayudas_visuales';
-        $preordenesPath = $ayudasDirPath . '/preordenes';
-
-        $attachments = [];
-
-        // 1. Dibujos principales y ayudas visuales
-        if (Storage::disk('local')->exists($dirPath)) {
-            $files = Storage::disk('local')->allFiles($dirPath);
-            foreach ($files as $file) {
-                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-                if (in_array($ext, ['pdf', 'png', 'jpg', 'jpeg'])) {
-                    $attachments[] = [
-                        'path' => storage_path('app/' . $file),
-                        'name' => basename($file),
-                        'mime' => mime_content_type(storage_path('app/' . $file)) ?: 'application/octet-stream'
-                    ];
-                }
+        $otPath = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes';
+        foreach ($clases as $clase) {
+            $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $clase));
+            if (empty($classSubFolder)) $classSubFolder = 'general';
+            $classSuffix = strtoupper($classSubFolder);
+            
+            $oldScarPattern = $otPath . '/documentos_rechazados/' . $classSubFolder . '/F-CCL-SCAR_' . $classSuffix . '_' . $otSanitizada . '.pdf';
+            if (Storage::disk('local')->exists($oldScarPattern)) {
+                Storage::disk('local')->delete($oldScarPattern);
             }
         }
-
-        // 2. Formatos de liberacion generados para esta OT
-        $todasLiberaciones = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->whereNotNull('pdf_filename')->get();
-        foreach ($todasLiberaciones as $libRow) {
-            $pdfPathLib = storage_path("app/public/liberaciones_pdf/" . $libRow->pdf_filename);
-            if (file_exists($pdfPathLib)) {
-                $attachments[] = [
-                    'path' => $pdfPathLib,
-                    'name' => $libRow->pdf_filename,
-                    'mime' => 'application/pdf'
-                ];
+        
+        ini_set('memory_limit', '512M');
+        $pdf = Pdf::loadView('almacen.pdf_scar', ['scar' => $scar])
+                  ->setPaper('letter', 'portrait');
+                  
+        $pdfFilename = "F-CCL-SCAR_" . $firstClassSuffix . "_{$otSanitizada}.pdf";
+        $pdf->save("{$pdfDir}/{$pdfFilename}");
+        
+        foreach ($clases as $clase) {
+            $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $clase));
+            if (empty($classSubFolder)) $classSubFolder = 'general';
+            $classSuffix = strtoupper($classSubFolder);
+            
+            $destClassPath = $otPath . '/documentos_rechazados/' . $classSubFolder;
+            if (!Storage::disk('local')->exists($destClassPath)) {
+                Storage::disk('local')->makeDirectory($destClassPath);
             }
-        }
-
-        try {
-            Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, $nuevoEstado, $liberacion, $attachments));
-
-            // Copiar los archivos de Calidad a Almacén
-            $this->copyDirectoryRecursive(
-                self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes',
-                self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes'
-            );
-
-            $msgAccion = $accion === 'aprobar' ? 'aprobada' : 'rechazada';
-            return response()->json([
-                'success'      => true,
-                'message'      => "Liberacion {$msgAccion} y notificacion enviada con exito.",
-                'nuevo_estado' => $nuevoEstado,
-                'pdf_url'      => $pdfUrl,
-                'pdf_filename' => $pdfFilename,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error al enviar correo de liberacion: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Los datos se guardaron pero el correo no pudo enviarse: ' . $e->getMessage(),
-                'pdf_url' => $pdfUrl,
-                'pdf_filename' => $pdfFilename,
-            ], 500);
+            
+            $classPdfFilename = "F-CCL-SCAR_" . $classSuffix . "_{$otSanitizada}.pdf";
+            Storage::disk('local')->put($destClassPath . '/' . $classPdfFilename, file_get_contents("{$pdfDir}/{$pdfFilename}"));
         }
     }
 
@@ -1450,21 +1469,25 @@ class AlmacenFundicionController extends Controller
         $nameScar    = null;
 
         if (empty($ot) || empty($decision) || empty($tipoModelo) || empty($fecha)) {
-            return response()->json(['success' => false, 'message' => 'Campos obligatorios incompletos.'], 422);
+            $emptyFields = [];
+            if (empty($ot)) $emptyFields[] = 'ot';
+            if (empty($decision)) $emptyFields[] = 'decision';
+            if (empty($tipoModelo)) $emptyFields[] = 'tipo_modelo';
+            if (empty($fecha)) $emptyFields[] = 'fecha';
+            return response()->json([
+                'success' => false,
+                'message' => 'Campos obligatorios incompletos: ' . implode(', ', $emptyFields)
+            ], 422);
         }
 
         // Obtener el registro de liberación correspondiente
+        $tipos = array_map('trim', explode(',', $tipoModelo));
         $liberacion = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
-            ->where('tipo_modelo', '=', $tipoModelo, 'and')
+            ->whereIn('tipo_modelo', $tipos)
             ->first();
 
         if (!$liberacion) {
             return response()->json(['success' => false, 'message' => 'No se encontró un borrador guardado para esta liberación.'], 404);
-        }
-
-        // Validar y guardar Formato Escaneado
-        if (!$request->hasFile('formato_escaneado')) {
-            return response()->json(['success' => false, 'message' => 'El formato escaneado es obligatorio.'], 422);
         }
 
         $folderName = $this->sanitizePath($this->normalizeOTName($ot));
@@ -1473,72 +1496,51 @@ class AlmacenFundicionController extends Controller
             Storage::disk('local')->makeDirectory($otPath);
         }
 
-        // Subir formato escaneado
-        $fileFormato = $request->file('formato_escaneado');
-        $nameFormato = "F-CCL-LDM_" . strtoupper($tipoModelo) . "_" . preg_replace('/[^A-Za-z0-9\-]/', '_', $ot) . "_FIRMADO_" . date('Ymd_His') . ".pdf";
-        $fileFormato->storeAs($otPath, $nameFormato, 'local');
-
         $attachments = [];
-        $attachments[] = [
-            'path' => storage_path('app/' . $otPath . '/' . $nameFormato),
-            'name' => $nameFormato,
-            'mime' => 'application/pdf'
-        ];
 
-        // Si es rechazo, validar y guardar SCAR escaneado y fotos/anexos
-        if ($decision === 'rechazar') {
-            if (!$request->hasFile('scar_escaneado')) {
-                return response()->json(['success' => false, 'message' => 'El formato SCAR escaneado es obligatorio para rechazos.'], 422);
-            }
+        // El formato escaneado ya no se recibe aquí como input aislado
+        $nameFormato = $liberacion->pdf_filename ?? null;
 
-            $fileScar = $request->file('scar_escaneado');
-            $nameScar = "SCAR_" . strtoupper($tipoModelo) . "_" . preg_replace('/[^A-Za-z0-9\-]/', '_', $ot) . "_FIRMADO_" . date('Ymd_His') . ".pdf";
-            $fileScar->storeAs($otPath, $nameScar, 'local');
+        // Actualizar el estado de la liberación en base de datos y destinatario
+        // NOTA: Si la decisión es 'mixto', no actualizamos el estado general a 'mixto'
+        // a menos que queramos mantener un string diferente. Sin embargo, actualizaremos los registros individuales.
+        $nuevoEstado = ($decision === 'aprobar') ? 'aprobado' : (($decision === 'rechazar') ? 'rechazado' : 'mixto');
+        
+        $liberacionesOT = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->get();
+        $clasesAprobadas = [];
+        $clasesRechazadas = [];
+        $libAprobada = null;
+        $libRechazada = null;
 
-            $attachments[] = [
-                'path' => storage_path('app/' . $otPath . '/' . $nameScar),
-                'name' => $nameScar,
-                'mime' => 'application/pdf'
-            ];
+        foreach ($liberacionesOT as $libRow) {
+            $libNuevoEst = $libRow->decision === 'aprobar' ? 'aprobado' : 'rechazado';
+            
+            $libRow->update([
+                'estado'         => $libNuevoEst,
+                'fecha_revision' => $fecha,
+                'pdf_filename'   => $libRow->pdf_filename,
+                'destinatario'   => $request->input('destinatario')
+            ]);
 
-            // Comprobar si se requieren fotos y archivos
-            $scarModelo = ScarModelo::where('ot', '=', $ot, 'and')->first();
-            $reqFotos = $scarModelo && ($scarModelo->evidencia_fotos || $scarModelo->evidencia_otro);
-
-            if ($reqFotos) {
-                if (!$request->hasFile('fotos')) {
-                    return response()->json(['success' => false, 'message' => 'Se requieren fotos y/o archivos adicionales según el SCAR.'], 422);
-                }
-
-                $fotos = $request->file('fotos');
-                foreach ($fotos as $idx => $foto) {
-                    $ext = $foto->getClientOriginalExtension();
-                    $nameFoto = "SCAR_EVIDENCIA_" . strtoupper($tipoModelo) . "_" . preg_replace('/[^A-Za-z0-9\-]/', '_', $ot) . "_" . ($idx + 1) . "_" . date('Ymd_His') . "." . $ext;
-                    $foto->storeAs($otPath, $nameFoto, 'local');
-
-                    $attachments[] = [
-                        'path' => storage_path('app/' . $otPath . '/' . $nameFoto),
-                        'name' => $nameFoto,
-                        'mime' => $foto->getClientMimeType() ?: 'application/octet-stream'
-                    ];
-                }
+            if ($libRow->decision === 'aprobar') {
+                $clasesAprobadas[] = strtolower($libRow->tipo_modelo);
+                if (!$libAprobada) $libAprobada = clone $libRow;
+            } elseif ($libRow->decision === 'rechazar') {
+                $clasesRechazadas[] = strtolower($libRow->tipo_modelo);
+                if (!$libRechazada) $libRechazada = clone $libRow;
             }
         }
 
-        // Actualizar el estado de la liberación en base de datos
-        $nuevoEstado = ($decision === 'aprobar') ? 'aprobado' : 'rechazado';
-        $liberacion->update([
-            'estado'         => $nuevoEstado,
-            'fecha_revision' => $fecha,
-            'pdf_filename'   => $nameFormato // Actualizar con el escaneado/firmado
-        ]);
-
-        // Si es rechazo, marcar también en el SCAR que ha sido alertado
-        if ($decision === 'rechazar' && isset($scarModelo)) {
-            $scarModelo->update([
-                'estatus'              => 'alertado',
-                'pdf_firmado_filename' => $nameScar
-            ]);
+        $scarModelos = ScarModelo::where('ot', '=', $ot, 'and')->get();
+        // Si hay rechazos, marcar también en el SCAR que ha sido alertado y actualizar fecha de compromiso
+        if (($decision === 'rechazar' || $decision === 'mixto') && $scarModelos->isNotEmpty()) {
+            foreach ($scarModelos as $scarMod) {
+                $scarMod->update([
+                    'estatus'          => 'alertado',
+                    'fecha_compromiso' => $fecha
+                ]);
+                $this->updateScarPdf($scarMod);
+            }
         }
 
         // Actualizar calidad_revision_status en fundicion_history
@@ -1555,18 +1557,236 @@ class AlmacenFundicionController extends Controller
             ]);
         }
 
-        // Enviar correos
-        $destinatarios = ['jaxer020406@gmail.com'];
-        $libDest = $liberacion->destinatario ?? '';
-        if (!empty($libDest)) {
-            $destArray = array_filter(array_map('trim', explode(',', $libDest)));
-            if (!empty($destArray)) {
-                $destinatarios = $destArray;
+        // Dibujos y Ayudas del servidor (filtrados por los archivos seleccionados en el modal)
+        $files = [];
+        $dirPathAlmacen = self::ALMACEN_DIR . '/' . $folderName;
+        $dirPathCalidad = self::CALIDAD_DIR . '/' . $folderName;
+
+        if (Storage::disk('local')->exists($dirPathAlmacen)) {
+            $files = array_merge($files, Storage::disk('local')->allFiles($dirPathAlmacen));
+        }
+        if (Storage::disk('local')->exists($dirPathCalidad)) {
+            $files = array_merge($files, Storage::disk('local')->allFiles($dirPathCalidad));
+        }
+        $files = array_unique($files);
+
+        $dibujosSelected = $request->input('dibujos', []);
+        $ayudasSelected  = $request->input('ayudas', []);
+        $otrosSelected   = $request->input('otros_documentos', []);
+        $dibujosAprobadosSelected = $request->input('dibujos_aprobados', []);
+        $dibujosRechazadosSelected = $request->input('dibujos_rechazados', []);
+
+        $attachmentsAprobados = [];
+        $attachmentsRechazados = [];
+
+        foreach ($files as $file) {
+            $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+            if (in_array($ext, ['pdf', 'png', 'jpg', 'jpeg'])) {
+                // Normalizar ruta para evitar problemas con contrabarras en Windows
+                $fNorm = str_replace('\\', '/', $file);
+                
+                // Determinar la ruta relativa exacta que coincide con la devuelta por getFiles
+                $relName = '';
+                $dirAlmacenNorm = str_replace('\\', '/', self::ALMACEN_DIR . '/' . $folderName);
+                $dirCalidadNorm = str_replace('\\', '/', self::CALIDAD_DIR . '/' . $folderName);
+                
+                if (str_starts_with($fNorm, $dirAlmacenNorm)) {
+                    $subPath = ltrim(substr($fNorm, strlen($dirAlmacenNorm)), '/');
+                    if (str_starts_with($subPath, 'ayudas_visuales/preordenes/')) {
+                        $relName = 'preordenes/' . ltrim(substr($subPath, strlen('ayudas_visuales/preordenes/')), '/');
+                    } elseif (str_starts_with($subPath, 'ayudas_visuales/')) {
+                        $relName = ltrim(substr($subPath, strlen('ayudas_visuales/')), '/');
+                    } else {
+                        $relName = $subPath;
+                    }
+                } elseif (str_starts_with($fNorm, $dirCalidadNorm)) {
+                    $subPath = ltrim(substr($fNorm, strlen($dirCalidadNorm)), '/');
+                    if (str_starts_with($subPath, 'ayudas_visuales/preordenes/')) {
+                        $relName = 'preordenes/' . ltrim(substr($subPath, strlen('ayudas_visuales/preordenes/')), '/');
+                    } elseif (str_starts_with($subPath, 'ayudas_visuales/')) {
+                        $relName = ltrim(substr($subPath, strlen('ayudas_visuales/')), '/');
+                    } else {
+                        $relName = $subPath;
+                    }
+                }
+                
+                if (empty($relName)) {
+                    continue;
+                }
+                
+                $utf8RelName = $this->toUtf8($relName);
+
+                $pathAbs = storage_path('app/' . $file);
+                $nameBase = basename($file);
+                try {
+                    /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+                    $disk = Storage::disk('local');
+                    $mimeType = $disk->mimeType($file) ?: 'application/octet-stream';
+                } catch (\Exception $e) {
+                    $mimeType = 'application/octet-stream';
+                }
+                
+                $fileItem = [
+                    'path' => $pathAbs,
+                    'name' => $nameBase,
+                    'mime' => $mimeType
+                ];
+
+                // Agregar a aprobados si está seleccionado en aprobados o dibujos/ayudas/otros generales de aprobación
+                $isSelAprobado = in_array($utf8RelName, $dibujosAprobadosSelected) ||
+                                 in_array($utf8RelName, $dibujosSelected) ||
+                                 in_array($utf8RelName, $ayudasSelected) ||
+                                 in_array($utf8RelName, $otrosSelected);
+
+                // Agregar a rechazados si está seleccionado en rechazados
+                $isSelRechazado = in_array($utf8RelName, $dibujosRechazadosSelected);
+
+                if (!$isSelAprobado && !$isSelRechazado) {
+                    continue;
+                }
+
+                if ($isSelAprobado) {
+                    $attachmentsAprobados[] = $fileItem;
+                }
+                if ($isSelRechazado) {
+                    $attachmentsRechazados[] = $fileItem;
+                }
             }
         }
 
+        // Archivos Aprobados extras (por modelo: archivos_aprobados_extra[Tipo])
+        if ($request->hasFile('archivos_aprobados_extra')) {
+            $uploadedAprobados = $request->file('archivos_aprobados_extra');
+            // puede llegar como array asociativo [tipo => file] o array plano
+            $aprobadosDestDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/documentos_aprobados';
+            $filesFlat = [];
+            if (is_array($uploadedAprobados)) {
+                foreach ($uploadedAprobados as $tipoKey => $f) {
+                    if (is_array($f)) { foreach ($f as $ff) $filesFlat[] = ['file' => $ff, 'tipo' => $tipoKey]; }
+                    else $filesFlat[] = ['file' => $f, 'tipo' => $tipoKey];
+                }
+            } else {
+                $filesFlat[] = ['file' => $uploadedAprobados, 'tipo' => ''];
+            }
+            foreach ($filesFlat as $item) {
+                $extraFile = $item['file'];
+                if ($extraFile && $extraFile->isValid()) {
+                    $tipoName = $item['tipo'] ?: (explode(',', $tipoModelo)[0] ?? '');
+                    $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($tipoName)));
+                    if (empty($classSubFolder)) $classSubFolder = 'general';
+                    
+                    $destPath = $aprobadosDestDir . '/' . $classSubFolder;
+                    if (!Storage::disk('local')->exists($destPath)) {
+                        Storage::disk('local')->makeDirectory($destPath);
+                    }
+                    
+                    $prefix    = $item['tipo'] ? strtoupper($item['tipo']) . '_Aprobado_' : 'Aprobado_';
+                    $extraName = $prefix . $extraFile->getClientOriginalName();
+                    $savedPath = $extraFile->storeAs($destPath, $extraName, 'local');
+                    $attachmentsAprobados[] = [
+                        'path' => storage_path('app/' . $savedPath),
+                        'name' => $extraName,
+                        'mime' => $extraFile->getClientMimeType() ?: 'application/octet-stream'
+                    ];
+                }
+            }
+        }
+
+        // Archivos Rechazados extras (por modelo: archivos_rechazados_extra[Tipo])
+        if ($request->hasFile('archivos_rechazados_extra')) {
+            $uploadedRechazados = $request->file('archivos_rechazados_extra');
+            $rechazadosDestDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/documentos_rechazados';
+            $filesFlat = [];
+            if (is_array($uploadedRechazados)) {
+                foreach ($uploadedRechazados as $tipoKey => $f) {
+                    if (is_array($f)) { foreach ($f as $ff) $filesFlat[] = ['file' => $ff, 'tipo' => $tipoKey]; }
+                    else $filesFlat[] = ['file' => $f, 'tipo' => $tipoKey];
+                }
+            } else {
+                $filesFlat[] = ['file' => $uploadedRechazados, 'tipo' => ''];
+            }
+            foreach ($filesFlat as $item) {
+                $extraFile = $item['file'];
+                if ($extraFile && $extraFile->isValid()) {
+                    $tipoName = $item['tipo'] ?: (explode(',', $tipoModelo)[0] ?? '');
+                    $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($tipoName)));
+                    if (empty($classSubFolder)) $classSubFolder = 'general';
+                    
+                    $destPath = $rechazadosDestDir . '/' . $classSubFolder;
+                    if (!Storage::disk('local')->exists($destPath)) {
+                        Storage::disk('local')->makeDirectory($destPath);
+                    }
+                    
+                    $prefix    = $item['tipo'] ? strtoupper($item['tipo']) . '_Rechazado_' : 'Rechazado_';
+                    $extraName = $prefix . $extraFile->getClientOriginalName();
+                    $savedPath = $extraFile->storeAs($destPath, $extraName, 'local');
+                    $attachmentsRechazados[] = [
+                        'path' => storage_path('app/' . $savedPath),
+                        'name' => $extraName,
+                        'mime' => $extraFile->getClientMimeType() ?: 'application/octet-stream'
+                    ];
+                }
+            }
+        }
+
+        // Archivos SCAR extras por modelo (archivos_scar_extra[Tipo]) → van a rechazados
+        if ($request->hasFile('archivos_scar_extra')) {
+            $uploadedScar = $request->file('archivos_scar_extra');
+            $rechazadosDestDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/documentos_rechazados';
+            $filesFlat = [];
+            if (is_array($uploadedScar)) {
+                foreach ($uploadedScar as $tipoKey => $f) {
+                    if (is_array($f)) { foreach ($f as $ff) $filesFlat[] = ['file' => $ff, 'tipo' => $tipoKey]; }
+                    else $filesFlat[] = ['file' => $f, 'tipo' => $tipoKey];
+                }
+            } else {
+                $filesFlat[] = ['file' => $uploadedScar, 'tipo' => ''];
+            }
+            foreach ($filesFlat as $item) {
+                $extraFile = $item['file'];
+                if ($extraFile && $extraFile->isValid()) {
+                    $tipoName = $item['tipo'] ?: (explode(',', $tipoModelo)[0] ?? '');
+                    $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($tipoName)));
+                    if (empty($classSubFolder)) $classSubFolder = 'general';
+                    
+                    $destPath = $rechazadosDestDir . '/' . $classSubFolder;
+                    if (!Storage::disk('local')->exists($destPath)) {
+                        Storage::disk('local')->makeDirectory($destPath);
+                    }
+                    
+                    $prefix    = $item['tipo'] ? strtoupper($item['tipo']) . '_SCAR_' : 'SCAR_';
+                    $extraName = $prefix . $extraFile->getClientOriginalName();
+                    $savedPath = $extraFile->storeAs($destPath, $extraName, 'local');
+                    $attachmentsRechazados[] = [
+                        'path' => storage_path('app/' . $savedPath),
+                        'name' => $extraName,
+                        'mime' => $extraFile->getClientMimeType() ?: 'application/octet-stream'
+                    ];
+                }
+            }
+        }
+
+        // Enviar correos
+        $destinatarios = array_filter(
+            array_map('trim', explode(',', $request->input('destinatario', 'jaxer020406@gmail.com')))
+        );
+        if (empty($destinatarios)) {
+            $destinatarios = ['jaxer020406@gmail.com'];
+        }
+
         try {
-            Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, $nuevoEstado, $liberacion, $attachments));
+            if ($decision === 'mixto') {
+                if ($libAprobada) {
+                    Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, 'aprobado', $libAprobada, $attachmentsAprobados));
+                }
+                if ($libRechazada) {
+                    Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, 'rechazado', $libRechazada, $attachmentsRechazados));
+                }
+            } elseif ($decision === 'aprobar') {
+                Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, 'aprobado', $libAprobada ?: $liberacion, $attachmentsAprobados));
+            } else {
+                Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, 'rechazado', $libRechazada ?: $liberacion, $attachmentsRechazados));
+            }
 
             // Copiar los archivos de Calidad a Almacén
             $this->copyDirectoryRecursive(
@@ -1574,12 +1794,15 @@ class AlmacenFundicionController extends Controller
                 self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes'
             );
 
+            $this->eliminarCarpetasVacias($ot);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Alerta enviada y estado finalizado con éxito.'
             ]);
         } catch (\Exception $e) {
             Log::error('Error al enviar correo de alerta de liberacion: ' . $e->getMessage());
+            $this->eliminarCarpetasVacias($ot);
             return response()->json([
                 'success' => true,
                 'message' => 'El estado se actualizó correctamente, pero hubo un detalle al enviar la notificación por correo: ' . $e->getMessage()
@@ -1612,13 +1835,23 @@ class AlmacenFundicionController extends Controller
             return response()->json(['success' => false, 'message' => 'OT requerida.'], 422);
         }
 
+        $tipoModelo = $request->input('tipo_modelo') ?: '';
+
         // Recuperar la liberacion para obtener el motivo de rechazo guardado en BD
         $liberacion = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
-            ->whereIn('estado', ['rechazado', 'pendiente'])
-            ->latest()
+            ->where('tipo_modelo', '=', $tipoModelo)
             ->first();
 
-        $existingScar = ScarModelo::where('ot', '=', $ot, 'and')->first();
+        if (!$liberacion) {
+            $liberacion = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
+                ->whereIn('estado', ['rechazado', 'pendiente'])
+                ->latest()
+                ->first();
+        }
+
+        $existingScar = ScarModelo::where('ot', '=', $ot, 'and')
+            ->where('tipo_modelo', '=', $tipoModelo, 'and')
+            ->first();
         if ($existingScar) {
             $noScar = $existingScar->no_scar;
         } else {
@@ -1651,7 +1884,7 @@ class AlmacenFundicionController extends Controller
                                            ?: ($liberacion?->motivo_rechazo ?? ''),
             'causa_raiz'                 => $request->input('causa_raiz', ''),
             'acciones_correctivas'       => $request->input('acciones_correctivas', ''),
-            'fecha_emision'              => $request->input('fecha_compromiso', ''),
+            'fecha_emision'              => now(),
             'fecha_compromiso'           => null,
             'codigo_modelo'              => $request->input('codigo_modelo', ''),
             'user_nombre_calidad'        => $user->name,
@@ -1678,39 +1911,107 @@ class AlmacenFundicionController extends Controller
 
         try {
             // ── Generar el PDF ──────────────────────────────────────────
+            $clasesStr = $request->input('tipo_modelo') ?: ($liberacion?->tipo_modelo ?? 'general');
+            $clases = array_map('trim', explode(',', $clasesStr));
+            $firstClassSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($clases[0] ?? 'general')));
+            $firstClassSuffix = strtoupper($firstClassSubFolder);
+            
+            // Reemplazar SCAR anterior de la misma OT en el disco
             $otSanitizada = preg_replace('/[\s]+/', '_', trim(preg_replace('/[^\w\s\-]/', '', $ot)));
-            $pdfFilename  = "F-CCL-SCAR_{$otSanitizada}.pdf";
             $pdfDir       = storage_path('app/public/liberaciones_pdf');
-
             if (!file_exists($pdfDir)) {
                 mkdir($pdfDir, 0755, true);
             }
-
-            // Reemplazar SCAR anterior de la misma OT
-            foreach (glob("{$pdfDir}/F-CCL-SCAR_{$otSanitizada}*.pdf") as $old) {
+            foreach (glob("{$pdfDir}/F-CCL-SCAR_{$firstClassSuffix}_{$otSanitizada}.pdf") as $old) {
                 @unlink($old);
+            }
+
+            // También borrar en la carpeta ayudas_visuales
+            $folderName = $this->sanitizePath($this->normalizeOTName($ot));
+            $otPath = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes';
+            foreach ($clases as $clase) {
+                $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $clase));
+                if (empty($classSubFolder)) $classSubFolder = 'general';
+                $classSuffix = strtoupper($classSubFolder);
+                
+                $oldScarPattern = $otPath . '/documentos_rechazados/' . $classSubFolder . '/F-CCL-SCAR_' . $classSuffix . '_' . $otSanitizada . '.pdf';
+                if (Storage::disk('local')->exists($oldScarPattern)) {
+                    Storage::disk('local')->delete($oldScarPattern);
+                }
             }
 
             ini_set('memory_limit', '512M');
             $pdf = Pdf::loadView('almacen.pdf_scar', ['scar' => $scarData])
                       ->setPaper('letter', 'portrait');
+
+            // Guardamos el primer PDF en el directorio temporal
+            $firstClassSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($clases[0] ?? 'general')));
+            $firstClassSuffix = strtoupper($firstClassSubFolder);
+            $pdfFilename = "F-CCL-SCAR_" . $firstClassSuffix . "_{$otSanitizada}.pdf";
             $pdf->save("{$pdfDir}/{$pdfFilename}");
             $pdfUrl = asset('storage/liberaciones_pdf/' . $pdfFilename);
 
-            // Copiar a la carpeta de la OT en ayudas_visuales/preordenes de Calidad para que se liste en Otros documentos
-            $folderName = $this->sanitizePath($this->normalizeOTName($ot));
-            $otPath = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes';
-            if (!Storage::disk('local')->exists($otPath)) {
-                Storage::disk('local')->makeDirectory($otPath);
+            // Ahora copiamos a cada subcarpeta de clase en ayudas_visuales
+            foreach ($clases as $clase) {
+                $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $clase));
+                if (empty($classSubFolder)) $classSubFolder = 'general';
+                $classSuffix = strtoupper($classSubFolder);
+                
+                $destClassPath = $otPath . '/documentos_rechazados/' . $classSubFolder;
+                if (!Storage::disk('local')->exists($destClassPath)) {
+                    Storage::disk('local')->makeDirectory($destClassPath);
+                }
+                
+                $classPdfFilename = "F-CCL-SCAR_" . $classSuffix . "_{$otSanitizada}.pdf";
+                Storage::disk('local')->put($destClassPath . '/' . $classPdfFilename, file_get_contents("{$pdfDir}/{$pdfFilename}"));
             }
-            Storage::disk('local')->put($otPath . '/' . $pdfFilename, file_get_contents("{$pdfDir}/{$pdfFilename}"));
+
+            // Guardar fotografías si se adjuntaron
+            if ($request->hasFile('fotos')) {
+                foreach ($request->file('fotos') as $idx => $foto) {
+                    foreach ($clases as $clase) {
+                        $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $clase));
+                        if (empty($classSubFolder)) $classSubFolder = 'general';
+                        $classSuffix = strtoupper($classSubFolder);
+                        
+                        $fotosPath = $otPath . '/documentos_rechazados/' . $classSubFolder;
+                        if (!Storage::disk('local')->exists($fotosPath)) {
+                            Storage::disk('local')->makeDirectory($fotosPath);
+                        }
+                        
+                        $fname = "SCAR_FOTO_" . $classSuffix . "_" . date('Ymd_His') . "_" . $idx . "." . $foto->getClientOriginalExtension();
+                        $foto->storeAs($fotosPath, $fname, 'local');
+                    }
+                }
+            }
+
+            // Guardar otros archivos si se adjuntaron
+            if ($request->hasFile('otros_archivos')) {
+                foreach ($request->file('otros_archivos') as $idx => $archivo) {
+                    foreach ($clases as $clase) {
+                        $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $clase));
+                        if (empty($classSubFolder)) $classSubFolder = 'general';
+                        $classSuffix = strtoupper($classSubFolder);
+                        
+                        $otrosPath = $otPath . '/documentos_rechazados/' . $classSubFolder;
+                        if (!Storage::disk('local')->exists($otrosPath)) {
+                            Storage::disk('local')->makeDirectory($otrosPath);
+                        }
+                        
+                        $fname = "SCAR_DOC_" . $classSuffix . "_" . date('Ymd_His') . "_" . $idx . "." . $archivo->getClientOriginalExtension();
+                        $archivo->storeAs($otrosPath, $fname, 'local');
+                    }
+                }
+            }
 
             // ── Guardar datos en BD (Tabla: scar_modelos) ───────────────────
             ScarModelo::updateOrCreate(
-                ['ot' => $ot],
+                [
+                    'ot'          => $ot,
+                    'tipo_modelo' => $tipoModelo ?: ($request->input('tipo_modelo') ?: ($liberacion?->tipo_modelo ?? ''))
+                ],
                 [
                     'no_scar'                    => $scarData->no_scar,
-                    'tipo_modelo'                => $request->input('tipo_modelo') ?: ($liberacion?->tipo_modelo ?? ''),
                     'codigo_modelo'              => $scarData->codigo_modelo,
                     'proveedor'                  => $scarData->proveedor,
                     'descripcion_no_conformidad' => $scarData->descripcion_no_conformidad,
@@ -1738,66 +2039,9 @@ class AlmacenFundicionController extends Controller
                 ]
             );
 
-            // ── Si accion === 'enviar', mandar correo con el SCAR adjunto ───
-            if ($accion === 'enviar') {
-                $destinatarios = array_filter(
-                    array_map('trim', explode(',', $request->input('destinatario', 'jaxer020406@gmail.com')))
-                );
-                if (empty($destinatarios)) {
-                    $destinatarios = ['jaxer020406@gmail.com'];
-                }
+            // Guardar y generar: solo devolver URL del PDF
+            $this->eliminarCarpetasVacias($ot);
 
-                // Adjuntar el SCAR recién generado + el PDF del F-CCL-LDM si existe
-                $attachments = [];
-                $attachments[] = [
-                    'path' => "{$pdfDir}/{$pdfFilename}",
-                    'name' => $pdfFilename,
-                    'mime' => 'application/pdf',
-                ];
-
-                // Incluir también el F-CCL-LDM de liberación si existe para esta OT
-                $todasLiberaciones = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
-                    ->whereNotNull('pdf_filename')
-                    ->get();
-                foreach ($todasLiberaciones as $libRow) {
-                    $libPath = storage_path("app/public/liberaciones_pdf/{$libRow->pdf_filename}");
-                    if (file_exists($libPath)) {
-                        $attachments[] = [
-                            'path' => $libPath,
-                            'name' => $libRow->pdf_filename,
-                            'mime' => 'application/pdf',
-                        ];
-                    }
-                }
-
-                try {
-                    Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, 'rechazado', $liberacion, $attachments));
-                    
-                    // Copiar los archivos de Calidad a Almacén
-                    $this->copyDirectoryRecursive(
-                        self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes',
-                        self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes'
-                    );
-                } catch (\Exception $mailEx) {
-                    Log::error('Error al enviar correo SCAR: ' . $mailEx->getMessage());
-                    // El PDF se generó bien; reportamos el error de correo como advertencia, no como fallo
-                    return response()->json([
-                        'success'      => true,
-                        'message'      => 'SCAR generado, pero el correo no pudo enviarse: ' . $mailEx->getMessage(),
-                        'pdf_url'      => $pdfUrl,
-                        'pdf_filename' => $pdfFilename,
-                    ]);
-                }
-
-                return response()->json([
-                    'success'      => true,
-                    'message'      => 'SCAR generado y alerta enviada correctamente.',
-                    'pdf_url'      => $pdfUrl,
-                    'pdf_filename' => $pdfFilename,
-                ]);
-            }
-
-            // Accion 'guardar': solo devolver URL del PDF
             return response()->json([
                 'success'      => true,
                 'message'      => 'SCAR generado exitosamente.',
@@ -1805,8 +2049,9 @@ class AlmacenFundicionController extends Controller
                 'pdf_filename' => $pdfFilename,
             ]);
 
-        } catch (\Exception $e) {
+         } catch (\Exception $e) {
             Log::error('Error al generar SCAR: ' . $e->getMessage());
+            $this->eliminarCarpetasVacias($ot);
             return response()->json([
                 'success' => false,
                 'message' => 'Error al generar el SCAR: ' . $e->getMessage(),
@@ -2062,6 +2307,26 @@ class AlmacenFundicionController extends Controller
             }
         }
 
+        // Archivos Adicionales (Subidos mediante el nuevo dropzone unificado)
+        if ($request->hasFile('archivos_adicionales')) {
+            foreach ($request->file('archivos_adicionales') as $idx => $addFile) {
+                if ($addFile->isValid()) {
+                    $addName = "evidencia_adicional_{$idx}_{$otSanitizada}." . $addFile->getClientOriginalExtension();
+                    $addPath = $addFile->move(storage_path('app/public/liberaciones_pdf/evidencia'), $addName);
+                    $attachments[] = [
+                        'path' => $addPath->getRealPath(),
+                        'name' => $addName,
+                        'mime' => $addFile->getClientMimeType(),
+                    ];
+                    // Copiar a la carpeta de la OT para que aparezca en Otros Documentos
+                    Storage::disk('local')->put(
+                        $evidenciasPath . '/' . $addName,
+                        file_get_contents($addPath->getRealPath())
+                    );
+                }
+            }
+        }
+
         // 5. Enviar el correo
         try {
             Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, 'rechazado', $liberacion, $attachments));
@@ -2071,8 +2336,10 @@ class AlmacenFundicionController extends Controller
                 self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes',
                 self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes'
             );
+            $this->eliminarCarpetasVacias($ot);
         } catch (\Exception $mailEx) {
             Log::error('Error al enviar correo SCAR Firmado: ' . $mailEx->getMessage());
+            $this->eliminarCarpetasVacias($ot);
             return response()->json([
                 'success' => false,
                 'message' => 'Los datos se guardaron pero la alerta por correo no pudo enviarse: ' . $mailEx->getMessage(),
@@ -2088,10 +2355,17 @@ class AlmacenFundicionController extends Controller
     public function getScar(Request $request)
     {
         $ot = $request->input('ot');
+        $tipoModelo = $request->input('tipo_modelo');
         if (empty($ot)) {
             return response()->json(['success' => false, 'message' => 'OT requerida.'], 422);
         }
-        $scar = ScarModelo::where('ot', '=', $ot, 'and')->first();
+        
+        $query = ScarModelo::where('ot', '=', $ot, 'and');
+        if (!empty($tipoModelo)) {
+            $query->where('tipo_modelo', '=', $tipoModelo);
+        }
+        $scar = $query->first();
+        
         return response()->json([
             'success' => true,
             'scar' => $scar
@@ -2121,6 +2395,42 @@ class AlmacenFundicionController extends Controller
 
             // Copiar el archivo (reemplazar si ya existe)
             Storage::disk('local')->put($targetPath, Storage::disk('local')->get($file));
+        }
+    }
+
+    /**
+     * Elimina automáticamente las carpetas de documentos aprobados/rechazados (y sus subcarpetas de clases)
+     * si se quedan sin archivos (mínimo de archivos es 1).
+     */
+    private function eliminarCarpetasVacias(string $ot): void
+    {
+        $folderName = $this->sanitizePath($this->normalizeOTName($ot));
+        
+        $paths = [
+            self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/documentos_aprobados',
+            self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/documentos_rechazados',
+            self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/documentos_aprobados',
+            self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/documentos_rechazados',
+        ];
+
+        foreach ($paths as $path) {
+            if (Storage::disk('local')->exists($path)) {
+                $subdirs = Storage::disk('local')->directories($path);
+                foreach ($subdirs as $subdir) {
+                    $files = Storage::disk('local')->files($subdir);
+                    $dirs = Storage::disk('local')->directories($subdir);
+                    if (empty($files) && empty($dirs)) {
+                        Storage::disk('local')->deleteDirectory($subdir);
+                    }
+                }
+                
+                // Si la carpeta padre (documentos_aprobados o documentos_rechazados) también se quedó vacía, se elimina
+                $parentFiles = Storage::disk('local')->files($path);
+                $parentDirs = Storage::disk('local')->directories($path);
+                if (empty($parentFiles) && empty($parentDirs)) {
+                    Storage::disk('local')->deleteDirectory($path);
+                }
+            }
         }
     }
 }

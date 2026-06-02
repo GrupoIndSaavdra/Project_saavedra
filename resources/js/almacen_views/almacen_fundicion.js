@@ -666,6 +666,12 @@ function updateModelStatusUI(ot, status) {
 // ── FASE 2: ENVÍO DE CORREO ──
 
 let adicionalesSelectedFiles = [];
+let alFotosSelectedFiles = [];
+let envScarSelectedFiles = [];
+let alAdicionalesSelectedFiles = [];
+let cmConfirmarSelectedFiles = [];
+let scarFotosSelectedFiles = [];
+let scarOtrosSelectedFiles = [];
 
 window.abrirModalEnviarPreOrden = function (ot) {
     const modal = document.getElementById('modalEnviarPreOrden');
@@ -821,21 +827,308 @@ document.getElementById('formEnviarPreOrden').addEventListener('submit', functio
 
 function initCustomFileInputs() {
     const input = document.getElementById('env-archivos-adicionales');
-    if (!input) return;
+    if (input) {
+        input.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                Array.from(this.files).forEach(file => {
+                    const alreadyExists = adicionalesSelectedFiles.some(f => f.name === file.name && f.size === file.size);
+                    if (!alreadyExists) {
+                        adicionalesSelectedFiles.push(file);
+                    }
+                });
+            }
+            renderSelectedFilesBadges();
+            this.value = ''; // Reset input to allow re-selection
+        });
+    }
 
-    input.addEventListener('change', function () {
-        if (this.files && this.files.length > 0) {
-            Array.from(this.files).forEach(file => {
-                const alreadyExists = adicionalesSelectedFiles.some(f => f.name === file.name && f.size === file.size);
-                if (!alreadyExists) {
-                    adicionalesSelectedFiles.push(file);
-                }
-            });
-        }
-        renderSelectedFilesBadges();
-        this.value = ''; // Reset input to allow re-selection
+    const inputFotos = document.getElementById('al-fotos');
+    if (inputFotos) {
+        inputFotos.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                Array.from(this.files).forEach(file => {
+                    const alreadyExists = alFotosSelectedFiles.some(f => f.name === file.name && f.size === file.size);
+                    if (!alreadyExists) {
+                        alFotosSelectedFiles.push(file);
+                    }
+                });
+            }
+            renderAlFotosBadges();
+            this.value = ''; // Reset input to allow re-selection
+        });
+    }
+
+    const inputScar = document.getElementById('env-scar-archivos-adicionales');
+    if (inputScar) {
+        inputScar.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                Array.from(this.files).forEach(file => {
+                    const alreadyExists = envScarSelectedFiles.some(f => f.name === file.name && f.size === file.size);
+                    if (!alreadyExists) {
+                        envScarSelectedFiles.push(file);
+                    }
+                });
+            }
+            renderEnvScarBadges();
+            this.value = ''; // Reset input to allow re-selection
+        });
+    }
+
+    const inputAlAdicionales = document.getElementById('al-archivos-adicionales');
+    if (inputAlAdicionales) {
+        inputAlAdicionales.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                Array.from(this.files).forEach(file => {
+                    const alreadyExists = alAdicionalesSelectedFiles.some(f => f.name === file.name && f.size === file.size);
+                    if (!alreadyExists) {
+                        alAdicionalesSelectedFiles.push(file);
+                    }
+                });
+            }
+            renderAlAdicionalesBadges();
+            this.value = ''; // Reset input to allow re-selection
+        });
+    }
+
+    const inputCmArchivos = document.getElementById('cm-archivos');
+    if (inputCmArchivos) {
+        inputCmArchivos.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                Array.from(this.files).forEach(file => {
+                    const alreadyExists = cmConfirmarSelectedFiles.some(f => f.name === file.name && f.size === file.size);
+                    if (!alreadyExists) {
+                        cmConfirmarSelectedFiles.push(file);
+                    }
+                });
+            }
+            renderCmConfirmarBadges();
+            this.value = ''; // Reset input to allow re-selection
+        });
+    }
+
+    const inputScarFotos = document.getElementById('scar-fotos');
+    if (inputScarFotos) {
+        inputScarFotos.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                Array.from(this.files).forEach(file => {
+                    const alreadyExists = scarFotosSelectedFiles.some(f => f.name === file.name && f.size === file.size);
+                    if (!alreadyExists) {
+                        scarFotosSelectedFiles.push(file);
+                    }
+                });
+            }
+            renderScarFotosBadges();
+            this.value = ''; // Reset input to allow re-selection
+        });
+    }
+
+    const inputScarOtros = document.getElementById('scar-otro-archivos');
+    if (inputScarOtros) {
+        inputScarOtros.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                Array.from(this.files).forEach(file => {
+                    const alreadyExists = scarOtrosSelectedFiles.some(f => f.name === file.name && f.size === file.size);
+                    if (!alreadyExists) {
+                        scarOtrosSelectedFiles.push(file);
+                    }
+                });
+            }
+            renderScarOtrosBadges();
+            this.value = ''; // Reset input to allow re-selection
+        });
+    }
+}
+
+function renderScarFotosBadges() {
+    const listContainer = document.getElementById('scar-fotos-list');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '';
+    if (scarFotosSelectedFiles.length === 0) {
+        listContainer.style.display = 'none';
+        return;
+    }
+    listContainer.style.display = 'grid';
+
+    scarFotosSelectedFiles.forEach((file, index) => {
+        const card = document.createElement('div');
+        card.className = 'dibujos-file-card card-ayuda select-file-card checked-card';
+        card.style.position = 'relative';
+        card.style.width = '100%';
+        card.style.maxWidth = '220px';
+        card.style.display = 'inline-flex';
+        card.style.flexDirection = 'column';
+        card.style.alignItems = 'center';
+        card.style.textAlign = 'center';
+        card.style.borderRadius = '12px';
+        card.style.boxShadow = '0 4px 6px rgba(0,0,0,0.05)';
+        card.style.boxSizing = 'border-box';
+        card.style.padding = '12px';
+        card.style.border = '2px solid #d97706';
+        card.style.background = '#fff';
+
+        const fileUrl = URL.createObjectURL(file);
+        const iconHtml = `
+            <div style="width: 80px; height: 80px; margin-top: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <img src="${fileUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        `;
+
+        card.innerHTML = `
+            <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                <button type="button" style="background: #fca5a5; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9c0300; font-weight: bold; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="removeScarFotoAttachment(${index})" title="Eliminar">&times;</button>
+            </div>
+            ${iconHtml}
+            <div class="file-name" style="cursor: pointer; font-size: 0.85em; margin: 8px 0; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-weight: 600; color: #334155; line-height: 1.3;" title="${file.name}" onclick="window.open('${fileUrl}', '_blank')">
+                ${file.name}
+            </div>
+            <div class="file-actions" style="width: 100%; margin-top: auto;">
+                <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="width: 100%; background: #d97706; border: none; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;" onclick="window.open('${fileUrl}', '_blank')">Ver</button>
+            </div>
+        `;
+        listContainer.appendChild(card);
     });
 }
+
+window.removeScarFotoAttachment = function (index) {
+    scarFotosSelectedFiles.splice(index, 1);
+    renderScarFotosBadges();
+};
+
+function renderScarOtrosBadges() {
+    const listContainer = document.getElementById('scar-otro-archivos-list');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '';
+    if (scarOtrosSelectedFiles.length === 0) {
+        listContainer.style.display = 'none';
+        return;
+    }
+    listContainer.style.display = 'grid';
+
+    scarOtrosSelectedFiles.forEach((file, index) => {
+        const card = document.createElement('div');
+        card.className = 'dibujos-file-card card-ayuda select-file-card checked-card';
+        card.style.position = 'relative';
+        card.style.width = '100%';
+        card.style.maxWidth = '220px';
+        card.style.display = 'inline-flex';
+        card.style.flexDirection = 'column';
+        card.style.alignItems = 'center';
+        card.style.textAlign = 'center';
+        card.style.borderRadius = '12px';
+        card.style.boxShadow = '0 4px 6px rgba(0,0,0,0.05)';
+        card.style.boxSizing = 'border-box';
+        card.style.padding = '12px';
+        card.style.border = '2px solid #0369a1';
+        card.style.background = '#fff';
+
+        let iconHtml = '';
+        const fileUrl = URL.createObjectURL(file);
+        if (file.type.startsWith('image/')) {
+            iconHtml = `
+                <div style="width: 80px; height: 80px; margin-top: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <img src="${fileUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            `;
+        } else {
+            iconHtml = `
+                <div class="file-icon-wrapper" style="cursor: pointer; margin-top: 10px;" title="Abrir PDF" onclick="window.open('${fileUrl}', '_blank')">
+                    <img src="/images/pdf-view-shadow.png" class="file-icon icon-default">
+                    <img src="/images/pdf-view.png" class="file-icon icon-hover">
+                </div>
+            `;
+        }
+
+        card.innerHTML = `
+            <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                <button type="button" style="background: #fca5a5; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9c0300; font-weight: bold; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="removeScarOtrosAttachment(${index})" title="Eliminar">&times;</button>
+            </div>
+            ${iconHtml}
+            <div class="file-name" style="cursor: pointer; font-size: 0.85em; margin: 8px 0; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-weight: 600; color: #334155; line-height: 1.3;" title="${file.name}" onclick="window.open('${fileUrl}', '_blank')">
+                ${file.name}
+            </div>
+            <div class="file-actions" style="width: 100%; margin-top: auto;">
+                <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="width: 100%; background: #0369a1; border: none; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;" onclick="window.open('${fileUrl}', '_blank')">Ver</button>
+            </div>
+        `;
+        listContainer.appendChild(card);
+    });
+}
+
+window.removeScarOtrosAttachment = function (index) {
+    scarOtrosSelectedFiles.splice(index, 1);
+    renderScarOtrosBadges();
+};
+
+function renderCmConfirmarBadges() {
+    const listContainer = document.getElementById('cm-archivos-list');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '';
+    if (cmConfirmarSelectedFiles.length === 0) {
+        listContainer.style.display = 'none';
+        return;
+    }
+    listContainer.style.display = 'grid';
+
+    cmConfirmarSelectedFiles.forEach((file, index) => {
+        const card = document.createElement('div');
+        card.className = 'dibujos-file-card card-ayuda select-file-card checked-card';
+        card.style.position = 'relative';
+        card.style.width = '100%';
+        card.style.maxWidth = '220px';
+        card.style.display = 'inline-flex';
+        card.style.flexDirection = 'column';
+        card.style.alignItems = 'center';
+        card.style.textAlign = 'center';
+        card.style.borderRadius = '12px';
+        card.style.boxShadow = '0 4px 6px rgba(0,0,0,0.05)';
+        card.style.boxSizing = 'border-box';
+        card.style.padding = '12px';
+        card.style.border = '2px solid #10b981';
+        card.style.background = '#fff';
+
+        // Determinar icono o thumbnail
+        let iconHtml = '';
+        const fileUrl = URL.createObjectURL(file);
+        if (file.type.startsWith('image/')) {
+            iconHtml = `
+                <div style="width: 80px; height: 80px; margin-top: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <img src="${fileUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            `;
+        } else {
+            iconHtml = `
+                <div class="file-icon-wrapper" style="cursor: pointer; margin-top: 10px;" title="Abrir PDF" onclick="window.open('${fileUrl}', '_blank')">
+                    <img src="/images/pdf-view-shadow.png" class="file-icon icon-default">
+                    <img src="/images/pdf-view.png" class="file-icon icon-hover">
+                </div>
+            `;
+        }
+
+        card.innerHTML = `
+            <!-- Botón Eliminar overlay en esquina superior derecha -->
+            <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                <button type="button" style="background: #fca5a5; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9c0300; font-weight: bold; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="removeCmConfirmarAttachment(${index})" title="Eliminar">&times;</button>
+            </div>
+
+            ${iconHtml}
+            <div class="file-name" style="cursor: pointer; font-size: 0.85em; margin: 8px 0; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-weight: 600; color: #334155; line-height: 1.3;" title="${file.name}" onclick="window.open('${fileUrl}', '_blank')">
+                ${file.name}
+            </div>
+            <div class="file-actions" style="width: 100%; margin-top: auto;">
+                <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="width: 100%; background: #10b981; border: none; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;" onclick="window.open('${fileUrl}', '_blank')">Ver</button>
+            </div>
+        `;
+        listContainer.appendChild(card);
+    });
+}
+
+window.removeCmConfirmarAttachment = function (index) {
+    cmConfirmarSelectedFiles.splice(index, 1);
+    renderCmConfirmarBadges();
+};
 
 function renderSelectedFilesBadges() {
     const listContainer = document.getElementById('env-archivos-adicionales-list');
@@ -859,6 +1152,105 @@ function renderSelectedFilesBadges() {
 window.removeSelectedAttachment = function (index) {
     adicionalesSelectedFiles.splice(index, 1);
     renderSelectedFilesBadges();
+};
+
+function renderAlFotosBadges() {
+    const listContainer = document.getElementById('al-fotos-list');
+    const textEl = document.getElementById('al-fotos-text');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '';
+    
+    if (alFotosSelectedFiles.length > 0) {
+        if (textEl) {
+            textEl.textContent = `${alFotosSelectedFiles.length} archivo(s) seleccionado(s)`;
+            textEl.style.color = '#10b981'; // Green color when selected
+        }
+        alFotosSelectedFiles.forEach((file, index) => {
+            const badge = document.createElement('span');
+            badge.className = 'file-badge';
+            badge.style.display = 'inline-flex';
+            badge.style.alignItems = 'center';
+            badge.style.gap = '6px';
+            badge.style.padding = '6px 12px';
+            badge.style.background = '#fffbeb';
+            badge.style.border = '1.5px solid #fde047';
+            badge.style.borderRadius = '8px';
+            badge.style.color = '#854d0e';
+            badge.style.fontSize = '0.85em';
+            badge.style.fontFamily = "'Poppins', sans-serif";
+            badge.innerHTML = `
+                📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)
+                <button type="button" class="remove-file-badge-btn" style="background: none; border: none; color: #9c0300; font-weight: bold; cursor: pointer; padding: 0 4px; font-size: 1.2em; line-height: 1; display: flex; align-items: center;" onclick="removeAlFotoAttachment(${index})">&times;</button>
+            `;
+            listContainer.appendChild(badge);
+        });
+    } else {
+        if (textEl) {
+            textEl.textContent = 'Adjuntar fotos u otros archivos *';
+            textEl.style.color = '#d97706';
+        }
+    }
+}
+
+window.removeAlFotoAttachment = function (index) {
+    alFotosSelectedFiles.splice(index, 1);
+    renderAlFotosBadges();
+};
+
+function renderEnvScarBadges() {
+    const listContainer = document.getElementById('env-scar-archivos-adicionales-list');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '';
+    envScarSelectedFiles.forEach((file, index) => {
+        const badge = document.createElement('span');
+        badge.className = 'file-badge';
+        badge.style.display = 'inline-flex';
+        badge.style.alignItems = 'center';
+        badge.style.gap = '6px';
+        badge.style.padding = '6px 12px';
+        badge.style.background = '#fff8f8';
+        badge.style.border = '1.5px solid #fca5a5';
+        badge.style.borderRadius = '8px';
+        badge.style.color = '#9c0300';
+        badge.style.fontSize = '0.85em';
+        badge.style.fontFamily = "'Poppins', sans-serif";
+        badge.innerHTML = `
+            📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)
+            <button type="button" class="remove-file-badge-btn" style="background: none; border: none; color: #9c0300; font-weight: bold; cursor: pointer; padding: 0 4px; font-size: 1.2em; line-height: 1; display: flex; align-items: center;" onclick="removeEnvScarAttachment(${index})">&times;</button>
+        `;
+        listContainer.appendChild(badge);
+    });
+}
+
+window.removeEnvScarAttachment = function (index) {
+    envScarSelectedFiles.splice(index, 1);
+    renderEnvScarBadges();
+};
+
+function renderAlAdicionalesBadges() {
+    const listContainer = document.getElementById('al-archivos-adicionales-list');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '';
+    alAdicionalesSelectedFiles.forEach((file, index) => {
+        const badge = document.createElement('span');
+        badge.className = 'file-badge';
+        badge.style.display = 'inline-flex';
+        badge.style.alignItems = 'center';
+        badge.style.gap = '6px';
+        badge.innerHTML = `
+            📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)
+            <button type="button" class="remove-file-badge-btn" style="background: none; border: none; color: #9c0300; font-weight: bold; cursor: pointer; padding: 0 4px; font-size: 1.2em; line-height: 1; display: flex; align-items: center;" onclick="removeAlAdicionalesAttachment(${index})">&times;</button>
+        `;
+        listContainer.appendChild(badge);
+    });
+}
+
+window.removeAlAdicionalesAttachment = function (index) {
+    alAdicionalesSelectedFiles.splice(index, 1);
+    renderAlAdicionalesBadges();
 };
 
 // ── MODAL LIBERACION DE MODELOS (Calidad) — F-CCL-LDM ────────────────────────
@@ -928,16 +1320,23 @@ window.abrirModalLiberacion = function (ot, tipo) {
     }
 
     if (actionsEl) {
+        const imgDescarga  = window.almacenAppAssets?.descarga  ?? '/images/Descarga.png';
+        const imgAprobado  = window.almacenAppAssets?.aprobado  ?? '/images/aprobado.png';
+        const imgRechazado = window.almacenAppAssets?.rechazado ?? '/images/Rechazado.png';
+
         actionsEl.innerHTML = `
-            <button type="button" class="btn-lib-save" id="lib-btn-guardar" style="width: 100%; max-width: 350px; margin: 0 auto; justify-content: center; display: flex; gap: 8px; align-items: center;">
-                <img src="${window.almacenAppAssets?.descarga ?? '/images/Descarga.png'}" alt="" style="width:18px;height:18px;">
-                Guardar y Descargar PDF
-            </button>
+            <div style="display:flex; gap:12px; justify-content:center; align-items:center; flex-wrap:wrap; width:100%;">
+                <button type="button" class="btn-lib-aprobar-send" id="lib-btn-accion"
+                    style="flex:1; min-width:200px; max-width:380px; justify-content:center; display:flex; gap:8px; align-items:center; font-size:1.15em; padding:14px 28px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight:700; height:auto;">
+                    <img src="${imgDescarga}" alt="" style="width:20px;height:20px;">
+                    Aprobar y Descargar PDF
+                </button>
+            </div>
         `;
 
         // Asignar eventos a los botones recien creados
-        document.getElementById('lib-btn-guardar')
-            ?.addEventListener('click', () => _libSubmit('guardar'));
+        document.getElementById('lib-btn-accion')
+            ?.addEventListener('click', () => _libSubmit('accion'));
     }
 
     if (hiddenOt)     hiddenOt.value     = ot;
@@ -1061,9 +1460,30 @@ window.libCambiarTipo = function (tipo) {
 
     // Si tenemos registros cacheados especificos para este tipo, poblamos la UI
     if (tipo && window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[tipo]) {
-        _libRellenarInputs(window.cacheLiberacionGlobal[tipo]);
+        const cached = window.cacheLiberacionGlobal[tipo];
+        _libRellenarInputs(cached);
+        if (cached.decision) {
+            _libSetDecisionUI(cached.decision);
+        } else {
+            _libSetDecisionUI('aprobar');
+        }
+    } else {
+        _libSetDecisionUI('aprobar');
     }
+
+    // Capturar el estado despues de llenar la UI
+    setTimeout(() => {
+        window._libLastSavedState = _libGetSerializedForm();
+    }, 150);
 };
+
+function _libGetSerializedForm() {
+    const form = document.getElementById('formLiberacion');
+    if (!form) return '';
+    _libZeroFillOcultos();
+    document.querySelectorAll('.lib-num-input, .lib-num-input-sm').forEach(inp => formatInputTruncated(inp));
+    return new URLSearchParams(new FormData(form)).toString();
+}
 
 // ── Lightbox de imagenes ──────────────────────────────────────────────────────
 
@@ -1205,6 +1625,11 @@ async function _libCargarDatos(ot) {
         if (selectTipo && lastLib && lastLib.tipo_modelo) {
             selectTipo.value = lastLib.tipo_modelo;
             libCambiarTipo(lastLib.tipo_modelo);
+        } else {
+            // Capturar el estado si no habia lastLib (formulario vacio inicial)
+            setTimeout(() => {
+                window._libLastSavedState = _libGetSerializedForm();
+            }, 150);
         }
     } catch (err) {
         console.error('Error al cargar datos de liberacion:', err);
@@ -1255,34 +1680,9 @@ function _libActualizarColorSelectPropio() {
     const select = document.getElementById('lib-tipo');
     if (!select) return;
 
-    const val = select.value;
-    if (!val) {
-        select.style.backgroundColor = '';
-        select.style.color = '';
-        select.style.borderColor = '#e2e8f0';
-        return;
-    }
-
-    const record = window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[val];
-    if (record) {
-        if (record.decision === 'aprobar') {
-            select.style.backgroundColor = '#d1fae5'; // Verde suave
-            select.style.color = '#065f46';
-            select.style.borderColor = '#34d399';
-        } else if (record.decision === 'rechazar') {
-            select.style.backgroundColor = '#fee2e2'; // Rojo suave
-            select.style.color = '#991b1b';
-            select.style.borderColor = '#fca5a5';
-        } else {
-            select.style.backgroundColor = '';
-            select.style.color = '';
-            select.style.borderColor = '#e2e8f0';
-        }
-    } else {
-        select.style.backgroundColor = '';
-        select.style.color = '';
-        select.style.borderColor = '#e2e8f0';
-    }
+    select.style.backgroundColor = '';
+    select.style.color = '';
+    select.style.borderColor = '#cbd5e1'; // neutral border
 }
 window._libActualizarColorSelectPropio = _libActualizarColorSelectPropio;
 
@@ -1400,7 +1800,7 @@ function _libZeroFillOcultos() {
 /**
  * Envia el formulario de liberacion al backend.
  *
- * @param {'guardar'|'aprobar'|'rechazar'} accion
+ * @param {'guardar'|'accion'} accion
  */
 async function _libSubmit(accion) {
     const ot = document.getElementById('lib-ot')?.value;
@@ -1435,6 +1835,24 @@ async function _libSubmit(accion) {
     });
 
     const form = document.getElementById('formLiberacion');
+    const currentFormState = new URLSearchParams(new FormData(form)).toString();
+
+    // Verificar si no hay cambios y es un rechazo ya guardado
+    if (accion === 'accion' && decisionVal === 'rechazar') {
+        const cached = window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[tipoVal];
+        const isAlreadyRejected = cached && cached.decision === 'rechazar';
+        
+        if (isAlreadyRejected && window._libLastSavedState === currentFormState) {
+            // Abrir SCAR directamente sin descargar de nuevo el PDF
+            const motivoRechazo = document.getElementById('lib-motivo-rechazo')?.value || '';
+            cerrarModalLiberacion();
+            if (typeof window.abrirModalScar === 'function') {
+                window.abrirModalScar(ot, tipoVal, motivoRechazo);
+            }
+            return;
+        }
+    }
+
     const fd   = new FormData(form);
     fd.set('accion', accion);
     fd.set('decision', decisionVal);
@@ -1482,18 +1900,37 @@ async function _libSubmit(accion) {
                 }, 1800);
             } else {
                 // ── Máquina de estados: disparar evento de liberación final ──
-                // Permite que el state machine muestre el estado final (aprobado/rechazado)
-                // antes del page reload, para que el usuario vea el feedback visual.
                 const otFinal = data.ot || ot;
                 document.dispatchEvent(new CustomEvent('modeloLiberado', {
                     detail: { ot: otFinal, accion }
                 }));
 
-                setTimeout(() => {
-                    cerrarModalLiberacion();
-                    window.location.reload();
-                }, 1800);
+                // ── Si fue un RECHAZO: abrir modal SCAR prellenado ──────────
+                const activeDecisionEl = document.querySelector('.lib-decision-card.active');
+                const esRechazoPorDecision = (document.getElementById('lib-accion')?.value === 'rechazar')
+                    || (activeDecisionEl && activeDecisionEl.id === 'lib-dec-rechazar');
+                // También detectar por la decisión enviada al servidor
+                const decisionFD = fd.get('decision');
+                const esRechazoFinal = esRechazoPorDecision || decisionFD === 'rechazar';
+
+                if (esRechazoFinal && typeof window.abrirModalScar === 'function') {
+                    const tipoModelo    = document.getElementById('lib-tipo')?.value || '';
+                    const motivoRechazo = document.getElementById('lib-motivo-rechazo')?.value || '';
+                    // Pequeno delay para que el PDF se descargue primero
+                    setTimeout(() => {
+                        cerrarModalLiberacion();
+                        window.abrirModalScar(otFinal, tipoModelo, motivoRechazo);
+                    }, 600);
+                } else {
+                    setTimeout(() => {
+                        cerrarModalLiberacion();
+                        window.location.reload();
+                    }, 1800);
+                }
             }
+
+            // Actualizar ultimo estado guardado
+            window._libLastSavedState = currentFormState;
         } else {
             almacenToast(data.message || 'Ocurrio un error inesperado.', 'error');
         }
@@ -1737,12 +2174,6 @@ document.addEventListener('DOMContentLoaded', () => ModeloStateMachine.init());
         const btnAccion = document.getElementById('lib-btn-accion');
         if (btnAccion && !btnAccion.dataset.fsmHooked) {
             btnAccion.dataset.fsmHooked = '1';
-            btnAccion.addEventListener('click', () => {
-                const ot = document.getElementById('lib-ot')?.value;
-                // Feedback optimista: muestra "espera" mientras el servidor procesa.
-                // El evento 'modeloLiberado' sobreescribirá con aprobado/rechazado.
-                if (ot) ModeloStateMachine.onCorreoEnviado(ot);
-            }, true);
         }
     });
 
@@ -1836,11 +2267,39 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
     const formEl = document.getElementById('formScar');
     if (formEl) formEl.reset();
 
+    // Reset local files arrays
+    scarFotosSelectedFiles = [];
+    scarOtrosSelectedFiles = [];
+    renderScarFotosBadges();
+    renderScarOtrosBadges();
+
+    // Extraer numero de OT y nombre de la moldura de forma automatica
+    // Formato esperado: "OT 6748 - TEREMANA 1000 ML" o similar, ignorando sufijos de timestamp
+    let otNumber = ot;
+    let molduraName = '';
+    const cleanOt = ot.replace(/_\d{8}_\d{6}_.*/, '');
+    
+    // Buscar patron: empieza opcionalmente con OT, un numero, guion, y el nombre
+    const match = cleanOt.match(/^(?:OT\s*)?(\d+)\s*-\s*(.*)$/i);
+    if (match) {
+        otNumber = match[1];
+        molduraName = match[2];
+    } else {
+        // Fallback si no tiene el formato esperado
+        otNumber = cleanOt;
+    }
+
     // Mostrar datos en el modal
     const otInput = document.getElementById('scar-ot');
     if (otInput) otInput.value = ot;
     const otDisplay = document.getElementById('scar-ot-display');
-    if (otDisplay) otDisplay.textContent = ot.replace(/_\d{8}_\d{6}_.*/, '');
+    if (otDisplay) otDisplay.textContent = cleanOt;
+
+    const molduraInput = document.getElementById('scar-nombre-moldura');
+    if (molduraInput) molduraInput.value = molduraName;
+
+    const codigoInput = document.getElementById('scar-codigo-modelo');
+    if (codigoInput) codigoInput.value = otNumber ? 'F' + otNumber : '';
 
     const tipoInput = document.getElementById('scar-tipo');
     if (tipoInput) tipoInput.value = tipoModelo || '';
@@ -1868,10 +2327,7 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
                 if (s.acciones_correctivas) document.getElementById('scar-acciones').value = s.acciones_correctivas;
                 if (s.codigo_modelo) document.getElementById('scar-codigo-modelo').value = s.codigo_modelo;
 
-                if (s.fecha_emision) {
-                    const fcInput = document.getElementById('scar-fecha-compromiso');
-                    if (fcInput) fcInput.value = s.fecha_emision.split(' ')[0].split('T')[0];
-                }
+                if (s.codigo_modelo) document.getElementById('scar-codigo-modelo').value = s.codigo_modelo;
 
                 // Checkboxes y sus contenedores correspondientes
                 const chkDibujos = document.getElementById('scar-evidencia-dibujos');
@@ -1912,6 +2368,86 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
         })
         .catch(err => console.error("Error loading SCAR:", err));
 
+    // Cargar evidencias ya subidas al SCAR (fotos y otros)
+    const scarServerFilesContainer = document.getElementById('scar-server-files-container');
+    if (scarServerFilesContainer) {
+        scarServerFilesContainer.innerHTML = `
+            <div style="text-align: center; padding: 10px; grid-column: 1 / -1;">
+                <div class="alm-spinner" style="border-top-color: #033966; display: inline-block;"></div>
+                <span style="color: #64748b; margin-left: 10px;">Obteniendo evidencias guardadas...</span>
+            </div>
+        `;
+        
+        fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.existe && data.archivos && data.archivos.length > 0) {
+                    let baseUrl = window.baseUrl || (window.location.origin + '/');
+                    if (!baseUrl.endsWith('/')) baseUrl += '/';
+                    
+                    const activeClasses = (tipoModelo || '').toLowerCase().split(',').map(s => s.trim().replace(/[^a-z0-9_\-]/g, '_')).filter(Boolean);
+                    const scarFiles = data.archivos.filter(f => {
+                        const pathLower = f.nombre.toLowerCase();
+                        if (!pathLower.includes('documentos_rechazados/')) return false;
+                        
+                        if (activeClasses.length === 0 || activeClasses.includes('general')) return true;
+                        
+                        // Check if the path contains any of the active class folders, e.g. /documentos_rechazados/bombillo/
+                        return activeClasses.some(cls => pathLower.includes('/documentos_rechazados/' + cls + '/'));
+                    });
+                    
+                    if (scarFiles.length > 0) {
+                        scarServerFilesContainer.innerHTML = scarFiles.map((file, index) => {
+                            const dispName = file.nombre.split('/').pop();
+                            const isImg = file.nombre.toLowerCase().match(/\.(jpg|jpeg|png|gif)$/);
+                            const isPdf = file.nombre.toLowerCase().endsWith('.pdf');
+                            
+                            let iconDefault = baseUrl + 'images/pdf-view-shadow.png';
+                            let iconHover = baseUrl + 'images/pdf-view.png';
+                            if (isImg) {
+                                iconDefault = baseUrl + 'images/galeria-shadow.png';
+                                iconHover = baseUrl + 'images/galeria.png';
+                            }
+                            
+                            return `
+                                <div class="dibujos-file-card" style="animation-delay: ${index * 0.05}s;">
+                                    <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}', '${file.nombre}', 'otro')" style="cursor: pointer;" title="Abrir Archivo">
+                                        <img src="${iconDefault}" class="file-icon icon-default">
+                                        <img src="${iconHover}" class="file-icon icon-hover">
+                                    </div>
+                                    <div class="file-name" style="cursor: pointer;" title="Abrir Archivo" onclick="almacenVerPdf('${ot}', '${file.nombre}', 'otro')">${dispName}</div>
+                                    <div class="file-actions">
+                                        <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" onclick="almacenVerPdf('${ot}', '${file.nombre}', 'otro')">Ver</button>
+                                        <button type="button" class="btn-dibujos btn-dibujos-sm btn-dibujos-danger btn-eliminar" onclick="almacenEliminarOtroArchivo('${ot}', '${file.nombre}', 'otro', this)">Eliminar</button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        scarServerFilesContainer.innerHTML = `
+                            <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic; grid-column: 1 / -1;">
+                                No hay evidencias subidas aún para este SCAR.
+                            </div>
+                        `;
+                    }
+                } else {
+                    scarServerFilesContainer.innerHTML = `
+                        <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic; grid-column: 1 / -1;">
+                            No hay evidencias subidas aún para este SCAR.
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                scarServerFilesContainer.innerHTML = `
+                    <div style="text-align: center; color: #ef4444; padding: 15px; font-weight: 600; grid-column: 1 / -1;">
+                        Error al cargar evidencias.
+                    </div>
+                `;
+            });
+    }
+
     modal.classList.add('open');
     document.body.classList.add('modal-open');
 };
@@ -1946,6 +2482,17 @@ window.scarSubmit = function (accion) {
     }
 
     const formData = new FormData(form);
+    formData.delete('fotos[]');
+    formData.delete('otros_archivos[]');
+
+    scarFotosSelectedFiles.forEach(file => {
+        formData.append('fotos[]', file);
+    });
+
+    scarOtrosSelectedFiles.forEach(file => {
+        formData.append('otros_archivos[]', file);
+    });
+
     formData.append('accion', accion);
 
     fetch(window.almacenRoutes.generateScar, {
@@ -2126,6 +2673,10 @@ window.cerrarModalEnviarScar = function () {
                 btn.innerHTML = '<span class="alm-spinner" style="display:inline-block; border-top-color:#ffffff; width:15px; height:15px; margin-right:8px; vertical-align:middle;"></span> Enviando alerta...';
 
                 const formData = new FormData(this);
+                formData.delete('archivos_adicionales[]');
+                envScarSelectedFiles.forEach(file => {
+                    formData.append('archivos_adicionales[]', file);
+                });
 
                 fetch(window.almacenRoutes.sendScarAlert, {
                     method: 'POST',
@@ -2172,6 +2723,24 @@ window.abrirModalConfirmarModelo = function (ot, idHash) {
     // Reset del form
     const form = document.getElementById('formConfirmarModelo');
     if (form) form.reset();
+
+    // Actualizar subtítulo con OT
+    const subtitle = document.getElementById('confirmar-modelo-subtitle');
+    if (subtitle) {
+        subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, '')}`;
+    }
+
+    // Colocar fecha de hoy
+    const fi = document.getElementById('cm-fecha');
+    if (fi) {
+        const h = new Date();
+        fi.value = `${h.getFullYear()}-${String(h.getMonth()+1).padStart(2,'0')}-${String(h.getDate()).padStart(2,'0')}`;
+    }
+
+    // Reset files
+    cmConfirmarSelectedFiles = [];
+    renderCmConfirmarBadges();
+
     modal.classList.add('open');
     document.body.classList.add('modal-open');
 };
@@ -2192,10 +2761,9 @@ window.cerrarModalConfirmarModelo = function () {
 
             const ot     = document.getElementById('cm-ot')?.value;
             const idHash = document.getElementById('cm-id-hash')?.value;
-            const files  = document.getElementById('cm-archivos')?.files;
 
             if (!ot) return;
-            if (!files || files.length === 0) {
+            if (cmConfirmarSelectedFiles.length === 0) {
                 almacenToast('Debes adjuntar al menos un documento de recepción.', 'error');
                 return;
             }
@@ -2205,6 +2773,10 @@ window.cerrarModalConfirmarModelo = function () {
             if (btn) { btn.disabled = true; btn.innerHTML = '<span class="alm-spinner" style="display:inline-block;border-top-color:#fff;width:14px;height:14px;margin-right:8px;vertical-align:middle;"></span> Guardando...'; }
 
             const fd = new FormData(this);
+            fd.delete('archivos[]');
+            cmConfirmarSelectedFiles.forEach(file => {
+                fd.append('archivos[]', file);
+            });
 
             try {
                 const resp = await fetch(window.almacenRoutes.confirmarModelo, {
@@ -2391,26 +2963,35 @@ function _libFiltrarTiposModelo(clasesActivas) {
  * Cambia visualmente el selector Aprobar/Rechazar y actualiza el hidden `lib-accion`.
  * Si elige "rechazar" muestra el bloque de motivo de rechazo.
  */
-window.libSeleccionarDecision = function (decision) {
+function _libSetDecisionUI(decision) {
     const accionInput = document.getElementById('lib-accion');
     if (accionInput) accionInput.value = decision;
 
-    const cardAprobar  = document.getElementById('lib-dec-aprobar');
-    const cardRechazar = document.getElementById('lib-dec-rechazar');
+    const cardAprobar   = document.getElementById('lib-dec-aprobar');
+    const cardRechazar  = document.getElementById('lib-dec-rechazar');
     const bloqueRechazo = document.getElementById('lib-rechazo-block');
 
+    // Quitar clase "active" de ambos y asignar al elegido
+    if (cardAprobar)  cardAprobar.classList.remove('active');
+    if (cardRechazar) cardRechazar.classList.remove('active');
+
     if (decision === 'aprobar') {
-        if (cardAprobar)  { cardAprobar.style.border  = '2px solid #0a8504'; cardAprobar.style.background  = 'rgba(10,133,4,0.08)'; }
+        if (cardAprobar)  { cardAprobar.classList.add('active'); cardAprobar.style.border  = '2px solid #0a8504'; cardAprobar.style.background  = 'rgba(10,133,4,0.08)'; }
         if (cardRechazar) { cardRechazar.style.border = '2px solid #e2e8f0'; cardRechazar.style.background = '#fff'; }
         if (bloqueRechazo) bloqueRechazo.style.display = 'none';
     } else {
-        if (cardRechazar) { cardRechazar.style.border  = '2px solid #9c0300'; cardRechazar.style.background  = 'rgba(156,3,0,0.07)'; }
+        if (cardRechazar) { cardRechazar.classList.add('active'); cardRechazar.style.border  = '2px solid #9c0300'; cardRechazar.style.background  = 'rgba(156,3,0,0.07)'; }
         if (cardAprobar)  { cardAprobar.style.border   = '2px solid #e2e8f0'; cardAprobar.style.background   = '#fff'; }
         if (bloqueRechazo) bloqueRechazo.style.display = 'block';
     }
 
     // Actualizar los botones de acción del modal
     _libActualizarBotonesAccion(decision);
+}
+window._libSetDecisionUI = _libSetDecisionUI;
+
+window.libSeleccionarDecision = function (decision) {
+    _libSetDecisionUI(decision);
 
     // Actualizar la decisión en caché de forma reactiva y actualizar el color del select
     const select = document.getElementById('lib-tipo');
@@ -2433,20 +3014,25 @@ function _libActualizarBotonesAccion(decision) {
     const actionsEl = document.getElementById('lib-actions');
     if (!actionsEl) return;
 
-    // Mantener solo el botón de guardar borrador + el de acción principal
-    // que se regenera según la decisión actual
-    const btnGuardar = actionsEl.querySelector('#lib-btn-guardar');
-    const btnAccion  = actionsEl.querySelector('#lib-btn-accion');
+    const btnAccion = actionsEl.querySelector('#lib-btn-accion');
+    if (!btnAccion) return;
 
-    if (btnAccion) {
-        if (decision === 'aprobar') {
-            btnAccion.className   = 'btn-lib-send btn-lib-aprobar';
-            btnAccion.innerHTML   = '<img src="' + (window.almacenAppAssets?.aprobado ?? '') + '" alt="" style="width:16px;height:16px;"> Aprobar y Notificar';
-        } else {
-            btnAccion.className   = 'btn-lib-send btn-lib-rechazar';
-            btnAccion.innerHTML   = '<img src="' + (window.almacenAppAssets?.rechazado ?? '') + '" alt="" style="width:16px;height:16px;"> Rechazar y Generar SCAR';
-        }
+    // Remover listener anterior clonando el nodo
+    const nuevoBtn = btnAccion.cloneNode(false);
+
+    if (decision === 'aprobar') {
+        nuevoBtn.className = 'btn-lib-aprobar-send';
+        nuevoBtn.style.cssText = 'flex:1; min-width:200px; max-width:380px; justify-content:center; display:flex; gap:8px; align-items:center; font-size:1.15em; padding:14px 28px; border-radius:10px; font-family:\'Poppins\',sans-serif; font-weight:700; height:auto;';
+        nuevoBtn.innerHTML = '<img src="' + (window.almacenAppAssets?.descarga ?? '/images/Descarga.png') + '" alt="" style="width:20px;height:20px;"> Aprobar y Descargar PDF';
+        nuevoBtn.addEventListener('click', () => _libSubmit('accion'));
+    } else {
+        nuevoBtn.className = 'btn-lib-rechazar-send';
+        nuevoBtn.style.cssText = 'flex:1; min-width:200px; max-width:380px; justify-content:center; display:flex; gap:8px; align-items:center; font-size:1.15em; padding:14px 28px; border-radius:10px; font-family:\'Poppins\',sans-serif; font-weight:700; height:auto;';
+        nuevoBtn.innerHTML = '<img src="' + (window.almacenAppAssets?.descarga ?? '/images/Descarga.png') + '" alt="" style="width:20px;height:20px;"> Descargar Documento y Generar SCAR';
+        nuevoBtn.addEventListener('click', () => _libSubmit('accion'));
     }
+
+    btnAccion.replaceWith(nuevoBtn);
 }
 
 /**
@@ -2506,72 +3092,310 @@ window.almacenEliminarOtroArchivo = function (ot, archivo, tipo, buttonEl) {
 
 
 // =========================================================================
-// MODAL: ENVIAR ALERTA DE LIBERACIÓN (APROBADO/RECHAZADO)
+// MODAL: ENVIAR ALERTA DE LIBERACIÓN v2 (dual: aprobados / rechazados)
 // =========================================================================
 
-window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tipoModelo, reqFotos) {
+/** Genera una fila de upload por modelo */
+function _crearFilaUpload(tipo, color, accentBg, esRechazo, baseUrl) {
+    const idBase = `al-upload-${tipo.toLowerCase().replace(/\s/g,'-')}-${esRechazo ? 'rech' : 'aprob'}`;
+    const tipoLabel = tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase();
+    const nombre = esRechazo ? `archivos_rechazados_extra[${tipo}]` : `archivos_aprobados_extra[${tipo}]`;
+    const nombreScar = `archivos_scar_extra[${tipo}]`;
+
+    const scarBlock = esRechazo ? `
+        <div style="margin-top:14px; display:flex; flex-direction:column; gap:6px; width:100%;" id="${idBase}-scar-wrap">
+            <label style="font-weight:600; font-size:0.9em; color:#475569; font-family:'Poppins',sans-serif;" for="${idBase}-scar">
+                Subir SCAR Firmado (${tipoLabel}) <span style="color:#ef4444;">*</span>
+            </label>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%;">
+                <label style="display:flex;align-items:center;gap:10px;background:#fff;border:1.8px dashed #fca5a5;border-radius:10px;padding:12px 16px;cursor:pointer;font-size:0.95em;color:#64748b;flex:1;font-family:'Poppins',sans-serif;" id="${idBase}-scar-label">
+                    <img src="${baseUrl}images/anadir.png" style="width:20px;height:20px;">
+                    <span id="${idBase}-scar-text">Seleccionar archivo...</span>
+                    <input type="file" name="${nombreScar}" accept=".pdf,image/*" style="display:none;" id="${idBase}-scar" required
+                        onchange="_alFileChanged('${idBase}-scar','${idBase}-scar-text','${idBase}-scar-label')">
+                </label>
+                <div id="${idBase}-scar-preview" style="font-size:0.9em;font-weight:600;color:#059669;display:none;font-family:'Poppins',sans-serif;width:100%;justify-content:center;"></div>
+            </div>
+        </div>` : '';
+
+    return `
+        <div class="al-modelo-upload-row" id="${idBase}-row"
+            style="background:${accentBg};border:1.8px solid ${color}40;border-radius:12px;padding:16px 20px;margin-bottom:12px;box-shadow: 0 2px 8px rgba(0,0,0,0.02); display:flex; flex-direction:column; gap:12px;">
+            <div style="font-weight:700;font-size:1.1em;color:${color};font-family:'Poppins',sans-serif;">Modelo: ${tipoLabel}</div>
+            
+            <div style="display:flex; flex-direction:column; gap:6px; width:100%;">
+                <label style="font-weight:600; font-size:0.9em; color:#475569; font-family:'Poppins',sans-serif;" for="${idBase}">
+                    Subir Formato ${esRechazo ? 'F-CCL-LDM Rechazado' : 'F-CCL-LDM Aprobado'} (${tipoLabel}) <span style="color:#ef4444;">*</span>
+                </label>
+                <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%;">
+                    <label style="display:flex;align-items:center;gap:10px;background:#fff;border:1.8px dashed ${color};border-radius:10px;padding:12px 16px;cursor:pointer;font-size:0.95em;color:#64748b;flex:1;font-family:'Poppins',sans-serif;" id="${idBase}-label">
+                        <img src="${baseUrl}images/anadir.png" style="width:20px;height:20px;">
+                        <span id="${idBase}-text">Seleccionar archivo...</span>
+                        <input type="file" name="${nombre}" accept=".pdf,image/*" style="display:none;" id="${idBase}" required
+                            onchange="_alFileChanged('${idBase}','${idBase}-text','${idBase}-label')">
+                    </label>
+                    <div id="${idBase}-preview" style="font-size:0.9em;font-weight:600;color:#059669;display:none;font-family:'Poppins',sans-serif;width:100%;justify-content:center;"></div>
+                </div>
+            </div>
+            ${scarBlock}
+        </div>`;
+}
+
+window._alFileChanged = function(inputId, textId, labelId) {
+    const inp = document.getElementById(inputId);
+    if (!inp || !inp.files.length) return;
+    const nm = inp.files[0].name;
+    const txt = document.getElementById(textId); if (txt) txt.textContent = nm;
+    const lbl = document.getElementById(labelId); if (lbl) lbl.style.borderStyle = 'solid';
+    
+    if (inp._objectUrl) {
+        URL.revokeObjectURL(inp._objectUrl);
+    }
+    const file = inp.files[0];
+    const url = URL.createObjectURL(file);
+    inp._objectUrl = url;
+
+    let baseUrl = window.baseUrl || (window.location.origin + '/');
+    if (!baseUrl.endsWith('/')) baseUrl += '/';
+
+    const isScar = inputId.endsWith('-scar');
+    const borderCol = isScar ? '#ef4444' : (inputId.includes('-rech') ? '#dc2626' : '#059669');
+
+    let iconHtml = '';
+    if (file.type.startsWith('image/')) {
+        iconHtml = `
+            <div style="width: 80px; height: 80px; margin-top: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        `;
+    } else {
+        iconHtml = `
+            <div class="file-icon-wrapper" onclick="window.open('${url}', '_blank')" style="cursor:pointer; margin-top: 10px;" title="Ver">
+                <img src="${baseUrl}images/pdf-view-shadow.png" class="file-icon icon-default" style="width:48px;height:48px;object-fit:contain;">
+                <img src="${baseUrl}images/pdf-view.png" class="file-icon icon-hover" style="width:48px;height:48px;object-fit:contain;">
+            </div>
+        `;
+    }
+
+    const prv = document.getElementById(inputId + '-preview');
+    if (prv) {
+        prv.innerHTML = `
+            <div class="dibujos-file-card select-file-card checked-card" style="position:relative; width:100%; max-width:180px; display:inline-flex; flex-direction:column; align-items:center; text-align:center; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.08); box-sizing:border-box; font-size:0.95em; padding:12px; background:#fff; border:2px solid ${borderCol}; margin-top:12px;">
+                <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                    <button type="button" style="background: #fca5a5; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9c0300; font-weight: bold; font-size: 0.95em; box-shadow: 0 2px 4px rgba(0,0,0,0.1); line-height: 1; padding: 0;" onclick="_alClearFile('${inputId}')" title="Quitar">&times;</button>
+                </div>
+                ${iconHtml}
+                <div class="file-name" style="cursor:pointer; font-size:0.88em; margin:8px 0; max-height:42px; overflow:hidden; font-weight:600; color:#334155; line-height:1.3; font-family:'Poppins',sans-serif;" onclick="window.open('${url}', '_blank')">${nm}</div>
+                <div class="file-actions" style="width:100%; margin-top:auto;">
+                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="font-size:0.85em; padding:6px 14px; border-radius:6px; font-family:'Poppins',sans-serif; font-weight:600; width:100%; cursor:pointer;" onclick="window.open('${url}', '_blank')">Ver</button>
+                </div>
+            </div>
+        `;
+        prv.style.display = 'flex';
+    }
+};
+
+window._alClearFile = function(inputId) {
+    const inp = document.getElementById(inputId);
+    if (inp) {
+        inp.value = '';
+        if (inp._objectUrl) {
+            URL.revokeObjectURL(inp._objectUrl);
+            inp._objectUrl = null;
+        }
+    }
+    const prv = document.getElementById(inputId + '-preview'); if (prv) { prv.innerHTML=''; prv.style.display='none'; }
+    const lbl = document.getElementById(inputId + '-label'); if (lbl) lbl.style.borderStyle = 'dashed';
+
+    // Restaurar el texto original
+    const txt = document.getElementById(inputId + '-text');
+    if (txt) {
+        txt.textContent = 'Seleccionar archivo...';
+    }
+};
+
+function _renderServerFileCard(file, ot, baseUrl, tipo) {
+    const dispName = file.nombre.split('/').pop();
+    const inputName = tipo === 'rechazados' ? 'dibujos_rechazados[]' : 'dibujos_aprobados[]';
+
+    // Detectar si es una imagen por su extensión
+    const ext = file.nombre.split('.').pop().toLowerCase();
+    const esImg = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes(ext);
+    const defaultIcon = esImg ? 'galeria-shadow.png' : 'pdf-view-shadow.png';
+    const hoverIcon = esImg ? 'galeria.png' : 'pdf-view.png';
+
+    return `<div class="dibujos-file-card card-ayuda select-file-card checked-card" style="position:relative;width:100%;max-width:180px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.08);box-sizing:border-box;font-size:0.95em;padding:12px;background:#fff;border:1.5px solid #e2e8f0;margin:4px;">
+        <div style="position:absolute;top:10px;left:10px;z-index:10;"><input type="checkbox" name="${inputName}" value="${file.nombre}" checked style="width:18px;height:18px;cursor:pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card',this.checked);"></div>
+        <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}','${file.nombre}','${file.tipo}')" style="cursor:pointer;margin-top:12px;" title="Ver">
+            <img src="${baseUrl}images/${defaultIcon}" class="file-icon icon-default" style="width:48px;height:48px;object-fit:contain;"><img src="${baseUrl}images/${hoverIcon}" class="file-icon icon-hover" style="width:48px;height:48px;object-fit:contain;">
+        </div>
+        <div class="file-name" style="cursor:pointer;font-size:0.88em;margin:8px 0;max-height:42px;overflow:hidden;font-weight:600;color:#334155;line-height:1.3;font-family:'Poppins',sans-serif;" onclick="almacenVerPdf('${ot}','${file.nombre}','${file.tipo}')">${dispName}</div>
+        <div class="file-actions" style="width:100%;margin-top:auto;"><button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="font-size:0.85em;padding:6px 14px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;width:100%;" onclick="almacenVerPdf('${ot}','${file.nombre}','${file.tipo}')">Ver</button></div>
+    </div>`;
+}
+
+
+// Nueva firma: tiposAprobados y tiposRechazados son arrays JSON pasados desde Blade
+window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados, tiposRechazados) {
     const modal = document.getElementById('modalEnviarAlertaLiberacion');
     if (!modal) return;
 
-    // Resetear formulario
     const form = document.getElementById('formEnviarAlertaLiberacion');
     if (form) form.reset();
 
-    // Rellenar hiddens
-    document.getElementById('al-ot').value = ot;
-    document.getElementById('al-decision').value = decision;
-    document.getElementById('al-tipo-modelo').value = tipoModelo || '';
+    // Los arrays vienen directamente desde Blade: tiposAprobados, tiposRechazados
+    // Aseguramos que sean arrays
+    const arrAprobados  = Array.isArray(tiposAprobados)  ? tiposAprobados  : [];
+    const arrRechazados = Array.isArray(tiposRechazados) ? tiposRechazados : [];
 
-    // Configurar fecha de hoy
-    const fechaInp = document.getElementById('al-fecha');
-    if (fechaInp) {
-        const hoy = new Date();
-        const yyyy = hoy.getFullYear();
-        const mm = String(hoy.getMonth() + 1).padStart(2, '0');
-        const dd = String(hoy.getDate()).padStart(2, '0');
-        fechaInp.value = `${yyyy}-${mm}-${dd}`;
-    }
+    const hasAprobado  = arrAprobados.length  > 0;
+    const hasRechazado = arrRechazados.length > 0;
+    const esMixto      = hasAprobado && hasRechazado;
 
-    const header = document.getElementById('alerta-lib-header');
-    const title = document.getElementById('alerta-lib-title');
-    const promptText = document.getElementById('al-prompt-text');
-    const scarContainer = document.getElementById('al-scar-container');
-    const scarInput = document.getElementById('al-scar-escaneado');
-    const fotosContainer = document.getElementById('al-fotos-container');
-    const fotosInput = document.getElementById('al-fotos');
+    // Hiddens
+    document.getElementById('al-ot').value          = ot;
+    document.getElementById('al-decision').value    = esMixto ? 'mixto' : decision;
+    document.getElementById('al-tipo-modelo').value = [...arrAprobados, ...arrRechazados].join(', ');
+
+    // Fecha hoy: se deja vacía para obligar al usuario a seleccionar una fecha
+    const fi = document.getElementById('al-fecha');
+    if (fi) { fi.value = ''; }
 
     const otClean = ot.replace(/_\d{8}_\d{6}_.*/, '');
 
-    if (decision === 'aprobar') {
-        if (header) {
-            header.style.background = 'linear-gradient(135deg, #0a8504, #064e03)';
-            header.style.borderBottom = '2px solid #064e03';
-        }
-        if (title) title.textContent = `Enviar Alerta de Aprobación — ${otClean}`;
-        if (promptText) promptText.textContent = `Vas a notificar la liberación del modelo (${tipoModelo || ''}) para la OT ${otClean}. Adjunta el Formato F-CCL-LDM escaneado y firmado.`;
-        if (scarContainer) scarContainer.style.display = 'none';
-        if (scarInput) scarInput.required = false;
-        if (fotosContainer) fotosContainer.style.display = 'none';
-        if (fotosInput) fotosInput.required = false;
-    } else {
-        if (header) {
-            header.style.background = 'linear-gradient(135deg, #9c0300, #7a0200)';
-            header.style.borderBottom = '2px solid #7a0200';
-        }
-        if (title) title.textContent = `Enviar Alerta de Rechazo — ${otClean}`;
-        if (promptText) promptText.textContent = `Vas a notificar el rechazo del modelo (${tipoModelo || ''}) para la OT ${otClean}. Adjunta el Formato F-CCL-LDM firmado y el formato SCAR firmado correspondientes.`;
-        
-        if (scarContainer) scarContainer.style.display = 'block';
-        if (scarInput) scarInput.required = true;
+    // Colores adaptativos
+    let bg, border, btnBg, ttl, pmt;
+    if (esMixto)           { bg='linear-gradient(135deg,#d97706,#b45309)'; border='#d97706'; btnBg='#b45309'; ttl=`Enviar Alertas (Mixto) — ${otClean}`; pmt=`Esta OT tiene modelos aprobados (${arrAprobados.join(', ')}) y rechazados (${arrRechazados.join(', ')}). Se enviarán 2 correos separados.`; }
+    else if (hasRechazado) { bg='linear-gradient(135deg,#dc2626,#b91c1c)'; border='#dc2626'; btnBg='#9c0300'; ttl=`Enviar Alerta de Rechazo — ${otClean}`;    pmt=`Notifica el rechazo de: ${arrRechazados.join(', ')} para OT ${otClean}.`; }
+    else                   { bg='linear-gradient(135deg,#059669,#047857)'; border='#059669'; btnBg='#047857'; ttl=`Enviar Alerta de Aprobación — ${otClean}`; pmt=`Notifica la aprobación de: ${arrAprobados.join(', ')} para OT ${otClean}.`; }
 
-        if (reqFotos) {
-            if (fotosContainer) fotosContainer.style.display = 'block';
-            if (fotosInput) fotosInput.required = true;
+    const header = document.getElementById('alerta-lib-header');
+    const mc     = document.getElementById('alerta-lib-modal-content');
+    const btn    = document.getElementById('btn-submit-alerta-liberacion');
+    if (header) { header.style.background=bg; header.style.borderBottom=`2px solid ${border}80`; }
+    if (mc)  mc.style.borderColor  = border;
+    if (btn) { btn.style.background=btnBg; btn.style.boxShadow=`0 4px 15px ${border}40`; }
+    const t = document.getElementById('alerta-lib-title');    if (t) t.textContent = ttl;
+    const p = document.getElementById('al-prompt-text');      if (p) p.textContent = pmt;
+    const s = document.getElementById('alerta-lib-subtitle'); if (s) s.textContent = `OT: ${otClean}`;
+
+    // Actualizar label de fecha dinámicamente
+    const dateLabel = document.getElementById('al-fecha-label');
+    if (dateLabel) {
+        if (esMixto) {
+            dateLabel.innerHTML = `Fecha Compromiso de Devolución / Fecha de Liberación <span style="color:#ef4444;">*</span>`;
+        } else if (hasRechazado) {
+            dateLabel.innerHTML = `Fecha Compromiso de Devolución <span style="color:#ef4444;">*</span>`;
         } else {
-            if (fotosContainer) fotosContainer.style.display = 'none';
-            if (fotosInput) fotosInput.required = false;
+            dateLabel.innerHTML = `Fecha de Liberación <span style="color:#ef4444;">*</span>`;
         }
     }
+
+    // Columnas visibilidad
+    const colA = document.getElementById('al-col-aprobados');  if (colA) colA.style.display = hasAprobado  ? 'block' : 'none';
+    const colR = document.getElementById('al-col-rechazados'); if (colR) colR.style.display = hasRechazado ? 'block' : 'none';
+    const dl   = document.getElementById('al-dual-layout');    if (dl) {  dl.style.flexDirection = esMixto ? 'row' : 'column'; dl.style.alignItems = 'stretch'; }
+
+    // Labels tipos
+    const aLbl = document.getElementById('al-aprobados-tipos-label'); if (aLbl) aLbl.textContent = arrAprobados.join(', ')  || '—';
+    const rLbl = document.getElementById('al-rechazados-tipos-label'); if (rLbl) rLbl.textContent = arrRechazados.join(', ') || '—';
+
+    let baseUrl = window.baseUrl || (window.location.origin + '/');
+    if (!baseUrl.endsWith('/')) baseUrl += '/';
+
+    // Filas upload por modelo
+    const rowsA = document.getElementById('al-upload-aprobados-rows');
+    const rowsR = document.getElementById('al-upload-rechazados-rows');
+    if (rowsA) rowsA.innerHTML = arrAprobados.length  ? arrAprobados.map(t  => _crearFilaUpload(t,  '#059669','#f0fdf4', false, baseUrl)).join('') : '<p style="font-size:0.8em;color:#64748b;font-style:italic;">Sin modelos aprobados.</p>';
+    if (rowsR) rowsR.innerHTML = arrRechazados.length ? arrRechazados.map(t => _crearFilaUpload(t, '#dc2626','#fef2f2', true,  baseUrl)).join('') : '<p style="font-size:0.8em;color:#64748b;font-style:italic;">Sin modelos rechazados.</p>';
+
+    // Activar/desactivar inputs requeridos según la visibilidad de las columnas
+    if (rowsA) {
+        rowsA.querySelectorAll('input[type="file"]').forEach(inp => {
+            if (hasAprobado) {
+                inp.setAttribute('required', 'required');
+            } else {
+                inp.removeAttribute('required');
+            }
+        });
+    }
+    if (rowsR) {
+        rowsR.querySelectorAll('input[type="file"]').forEach(inp => {
+            if (hasRechazado) {
+                inp.setAttribute('required', 'required');
+            } else {
+                inp.removeAttribute('required');
+            }
+        });
+    }
+
+    // Archivos del servidor separados
+    const sA = document.getElementById('al-server-files-aprobados');
+    const sR = document.getElementById('al-server-files-rechazados');
+    const loadHtml = `<div style="text-align:center;color:#64748b;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Cargando...</div>`;
+    const emptyHtml= `<div style="text-align:center;color:#94a3b8;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Sin archivos en servidor.</div>`;
+    if (sA) sA.innerHTML = loadHtml;
+    if (sR) sR.innerHTML = loadHtml;
+
+    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+        .then(r => r.json())
+        .then(data => {
+            let cardsA = '', cardsR = '';
+            if (data.existe && data.archivos?.length > 0) {
+                // Función para comprobar si el archivo pertenece a un listado de modelos activos
+                const archivoPerteneceAModelos = (nombre, modelosActivos) => {
+                    const pl = nombre.toLowerCase();
+                    const todosModelosPosibles = ['bombillo', 'fondo', 'obturador', 'molde'];
+                    
+                    // comprobar si el path contiene el modelo como carpeta o prefijo
+                    const modelosEncontrados = todosModelosPosibles.filter(m => {
+                        return pl.includes('/' + m + '/') || pl.startsWith(m + '/') || pl.includes('_' + m + '_') || pl.includes('-' + m + ' -') || pl.includes(' ' + m + ' ') || pl.split('/').pop().startsWith(m);
+                    });
+
+                    if (modelosEncontrados.length === 0) {
+                        // Es un archivo general (no pertenece a ningún modelo específico, ej. preordenes/Escaneado_Fundicion)
+                        return true;
+                    }
+
+                    const modelosActivosLower = modelosActivos.map(m => m.toLowerCase());
+                    return modelosEncontrados.some(m => modelosActivosLower.includes(m));
+                };
+
+                data.archivos.forEach(f => {
+                    const pl = f.nombre.toLowerCase();
+                    const isRechazadoFile = pl.includes('documentos_rechazados') || pl.includes('rechazado') || pl.includes('scar');
+                    
+                    if (isRechazadoFile) {
+                        if (hasRechazado && archivoPerteneceAModelos(f.nombre, arrRechazados)) {
+                            cardsR += _renderServerFileCard(f, ot, baseUrl, 'rechazados');
+                        }
+                    } else {
+                        // Es un dibujo, ayuda visual o documento de aprobación
+                        if (hasAprobado && archivoPerteneceAModelos(f.nombre, arrAprobados)) {
+                            cardsA += _renderServerFileCard(f, ot, baseUrl, 'aprobados');
+                        }
+                        if (hasRechazado && archivoPerteneceAModelos(f.nombre, arrRechazados)) {
+                            cardsR += _renderServerFileCard(f, ot, baseUrl, 'rechazados');
+                        }
+                    }
+                });
+            }
+            if (sA) sA.innerHTML = cardsA || emptyHtml;
+            if (sR) sR.innerHTML = cardsR || emptyHtml;
+        })
+        .catch(() => {
+            if (sA) sA.innerHTML = `<div style="color:#ef4444;font-size:0.8em;grid-column:1/-1;">Error al cargar.</div>`;
+            if (sR) sR.innerHTML = `<div style="color:#ef4444;font-size:0.8em;grid-column:1/-1;">Error al cargar.</div>`;
+        });
+
+    // Destinatario — toma el primero de los tipos que haya
+    const primerTipo = arrAprobados[0] || arrRechazados[0] || '';
+    fetch(`${window.almacenRoutes.getLiberacion}?ot=${encodeURIComponent(ot)}`)
+        .then(r => r.json())
+        .then(data => {
+            let dest = data.registros_por_tipo?.[primerTipo]?.destinatario || data.liberacion?.destinatario || '';
+            if (dest) { const d = document.getElementById('al-destinatario'); if (d) d.value = dest; }
+        }).catch(() => {});
 
     modal.classList.add('open');
     document.body.classList.add('modal-open');
@@ -2583,69 +3407,85 @@ window.cerrarModalEnviarAlertaLiberacion = function () {
     document.body.classList.remove('modal-open');
 };
 
-// Interceptar clicks de backdrop y Escape para modalEnviarAlertaLiberacion
-document.addEventListener('click', (e) => {
-    if (e.target.id === 'modalEnviarAlertaLiberacion') cerrarModalEnviarAlertaLiberacion();
-});
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') cerrarModalEnviarAlertaLiberacion();
-});
+window.handleAlertaFileChange = function (input, textId, type) {
+    const el = document.getElementById(textId);
+    if (!el) return;
+    if (input.files?.length > 0) {
+        el.textContent = input.files.length > 1 ? `${input.files.length} archivo(s)` : input.files[0].name;
+        el.style.color = '#10b981';
+    }
+};
 
-// Handler para enviar alerta de liberación por AJAX
+document.addEventListener('click', (e) => { if (e.target.id === 'modalEnviarAlertaLiberacion') cerrarModalEnviarAlertaLiberacion(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModalEnviarAlertaLiberacion(); });
+
 document.getElementById('formEnviarAlertaLiberacion')?.addEventListener('submit', async function (e) {
     e.preventDefault();
 
-    const ot = document.getElementById('al-ot').value;
+    // 1. Validar campos obligatorios de texto y fecha
+    const destinatario = document.getElementById('al-destinatario').value.trim();
+    if (!destinatario) {
+        almacenToast('El campo Destinatario(s) es obligatorio.', 'error');
+        return;
+    }
+
+    const fecha = document.getElementById('al-fecha').value;
+    if (!fecha) {
+        almacenToast('La fecha es obligatoria.', 'error');
+        return;
+    }
+
+    // 2. Validar archivos de subida obligatorios (los que tienen el atributo "required")
+    const form = this;
+    const requiredFiles = form.querySelectorAll('input[type="file"][required]');
+    let missingFiles = [];
+    requiredFiles.forEach(inp => {
+        if (!inp.files || inp.files.length === 0) {
+            // Buscar la etiqueta label correspondiente para obtener un nombre descriptivo
+            const parentBlock = inp.closest('div[style*="flex-direction:column"]');
+            const label = parentBlock ? parentBlock.querySelector('label') : null;
+            let labelText = label ? label.textContent.trim().replace(/\s*\*\s*$/, '') : '';
+            if (!labelText) {
+                labelText = inp.name || inp.id;
+            }
+            missingFiles.push(labelText);
+        }
+    });
+
+    if (missingFiles.length > 0) {
+        almacenToast('Por favor, suba los archivos obligatorios: ' + missingFiles.join(', '), 'error');
+        return;
+    }
+
+    const ot       = document.getElementById('al-ot').value;
     const decision = document.getElementById('al-decision').value;
-    const btn = document.getElementById('btn-submit-alerta-liberacion');
-
+    const btn      = document.getElementById('btn-submit-alerta-liberacion');
     if (!ot || !decision) return;
-
     const fd = new FormData(this);
-    const originalText = btn.innerHTML;
+    const orig = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = `<img src="/images/enviando.png" class="spinning" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;"> Enviando...`;
-
     try {
         const resp = await fetch(window.almacenRoutes.enviarAlertaLiberacion, {
             method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-            },
+            headers: { 'Accept':'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '' },
             body: fd,
         });
-
         const data = await resp.json();
-
         if (data.success) {
             almacenToast(data.message, 'success');
-            
-            // Notificar a la máquina de estados local
             if (window.ModeloStateMachine) {
-                if (decision === 'aprobar') {
-                    window.ModeloStateMachine.onAprobado(ot);
-                } else {
-                    window.ModeloStateMachine.onRechazado(ot);
-                }
+                if (decision === 'aprobar')  window.ModeloStateMachine.onAprobado(ot);
+                else if (decision === 'rechazar') window.ModeloStateMachine.onRechazado(ot);
             }
-
-            setTimeout(() => {
-                cerrarModalEnviarAlertaLiberacion();
-                window.location.reload();
-            }, 1800);
+            setTimeout(() => { cerrarModalEnviarAlertaLiberacion(); window.location.reload(); }, 1800);
         } else {
             almacenToast(data.message || 'Error al enviar la alerta.', 'error');
-            btn.disabled = false;
-            btn.innerHTML = originalText;
+            btn.disabled = false; btn.innerHTML = orig;
         }
     } catch (err) {
         console.error('Error al enviar alerta liberación:', err);
         almacenToast('Error de conexión al enviar la alerta.', 'error');
-        btn.disabled = false;
-        btn.innerHTML = originalText;
+        btn.disabled = false; btn.innerHTML = orig;
     }
 });
-
-
-
