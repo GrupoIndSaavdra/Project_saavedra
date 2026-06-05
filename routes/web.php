@@ -27,6 +27,7 @@ use App\Http\Controllers\EnvioPtaController;
 // use App\Http\Controllers\CalidadDashboardController;
 // use App\Http\Controllers\MeasurementsWebController;
 use App\Http\Controllers\PtaResultsController;
+use App\Http\Controllers\HerramientasTecamacController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -562,4 +563,25 @@ Route::middleware(['auth'])->prefix('calidad/maquinados')->name('calidad.maquina
     // API JSON (para uso futuro o filtrado dinámico)
     Route::get('/docs', [\App\Http\Controllers\CalidadMaquinadosController::class, 'getDocs'])
         ->name('docs');
+});
+
+/* ===========================
+   Módulo: Herramientas Tecamac
+   Acceso: Administrador (1) y Calidad (4)
+=========================== */
+
+Route::middleware(['auth'])->prefix('herramientas/tecamac')->name('herramientas.tecamac.')->group(function () {
+    // Vista principal
+    Route::get('/', [HerramientasTecamacController::class, 'index'])
+        ->name('index');
+
+    // CRUD (solo Admin)
+    Route::post('/', [HerramientasTecamacController::class, 'store'])
+        ->name('store');
+    Route::post('/{id}', [HerramientasTecamacController::class, 'update'])
+        ->name('update');
+    Route::delete('/{id}', [HerramientasTecamacController::class, 'destroy'])
+        ->name('destroy');
+    Route::post('/{id}/reactivar', [HerramientasTecamacController::class, 'reactivar'])
+        ->name('reactivar');
 });

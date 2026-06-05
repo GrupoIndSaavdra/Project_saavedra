@@ -16,10 +16,13 @@ use Illuminate\Support\Facades\Mail;
 class EnvioPtaController extends Controller
 {
     /**
-     * Dirección de correo fija a la que SIEMPRE se enviarán los reportes PTA.
-     * Modifica este valor para cambiar el destinatario obligatorio.
+     * Destinatarios fijos a los que SIEMPRE se enviarán los reportes PTA:
+     *   - Acabados Mex  (acabadosmex@grupoindsaavedra.com)
+     *   - Ing. Alejandro (alejandross@grupoindsaavedra.com)
+     *
+     * Para agregar más destinatarios fijos, añade el correo a este array.
      */
-    const DESTINATARIO = 'acabadosmex@grupoindsaavedra.com';
+    const DESTINATARIO = ['acabadosmex@grupoindsaavedra.com', 'alejandross@grupoindsaavedra.com'];
 
     public function __construct()
     {
@@ -91,8 +94,8 @@ class EnvioPtaController extends Controller
         $claseNombre = $clase->nombre . ($clase->tamanio ? " ({$clase->tamanio})" : '');
 
         // ── 1. Construir lista de destinatarios ──────────────────────────────
-        // El correo fijo siempre va primero
-        $destinatarios = [self::DESTINATARIO];
+        // Los correos fijos siempre van primero (DESTINATARIO puede ser string o array)
+        $destinatarios = (array) self::DESTINATARIO;
 
         $extraRaw = $request->input('destinatarios_extra', '');
         if ($extraRaw) {

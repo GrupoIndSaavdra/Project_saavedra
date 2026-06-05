@@ -110,6 +110,10 @@ export default defineConfig({
                 // Views systemLogs
                 "resources/css/reports/systemLogs.css",
                 "resources/js/reports/systemLogs.js",
+
+                // Vista Herramientas Tecamac
+                'resources/css/herramientas_views/herramientas_tecamac.css',
+                'resources/js/herramientas_views/herramientas_tecamac.js',
             ],
             refresh: true,
         }),

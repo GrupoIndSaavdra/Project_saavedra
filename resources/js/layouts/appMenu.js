@@ -243,6 +243,12 @@ function getRoutes(profile) {
                         ["reportes.pta", "Envío de Reportes PTA"],
                     ],
                 },
+                {
+                    title: "Herramientas",
+                    routes: [
+                        ["herramientas.tecamac.index", "Herramientas Tecamac"],
+                    ],
+                },
             ];
             break;
         case "2":
@@ -254,6 +260,12 @@ function getRoutes(profile) {
                 {
                     title: null,
                     routes: [["processProduction", "Proceso de Producción"]],
+                },
+                {
+                    title: "Herramientas",
+                    routes: [
+                        ["herramientas.tecamac.index", "Herramientas Tecamac"],
+                    ],
                 },
             ];
             break;
@@ -323,6 +335,12 @@ function getRoutes(profile) {
                     title: "Documentación Técnica",
                     routes: [
                         ["almacen.fundicion.index", "Dibujos y Ayudas de Fundición"],
+                    ],
+                },
+                {
+                    title: "Herramientas",
+                    routes: [
+                        ["herramientas.tecamac.index", "Herramientas Tecamac"],
                     ],
                 },
             ];
