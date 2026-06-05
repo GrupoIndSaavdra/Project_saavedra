@@ -315,15 +315,20 @@
                                                 @endphp
                                                 @if ($perfil == 4)
                                                     {{-- VISTA CALIDAD --}}
-                                                    @if ($libStatus === 'aprobado')
+                                                    @if (in_array($libStatus, ['aprobado', 'calidad_aprobado']))
                                                         <span class="badge-modelo-ok" title="Modelo liberado y aprobado por Calidad">
                                                             <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado"
                                                                 style="width: 38px; height: 38px;">
                                                         </span>
-                                                    @elseif ($libStatus === 'rechazado')
+                                                    @elseif (in_array($libStatus, ['rechazado', 'calidad_rechazado']))
                                                         <span class="badge-modelo-rechazado" title="Modelo rechazado por Calidad">
                                                             <img src="{{ asset('images/Rechazado.png') }}" alt="Rechazado"
                                                                 style="width: 38px; height: 38px;">
+                                                        </span>
+                                                    @elseif (in_array($libStatus, ['mixto', 'calidad_mixto']))
+                                                        <span class="badge-modelo-ok" title="Modelo con liberación mixta por Calidad" style="background-color: #e0f2fe; border-color: #bae6fd;">
+                                                            <img src="{{ asset('images/Quality.png') }}" alt="Mixto"
+                                                                style="width: 38px; height: 38px; object-fit: contain;">
                                                         </span>
                                                     @elseif ($libStatus === 'pendiente')
                                                         <span class="badge-modelo-guardado" title="Datos capturados por Calidad (borrador)">
@@ -344,17 +349,21 @@
                                                     @endif
                                                 @else
                                                     {{-- VISTA ALMACÉN --}}
-                                                    @if ($libStatus === 'aprobado')
+                                                    @if (in_array($libStatus, ['aprobado', 'calidad_aprobado']))
                                                         <span class="badge-modelo-ok" title="Modelo liberado y aprobado por Calidad">
                                                             <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado"
                                                                 style="width: 38px; height: 38px;">
                                                         </span>
-                                                    @elseif ($libStatus === 'rechazado')
+                                                    @elseif (in_array($libStatus, ['rechazado', 'calidad_rechazado']))
                                                         <span class="badge-modelo-rechazado" title="Modelo rechazado por Calidad">
                                                             <img src="{{ asset('images/Rechazado.png') }}" alt="Rechazado"
                                                                 style="width: 38px; height: 38px;">
                                                         </span>
-
+                                                    @elseif (in_array($libStatus, ['mixto', 'calidad_mixto']))
+                                                        <span class="badge-modelo-espera" title="Modelo con liberación mixta por Calidad" style="background-color: #e0f2fe; border-color: #bae6fd;">
+                                                            <img src="{{ asset('images/Quality.png') }}" alt="Mixto"
+                                                                style="width: 38px; height: 38px; object-fit: contain;">
+                                                        </span>
                                                     @elseif ($reg->tiene_modelo || $reg->pre_orden_sent)
                                                         <span class="badge-modelo-espera"
                                                             title="Procesado por Almacén, en espera de respuesta de Calidad">
@@ -590,65 +599,156 @@
                                                 {{-- ── SECCIÓN CONTROL DE MODELOS (Solo Almacén y OTs Activas) ── --}}
                                                 @if (Auth::user()->perfil != 4 && $estado === 'activa')
                                                     @php
-                                                        $controlDisabled = ($reg->tiene_modelo || $reg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '';
-                                                        $hideSiNo = ($reg->pre_orden_sent || $reg->pre_orden_email_sent) ? 'display: none;' : '';
-                                                        $hideEditMail = ($reg->pre_orden_sent && !$reg->pre_orden_email_sent) ? '' : 'display: none;';
+                                                        $isFinalized = in_array($reg->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto']);
                                                     @endphp
-                                                    <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}"
-                                                        style="{{ $controlDisabled }}">
-                                                        <div class="lib-calidad-card-header">
-                                                            <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
-                                                                style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
-                                                            <div style="overflow:hidden;">
-                                                                <span class="lib-calidad-card-title">Control de Modelos &mdash; Almacén</span>
-                                                                <span
-                                                                    class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                    @if (!$isFinalized)
+                                                        @php
+                                                            $controlDisabled = ($reg->tiene_modelo || $reg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '';
+                                                            $hideSiNo = ($reg->pre_orden_sent || $reg->pre_orden_email_sent) ? 'display: none;' : '';
+                                                            $hideEditMail = ($reg->pre_orden_sent && !$reg->pre_orden_email_sent) ? '' : 'display: none;';
+                                                        @endphp
+                                                        <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}"
+                                                            style="{{ $controlDisabled }}">
+                                                            <div class="lib-calidad-card-header">
+                                                                <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
+                                                                    style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
+                                                                <div style="overflow:hidden;">
+                                                                    <span class="lib-calidad-card-title">Control de Modelos &mdash; Almacén</span>
+                                                                    <span
+                                                                        class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                        <div class="lib-calidad-card-body">
-                                                            <div class="lib-calidad-action-row">
-                                                                <h4 class="lib-calidad-card-prompt">
-                                                                    @if ($reg->tiene_modelo)
-                                                                        ¡Modelo recibido y procesado! Pendiente de que Calidad lo revise.
-                                                                    @elseif ($reg->pre_orden_email_sent)
-                                                                        Pre-orden enviada por correo. En espera de revisión por Calidad.
-                                                                    @elseif ($reg->pre_orden_sent)
-                                                                        Pre-orden lista. Puedes seguir editando los datos o enviarla por correo.
-                                                                    @else
-                                                                        ¿Ya cuentas con el modelo de esta OT o necesitas generar una pre-orden?
-                                                                    @endif
-                                                                </h4>
-                                                                <div class="lib-calidad-card-btns">
-                                                                    <button class="btn-modelo btn-modelo-si"
-                                                                        onclick="abrirModalConfirmarModelo('{{ $reg->ot }}', '{{ md5($reg->ot) }}')"
-                                                                        title="Sí, cuento con el modelo de esta OT" style="{{ $hideSiNo }}">
-                                                                        <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
-                                                                        <span>Tengo el Modelo</span>
-                                                                    </button>
-                                                                    <button class="btn-modelo btn-modelo-no"
-                                                                        onclick="abrirModalPreOrden('{{ $reg->ot }}')"
-                                                                        title="No cuento con él, generar formato PDF" style="{{ $hideSiNo }}">
-                                                                        <img src="{{ asset('images/pdf.png') }}" alt="PDF">
-                                                                        <span>No, generar formato</span>
-                                                                    </button>
-                                                                    <button class="btn-modelo btn-modelo-edit"
-                                                                        onclick="abrirModalPreOrden('{{ $reg->ot }}')"
-                                                                        title="Editar información de la preorden existente"
-                                                                        style="{{ $hideEditMail }}">
-                                                                        <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
-                                                                        <span>Editar Datos</span>
-                                                                    </button>
-                                                                    <button class="btn-modelo btn-modelo-email"
-                                                                        onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', '{{ md5($reg->ot) }}')"
-                                                                        title="Enviar pre-orden por correo electrónico"
-                                                                        style="{{ $hideEditMail }}">
-                                                                        <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
-                                                                        <span>Enviar Correo</span>
-                                                                    </button>
+                                                            <div class="lib-calidad-card-body">
+                                                                <div class="lib-calidad-action-row">
+                                                                    <h4 class="lib-calidad-card-prompt">
+                                                                        @if ($reg->tiene_modelo)
+                                                                            ¡Modelo recibido y procesado! Pendiente de que Calidad lo revise.
+                                                                        @elseif ($reg->pre_orden_email_sent)
+                                                                            Pre-orden enviada por correo. En espera de revisión por Calidad.
+                                                                        @elseif ($reg->pre_orden_sent)
+                                                                            Pre-orden lista. Puedes seguir editando los datos o enviarla por correo.
+                                                                        @else
+                                                                            ¿Ya cuentas con el modelo de esta OT o necesitas generar una pre-orden?
+                                                                        @endif
+                                                                    </h4>
+                                                                    <div class="lib-calidad-card-btns">
+                                                                        <button class="btn-modelo btn-modelo-si"
+                                                                            onclick="abrirModalConfirmarModelo('{{ $reg->ot }}', '{{ md5($reg->ot) }}')"
+                                                                            title="Sí, cuento con el modelo de esta OT" style="{{ $hideSiNo }}">
+                                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
+                                                                            <span>Tengo el Modelo</span>
+                                                                        </button>
+                                                                        <button class="btn-modelo btn-modelo-no"
+                                                                            onclick="abrirModalPreOrden('{{ $reg->ot }}')"
+                                                                            title="No cuento con él, generar formato PDF" style="{{ $hideSiNo }}">
+                                                                            <img src="{{ asset('images/pdf.png') }}" alt="PDF">
+                                                                            <span>No, generar formato</span>
+                                                                        </button>
+                                                                        <button class="btn-modelo btn-modelo-edit"
+                                                                            onclick="abrirModalPreOrden('{{ $reg->ot }}')"
+                                                                            title="Editar información de la preorden existente"
+                                                                            style="{{ $hideEditMail }}">
+                                                                            <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
+                                                                            <span>Editar Datos</span>
+                                                                        </button>
+                                                                        <button class="btn-modelo btn-modelo-email"
+                                                                            onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', '{{ md5($reg->ot) }}')"
+                                                                            title="Enviar pre-orden por correo electrónico"
+                                                                            style="{{ $hideEditMail }}">
+                                                                            <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
+                                                                            <span>Enviar Correo</span>
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    @else
+                                                        @php
+                                                            $liberaciones = \App\Models\LiberacionModeloFundicion::where('ot', $reg->ot)->get();
+                                                            $aprobados = $liberaciones->where('decision', 'aprobar')->pluck('tipo_modelo')->toArray();
+                                                            $rechazados = $liberaciones->where('decision', 'rechazar')->pluck('tipo_modelo')->toArray();
+                                                        @endphp
+
+                                                        {{-- Card 1: Approved models --}}
+                                                        @if (count($aprobados) > 0)
+                                                            @php
+                                                                $aprobCardDisabled = ($reg->casting_pdf_generated) ? 'opacity: 0.65; pointer-events: none;' : '';
+                                                            @endphp
+                                                            <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}" style="margin-top: 15px; {{ $aprobCardDisabled }}">
+                                                                <div class="lib-calidad-card-header" style="background: linear-gradient(135deg, #16a34a, #15803d); border-bottom: 2px solid rgba(22, 163, 74, 0.5);">
+                                                                    <img src="{{ asset('images/almacen.png') }}" alt="Almacén" style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
+                                                                    <div style="overflow:hidden;">
+                                                                        <span class="lib-calidad-card-title" style="color: #ffffff;">Control de Modelos &mdash; Almacén (Aprobados)</span>
+                                                                        <span class="lib-calidad-card-ot" style="color: #d1fae5;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="lib-calidad-card-body">
+                                                                    <div class="lib-calidad-action-row">
+                                                                        <h4 class="lib-calidad-card-prompt">
+                                                                            @if ($reg->casting_pdf_generated)
+                                                                                🟢 Formatos LDM subidos y pre-orden de casting generada para los modelos: <strong>{{ implode(', ', $aprobados) }}</strong>.
+                                                                            @else
+                                                                                🟢 Modelos Aprobados por Calidad: <strong>{{ implode(', ', $aprobados) }}</strong>. Procede a subir los formatos F-CCL-LDM firmados para iniciar el casting.
+                                                                            @endif
+                                                                        </h4>
+                                                                        <div class="lib-calidad-card-btns">
+                                                                            @if ($reg->casting_pdf_generated)
+                                                                                <button class="btn-modelo btn-modelo-si" style="display: flex; background-color: #15803d; color: white;">
+                                                                                    <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
+                                                                                    <span>Casting Iniciado</span>
+                                                                                </button>
+                                                                            @else
+                                                                                <button class="btn-modelo btn-modelo-si" onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($aprobados) }}, [])" style="display: flex; background-color: #15803d; color: white;">
+                                                                                    <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
+                                                                                    <span>Procesar Aceptados</span>
+                                                                                </button>
+                                                                            @endif
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endif
+
+                                                        {{-- Card 2: Rejected models --}}
+                                                        @if (count($rechazados) > 0)
+                                                            @php
+                                                                $rechCardDisabled = ($reg->rechazos_procesados) ? 'opacity: 0.65; pointer-events: none;' : '';
+                                                            @endphp
+                                                            <div class="lib-calidad-card" id="control-almacen-rechazados-{{ md5($reg->ot) }}" style="margin-top: 15px; {{ $rechCardDisabled }}">
+                                                                <div class="lib-calidad-card-header" style="background: linear-gradient(135deg, #dc2626, #b91c1c); border-bottom: 2px solid rgba(220, 38, 38, 0.5);">
+                                                                    <img src="{{ asset('images/almacen.png') }}" alt="Almacén" style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
+                                                                    <div style="overflow:hidden;">
+                                                                        <span class="lib-calidad-card-title" style="color: #ffffff;">Control de Modelos &mdash; Almacén (Rechazados)</span>
+                                                                        <span class="lib-calidad-card-ot" style="color: #fee2e2;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="lib-calidad-card-body">
+                                                                    <div class="lib-calidad-action-row">
+                                                                        <h4 class="lib-calidad-card-prompt">
+                                                                            @if ($reg->rechazos_procesados)
+                                                                                🔴 Formatos de rechazo y SCAR subidos para los modelos: <strong>{{ implode(', ', $rechazados) }}</strong>. Nueva pre-orden de modelo generada.
+                                                                            @else
+                                                                                🔴 Modelos Rechazados por Calidad: <strong>{{ implode(', ', $rechazados) }}</strong>. Procede a subir el Formato de Rechazo y el SCAR correspondiente.
+                                                                            @endif
+                                                                        </h4>
+                                                                        <div class="lib-calidad-card-btns">
+                                                                            @if ($reg->rechazos_procesados)
+                                                                                <button class="btn-modelo btn-modelo-no" style="display: flex; background-color: #b91c1c; color: white;">
+                                                                                    <img src="{{ asset('images/Rechazado.png') }}" alt="No">
+                                                                                    <span>Rechazos Procesados</span>
+                                                                                </button>
+                                                                            @else
+                                                                                <button class="btn-modelo btn-modelo-no" onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', [], {{ json_encode($rechazados) }})" style="display: flex; background-color: #b91c1c; color: white;">
+                                                                                    <img src="{{ asset('images/Rechazado.png') }}" alt="No">
+                                                                                    <span>Procesar Rechazados</span>
+                                                                                </button>
+                                                                            @endif
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endif
+                                                    @endif
                                                 @endif
 
                                                 {{-- ── ACCIONES DE CALIDAD / ESTADOS DE LIBERACION ── --}}
@@ -794,18 +894,20 @@
                                                                                 </button>
                                                                             @else
                                                                                 <button class="btn-calidad-action btn-calidad-email"
-                                                                                    onclick="abrirModalEnviarAlertaLiberacion('{{ $reg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
-                                                                                    title="Subir documentos firmados y enviar alerta de rechazo">
+                                                                                    onclick="abrirModalFinalizarCalidad('{{ $reg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
+                                                                                    title="Finalizar proceso de Calidad y notificar por correo"
+                                                                                    style="background-color: #dc2626; color: white;">
                                                                                     <img src="{{ asset('images/enviando.png') }}" alt="">
-                                                                                    <span>Enviar Alerta</span>
+                                                                                    <span>Finalizar Proceso</span>
                                                                                 </button>
                                                                             @endif
                                                                         @else
                                                                             <button class="btn-calidad-action btn-calidad-email"
-                                                                                onclick="abrirModalEnviarAlertaLiberacion('{{ $reg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
-                                                                                title="Subir formato escaneado y enviar alerta de aprobación">
+                                                                                onclick="abrirModalFinalizarCalidad('{{ $reg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
+                                                                                title="Finalizar proceso de Calidad y notificar por correo"
+                                                                                style="background-color: #059669; color: white;">
                                                                                 <img src="{{ asset('images/enviando.png') }}" alt="">
-                                                                                <span>Enviar Alerta</span>
+                                                                                <span>Finalizar Proceso</span>
                                                                             </button>
                                                                         @endif
                                                                     @else
@@ -825,21 +927,57 @@
                                                         </div>
                                                     </div>
                                                 @else
-                                                    @if ($reg->calidad_revision_status === 'aprobado')
-                                                        <div class="lib-estado-badge lib-estado-aprobado" style="margin-top: 20px; display: flex; width: 100%; justify-content: center; box-sizing: border-box; padding: 12px 16px; font-size: 1.1em;">
-                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado" style="width:22px; height:22px; object-fit:contain;">
-                                                            Modelo liberado y aprobado por Calidad.
-                                                        </div>
-                                                    @elseif ($reg->calidad_revision_status === 'rechazado')
-                                                        <div class="lib-estado-badge lib-estado-rechazado" style="margin-top: 20px; display: flex; width: 100%; justify-content: center; box-sizing: border-box; padding: 12px 16px; font-size: 1.1em;">
-                                                            <img src="{{ asset('images/Rechazado.png') }}" alt="Rechazado" style="width:22px; height:22px; object-fit:contain;">
-                                                            Modelo rechazado por Calidad.
-                                                        </div>
-                                                    @elseif ($reg->calidad_revision_status === 'mixto')
-                                                        <div class="lib-estado-badge lib-estado-info" style="margin-top: 20px; display: flex; width: 100%; justify-content: center; box-sizing: border-box; padding: 12px 16px; font-size: 1.1em;">
-                                                            <img src="{{ asset('images/Quality.png') }}" alt="Mixto" style="width:22px; height:22px; object-fit:contain;">
-                                                            Modelo con liberación mixta (algunos tipos aprobados y otros rechazados) por Calidad.
-                                                        </div>
+                                                    @if (Auth::user()->perfil == 4)
+                                                        @php
+                                                            $libStatusClean = str_replace('calidad_', '', $reg->calidad_revision_status);
+                                                        @endphp
+                                                        @if (in_array($reg->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto']))
+                                                            @php
+                                                                $liberaciones = \App\Models\LiberacionModeloFundicion::where('ot', $reg->ot)->get();
+                                                                $aprobados = $liberaciones->where('decision', 'aprobar')->pluck('tipo_modelo')->toArray();
+                                                                $rechazados = $liberaciones->where('decision', 'rechazar')->pluck('tipo_modelo')->toArray();
+                                                            @endphp
+                                                            <div class="lib-calidad-card" id="control-calidad-finalizado-{{ md5($reg->ot) }}" style="opacity: 0.65; pointer-events: none; margin-top: 20px;">
+                                                                <div class="lib-calidad-card-header" style="background: linear-gradient(135deg, #475569, #334155); border-bottom: 2px solid rgba(71, 85, 105, 0.5);">
+                                                                    <img src="{{ asset('images/Quality.png') }}" alt="Calidad" style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
+                                                                    <div style="overflow:hidden;">
+                                                                        <span class="lib-calidad-card-title" style="color: #ffffff;">Control de Modelos &mdash; Calidad</span>
+                                                                        <span class="lib-calidad-card-ot" style="color: #cbd5e1;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="lib-calidad-card-body">
+                                                                    <div class="lib-calidad-action-row">
+                                                                        <h4 class="lib-calidad-card-prompt">
+                                                                            @if ($libStatusClean === 'aprobado')
+                                                                                🟢 Proceso Finalizado (Aprobado): Se envió la alerta de liberación aprobada para los modelos: <strong>{{ implode(', ', $aprobados) }}</strong>.
+                                                                            @elseif ($libStatusClean === 'rechazado')
+                                                                                🔴 Proceso Finalizado (Rechazado): Se envió la alerta de rechazo para los modelos: <strong>{{ implode(', ', $rechazados) }}</strong>.
+                                                                            @elseif ($libStatusClean === 'mixto')
+                                                                                🔵 Proceso Finalizado (Mixto): Se enviaron las alertas correspondientes. Aprobados: <strong>{{ implode(', ', $aprobados) }}</strong> | Rechazados: <strong>{{ implode(', ', $rechazados) }}</strong>.
+                                                                            @endif
+                                                                        </h4>
+                                                                        <div class="lib-calidad-card-btns">
+                                                                            @if ($libStatusClean === 'aprobado')
+                                                                                <button class="btn-modelo btn-modelo-si" style="display: flex; background-color: #059669; color: white;">
+                                                                                    <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
+                                                                                    <span>Aprobado</span>
+                                                                                </button>
+                                                                            @elseif ($libStatusClean === 'rechazado')
+                                                                                <button class="btn-modelo btn-modelo-no" style="display: flex; background-color: #dc2626; color: white;">
+                                                                                    <img src="{{ asset('images/Rechazado.png') }}" alt="No">
+                                                                                    <span>Rechazado</span>
+                                                                                </button>
+                                                                            @elseif ($libStatusClean === 'mixto')
+                                                                                <button class="btn-modelo btn-modelo-edit" style="display: flex; background-color: #0284c7; color: white;">
+                                                                                    <img src="{{ asset('images/Quality.png') }}" alt="Mixto">
+                                                                                    <span>Mixto</span>
+                                                                                </button>
+                                                                            @endif
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endif
                                                     @endif
                                                 @endif
                                             </td>
@@ -1121,6 +1259,66 @@
         </div>
     </div>
 
+    {{-- ── MODAL: FINALIZAR PROCESO DE CALIDAD (CORREO Y FECHA) ── --}}
+    <div id="modalFinalizarCalidad" class="alm-modal" role="dialog" aria-modal="true">
+        <div class="alm-modal-content" id="finalizar-calidad-modal-content" style="max-width: 1100px; border-radius: 20px; overflow: hidden;">
+            <div class="alm-modal-header" id="finalizar-calidad-header" style="padding: 2.2em 2.5em 2em; border-top-left-radius: 18px; border-top-right-radius: 18px; position: relative;">
+                <div class="div-cerrar">
+                    <button type="button" class="btn-cerrar" onclick="cerrarModalFinalizarCalidad()"
+                        style="position: absolute; top: 25px; right: 25px; background: rgba(255, 255, 255, 0.18); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 50%; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" style="width: 14px; height: 14px; filter: brightness(0) invert(1);">
+                    </button>
+                </div>
+                <h3 id="finalizar-calidad-title" style="font-size: 2em; margin: 0; font-family:'Poppins', sans-serif; font-weight: 700; color: #fff;">Finalizar Proceso de Calidad</h3>
+                <p id="finalizar-calidad-subtitle" class="lib-modal-subtitle" style="color: #ffffff; font-size: 1.05em; margin-top: 8px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500;"></p>
+            </div>
+            <div class="alm-modal-body" style="padding: 2.2em 2.5em; background: #fafafa; font-family: 'Poppins', sans-serif;">
+                <form id="formFinalizarCalidad" enctype="multipart/form-data" novalidate>
+                    @csrf
+                    <input type="hidden" id="fc-ot" name="ot">
+                    <input type="hidden" id="fc-decision" name="decision">
+                    <input type="hidden" id="fc-tipo-modelo" name="tipo_modelo">
+                    <input type="hidden" id="fc-tipos-aprobados" name="tipos_aprobados">
+                    <input type="hidden" id="fc-tipos-rechazados" name="tipos_rechazados">
+
+                    <p style="margin-bottom:24px; font-family:'Poppins', sans-serif; font-weight:500; line-height:1.6; color:#334155; font-size: 1.15em;" id="fc-prompt-text">
+                        Se enviará la alerta de liberación de Calidad por correo electrónico. Por favor, especifica los siguientes datos.
+                    </p>
+
+                    {{-- Destinatario(s) --}}
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="fc-destinatario" style="font-size: 1.1em; font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif;">Destinatario(s) <span style="color:#dc2626;">*</span></label>
+                        <input type="text" id="fc-destinatario" name="destinatario" class="form-control" required value="jaxer020406@gmail.com" style="font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
+                        <span style="font-size: 0.85em; color: #64748b; margin-top: 6px; display: block;">Separa múltiples correos usando comas (,).</span>
+                    </div>
+
+                    {{-- FECHA (OBLIGATORIA) --}}
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label id="fc-fecha-label" for="fc-fecha" style="font-weight:700; color:#334155; display:block; margin-bottom:8px; font-family:'Poppins', sans-serif; font-size:1.1em;">
+                            Fecha de Finalización <span style="color:#dc2626;">*</span>
+                        </label>
+                        <input type="date" id="fc-fecha" name="fecha" class="form-control" required style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
+                    </div>
+
+                    {{-- Listado de Documentos del Servidor --}}
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label style="font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif;">Archivos de liberación en servidor a adjuntar:</label>
+                        <div id="fc-server-files-container" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:15px; max-height:420px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(200px, 1fr)); gap:8px; justify-items:center;">
+                            <div class="alm-spinner" id="fc-server-spinner" style="border-top-color: #0284c7; display: block; margin: 10px auto; grid-column:1/-1;"></div>
+                            <span style="text-align:center; color:#64748b; grid-column:1/-1;">Cargando archivos de la OT...</span>
+                        </div>
+                    </div>
+
+                    <div class="form-actions" style="text-align: center; margin-top: 30px; margin-bottom: 10px;">
+                        <button type="submit" class="btn-save-preorden" id="btn-submit-finalizar-calidad" style="font-size:1.15em; padding:14px 30px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight: 700; height: auto;">
+                            Finalizar y Enviar Correo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- ── MODAL: ENVIAR PRE-ORDEN POR CORREO CON ADJUNTOS (FASE 2) ── --}}
     <div id="modalEnviarPreOrden" class="alm-modal">
         <div class="alm-modal-content" style="max-width: 1100px;">
@@ -1286,6 +1484,9 @@
 
     {{-- ── MODAL: SCAR (Solicitud de Acción Correctiva de Rechazo) ─── --}}
     @include('almacen.partials._modal_scar')
+
+    {{-- ── MODAL: INICIAR CASTING / GESTION VEREDICTO (Almacén) ────── --}}
+    @include('almacen.partials._modal_iniciar_casting')
 
     <script>
         window.almacenRoutes = {

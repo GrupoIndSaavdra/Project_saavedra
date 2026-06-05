@@ -1107,6 +1107,48 @@ table.alm-table {
     filter: none !important;
 }
 
+.btn-modelo-casting {
+    background: #16a34a !important;
+    border: 2px solid #15803d !important;
+    color: #ffffff !important;
+}
+
+.btn-modelo-casting img {
+    filter: brightness(0) invert(1) !important;
+}
+
+.btn-modelo-casting:hover {
+    background: #f0fdf4 !important;
+    color: #16a34a !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25) !important;
+}
+
+.btn-modelo-casting:hover img {
+    filter: none !important;
+}
+
+.btn-modelo-casting-red {
+    background: #dc2626 !important;
+    border: 2px solid #b91c1c !important;
+    color: #ffffff !important;
+}
+
+.btn-modelo-casting-red img {
+    filter: brightness(0) invert(1) !important;
+}
+
+.btn-modelo-casting-red:hover {
+    background: #fef2f2 !important;
+    color: #dc2626 !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.25) !important;
+}
+
+.btn-modelo-casting-red:hover img {
+    filter: none !important;
+}
+
 /* ────────────────────────────────────────────────────
    SISTEMA DE PESTAÑAS (Multi Pre-Orden)
 ──────────────────────────────────────────────────── */
@@ -2551,4 +2593,31 @@ table.alm-table {
 }
 .btn-cerrar-alerta:hover img {
     transform: rotate(90deg) scale(1.05) !important;
+}
+
+/* ───────────────────────────────────────────────
+   GESTIONAR VEREDICTO MODAL TABS & HOVERS
+   ─────────────────────────────────────────────── */
+.mgv-tab {
+    opacity: 0.7;
+}
+.mgv-tab.active {
+    opacity: 1 !important;
+    background: #fff !important;
+    color: #1e293b !important;
+}
+
+.custom-file-dropzone .file-icon-wrapper .file-icon {
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity, transform;
+}
+
+.custom-file-dropzone:hover .icon-default {
+    opacity: 0 !important;
+    transform: scale(0.8) !important;
+}
+
+.custom-file-dropzone:hover .icon-hover {
+    opacity: 1 !important;
+    transform: scale(1.15) rotate(3deg) !important;
 }

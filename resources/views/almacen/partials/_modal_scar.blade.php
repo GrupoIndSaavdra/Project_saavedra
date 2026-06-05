@@ -129,7 +129,7 @@
                             <label
                                 style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
                                 <input type="checkbox" id="scar-evidencia-dibujos" name="evidencia_dibujos" value="1"
-                                    style="width: 16px; height: 16px;">
+                                    checked style="width: 16px; height: 16px;">
                                 <span>Dibujos autorizados</span>
                             </label>
                         </div>
@@ -137,7 +137,7 @@
                             <label
                                 style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
                                 <input type="checkbox" id="scar-evidencia-ayudas" name="evidencia_ayudas" value="1"
-                                    style="width: 16px; height: 16px;">
+                                    checked style="width: 16px; height: 16px;">
                                 <span>Ayudas visuales</span>
                             </label>
                         </div>

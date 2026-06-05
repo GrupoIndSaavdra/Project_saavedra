@@ -450,6 +450,15 @@ Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicio
 
     Route::post('/enviar-alerta-liberacion', [\App\Http\Controllers\AlmacenFundicionController::class, 'enviarAlertaLiberacion'])
         ->name('enviarAlertaLiberacion');
+
+    Route::post('/confirmar-recepcion-rechazo', [\App\Http\Controllers\AlmacenFundicionController::class, 'confirmarRecepcionRechazo'])
+        ->name('confirmarRecepcionRechazo');
+
+    Route::post('/iniciar-casting', [\App\Http\Controllers\AlmacenFundicionController::class, 'iniciarCasting'])
+        ->name('iniciarCasting');
+
+    Route::post('/procesar-rechazos', [\App\Http\Controllers\AlmacenFundicionController::class, 'procesarRechazos'])
+        ->name('procesarRechazos');
 });
 
 /* ===========================

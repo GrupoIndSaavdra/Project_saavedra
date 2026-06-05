@@ -58,6 +58,28 @@ document.addEventListener('DOMContentLoaded', () => {
     initToggleFiles();
     initCustomFileInputs();
     initTruncateInputs();
+
+    // Check if we need to open the model pre-order modal after a reload (rejections)
+    const otToOpen = sessionStorage.getItem('openPreordenOt');
+    if (otToOpen) {
+        sessionStorage.removeItem('openPreordenOt');
+        setTimeout(() => {
+            if (typeof window.abrirModalPreOrden === 'function') {
+                window.abrirModalPreOrden(otToOpen);
+            }
+        }, 100);
+    }
+
+    // Check if we need to open the casting pre-order modal after a reload
+    const otCastingToOpen = sessionStorage.getItem('openCastingOt');
+    if (otCastingToOpen) {
+        sessionStorage.removeItem('openCastingOt');
+        setTimeout(() => {
+            if (typeof window.abrirModalPreOrdenCasting === 'function') {
+                window.abrirModalPreOrdenCasting(otCastingToOpen);
+            }
+        }, 100);
+    }
 });
 
 // ── TOGGLE FILAS DE ARCHIVOS ──────────────────────────────────────────────────
@@ -212,6 +234,18 @@ window.abrirModalPreOrden = function (ot) {
 
     window.currentFechaEntrega = '';
 
+    // Mostrar/ocultar badge de ciclo de re-fabricación
+    const cycleMatch = ot.match(/_R(\d+)$/i);
+    const cycleBadge = document.getElementById('po-modal-cycle-badge');
+    if (cycleBadge) {
+        if (cycleMatch) {
+            cycleBadge.textContent = `Ciclo: R${cycleMatch[1]}`;
+            cycleBadge.style.display = 'inline-block';
+        } else {
+            cycleBadge.style.display = 'none';
+        }
+    }
+
     // Resetear estado multi-orden (botón añadir siempre visible)
     resetMultiOrderState();
 
@@ -224,7 +258,7 @@ window.abrirModalPreOrden = function (ot) {
         molduraName = parts.slice(1).join(' - ').trim().replace(/_\d{8}_\d{6}_.*/, '');
     }
     // Dejar solo los números de la OT (por ejemplo, "OT 6748" pasa a "6748")
-    otNum = otNum.replace(/[^0-9]/g, '');
+    otNum = otNum.split('_')[0].replace(/[^0-9]/g, '');
 
     inputOt.value = otNum;
     document.getElementById('po-ot-raw').value = ot;
@@ -591,7 +625,7 @@ function submitPreOrden(payload, btn, originalText, onSuccess) {
                 window.URL.revokeObjectURL(url);
                 mostrarToast('Pre-orden generada y descargada correctamente.');
                 cerrarModalPreOrden();
-                
+
                 // Recargar para actualizar los estados y la lista de archivos
                 setTimeout(() => { window.location.reload(); }, 1500);
                 if (onSuccess) onSuccess(data);
@@ -672,6 +706,124 @@ let alAdicionalesSelectedFiles = [];
 let cmConfirmarSelectedFiles = [];
 let scarFotosSelectedFiles = [];
 let scarOtrosSelectedFiles = [];
+let micAdicionalesSelectedFiles = [];
+window.micRequiredClasses = [];
+
+function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
+    let dibujosPdfs = [];
+    let ayudasPdfs = [];
+    let aprobadosPdfs = [];
+    let rechazadosPdfs = [];
+    let otrosPdfs = [];
+
+    if (Array.isArray(archivos)) {
+        archivos.forEach(f => {
+            const ext = f.nombre.split('.').pop().toLowerCase();
+            if (['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes(ext)) {
+                if (f.tipo === 'dibujo') {
+                    dibujosPdfs.push(f);
+                } else if (f.tipo === 'ayuda') {
+                    ayudasPdfs.push(f);
+                } else {
+                    const lower = f.nombre.toLowerCase();
+                    if (lower.includes('documentos_rechazados') || lower.includes('rechazado') || lower.includes('scar')) {
+                        rechazadosPdfs.push(f);
+                    } else {
+                        aprobadosPdfs.push(f);
+                    }
+                }
+            }
+        });
+    }
+
+    const makeCategorySection = (title, files, inputName, colorClass) => {
+        if (files.length === 0) return '';
+
+        let borderLeftColor = '#033966';
+        if (title.toLowerCase().includes('rechazados') || title.toLowerCase().includes('scar')) {
+            borderLeftColor = '#9c0300';
+        } else if (title.toLowerCase().includes('aprobados') || title.toLowerCase().includes('liberación') || title.toLowerCase().includes('liberados')) {
+            borderLeftColor = '#059669';
+        } else if (title.toLowerCase().includes('dibujos') || title.toLowerCase().includes('planos')) {
+            borderLeftColor = '#0284c7';
+        } else if (title.toLowerCase().includes('ayudas')) {
+            borderLeftColor = '#d97706';
+        }
+
+        return `
+            <div style="width: 100%;">
+                <h4 style="font-family:'Poppins',sans-serif;font-weight:700;color:#1e293b;font-size:1.05em;margin-top:10px;margin-bottom:12px;border-left:4px solid ${borderLeftColor};padding-left:8px;text-align:left;">${title}</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; justify-items: center; width: 100%;">
+                    ${files.map((f, idx) => {
+            const cleanName = f.nombre.split('/').pop();
+
+            const ext = f.nombre.split('.').pop().toLowerCase();
+            const esImg = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes(ext);
+            const defaultIcon = esImg ? 'galeria-shadow.png' : 'pdf-view-shadow.png';
+            const hoverIcon = esImg ? 'galeria.png' : 'pdf-view.png';
+
+            return `
+                            <div class="dibujos-file-card ${colorClass} select-file-card checked-card" style="position: relative; width: 100%; max-width: 220px; display: inline-flex; flex-direction: column; align-items: center; text-align: center; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; background: #fff; padding: 10px; border: 1.5px solid #e2e8f0;">
+                                <div style="position: absolute; top: 10px; left: 10px; z-index: 10;">
+                                    <input type="checkbox" name="${inputName}" value="${f.nombre}" checked style="width: 20px; height: 20px; cursor: pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card', this.checked);">
+                                </div>
+
+                                <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}', '${f.nombre}', '${f.tipo}')" style="cursor: pointer; margin-top: 10px;" title="Abrir Archivo">
+                                    <img src="${baseUrl}images/${defaultIcon}" class="file-icon icon-default" style="width: 48px; height: auto;">
+                                    <img src="${baseUrl}images/${hoverIcon}" class="file-icon icon-hover" style="width: 48px; height: auto;">
+                                </div>
+                                <div class="file-name" style="cursor: pointer; font-size: 0.82em; margin: 8px 0; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-weight: 600; color: #334155; line-height: 1.3;" title="Abrir Archivo" onclick="almacenVerPdf('${ot}', '${f.nombre}', '${f.tipo}')">
+                                    ${cleanName}
+                                </div>
+                                <div class="file-actions" style="width: 100%; margin-top: auto;">
+                                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="font-size:0.8em;padding:5px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex-shrink:0;width:100%;" onclick="almacenVerPdf('${ot}', '${f.nombre}', '${f.tipo}')">Ver</button>
+                                </div>
+                            </div>
+                        `;
+        }).join('')}
+                </div>
+            </div>
+        `;
+    };
+
+    let nameDibujos = 'dibujos[]';
+    let nameAyudas = 'ayudas[]';
+    let nameAprobados = 'dibujos_aprobados[]';
+    let nameRechazados = 'dibujos_rechazados[]';
+    let nameOtros = 'otros_documentos[]';
+
+    if (inputNameMode === 'preorden') {
+        nameDibujos = 'archivos_seleccionados[]';
+        nameAyudas = 'archivos_seleccionados[]';
+        nameAprobados = 'archivos_seleccionados[]';
+        nameRechazados = 'archivos_seleccionados[]';
+        nameOtros = 'archivos_seleccionados[]';
+    } else if (inputNameMode === 'scar') {
+        nameDibujos = 'dibujos[]';
+        nameAyudas = 'ayudas[]';
+        nameAprobados = 'otros_documentos[]';
+        nameRechazados = 'otros_documentos[]';
+        nameOtros = 'otros_documentos[]';
+    }
+
+    let sectionsHtml = '';
+    sectionsHtml += makeCategorySection('Ayudas Visuales', ayudasPdfs, nameAyudas, 'card-ayuda');
+    sectionsHtml += makeCategorySection('Dibujos de Fundición', dibujosPdfs, nameDibujos, 'card-plano');
+    sectionsHtml += makeCategorySection('Documentos Aprobados', aprobadosPdfs, nameAprobados, 'card-ayuda');
+    
+    const isReprocesoRechazos = /_[rR]\d+/.test(ot);
+    const hideRechazados = (inputNameMode === 'preorden' && !isReprocesoRechazos);
+    
+    if (!hideRechazados) {
+        sectionsHtml += makeCategorySection(inputNameMode === 'calidad' ? 'Documentos Rechazados' : 'Documentos Rechazados (SCAR)', rechazadosPdfs, nameRechazados, 'card-ayuda');
+    }
+
+    if (inputNameMode !== 'calidad') {
+        sectionsHtml += makeCategorySection('Otros Documentos', otrosPdfs, nameOtros, 'card-ayuda');
+    }
+
+    return sectionsHtml;
+}
 
 window.abrirModalEnviarPreOrden = function (ot) {
     const modal = document.getElementById('modalEnviarPreOrden');
@@ -714,29 +866,12 @@ window.abrirModalEnviarPreOrden = function (ot) {
                 let baseUrl = window.baseUrl || (window.location.origin + '/');
                 if (!baseUrl.endsWith('/')) baseUrl += '/';
 
-                filesContainer.innerHTML = data.archivos.map((file, index) => {
-                    const checkedAttr = 'checked';
-                    const dispName = file.nombre.split('/').pop();
-                    return `
-                        <div class="dibujos-file-card card-ayuda select-file-card checked-card" style="position: relative; animation-delay: ${index * 0.05}s; width: 100%; max-width: 220px; display: inline-flex; flex-direction: column; align-items: center; text-align: center; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box;">
-                            <!-- Checkbox overlay -->
-                            <div style="position: absolute; top: 10px; left: 10px; z-index: 10;">
-                                <input type="checkbox" name="archivos_seleccionados[]" value="${file.nombre}" ${checkedAttr} style="width: 20px; height: 20px; cursor: pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card', this.checked);">
-                            </div>
-
-                            <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}', '${file.nombre}', '${file.tipo}')" style="cursor: pointer; margin-top: 10px;" title="Abrir PDF">
-                                <img src="${baseUrl}images/pdf-view-shadow.png" class="file-icon icon-default">
-                                <img src="${baseUrl}images/pdf-view.png" class="file-icon icon-hover">
-                            </div>
-                            <div class="file-name" style="cursor: pointer; font-size: 0.85em; margin: 8px 0; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-weight: 600; color: #334155; line-height: 1.3;" title="Abrir PDF" onclick="almacenVerPdf('${ot}', '${file.nombre}', '${file.tipo}')">
-                                ${dispName}
-                            </div>
-                            <div class="file-actions" style="width: 100%; margin-top: auto;">
-                                <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="almacenVerPdf('${ot}', '${file.nombre}', '${file.tipo}')">Ver</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+                const sectionsHtml = generarHtmlCategorizadoArchivos(data.archivos, ot, baseUrl, 'preorden');
+                filesContainer.innerHTML = sectionsHtml || `
+                    <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
+                        No se encontraron archivos en el servidor para esta OT.
+                    </div>
+                `;
             } else {
                 filesContainer.innerHTML = `
                     <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
@@ -937,7 +1072,111 @@ function initCustomFileInputs() {
             this.value = ''; // Reset input to allow re-selection
         });
     }
+    const inputMicAdicionales = document.getElementById('mic-archivos-adicionales');
+    if (inputMicAdicionales) {
+        inputMicAdicionales.addEventListener('change', function () {
+            if (this.files && this.files.length > 0) {
+                Array.from(this.files).forEach(file => {
+                    const alreadyExists = micAdicionalesSelectedFiles.some(item => item.file.name === file.name && item.file.size === file.size);
+                    if (!alreadyExists) {
+                        let initialType = '';
+                        const fnameLower = file.name.toLowerCase();
+                        if (fnameLower.includes('ldm')) {
+                            if (fnameLower.includes('fondo') && window.micRequiredClasses.includes('fondo')) initialType = 'ldm_fondo';
+                            else if (fnameLower.includes('bombillo') && window.micRequiredClasses.includes('bombillo')) initialType = 'ldm_bombillo';
+                            else if (fnameLower.includes('molde') && window.micRequiredClasses.includes('molde')) initialType = 'ldm_molde';
+                            else if (fnameLower.includes('obturador') && window.micRequiredClasses.includes('obturador')) initialType = 'ldm_obturador';
+                        }
+                        micAdicionalesSelectedFiles.push({
+                            file: file,
+                            type: initialType
+                        });
+                    }
+                });
+            }
+            renderMicAdicionalesBadges();
+            this.value = ''; // Reset input to allow re-selection
+        });
+    }
 }
+
+function renderMicAdicionalesBadges() {
+    const listContainer = document.getElementById('mic-archivos-adicionales-list');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '';
+
+    const currentTypes = micAdicionalesSelectedFiles.map(item => item.type);
+
+    if (window.micRequiredClasses) {
+        window.micRequiredClasses.forEach(c => {
+            const li = document.getElementById(`mic-req-item-${c}`);
+            if (li) {
+                if (currentTypes.includes(`ldm_${c}`)) {
+                    li.innerHTML = `✅ Formato F-CCL-LDM para <span style="text-transform: capitalize; color: #10b981;">${c}</span> cargado`;
+                    li.style.color = '#10b981';
+                } else {
+                    li.innerHTML = `⚠️ Falta cargar F-CCL-LDM para <span style="text-transform: capitalize;">${c}</span>`;
+                    li.style.color = '#b45309';
+                }
+            }
+        });
+    }
+
+    micAdicionalesSelectedFiles.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'select-file-card';
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.justifyContent = 'space-between';
+        row.style.background = '#fff';
+        row.style.border = '1px solid #e2e8f0';
+        row.style.borderRadius = '8px';
+        row.style.padding = '10px 15px';
+        row.style.gap = '15px';
+        row.style.fontFamily = "'Poppins', sans-serif";
+
+        let selectOptionsHtml = `<option value="">-- Selecciona el tipo de documento --</option>`;
+        if (window.micRequiredClasses) {
+            window.micRequiredClasses.forEach(c => {
+                const isSelected = item.type === `ldm_${c}` ? 'selected' : '';
+                selectOptionsHtml += `<option value="ldm_${c}" ${isSelected}>Formato F-CCL-LDM - ${c.toUpperCase()}</option>`;
+            });
+        }
+        const isAdicionalSelected = item.type === 'adicional' ? 'selected' : '';
+        selectOptionsHtml += `<option value="adicional" ${isAdicionalSelected}>Documento Adicional</option>`;
+
+        row.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0;">
+                <span style="font-size: 1.5em;">📄</span>
+                <div style="min-width: 0;">
+                    <div style="font-weight: 600; color: #334155; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${item.file.name}">${item.file.name}</div>
+                    <div style="font-size: 0.8em; color: #64748b;">(${(item.file.size / 1024).toFixed(1)} KB)</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <select class="form-control" style="font-family:'Poppins',sans-serif; font-size: 0.9em; padding: 6px 12px; height: auto; border-radius: 6px; width: 240px;" onchange="updateMicFileAssociation(${index}, this.value)">
+                    ${selectOptionsHtml}
+                </select>
+                <button type="button" style="background: #fca5a5; border: none; border-radius: 50%; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9c0300; font-weight: bold; font-size: 1.1em; transition: all 0.2s;" onclick="removeMicAdicionalesAttachment(${index})" title="Eliminar">&times;</button>
+            </div>
+        `;
+        listContainer.appendChild(row);
+    });
+}
+
+window.updateMicFileAssociation = function (index, value) {
+    if (micAdicionalesSelectedFiles[index]) {
+        micAdicionalesSelectedFiles[index].type = value;
+        renderMicAdicionalesBadges();
+    }
+};
+
+window.removeMicAdicionalesAttachment = function (index) {
+    micAdicionalesSelectedFiles.splice(index, 1);
+    renderMicAdicionalesBadges();
+};
+
 
 function renderScarFotosBadges() {
     const listContainer = document.getElementById('scar-fotos-list');
@@ -1160,7 +1399,7 @@ function renderAlFotosBadges() {
     if (!listContainer) return;
 
     listContainer.innerHTML = '';
-    
+
     if (alFotosSelectedFiles.length > 0) {
         if (textEl) {
             textEl.textContent = `${alFotosSelectedFiles.length} archivo(s) seleccionado(s)`;
@@ -1262,16 +1501,16 @@ window.removeAlAdicionalesAttachment = function (index) {
  * lib-tabla-fondo=> Fondo
  */
 const LIB_TABLA_MAP = {
-    'Fondo':     ['lib-tabla-fondo'],
+    'Fondo': ['lib-tabla-fondo'],
     'Obturador': ['lib-tabla-obturador'],
-    'Molde':     ['lib-tabla-1', 'lib-tabla-2'],
-    'Bombillo':  ['lib-tabla-1', 'lib-tabla-2'],
+    'Molde': ['lib-tabla-1', 'lib-tabla-2'],
+    'Bombillo': ['lib-tabla-1', 'lib-tabla-2'],
 };
 
 const LIB_TODAS_TABLAS = ['lib-tabla-1', 'lib-tabla-2', 'lib-tabla-fondo', 'lib-tabla-obturador'];
 
 let _libTipo = 'aprobar';
-let _libOt   = '';
+let _libOt = '';
 
 // ── Apertura del modal ────────────────────────────────────────────────────────
 
@@ -1283,17 +1522,17 @@ let _libOt   = '';
  */
 window.abrirModalLiberacion = function (ot, tipo) {
     _libTipo = tipo;
-    _libOt   = ot;
+    _libOt = ot;
 
-    const modal        = document.getElementById('modalLiberacionModelo');
-    const header       = document.getElementById('lib-modal-header');
-    const title        = document.getElementById('lib-modal-title-text') || document.getElementById('lib-modal-title');
-    const subtitle     = document.getElementById('lib-modal-subtitle');
+    const modal = document.getElementById('modalLiberacionModelo');
+    const header = document.getElementById('lib-modal-header');
+    const title = document.getElementById('lib-modal-title-text') || document.getElementById('lib-modal-title');
+    const subtitle = document.getElementById('lib-modal-subtitle');
     const rechazoBlock = document.getElementById('lib-rechazo-block');
-    const actionsEl    = document.getElementById('lib-actions');
-    const hiddenOt     = document.getElementById('lib-ot');
+    const actionsEl = document.getElementById('lib-actions');
+    const hiddenOt = document.getElementById('lib-ot');
     const hiddenAccion = document.getElementById('lib-accion');
-    const otDisplay    = document.getElementById('lib-ot-display');
+    const otDisplay = document.getElementById('lib-ot-display');
 
     if (!modal) return;
 
@@ -1309,19 +1548,19 @@ window.abrirModalLiberacion = function (ot, tipo) {
 
     if (esRechazo) {
         header.classList.add('lib-modal-header-rechazo');
-        if (title)    title.textContent    = 'Formato de Rechazo de Modelo — F-CCL-LDM';
+        if (title) title.textContent = 'Formato de Rechazo de Modelo — F-CCL-LDM';
         if (subtitle) subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, '')}  |  Modo: Rechazo`;
         if (rechazoBlock) rechazoBlock.style.display = '';
     } else {
         header.classList.remove('lib-modal-header-rechazo');
-        if (title)    title.textContent    = 'Formato de Liberacion de Modelos — F-CCL-LDM';
+        if (title) title.textContent = 'Formato de Liberacion de Modelos — F-CCL-LDM';
         if (subtitle) subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, '')}  |  Modo: Aprobacion`;
         if (rechazoBlock) rechazoBlock.style.display = 'none';
     }
 
     if (actionsEl) {
-        const imgDescarga  = window.almacenAppAssets?.descarga  ?? '/images/Descarga.png';
-        const imgAprobado  = window.almacenAppAssets?.aprobado  ?? '/images/aprobado.png';
+        const imgDescarga = window.almacenAppAssets?.descarga ?? '/images/Descarga.png';
+        const imgAprobado = window.almacenAppAssets?.aprobado ?? '/images/aprobado.png';
         const imgRechazado = window.almacenAppAssets?.rechazado ?? '/images/Rechazado.png';
 
         actionsEl.innerHTML = `
@@ -1339,7 +1578,7 @@ window.abrirModalLiberacion = function (ot, tipo) {
             ?.addEventListener('click', () => _libSubmit('accion'));
     }
 
-    if (hiddenOt)     hiddenOt.value     = ot;
+    if (hiddenOt) hiddenOt.value = ot;
     if (hiddenAccion) hiddenAccion.value = esRechazo ? 'rechazar' : 'aprobar';
 
     // Abrir modal
@@ -1377,9 +1616,9 @@ function _libActualizarBadgeEstado(ot, nuevoEstado) {
 
     const assets = window.almacenAppAssets ?? {};
     const imgMap = {
-        pendiente : { src: assets.guardado  ?? '/images/Guardado.png',  alt: 'Guardado (Borrador)', cls: 'badge-modelo-guardado',  title: 'Datos capturados por Calidad (borrador)' },
-        aprobado  : { src: assets.aprobado  ?? '/images/aprobado.png',  alt: 'Aprobado',            cls: 'badge-modelo-ok',       title: 'Modelo liberado y aprobado por Calidad' },
-        rechazado : { src: assets.rechazado ?? '/images/Rechazado.png', alt: 'Rechazado',           cls: 'badge-modelo-rechazado', title: 'Modelo rechazado por Calidad' },
+        pendiente: { src: assets.guardado ?? '/images/Guardado.png', alt: 'Guardado (Borrador)', cls: 'badge-modelo-guardado', title: 'Datos capturados por Calidad (borrador)' },
+        aprobado: { src: assets.aprobado ?? '/images/aprobado.png', alt: 'Aprobado', cls: 'badge-modelo-ok', title: 'Modelo liberado y aprobado por Calidad' },
+        rechazado: { src: assets.rechazado ?? '/images/Rechazado.png', alt: 'Rechazado', cls: 'badge-modelo-rechazado', title: 'Modelo rechazado por Calidad' },
     };
 
     const cfg = imgMap[nuevoEstado];
@@ -1422,7 +1661,7 @@ document.addEventListener('keydown', (e) => {
  * @param {string} tipo - Valor seleccionado en #lib-tipo
  */
 window.libCambiarTipo = function (tipo) {
-    const aviso    = document.getElementById('lib-tabla-aviso');
+    const aviso = document.getElementById('lib-tabla-aviso');
     const visibles = LIB_TABLA_MAP[tipo] ?? [];
 
     // Resetear formulario para evitar cruce de datos entre "Molde" y "Bombillo"
@@ -1430,7 +1669,7 @@ window.libCambiarTipo = function (tipo) {
     const currOt = document.getElementById('lib-ot')?.value;
     const currAcc = document.getElementById('lib-accion')?.value;
     if (form) form.reset();
-    
+
     // Restaurar meta datos despues de limpiar
     if (document.getElementById('lib-ot')) document.getElementById('lib-ot').value = currOt;
     if (document.getElementById('lib-accion')) document.getElementById('lib-accion').value = currAcc;
@@ -1492,10 +1731,10 @@ function _libGetSerializedForm() {
  * @param {HTMLElement} wrapper - div.lib-img-zoom-wrapper
  */
 window.libAbrirLightbox = function (wrapper) {
-    const lb      = document.getElementById('lib-lightbox');
-    const lbImg   = document.getElementById('lib-lightbox-img');
-    const lbCap   = document.getElementById('lib-lightbox-caption');
-    const img     = wrapper.querySelector('.lib-ref-img');
+    const lb = document.getElementById('lib-lightbox');
+    const lbImg = document.getElementById('lib-lightbox-img');
+    const lbCap = document.getElementById('lib-lightbox-caption');
+    const img = wrapper.querySelector('.lib-ref-img');
 
     if (!lb || !lbImg || !img) return;
 
@@ -1532,7 +1771,7 @@ function _libInicializarZoom() {
     if (!zoomResult) return;
 
     // Tamano del recuadro de zoom y factor de ampliacion
-    const ZOOM_SIZE  = 450;
+    const ZOOM_SIZE = 450;
     const ZOOM_RATIO = 3.2;
 
     document.addEventListener('mousemove', (e) => {
@@ -1549,12 +1788,12 @@ function _libInicializarZoom() {
             return;
         }
 
-        const img  = wrapper.querySelector('.lib-ref-img');
+        const img = wrapper.querySelector('.lib-ref-img');
         if (!img || !img.complete) return;
 
         const rect = img.getBoundingClientRect();
-        const x    = e.clientX - rect.left;
-        const y    = e.clientY - rect.top;
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
 
         // Ignorar si el cursor esta fuera de los limites de la imagen
         if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
@@ -1566,11 +1805,11 @@ function _libInicializarZoom() {
         const bgX = -((x * ZOOM_RATIO) - ZOOM_SIZE / 2);
         const bgY = -((y * ZOOM_RATIO) - ZOOM_SIZE / 2);
 
-        zoomResult.style.display         = 'block';
+        zoomResult.style.display = 'block';
         zoomResult.style.backgroundImage = `url(${img.src})`;
-        zoomResult.style.backgroundSize  = `${rect.width * ZOOM_RATIO}px ${rect.height * ZOOM_RATIO}px`;
+        zoomResult.style.backgroundSize = `${rect.width * ZOOM_RATIO}px ${rect.height * ZOOM_RATIO}px`;
         zoomResult.style.backgroundPosition = `${bgX}px ${bgY}px`;
-        zoomResult.style.width  = `${ZOOM_SIZE}px`;
+        zoomResult.style.width = `${ZOOM_SIZE}px`;
         zoomResult.style.height = `${ZOOM_SIZE}px`;
 
         // Posicionar el recuadro cerca del cursor, evitando que salga de pantalla
@@ -1584,7 +1823,7 @@ function _libInicializarZoom() {
         if (posY + ZOOM_SIZE > window.innerHeight - 10) posY = window.innerHeight - ZOOM_SIZE - 10;
 
         zoomResult.style.left = `${posX}px`;
-        zoomResult.style.top  = `${posY}px`;
+        zoomResult.style.top = `${posY}px`;
     });
 
     document.addEventListener('mouseleave', () => {
@@ -1604,15 +1843,15 @@ async function _libCargarDatos(ot) {
     if (!window.almacenRoutes?.getLiberacion) return;
 
     try {
-        const url  = `${window.almacenRoutes.getLiberacion}?ot=${encodeURIComponent(ot)}`;
+        const url = `${window.almacenRoutes.getLiberacion}?ot=${encodeURIComponent(ot)}`;
         const resp = await fetch(url, {
             headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         });
         const data = await resp.json();
-        
+
         // Guardamos el cache completo de registros independientes
         window.cacheLiberacionGlobal = data.registros_por_tipo || {};
-        
+
         // Colorear las opciones del select según su estado
         _libActualizarColoresSelect();
 
@@ -1741,17 +1980,17 @@ function _libRellenarInputs(lib) {
             });
         }
 
-        const obsModelo    = document.getElementById('lib-obs-modelo');
+        const obsModelo = document.getElementById('lib-obs-modelo');
         const obsPlantilla = document.getElementById('lib-obs-plantilla');
-        const obsFondo     = document.getElementById('lib-obs-fondo');
+        const obsFondo = document.getElementById('lib-obs-fondo');
         const obsObturador = document.getElementById('lib-obs-obturador');
-        const rechEl       = document.getElementById('lib-motivo-rechazo');
+        const rechEl = document.getElementById('lib-motivo-rechazo');
 
-        if (obsModelo)    obsModelo.value    = lib.observaciones_modelo || '';
+        if (obsModelo) obsModelo.value = lib.observaciones_modelo || '';
         if (obsPlantilla) obsPlantilla.value = lib.observaciones_plantilla || '';
-        if (obsFondo)     obsFondo.value     = lib.observaciones_fondo || '';
+        if (obsFondo) obsFondo.value = lib.observaciones_fondo || '';
         if (obsObturador) obsObturador.value = lib.observaciones_obturador || '';
-        if (rechEl)       rechEl.value       = lib.motivo_rechazo || '';
+        if (rechEl) rechEl.value = lib.motivo_rechazo || '';
 
         // Truncar y formatear todos los campos numericos despues de cargar
         document.querySelectorAll('.lib-num-input, .lib-num-input-sm').forEach(inp => {
@@ -1841,7 +2080,7 @@ async function _libSubmit(accion) {
     if (accion === 'accion' && decisionVal === 'rechazar') {
         const cached = window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[tipoVal];
         const isAlreadyRejected = cached && cached.decision === 'rechazar';
-        
+
         if (isAlreadyRejected && window._libLastSavedState === currentFormState) {
             // Abrir SCAR directamente sin descargar de nuevo el PDF
             const motivoRechazo = document.getElementById('lib-motivo-rechazo')?.value || '';
@@ -1853,7 +2092,7 @@ async function _libSubmit(accion) {
         }
     }
 
-    const fd   = new FormData(form);
+    const fd = new FormData(form);
     fd.set('accion', accion);
     fd.set('decision', decisionVal);
     fd.set('ot', ot);
@@ -1864,10 +2103,10 @@ async function _libSubmit(accion) {
 
     try {
         const resp = await fetch(window.almacenRoutes.submitLiberacion, {
-            method : 'POST',
+            method: 'POST',
             headers: {
-                'Accept'          : 'application/json',
-                'X-CSRF-TOKEN'    : document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
                 'X-Requested-With': 'XMLHttpRequest',
             },
             body: fd,
@@ -1880,8 +2119,8 @@ async function _libSubmit(accion) {
 
             // Descargar PDF automaticamente con nombre estetico
             if (data.pdf_url) {
-                const enlace    = document.createElement('a');
-                enlace.href     = data.pdf_url;
+                const enlace = document.createElement('a');
+                enlace.href = data.pdf_url;
                 enlace.download = data.pdf_filename ?? 'Liberacion_Modelos.pdf';
                 enlace.style.display = 'none';
                 document.body.appendChild(enlace);
@@ -1914,7 +2153,7 @@ async function _libSubmit(accion) {
                 const esRechazoFinal = esRechazoPorDecision || decisionFD === 'rechazar';
 
                 if (esRechazoFinal && typeof window.abrirModalScar === 'function') {
-                    const tipoModelo    = document.getElementById('lib-tipo')?.value || '';
+                    const tipoModelo = document.getElementById('lib-tipo')?.value || '';
                     const motivoRechazo = document.getElementById('lib-motivo-rechazo')?.value || '';
                     // Pequeno delay para que el PDF se descargue primero
                     setTimeout(() => {
@@ -1979,21 +2218,21 @@ const ModeloStateMachine = (() => {
     // ── Registro de estados ───────────────────────────────────────────────────
     const ESTADOS = {
         // ── Nivel 1: Transitorios ──────────────────────────────────────────
-        recibido   : { img: 'Recibido.png',  cls: 'badge-modelo-recibido',   nivel: 1, prio:  1, title: 'Recibido — En espera de revisión'              },
-        revisando  : { img: 'Revisando.png', cls: 'badge-modelo-revisando',  nivel: 1, prio:  2, title: 'Revisando — Archivos abiertos'                 },
-        editando   : { img: 'Editando.png',  cls: 'badge-modelo-editando',   nivel: 1, prio:  3, title: 'Editando — Tomando decisión de liberación'     },
+        recibido: { img: 'Recibido.png', cls: 'badge-modelo-recibido', nivel: 1, prio: 1, title: 'Recibido — En espera de revisión' },
+        revisando: { img: 'Revisando.png', cls: 'badge-modelo-revisando', nivel: 1, prio: 2, title: 'Revisando — Archivos abiertos' },
+        editando: { img: 'Editando.png', cls: 'badge-modelo-editando', nivel: 1, prio: 3, title: 'Editando — Tomando decisión de liberación' },
         // ── Nivel 2: Permanentes ───────────────────────────────────────────
-        guardado   : { img: 'Guardado.png',  cls: 'badge-modelo-guardado',   nivel: 2, prio:  4, title: 'Guardado — Datos capturados como borrador'     },
-        descargado : { img: 'Descarga.png',  cls: 'badge-modelo-descargado', nivel: 2, prio:  5, title: 'Descargado — Reporte PDF generado y descargado' },
-        espera     : { img: 'Espera.png',    cls: 'badge-modelo-espera',     nivel: 2, prio:  6, title: 'En Espera — Departamento confirmó, procesando'  },
+        guardado: { img: 'Guardado.png', cls: 'badge-modelo-guardado', nivel: 2, prio: 4, title: 'Guardado — Datos capturados como borrador' },
+        descargado: { img: 'Descarga.png', cls: 'badge-modelo-descargado', nivel: 2, prio: 5, title: 'Descargado — Reporte PDF generado y descargado' },
+        espera: { img: 'Espera.png', cls: 'badge-modelo-espera', nivel: 2, prio: 6, title: 'En Espera — Departamento confirmó, procesando' },
         // ── Nivel 3: Terminales ────────────────────────────────────────────
-        aprobado   : { img: 'aprobado.png',  cls: 'badge-modelo-ok',         nivel: 3, prio: 99, title: 'Aprobado — Modelo liberado por Calidad'         },
-        rechazado  : { img: 'Rechazado.png', cls: 'badge-modelo-rechazado',  nivel: 3, prio: 99, title: 'Rechazado — Liberación rechazada por Calidad'   },
+        aprobado: { img: 'aprobado.png', cls: 'badge-modelo-ok', nivel: 3, prio: 99, title: 'Aprobado — Modelo liberado por Calidad' },
+        rechazado: { img: 'Rechazado.png', cls: 'badge-modelo-rechazado', nivel: 3, prio: 99, title: 'Rechazado — Liberación rechazada por Calidad' },
         // ── Alias de compatibilidad (backend / v3 legacy) ─────────────────
-        pendiente  : { img: 'Guardado.png',  cls: 'badge-modelo-guardado',   nivel: 2, prio:  4, title: 'Guardado — Datos capturados como borrador'      },
-        enviando   : { img: 'Espera.png',    cls: 'badge-modelo-espera',     nivel: 2, prio:  6, title: 'En Espera — Departamento confirmó, procesando'  },
-        en_proceso : { img: 'Guardado.png',  cls: 'badge-modelo-guardado',   nivel: 2, prio:  4, title: 'Guardado — Datos capturados como borrador'      },
-        documento  : { img: 'Espera.png',    cls: 'badge-modelo-espera',     nivel: 2, prio:  6, title: 'En Espera — Departamento confirmó, procesando'  },
+        pendiente: { img: 'Guardado.png', cls: 'badge-modelo-guardado', nivel: 2, prio: 4, title: 'Guardado — Datos capturados como borrador' },
+        enviando: { img: 'Espera.png', cls: 'badge-modelo-espera', nivel: 2, prio: 6, title: 'En Espera — Departamento confirmó, procesando' },
+        en_proceso: { img: 'Guardado.png', cls: 'badge-modelo-guardado', nivel: 2, prio: 4, title: 'Guardado — Datos capturados como borrador' },
+        documento: { img: 'Espera.png', cls: 'badge-modelo-espera', nivel: 2, prio: 6, title: 'En Espera — Departamento confirmó, procesando' },
     };
 
     /** Mapa alias → estado canónico para la caché interna */
@@ -2019,7 +2258,7 @@ const ModeloStateMachine = (() => {
         const cfg = ESTADOS[estado];
         if (!cfg) { console.warn(`[FSM] Estado desconocido: "${estado}"`); return false; }
 
-        const actual    = _cache[ot];
+        const actual = _cache[ot];
         const cfgActual = actual ? ESTADOS[actual] : null;
 
         // Regla 1 — Terminales son permanentes
@@ -2052,37 +2291,37 @@ const ModeloStateMachine = (() => {
     /** Lee los badges ya renderizados por Blade y sincroniza el caché interno */
     function init() {
         const IMG_TO_ESTADO = {
-            'recibido.png'  : 'recibido',   'revisando.png' : 'revisando',
-            'editando.png'  : 'editando',   'guardado.png'  : 'guardado',
-            'descarga.png'  : 'descargado', 'espera.png'    : 'espera',
-            'aprobado.png'  : 'aprobado',   'rechazado.png' : 'rechazado',
+            'recibido.png': 'recibido', 'revisando.png': 'revisando',
+            'editando.png': 'editando', 'guardado.png': 'guardado',
+            'descarga.png': 'descargado', 'espera.png': 'espera',
+            'aprobado.png': 'aprobado', 'rechazado.png': 'rechazado',
             // alias legacy que puedan venir del DOM en versiones anteriores
-            'documento.png' : 'espera',     'enviando.png'  : 'espera',
+            'documento.png': 'espera', 'enviando.png': 'espera',
         };
         document.querySelectorAll('[id^="status-modelo-"]').forEach(el => {
-            const ot  = el.id.replace('status-modelo-', '');
+            const ot = el.id.replace('status-modelo-', '');
             const img = el.querySelector('img');
             if (!img || _cache[ot]) return;
             const filename = img.src.split('/').pop().toLowerCase();
-            const estado   = IMG_TO_ESTADO[filename];
+            const estado = IMG_TO_ESTADO[filename];
             if (estado) { _cache[ot] = estado; console.info(`[FSM] init: "${ot}" → ${estado}`); }
         });
     }
 
     // ── API semántica ─────────────────────────────────────────────────────────
-    function getEstado(ot)          { return _cache[ot] ?? null; }
-    function getNivel(ot)           { return ESTADOS[_cache[ot]]?.nivel ?? 0; }
+    function getEstado(ot) { return _cache[ot] ?? null; }
+    function getNivel(ot) { return ESTADOS[_cache[ot]]?.nivel ?? 0; }
 
-    function onAlertaEnviada(ot)    { transicion(ot, 'recibido');    }
-    function onVerArchivos(ot)      { transicion(ot, 'revisando');   }
-    function onAbrirDecision(ot)    { transicion(ot, 'editando');    }
-    function onGuardar(ot)          { transicion(ot, 'guardado');    }
-    function onDescargado(ot)       { transicion(ot, 'descargado');  }
-    function onCorreoEnviado(ot)    { transicion(ot, 'espera');      }
-    function onConfirmarModelo(ot)  { transicion(ot, 'espera');      }
-    function onEnEspera(ot)         { transicion(ot, 'espera');      }
-    function onAprobado(ot)         { _forzarTerminal(ot, 'aprobado');  }
-    function onRechazado(ot)        { _forzarTerminal(ot, 'rechazado'); }
+    function onAlertaEnviada(ot) { transicion(ot, 'recibido'); }
+    function onVerArchivos(ot) { transicion(ot, 'revisando'); }
+    function onAbrirDecision(ot) { transicion(ot, 'editando'); }
+    function onGuardar(ot) { transicion(ot, 'guardado'); }
+    function onDescargado(ot) { transicion(ot, 'descargado'); }
+    function onCorreoEnviado(ot) { transicion(ot, 'espera'); }
+    function onConfirmarModelo(ot) { transicion(ot, 'espera'); }
+    function onEnEspera(ot) { transicion(ot, 'espera'); }
+    function onAprobado(ot) { _forzarTerminal(ot, 'aprobado'); }
+    function onRechazado(ot) { _forzarTerminal(ot, 'rechazado'); }
 
     return {
         transicion, _forzarTerminal, init,
@@ -2117,7 +2356,7 @@ document.addEventListener('DOMContentLoaded', () => ModeloStateMachine.init());
         const estado = mapa[nuevoEstado] ?? nuevoEstado;
         const esTerminal = (nuevoEstado === 'aprobado' || nuevoEstado === 'rechazado');
         if (esTerminal) ModeloStateMachine._forzarTerminal(ot, estado);
-        else            ModeloStateMachine.transicion(ot, estado);
+        else ModeloStateMachine.transicion(ot, estado);
     };
 })();
 
@@ -2133,7 +2372,7 @@ document.addEventListener('DOMContentLoaded', () => ModeloStateMachine.init());
         if (!ot) return;
         // Solo disparar si el nivel actual es < 2 (no sobreescribir permanentes/terminales)
         if (ModeloStateMachine.getNivel(ot) >= 2) return;
-        const panel     = document.getElementById(btn.dataset.target);
+        const panel = document.getElementById(btn.dataset.target);
         const estaAbierto = panel?.classList.contains('open');
         if (!estaAbierto) ModeloStateMachine.onVerArchivos(ot);
     }, true);
@@ -2211,30 +2450,30 @@ document.addEventListener('DOMContentLoaded', () => ModeloStateMachine.init());
     window.confirmarModelo = function (ot, id_hash) {
         if (!confirm(`¿Confirmas que actualmente cuentas con el modelo físico para la OT ${ot}?`)) return;
         fetch(window.almacenRoutes.confirmarModelo, {
-            method : 'POST',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             },
             body: JSON.stringify({ ot }),
         })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                mostrarToast(data.message);
-                ModeloStateMachine.onConfirmarModelo(ot);
-                if (id_hash) {
-                    const container = document.getElementById('control-modelo-' + id_hash);
-                    if (container) {
-                        container.style.opacity = '0.5';
-                        container.style.pointerEvents = 'none';
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarToast(data.message);
+                    ModeloStateMachine.onConfirmarModelo(ot);
+                    if (id_hash) {
+                        const container = document.getElementById('control-modelo-' + id_hash);
+                        if (container) {
+                            container.style.opacity = '0.5';
+                            container.style.pointerEvents = 'none';
+                        }
                     }
+                } else {
+                    mostrarToast(data.message || 'Error al actualizar estado', true);
                 }
-            } else {
-                mostrarToast(data.message || 'Error al actualizar estado', true);
-            }
-        })
-        .catch(err => { console.error(err); mostrarToast('Error de conexión', true); });
+            })
+            .catch(err => { console.error(err); mostrarToast('Error de conexión', true); });
     };
 })();
 
@@ -2247,7 +2486,7 @@ document.addEventListener('DOMContentLoaded', () => ModeloStateMachine.init());
     document.addEventListener('modeloLiberado', (e) => {
         const { ot, accion } = e.detail ?? {};
         if (!ot || !accion) return;
-        if (accion === 'aprobar')  ModeloStateMachine.onAprobado(ot);
+        if (accion === 'aprobar') ModeloStateMachine.onAprobado(ot);
         if (accion === 'rechazar') ModeloStateMachine.onRechazado(ot);
     });
 })();
@@ -2278,7 +2517,7 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
     let otNumber = ot;
     let molduraName = '';
     const cleanOt = ot.replace(/_\d{8}_\d{6}_.*/, '');
-    
+
     // Buscar patron: empieza opcionalmente con OT, un numero, guion, y el nombre
     const match = cleanOt.match(/^(?:OT\s*)?(\d+)\s*-\s*(.*)$/i);
     if (match) {
@@ -2311,59 +2550,69 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
     const descTextarea = document.getElementById('scar-descripcion');
     if (descTextarea) descTextarea.value = motivoRechazo || '';
 
+    // Checkboxes seleccionados de cajón/por defecto
+    const defaultChkDibujos = document.getElementById('scar-evidencia-dibujos');
+    if (defaultChkDibujos) defaultChkDibujos.checked = true;
+    const defaultChkAyudas = document.getElementById('scar-evidencia-ayudas');
+    if (defaultChkAyudas) defaultChkAyudas.checked = true;
+
     // Fetch existing SCAR data if any
-    fetch(`${window.almacenRoutes.getScar}?ot=${encodeURIComponent(ot)}`)
+    fetch(`${window.almacenRoutes.getScar}?ot=${encodeURIComponent(ot)}&tipo_modelo=${encodeURIComponent(tipoModelo || '')}`)
         .then(res => res.json())
         .then(data => {
-            if (data.success && data.scar) {
-                const s = data.scar;
-                if (s.cliente_empresa) document.getElementById('scar-cliente-empresa').value = s.cliente_empresa;
-                if (s.area_solicitante) document.getElementById('scar-area-solicitante').value = s.area_solicitante;
-                if (s.nombre_solicitante) document.getElementById('scar-nombre-solicitante').value = s.nombre_solicitante;
-                if (s.nombre_moldura) document.getElementById('scar-nombre-moldura').value = s.nombre_moldura;
-                if (s.proveedor) document.getElementById('scar-proveedor').value = s.proveedor;
-                if (s.descripcion_no_conformidad) document.getElementById('scar-descripcion').value = s.descripcion_no_conformidad;
-                if (s.causa_raiz) document.getElementById('scar-causa-raiz').value = s.causa_raiz;
-                if (s.acciones_correctivas) document.getElementById('scar-acciones').value = s.acciones_correctivas;
-                if (s.codigo_modelo) document.getElementById('scar-codigo-modelo').value = s.codigo_modelo;
-
-                if (s.codigo_modelo) document.getElementById('scar-codigo-modelo').value = s.codigo_modelo;
-
-                // Checkboxes y sus contenedores correspondientes
-                const chkDibujos = document.getElementById('scar-evidencia-dibujos');
-                if (chkDibujos) chkDibujos.checked = !!s.evidencia_dibujos;
-
-                const chkAyudas = document.getElementById('scar-evidencia-ayudas');
-                if (chkAyudas) chkAyudas.checked = !!s.evidencia_ayudas;
-
-                const chkFotos = document.getElementById('scar-evidencia-fotos');
-                if (chkFotos) {
-                    chkFotos.checked = !!s.evidencia_fotos;
-                    const group = document.getElementById('scar-fotos-upload-group');
-                    if (group) group.style.display = chkFotos.checked ? 'block' : 'none';
+            if (data.success) {
+                if (data.preorden_codigo_modelo) {
+                    if (codigoInput) codigoInput.value = data.preorden_codigo_modelo;
                 }
 
-                const chkOtro = document.getElementById('scar-evidencia-otro');
-                if (chkOtro) {
-                    chkOtro.checked = !!s.evidencia_otro;
-                    const group = document.getElementById('scar-otro-upload-group');
-                    if (group) group.style.display = chkOtro.checked ? 'block' : 'none';
+                if (data.scar) {
+                    const s = data.scar;
+                    if (s.cliente_empresa) document.getElementById('scar-cliente-empresa').value = s.cliente_empresa;
+                    if (s.area_solicitante) document.getElementById('scar-area-solicitante').value = s.area_solicitante;
+                    if (s.nombre_solicitante) document.getElementById('scar-nombre-solicitante').value = s.nombre_solicitante;
+                    if (s.nombre_moldura) document.getElementById('scar-nombre-moldura').value = s.nombre_moldura;
+                    if (s.proveedor) document.getElementById('scar-proveedor').value = s.proveedor;
+                    if (s.descripcion_no_conformidad) document.getElementById('scar-descripcion').value = s.descripcion_no_conformidad;
+                    if (s.causa_raiz) document.getElementById('scar-causa-raiz').value = s.causa_raiz;
+                    if (s.acciones_correctivas) document.getElementById('scar-acciones').value = s.acciones_correctivas;
+                    if (s.codigo_modelo) document.getElementById('scar-codigo-modelo').value = s.codigo_modelo;
+
+                    // Checkboxes y sus contenedores correspondientes
+                    const chkDibujos = document.getElementById('scar-evidencia-dibujos');
+                    if (chkDibujos) chkDibujos.checked = s.evidencia_dibujos === undefined ? true : !!s.evidencia_dibujos;
+
+                    const chkAyudas = document.getElementById('scar-evidencia-ayudas');
+                    if (chkAyudas) chkAyudas.checked = s.evidencia_ayudas === undefined ? true : !!s.evidencia_ayudas;
+
+                    const chkFotos = document.getElementById('scar-evidencia-fotos');
+                    if (chkFotos) {
+                        chkFotos.checked = !!s.evidencia_fotos;
+                        const group = document.getElementById('scar-fotos-upload-group');
+                        if (group) group.style.display = chkFotos.checked ? 'block' : 'none';
+                    }
+
+                    const chkOtro = document.getElementById('scar-evidencia-otro');
+                    if (chkOtro) {
+                        chkOtro.checked = !!s.evidencia_otro;
+                        const group = document.getElementById('scar-otro-upload-group');
+                        if (group) group.style.display = chkOtro.checked ? 'block' : 'none';
+                    }
+
+                    const chkRegreso = document.getElementById('scar-accion-regreso');
+                    if (chkRegreso) chkRegreso.checked = !!s.accion_regreso;
+
+                    const chkFabricacion = document.getElementById('scar-accion-fabricacion');
+                    if (chkFabricacion) chkFabricacion.checked = !!s.accion_fabricacion;
+
+                    const chkAccionOtro = document.getElementById('scar-accion-otro');
+                    if (chkAccionOtro) {
+                        chkAccionOtro.checked = !!s.accion_otro;
+                        const group = document.getElementById('scar-accion-otro-text-group');
+                        if (group) group.style.display = chkAccionOtro.checked ? 'block' : 'none';
+                    }
+
+                    if (s.accion_otro_texto) document.getElementById('scar-accion-otro-texto').value = s.accion_otro_texto;
                 }
-
-                const chkRegreso = document.getElementById('scar-accion-regreso');
-                if (chkRegreso) chkRegreso.checked = !!s.accion_regreso;
-
-                const chkFabricacion = document.getElementById('scar-accion-fabricacion');
-                if (chkFabricacion) chkFabricacion.checked = !!s.accion_fabricacion;
-
-                const chkAccionOtro = document.getElementById('scar-accion-otro');
-                if (chkAccionOtro) {
-                    chkAccionOtro.checked = !!s.accion_otro;
-                    const group = document.getElementById('scar-accion-otro-text-group');
-                    if (group) group.style.display = chkAccionOtro.checked ? 'block' : 'none';
-                }
-
-                if (s.accion_otro_texto) document.getElementById('scar-accion-otro-texto').value = s.accion_otro_texto;
             }
         })
         .catch(err => console.error("Error loading SCAR:", err));
@@ -2377,38 +2626,38 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
                 <span style="color: #64748b; margin-left: 10px;">Obteniendo evidencias guardadas...</span>
             </div>
         `;
-        
+
         fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
             .then(res => res.json())
             .then(data => {
                 if (data.existe && data.archivos && data.archivos.length > 0) {
                     let baseUrl = window.baseUrl || (window.location.origin + '/');
                     if (!baseUrl.endsWith('/')) baseUrl += '/';
-                    
+
                     const activeClasses = (tipoModelo || '').toLowerCase().split(',').map(s => s.trim().replace(/[^a-z0-9_\-]/g, '_')).filter(Boolean);
                     const scarFiles = data.archivos.filter(f => {
                         const pathLower = f.nombre.toLowerCase();
                         if (!pathLower.includes('documentos_rechazados/')) return false;
-                        
+
                         if (activeClasses.length === 0 || activeClasses.includes('general')) return true;
-                        
+
                         // Check if the path contains any of the active class folders, e.g. /documentos_rechazados/bombillo/
                         return activeClasses.some(cls => pathLower.includes('/documentos_rechazados/' + cls + '/'));
                     });
-                    
+
                     if (scarFiles.length > 0) {
                         scarServerFilesContainer.innerHTML = scarFiles.map((file, index) => {
                             const dispName = file.nombre.split('/').pop();
                             const isImg = file.nombre.toLowerCase().match(/\.(jpg|jpeg|png|gif)$/);
                             const isPdf = file.nombre.toLowerCase().endsWith('.pdf');
-                            
+
                             let iconDefault = baseUrl + 'images/pdf-view-shadow.png';
                             let iconHover = baseUrl + 'images/pdf-view.png';
                             if (isImg) {
                                 iconDefault = baseUrl + 'images/galeria-shadow.png';
                                 iconHover = baseUrl + 'images/galeria.png';
                             }
-                            
+
                             return `
                                 <div class="dibujos-file-card" style="animation-delay: ${index * 0.05}s;">
                                     <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}', '${file.nombre}', 'otro')" style="cursor: pointer;" title="Abrir Archivo">
@@ -2502,38 +2751,38 @@ window.scarSubmit = function (accion) {
         },
         body: formData
     })
-    .then(res => res.json())
-    .then(data => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        }
-        if (data.success) {
-            mostrarToast(data.message || 'SCAR procesado correctamente.');
-            cerrarModalScar();
-            
-            if (data.pdf_url) {
-                const link = document.createElement('a');
-                link.href = data.pdf_url;
-                link.download = data.pdf_filename || `SCAR_${ot}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+        .then(res => res.json())
+        .then(data => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
-            
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            mostrarToast(data.message || 'Error al procesar SCAR.', true);
-        }
-    })
-    .catch(err => {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        }
-        console.error("Error submitting SCAR:", err);
-        mostrarToast('Error de conexión con el servidor.', true);
-    });
+            if (data.success) {
+                mostrarToast(data.message || 'SCAR procesado correctamente.');
+                cerrarModalScar();
+
+                if (data.pdf_url) {
+                    const link = document.createElement('a');
+                    link.href = data.pdf_url;
+                    link.download = data.pdf_filename || `SCAR_${ot}.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                mostrarToast(data.message || 'Error al procesar SCAR.', true);
+            }
+        })
+        .catch(err => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+            console.error("Error submitting SCAR:", err);
+            mostrarToast('Error de conexión con el servidor.', true);
+        });
 };
 
 // =========================================================================
@@ -2559,14 +2808,15 @@ window.abrirModalEnviarScar = function (ot) {
     const form = document.getElementById('formEnviarScar');
     if (form) form.reset();
 
-    const dibujosContainer = document.getElementById('env-scar-dibujos-container');
-    const ayudasContainer = document.getElementById('env-scar-ayudas-container');
-    const otrosContainer = document.getElementById('env-scar-otros-container');
-
-    const loadingSpinner = `<div style="padding: 10px; color: #64748b;"><div class="alm-spinner" style="display:inline-block; border-top-color:#9c0300; width:15px; height:15px; margin-right:8px; vertical-align:middle;"></div> Cargando...</div>`;
-    if (dibujosContainer) dibujosContainer.innerHTML = loadingSpinner;
-    if (ayudasContainer) ayudasContainer.innerHTML = loadingSpinner;
-    if (otrosContainer) otrosContainer.innerHTML = loadingSpinner;
+    const filesContainer = document.getElementById('env-scar-server-files-container');
+    if (filesContainer) {
+        filesContainer.innerHTML = `
+            <div style="text-align: center; padding: 10px;">
+                <div class="alm-spinner" style="border-top-color: #9c0300; display: inline-block;"></div>
+                <span style="color: #64748b; margin-left: 10px;">Obteniendo archivos del servidor...</span>
+            </div>
+        `;
+    }
 
     modal.classList.add('open');
     document.body.classList.add('modal-open');
@@ -2590,51 +2840,36 @@ window.abrirModalEnviarScar = function (ot) {
         .then(res => res.json())
         .then(data => {
             if (data.existe && data.archivos && data.archivos.length > 0) {
-                let htmlDibujos = '';
-                let htmlAyudas = '';
-                let htmlOtros = '';
+                let baseUrl = window.baseUrl || (window.location.origin + '/');
+                if (!baseUrl.endsWith('/')) baseUrl += '/';
 
-                data.archivos.forEach(file => {
-                    const dispName = file.nombre.split('/').pop();
-
-                    // Los archivos bajo preordenes/ (LDM, SCAR, Pre-Orden) van siempre a "Otros Documentos"
-                    const esPreorden = file.nombre.startsWith('preordenes/');
-                    const categoria = esPreorden ? 'otro' : file.tipo;
-                    const inputName = categoria === 'dibujo' ? 'dibujos[]' : (categoria === 'ayuda' ? 'ayudas[]' : 'otros_documentos[]');
-
-                    const checkbox = `
-                        <div style="margin-bottom: 6px;">
-                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
-                                <input type="checkbox" name="${inputName}" value="${file.nombre}" checked style="width:16px; height:16px;">
-                                <span>${dispName}</span>
-                            </label>
+                const sectionsHtml = generarHtmlCategorizadoArchivos(data.archivos, ot, baseUrl, 'scar');
+                if (filesContainer) {
+                    filesContainer.innerHTML = sectionsHtml || `
+                        <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
+                            No se encontraron archivos en el servidor para esta OT.
                         </div>
                     `;
-                    if (categoria === 'dibujo') {
-                        htmlDibujos += checkbox;
-                    } else if (categoria === 'ayuda') {
-                        htmlAyudas += checkbox;
-                    } else {
-                        htmlOtros += checkbox;
-                    }
-                });
-
-                if (dibujosContainer) dibujosContainer.innerHTML = htmlDibujos || '<span style="font-size:0.9em; color:#64748b;">No hay dibujos disponibles</span>';
-                if (ayudasContainer) ayudasContainer.innerHTML = htmlAyudas || '<span style="font-size:0.9em; color:#64748b;">No hay ayudas visuales disponibles</span>';
-                if (otrosContainer) otrosContainer.innerHTML = htmlOtros || '<span style="font-size:0.9em; color:#64748b;">No hay otros documentos disponibles</span>';
+                }
             } else {
-                const emptyMsg = '<span style="font-size:0.9em; color:#64748b;">No hay archivos disponibles</span>';
-                if (dibujosContainer) dibujosContainer.innerHTML = emptyMsg;
-                if (ayudasContainer) ayudasContainer.innerHTML = emptyMsg;
-                if (otrosContainer) otrosContainer.innerHTML = emptyMsg;
+                if (filesContainer) {
+                    filesContainer.innerHTML = `
+                        <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
+                            No se encontraron archivos en el servidor para esta OT.
+                        </div>
+                    `;
+                }
             }
         })
         .catch(err => {
             console.error("Error loading files for SCAR:", err);
-            const errMsg = '<span style="font-size:0.9em; color:#ef4444;">Error al cargar archivos</span>';
-            if (dibujosContainer) dibujosContainer.innerHTML = errMsg;
-            if (ayudasContainer) ayudasContainer.innerHTML = errMsg;
-            if (otrosContainer) otrosContainer.innerHTML = errMsg;
+            if (filesContainer) {
+                filesContainer.innerHTML = `
+                    <div style="text-align: center; color: #ef4444; padding: 15px; font-weight: 600;">
+                        Error al cargar la lista de archivos.
+                    </div>
+                `;
+            }
         });
 };
 
@@ -2685,27 +2920,27 @@ window.cerrarModalEnviarScar = function () {
                     },
                     body: formData
                 })
-                .then(res => res.json())
-                .then(data => {
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                    if (data.success) {
-                        mostrarToast(data.message || 'Alerta SCAR firmada enviada con éxito.');
-                        cerrarModalEnviarScar();
-                        if (window.ModeloStateMachine) {
-                            window.ModeloStateMachine.onCorreoEnviado(ot);
+                    .then(res => res.json())
+                    .then(data => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                        if (data.success) {
+                            mostrarToast(data.message || 'Alerta SCAR firmada enviada con éxito.');
+                            cerrarModalEnviarScar();
+                            if (window.ModeloStateMachine) {
+                                window.ModeloStateMachine.onCorreoEnviado(ot);
+                            }
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            mostrarToast(data.message || 'Error al enviar alerta SCAR.', true);
                         }
-                        setTimeout(() => location.reload(), 1500);
-                    } else {
-                        mostrarToast(data.message || 'Error al enviar alerta SCAR.', true);
-                    }
-                })
-                .catch(err => {
-                    btn.disabled = false;
-                    btn.innerHTML = originalText;
-                    console.error("Error sending SCAR alert:", err);
-                    mostrarToast('Error al enviar la solicitud.', true);
-                });
+                    })
+                    .catch(err => {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                        console.error("Error sending SCAR alert:", err);
+                        mostrarToast('Error al enviar la solicitud.', true);
+                    });
             });
         }
     });
@@ -2734,7 +2969,7 @@ window.abrirModalConfirmarModelo = function (ot, idHash) {
     const fi = document.getElementById('cm-fecha');
     if (fi) {
         const h = new Date();
-        fi.value = `${h.getFullYear()}-${String(h.getMonth()+1).padStart(2,'0')}-${String(h.getDate()).padStart(2,'0')}`;
+        fi.value = `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}`;
     }
 
     // Reset files
@@ -2759,7 +2994,7 @@ window.cerrarModalConfirmarModelo = function () {
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            const ot     = document.getElementById('cm-ot')?.value;
+            const ot = document.getElementById('cm-ot')?.value;
             const idHash = document.getElementById('cm-id-hash')?.value;
 
             if (!ot) return;
@@ -2782,7 +3017,7 @@ window.cerrarModalConfirmarModelo = function () {
                 const resp = await fetch(window.almacenRoutes.confirmarModelo, {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN'    : document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
                         'X-Requested-With': 'XMLHttpRequest',
                     },
                     body: fd,
@@ -2835,13 +3070,13 @@ window.actualizarInputImpresiones = function (selectEl) {
     const nombreClase = selectEl.options[selectEl.selectedIndex]?.text?.toLowerCase() ?? '';
     const esNA = CLASES_SIN_IMPRESIONES.some(c => nombreClase.includes(c));
 
-    impInput.disabled         = esNA;
-    impInput.value            = esNA ? 'N/A' : (impInput.value === 'N/A' ? '' : impInput.value);
-    impInput.placeholder      = esNA ? 'N/A' : 'Ej. 1';
+    impInput.disabled = esNA;
+    impInput.value = esNA ? 'N/A' : (impInput.value === 'N/A' ? '' : impInput.value);
+    impInput.placeholder = esNA ? 'N/A' : 'Ej. 1';
     impInput.style.background = esNA ? '#f1f5f9' : '';
-    impInput.style.color      = esNA ? '#94a3b8' : '';
-    impInput.style.cursor     = esNA ? 'not-allowed' : '';
-    impInput.title            = esNA ? 'Esta clase no lleva impresiones (N/A)' : '';
+    impInput.style.color = esNA ? '#94a3b8' : '';
+    impInput.style.cursor = esNA ? 'not-allowed' : '';
+    impInput.title = esNA ? 'Esta clase no lleva impresiones (N/A)' : '';
 };
 
 /**
@@ -2880,11 +3115,11 @@ function bloquearModalPreOrden() {
     form.querySelectorAll('input:not([type="hidden"]), select, textarea').forEach(el => {
         el.disabled = true;
         el.style.background = '#f1f5f9';
-        el.style.cursor     = 'not-allowed';
+        el.style.cursor = 'not-allowed';
     });
     const btnSubmit = document.getElementById('btn-submit-preorden');
     if (btnSubmit) {
-        btnSubmit.disabled  = true;
+        btnSubmit.disabled = true;
         btnSubmit.innerHTML = '✔ Notificación enviada — Solo lectura';
         btnSubmit.style.background = '#94a3b8';
     }
@@ -2932,10 +3167,10 @@ function _libFiltrarTiposModelo(clasesActivas) {
     }
 
     const MAPA_TIPO = {
-        'fondo'     : 'Fondo',
-        'obturador' : 'Obturador',
-        'molde'     : 'Molde',
-        'bombillo'  : 'Bombillo',
+        'fondo': 'Fondo',
+        'obturador': 'Obturador',
+        'molde': 'Molde',
+        'bombillo': 'Bombillo',
     };
 
     // Calcular qué tipos están disponibles
@@ -2967,21 +3202,21 @@ function _libSetDecisionUI(decision) {
     const accionInput = document.getElementById('lib-accion');
     if (accionInput) accionInput.value = decision;
 
-    const cardAprobar   = document.getElementById('lib-dec-aprobar');
-    const cardRechazar  = document.getElementById('lib-dec-rechazar');
+    const cardAprobar = document.getElementById('lib-dec-aprobar');
+    const cardRechazar = document.getElementById('lib-dec-rechazar');
     const bloqueRechazo = document.getElementById('lib-rechazo-block');
 
     // Quitar clase "active" de ambos y asignar al elegido
-    if (cardAprobar)  cardAprobar.classList.remove('active');
+    if (cardAprobar) cardAprobar.classList.remove('active');
     if (cardRechazar) cardRechazar.classList.remove('active');
 
     if (decision === 'aprobar') {
-        if (cardAprobar)  { cardAprobar.classList.add('active'); cardAprobar.style.border  = '2px solid #0a8504'; cardAprobar.style.background  = 'rgba(10,133,4,0.08)'; }
+        if (cardAprobar) { cardAprobar.classList.add('active'); cardAprobar.style.border = '2px solid #0a8504'; cardAprobar.style.background = 'rgba(10,133,4,0.08)'; }
         if (cardRechazar) { cardRechazar.style.border = '2px solid #e2e8f0'; cardRechazar.style.background = '#fff'; }
         if (bloqueRechazo) bloqueRechazo.style.display = 'none';
     } else {
-        if (cardRechazar) { cardRechazar.classList.add('active'); cardRechazar.style.border  = '2px solid #9c0300'; cardRechazar.style.background  = 'rgba(156,3,0,0.07)'; }
-        if (cardAprobar)  { cardAprobar.style.border   = '2px solid #e2e8f0'; cardAprobar.style.background   = '#fff'; }
+        if (cardRechazar) { cardRechazar.classList.add('active'); cardRechazar.style.border = '2px solid #9c0300'; cardRechazar.style.background = 'rgba(156,3,0,0.07)'; }
+        if (cardAprobar) { cardAprobar.style.border = '2px solid #e2e8f0'; cardAprobar.style.background = '#fff'; }
         if (bloqueRechazo) bloqueRechazo.style.display = 'block';
     }
 
@@ -3059,35 +3294,35 @@ window.almacenEliminarOtroArchivo = function (ot, archivo, tipo, buttonEl) {
             tipo: tipo
         })
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            mostrarToast(data.message || 'Archivo eliminado correctamente.');
-            if (card) {
-                card.style.transition = 'all 0.4s ease';
-                card.style.opacity = '0';
-                card.style.transform = 'scale(0.8)';
-                setTimeout(() => {
-                    card.remove();
-                    // Si ya no quedan archivos, recargar la página para limpiar la vista
-                    const grid = card.closest('.alm-pdf-grid');
-                    if (grid && grid.querySelectorAll('.dibujos-file-card').length === 0) {
-                        location.reload();
-                    }
-                }, 400);
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                mostrarToast(data.message || 'Archivo eliminado correctamente.');
+                if (card) {
+                    card.style.transition = 'all 0.4s ease';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        card.remove();
+                        // Si ya no quedan archivos, recargar la página para limpiar la vista
+                        const grid = card.closest('.alm-pdf-grid');
+                        if (grid && grid.querySelectorAll('.dibujos-file-card').length === 0) {
+                            location.reload();
+                        }
+                    }, 400);
+                } else {
+                    setTimeout(() => location.reload(), 1000);
+                }
             } else {
-                setTimeout(() => location.reload(), 1000);
+                if (buttonEl) buttonEl.disabled = false;
+                mostrarToast(data.error || 'No se pudo eliminar el archivo.', true);
             }
-        } else {
+        })
+        .catch(err => {
             if (buttonEl) buttonEl.disabled = false;
-            mostrarToast(data.error || 'No se pudo eliminar el archivo.', true);
-        }
-    })
-    .catch(err => {
-        if (buttonEl) buttonEl.disabled = false;
-        console.error('Error al eliminar archivo:', err);
-        mostrarToast('Error de conexión al eliminar el archivo.', true);
-    });
+            console.error('Error al eliminar archivo:', err);
+            mostrarToast('Error de conexión al eliminar el archivo.', true);
+        });
 };
 
 
@@ -3097,7 +3332,7 @@ window.almacenEliminarOtroArchivo = function (ot, archivo, tipo, buttonEl) {
 
 /** Genera una fila de upload por modelo */
 function _crearFilaUpload(tipo, color, accentBg, esRechazo, baseUrl) {
-    const idBase = `al-upload-${tipo.toLowerCase().replace(/\s/g,'-')}-${esRechazo ? 'rech' : 'aprob'}`;
+    const idBase = `al-upload-${tipo.toLowerCase().replace(/\s/g, '-')}-${esRechazo ? 'rech' : 'aprob'}`;
     const tipoLabel = tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase();
     const nombre = esRechazo ? `archivos_rechazados_extra[${tipo}]` : `archivos_aprobados_extra[${tipo}]`;
     const nombreScar = `archivos_scar_extra[${tipo}]`;
@@ -3122,7 +3357,7 @@ function _crearFilaUpload(tipo, color, accentBg, esRechazo, baseUrl) {
         <div class="al-modelo-upload-row" id="${idBase}-row"
             style="background:${accentBg};border:1.8px solid ${color}40;border-radius:12px;padding:16px 20px;margin-bottom:12px;box-shadow: 0 2px 8px rgba(0,0,0,0.02); display:flex; flex-direction:column; gap:12px;">
             <div style="font-weight:700;font-size:1.1em;color:${color};font-family:'Poppins',sans-serif;">Modelo: ${tipoLabel}</div>
-            
+
             <div style="display:flex; flex-direction:column; gap:6px; width:100%;">
                 <label style="font-weight:600; font-size:0.9em; color:#475569; font-family:'Poppins',sans-serif;" for="${idBase}">
                     Subir Formato ${esRechazo ? 'F-CCL-LDM Rechazado' : 'F-CCL-LDM Aprobado'} (${tipoLabel}) <span style="color:#ef4444;">*</span>
@@ -3141,13 +3376,13 @@ function _crearFilaUpload(tipo, color, accentBg, esRechazo, baseUrl) {
         </div>`;
 }
 
-window._alFileChanged = function(inputId, textId, labelId) {
+window._alFileChanged = function (inputId, textId, labelId) {
     const inp = document.getElementById(inputId);
     if (!inp || !inp.files.length) return;
     const nm = inp.files[0].name;
     const txt = document.getElementById(textId); if (txt) txt.textContent = nm;
     const lbl = document.getElementById(labelId); if (lbl) lbl.style.borderStyle = 'solid';
-    
+
     if (inp._objectUrl) {
         URL.revokeObjectURL(inp._objectUrl);
     }
@@ -3195,7 +3430,7 @@ window._alFileChanged = function(inputId, textId, labelId) {
     }
 };
 
-window._alClearFile = function(inputId) {
+window._alClearFile = function (inputId) {
     const inp = document.getElementById(inputId);
     if (inp) {
         inp.value = '';
@@ -3204,7 +3439,7 @@ window._alClearFile = function(inputId) {
             inp._objectUrl = null;
         }
     }
-    const prv = document.getElementById(inputId + '-preview'); if (prv) { prv.innerHTML=''; prv.style.display='none'; }
+    const prv = document.getElementById(inputId + '-preview'); if (prv) { prv.innerHTML = ''; prv.style.display = 'none'; }
     const lbl = document.getElementById(inputId + '-label'); if (lbl) lbl.style.borderStyle = 'dashed';
 
     // Restaurar el texto original
@@ -3224,7 +3459,7 @@ function _renderServerFileCard(file, ot, baseUrl, tipo) {
     const defaultIcon = esImg ? 'galeria-shadow.png' : 'pdf-view-shadow.png';
     const hoverIcon = esImg ? 'galeria.png' : 'pdf-view.png';
 
-    return `<div class="dibujos-file-card card-ayuda select-file-card checked-card" style="position:relative;width:100%;max-width:180px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.08);box-sizing:border-box;font-size:0.95em;padding:12px;background:#fff;border:1.5px solid #e2e8f0;margin:4px;">
+    return `<div class="dibujos-file-card card-ayuda select-file-card checked-card" style="position:relative;width:100%;max-width:230px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.08);box-sizing:border-box;font-size:0.95em;padding:12px;background:#fff;border:1.5px solid #e2e8f0;margin:4px;">
         <div style="position:absolute;top:10px;left:10px;z-index:10;"><input type="checkbox" name="${inputName}" value="${file.nombre}" checked style="width:18px;height:18px;cursor:pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card',this.checked);"></div>
         <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}','${file.nombre}','${file.tipo}')" style="cursor:pointer;margin-top:12px;" title="Ver">
             <img src="${baseUrl}images/${defaultIcon}" class="file-icon icon-default" style="width:48px;height:48px;object-fit:contain;"><img src="${baseUrl}images/${hoverIcon}" class="file-icon icon-hover" style="width:48px;height:48px;object-fit:contain;">
@@ -3236,7 +3471,8 @@ function _renderServerFileCard(file, ot, baseUrl, tipo) {
 
 
 // Nueva firma: tiposAprobados y tiposRechazados son arrays JSON pasados desde Blade
-window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados, tiposRechazados) {
+// Nueva firma: tiposAprobados y tiposRechazados son arrays JSON pasados desde Blade, isAlmacen determina si lo abre Almacén
+window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados, tiposRechazados, isAlmacen = false) {
     const modal = document.getElementById('modalEnviarAlertaLiberacion');
     if (!modal) return;
 
@@ -3245,17 +3481,17 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
 
     // Los arrays vienen directamente desde Blade: tiposAprobados, tiposRechazados
     // Aseguramos que sean arrays
-    const arrAprobados  = Array.isArray(tiposAprobados)  ? tiposAprobados  : [];
+    const arrAprobados = Array.isArray(tiposAprobados) ? tiposAprobados : [];
     const arrRechazados = Array.isArray(tiposRechazados) ? tiposRechazados : [];
 
-    const hasAprobado  = arrAprobados.length  > 0;
-    const hasRechazado = arrRechazados.length > 0;
-    const esMixto      = hasAprobado && hasRechazado;
+    const hasAprobado = arrAprobados.length > 0;
+    const hasRechazado = isAlmacen ? false : (arrRechazados.length > 0);
+    const esMixto = isAlmacen ? false : (hasAprobado && hasRechazado);
 
     // Hiddens
-    document.getElementById('al-ot').value          = ot;
-    document.getElementById('al-decision').value    = esMixto ? 'mixto' : decision;
-    document.getElementById('al-tipo-modelo').value = [...arrAprobados, ...arrRechazados].join(', ');
+    document.getElementById('al-ot').value = ot;
+    document.getElementById('al-decision').value = isAlmacen ? 'aprobar' : (esMixto ? 'mixto' : decision);
+    document.getElementById('al-tipo-modelo').value = [...arrAprobados, ...(isAlmacen ? [] : arrRechazados)].join(', ');
 
     // Fecha hoy: se deja vacía para obligar al usuario a seleccionar una fecha
     const fi = document.getElementById('al-fecha');
@@ -3265,18 +3501,41 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
 
     // Colores adaptativos
     let bg, border, btnBg, ttl, pmt;
-    if (esMixto)           { bg='linear-gradient(135deg,#d97706,#b45309)'; border='#d97706'; btnBg='#b45309'; ttl=`Enviar Alertas (Mixto) — ${otClean}`; pmt=`Esta OT tiene modelos aprobados (${arrAprobados.join(', ')}) y rechazados (${arrRechazados.join(', ')}). Se enviarán 2 correos separados.`; }
-    else if (hasRechazado) { bg='linear-gradient(135deg,#dc2626,#b91c1c)'; border='#dc2626'; btnBg='#9c0300'; ttl=`Enviar Alerta de Rechazo — ${otClean}`;    pmt=`Notifica el rechazo de: ${arrRechazados.join(', ')} para OT ${otClean}.`; }
-    else                   { bg='linear-gradient(135deg,#059669,#047857)'; border='#059669'; btnBg='#047857'; ttl=`Enviar Alerta de Aprobación — ${otClean}`; pmt=`Notifica la aprobación de: ${arrAprobados.join(', ')} para OT ${otClean}.`; }
+    if (isAlmacen) {
+        bg = 'linear-gradient(135deg,#0284c7,#0369a1)';
+        border = '#0284c7';
+        btnBg = '#0284c7';
+        ttl = `Cargar LDM Firmado — ${otClean}`;
+        pmt = `Por favor, sube el formato F-CCL-LDM firmado de los modelos aprobados (${arrAprobados.join(', ')}) para avanzar al proceso de Casting.`;
+
+        const destGroup = document.getElementById('al-destinatario')?.closest('.form-group');
+        if (destGroup) destGroup.style.display = 'none';
+        // default value so validation passes
+        const d = document.getElementById('al-destinatario');
+        if (d) d.value = 'jaxer020406@gmail.com';
+    } else {
+        const destGroup = document.getElementById('al-destinatario')?.closest('.form-group');
+        if (destGroup) destGroup.style.display = 'block';
+
+        if (esMixto) { bg = 'linear-gradient(135deg,#d97706,#b45309)'; border = '#d97706'; btnBg = '#b45309'; ttl = `Enviar Alertas (Mixto) — ${otClean}`; pmt = `Esta OT tiene modelos aprobados (${arrAprobados.join(', ')}) y rechazados (${arrRechazados.join(', ')}). Se enviarán 2 correos separados.`; }
+        else if (hasRechazado) { bg = 'linear-gradient(135deg,#dc2626,#b91c1c)'; border = '#dc2626'; btnBg = '#9c0300'; ttl = `Enviar Alerta de Rechazo — ${otClean}`; pmt = `Notifica el rechazo de: ${arrRechazados.join(', ')} para OT ${otClean}.`; }
+        else { bg = 'linear-gradient(135deg,#059669,#047857)'; border = '#059669'; btnBg = '#047857'; ttl = `Enviar Alerta de Aprobación — ${otClean}`; pmt = `Notifica la aprobación de: ${arrAprobados.join(', ')} para OT ${otClean}.`; }
+    }
 
     const header = document.getElementById('alerta-lib-header');
-    const mc     = document.getElementById('alerta-lib-modal-content');
-    const btn    = document.getElementById('btn-submit-alerta-liberacion');
-    if (header) { header.style.background=bg; header.style.borderBottom=`2px solid ${border}80`; }
-    if (mc)  mc.style.borderColor  = border;
-    if (btn) { btn.style.background=btnBg; btn.style.boxShadow=`0 4px 15px ${border}40`; }
-    const t = document.getElementById('alerta-lib-title');    if (t) t.textContent = ttl;
-    const p = document.getElementById('al-prompt-text');      if (p) p.textContent = pmt;
+    const mc = document.getElementById('alerta-lib-modal-content');
+    const btn = document.getElementById('btn-submit-alerta-liberacion');
+    if (header) { header.style.background = bg; header.style.borderBottom = `2px solid ${border}80`; }
+    if (mc) mc.style.borderColor = border;
+    if (btn) {
+        btn.style.background = btnBg;
+        btn.style.boxShadow = `0 4px 15px ${border}40`;
+        const btnSpan = btn.querySelector('span');
+        if (btnSpan) btnSpan.textContent = isAlmacen ? 'Guardar Documentación Aprobada' : 'Enviar Alerta';
+        else btn.textContent = isAlmacen ? 'Guardar Documentación Aprobada' : 'Enviar Alerta';
+    }
+    const t = document.getElementById('alerta-lib-title'); if (t) t.textContent = ttl;
+    const p = document.getElementById('al-prompt-text'); if (p) p.textContent = pmt;
     const s = document.getElementById('alerta-lib-subtitle'); if (s) s.textContent = `OT: ${otClean}`;
 
     // Actualizar label de fecha dinámicamente
@@ -3292,12 +3551,12 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
     }
 
     // Columnas visibilidad
-    const colA = document.getElementById('al-col-aprobados');  if (colA) colA.style.display = hasAprobado  ? 'block' : 'none';
+    const colA = document.getElementById('al-col-aprobados'); if (colA) colA.style.display = hasAprobado ? 'block' : 'none';
     const colR = document.getElementById('al-col-rechazados'); if (colR) colR.style.display = hasRechazado ? 'block' : 'none';
-    const dl   = document.getElementById('al-dual-layout');    if (dl) {  dl.style.flexDirection = esMixto ? 'row' : 'column'; dl.style.alignItems = 'stretch'; }
+    const dl = document.getElementById('al-dual-layout'); if (dl) { dl.style.flexDirection = esMixto ? 'row' : 'column'; dl.style.alignItems = 'stretch'; }
 
     // Labels tipos
-    const aLbl = document.getElementById('al-aprobados-tipos-label'); if (aLbl) aLbl.textContent = arrAprobados.join(', ')  || '—';
+    const aLbl = document.getElementById('al-aprobados-tipos-label'); if (aLbl) aLbl.textContent = arrAprobados.join(', ') || '—';
     const rLbl = document.getElementById('al-rechazados-tipos-label'); if (rLbl) rLbl.textContent = arrRechazados.join(', ') || '—';
 
     let baseUrl = window.baseUrl || (window.location.origin + '/');
@@ -3306,8 +3565,8 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
     // Filas upload por modelo
     const rowsA = document.getElementById('al-upload-aprobados-rows');
     const rowsR = document.getElementById('al-upload-rechazados-rows');
-    if (rowsA) rowsA.innerHTML = arrAprobados.length  ? arrAprobados.map(t  => _crearFilaUpload(t,  '#059669','#f0fdf4', false, baseUrl)).join('') : '<p style="font-size:0.8em;color:#64748b;font-style:italic;">Sin modelos aprobados.</p>';
-    if (rowsR) rowsR.innerHTML = arrRechazados.length ? arrRechazados.map(t => _crearFilaUpload(t, '#dc2626','#fef2f2', true,  baseUrl)).join('') : '<p style="font-size:0.8em;color:#64748b;font-style:italic;">Sin modelos rechazados.</p>';
+    if (rowsA) rowsA.innerHTML = arrAprobados.length ? arrAprobados.map(t => _crearFilaUpload(t, '#059669', '#f0fdf4', false, baseUrl)).join('') : '<p style="font-size:0.8em;color:#64748b;font-style:italic;">Sin modelos aprobados.</p>';
+    if (rowsR) rowsR.innerHTML = arrRechazados.length ? arrRechazados.map(t => _crearFilaUpload(t, '#dc2626', '#fef2f2', true, baseUrl)).join('') : '<p style="font-size:0.8em;color:#64748b;font-style:italic;">Sin modelos rechazados.</p>';
 
     // Activar/desactivar inputs requeridos según la visibilidad de las columnas
     if (rowsA) {
@@ -3333,7 +3592,7 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
     const sA = document.getElementById('al-server-files-aprobados');
     const sR = document.getElementById('al-server-files-rechazados');
     const loadHtml = `<div style="text-align:center;color:#64748b;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Cargando...</div>`;
-    const emptyHtml= `<div style="text-align:center;color:#94a3b8;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Sin archivos en servidor.</div>`;
+    const emptyHtml = `<div style="text-align:center;color:#94a3b8;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Sin archivos en servidor.</div>`;
     if (sA) sA.innerHTML = loadHtml;
     if (sR) sR.innerHTML = loadHtml;
 
@@ -3346,7 +3605,7 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
                 const archivoPerteneceAModelos = (nombre, modelosActivos) => {
                     const pl = nombre.toLowerCase();
                     const todosModelosPosibles = ['bombillo', 'fondo', 'obturador', 'molde'];
-                    
+
                     // comprobar si el path contiene el modelo como carpeta o prefijo
                     const modelosEncontrados = todosModelosPosibles.filter(m => {
                         return pl.includes('/' + m + '/') || pl.startsWith(m + '/') || pl.includes('_' + m + '_') || pl.includes('-' + m + ' -') || pl.includes(' ' + m + ' ') || pl.split('/').pop().startsWith(m);
@@ -3364,7 +3623,7 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
                 data.archivos.forEach(f => {
                     const pl = f.nombre.toLowerCase();
                     const isRechazadoFile = pl.includes('documentos_rechazados') || pl.includes('rechazado') || pl.includes('scar');
-                    
+
                     if (isRechazadoFile) {
                         if (hasRechazado && archivoPerteneceAModelos(f.nombre, arrRechazados)) {
                             cardsR += _renderServerFileCard(f, ot, baseUrl, 'rechazados');
@@ -3395,7 +3654,7 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
         .then(data => {
             let dest = data.registros_por_tipo?.[primerTipo]?.destinatario || data.liberacion?.destinatario || '';
             if (dest) { const d = document.getElementById('al-destinatario'); if (d) d.value = dest; }
-        }).catch(() => {});
+        }).catch(() => { });
 
     modal.classList.add('open');
     document.body.classList.add('modal-open');
@@ -3457,9 +3716,9 @@ document.getElementById('formEnviarAlertaLiberacion')?.addEventListener('submit'
         return;
     }
 
-    const ot       = document.getElementById('al-ot').value;
+    const ot = document.getElementById('al-ot').value;
     const decision = document.getElementById('al-decision').value;
-    const btn      = document.getElementById('btn-submit-alerta-liberacion');
+    const btn = document.getElementById('btn-submit-alerta-liberacion');
     if (!ot || !decision) return;
     const fd = new FormData(this);
     const orig = btn.innerHTML;
@@ -3468,14 +3727,14 @@ document.getElementById('formEnviarAlertaLiberacion')?.addEventListener('submit'
     try {
         const resp = await fetch(window.almacenRoutes.enviarAlertaLiberacion, {
             method: 'POST',
-            headers: { 'Accept':'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '' },
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '' },
             body: fd,
         });
         const data = await resp.json();
         if (data.success) {
             almacenToast(data.message, 'success');
             if (window.ModeloStateMachine) {
-                if (decision === 'aprobar')  window.ModeloStateMachine.onAprobado(ot);
+                if (decision === 'aprobar') window.ModeloStateMachine.onAprobado(ot);
                 else if (decision === 'rechazar') window.ModeloStateMachine.onRechazado(ot);
             }
             setTimeout(() => { cerrarModalEnviarAlertaLiberacion(); window.location.reload(); }, 1800);
@@ -3487,5 +3746,2112 @@ document.getElementById('formEnviarAlertaLiberacion')?.addEventListener('submit'
         console.error('Error al enviar alerta liberación:', err);
         almacenToast('Error de conexión al enviar la alerta.', 'error');
         btn.disabled = false; btn.innerHTML = orig;
+    }
+});
+
+window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tiposRechazados) {
+    const modal = document.getElementById('modalFinalizarCalidad');
+    if (!modal) return;
+
+    const form = document.getElementById('formFinalizarCalidad');
+    if (form) form.reset();
+
+    const arrAprobados = Array.isArray(tiposAprobados) ? tiposAprobados : [];
+    const arrRechazados = Array.isArray(tiposRechazados) ? tiposRechazados : [];
+
+    // Set hidden inputs
+    document.getElementById('fc-ot').value = ot;
+    document.getElementById('fc-decision').value = decision;
+    document.getElementById('fc-tipo-modelo').value = [...arrAprobados, ...arrRechazados].join(', ');
+    document.getElementById('fc-tipos-aprobados').value = JSON.stringify(arrAprobados);
+    document.getElementById('fc-tipos-rechazados').value = JSON.stringify(arrRechazados);
+
+    // Initialize date empty to force selection
+    const fDate = document.getElementById('fc-fecha');
+    if (fDate) fDate.value = '';
+
+    const otClean = ot.replace(/_\d{8}_\d{6}_.*/, '');
+
+    // Adapt colors and text dynamically based on the decision
+    let bg, border, btnBg, titleText, promptText;
+    if (decision === 'aprobar') {
+        bg = 'linear-gradient(135deg, #059669, #047857)';
+        border = '#059669';
+        btnBg = '#059669';
+        titleText = `Finalizar Proceso de Calidad (Aprobado) — ${otClean}`;
+        promptText = `Se enviará la alerta de liberación aprobada para los modelos: ${arrAprobados.join(', ')}.`;
+    } else if (decision === 'rechazar') {
+        bg = 'linear-gradient(135deg, #dc2626, #b91c1c)';
+        border = '#dc2626';
+        btnBg = '#dc2626';
+        titleText = `Finalizar Proceso de Calidad (Rechazado) — ${otClean}`;
+        promptText = `Se enviará la alerta de rechazo para los modelos: ${arrRechazados.join(', ')}.`;
+    } else {
+        // Mixto
+        bg = 'linear-gradient(135deg, #0284c7, #0369a1)';
+        border = '#0284c7';
+        btnBg = '#0284c7';
+        titleText = `Finalizar Proceso de Calidad (Mixto) — ${otClean}`;
+        promptText = `Esta OT tiene modelos aprobados (${arrAprobados.join(', ')}) y rechazados (${arrRechazados.join(', ')}). Se enviarán correos separados de liberación y rechazo.`;
+    }
+
+    const header = document.getElementById('finalizar-calidad-header');
+    const mc = document.getElementById('finalizar-calidad-modal-content');
+    const btnSubmit = document.getElementById('btn-submit-finalizar-calidad');
+    const title = document.getElementById('finalizar-calidad-title');
+    const prompt = document.getElementById('fc-prompt-text');
+    const subtitle = document.getElementById('finalizar-calidad-subtitle');
+
+    if (header) { header.style.background = bg; header.style.borderBottom = `2px solid ${border}80`; }
+    if (mc) mc.style.borderColor = border;
+    if (title) title.textContent = titleText;
+    if (prompt) prompt.textContent = promptText;
+    if (subtitle) subtitle.textContent = `OT: ${otClean}`;
+
+    if (btnSubmit) {
+        btnSubmit.style.background = btnBg;
+        btnSubmit.style.boxShadow = `0 4px 15px ${border}40`;
+    }
+
+    // Load server files for Calidad finalization
+    const filesContainer = document.getElementById('fc-server-files-container');
+    const loadHtml = `<div style="text-align:center;color:#64748b;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Cargando...</div>`;
+    const emptyHtml = `<div style="text-align:center;color:#94a3b8;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Sin archivos en servidor.</div>`;
+    if (filesContainer) filesContainer.innerHTML = loadHtml;
+
+    let baseUrl = window.baseUrl || (window.location.origin + '/');
+    if (!baseUrl.endsWith('/')) baseUrl += '/';
+
+    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.existe && data.archivos?.length > 0) {
+                const filteredFiles = data.archivos.filter(f => {
+                    const pl = f.nombre.toLowerCase();
+                    const isRechazadoFile = pl.includes('documentos_rechazados') || pl.includes('rechazado') || pl.includes('scar');
+                    if (decision === 'aprobar') return !isRechazadoFile;
+                    if (decision === 'rechazar') return isRechazadoFile;
+                    return true; // mixed shows both
+                });
+                const sectionsHtml = generarHtmlCategorizadoArchivos(filteredFiles, ot, baseUrl, 'calidad');
+                if (filesContainer) {
+                    filesContainer.innerHTML = sectionsHtml || emptyHtml;
+                }
+            } else {
+                if (filesContainer) filesContainer.innerHTML = emptyHtml;
+            }
+        })
+        .catch(() => {
+            if (filesContainer) filesContainer.innerHTML = `<div style="color:#ef4444;font-size:0.8em;grid-column:1/-1;">Error al cargar archivos.</div>`;
+        });
+
+    // Prefill recipient email
+    const primerTipo = arrAprobados[0] || arrRechazados[0] || '';
+    fetch(`${window.almacenRoutes.getLiberacion}?ot=${encodeURIComponent(ot)}`)
+        .then(r => r.json())
+        .then(data => {
+            let dest = data.registros_por_tipo?.[primerTipo]?.destinatario || data.liberacion?.destinatario || 'jaxer020406@gmail.com';
+            const d = document.getElementById('fc-destinatario');
+            if (d) d.value = dest;
+        }).catch(() => {
+            const d = document.getElementById('fc-destinatario');
+            if (d) d.value = 'jaxer020406@gmail.com';
+        });
+
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+};
+
+window.cerrarModalFinalizarCalidad = function () {
+    const modal = document.getElementById('modalFinalizarCalidad');
+    if (modal) modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Submit handler for formFinalizarCalidad
+    const fcForm = document.getElementById('formFinalizarCalidad');
+    if (fcForm) {
+        fcForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const destinatario = document.getElementById('fc-destinatario').value.trim();
+            if (!destinatario) {
+                almacenToast('El campo Destinatario(s) es obligatorio.', 'error');
+                return;
+            }
+
+            const fecha = document.getElementById('fc-fecha').value;
+            if (!fecha) {
+                almacenToast('La fecha es obligatoria.', 'error');
+                return;
+            }
+
+            const ot = document.getElementById('fc-ot').value;
+            const decision = document.getElementById('fc-decision').value;
+            const btn = document.getElementById('btn-submit-finalizar-calidad');
+            if (!ot || !decision) return;
+
+            const fd = new FormData(this);
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<img src="/images/enviando.png" class="spinning" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;"> Enviando...`;
+
+            try {
+                const resp = await fetch(window.almacenRoutes.enviarAlertaLiberacion, {
+                    method: 'POST',
+                    headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '' },
+                    body: fd,
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    almacenToast(data.message, 'success');
+                    if (window.ModeloStateMachine) {
+                        if (decision === 'aprobar') window.ModeloStateMachine.onAprobado(ot);
+                        else if (decision === 'rechazar') window.ModeloStateMachine.onRechazado(ot);
+                    }
+                    setTimeout(() => { cerrarModalFinalizarCalidad(); window.location.reload(); }, 1800);
+                } else {
+                    almacenToast(data.message || 'Error al enviar la alerta.', 'error');
+                    btn.disabled = false; btn.innerHTML = orig;
+                }
+            } catch (err) {
+                console.error('Error al enviar alerta liberación:', err);
+                almacenToast('Error de conexión al enviar la alerta.', 'error');
+                btn.disabled = false; btn.innerHTML = orig;
+            }
+        });
+    }
+});
+
+document.addEventListener('click', (e) => { if (e.target.id === 'modalFinalizarCalidad') cerrarModalFinalizarCalidad(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModalFinalizarCalidad(); });
+
+/* =========================================================================
+   NUEVAS FUNCIONES: PRE-ORDEN DE FABRICACIÓN DE CASTING (DOUBLE MODAL TABS)
+   ========================================================================= */
+
+let pocActivePage = 1;
+let pocState = {
+    ot_raw: '',
+    moldura: '',
+    allClases: [],
+    page1: {
+        proveedor: 'SS Metal Foundry, S. de R. L. de C. V.',
+        fecha: new Date().toISOString().substring(0, 10),
+        folio: '',
+        observaciones: '',
+        fecha_entrega: '',
+        filas: []
+    },
+    page2: {
+        proveedor: 'Fundición Especializada, S. A. de C. V.',
+        fecha: new Date().toISOString().substring(0, 10),
+        folio: '',
+        observaciones: '',
+        fecha_entrega: '',
+        filas: []
+    }
+};
+
+window.materialesCastingPersonalizados = [];
+
+function recopilarMaterialesPersonalizados() {
+    window.materialesCastingPersonalizados = [];
+    const paginas = [pocState.page1, pocState.page2];
+    paginas.forEach(p => {
+        if (p && p.filas) {
+            p.filas.forEach(f => {
+                const mat = f.material;
+                if (mat && !MATERIALES_CASTING_FIJOS.includes(mat) && mat !== 'Otro') {
+                    // Si el material tiene comas del estado anterior, las separamos, si no se procesa directo
+                    const partes = mat.split(',').map(s => s.trim()).filter(Boolean);
+                    partes.forEach(pmat => {
+                        if (pmat && !MATERIALES_CASTING_FIJOS.includes(pmat) && !window.materialesCastingPersonalizados.includes(pmat)) {
+                            window.materialesCastingPersonalizados.push(pmat);
+                        }
+                    });
+                }
+            });
+        }
+    });
+}
+
+// Helper: habilita o deshabilita el 'required' de los inputs de la página 2
+// para evitar el error "invalid form control is not focusable" cuando está oculta.
+function setPocPage2Required(enable) {
+    const page2 = document.getElementById('poc-page-2');
+    if (!page2) return;
+    page2.querySelectorAll('input, select, textarea').forEach(el => {
+        if (enable) {
+            if (el.dataset.wasRequired === '1') el.setAttribute('required', '');
+        } else {
+            if (el.hasAttribute('required')) {
+                el.dataset.wasRequired = '1';
+                el.removeAttribute('required');
+            } else {
+                el.dataset.wasRequired = '0';
+            }
+        }
+    });
+}
+
+window.abrirModalPreOrdenCasting = async function (ot) {
+    pocState.ot_raw = ot;
+    pocActivePage = 1;
+    document.getElementById('poc-has-page2').value = '0';
+
+    // Ocultar tab/sección de página 2, mostrar página 1
+    document.getElementById('tab-poc-page-2').style.display = 'none';
+    document.getElementById('btn-remove-poc-page-2').style.display = 'none';
+    document.getElementById('btn-add-poc-page-2').style.display = 'flex';
+    document.getElementById('poc-page-2').style.display = 'none';
+    document.getElementById('poc-page-1').style.display = 'block';
+    setPocPage2Required(false);
+
+    const tab1 = document.getElementById('tab-poc-page-1');
+    tab1.className = 'btn-po-tab active';
+    tab1.style.background = '#0369a1';
+    tab1.style.color = 'white';
+    tab1.style.borderColor = '#0369a1';
+
+    document.getElementById('poc-modal-subtitle').textContent = `OT: ${ot}`;
+
+    try {
+        const resp = await fetch(`/almacen/fundicion/ot-data?ot=${encodeURIComponent(ot)}&type=casting`);
+        const res = await resp.json();
+        if (res.success) {
+            pocState.allClases = res.clases || [];
+            pocState.moldura = res.moldura;
+
+            // Folios iniciales
+            pocState.page1.folio = res.folio;
+            pocState.page2.folio = res.folio;
+
+            const todayStr = new Date().toISOString().substring(0, 10);
+            pocState.page1.fecha = todayStr;
+            pocState.page2.fecha = todayStr;
+
+            // Cargar datos preexistentes si existen
+            const castingOrders = (res.pre_ordenes || []).filter(po => {
+                if (po.filas && po.filas.length > 0) {
+                    const firstFila = po.filas[0];
+                    return firstFila.cant_fabricar !== undefined;
+                }
+                return false;
+            });
+
+            if (castingOrders.length > 0) {
+                // Sí hay órdenes de casting guardadas, usarlas
+                const po1 = castingOrders[0];
+                pocState.page1.proveedor = po1.proveedor;
+                pocState.page1.fecha = po1.fecha_creacion ? po1.fecha_creacion.substring(0, 10) : todayStr;
+                pocState.page1.folio = po1.folio;
+                pocState.page1.observaciones = po1.observaciones || '';
+                pocState.page1.fecha_entrega = po1.filas[0]?.fecha_entrega || res.fecha_entrega || '';
+                pocState.page1.filas = po1.filas.map(f => ({
+                    id_clase: f.id_clase || f.clase_id,
+                    tipo_modelo: f.tipo_modelo || getTipoModeloFromClase(f.clase || f.descripcion),
+                    impresiones: f.impresiones || 1,
+                    cant_fabricar: f.cant_fabricar !== undefined ? f.cant_fabricar : 0,
+                    cant_consignacion: f.cant_consignacion || 0,
+                    descripcion: f.clase || f.descripcion || '',
+                    material: f.material || 'Hierro Gris',
+                    codigo: f.codigo || f.codigo_modelo || '',
+                    peso_juego: f.peso_juego || 0,
+                    peso_total: f.peso_total || 0,
+                    fecha_entrega: f.fecha_entrega || res.fecha_entrega || ''
+                }));
+
+                if (castingOrders.length > 1) {
+                    const po2 = castingOrders[1];
+                    pocState.page2.proveedor = po2.proveedor;
+                    pocState.page2.fecha = po2.fecha_creacion ? po2.fecha_creacion.substring(0, 10) : todayStr;
+                    pocState.page2.folio = po2.folio;
+                    pocState.page2.observaciones = po2.observaciones || '';
+                    pocState.page2.fecha_entrega = po2.filas[0]?.fecha_entrega || res.fecha_entrega || '';
+                    pocState.page2.filas = po2.filas.map(f => ({
+                        id_clase: f.id_clase || f.clase_id,
+                        tipo_modelo: f.tipo_modelo || getTipoModeloFromClase(f.clase || f.descripcion),
+                        impresiones: f.impresiones || 1,
+                        cant_fabricar: f.cant_fabricar !== undefined ? f.cant_fabricar : 0,
+                        cant_consignacion: f.cant_consignacion || 0,
+                        descripcion: f.clase || f.descripcion || '',
+                        material: f.material || 'Hierro Gris',
+                        codigo: f.codigo || f.codigo_modelo || '',
+                        peso_juego: f.peso_juego || 0,
+                        peso_total: f.peso_total || 0,
+                        fecha_entrega: f.fecha_entrega || res.fecha_entrega || ''
+                    }));
+
+                    document.getElementById('poc-has-page2').value = '1';
+                    document.getElementById('tab-poc-page-2').style.display = 'block';
+                    document.getElementById('btn-add-poc-page-2').style.display = 'none';
+                    document.getElementById('btn-remove-poc-page-2').style.display = 'flex';
+                } else {
+                    pocState.page2.filas = [];
+                    pocState.page2.fecha_entrega = res.fecha_entrega || '';
+                }
+            } else {
+                // No hay órdenes de casting guardadas. Revisar si hay una orden standard para prellenar los datos
+                const standardPo = (res.pre_ordenes || []).find(po => {
+                    if (po.filas && po.filas.length > 0) {
+                        const firstFila = po.filas[0];
+                        return firstFila.cant_fabricar === undefined;
+                    }
+                    return false;
+                });
+
+                if (standardPo) {
+                    pocState.page1.proveedor = standardPo.proveedor || '';
+                    pocState.page1.observaciones = standardPo.observaciones || '';
+                    pocState.page1.fecha_entrega = standardPo.filas[0]?.fecha_entrega || res.fecha_entrega || '';
+
+                    // Mapear las filas del standard a formato casting
+                    pocState.page1.filas = pocState.allClases.map(c => {
+                        const matchingFila = (standardPo.filas || []).find(f => (f.id_clase || f.clase_id) == c.id);
+                        return {
+                            id_clase: c.id,
+                            tipo_modelo: getTipoModeloFromClase(c.nombre),
+                            impresiones: matchingFila ? (matchingFila.impresiones || 1) : 1,
+                            cant_fabricar: '',
+                            cant_consignacion: 0,
+                            descripcion: c.nombre,
+                            material: '',
+                            codigo: '',
+                            peso_juego: 0,
+                            peso_total: 0,
+                            fecha_entrega: res.fecha_entrega || ''
+                        };
+                    });
+                } else {
+                    // No hay pre-órdenes previas en absoluto. Usar valores por defecto y clases de la OT
+                    pocState.page1.proveedor = '';
+                    pocState.page1.observaciones = '';
+                    pocState.page1.fecha_entrega = res.fecha_entrega || '';
+                    pocState.page1.filas = pocState.allClases.map(c => ({
+                        id_clase: c.id,
+                        tipo_modelo: getTipoModeloFromClase(c.nombre),
+                        impresiones: 1,
+                        cant_fabricar: '',
+                        cant_consignacion: 0,
+                        descripcion: c.nombre,
+                        material: '',
+                        codigo: '',
+                        peso_juego: 0,
+                        peso_total: 0,
+                        fecha_entrega: res.fecha_entrega || ''
+                    }));
+                }
+                pocState.page2.filas = [];
+                pocState.page2.fecha_entrega = res.fecha_entrega || '';
+            }
+
+            recopilarMaterialesPersonalizados();
+            loadPocPage(1);
+
+            const modal = document.getElementById('modalPreOrdenCasting');
+            modal.classList.add('open');
+            document.body.classList.add('modal-open');
+        } else {
+            almacenToast(res.message || 'Error al obtener datos de la OT.', 'error');
+        }
+    } catch (err) {
+        console.error('Error fetching casting OT data:', err);
+        almacenToast('Error de red al obtener datos de la OT.', 'error');
+    }
+};
+
+window.cerrarModalPreOrdenCasting = function () {
+    const modal = document.getElementById('modalPreOrdenCasting');
+    if (modal) modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+};
+
+window.switchPocPage = function (pageNum) {
+    if (pageNum === pocActivePage) return;
+
+    // Guardar datos actuales del formulario al estado local
+    savePocPageData(pocActivePage);
+
+    const tab1 = document.getElementById('tab-poc-page-1');
+    const tab2 = document.getElementById('tab-poc-page-2');
+
+    if (pageNum === 1) {
+        tab1.className = 'btn-po-tab active';
+        tab1.style.background = '#0369a1';
+        tab1.style.color = 'white';
+        tab1.style.borderColor = '#0369a1';
+
+        tab2.className = 'btn-po-tab';
+        tab2.style.background = '#f8fafc';
+        tab2.style.color = '#64748b';
+        tab2.style.borderColor = '#cbd5e1';
+
+        document.getElementById('poc-page-2').style.display = 'none';
+        document.getElementById('poc-page-1').style.display = 'block';
+        setPocPage2Required(false);
+    } else {
+        tab2.className = 'btn-po-tab active';
+        tab2.style.background = '#0369a1';
+        tab2.style.color = 'white';
+        tab2.style.borderColor = '#0369a1';
+
+        tab1.className = 'btn-po-tab';
+        tab1.style.background = '#f8fafc';
+        tab1.style.color = '#64748b';
+        tab1.style.borderColor = '#cbd5e1';
+
+        document.getElementById('poc-page-1').style.display = 'none';
+        document.getElementById('poc-page-2').style.display = 'block';
+        setPocPage2Required(true);
+    }
+
+    pocActivePage = pageNum;
+    loadPocPage(pageNum);
+};
+
+window.agregarPocPagina2 = function () {
+    savePocPageData(1);
+
+    document.getElementById('poc-has-page2').value = '1';
+    document.getElementById('tab-poc-page-2').style.display = 'block';
+    document.getElementById('btn-add-poc-page-2').style.display = 'none';
+    document.getElementById('btn-remove-poc-page-2').style.display = 'flex';
+
+    if (pocState.page2.filas.length === 0) {
+        pocState.page2.fecha_entrega = pocState.page2.fecha_entrega || pocState.page1.fecha_entrega || '';
+        pocState.page2.filas = pocState.allClases.map(c => ({
+            id_clase: c.id,
+            tipo_modelo: getTipoModeloFromClase(c.nombre),
+            impresiones: 1,
+            cant_fabricar: '',
+            cant_consignacion: 0,
+            descripcion: c.nombre,
+            material: '',
+            codigo: '',
+            peso_juego: 0,
+            peso_total: 0,
+            fecha_entrega: ''
+        }));
+    }
+
+    switchPocPage(2);
+};
+
+window.removerPocPagina2 = function () {
+    if (confirm('¿Está seguro de remover el Proveedor 2? Se perderán sus datos cargados.')) {
+        document.getElementById('poc-has-page2').value = '0';
+        document.getElementById('tab-poc-page-2').style.display = 'none';
+        document.getElementById('btn-remove-poc-page-2').style.display = 'none';
+        document.getElementById('btn-add-poc-page-2').style.display = 'flex';
+        setPocPage2Required(false);
+
+        pocState.page2.filas = [];
+        switchPocPage(1);
+    }
+};
+
+window.handlePocProveedorChange = function (pageNum) {
+    const provSelect1 = document.getElementById('poc-p1-proveedor');
+    const provSelect2 = document.getElementById('poc-p2-proveedor');
+
+    if (pageNum === 1 && provSelect2) {
+        if (provSelect1.value === provSelect2.value) {
+            almacenToast('No puedes seleccionar el mismo proveedor para ambas páginas.', 'warning');
+            for (let opt of provSelect2.options) {
+                if (opt.value !== provSelect1.value) {
+                    provSelect2.value = opt.value;
+                    break;
+                }
+            }
+        }
+    } else if (pageNum === 2 && provSelect1) {
+        if (provSelect1.value === provSelect2.value) {
+            almacenToast('No puedes seleccionar el mismo proveedor para ambas páginas.', 'warning');
+            for (let opt of provSelect1.options) {
+                if (opt.value !== provSelect2.value) {
+                    provSelect1.value = opt.value;
+                    break;
+                }
+            }
+        }
+    }
+};
+
+function getTipoModeloFromClase(claseNombre) {
+    const clLow = (claseNombre || '').toLowerCase();
+    if (clLow.includes('fondo')) return 'Fondo';
+    if (clLow.includes('obturador')) return 'Obturador';
+    if (clLow.includes('molde')) return 'Molde';
+    if (clLow.includes('bombillo')) return 'Bombillo';
+    return 'Otro';
+}
+
+// Tabla de consignaciones por rango de fabricar
+function calcularConsignacion(cantFabricar, tipoModelo) {
+    const esMolde = (tipoModelo || '').toLowerCase().includes('molde');
+    const rangos = [
+        { max: 3, molde: 0.50, otro: 0.50 },  // PRUEBAS [2-3]
+        { max: 6, molde: 0.50, otro: 0.35 },  // [1-6]
+        { max: 12, molde: 0.25, otro: 0.25 },  // [7-12]
+        { max: 24, molde: 0.17, otro: 0.13 },  // [13-24]
+        { max: 50, molde: 0.10, otro: 0.10 },  // [25-50]
+        { max: 80, molde: 0.08, otro: 0.08 },  // [51-80]
+        { max: Infinity, molde: 0.05, otro: 0.065 } // [81-120+]
+    ];
+    const rango = rangos.find(r => cantFabricar <= r.max) || rangos[rangos.length - 1];
+    const pct = esMolde ? rango.molde : rango.otro;
+    return cantFabricar + Math.ceil(cantFabricar * pct);
+}
+
+function autoGenerarCodigo(tipoModelo, claseNombre, ot) {
+    if (!claseNombre) return '';
+    const letter = claseNombre.trim().substring(0, 1).toUpperCase();
+    const otClean = (ot || '').split('-')[0].replace(/_[rR]\d+.*/, '').trim();
+    const otNum = otClean.replace(/[^0-9]/g, '');
+    const prefix = (tipoModelo === 'Templadera') ? 'T' : '';
+    return `${prefix}${letter}${otNum}`;
+}
+
+const MATERIALES_CASTING = ['Hierro Gris', 'Hierro Híbrido', 'Hierro Nodular', 'Minox', 'Otro'];
+const MATERIALES_CASTING_FIJOS = ['Hierro Gris', 'Hierro Híbrido', 'Hierro Nodular', 'Minox'];
+const POC_MATERIAL_MAX = 7;
+
+function loadPocPage(pageNum) {
+    const pData = pocState['page' + pageNum];
+    const todayStr = new Date().toISOString().substring(0, 10);
+
+    document.getElementById(`poc-p${pageNum}-proveedor`).value = pData.proveedor;
+    const fechaEl = document.getElementById(`poc-p${pageNum}-fecha`);
+    if (fechaEl) { fechaEl.value = pData.fecha || todayStr; fechaEl.setAttribute('readonly', true); }
+    document.getElementById(`poc-p${pageNum}-folio`).value = pData.folio;
+    document.getElementById(`poc-p${pageNum}-moldura`).value = pocState.moldura;
+    let pocOtNumber = pocState.ot_raw.replace(/_\d{8}_\d{6}_.*/, '');
+    if (pocOtNumber.includes(' - ')) {
+        pocOtNumber = pocOtNumber.split(' - ')[0].trim();
+    }
+    pocOtNumber = pocOtNumber.split('_')[0].replace(/[^0-9]/g, '');
+    document.getElementById(`poc-p${pageNum}-ot`).value = pocOtNumber;
+    document.getElementById(`poc-p${pageNum}-observaciones`).value = pData.observaciones || '';
+
+    const fechaEntregaEl = document.getElementById(`poc-p${pageNum}-fecha-entrega`);
+    if (fechaEntregaEl) {
+        fechaEntregaEl.value = pData.fecha_entrega || '';
+    }
+
+    const tbody = document.getElementById(`alm-tbody-poc-p${pageNum}`);
+    tbody.innerHTML = '';
+
+    const tiposModelo = ['Suelto', 'Placa', 'Templadera'];
+
+    pData.filas.forEach((fila, idx) => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = '1px solid #e2e8f0';
+
+        let tipoOpts = `<option value="">-- Tipo --</option>`;
+        tiposModelo.forEach(t => {
+            const sel = (fila.tipo_modelo === t) ? 'selected' : '';
+            tipoOpts += `<option value="${t}" ${sel}>${t}</option>`;
+        });
+
+        let claseOptions = '<option value="">-- Clase --</option>';
+        pocState.allClases.forEach(c => {
+            const selected = (c.id == fila.id_clase) ? 'selected' : '';
+            claseOptions += `<option value="${c.id}" ${selected}>${c.nombre}</option>`;
+        });
+
+        const codigoVal = fila.codigo || autoGenerarCodigo(fila.tipo_modelo, fila.descripcion, pocState.ot_raw);
+
+        const materialesDisponibles = [...MATERIALES_CASTING_FIJOS, ...window.materialesCastingPersonalizados];
+
+        const materialFila = fila.material ? fila.material.split(',')[0].trim() : '';
+        if (materialFila && !materialesDisponibles.includes(materialFila) && materialFila !== 'Otro') {
+            window.materialesCastingPersonalizados.push(materialFila);
+            materialesDisponibles.push(materialFila);
+        }
+
+        let matOpts = `<option value="">-- Material --</option>`;
+        materialesDisponibles.forEach(m => {
+            const sel = (m === materialFila) ? 'selected' : '';
+            matOpts += `<option value="${m}" ${sel}>${m}</option>`;
+        });
+
+        const limiteAlcanzado = materialesDisponibles.length >= 7;
+        if (!limiteAlcanzado) {
+            matOpts += `<option value="Otro">Otro</option>`;
+        }
+
+        tr.innerHTML = `
+            <td style="padding:8px;min-width:110px;">
+                <select name="tipo_modelo" class="form-control poc-input-tipo" required onchange="handlePocTipoChange(${pageNum},${idx},this)">
+                    ${tipoOpts}
+                </select>
+            </td>
+            <td style="padding:8px;min-width:90px;">
+                <input type="number" name="cant_fabricar" class="form-control poc-input-cant-fabricar" min="0" value="${fila.cant_fabricar !== undefined && fila.cant_fabricar !== null ? fila.cant_fabricar : ''}" required oninput="recalcPocRowWeight(${pageNum},${idx})">
+            </td>
+            <td style="padding:8px;min-width:90px;">
+                <input type="number" name="cant_consignacion" class="form-control poc-input-cant-consignacion" min="0" value="${fila.cant_consignacion || 0}" style="background:#f0fdf4;" title="Se calcula automáticamente al llenar Cant. Fabricar. Puedes modificarlo si es necesario.">
+            </td>
+            <td style="padding:8px;">
+                <select name="id_clase" class="form-control poc-select-clase" required onchange="handlePocClaseChange(${pageNum},${idx},this)">
+                    ${claseOptions}
+                </select>
+            </td>
+            <td style="padding:8px;min-width:160px;vertical-align:middle;">
+                <div class="poc-material-wrapper" data-page="${pageNum}" data-idx="${idx}">
+                    <div style="display:flex;gap:6px;align-items:center;">
+                        <select class="form-control poc-input-material" style="flex:1;font-size:0.88em;" required onchange="handlePocMaterialChange(${pageNum},${idx},this)">
+                            ${matOpts}
+                        </select>
+                        ${(materialFila && !MATERIALES_CASTING_FIJOS.includes(materialFila) && materialFila !== 'Otro')
+                ? `<button type="button" class="btn-eliminar-material-opcion" onclick="eliminarMaterialGlobal(${pageNum}, '${materialFila.replace(/'/g, "\\'")}')"
+                                style="background:#fff;border:none;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0;" title="Quitar de la lista de materiales">
+                                <img src="/images/quitar.png" style="width:16px;height:16px;">
+                               </button>`
+                : ''
+            }
+                    </div>
+                    <input type="text" class="poc-input-material-custom" placeholder="Especificar material..." style="display:none;margin-top:4px;padding:5px 8px;border:1.5px solid #0284c7;border-radius:8px;width:100%;font-family:'Poppins',sans-serif;font-size:0.88em;" onkeydown="handlePocMaterialCustomKey(${pageNum},${idx},event,this)" oninput="handlePocMaterialCustomInput(${pageNum},${idx},this)" onblur="handlePocMaterialCustomBlur(${pageNum},${idx},this)">
+                    ${limiteAlcanzado
+                ? `<span class="poc-material-hint" style="font-size:0.72em;color:#f97316;margin-top:2px;display:block;">Límite de 7 materiales alcanzado.</span>`
+                : ''
+            }
+                </div>
+            </td>
+            <td style="padding:8px;min-width:120px;">
+                <input type="text" name="codigo" class="form-control poc-input-codigo" value="${codigoVal}" required>
+            </td>
+            <td style="padding:8px;min-width:90px;">
+                <input type="number" step="0.01" name="peso_juego" class="form-control poc-input-peso-juego" min="0" value="${fila.peso_juego || 0}" required oninput="recalcPocRowWeight(${pageNum},${idx})">
+            </td>
+            <td style="padding:8px;min-width:90px;">
+                <input type="number" step="0.01" name="peso_total" class="form-control poc-input-peso-total" value="${fila.peso_total || 0}" readonly style="background:#f1f5f9;">
+            </td>
+            <td style="padding:8px;text-align:center;">
+                <button type="button" class="btn-eliminar-fila" onclick="eliminarFilaPoc(${pageNum},${idx})" style="background:none;border:none;cursor:pointer;">
+                    <img src="/images/quitar.png" style="width:24px;height:24px;">
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+window.handlePocTipoChange = function (pageNum, idx, selectEl) {
+    const pData = pocState['page' + pageNum];
+    const row = pData.filas[idx];
+    row.tipo_modelo = selectEl.value;
+
+    // Auto-update codigo when tipo changes
+    const tr = selectEl.closest('tr');
+    const codEl = tr.querySelector('.poc-input-codigo');
+    const claseSel = tr.querySelector('.poc-select-clase');
+    if (codEl && !codEl.dataset.userEdited) {
+        const claseNombre = claseSel && claseSel.selectedIndex >= 0 ? claseSel.options[claseSel.selectedIndex].text : (row.descripcion || '');
+        codEl.value = autoGenerarCodigo(selectEl.value, claseNombre, pocState.ot_raw);
+    }
+
+    // Recalcular consignacion al cambiar tipo (afecta tabla molde vs otros)
+    recalcPocRowWeight(pageNum, idx);
+};
+
+// ── DYNAMIC SINGLE MATERIAL LOGIC ──
+
+window.handlePocMaterialChange = function (pageNum, idx, selectEl) {
+    const pData = pocState['page' + pageNum];
+    const row = pData.filas[idx];
+
+    if (selectEl.value === 'Otro') {
+        // Mostrar input personalizado
+        const wrapper = selectEl.closest('.poc-material-wrapper');
+        const customInput = wrapper && wrapper.querySelector('.poc-input-material-custom');
+        if (customInput) {
+            customInput.style.display = 'block';
+            customInput.value = '';
+            customInput.focus();
+        }
+        selectEl.style.display = 'none';
+        return;
+    }
+
+    row.material = selectEl.value;
+    loadPocPage(pageNum);
+};
+
+window.handlePocMaterialCustomInput = function (pageNum, idx, inputEl) {
+    // Solo preview
+};
+
+window.handlePocMaterialCustomBlur = function (pageNum, idx, inputEl) {
+    confirmPocMaterialCustom(pageNum, idx, inputEl);
+};
+
+window.handlePocMaterialCustomKey = function (pageNum, idx, event, inputEl) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        confirmPocMaterialCustom(pageNum, idx, inputEl);
+    }
+};
+
+function confirmPocMaterialCustom(pageNum, idx, inputEl) {
+    const val = inputEl.value.trim().replace(/\b\w/g, c => c.toUpperCase());
+    const wrapper = inputEl.closest('.poc-material-wrapper');
+    const selectEl = wrapper && wrapper.querySelector('.poc-input-material');
+
+    if (!val) {
+        // Cancelar y restaurar select
+        inputEl.style.display = 'none';
+        if (selectEl) selectEl.style.display = 'block';
+        return;
+    }
+
+    const pData = pocState['page' + pageNum];
+    const row = pData.filas[idx];
+
+    const materialesDisponibles = [...MATERIALES_CASTING_FIJOS, ...window.materialesCastingPersonalizados];
+
+    if (!materialesDisponibles.includes(val)) {
+        if (materialesDisponibles.length >= 7) {
+            almacenToast('Límite de 7 materiales en el selector alcanzado.', 'error');
+            inputEl.style.display = 'none';
+            if (selectEl) selectEl.style.display = 'block';
+            loadPocPage(pageNum);
+            return;
+        }
+        window.materialesCastingPersonalizados.push(val);
+    }
+
+    row.material = val;
+    inputEl.style.display = 'none';
+    if (selectEl) selectEl.style.display = 'block';
+
+    // Recargar vista para actualizar todos los dropdowns
+    loadPocPage(pageNum);
+}
+
+window.eliminarMaterialGlobal = function (pageNum, mat) {
+    // 1. Quitar de la lista global de personalizados
+    window.materialesCastingPersonalizados = window.materialesCastingPersonalizados.filter(m => m !== mat);
+
+    // 2. Limpiar la selección de cualquier fila que usara este material
+    const paginas = [pocState.page1, pocState.page2];
+    paginas.forEach(p => {
+        if (p && p.filas) {
+            p.filas.forEach(f => {
+                if (f.material === mat) {
+                    f.material = ''; // Resetea a vacío
+                }
+            });
+        }
+    });
+
+    almacenToast(`Material "${mat}" eliminado de las opciones.`, 'success');
+    loadPocPage(pageNum);
+};
+
+window.handlePocClaseChange = function (pageNum, idx, selectEl) {
+    const pData = pocState['page' + pageNum];
+    const row = pData.filas[idx];
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+
+    if (selectedOption && selectedOption.value) {
+        row.id_clase = selectedOption.value;
+        row.descripcion = selectedOption.text;
+        // Auto-update codigo when clase changes
+        const tr = selectEl.closest('tr');
+        const codEl = tr.querySelector('.poc-input-codigo');
+        const tipoEl = tr.querySelector('.poc-input-tipo');
+        if (codEl && !codEl.dataset.userEdited) {
+            codEl.value = autoGenerarCodigo(tipoEl ? tipoEl.value : '', selectedOption.text, pocState.ot_raw);
+        }
+    }
+};
+
+// Mark codigo as user-edited when touched
+document.addEventListener('input', function (e) {
+    if (e.target.classList.contains('poc-input-codigo')) {
+        e.target.dataset.userEdited = '1';
+    }
+});
+
+window.recalcPocRowWeight = function (pageNum, idx) {
+    const pData = pocState['page' + pageNum];
+    const row = pData.filas[idx];
+
+    const tbody = document.getElementById(`alm-tbody-poc-p${pageNum}`);
+    const tr = tbody.children[idx];
+    if (!tr) return;
+
+    const fabInput = tr.querySelector('.poc-input-cant-fabricar');
+    const consInput = tr.querySelector('.poc-input-cant-consignacion');
+    const juegoInput = tr.querySelector('.poc-input-peso-juego');
+    const totalInput = tr.querySelector('.poc-input-peso-total');
+    const tipoInput = tr.querySelector('.poc-input-tipo');
+
+    const fab = parseInt(fabInput ? fabInput.value : 0) || 0;
+    const juego = parseFloat(juegoInput ? juegoInput.value : 0) || 0;
+    const tipoModelo = tipoInput ? tipoInput.value : (row.tipo_modelo || '');
+
+    // Auto-calcular consignación basada en tabla (solo si el usuario acaba de cambiar "fabricar")
+    if (fabInput && document.activeElement === fabInput) {
+        const autocons = calcularConsignacion(fab, tipoModelo);
+        if (consInput) {
+            consInput.value = autocons;
+            consInput.style.background = '#f0fdf4';
+        }
+        row.cant_consignacion = autocons;
+    } else {
+        row.cant_consignacion = parseInt(consInput ? consInput.value : 0) || 0;
+    }
+
+    row.cant_fabricar = fab;
+    row.peso_juego = juego;
+    // peso_total = peso_juego × cant_consignacion
+    const totalWeight = parseFloat((juego * row.cant_consignacion).toFixed(3));
+    row.peso_total = totalWeight;
+
+    if (totalInput) {
+        totalInput.value = totalWeight;
+    }
+};
+
+window.agregarFilaPoc = function (pageNum) {
+    savePocPageData(pageNum);
+    pocState['page' + pageNum].filas.push({
+        id_clase: '',
+        tipo_modelo: '',
+        cant_fabricar: '',
+        cant_consignacion: 0,
+        descripcion: '',
+        material: '',
+        codigo: '',
+        peso_juego: 0,
+        peso_total: 0,
+        fecha_entrega: ''
+    });
+    loadPocPage(pageNum);
+};
+
+window.eliminarFilaPoc = function (pageNum, idx) {
+    savePocPageData(pageNum);
+    pocState['page' + pageNum].filas.splice(idx, 1);
+    loadPocPage(pageNum);
+};
+
+function savePocPageData(pageNum) {
+    const pData = pocState['page' + pageNum];
+
+    const provEl = document.getElementById(`poc-p${pageNum}-proveedor`);
+    const folioEl = document.getElementById(`poc-p${pageNum}-folio`);
+    const obsEl = document.getElementById(`poc-p${pageNum}-observaciones`);
+    const fechaEntregaEl = document.getElementById(`poc-p${pageNum}-fecha-entrega`);
+
+    if (provEl) pData.proveedor = provEl.value;
+    // Preservar la fecha guardada; solo asignar hoy si aún no tiene fecha
+    if (!pData.fecha) pData.fecha = new Date().toISOString().substring(0, 10);
+    if (folioEl) pData.folio = folioEl.value;
+    if (obsEl) pData.observaciones = obsEl.value;
+    if (fechaEntregaEl) pData.fecha_entrega = fechaEntregaEl.value;
+
+    const tbody = document.getElementById(`alm-tbody-poc-p${pageNum}`);
+    if (tbody) {
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach((tr, idx) => {
+            const rowState = pData.filas[idx];
+            if (!rowState) return;
+
+            const tipoSel = tr.querySelector('.poc-input-tipo');
+            rowState.tipo_modelo = tipoSel ? tipoSel.value : (rowState.tipo_modelo || '');
+            const rawCant = tr.querySelector('.poc-input-cant-fabricar')?.value;
+            rowState.cant_fabricar = (rawCant !== undefined && rawCant !== '') ? parseInt(rawCant) : '';
+            rowState.cant_consignacion = parseInt(tr.querySelector('.poc-input-cant-consignacion')?.value) || 0;
+
+            const selectClase = tr.querySelector('.poc-select-clase');
+            if (selectClase) {
+                rowState.id_clase = selectClase.value;
+                rowState.descripcion = selectClase.options[selectClase.selectedIndex]?.text || '';
+            }
+
+            // Material: leer el select actual
+            const matSel = tr.querySelector('.poc-input-material');
+            if (matSel && matSel.value && matSel.value !== 'Otro') {
+                rowState.material = matSel.value;
+            } else if (!rowState.material) {
+                rowState.material = 'Hierro Gris';
+            }
+
+            rowState.codigo = tr.querySelector('.poc-input-codigo')?.value || '';
+            rowState.peso_juego = parseFloat(tr.querySelector('.poc-input-peso-juego')?.value) || 0;
+            rowState.peso_total = parseFloat(tr.querySelector('.poc-input-peso-total')?.value) || 0;
+            rowState.fecha_entrega = pData.fecha_entrega || '';
+        });
+    }
+}
+
+document.getElementById('formPreOrdenCasting')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    savePocPageData(pocActivePage);
+    const hasPage2 = document.getElementById('poc-has-page2').value === '1';
+
+    const p1 = pocState.page1;
+    if (!p1.proveedor || !p1.fecha) {
+        almacenToast('Debe completar el Proveedor y Fecha de la Página 1.', 'error');
+        return;
+    }
+    if (!p1.fecha_entrega) {
+        almacenToast('Debe completar la Fecha de Entrega de la Página 1.', 'error');
+        return;
+    }
+    if (p1.filas.length === 0) {
+        almacenToast('Página 1 debe tener al menos una fila de clase.', 'error');
+        return;
+    }
+
+    let p1Valid = true;
+    p1.filas.forEach(f => {
+        if (!f.id_clase || f.impresiones <= 0 || (f.cant_fabricar === 0 && f.cant_consignacion === 0)) {
+            p1Valid = false;
+        }
+    });
+
+    if (!p1Valid) {
+        almacenToast('Por favor complete todos los campos obligatorios de las clases en Página 1.', 'error');
+        return;
+    }
+
+    const p2 = pocState.page2;
+    if (hasPage2) {
+        if (!p2.proveedor || !p2.fecha) {
+            almacenToast('Debe completar el Proveedor y Fecha de la Página 2.', 'error');
+            return;
+        }
+        if (!p2.fecha_entrega) {
+            almacenToast('Debe completar la Fecha de Entrega de la Página 2.', 'error');
+            return;
+        }
+        if (p2.filas.length === 0) {
+            almacenToast('Página 2 debe tener al menos una fila de clase.', 'error');
+            return;
+        }
+
+        let p2Valid = true;
+        p2.filas.forEach(f => {
+            if (!f.id_clase || f.impresiones <= 0 || (f.cant_fabricar === 0 && f.cant_consignacion === 0)) {
+                p2Valid = false;
+            }
+        });
+
+        if (!p2Valid) {
+            almacenToast('Por favor complete todos los campos obligatorios de las clases en Página 2.', 'error');
+            return;
+        }
+    }
+
+    let otNumClean = pocState.ot_raw;
+    if (otNumClean.includes(' - ')) {
+        otNumClean = otNumClean.split(' - ')[0].trim();
+    }
+    otNumClean = otNumClean.split('_')[0].replace(/[^0-9]/g, '');
+
+    const payload = {
+        type: 'casting',
+        has_page2: hasPage2,
+        page1: {
+            ot: otNumClean,
+            ot_raw: pocState.ot_raw,
+            proveedor: p1.proveedor,
+            fecha_creacion: p1.fecha,
+            folio: p1.folio,
+            moldura: pocState.moldura,
+            observaciones: p1.observaciones,
+            filas: p1.filas.map(f => ({
+                id_clase: f.id_clase,
+                clase: f.descripcion,
+                tipo_modelo: f.tipo_modelo,
+                impresiones: f.impresiones,
+                cant_fabricar: f.cant_fabricar,
+                cant_consignacion: f.cant_consignacion,
+                material: f.material,
+                codigo: f.codigo,
+                peso_juego: f.peso_juego,
+                peso_total: f.peso_total,
+                fecha_entrega: f.fecha_entrega
+            }))
+        }
+    };
+
+    if (hasPage2) {
+        payload.page2 = {
+            ot: otNumClean,
+            ot_raw: pocState.ot_raw,
+            proveedor: p2.proveedor,
+            fecha_creacion: p2.fecha,
+            folio: p2.folio,
+            moldura: pocState.moldura,
+            observaciones: p2.observaciones,
+            filas: p2.filas.map(f => ({
+                id_clase: f.id_clase,
+                clase: f.descripcion,
+                tipo_modelo: f.tipo_modelo,
+                impresiones: f.impresiones,
+                cant_fabricar: f.cant_fabricar,
+                cant_consignacion: f.cant_consignacion,
+                material: f.material,
+                codigo: f.codigo,
+                peso_juego: f.peso_juego,
+                peso_total: f.peso_total,
+                fecha_entrega: f.fecha_entrega
+            }))
+        };
+    }
+
+    const btn = document.getElementById('btn-submit-poc');
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = 'Guardando y Generando PDF...';
+
+    try {
+        const resp = await fetch('/almacen/fundicion/store-preorden', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? ''
+            },
+            body: JSON.stringify(payload)
+        });
+        const res = await resp.json();
+
+        if (res.success) {
+            almacenToast(res.message, 'success');
+            cerrarModalPreOrdenCasting();
+
+            if (res.pdfs && res.pdfs.length > 0) {
+                res.pdfs.forEach(pdf => {
+                    const link = document.createElement('a');
+                    link.href = pdf.url;
+                    link.download = pdf.filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            }
+
+            setTimeout(() => { window.location.reload(); }, 2000);
+        } else {
+            almacenToast(res.message || 'Error al guardar la pre-orden.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = origText;
+        }
+    } catch (err) {
+        console.error('Error storing casting pre-order:', err);
+        almacenToast('Error de red al guardar la pre-orden.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    }
+});
+
+let madcSelectedFiles = [];
+
+window.removeMadcSelectedAttachment = function (index) {
+    madcSelectedFiles.splice(index, 1);
+    renderMadcSelectedFilesBadges();
+};
+
+function renderMadcSelectedFilesBadges() {
+    const listContainer = document.getElementById('madc-archivos-adicionales-list');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '';
+    madcSelectedFiles.forEach((file, index) => {
+        const badge = document.createElement('span');
+        badge.className = 'file-badge';
+        badge.style.display = 'inline-flex';
+        badge.style.alignItems = 'center';
+        badge.style.gap = '6px';
+        badge.style.background = '#ffedd5';
+        badge.style.color = '#ea580c';
+        badge.style.border = '1px solid #fed7aa';
+        badge.style.borderRadius = '20px';
+        badge.style.padding = '6px 12px';
+        badge.style.fontSize = '0.85em';
+        badge.style.fontWeight = '600';
+        badge.innerHTML = `
+            📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)
+            <button type="button" class="remove-file-badge-btn" style="background: none; border: none; color: #ea580c; font-weight: bold; cursor: pointer; padding: 0 4px; font-size: 1.2em; line-height: 1; display: flex; align-items: center;" onclick="window.removeMadcSelectedAttachment(${index})">&times;</button>
+        `;
+        listContainer.appendChild(badge);
+    });
+}
+
+const handleMadcFileChange = function (e) {
+    if (this.files) {
+        for (let i = 0; i < this.files.length; i++) {
+            madcSelectedFiles.push(this.files[i]);
+        }
+        renderMadcSelectedFilesBadges();
+    }
+};
+
+const bindMadcDropzone = () => {
+    const inp = document.getElementById('madc-archivos-adicionales');
+    if (inp) {
+        inp.removeEventListener('change', handleMadcFileChange);
+        inp.addEventListener('change', handleMadcFileChange);
+    }
+};
+
+// Bind on initial load
+setTimeout(bindMadcDropzone, 500);
+
+/**
+ * Calidad: Enviar alerta directo a Almacén sin abrir modal de subida de archivos (Ahora abre un modal confirmando fecha y mostrando PDFs)
+ */
+window.enviarAlertaDirectoCalidad = async function (ot, decision, tiposAprobados, tiposRechazados) {
+    const modal = document.getElementById('modalEnviarAlertaDirectoCalidad');
+    if (!modal) return;
+
+    bindMadcDropzone();
+    madcSelectedFiles = [];
+    const dropzoneInput = document.getElementById('madc-archivos-adicionales');
+    if (dropzoneInput) dropzoneInput.value = '';
+    const badgeContainer = document.getElementById('madc-archivos-adicionales-list');
+    if (badgeContainer) badgeContainer.innerHTML = '';
+
+    document.getElementById('madc-ot').value = ot;
+    document.getElementById('madc-decision').value = decision;
+    document.getElementById('madc-tipos-aprobados').value = JSON.stringify(tiposAprobados || []);
+    document.getElementById('madc-tipos-rechazados').value = JSON.stringify(tiposRechazados || []);
+
+    const otClean = ot.replace(/_\d{8}_\d{6}_.*/, '');
+    document.getElementById('madc-subtitle').textContent = `OT: ${otClean} (${decision.toUpperCase()})`;
+
+    // Ajustar colores y estilos (Igual al modal de Pre-Orden)
+    const header = document.getElementById('madc-header');
+    const submitBtn = document.getElementById('btn-submit-direct-calidad');
+    modal.querySelector('.alm-modal-content').style.borderColor = '';
+    if (header) {
+        header.style.background = '#033966';
+    }
+    if (submitBtn) {
+        submitBtn.style.background = '#005194';
+        submitBtn.style.boxShadow = '0 4px 15px rgba(0, 81, 148, 0.3)';
+    }
+
+    // Colocar fecha de hoy
+    const today = new Date();
+    const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    document.getElementById('madc-fecha').value = formattedToday;
+
+    const listContainer = document.getElementById('madc-server-files-container');
+    listContainer.innerHTML = '<div style="text-align:center;color:#64748b;font-family:\'Poppins\',sans-serif;padding:10px;">Cargando archivos...</div>';
+
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+
+    try {
+        const response = await fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`);
+        const data = await response.json();
+
+        let baseUrl = window.baseUrl || (window.location.origin + '/');
+        if (!baseUrl.endsWith('/')) baseUrl += '/';
+
+        if (data.existe && data.archivos && data.archivos.length > 0) {
+            const sectionsHtml = generarHtmlCategorizadoArchivos(data.archivos, ot, baseUrl, 'calidad');
+            listContainer.innerHTML = sectionsHtml || '<div style="text-align:center;color:#ef4444;font-family:\'Poppins\',sans-serif;padding:10px;font-weight:600;">No se encontraron PDFs en el servidor para esta OT.</div>';
+        } else {
+            listContainer.innerHTML = '<div style="text-align:center;color:#ef4444;font-family:\'Poppins\',sans-serif;padding:10px;font-weight:600;">No se encontraron PDFs en el servidor para esta OT.</div>';
+        }
+    } catch (err) {
+        console.error(err);
+        listContainer.innerHTML = '<div style="text-align:center;color:#ef4444;font-family:\'Poppins\',sans-serif;padding:10px;">Error al consultar archivos.</div>';
+    }
+};
+
+window.cerrarModalEnviarAlertaDirectoCalidad = function () {
+    const modal = document.getElementById('modalEnviarAlertaDirectoCalidad');
+    if (modal) modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+};
+
+document.getElementById('formEnviarAlertaDirectoCalidad')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const ot = document.getElementById('madc-ot').value;
+    const decision = document.getElementById('madc-decision').value;
+    const tiposAprobados = JSON.parse(document.getElementById('madc-tipos-aprobados').value);
+    const tiposRechazados = JSON.parse(document.getElementById('madc-tipos-rechazados').value);
+    const fecha = document.getElementById('madc-fecha').value;
+    const destinatario = document.getElementById('madc-destinatario').value.trim();
+
+    if (!destinatario) {
+        almacenToast('El destinatario es obligatorio.', 'error');
+        return;
+    }
+    if (!fecha) {
+        almacenToast('La fecha de envío es obligatoria.', 'error');
+        return;
+    }
+
+    const submitBtn = document.getElementById('btn-submit-direct-calidad');
+    const origText = submitBtn.innerText;
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Enviando...';
+
+    const allTypes = [...tiposAprobados, ...tiposRechazados];
+
+    const formData = new FormData(this);
+    formData.set('tipo_modelo', allTypes.join(', '));
+
+    // Adjuntar archivos de dropzone
+    madcSelectedFiles.forEach(file => {
+        if (decision === 'rechazar') {
+            formData.append('archivos_rechazados_extra[]', file);
+        } else if (decision === 'aprobar') {
+            formData.append('archivos_aprobados_extra[]', file);
+        } else {
+            formData.append('archivos_aprobados_extra[]', file);
+            formData.append('archivos_rechazados_extra[]', file);
+        }
+    });
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    try {
+        const response = await fetch(window.almacenRoutes.enviarAlertaLiberacion, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': csrfToken || ''
+            }
+        });
+        const res = await response.json();
+        if (res.success) {
+            almacenToast(res.message || 'Alerta enviada correctamente.', 'success');
+            setTimeout(() => {
+                cerrarModalEnviarAlertaDirectoCalidad();
+                location.reload();
+            }, 1500);
+        } else {
+            almacenToast(res.message || 'Error al enviar la alerta.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerText = origText;
+        }
+    } catch (error) {
+        console.error('Error al enviar alerta directo:', error);
+        almacenToast('Error de conexión al enviar la alerta.', 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerText = origText;
+    }
+});
+
+/**
+ * Almacén: Confirmación de recepción de rechazo
+ */
+window.abrirModalConfirmarRechazoAlmacen = function (ot) {
+    const modal = document.getElementById('modalConfirmarRechazoAlmacen');
+    if (!modal) return;
+
+    document.getElementById('cr-ot').value = ot;
+
+    const today = new Date();
+    const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    document.getElementById('cr-fecha').value = formattedToday;
+
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+};
+
+window.cerrarModalConfirmarRechazoAlmacen = function () {
+    const modal = document.getElementById('modalConfirmarRechazoAlmacen');
+    if (modal) modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+};
+
+document.getElementById('formConfirmarRechazoAlmacen')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const ot = document.getElementById('cr-ot').value;
+    const fecha = document.getElementById('cr-fecha').value;
+
+    if (!fecha) {
+        almacenToast('La fecha de recepción es obligatoria.', 'error');
+        return;
+    }
+
+    const submitBtn = this.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Procesando...';
+    }
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+    try {
+        const response = await fetch('/almacen/fundicion/confirmar-recepcion-rechazo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken || ''
+            },
+            body: JSON.stringify({ ot, fecha })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            almacenToast(data.message, 'success');
+            setTimeout(() => {
+                cerrarModalConfirmarRechazoAlmacen();
+                location.reload();
+            }, 1500);
+        } else {
+            almacenToast(data.message || 'Error al procesar el rechazo.', 'error');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Confirmar y Reiniciar';
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        almacenToast('Error de conexión al procesar el rechazo.', 'error');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Confirmar y Reiniciar';
+        }
+    }
+});
+
+// ==========================================
+// FLUJO: INICIAR CASTING
+// ==========================================
+window.updateCustomFileLabel = function (input) {
+    const container = input.closest('.custom-file-dropzone');
+    if (!container) return;
+    const textLabel = container.querySelector('.dropzone-text-label');
+    const subtextLabel = container.querySelector('.dropzone-subtext-label');
+    const isRechazo = input.dataset.type === 'rechazo';
+    const isScar = input.dataset.type === 'scar';
+
+    if (input.files && input.files[0]) {
+        if (textLabel) {
+            textLabel.textContent = `${input.files[0].name}`;
+            textLabel.style.color = '#10b981';
+        }
+        if (subtextLabel) {
+            subtextLabel.textContent = `Tamaño: ${(input.files[0].size / 1024).toFixed(1)} KB`;
+        }
+        container.style.borderColor = '#10b981';
+        container.style.background = '#f0fdf4';
+    } else {
+        if (textLabel) {
+            if (isRechazo) {
+                textLabel.textContent = `Arrastra formato de rechazo o haz clic para buscar`;
+                textLabel.style.color = '#dc2626';
+            } else if (isScar) {
+                textLabel.textContent = `Arrastra SCAR o haz clic para buscar`;
+                textLabel.style.color = '#ca8a04';
+            } else {
+                textLabel.textContent = `Arrastra formato LDM o haz clic para buscar`;
+                textLabel.style.color = '#0ea5e9';
+            }
+        }
+        if (subtextLabel) {
+            subtextLabel.textContent = `Ningún archivo seleccionado`;
+        }
+
+        if (isRechazo) {
+            container.style.borderColor = '#fca5a5';
+            container.style.background = '#fef2f2';
+        } else if (isScar) {
+            container.style.borderColor = '#fef08a';
+            container.style.background = '#fefce8';
+        } else {
+            container.style.borderColor = '#0ea5e9';
+            container.style.background = '#f0f9ff';
+        }
+    }
+};
+
+// Genera HTML de archivos para el modal de casting — dinámico para aprobados y rechazados
+function generarHtmlCategorizadoCastingAprobados(archivos, otClean, isRechazados = false) {
+    const baseUrl = window.baseUrl || (window.location.origin + '/');
+
+    const secciones = [
+        { label: 'Ayudas Visuales', color: '#d97706', tipos: ['ayuda'], claseCard: 'card-ayuda' },
+        { label: 'Dibujos de Fundición', color: '#0284c7', tipos: ['dibujo', 'plano'], claseCard: 'card-plano' },
+        {
+            label: isRechazados ? 'Documentos Rechazados' : 'Documentos Aprobados',
+            color: isRechazados ? '#ef4444' : '#059669',
+            tipos: ['aprobado', 'preorden', 'otro'],
+            claseCard: 'card-ayuda'
+        }
+    ];
+
+    let html = '';
+
+    secciones.forEach(sec => {
+        const archivosSeccion = archivos.filter(f => {
+            const tipo = (f.tipo || '').toLowerCase();
+            const nombre = (f.nombre || '').toLowerCase();
+            if (sec.tipos.includes('aprobado')) {
+                // Sección de aprobados/rechazados: incluye preordenes y documentos del veredicto correspondiente
+                const targetFolder = isRechazados ? 'documentos_rechazados' : 'documentos_aprobados';
+                return tipo === 'aprobado' || tipo === 'preorden' || tipo === 'otro' ||
+                    nombre.includes(targetFolder) || nombre.includes('preordenes/');
+            }
+            return sec.tipos.includes(tipo);
+        });
+
+        if (archivosSeccion.length === 0) return;
+
+        html += `<div style="width:100%;">
+            <h4 style="font-family:'Poppins',sans-serif;font-weight:700;color:#1e293b;font-size:1.05em;margin-top:10px;margin-bottom:12px;border-left:4px solid ${sec.color};padding-left:8px;">${sec.label}</h4>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">`;
+
+        archivosSeccion.forEach(f => {
+            const nombre = f.nombre || '';
+            const baseName = nombre.split('/').pop();
+            const ext = baseName.split('.').pop().toLowerCase();
+            const isImg = ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext);
+            const iconDefault = isImg ? '/images/galeria-shadow.png' : '/images/pdf-view-shadow.png';
+            const iconHover = isImg ? '/images/galeria.png' : '/images/pdf-view.png';
+            const tipoParam = f.tipo || 'otro';
+
+            html += `<div class="dibujos-file-card ${sec.claseCard} select-file-card" style="position:relative;width:100%;max-width:220px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.05);background:#fff;padding:10px;border:1.5px solid #e2e8f0;">
+                <div class="file-icon-wrapper" onclick="almacenVerPdf('${otClean}','${nombre}','${tipoParam}')" style="cursor:pointer;margin-top:10px;">
+                    <img src="${iconDefault}" class="file-icon icon-default" style="width:48px;height:auto;">
+                    <img src="${iconHover}" class="file-icon icon-hover" style="width:48px;height:auto;">
+                </div>
+                <div class="file-name" onclick="almacenVerPdf('${otClean}','${nombre}','${tipoParam}')" style="cursor:pointer;font-size:0.82em;margin:8px 0;max-height:40px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:600;color:#334155;line-height:1.3;">${baseName}</div>
+                <div class="file-actions" style="width:100%;margin-top:auto;">
+                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:5px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;width:100%;background:#15803d;color:white;border-color:#15803d;" onclick="almacenVerPdf('${otClean}','${nombre}','${tipoParam}')">Ver</button>
+                </div>
+            </div>`;
+        });
+
+        html += `</div></div>`;
+    });
+
+    return html;
+}
+
+window.cargarInputsCasting = function (ot, files) {
+    const dynamicInputs = document.getElementById('mgv-aprobados-inputs');
+    if (!dynamicInputs) return;
+    dynamicInputs.innerHTML = '';
+    const otClean = ot.replace(/_\d{8}_\d{6}_.*/, '');
+
+    let allLoaded = true;
+
+    if (window.micRequiredClasses && window.micRequiredClasses.length > 0) {
+        window.micRequiredClasses.forEach(c => {
+            const group = document.createElement('div');
+            group.className = 'custom-class-upload';
+            group.style.marginBottom = '12px';
+
+            let existingFile = null;
+            if (files) {
+                existingFile = files.find(f => {
+                    const nameUpper = (f.nombre || '').toUpperCase();
+                    return f.origin === 'aprobado' && nameUpper.includes('F-CCL-LDM_' + c.toUpperCase()) && nameUpper.includes('APROBADO');
+                });
+            }
+
+            const label = c.charAt(0).toUpperCase() + c.slice(1);
+
+            if (existingFile) {
+                const cleanName = existingFile.nombre.split('/').pop();
+                group.innerHTML = `
+                    <label style="font-weight:700;color:#15803d;margin-bottom:6px;display:block;font-family:'Poppins',sans-serif;font-size:0.95em;">Formato LDM — ${label} <span style="background:#dcfce7;color:#15803d;border-radius:20px;padding:2px 8px;font-size:0.82em;margin-left:4px;">Cargado</span></label>
+                    <div style="background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:10px 15px;display:flex;align-items:center;justify-content:space-between;gap:15px;">
+                        <div style="display:flex;align-items:center;gap:10px;overflow:hidden;width:100%;">
+                            <img src="/images/pdf.png" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">
+                            <span style="font-weight:600;color:#15803d;font-size:0.9em;font-family:'Poppins',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${cleanName}">${cleanName}</span>
+                        </div>
+                        <div style="display:flex;gap:8px;flex-shrink:0;">
+                            <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#15803d;border-color:#15803d;color:white;" onclick="almacenVerPdf('${ot}','${existingFile.nombre}','aprobado')">Ver</button>
+                            <button type="button" class="btn-dibujos btn-dibujos-sm" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#ef4444;border-color:#ef4444;color:white;" onclick="quitarArchivoAprobado('${ot}','${existingFile.nombre}',this)">Quitar</button>
+                        </div>
+                    </div>`;
+            } else {
+                allLoaded = false;
+                group.innerHTML = `
+                    <label style="font-weight:700;color:#334155;margin-bottom:6px;display:block;font-family:'Poppins',sans-serif;font-size:0.95em;">Formato F-CCL-LDM — ${label} <span style="color:#ef4444;">*</span></label>
+                    <div class="custom-file-dropzone" style="border:2px dashed #16a34a;background:#f0fdf4;min-height:64px;position:relative;border-radius:10px;display:flex;align-items:center;padding:10px 15px;cursor:pointer;transition:all 0.2s;">
+                        <input type="file" name="ldm_${c}" accept=".pdf" required style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;" onchange="updateCustomFileLabel(this)">
+                        <div style="display:flex;align-items:center;gap:10px;width:100%;">
+                            <div class="file-icon-wrapper" style="position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <img src="/images/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
+                                <img src="/images/pdf-view.png" class="file-icon icon-hover" style="width:38px;height:38px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
+                            </div>
+                            <div style="overflow:hidden;">
+                                <span class="dropzone-text-label" style="font-weight:700;color:#16a34a;font-size:0.9em;font-family:'Poppins',sans-serif;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Arrastra formato F-CCL-LDM firmado o haz clic</span>
+                                <span class="dropzone-subtext-label" style="font-size:0.75em;color:#64748b;display:block;font-family:'Poppins',sans-serif;">Ningún archivo seleccionado — solo PDF</span>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+            dynamicInputs.appendChild(group);
+        });
+    } else {
+        dynamicInputs.innerHTML = '<p style="color:#10b981;font-weight:600;font-family:\'Poppins\',sans-serif;padding:12px;background:#f0fdf4;border-radius:8px;">No se requieren formatos LDM adicionales.</p>';
+    }
+
+    const btnSubmit = document.getElementById('btn-submit-aprobados');
+    const btnIr = document.getElementById('btn-ir-preorden-casting');
+    if (btnSubmit) {
+        if (allLoaded) {
+            btnSubmit.style.display = 'none';
+        } else {
+            btnSubmit.style.display = 'inline-flex';
+            btnSubmit.disabled = false;
+            const textSpan = btnSubmit.querySelector('span');
+            if (textSpan) {
+                textSpan.innerText = 'Procesar Aceptados';
+            }
+        }
+    }
+    if (btnIr) {
+        btnIr.style.display = allLoaded ? 'inline-flex' : 'none';
+    }
+};
+
+window.quitarArchivoAprobado = function (ot, archivo, buttonEl) {
+    if (!confirm('¿Estás seguro de que deseas eliminar permanentemente este formato LDM? Esta acción no se puede deshacer.')) {
+        return;
+    }
+
+    if (buttonEl) buttonEl.disabled = true;
+
+    fetch(window.almacenRoutes.deleteFile, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            ot: ot,
+            archivo: archivo,
+            tipo: 'aprobado'
+        })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                almacenToast(data.message || 'Formato LDM eliminado correctamente.', 'success');
+                // Refrescar los archivos del modal
+                fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        cargarInputsCasting(ot, data.archivos);
+                        const filesContainer = document.getElementById('mgv-aprobados-files');
+                        if (filesContainer) {
+                            const otClean = ot.replace(/_\d{8}_\d{6}_.*/, '');
+                            let baseUrl = window.baseUrl || (window.location.origin + '/');
+                            if (!baseUrl.endsWith('/')) baseUrl += '/';
+                            const sectionsHtml = generarHtmlCategorizadoArchivos(data.archivos, otClean, baseUrl, 'preorden');
+                            filesContainer.innerHTML = sectionsHtml || `
+                            <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
+                                No se encontraron archivos en el servidor para esta OT.
+                            </div>
+                        `;
+                        }
+                        // Toggle download button visibility
+                        const downloadBtn = document.getElementById('btn-download-casting-po');
+                        if (downloadBtn) {
+                            if (data.casting_pdf_generated) {
+                                downloadBtn.style.display = 'inline-flex';
+                            } else {
+                                downloadBtn.style.display = 'none';
+                            }
+                        }
+                    });
+            } else {
+                almacenToast(data.error || 'Error al eliminar archivo.', 'error');
+                if (buttonEl) buttonEl.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            almacenToast('Error de red al eliminar archivo.', 'error');
+            if (buttonEl) buttonEl.disabled = false;
+        });
+};
+
+window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
+    const dynamicRechInputs = document.getElementById('mgv-rechazados-inputs');
+    if (!dynamicRechInputs) return;
+    dynamicRechInputs.innerHTML = '';
+    const otClean = ot.replace(/_\d{8}_\d{6}_.*/, '');
+
+    let allLoaded = true;
+
+    if (clasesRechazadas && clasesRechazadas.length > 0) {
+        clasesRechazadas.forEach(c => {
+            const group = document.createElement('div');
+            group.style.marginBottom = '25px';
+            group.style.padding = '15px';
+            group.style.background = '#fef2f2';
+            group.style.border = '1px solid #fca5a5';
+            group.style.borderRadius = '8px';
+
+            // Buscar archivos cargados previamente que correspondan exactamente a esta clase y tipo (Rechazo o SCAR)
+            let existingRechazo = null;
+            let existingScar = null;
+
+            if (files && files.length > 0) {
+                existingRechazo = files.find(f => {
+                    const nameLower = (f.nombre || '').toLowerCase();
+                    return nameLower.includes('/documentos_rechazados/' + c.toLowerCase() + '/') && nameLower.includes('_rechazado_');
+                });
+                existingScar = files.find(f => {
+                    const nameLower = (f.nombre || '').toLowerCase();
+                    return nameLower.includes('/documentos_rechazados/' + c.toLowerCase() + '/') && nameLower.includes('_scar_');
+                });
+            }
+
+            const label = c.charAt(0).toUpperCase() + c.slice(1);
+
+            group.innerHTML = `<h4 style="margin-top:0; margin-bottom: 15px; color: #dc2626; font-weight: 700; font-family:'Poppins', sans-serif;">Clase: ${label}</h4>`;
+
+            // Rechazo
+            if (existingRechazo) {
+                const cleanName = existingRechazo.nombre.split('/').pop();
+                group.innerHTML += `
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block; font-family: 'Poppins', sans-serif; font-size: 0.95em;">Formato de Rechazo <span style="background:#dcfce7;color:#15803d;border-radius:20px;padding:2px 8px;font-size:0.82em;margin-left:4px;">Cargado</span></label>
+                        <div style="background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:10px 15px;display:flex;align-items:center;justify-content:space-between;gap:15px;">
+                            <div style="display:flex;align-items:center;gap:10px;overflow:hidden;width:100%;">
+                                <img src="/images/pdf.png" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">
+                                <span style="font-weight:600;color:#15803d;font-size:0.9em;font-family:'Poppins',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${cleanName}">${cleanName}</span>
+                            </div>
+                            <div style="display:flex;gap:8px;flex-shrink:0;">
+                                <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#15803d;border-color:#15803d;color:white;" onclick="almacenVerPdf('${ot}','${existingRechazo.nombre}','otro')">Ver</button>
+                                <button type="button" class="btn-dibujos btn-dibujos-sm" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#ef4444;border-color:#ef4444;color:white;" onclick="quitarArchivoRechazo('${ot}','${existingRechazo.nombre}',this)">Quitar</button>
+                            </div>
+                        </div>
+                    </div>`;
+            } else {
+                allLoaded = false;
+                group.innerHTML += `
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block; font-family: 'Poppins', sans-serif; font-size: 0.95em;">Formato de Rechazo <span style="color:#ef4444;">*</span></label>
+                        <div class="custom-file-dropzone" style="border: 2px dashed #fca5a5; background: #fef2f2; min-height: 64px; position: relative; border-radius: 10px; display: flex; align-items: center; padding: 10px 15px; cursor: pointer; transition: all 0.2s;">
+                            <input type="file" name="rechazo_${c.toLowerCase()}" data-type="rechazo" accept=".pdf" required style="position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;" onchange="updateCustomFileLabel(this)">
+                            <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                                <div class="file-icon-wrapper" style="position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <img src="/images/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
+                                    <img src="/images/pdf-view.png" class="file-icon icon-hover" style="width:38px;height:38px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
+                                </div>
+                                <div style="overflow:hidden;">
+                                    <span class="dropzone-text-label" style="font-weight: 700; color: #dc2626; font-size: 0.9em; font-family:'Poppins', sans-serif; display: block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Arrastra formato de rechazo o haz clic para buscar</span>
+                                    <span class="dropzone-subtext-label" style="font-size: 0.75em; color: #64748b; display: block; font-family:'Poppins', sans-serif;">Ningún archivo seleccionado</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            // SCAR
+            if (existingScar) {
+                const cleanName = existingScar.nombre.split('/').pop();
+                group.innerHTML += `
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block; font-family: 'Poppins', sans-serif; font-size: 0.95em;">SCAR <span style="background:#dcfce7;color:#15803d;border-radius:20px;padding:2px 8px;font-size:0.82em;margin-left:4px;">Cargado</span></label>
+                        <div style="background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:10px 15px;display:flex;align-items:center;justify-content:space-between;gap:15px;">
+                            <div style="display:flex;align-items:center;gap:10px;overflow:hidden;width:100%;">
+                                <img src="/images/pdf.png" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">
+                                <span style="font-weight:600;color:#15803d;font-size:0.9em;font-family:'Poppins',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${cleanName}">${cleanName}</span>
+                            </div>
+                            <div style="display:flex;gap:8px;flex-shrink:0;">
+                                <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#15803d;border-color:#15803d;color:white;" onclick="almacenVerPdf('${ot}','${existingScar.nombre}','otro')">Ver</button>
+                                <button type="button" class="btn-dibujos btn-dibujos-sm" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#ef4444;border-color:#ef4444;color:white;" onclick="quitarArchivoRechazo('${ot}','${existingScar.nombre}',this)">Quitar</button>
+                            </div>
+                        </div>
+                    </div>`;
+            } else {
+                allLoaded = false;
+                group.innerHTML += `
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block; font-family: 'Poppins', sans-serif; font-size: 0.95em;">SCAR <span style="color:#ef4444;">*</span></label>
+                        <div class="custom-file-dropzone" style="border: 2px dashed #fef08a; background: #fefce8; min-height: 64px; position: relative; border-radius: 10px; display: flex; align-items: center; padding: 10px 15px; cursor: pointer; transition: all 0.2s;">
+                            <input type="file" name="scar_${c.toLowerCase()}" data-type="scar" accept=".pdf" required style="position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;" onchange="updateCustomFileLabel(this)">
+                            <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                                <div class="file-icon-wrapper" style="position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                    <img src="/images/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
+                                    <img src="/images/pdf-view.png" class="file-icon icon-hover" style="width:38px;height:38px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
+                                </div>
+                                <div style="overflow:hidden;">
+                                    <span class="dropzone-text-label" style="font-weight: 700; color: #ca8a04; font-size: 0.9em; font-family:'Poppins', sans-serif; display: block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Arrastra SCAR o haz clic para buscar</span>
+                                    <span class="dropzone-subtext-label" style="font-size: 0.75em; color: #64748b; display: block; font-family:'Poppins', sans-serif;">Ningún archivo seleccionado</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            dynamicRechInputs.appendChild(group);
+        });
+    }
+
+    const btnSubmit = document.getElementById('btn-submit-rechazados');
+    if (btnSubmit) {
+        const textSpan = btnSubmit.querySelector('span');
+        const imgIcon = btnSubmit.querySelector('img');
+        if (imgIcon) {
+            imgIcon.remove();
+        }
+        if (allLoaded) {
+            btnSubmit.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
+            btnSubmit.style.boxShadow = '0 4px 15px rgba(3,105,161,0.3)';
+            if (textSpan) textSpan.innerText = 'Generar Pre-Orden de Fabricación de Modelo';
+        } else {
+            btnSubmit.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
+            btnSubmit.style.boxShadow = '0 4px 15px rgba(220,38,38,0.35)';
+            if (textSpan) textSpan.innerText = 'Subir Formatos y Continuar';
+        }
+    }
+};
+
+window.quitarArchivoRechazo = function (ot, archivo, buttonEl) {
+    if (!confirm('¿Estás seguro de que deseas eliminar permanentemente este formato? Esta acción no se puede deshacer.')) {
+        return;
+    }
+
+    if (buttonEl) buttonEl.disabled = true;
+
+    fetch(window.almacenRoutes.deleteFile, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            ot: ot,
+            archivo: archivo,
+            tipo: 'otro'
+        })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                almacenToast(data.message || 'Archivo eliminado correctamente.', 'success');
+                // Refrescar
+                fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        const hiddenRech = document.getElementById('mgv-clases-rechazadas');
+                        const clasesRechazadas = hiddenRech ? JSON.parse(hiddenRech.value) : [];
+                        window.cargarInputsRechazados(ot, data.archivos, clasesRechazadas);
+
+                        const filesContainer = document.getElementById('mgv-rechazados-files');
+                        if (filesContainer) {
+                            const otClean = ot.replace(/_\\d{8}_\\d{6}_.*/, '');
+                            // Filtrar base para rechazados
+                            const baseRech = (data.archivos || []).filter(f => {
+                                const nombre = (f.nombre || '').toLowerCase();
+                                if (nombre.includes('aprobado') || (nombre.includes('pre-orden') && nombre.includes('fundicion') && !nombre.includes('modelo'))) return false;
+                                return true;
+                            });
+                            const clasesMonitoreadas = ['fondo', 'bombillo', 'molde', 'obturador'];
+                            const filtrados = baseRech.filter(f => {
+                                const nombre = (f.nombre || '').toLowerCase();
+                                const perteneceAClase = clasesMonitoreadas.some(c => nombre.includes(c));
+                                if (perteneceAClase) {
+                                    return clasesRechazadas.some(c => nombre.includes(c.toLowerCase()));
+                                }
+                                return false;
+                            });
+
+                            const sectionsHtml = window.generarHtmlCategorizadoCastingAprobados ? window.generarHtmlCategorizadoCastingAprobados(filtrados, otClean, true) : '';
+                            filesContainer.innerHTML = sectionsHtml || `
+                            <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
+                                No se encontraron archivos en el servidor para esta OT.
+                            </div>
+                        `;
+                        }
+                    });
+            } else {
+                almacenToast(data.error || 'Error al eliminar archivo.', 'error');
+                if (buttonEl) buttonEl.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            almacenToast('Error de red al eliminar archivo.', 'error');
+            if (buttonEl) buttonEl.disabled = false;
+        });
+};
+
+
+window.switchMgvTab = function (tabName) {
+    document.querySelectorAll('.mgv-view').forEach(v => v.style.display = 'none');
+    document.querySelectorAll('.mgv-tab').forEach(t => t.classList.remove('active'));
+
+    document.getElementById('mgv-view-' + tabName).style.display = 'block';
+    const activeTab = document.getElementById('tab-' + tabName);
+    if (activeTab) activeTab.classList.add('active');
+
+    const header = document.getElementById('mgv-header');
+    if (header) {
+        if (tabName === 'aprobados') {
+            header.style.background = 'linear-gradient(135deg, #16a34a, #15803d)';
+        } else {
+            header.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
+        }
+    }
+};
+
+window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
+    const modal = document.getElementById('modalGestionVeredicto');
+    if (!modal) return;
+
+    document.getElementById('mgv-ot').value = ot;
+    document.querySelectorAll('.mgv-form-ot').forEach(i => i.value = ot);
+
+    const otClean = ot.replace(/_\d{8}_\d{6}_.*/, '');
+    document.getElementById('mgv-subtitle').textContent = `OT: ${otClean}`;
+
+    const today = new Date();
+    const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    document.getElementById('mgv-fecha').value = formattedToday;
+    document.querySelectorAll('.mgv-form-fecha').forEach(i => i.value = formattedToday);
+
+    const requiredClasses = ['fondo', 'bombillo', 'molde', 'obturador'];
+    const filteredAprobados = (aprobados || []).filter(c => requiredClasses.includes(c.toLowerCase()));
+    const filteredRechazados = (rechazados || []).filter(c => requiredClasses.includes(c.toLowerCase()));
+
+    const hiddenClasesRech = document.getElementById('mgv-clases-rechazadas');
+    if (hiddenClasesRech) {
+        hiddenClasesRech.value = JSON.stringify(filteredRechazados);
+    }
+
+    window.micRequiredClasses = filteredAprobados.map(c => c.toLowerCase());
+    cargarInputsCasting(ot, []); // Llenará mgv-aprobados-inputs
+
+    const dynamicRechInputs = document.getElementById('mgv-rechazados-inputs');
+    if (dynamicRechInputs) {
+        dynamicRechInputs.innerHTML = '<div style="text-align:center;padding:15px;color:#64748b;">Cargando formatos requeridos...</div>';
+    }
+
+    const hasAprobados = filteredAprobados.length > 0;
+    const hasRechazados = filteredRechazados.length > 0;
+
+    const tabAprobados = document.getElementById('tab-aprobados');
+    const tabRechazados = document.getElementById('tab-rechazados');
+
+    if (tabAprobados) tabAprobados.style.display = hasAprobados ? 'block' : 'none';
+    if (tabRechazados) tabRechazados.style.display = hasRechazados ? 'block' : 'none';
+
+    const filesContainerA = document.getElementById('mgv-aprobados-files');
+    const filesContainerR = document.getElementById('mgv-rechazados-files');
+    if (filesContainerA) filesContainerA.innerHTML = `<div style="text-align:center;padding:14px;"><div class="alm-spinner" style="border-top-color:#16a34a;display:inline-block;"></div><span style="color:#64748b;margin-left:10px;font-family:'Poppins',sans-serif;">Cargando archivos...</span></div>`;
+    if (filesContainerR) filesContainerR.innerHTML = `<div style="text-align:center;padding:14px;"><div class="alm-spinner" style="border-top-color:#dc2626;display:inline-block;"></div><span style="color:#64748b;margin-left:10px;font-family:'Poppins',sans-serif;">Cargando archivos...</span></div>`;
+
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+
+    // Inicialmente saltar a la pestaña adecuada
+    if (hasAprobados) switchMgvTab('aprobados');
+    else if (hasRechazados) switchMgvTab('rechazados');
+
+    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+        .then(res => res.json())
+        .then(data => {
+            cargarInputsCasting(ot, data.archivos);
+            window.cargarInputsRechazados(ot, data.archivos, filteredRechazados);
+
+            const btnIr = document.getElementById('btn-ir-preorden-casting');
+            if (btnIr) {
+                const hasPreordenCasting = (data.archivos || []).some(f => {
+                    const n = (f.nombre || '').toLowerCase();
+                    return n.includes('pre-orden') && n.includes('fundicion') && !n.includes('modelo');
+                });
+
+                // Si la preorden ya se generó y hay rechazados pendientes, bloquear casting
+                if (hasPreordenCasting && hasRechazados) {
+                    if (tabAprobados) tabAprobados.style.display = 'none';
+                    switchMgvTab('rechazados');
+                }
+            }
+
+            if (data.existe && data.archivos && data.archivos.length > 0) {
+                // Función helper para filtrar archivos por clases activas en la pestaña
+                const filtrarPorClasesActivas = (archivosList, clasesActivas, esAprobados) => {
+                    const clasesMonitoreadas = ['fondo', 'bombillo', 'molde', 'obturador'];
+                    return archivosList.filter(f => {
+                        const nombre = (f.nombre || '').toLowerCase();
+                        const perteneceAClase = clasesMonitoreadas.some(c => nombre.includes(c));
+                        if (perteneceAClase) {
+                            return clasesActivas.some(c => nombre.includes(c.toLowerCase()));
+                        }
+                        return true; // Los archivos genéricos (sin clase) se muestran en ambas pestañas
+                    });
+                };
+
+                // Filtro base para aprobados (excluyendo rechazados de calidad y SCAR)
+                const baseAprob = (data.archivos || []).filter(f => {
+                    const nombre = (f.nombre || '').toLowerCase();
+                    const tipo = (f.tipo || '').toLowerCase();
+                    if (nombre.includes('rechazado') || nombre.includes('scar') || nombre.includes('documentos_rechazados')) return false;
+                    return tipo === 'ayuda' || tipo === 'dibujo' || tipo === 'aprobado' || tipo === 'preorden' || nombre.includes('ayudas_visuales') || nombre.includes('dibujo') || nombre.includes('documentos_aprobados') || nombre.includes('preordenes/');
+                });
+                const archivosAprob = filtrarPorClasesActivas(baseAprob, filteredAprobados, true);
+
+                if (filesContainerA) {
+                    filesContainerA.innerHTML = generarHtmlCategorizadoCastingAprobados(archivosAprob, otClean, false) || `<div style="text-align:center;color:#64748b;padding:15px;font-style:italic;">No hay archivos disponibles para esta clase.</div>`;
+                }
+
+                // Filtro base para rechazados (excluyendo aprobados y preordenes de casting)
+                const baseRech = (data.archivos || []).filter(f => {
+                    const nombre = (f.nombre || '').toLowerCase();
+                    if (nombre.includes('aprobado') || (nombre.includes('pre-orden') && nombre.includes('fundicion') && !nombre.includes('modelo'))) return false;
+                    return true;
+                });
+                const archivosRech = filtrarPorClasesActivas(baseRech, filteredRechazados, false);
+
+                if (filesContainerR) {
+                    filesContainerR.innerHTML = generarHtmlCategorizadoCastingAprobados(archivosRech, otClean, true) || `<div style="text-align:center;color:#64748b;padding:15px;font-style:italic;">No hay archivos disponibles para esta clase.</div>`;
+                }
+            } else {
+                if (filesContainerA) filesContainerA.innerHTML = `<div style="text-align:center;color:#64748b;padding:15px;font-style:italic;font-family:'Poppins',sans-serif;">No hay archivos en el servidor.</div>`;
+                if (filesContainerR) filesContainerR.innerHTML = `<div style="text-align:center;color:#64748b;padding:15px;font-style:italic;font-family:'Poppins',sans-serif;">No hay archivos en el servidor.</div>`;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            if (filesContainerA) filesContainerA.innerHTML = `<div style="text-align:center;color:#ef4444;padding:15px;">Error al cargar.</div>`;
+            if (filesContainerR) filesContainerR.innerHTML = `<div style="text-align:center;color:#ef4444;padding:15px;">Error al cargar.</div>`;
+        });
+};
+
+window.cerrarModalGestionVeredicto = function () {
+    const modal = document.getElementById('modalGestionVeredicto');
+    if (modal) modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+};
+
+document.getElementById('formMgvAprobados')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    let allValid = true;
+    const fileInputs = this.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        if (input.hasAttribute('required') && (!input.files || input.files.length === 0)) {
+            allValid = false;
+        }
+    });
+
+    if (!allValid) {
+        almacenToast('Por favor, selecciona los formatos LDM requeridos.', 'error');
+        return;
+    }
+
+    const formData = new FormData(this);
+    const submitBtn = document.getElementById('btn-submit-aprobados');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.querySelector('span').innerText = 'Procesando...';
+    }
+
+    try {
+        const response = await fetch('/almacen/fundicion/iniciar-casting', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            almacenToast(data.message, 'success');
+            const otRaw = document.getElementById('mgv-ot').value;
+            sessionStorage.setItem('openCastingOt', otRaw);
+            setTimeout(() => {
+                cerrarModalGestionVeredicto();
+                location.reload();
+            }, 1500);
+        } else {
+            almacenToast(data.message || 'Error al procesar casting.', 'error');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('span').innerText = 'Procesar Aceptados';
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        almacenToast('Error de red.', 'error');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.querySelector('span').innerText = 'Procesar Aceptados';
+        }
+    }
+});
+
+document.getElementById('formMgvRechazados')?.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    let allValid = true;
+    const fileInputs = this.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        if (input.hasAttribute('required') && (!input.files || input.files.length === 0)) {
+            allValid = false;
+        }
+    });
+
+    if (!allValid) {
+        almacenToast('Por favor, selecciona el Formato de Rechazo y el SCAR requeridos para todas las clases.', 'error');
+        return;
+    }
+
+    const formData = new FormData(this);
+    const submitBtn = document.getElementById('btn-submit-rechazados');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.querySelector('span').innerText = 'Procesando...';
+    }
+
+    try {
+        const response = await fetch('/almacen/fundicion/procesar-rechazos', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            almacenToast(data.message, 'success');
+            if (data.new_ot) {
+                sessionStorage.setItem('openPreordenOt', data.new_ot);
+            }
+            setTimeout(() => {
+                cerrarModalGestionVeredicto();
+                if (data.pdf_url) {
+                    window.open(data.pdf_url, '_blank');
+                }
+                location.reload();
+            }, 1500);
+        } else {
+            almacenToast(data.message || 'Error al procesar.', 'error');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.querySelector('span').innerText = 'Subir Formatos y Continuar';
+            }
+        }
+    } catch (err) {
+        console.error(err);
+        almacenToast('Error de red.', 'error');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.querySelector('span').innerText = 'Subir Formatos y Continuar';
+        }
     }
 });
