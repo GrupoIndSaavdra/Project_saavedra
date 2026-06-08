@@ -219,6 +219,19 @@
             border-top: 0.5px solid #ddd;
             padding-top: 2px;
         }
+
+        /* ── LLAMADO DE CICLO DE REPROCESO ── */
+        .reproceso-callout {
+            margin-top: 10px;
+            padding: 6px 12px;
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #991b1b;
+            font-weight: bold;
+            font-size: 10px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 
@@ -312,11 +325,34 @@
         </tbody>
     </table>
 
+    @php
+        $cycleMatch = [];
+        $cycleText = '';
+        $otString = $data['ot_raw'] ?? $data['ot'] ?? '';
+        if (preg_match('/_R(\d+)$/i', $otString, $cycleMatch)) {
+            $cycle = (int)$cycleMatch[1];
+            $ordinal = $cycle === 1 ? '2.ª' : ($cycle === 2 ? '3.ª' : ($cycle + 1) . '.ª');
+            $cycleText = "{$ordinal} vuelta — Ciclo R{$cycle} de liberación de modelo y fabricación de casting";
+        }
+        
+        // Clean observations string
+        $obsCleaned = $data['observaciones'] ?? '';
+        $obsCleaned = preg_replace('/^RECHAZO:\s*/i', '', $obsCleaned);
+        $obsCleaned = preg_replace('/^\[.*? vuelta — Ciclo R\d+ de liberación de modelo y fabricación de casting\]\s*/i', '', $obsCleaned);
+        $obsCleaned = trim($obsCleaned);
+    @endphp
+
+    @if(!empty($cycleText))
+        <div class="reproceso-callout">
+            [{{ $cycleText }}]
+        </div>
+    @endif
+
     {{-- BLOQUE 5: OBSERVACIONES --}}
     <table class="tbl-obs">
         <tr>
             <td class="obs-label">Observaciones</td>
-            <td>{{ $data['observaciones'] ?: 'Sin observaciones adicionales.' }}</td>
+            <td>{{ !empty($obsCleaned) ? $obsCleaned : 'Sin observaciones adicionales.' }}</td>
         </tr>
     </table>
 

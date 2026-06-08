@@ -132,6 +132,12 @@ class AlmacenFundicionController extends Controller
             $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
         }
 
+        // Check by base OT if not found directly
+        $baseOt = preg_replace('/_R\d+$/i', '', $ot);
+        if (!$history) {
+            $history = FundicionHistory::where('ot', '=', $baseOt, 'and')->first();
+        }
+
         if (!$history) {
             return response()->json([
                 'existe' => false,
@@ -140,144 +146,164 @@ class AlmacenFundicionController extends Controller
             ]);
         }
 
+        $allOtNames = FundicionHistory::where('ot', '=', $baseOt, 'or')
+            ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
+            ->pluck('ot')
+            ->toArray();
+        if (!in_array($ot, $allOtNames)) {
+            $allOtNames[] = $ot;
+        }
+
         $user = Auth::user();
         $isQuality = ($user->perfil == 4);
         $isAdmin = ($user->perfil == 1 || $user->perfil == 2);
-
-        // Dibujos y Ayudas Visuales (no pre-ordenes) son cargados por Admin y compartidos.
-        // Se almacenan en ALMACEN_DIR/{OT} y ALMACEN_DIR/{OT}/ayudas_visuales
-        $sharedDir = self::ALMACEN_DIR . '/' . $folderName;
-        $sharedAyudasDir = $sharedDir . '/ayudas_visuales';
+        $soloPreorden = $request->query('solo_preorden', '0') === '1';
 
         $dibujos = collect([]);
         $ayudas = collect([]);
-
-        $soloPreorden = $request->query('solo_preorden', '0') === '1';
-
-        if (!$soloPreorden) {
-            // 1. Obtener dibujos principales (desde sharedDir)
-            if (Storage::disk('local')->exists($sharedDir)) {
-                $dibujos = collect(Storage::disk('local')->allFiles($sharedDir))
-                    ->filter(function ($f) use ($sharedDir) {
-                        $rel = str_replace($sharedDir . '/', '', $f);
-                        return strpos($rel, 'ayudas_visuales/') !== 0 && strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf';
-                    })
-                    ->map(function ($f) use ($ot, $sharedDir) {
-                        $fNorm = str_replace('\\', '/', $f);
-                        $dirPathNorm = str_replace('\\', '/', $sharedDir);
-                        $relName = ltrim(str_replace($dirPathNorm, '', $fNorm), '/');
-                        $utf8RelName = $this->toUtf8($relName);
-
-                        return [
-                            'nombre' => $utf8RelName,
-                            'tipo' => 'dibujo',
-                            'url' => route('almacen.fundicion.serve', [
-                                'ot' => $ot,
-                                'archivo' => $utf8RelName,
-                                'tipo' => 'dibujo',
-                            ]),
-                        ];
-                    });
-            }
-
-            // 2a. Ayudas visuales reales: PDFs que NO están bajo preordenes/ (desde sharedAyudasDir)
-            if (Storage::disk('local')->exists($sharedAyudasDir)) {
-                $ayudas = collect(Storage::disk('local')->allFiles($sharedAyudasDir))
-                    ->filter(function ($f) use ($sharedAyudasDir) {
-                        $fNorm      = str_replace('\\', '/', $f);
-                        $dirNorm    = str_replace('\\', '/', $sharedAyudasDir);
-                        $relName    = ltrim(str_replace($dirNorm, '', $fNorm), '/');
-                        $ext        = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                        return $ext === 'pdf' && !str_starts_with($relName, 'preordenes/');
-                    })
-                    ->map(function ($f) use ($sharedAyudasDir, $ot) {
-                        $fNorm       = str_replace('\\', '/', $f);
-                        $dirNorm     = str_replace('\\', '/', $sharedAyudasDir);
-                        $relName     = ltrim(str_replace($dirNorm, '', $fNorm), '/');
-                        $utf8RelName = $this->toUtf8($relName);
-                        return [
-                            'nombre' => $utf8RelName,
-                            'tipo'   => 'ayuda',
-                            'url'    => route('almacen.fundicion.serve', ['ot' => $ot, 'archivo' => $utf8RelName, 'tipo' => 'ayuda']),
-                        ];
-                    });
-            }
-        }
-
-        // 3. Documentos generados (Preordenes, Evidencias, Confirmaciones, LDM, SCAR)
-        // Se leen según el perfil.
         $generatedFiles = collect([]);
 
-        // Si es Admin, lee de AMBOS directorios
-        $dirsToScan = [];
-        if ($isAdmin) {
-            $dirsToScan[] = [
-                'path' => self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes',
-                'origin' => 'almacen'
-            ];
-            $dirsToScan[] = [
-                'path' => self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes',
-                'origin' => 'calidad'
-            ];
-        } elseif ($isQuality) {
-            // Calidad lee de su propio directorio
-            $dirsToScan[] = [
-                'path' => self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales/preordenes',
-                'origin' => 'calidad'
-            ];
-        } else {
-            // Almacén lee de su propio directorio
-            $dirsToScan[] = [
-                'path' => self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes',
-                'origin' => 'almacen'
-            ];
-        }
+        foreach ($allOtNames as $relatedOt) {
+            $relFolder = $this->sanitizePath($this->normalizeOTName($relatedOt));
+            
+            // Dibujos y Ayudas Visuales (no pre-ordenes) son cargados por Admin y compartidos.
+            $sharedDir = self::ALMACEN_DIR . '/' . $relFolder;
+            $sharedAyudasDir = $sharedDir . '/ayudas_visuales';
 
-        // Todos pueden leer los documentos aprobados subidos para esta OT
-        $dirsToScan[] = [
-            'path' => self::ALMACEN_DIR . '/' . $folderName . '/preordenes/documentos_aprobados',
-            'origin' => 'aprobado'
-        ];
+            if (!$soloPreorden) {
+                // 1. Obtener dibujos principales (desde sharedDir)
+                if (Storage::disk('local')->exists($sharedDir)) {
+                    $relatedDibujos = collect(Storage::disk('local')->allFiles($sharedDir))
+                        ->filter(function ($f) use ($sharedDir) {
+                            $rel = str_replace($sharedDir . '/', '', $f);
+                            return strpos($rel, 'ayudas_visuales/') !== 0 && strpos($rel, 'preordenes/') !== 0 && strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf';
+                        })
+                        ->map(function ($f) use ($relatedOt, $sharedDir) {
+                            $fNorm = str_replace('\\', '/', $f);
+                            $dirPathNorm = str_replace('\\', '/', $sharedDir);
+                            $relName = ltrim(str_replace($dirPathNorm, '', $fNorm), '/');
+                            $utf8RelName = $this->toUtf8($relName);
 
-        foreach ($dirsToScan as $scanInfo) {
-            $scanPath = $scanInfo['path'];
-            $origin = $scanInfo['origin'];
-            if (Storage::disk('local')->exists($scanPath)) {
-                $files = collect(Storage::disk('local')->allFiles($scanPath))
-                    ->filter(function ($f) {
-                        $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                        return in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp']);
-                    })
-                    ->map(function ($f) use ($scanPath, $ot, $origin) {
-                        $fNorm = str_replace('\\', '/', $f);
-                        $dirNorm = str_replace('\\', '/', $scanPath);
-                        $relName = ltrim(str_replace($dirNorm, '', $fNorm), '/');
-                        $utf8RelName = $this->toUtf8($relName);
+                            return [
+                                'nombre' => $utf8RelName,
+                                'tipo' => 'dibujo',
+                                'url' => route('almacen.fundicion.serve', [
+                                    'ot' => $relatedOt,
+                                    'archivo' => $utf8RelName,
+                                    'tipo' => 'dibujo',
+                                ]),
+                            ];
+                        });
+                    $dibujos = $dibujos->merge($relatedDibujos);
+                }
 
-                        if ($origin === 'aprobado') {
-                            $fullName = 'preordenes/documentos_aprobados/' . $utf8RelName;
-                        } else {
-                            $fullName = 'preordenes/' . $utf8RelName;
-                        }
+                // 2a. Ayudas visuales reales: PDFs que NO están bajo preordenes/ (desde sharedAyudasDir)
+                if (Storage::disk('local')->exists($sharedAyudasDir)) {
+                    $relatedAyudas = collect(Storage::disk('local')->allFiles($sharedAyudasDir))
+                        ->filter(function ($f) use ($sharedAyudasDir) {
+                            $fNorm      = str_replace('\\', '/', $f);
+                            $dirNorm    = str_replace('\\', '/', $sharedAyudasDir);
+                            $relName    = ltrim(str_replace($dirNorm, '', $fNorm), '/');
+                            $ext        = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                            return $ext === 'pdf' && !str_starts_with($relName, 'preordenes/');
+                        })
+                        ->map(function ($f) use ($sharedAyudasDir, $relatedOt) {
+                            $fNorm       = str_replace('\\', '/', $f);
+                            $dirNorm     = str_replace('\\', '/', $sharedAyudasDir);
+                            $relName     = ltrim(str_replace($dirNorm, '', $fNorm), '/');
+                            $utf8RelName = $this->toUtf8($relName);
+                            return [
+                                'nombre' => $utf8RelName,
+                                'tipo'   => 'ayuda',
+                                'url'    => route('almacen.fundicion.serve', ['ot' => $relatedOt, 'archivo' => $utf8RelName, 'tipo' => 'ayuda']),
+                            ];
+                        });
+                    $ayudas = $ayudas->merge($relatedAyudas);
+                }
+            }
 
-                        return [
-                            'nombre' => $fullName,
-                            'tipo' => 'otro',
-                            'origin' => $origin,
-                            'url' => route('almacen.fundicion.serve', [
-                                'ot' => $ot,
-                                'archivo' => $fullName,
+            // 3. Documentos generados (Preordenes, Evidencias, Confirmaciones, LDM, SCAR)
+            // Si es Admin, lee de AMBOS directorios
+            $dirsToScan = [];
+            if ($isAdmin) {
+                $dirsToScan[] = [
+                    'path' => self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes',
+                    'origin' => 'almacen'
+                ];
+                $dirsToScan[] = [
+                    'path' => self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes',
+                    'origin' => 'calidad'
+                ];
+            } elseif ($isQuality) {
+                // Calidad lee de su propio directorio
+                $dirsToScan[] = [
+                    'path' => self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes',
+                    'origin' => 'calidad'
+                ];
+            } else {
+                // Almacén lee de su propio directorio
+                $dirsToScan[] = [
+                    'path' => self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes',
+                    'origin' => 'almacen'
+                ];
+            }
+
+            // Todos pueden leer los documentos aprobados subidos para esta OT
+            $dirsToScan[] = [
+                'path' => self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_aprobados',
+                'origin' => 'aprobado'
+            ];
+
+            // Todos pueden leer los documentos rechazados (SCAR/Formatos de Rechazo) subidos para esta OT
+            $dirsToScan[] = [
+                'path' => self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_rechazados',
+                'origin' => 'rechazado'
+            ];
+
+            foreach ($dirsToScan as $scanInfo) {
+                $scanPath = $scanInfo['path'];
+                $origin = $scanInfo['origin'];
+                if (Storage::disk('local')->exists($scanPath)) {
+                    $files = collect(Storage::disk('local')->allFiles($scanPath))
+                        ->filter(function ($f) {
+                            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                            return in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp']);
+                        })
+                        ->map(function ($f) use ($scanPath, $relatedOt, $origin) {
+                            $fNorm = str_replace('\\', '/', $f);
+                            $dirNorm = str_replace('\\', '/', $scanPath);
+                            $relName = ltrim(str_replace($dirNorm, '', $fNorm), '/');
+                            $utf8RelName = $this->toUtf8($relName);
+
+                            if ($origin === 'aprobado') {
+                                $fullName = 'preordenes/documentos_aprobados/' . $utf8RelName;
+                            } elseif ($origin === 'rechazado') {
+                                $fullName = 'preordenes/documentos_rechazados/' . $utf8RelName;
+                            } else {
+                                $fullName = 'preordenes/' . $utf8RelName;
+                            }
+
+                            return [
+                                'nombre' => $fullName,
                                 'tipo' => 'otro',
                                 'origin' => $origin,
-                            ]),
-                        ];
-                    });
-                $generatedFiles = $generatedFiles->merge($files);
+                                'url' => route('almacen.fundicion.serve', [
+                                    'ot' => $relatedOt,
+                                    'archivo' => $fullName,
+                                    'tipo' => 'otro',
+                                    'origin' => $origin,
+                                ]),
+                            ];
+                        });
+                    $generatedFiles = $generatedFiles->merge($files);
+                }
             }
         }
 
-        // De-duplicar documentos por nombre si vienen de ambos lados (Admin)
+        // De-duplicar documentos por nombre
         $generatedFiles = $generatedFiles->unique('nombre')->values();
+        $dibujos = $dibujos->unique('nombre')->values();
+        $ayudas = $ayudas->unique('nombre')->values();
 
         if ($soloPreorden) {
             // Filtrar solo las pre-órdenes (PDFs que empiezan con 'Pre-Orden' o 'PreOrden')
@@ -285,13 +311,13 @@ class AlmacenFundicionController extends Controller
                 $base = basename($f['nombre']);
                 return str_starts_with($base, 'Pre-Orden') || str_starts_with($base, 'PreOrden');
             });
+            $allFiles = $ayudas->values();
         } else {
-            $ayudas = $ayudas->merge($generatedFiles);
+            $allFiles = $dibujos->merge($ayudas)->merge($generatedFiles)->values();
         }
 
-        $allFiles = $dibujos->merge($ayudas)->values();
-
-        $preOrden = PreOrdenFundicion::where('ot', '=', $history->ot, 'and')->first();
+        $historyLatest = FundicionHistory::where('ot', '=', $ot, 'and')->first() ?: FundicionHistory::where('ot', 'LIKE', $baseOt . '%', 'and')->orderBy('id', 'desc')->first();
+        $preOrden = PreOrdenFundicion::where('ot', '=', $historyLatest->ot, 'and')->first();
         $fechaEntrega = $preOrden && $preOrden->fecha_entrega 
             ? ($preOrden->fecha_entrega instanceof \DateTimeInterface 
                 ? $preOrden->fecha_entrega->format('Y-m-d') 
@@ -302,10 +328,10 @@ class AlmacenFundicionController extends Controller
             'existe' => true,
             'archivos' => $allFiles,
             'ot' => $ot,
-            'status' => $history->status,
-            'tiene_modelo' => (bool) $history->tiene_modelo,
-            'casting_pdf_generated' => (bool) $history->casting_pdf_generated,
-            'alert_sent_at' => $history->alert_sent_at?->format('d/m/Y H:i'),
+            'status' => $historyLatest->status,
+            'tiene_modelo' => (bool) $historyLatest->tiene_modelo,
+            'casting_pdf_generated' => (bool) $historyLatest->casting_pdf_generated,
+            'alert_sent_at' => $historyLatest->alert_sent_at?->format('d/m/Y H:i'),
             'fecha_entrega' => $fechaEntrega,
         ]);
     }
@@ -792,10 +818,11 @@ class AlmacenFundicionController extends Controller
             elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
 
             if ($tipo) {
-                $isAprobado = LiberacionModeloFundicion::where(function($q) use ($otFull, $baseOt) {
-                        $q->where('ot', '=', $otFull, 'or')
-                          ->where('ot', '=', $baseOt, 'or')
-                          ->where('ot', 'LIKE', $baseOt . '_R%', 'or');
+                $isAprobado = LiberacionModeloFundicion::query()
+                    ->where(function($q) use ($otFull, $baseOt) {
+                        $q->where('ot', '=', $otFull)
+                          ->orWhere('ot', '=', $baseOt)
+                          ->orWhere('ot', 'LIKE', $baseOt . '_R%');
                     })
                     ->where('tipo_modelo', '=', $tipo, 'and')
                     ->where('estado', '=', 'aprobado', 'and')
@@ -821,10 +848,11 @@ class AlmacenFundicionController extends Controller
             elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
 
             if ($tipo) {
-                $isAprobado = LiberacionModeloFundicion::where(function($q) use ($otFull, $baseOt) {
-                        $q->where('ot', '=', $otFull, 'or')
-                          ->where('ot', '=', $baseOt, 'or')
-                          ->where('ot', 'LIKE', $baseOt . '_R%', 'or');
+                $isAprobado = LiberacionModeloFundicion::query()
+                    ->where(function($q) use ($otFull, $baseOt) {
+                        $q->where('ot', '=', $otFull)
+                          ->orWhere('ot', '=', $baseOt)
+                          ->orWhere('ot', 'LIKE', $baseOt . '_R%');
                     })
                     ->where('tipo_modelo', '=', $tipo, 'and')
                     ->where('estado', '=', 'aprobado', 'and')
@@ -914,10 +942,11 @@ class AlmacenFundicionController extends Controller
                     elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
 
                     if ($tipo) {
-                        $isAprobado = LiberacionModeloFundicion::where(function($q) use ($otFull, $baseOt) {
-                                $q->where('ot', '=', $otFull, 'or')
-                                  ->where('ot', '=', $baseOt, 'or')
-                                  ->where('ot', 'LIKE', $baseOt . '_R%', 'or');
+                        $isAprobado = LiberacionModeloFundicion::query()
+                            ->where(function($q) use ($otFull, $baseOt) {
+                                $q->where('ot', '=', $otFull)
+                                  ->orWhere('ot', '=', $baseOt)
+                                  ->orWhere('ot', 'LIKE', $baseOt . '_R%');
                             })
                             ->where('tipo_modelo', '=', $tipo, 'and')
                             ->where('estado', '=', 'aprobado', 'and')
@@ -1007,34 +1036,18 @@ class AlmacenFundicionController extends Controller
                 ->whereNotIn('proveedor', $keepSuppliers)
                 ->delete();
                 
-            // Process Page 1
-            $savedP1 = $this->saveSingleCastingPreOrden($p1Data, $user);
-            
-            // Process Page 2
-            $savedP2 = null;
-            if ($hasPage2 && isset($p2Data)) {
-                $savedP2 = $this->saveSingleCastingPreOrden($p2Data, $user);
-            }
+            // Process Page 1 and Page 2 (combined PDF generation)
+            $saved = $this->saveCastingPreOrdenes($p1Data, ($hasPage2 && isset($p2Data)) ? $p2Data : null, $user);
             
             $pdfs = [];
-            if ($savedP1) {
+            if ($saved) {
                 $pdfs[] = [
                     'url' => route('almacen.fundicion.serve', [
                         'ot' => $otRaw,
-                        'archivo' => 'preordenes/documentos_aprobados/' . $savedP1['pdf_filename'],
+                        'archivo' => 'preordenes/documentos_aprobados/' . $saved['pdf_filename'],
                         'tipo' => 'otro'
                     ]),
-                    'filename' => $savedP1['pdf_filename']
-                ];
-            }
-            if ($savedP2) {
-                $pdfs[] = [
-                    'url' => route('almacen.fundicion.serve', [
-                        'ot' => $otRaw,
-                        'archivo' => 'preordenes/documentos_aprobados/' . $savedP2['pdf_filename'],
-                        'tipo' => 'otro'
-                    ]),
-                    'filename' => $savedP2['pdf_filename']
+                    'filename' => $saved['pdf_filename']
                 ];
             }
             
@@ -1073,10 +1086,11 @@ class AlmacenFundicionController extends Controller
                 elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
 
                 if ($tipo) {
-                    $isAprobado = LiberacionModeloFundicion::where(function($q) use ($otRaw, $baseOt) {
-                            $q->where('ot', '=', $otRaw, 'or')
-                              ->where('ot', '=', $baseOt, 'or')
-                              ->where('ot', 'LIKE', $baseOt . '_R%', 'or');
+                    $isAprobado = LiberacionModeloFundicion::query()
+                        ->where(function($q) use ($otRaw, $baseOt) {
+                            $q->where('ot', '=', $otRaw)
+                              ->orWhere('ot', '=', $baseOt)
+                              ->orWhere('ot', 'LIKE', $baseOt . '_R%');
                         })
                         ->where('tipo_modelo', '=', $tipo, 'and')
                         ->where('estado', '=', 'aprobado', 'and')
@@ -1199,110 +1213,153 @@ class AlmacenFundicionController extends Controller
     }
 
     /**
-     * Helper para guardar una sola pre-orden de Casting.
+     * Helper para guardar las pre-órdenes de Casting (soporta proveedor único o doble).
      *
-     * @param array $pData
+     * @param array $p1Data
+     * @param array|null $p2Data
      * @param \App\Models\User|null $user
      * @return array
      */
-    private function saveSingleCastingPreOrden(array $pData, $user): array
+    private function saveCastingPreOrdenes(array $p1Data, ?array $p2Data, $user): array
     {
-        $otRaw = $pData['ot_raw'];
-        
-        // 1. Filtrar filas válidas
-        $filasFiltradas = [];
-        foreach ($pData['filas'] as $fila) {
-            if (!empty($fila['id_clase'])) {
-                $filasFiltradas[] = $fila;
-            }
-        }
-        $pData['filas'] = $filasFiltradas;
-        
-        // 2. Determinar si existe en la BD
-        $preOrdenDB = PreOrdenFundicion::where('ot', '=', $otRaw, 'and')
-            ->where('proveedor', '=', $pData['proveedor'], 'and')
-            ->first();
-        $existeEnBD = (bool) $preOrdenDB;
-        
-        // Forzar que la fecha de creación sea la fecha actual del servidor (momento de descargar/generar el PDF)
-        $fechaActual = date('Y-m-d');
-        $pData['fecha_creacion'] = $fechaActual;
+        $otRaw = $p1Data['ot_raw'];
+        $hasPage2 = !empty($p2Data);
 
-        // Generar PDF
+        // 1. Filtrar filas válidas
+        $p1Data['filas'] = array_values(array_filter($p1Data['filas'], function ($fila) {
+            return !empty($fila['id_clase']);
+        }));
+        
+        if ($hasPage2) {
+            $p2Data['filas'] = array_values(array_filter($p2Data['filas'], function ($fila) {
+                return !empty($fila['id_clase']);
+            }));
+        }
+
+        // Forzar fecha actual
+        $fechaActual = date('Y-m-d');
+        $p1Data['fecha_creacion'] = $fechaActual;
+        if ($hasPage2) {
+            $p2Data['fecha_creacion'] = $fechaActual;
+        }
+
+        // Generar PDF combinado
         ini_set('memory_limit', '512M');
+        
+        $pages = [$p1Data];
+        if ($hasPage2) {
+            $pages[] = $p2Data;
+        }
+
         $pdf = Pdf::loadView('almacen.pdf_pre_orden_casting', [
-            'data' => $pData,
+            'pages' => $pages,
             'user' => $user
         ])->setPaper('a4', 'landscape');
-        
-        $folio = preg_replace('/[^A-Za-z0-9\-]/', '_', $pData['folio']);
+
+        $folio = preg_replace('/[^A-Za-z0-9\-]/', '_', $p1Data['folio']);
         $fechaStamp = date('d_m_Y_H_i');
-        
         preg_match('/OT\s*(\d+)/i', $otRaw, $matches);
         $otId = $matches[1] ?? (preg_replace('/[^0-9]/', '', $otRaw) ?: 'SN');
         
         $fileName = "Pre-Orden_Casting-{$folio}_OT_{$otId}_{$fechaStamp}.pdf";
-        
         $folderName = $this->sanitizePath($this->normalizeOTName($otRaw));
         $otPath = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/documentos_aprobados';
         $savePath = $otPath . '/' . $fileName;
-        
+
         if (!Storage::disk('local')->exists($otPath)) {
             Storage::disk('local')->makeDirectory($otPath);
         } else {
-            // Delete old PDF file using database reference if exists
-            if ($preOrdenDB && $preOrdenDB->pdf_filename) {
-                $oldPath = $otPath . '/' . $preOrdenDB->pdf_filename;
+            // Eliminar PDFs viejos de la base de datos si existen para esta OT
+            $oldPdfs = PreOrdenFundicion::where('ot', '=', $otRaw, 'and')->pluck('pdf_filename')->filter()->unique();
+            foreach ($oldPdfs as $oldFile) {
+                $oldPath = $otPath . '/' . $oldFile;
                 if (Storage::disk('local')->exists($oldPath)) {
                     Storage::disk('local')->delete($oldPath);
                 }
             }
         }
-        
+
         // Guardar PDF en disco
         Storage::disk('local')->put($savePath, $pdf->output());
-        
-        // Guardar en BD (composite key check)
+
+        // Guardar en BD para Proveedor 1
+        $pre1DB = PreOrdenFundicion::where('ot', '=', $otRaw, 'and')
+            ->where('proveedor', '=', $p1Data['proveedor'], 'and')
+            ->first();
+        $existe1 = (bool) $pre1DB;
+
         PreOrdenFundicion::updateOrCreate(
+            ['ot' => $otRaw, 'proveedor' => $p1Data['proveedor']],
             [
-                'ot' => $otRaw,
-                'proveedor' => $pData['proveedor']
-            ],
-            [
-                'folio'          => $pData['folio'],
+                'folio'          => $p1Data['folio'],
                 'fecha_creacion' => $fechaActual,
-                'fecha_entrega'  => null,
-                'moldura'        => $pData['moldura'] ?? null,
-                'observaciones'  => $pData['observaciones'] ?? null,
-                'filas'          => $pData['filas'],
+                'fecha_entrega'  => !empty($p1Data['fecha_entrega']) ? $p1Data['fecha_entrega'] : null,
+                'moldura'        => $p1Data['moldura'] ?? null,
+                'observaciones'  => $p1Data['observaciones'] ?? null,
+                'filas'          => $p1Data['filas'],
                 'pdf_filename'   => $fileName,
                 'version'        => DB::raw('version + 1'),
                 'user_id'        => $user ? $user->id : null,
                 'user_nombre'    => $user ? $user->name : null,
             ]
         );
-        
-        // Incrementar folio global
-        if (!$existeEnBD) {
-            try {
-                $folioPath = 'DOCUMENTACION_GIS/folio_casting_config.json';
-                $currentVal = 47;
-                if (Storage::disk('local')->exists($folioPath)) {
-                    $config = json_decode(Storage::disk('local')->get($folioPath), true);
-                    $currentVal = max($config['next_folio'] ?? 47, 47);
-                    $config['next_folio'] = $currentVal + 1;
-                    Storage::disk('local')->put($folioPath, json_encode($config));
-                } else {
-                    Storage::disk('local')->put($folioPath, json_encode(['next_folio' => 48]));
-                }
-            } catch (\Exception $e) {
-                Log::error('Error incrementando folio casting: ' . $e->getMessage());
+
+        if (!$existe1) {
+            $this->incrementarFolioCasting();
+        }
+
+        // Guardar en BD para Proveedor 2 (si existe)
+        if ($hasPage2) {
+            $pre2DB = PreOrdenFundicion::where('ot', '=', $otRaw, 'and')
+                ->where('proveedor', '=', $p2Data['proveedor'], 'and')
+                ->first();
+            $existe2 = (bool) $pre2DB;
+
+            PreOrdenFundicion::updateOrCreate(
+                ['ot' => $otRaw, 'proveedor' => $p2Data['proveedor']],
+                [
+                    'folio'          => $p2Data['folio'],
+                    'fecha_creacion' => $fechaActual,
+                    'fecha_entrega'  => !empty($p2Data['fecha_entrega']) ? $p2Data['fecha_entrega'] : null,
+                    'moldura'        => $p2Data['moldura'] ?? null,
+                    'observaciones'  => $p2Data['observaciones'] ?? null,
+                    'filas'          => $p2Data['filas'],
+                    'pdf_filename'   => $fileName,
+                    'version'        => DB::raw('version + 1'),
+                    'user_id'        => $user ? $user->id : null,
+                    'user_nombre'    => $user ? $user->name : null,
+                ]
+            );
+
+            if (!$existe2) {
+                $this->incrementarFolioCasting();
             }
         }
-        
+
         return [
             'pdf_filename' => $fileName
         ];
+    }
+
+    /**
+     * Incrementa el folio global de casting en la configuración.
+     */
+    private function incrementarFolioCasting()
+    {
+        try {
+            $folioPath = 'DOCUMENTACION_GIS/folio_casting_config.json';
+            $currentVal = 47;
+            if (Storage::disk('local')->exists($folioPath)) {
+                $config = json_decode(Storage::disk('local')->get($folioPath), true);
+                $currentVal = max($config['next_folio'] ?? 47, 47);
+                $config['next_folio'] = $currentVal + 1;
+                Storage::disk('local')->put($folioPath, json_encode($config));
+            } else {
+                Storage::disk('local')->put($folioPath, json_encode(['next_folio' => 48]));
+            }
+        } catch (\Exception $e) {
+            Log::error('Error incrementando folio casting: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -1332,56 +1389,117 @@ class AlmacenFundicionController extends Controller
         $dirPath = self::ALMACEN_DIR . '/' . $folderName;
         $ayudasDirPath = $dirPath . '/ayudas_visuales';
 
-        // Obtener datos guardados de la pre-orden desde la base de datos
-        $preOrdenes = PreOrdenFundicion::where('ot', '=', $ot, 'and')->get();
+        // Obtener datos guardados de la pre-orden desde la base de datos (filtrados por tipo de envío)
+        $tipoEnvio = $request->input('tipo');
+        if (empty($tipoEnvio)) {
+            $hasCasting = PreOrdenFundicion::where('ot', '=', $ot, 'and')
+                ->where('pdf_filename', 'LIKE', '%Casting%')
+                ->exists();
+            $hasModelo = PreOrdenFundicion::where('ot', '=', $ot, 'and')
+                ->where('pdf_filename', 'NOT LIKE', '%Casting%')
+                ->exists();
+            if ($hasCasting && !$hasModelo) {
+                $tipoEnvio = 'casting';
+            } elseif ($hasModelo && !$hasCasting) {
+                $tipoEnvio = 'modelo';
+            } else {
+                $tipoEnvio = 'modelo';
+            }
+        }
+
+        if ($tipoEnvio === 'casting') {
+            $preOrdenes = PreOrdenFundicion::where('ot', '=', $ot, 'and')
+                ->where('pdf_filename', 'LIKE', '%Casting%')
+                ->get();
+        } else {
+            $preOrdenes = PreOrdenFundicion::where('ot', '=', $ot, 'and')
+                ->where('pdf_filename', 'NOT LIKE', '%Casting%')
+                ->get();
+        }
+
         if ($preOrdenes->isEmpty()) {
             return response()->json(['success' => false, 'message' => 'No se encontró la pre-orden en la base de datos.'], 404);
         }
 
         // Si se envió una fecha de entrega en Fase 2, guardarla en BD y regenerar el PDF
-        foreach ($preOrdenes as $preOrden) {
-            if ($request->filled('fecha_entrega')) {
+        if ($request->filled('fecha_entrega')) {
+            foreach ($preOrdenes as $preOrden) {
                 $preOrden->fecha_entrega = $request->input('fecha_entrega');
                 $preOrden->save();
+            }
 
-                // Regenerar PDF para incorporar la fecha de entrega
-                $fechaValStr = $preOrden->fecha_creacion ? ($preOrden->fecha_creacion instanceof \DateTimeInterface ? $preOrden->fecha_creacion->format('Y-m-d') : substr((string)$preOrden->fecha_creacion, 0, 10)) : null;
-                $fechaEntregaValStr = $preOrden->fecha_entrega ? ($preOrden->fecha_entrega instanceof \DateTimeInterface ? $preOrden->fecha_entrega->format('Y-m-d') : substr((string)$preOrden->fecha_entrega, 0, 10)) : null;
+            $isCastingPo = $preOrdenes->contains(function ($po) {
+                return $po->pdf_filename && (strpos(strtolower($po->pdf_filename), 'casting') !== false);
+            });
 
-                $data = [
-                    'proveedor' => $preOrden->proveedor,
-                    'fecha_creacion' => $fechaValStr,
-                    'fecha_entrega' => $fechaEntregaValStr,
-                    'folio' => $preOrden->folio,
-                    'moldura' => $preOrden->moldura,
-                    'ot' => $ot,
-                    'observaciones' => $preOrden->observaciones,
-                    'filas' => $preOrden->filas
-                ];
+            if ($isCastingPo) {
+                // Generar PDF combinado de Casting
+                $pages = [];
+                foreach ($preOrdenes as $preOrden) {
+                    $fechaValStr = $preOrden->fecha_creacion ? ($preOrden->fecha_creacion instanceof \DateTimeInterface ? $preOrden->fecha_creacion->format('Y-m-d') : substr((string)$preOrden->fecha_creacion, 0, 10)) : null;
+                    $fechaEntregaValStr = $preOrden->fecha_entrega ? ($preOrden->fecha_entrega instanceof \DateTimeInterface ? $preOrden->fecha_entrega->format('Y-m-d') : substr((string)$preOrden->fecha_entrega, 0, 10)) : null;
 
-                // Obtener el usuario creador de la pre-orden o el actual
-                $creator = \App\Models\User::where('id', '=', $preOrden->user_id, 'and')->first() ?: Auth::user();
+                    $pages[] = [
+                        'proveedor' => $preOrden->proveedor,
+                        'fecha_creacion' => $fechaValStr,
+                        'fecha_entrega' => $fechaEntregaValStr,
+                        'folio' => $preOrden->folio,
+                        'moldura' => $preOrden->moldura,
+                        'ot' => $ot,
+                        'observaciones' => $preOrden->observaciones,
+                        'filas' => $preOrden->filas
+                    ];
+                }
 
-                $isCasting = $preOrden->pdf_filename && (strpos(strtolower($preOrden->pdf_filename), 'casting') !== false);
-                $viewName = $isCasting ? 'almacen.pdf_pre_orden_casting' : 'pdf.pre_orden';
+                $firstPo = $preOrdenes->first();
+                $creator = \App\Models\User::where('id', '=', $firstPo->user_id, 'and')->first() ?: Auth::user();
 
-                $pdf = Pdf::loadView($viewName, [
-                    'data' => $data,
+                $pdf = Pdf::loadView('almacen.pdf_pre_orden_casting', [
+                    'pages' => $pages,
                     'user' => $creator
                 ])->setPaper('a4', 'landscape');
 
-                // Guardar PDF en servidor (sobrescribir el anterior)
                 $folderName = $this->sanitizePath($this->normalizeOTName($ot));
-                $otPath = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes';
-                if ($isCasting) {
-                    $otPath .= '/documentos_aprobados';
-                }
-                $savePath = $otPath . '/' . $preOrden->pdf_filename;
+                $otPath = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/documentos_aprobados';
+                $savePath = $otPath . '/' . $firstPo->pdf_filename;
 
                 if (!Storage::disk('local')->exists($otPath)) {
                     Storage::disk('local')->makeDirectory($otPath);
                 }
                 Storage::disk('local')->put($savePath, $pdf->output());
+            } else {
+                // Modelo Pre-orden flow
+                foreach ($preOrdenes as $preOrden) {
+                    $fechaValStr = $preOrden->fecha_creacion ? ($preOrden->fecha_creacion instanceof \DateTimeInterface ? $preOrden->fecha_creacion->format('Y-m-d') : substr((string)$preOrden->fecha_creacion, 0, 10)) : null;
+                    $fechaEntregaValStr = $preOrden->fecha_entrega ? ($preOrden->fecha_entrega instanceof \DateTimeInterface ? $preOrden->fecha_entrega->format('Y-m-d') : substr((string)$preOrden->fecha_entrega, 0, 10)) : null;
+
+                    $data = [
+                        'proveedor' => $preOrden->proveedor,
+                        'fecha_creacion' => $fechaValStr,
+                        'fecha_entrega' => $fechaEntregaValStr,
+                        'folio' => $preOrden->folio,
+                        'moldura' => $preOrden->moldura,
+                        'ot' => $ot,
+                        'observaciones' => $preOrden->observaciones,
+                        'filas' => $preOrden->filas
+                    ];
+
+                    $creator = \App\Models\User::where('id', '=', $preOrden->user_id, 'and')->first() ?: Auth::user();
+
+                    $pdf = Pdf::loadView('pdf.pre_orden', [
+                        'data' => $data,
+                        'user' => $creator
+                    ])->setPaper('a4', 'landscape');
+
+                    $folderName = $this->sanitizePath($this->normalizeOTName($ot));
+                    $otPath = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes';
+                    $savePath = $otPath . '/' . $preOrden->pdf_filename;
+
+                    if (!Storage::disk('local')->exists($otPath)) {
+                        Storage::disk('local')->makeDirectory($otPath);
+                    }
+                    Storage::disk('local')->put($savePath, $pdf->output());
+                }
             }
         }
 
@@ -1449,11 +1567,18 @@ class AlmacenFundicionController extends Controller
 
         // Recopilar adjuntos
         $attachments = [];
+        $attachedPaths = [];
 
         // 0. Siempre adjuntar las Pre-Órdenes de Fabricación asociadas
         foreach ($preOrdenes as $preOrden) {
             $isCasting = $preOrden->pdf_filename && (strpos(strtolower($preOrden->pdf_filename), 'casting') !== false);
             $preOrdenPdfPath = $ayudasDirPath . '/preordenes/' . ($isCasting ? 'documentos_aprobados/' : '') . $preOrden->pdf_filename;
+            
+            if (in_array($preOrdenPdfPath, $attachedPaths)) {
+                continue;
+            }
+            $attachedPaths[] = $preOrdenPdfPath;
+
             if (Storage::disk('local')->exists($preOrdenPdfPath)) {
                 $attachments[] = [
                     'path' => storage_path('app/' . $preOrdenPdfPath),
@@ -1478,19 +1603,52 @@ class AlmacenFundicionController extends Controller
                 // Sanitizar para evitar path traversal
                 $archivoSanitized = $this->sanitizeFileNameWithFolder($archivo);
                 
-                // Buscar si es un dibujo principal o una ayuda visual
-                $posPaths = [
-                    $ayudasDirPath . '/' . $archivoSanitized,
-                    $dirPath . '/' . $archivoSanitized
-                ];
+                // Buscar el archivo en cualquiera de las carpetas de OTs relacionadas (base y reprocesos)
+                $baseOt = preg_replace('/_R\d+$/i', '', $ot);
+                $allOtNames = FundicionHistory::where('ot', '=', $baseOt, 'or')
+                    ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
+                    ->pluck('ot')
+                    ->toArray();
+                if (!in_array($ot, $allOtNames)) {
+                    $allOtNames[] = $ot;
+                }
 
-                foreach ($posPaths as $path) {
-                    if (Storage::disk('local')->exists($path)) {
-                        $attachments[] = [
-                            'path' => storage_path('app/' . $path),
-                            'name' => basename($archivoSanitized),
-                            'mime' => 'application/pdf'
-                        ];
+                foreach ($allOtNames as $relatedOt) {
+                    $relFolder = $this->sanitizePath($this->normalizeOTName($relatedOt));
+                    $relDirPath = self::ALMACEN_DIR . '/' . $relFolder;
+                    $relAyudasDirPath = $relDirPath . '/ayudas_visuales';
+
+                    // Si el archivo empieza con preordenes/documentos_aprobados/ o preordenes/documentos_rechazados/,
+                    // buscar en la ruta raíz del directorio respectivo
+                    $posPaths = [];
+                    if (str_starts_with($archivoSanitized, 'preordenes/documentos_aprobados/')) {
+                        $subPath = str_replace('preordenes/documentos_aprobados/', '', $archivoSanitized);
+                        $posPaths[] = $relDirPath . '/preordenes/documentos_aprobados/' . $subPath;
+                    } elseif (str_starts_with($archivoSanitized, 'preordenes/documentos_rechazados/')) {
+                        $subPath = str_replace('preordenes/documentos_rechazados/', '', $archivoSanitized);
+                        $posPaths[] = $relDirPath . '/preordenes/documentos_rechazados/' . $subPath;
+                    } elseif (str_starts_with($archivoSanitized, 'preordenes/')) {
+                        $subPath = str_replace('preordenes/', '', $archivoSanitized);
+                        $posPaths[] = $relAyudasDirPath . '/preordenes/' . $subPath;
+                        $posPaths[] = $relDirPath . '/preordenes/' . $subPath;
+                    } else {
+                        $posPaths[] = $relAyudasDirPath . '/' . $archivoSanitized;
+                        $posPaths[] = $relDirPath . '/' . $archivoSanitized;
+                    }
+
+                    $found = false;
+                    foreach ($posPaths as $path) {
+                        if (Storage::disk('local')->exists($path)) {
+                            $attachments[] = [
+                                'path' => storage_path('app/' . $path),
+                                'name' => basename($archivoSanitized),
+                                'mime' => 'application/pdf'
+                            ];
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if ($found) {
                         break;
                     }
                 }
@@ -1543,13 +1701,15 @@ class AlmacenFundicionController extends Controller
                         $carpetas[$ayudas] = 'AyudaVisual';
                     }
                     // Para la OT base y todas las iteraciones escaneamos aprobados y rechazados
-                    $carpetas[$dir . '/preordenes/documentos_aprobados'] = 'DocAprobado';
+                    if ($i === $currentIteration) {
+                        $carpetas[$dir . '/preordenes/documentos_aprobados'] = 'DocAprobado';
+                    }
                     $carpetas[$dir . '/preordenes/documentos_rechazados'] = 'DocRechazado';
 
                     foreach ($carpetas as $carpeta => $etiqueta) {
                         if (!Storage::disk('local')->exists($carpeta)) continue;
 
-                        $archivos = Storage::disk('local')->files($carpeta);
+                        $archivos = Storage::disk('local')->allFiles($carpeta);
                         foreach ($archivos as $archivoPath) {
                             $ext = strtolower(pathinfo($archivoPath, PATHINFO_EXTENSION));
                             if (!in_array($ext, $extPermitidas, true)) continue;
@@ -2071,15 +2231,28 @@ class AlmacenFundicionController extends Controller
         }
 
         // Dibujos y Ayudas del servidor (filtrados por los archivos seleccionados en el modal)
-        $files = [];
-        $dirPathAlmacen = self::ALMACEN_DIR . '/' . $folderName;
-        $dirPathCalidad = self::CALIDAD_DIR . '/' . $folderName;
-
-        if (Storage::disk('local')->exists($dirPathAlmacen)) {
-            $files = array_merge($files, Storage::disk('local')->allFiles($dirPathAlmacen));
+        // Buscamos en todas las carpetas de OTs relacionadas (base y reprocesos)
+        $baseOtForSearch = preg_replace('/_R\d+$/i', '', $ot);
+        $allOtNamesForSearch = FundicionHistory::where('ot', '=', $baseOtForSearch, 'or')
+            ->where('ot', 'LIKE', $baseOtForSearch . '_R%', 'or')
+            ->pluck('ot')
+            ->toArray();
+        if (!in_array($ot, $allOtNamesForSearch)) {
+            $allOtNamesForSearch[] = $ot;
         }
-        if (Storage::disk('local')->exists($dirPathCalidad)) {
-            $files = array_merge($files, Storage::disk('local')->allFiles($dirPathCalidad));
+
+        $files = [];
+        foreach ($allOtNamesForSearch as $relatedOt) {
+            $relFolder = $this->sanitizePath($this->normalizeOTName($relatedOt));
+            $dirPathAlmacen = self::ALMACEN_DIR . '/' . $relFolder;
+            $dirPathCalidad = self::CALIDAD_DIR . '/' . $relFolder;
+
+            if (Storage::disk('local')->exists($dirPathAlmacen)) {
+                $files = array_merge($files, Storage::disk('local')->allFiles($dirPathAlmacen));
+            }
+            if (Storage::disk('local')->exists($dirPathCalidad)) {
+                $files = array_merge($files, Storage::disk('local')->allFiles($dirPathCalidad));
+            }
         }
         $files = array_unique($files);
 
@@ -2146,7 +2319,8 @@ class AlmacenFundicionController extends Controller
                 $isSelAprobado = in_array($utf8RelName, $dibujosAprobadosSelected) ||
                                  in_array($utf8RelName, $dibujosSelected) ||
                                  in_array($utf8RelName, $ayudasSelected) ||
-                                 in_array($utf8RelName, $otrosSelected);
+                                 in_array($utf8RelName, $otrosSelected) ||
+                                 ($decision === 'aprobar' && in_array($utf8RelName, $dibujosRechazadosSelected));
 
                 // Agregar a rechazados si está seleccionado en rechazados
                 $isSelRechazado = in_array($utf8RelName, $dibujosRechazadosSelected);

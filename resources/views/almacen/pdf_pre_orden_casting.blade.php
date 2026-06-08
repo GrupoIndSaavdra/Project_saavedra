@@ -217,141 +217,161 @@
 
 <body>
 
-    {{-- BLOQUE 1: LOGOS Y TÍTULO --}}
-    <table class="tbl-header">
-        <tr>
-            <td class="logo-cell">
-                <img src="{{ public_path('images/lg_saavedra2.png') }}" alt="Logo GIS">
-            </td>
-            <td class="title-cell">
-                PREORDEN DE FABRICACIÓN DE CASTING
-            </td>
-            <td class="logo-cell">
-                <img src="{{ public_path('images/lg_saavedra.png') }}" alt="GIS">
-            </td>
-        </tr>
-    </table>
+    @php
+        $pdfPages = isset($pages) ? $pages : [$data];
+    @endphp
 
-    {{-- BLOQUE 2: CONTROL DE CALIDAD --}}
-    <table class="tbl-quality">
-        <tr>
-            <td class="quality-label">Fecha de Elaboración</td>
-            <td class="quality-value">{{ date('d-M-y') }}</td>
-            <td class="quality-label">Fecha de Revisión</td>
-            <td class="quality-value">{{ date('d-M-y') }}</td>
-            <td class="quality-label">Fecha de Aprobación</td>
-            <td class="quality-value">{{ date('d-M-y') }}</td>
-            <td class="quality-label">Código</td>
-            <td class="quality-value">4ALM-17</td>
-            <td class="quality-label">Nivel de Revisión</td>
-            <td class="quality-value">0</td>
-        </tr>
-    </table>
+    @foreach($pdfPages as $pageIdx => $data)
+        @if($pageIdx > 0)
+            <div style="page-break-before: always;"></div>
+        @endif
 
-    {{-- BLOQUE 3: DATOS GENERALES --}}
-    <table class="tbl-general">
-        <tr>
-            <td class="gen-label">Proveedor</td>
-            <td class="gen-value" style="width: 30%;">{{ $data['proveedor'] }}</td>
-            <td class="gen-label">Fecha Emisión</td>
-            <td class="gen-value" style="width: 14%;">
-                {{ \Carbon\Carbon::parse($data['fecha_creacion'])->format('d/m/Y') }}
-            </td>
-            <td class="gen-label">Folio</td>
-            <td class="gen-value-folio" style="width: 14%;">{{ $data['folio'] }}</td>
-        </tr>
-        <tr>
-            <td class="gen-label">Moldura</td>
-            <td class="gen-value" colspan="3">{{ $data['moldura'] }}</td>
-            <td class="gen-label">Orden de Trabajo</td>
-            <td class="gen-value">{{ preg_replace('/[^0-9]/', '', $data['ot']) ?: $data['ot'] }}</td>
-        </tr>
-    </table>
-
-    {{-- BLOQUE 4: TABLA PRINCIPAL --}}
-    <table class="tbl-main">
-        <thead>
+        {{-- BLOQUE 1: LOGOS Y TÍTULO --}}
+        <table class="tbl-header">
             <tr>
-                <th style="width: 10%;">Tipo de Modelo</th>
-                <th style="width: 9%;">Cant. Fabricar</th>
-                <th style="width: 9%;">Cant. Consign.</th>
-                <th style="width: 18%;">Descripción</th>
-                <th style="width: 10%;">Material</th>
-                <th style="width: 13%;">Código de Modelo</th>
-                <th style="width: 10%;">Peso Juego (KG)</th>
-                <th style="width: 10%;">Peso Total (KG)</th>
-                <th style="width: 11%;">Fecha de Entrega</th>
+                <td class="logo-cell">
+                    <img src="{{ public_path('images/lg_saavedra2.png') }}" alt="Logo GIS">
+                </td>
+                <td class="title-cell">
+                    PREORDEN DE FABRICACIÓN DE CASTING
+                </td>
+                <td class="logo-cell">
+                    <img src="{{ public_path('images/lg_saavedra.png') }}" alt="GIS">
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            @foreach($data['filas'] as $index => $fila)
-                <tr class="{{ $index % 2 == 1 ? 'row-alt' : '' }}">
-                    <td>{{ $fila['tipo_modelo'] ?? '' }}</td>
-                    <td>{{ $fila['cantidad_fabricar'] ?? $fila['cant_fabricar'] ?? 0 }}</td>
-                    <td>{{ $fila['cantidad_consignacion'] ?? $fila['cant_consignacion'] ?? 0 }}</td>
-                    @php
-                        $claseOriginal = trim($fila['clase_nombre'] ?? $fila['descripcion'] ?? $fila['clase'] ?? '');
-                        $tipo = trim($fila['tipo_modelo'] ?? '');
-                        $prefijo = (stripos($tipo, 'templadera') !== false) ? 'Templadera' : 'Modelo';
-                        
-                        // Capitalizar el nombre de la clase de forma elegante
-                        $claseFormateada = mb_convert_case($claseOriginal, MB_CASE_TITLE, "UTF-8");
-                        
-                        $claseNombreFinal = $claseFormateada;
-                        if (!empty($claseOriginal) && stripos($claseOriginal, $prefijo) === false) {
-                            $claseNombreFinal = $prefijo . ' ' . $claseFormateada;
-                        }
-                    @endphp
-                    <td class="desc-cell">{{ $claseNombreFinal }}</td>
-                    <td>{{ $fila['material'] ?? '' }}</td>
-                    <td class="code-cell">{{ $fila['codigo_modelo'] ?? $fila['codigo'] ?? '' }}</td>
-                    <td>{{ number_format((float) ($fila['peso_juego'] ?? 0), 3) }}</td>
-                    <td>{{ number_format((float) ($fila['peso_total'] ?? 0), 3) }}</td>
-                    <td>
-                        {{ !empty($fila['fecha_entrega_row'] ?? $fila['fecha_entrega'] ?? '') ? \Carbon\Carbon::parse($fila['fecha_entrega_row'] ?? $fila['fecha_entrega'])->format('d/m/Y') : '' }}
-                    </td>
+        </table>
+
+        {{-- BLOQUE 2: CONTROL DE CALIDAD --}}
+        <table class="tbl-quality">
+            <tr>
+                <td class="quality-label">Fecha de Elaboración</td>
+                <td class="quality-value">{{ date('d-M-y') }}</td>
+                <td class="quality-label">Fecha de Revisión</td>
+                <td class="quality-value">{{ date('d-M-y') }}</td>
+                <td class="quality-label">Fecha de Aprobación</td>
+                <td class="quality-value">{{ date('d-M-y') }}</td>
+                <td class="quality-label">Código</td>
+                <td class="quality-value">4ALM-17</td>
+                <td class="quality-label">Nivel de Revisión</td>
+                <td class="quality-value">0</td>
+            </tr>
+        </table>
+
+        {{-- BLOQUE 3: DATOS GENERALES --}}
+        <table class="tbl-general">
+            <tr>
+                <td class="gen-label">Proveedor</td>
+                <td class="gen-value" style="width: 30%;">{{ $data['proveedor'] }}</td>
+                <td class="gen-label">Fecha Emisión</td>
+                <td class="gen-value" style="width: 14%;">
+                    {{ \Carbon\Carbon::parse($data['fecha_creacion'])->format('d/m/Y') }}
+                </td>
+                <td class="gen-label">Folio</td>
+                <td class="gen-value-folio" style="width: 14%;">{{ $data['folio'] }}</td>
+            </tr>
+            <tr>
+                <td class="gen-label">Moldura</td>
+                <td class="gen-value" colspan="3">{{ $data['moldura'] }}</td>
+                <td class="gen-label">Orden de Trabajo</td>
+                <td class="gen-value">{{ preg_replace('/[^0-9]/', '', $data['ot']) ?: $data['ot'] }}</td>
+            </tr>
+        </table>
+
+        {{-- BLOQUE 4: TABLA PRINCIPAL --}}
+        <table class="tbl-main">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">Tipo de Modelo</th>
+                    <th style="width: 9%;">Cant. Fabricar</th>
+                    <th style="width: 9%;">Cant. Consign.</th>
+                    <th style="width: 18%;">Descripción</th>
+                    <th style="width: 10%;">Material</th>
+                    <th style="width: 13%;">Código de Modelo</th>
+                    <th style="width: 10%;">Peso Juego (KG)</th>
+                    <th style="width: 10%;">Peso Total (KG)</th>
+                    <th style="width: 11%;">Fecha de Entrega</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach($data['filas'] as $index => $fila)
+                    <tr class="{{ $index % 2 == 1 ? 'row-alt' : '' }}">
+                        <td>{{ $fila['tipo_modelo'] ?? '' }}</td>
+                        <td>{{ $fila['cantidad_fabricar'] ?? $fila['cant_fabricar'] ?? 0 }}</td>
+                        <td>{{ $fila['cantidad_consignacion'] ?? $fila['cant_consignacion'] ?? 0 }}</td>
+                        @php
+                            $claseOriginal = trim($fila['clase_nombre'] ?? $fila['descripcion'] ?? $fila['clase'] ?? '');
+                            $tipo = trim($fila['tipo_modelo'] ?? '');
+                            $prefijo = (stripos($tipo, 'templadera') !== false) ? 'Templadera' : 'Modelo';
+                            
+                            // Capitalizar el nombre de la clase de forma elegante
+                            $claseFormateada = mb_convert_case($claseOriginal, MB_CASE_TITLE, "UTF-8");
+                            
+                            $claseNombreFinal = $claseFormateada;
+                            if (!empty($claseOriginal) && stripos($claseOriginal, $prefijo) === false) {
+                                $claseNombreFinal = $prefijo . ' ' . $claseFormateada;
+                            }
+                        @endphp
+                        <td class="desc-cell">{{ $claseNombreFinal }}</td>
+                        <td>{{ $fila['material'] ?? '' }}</td>
+                        <td class="code-cell">{{ $fila['codigo_modelo'] ?? $fila['codigo'] ?? '' }}</td>
+                        <td>{{ number_format((float) ($fila['peso_juego'] ?? 0), 3) }}</td>
+                        <td>{{ number_format((float) ($fila['peso_total'] ?? 0), 3) }}</td>
+                        <td>
+                            @php
+                                $fechaEntregaFila = null;
+                                if (!empty($fila['fecha_entrega_row'])) {
+                                    $fechaEntregaFila = $fila['fecha_entrega_row'];
+                                } elseif (!empty($fila['fecha_entrega'])) {
+                                    $fechaEntregaFila = $fila['fecha_entrega'];
+                                } elseif (!empty($data['fecha_entrega'])) {
+                                    $fechaEntregaFila = $data['fecha_entrega'];
+                                }
+                            @endphp
+                            {{ $fechaEntregaFila ? \Carbon\Carbon::parse($fechaEntregaFila)->format('d/m/Y') : '' }}
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
 
-    {{-- BLOQUE 5: OBSERVACIONES --}}
-    <table class="tbl-obs">
-        <tr>
-            <td class="obs-label">Observaciones</td>
-            <td>{{ $data['observaciones'] ?: 'Sin observaciones adicionales.' }}</td>
-        </tr>
-    </table>
+        {{-- BLOQUE 5: OBSERVACIONES --}}
+        <table class="tbl-obs">
+            <tr>
+                <td class="obs-label">Observaciones</td>
+                <td>{{ $data['observaciones'] ?: 'Sin observaciones adicionales.' }}</td>
+            </tr>
+        </table>
 
-    {{-- BLOQUE 6: FIRMAS --}}
-    <table class="tbl-firmas">
-        <tr>
-            <td>
-                <div class="firma-espacio"></div>
-                <div class="firma-linea"></div>
-                <div class="firma-rol">Departamento de Almacén</div>
-                <div class="firma-sub">(Nombre y Firma)</div>
-            </td>
-            <td>
-                <div class="firma-espacio"></div>
-                <div class="firma-linea"></div>
-                <div class="firma-rol">Departamento de Calidad</div>
-                <div class="firma-sub">(Nombre y Firma)</div>
-            </td>
-            <td>
-                <div class="firma-espacio"></div>
-                <div class="firma-linea"></div>
-                <div class="firma-rol">Gerente de Planta</div>
-                <div class="firma-sub">(Nombre y Firma)</div>
-            </td>
-            <td>
-                <div class="firma-espacio"></div>
-                <div class="firma-linea"></div>
-                <div class="firma-rol">Firma Proveedor</div>
-                <div class="firma-sub">(Nombre, Firma y Sello)</div>
-            </td>
-        </tr>
-    </table>
+        {{-- BLOQUE 6: FIRMAS --}}
+        <table class="tbl-firmas">
+            <tr>
+                <td>
+                    <div class="firma-espacio"></div>
+                    <div class="firma-linea"></div>
+                    <div class="firma-rol">Departamento de Almacén</div>
+                    <div class="firma-sub">(Nombre y Firma)</div>
+                </td>
+                <td>
+                    <div class="firma-espacio"></div>
+                    <div class="firma-linea"></div>
+                    <div class="firma-rol">Departamento de Calidad</div>
+                    <div class="firma-sub">(Nombre y Firma)</div>
+                </td>
+                <td>
+                    <div class="firma-espacio"></div>
+                    <div class="firma-linea"></div>
+                    <div class="firma-rol">Gerente de Planta</div>
+                    <div class="firma-sub">(Nombre y Firma)</div>
+                </td>
+                <td>
+                    <div class="firma-espacio"></div>
+                    <div class="firma-linea"></div>
+                    <div class="firma-rol">Firma Proveedor</div>
+                    <div class="firma-sub">(Nombre, Firma y Sello)</div>
+                </td>
+            </tr>
+        </table>
+    @endforeach
 
     <div class="footer">
         Grupo Industrial Saavedra &nbsp;|&nbsp; Formato 4ALM-17 &nbsp;|&nbsp; Generado el {{ date('d/m/Y H:i') }}
@@ -359,5 +379,4 @@
     </div>
 
 </body>
-
 </html>

@@ -22,3 +22,5 @@ yarn-error.log
 /storage/app/DOCUMENTACION_GIS/
 /storage/app/FUNDICION_ALMACEN/
 /public/herramientas_tecamac/
+/config/configMCP.yaml
+/.configMCP.yaml

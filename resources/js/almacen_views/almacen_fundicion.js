@@ -233,6 +233,13 @@ window.abrirModalPreOrden = function (ot) {
     const tbody = document.getElementById('alm-tbody-preorden');
 
     window.currentFechaEntrega = '';
+    window.predefinedCycleObs = '';
+
+    const prefixDiv = document.getElementById('po-observaciones-cycle-prefix');
+    if (prefixDiv) {
+        prefixDiv.style.display = 'none';
+        prefixDiv.textContent = '';
+    }
 
     // Mostrar/ocultar badge de ciclo de re-fabricación
     const cycleMatch = ot.match(/_R(\d+)$/i);
@@ -308,7 +315,31 @@ window.abrirModalPreOrden = function (ot) {
                         const dateOnly = pod.fecha_creacion.split(' ')[0];
                         document.getElementById('po-fecha').value = dateOnly;
                     }
-                    if (pod.observaciones) document.getElementById('po-observaciones').value = pod.observaciones;
+
+                    // Para OTs de re-proceso (_R1, _R2...), generar una observación descriptiva
+                    const obsField = document.getElementById('po-observaciones');
+                    if (obsField) {
+                        if (cycleMatch) {
+                            const cycle = parseInt(cycleMatch[1], 10);
+                            const ordinal = cycle === 1 ? '2.ª' : cycle === 2 ? '3.ª' : `${cycle + 1}.ª`;
+                            window.predefinedCycleObs = `[${ordinal} vuelta — Ciclo R${cycle} de liberación de modelo y fabricación de casting]`;
+
+                            const prefixDiv = document.getElementById('po-observaciones-cycle-prefix');
+                            if (prefixDiv) {
+                                prefixDiv.textContent = window.predefinedCycleObs;
+                                prefixDiv.style.display = 'block';
+                            }
+
+                            // Si la observación existente tiene el prefijo de ciclo o de RECHAZO, limpiarlo
+                            let rawObs = (pod.observaciones || '').replace(/^RECHAZO:\s*/i, '').trim();
+                            rawObs = rawObs.replace(/^\[.*? vuelta — Ciclo R\d+ de liberación de modelo y fabricación de casting\]\s*/i, '').trim();
+
+                            obsField.value = rawObs;
+                        } else if (pod.observaciones) {
+                            obsField.value = pod.observaciones;
+                        }
+                    }
+
                     if (pod.proveedor) document.getElementById('po-proveedor').value = pod.proveedor;
 
                     if (pod.filas && pod.filas.length > 0) {
@@ -328,6 +359,24 @@ window.abrirModalPreOrden = function (ot) {
                         tbody.appendChild(createRowElement());
                     }
                 } else {
+                    // Sin pre-orden existente — si es re-proceso, poner observación predeterminada
+                    if (cycleMatch) {
+                        const cycle = parseInt(cycleMatch[1], 10);
+                        const ordinal = cycle === 1 ? '2.ª' : cycle === 2 ? '3.ª' : `${cycle + 1}.ª`;
+                        window.predefinedCycleObs = `[${ordinal} vuelta — Ciclo R${cycle} de liberación de modelo y fabricación de casting]`;
+
+                        const prefixDiv = document.getElementById('po-observaciones-cycle-prefix');
+                        if (prefixDiv) {
+                            prefixDiv.textContent = window.predefinedCycleObs;
+                            prefixDiv.style.display = 'block';
+                        }
+
+                        const obsField = document.getElementById('po-observaciones');
+                        if (obsField) {
+                            obsField.value = '';
+                        }
+                    }
+
                     if (data.clases_vinculadas && data.clases_vinculadas.length > 0) {
                         const fragment = document.createDocumentFragment();
                         data.clases_vinculadas.forEach(claseNombre => {
@@ -579,7 +628,13 @@ function buildPayload(tbodyId, formIds) {
         ot_raw: document.getElementById('po-ot-raw').value,
         moldura: document.getElementById(formIds.moldura).value,
         fecha_entrega: '', // Se deja vacío para llenado manual del proveedor
-        observaciones: document.getElementById(formIds.observaciones).value,
+        observaciones: (() => {
+            const userObs = document.getElementById(formIds.observaciones).value.trim();
+            if (window.predefinedCycleObs) {
+                return window.predefinedCycleObs + (userObs ? '\n' : '') + userObs;
+            }
+            return userObs;
+        })(),
         filas: rows
     };
 }
@@ -810,10 +865,10 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
     sectionsHtml += makeCategorySection('Ayudas Visuales', ayudasPdfs, nameAyudas, 'card-ayuda');
     sectionsHtml += makeCategorySection('Dibujos de Fundición', dibujosPdfs, nameDibujos, 'card-plano');
     sectionsHtml += makeCategorySection('Documentos Aprobados', aprobadosPdfs, nameAprobados, 'card-ayuda');
-    
+
     const isReprocesoRechazos = /_[rR]\d+/.test(ot);
     const hideRechazados = (inputNameMode === 'preorden' && !isReprocesoRechazos);
-    
+
     if (!hideRechazados) {
         sectionsHtml += makeCategorySection(inputNameMode === 'calidad' ? 'Documentos Rechazados' : 'Documentos Rechazados (SCAR)', rechazadosPdfs, nameRechazados, 'card-ayuda');
     }
@@ -825,12 +880,18 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
     return sectionsHtml;
 }
 
-window.abrirModalEnviarPreOrden = function (ot) {
+window.abrirModalEnviarPreOrden = function (ot, tipo) {
     const modal = document.getElementById('modalEnviarPreOrden');
     const inputOt = document.getElementById('env-ot');
     const filesContainer = document.getElementById('env-server-files-container');
 
     inputOt.value = ot;
+
+    // Set tipo (casting / modelo) on the hidden field
+    const inputTipo = document.getElementById('env-tipo');
+    if (inputTipo) {
+        inputTipo.value = tipo || 'modelo';
+    }
 
     const subtitle = document.getElementById('env-po-modal-subtitle');
     if (subtitle) {
@@ -3772,27 +3833,54 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
 
     const otClean = ot.replace(/_\d{8}_\d{6}_.*/, '');
 
+    let baseUrl = window.baseUrl || (window.location.origin + '/');
+    if (!baseUrl.endsWith('/')) baseUrl += '/';
+
     // Adapt colors and text dynamically based on the decision
-    let bg, border, btnBg, titleText, promptText;
+    let bg, border, btnBg, titleText, promptHtml, btnText;
     if (decision === 'aprobar') {
-        bg = 'linear-gradient(135deg, #059669, #047857)';
-        border = '#059669';
-        btnBg = '#059669';
+        bg = 'linear-gradient(135deg, #10b981, #059669)';
+        border = '#10b981';
+        btnBg = '#10b981';
         titleText = `Finalizar Proceso de Calidad (Aprobado) — ${otClean}`;
-        promptText = `Se enviará la alerta de liberación aprobada para los modelos: ${arrAprobados.join(', ')}.`;
+        btnText = 'Finalizar y Enviar Alerta de Aprobación';
+        promptHtml = `
+            <div style="background: #ecfdf5; border-left: 5px solid #059669; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(5, 150, 105, 0.03);">
+                <img src="${baseUrl}images/Aprobado.png" style="width: 32px; height: 32px; object-fit: contain; flex-shrink: 0;" alt="Aprobado">
+                <div style="font-family:'Poppins', sans-serif; font-weight: 500; color: #065f46; font-size: 1.1em; line-height: 1.5;">
+                    Se enviará la alerta de liberación aprobada para los modelos: <strong>${arrAprobados.join(', ')}</strong>.
+                </div>
+            </div>
+        `;
     } else if (decision === 'rechazar') {
-        bg = 'linear-gradient(135deg, #dc2626, #b91c1c)';
-        border = '#dc2626';
-        btnBg = '#dc2626';
+        bg = 'linear-gradient(135deg, #ef4444, #dc2626)';
+        border = '#ef4444';
+        btnBg = '#ef4444';
         titleText = `Finalizar Proceso de Calidad (Rechazado) — ${otClean}`;
-        promptText = `Se enviará la alerta de rechazo para los modelos: ${arrRechazados.join(', ')}.`;
+        btnText = 'Finalizar y Enviar Alerta de Rechazo';
+        promptHtml = `
+            <div style="background: #fef2f2; border-left: 5px solid #dc2626; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(220, 38, 38, 0.03);">
+                <img src="${baseUrl}images/cerrar.png" style="width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; filter: invert(24%) sepia(87%) saturate(2823%) hue-rotate(345deg) brightness(88%) contrast(98%);" alt="Rechazado">
+                <div style="font-family:'Poppins', sans-serif; font-weight: 500; color: #991b1b; font-size: 1.1em; line-height: 1.5;">
+                    Se enviará la alerta de rechazo para los modelos: <strong>${arrRechazados.join(', ')}</strong>.
+                </div>
+            </div>
+        `;
     } else {
         // Mixto
-        bg = 'linear-gradient(135deg, #0284c7, #0369a1)';
-        border = '#0284c7';
-        btnBg = '#0284c7';
+        bg = 'linear-gradient(135deg, #0ea5e9, #0284c7)';
+        border = '#0ea5e9';
+        btnBg = '#0ea5e9';
         titleText = `Finalizar Proceso de Calidad (Mixto) — ${otClean}`;
-        promptText = `Esta OT tiene modelos aprobados (${arrAprobados.join(', ')}) y rechazados (${arrRechazados.join(', ')}). Se enviarán correos separados de liberación y rechazo.`;
+        btnText = 'Finalizar y Enviar Alertas (Mixto)';
+        promptHtml = `
+            <div style="background: #f0f9ff; border-left: 5px solid #0284c7; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(2, 132, 199, 0.03);">
+                <img src="${baseUrl}images/almacen.png" style="width: 28px; height: 28px; object-fit: contain; flex-shrink: 0;" alt="Mixto">
+                <div style="font-family:'Poppins', sans-serif; font-weight: 500; color: #075985; font-size: 1.1em; line-height: 1.5;">
+                    Esta OT tiene modelos aprobados (<strong>${arrAprobados.join(', ')}</strong>) y rechazados (<strong>${arrRechazados.join(', ')}</strong>). Se enviarán correos separados de liberación y rechazo.
+                </div>
+            </div>
+        `;
     }
 
     const header = document.getElementById('finalizar-calidad-header');
@@ -3802,13 +3890,19 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
     const prompt = document.getElementById('fc-prompt-text');
     const subtitle = document.getElementById('finalizar-calidad-subtitle');
 
-    if (header) { header.style.background = bg; header.style.borderBottom = `2px solid ${border}80`; }
+    if (header) {
+        header.style.background = bg;
+        header.style.borderBottom = `2px solid ${border}80`;
+    }
     if (mc) mc.style.borderColor = border;
-    if (title) title.textContent = titleText;
-    if (prompt) prompt.textContent = promptText;
+    if (title) {
+        title.textContent = titleText;
+    }
+    if (prompt) prompt.innerHTML = promptHtml;
     if (subtitle) subtitle.textContent = `OT: ${otClean}`;
 
     if (btnSubmit) {
+        btnSubmit.innerHTML = btnText;
         btnSubmit.style.background = btnBg;
         btnSubmit.style.boxShadow = `0 4px 15px ${border}40`;
     }
@@ -3819,9 +3913,6 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
     const emptyHtml = `<div style="text-align:center;color:#94a3b8;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Sin archivos en servidor.</div>`;
     if (filesContainer) filesContainer.innerHTML = loadHtml;
 
-    let baseUrl = window.baseUrl || (window.location.origin + '/');
-    if (!baseUrl.endsWith('/')) baseUrl += '/';
-
     fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
         .then(r => r.json())
         .then(data => {
@@ -3829,8 +3920,15 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
                 const filteredFiles = data.archivos.filter(f => {
                     const pl = f.nombre.toLowerCase();
                     const isRechazadoFile = pl.includes('documentos_rechazados') || pl.includes('rechazado') || pl.includes('scar');
-                    if (decision === 'aprobar') return !isRechazadoFile;
-                    if (decision === 'rechazar') return isRechazadoFile;
+                    const isDibujoOrAyuda = f.tipo === 'dibujo' || f.tipo === 'ayuda';
+
+                    if (decision === 'aprobar') {
+                        return true;
+                    }
+                    if (decision === 'rechazar') {
+                        const isPreordenFile = pl.includes('pre-orden') || pl.includes('preorden');
+                        return isRechazadoFile || isDibujoOrAyuda || isPreordenFile;
+                    }
                     return true; // mixed shows both
                 });
                 const sectionsHtml = generarHtmlCategorizadoArchivos(filteredFiles, ot, baseUrl, 'calidad');
@@ -3841,8 +3939,11 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
                 if (filesContainer) filesContainer.innerHTML = emptyHtml;
             }
         })
-        .catch(() => {
-            if (filesContainer) filesContainer.innerHTML = `<div style="color:#ef4444;font-size:0.8em;grid-column:1/-1;">Error al cargar archivos.</div>`;
+        .catch(err => {
+            console.error(err);
+            if (filesContainer) {
+                filesContainer.innerHTML = `<div style="text-align:center;color:#ef4444;grid-column:1/-1;padding:8px;font-weight:600;">Error al cargar archivos.</div>`;
+            }
         });
 
     // Prefill recipient email
@@ -3922,6 +4023,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // General Fecha Entrega change handler to populate row-level dates if empty
+    document.addEventListener('change', (e) => {
+        if (e.target && (e.target.id === 'poc-p1-fecha-entrega' || e.target.id === 'poc-p2-fecha-entrega')) {
+            const pageNum = e.target.id === 'poc-p1-fecha-entrega' ? 1 : 2;
+            savePocPageData(pageNum);
+            loadPocPage(pageNum);
+        }
+    });
 });
 
 document.addEventListener('click', (e) => { if (e.target.id === 'modalFinalizarCalidad') cerrarModalFinalizarCalidad(); });
@@ -4048,7 +4158,7 @@ window.abrirModalPreOrdenCasting = async function (ot) {
                 pocState.page1.fecha = po1.fecha_creacion ? po1.fecha_creacion.substring(0, 10) : todayStr;
                 pocState.page1.folio = po1.folio;
                 pocState.page1.observaciones = po1.observaciones || '';
-                pocState.page1.fecha_entrega = po1.filas[0]?.fecha_entrega || res.fecha_entrega || '';
+                pocState.page1.fecha_entrega = po1.fecha_entrega ? po1.fecha_entrega.substring(0, 10) : (po1.filas[0]?.fecha_entrega || res.fecha_entrega || '');
                 pocState.page1.filas = po1.filas.map(f => ({
                     id_clase: f.id_clase || f.clase_id,
                     tipo_modelo: f.tipo_modelo || getTipoModeloFromClase(f.clase || f.descripcion),
@@ -4060,7 +4170,7 @@ window.abrirModalPreOrdenCasting = async function (ot) {
                     codigo: f.codigo || f.codigo_modelo || '',
                     peso_juego: f.peso_juego || 0,
                     peso_total: f.peso_total || 0,
-                    fecha_entrega: f.fecha_entrega || res.fecha_entrega || ''
+                    fecha_entrega: f.fecha_entrega || po1.fecha_entrega || res.fecha_entrega || ''
                 }));
 
                 if (castingOrders.length > 1) {
@@ -4069,7 +4179,7 @@ window.abrirModalPreOrdenCasting = async function (ot) {
                     pocState.page2.fecha = po2.fecha_creacion ? po2.fecha_creacion.substring(0, 10) : todayStr;
                     pocState.page2.folio = po2.folio;
                     pocState.page2.observaciones = po2.observaciones || '';
-                    pocState.page2.fecha_entrega = po2.filas[0]?.fecha_entrega || res.fecha_entrega || '';
+                    pocState.page2.fecha_entrega = po2.fecha_entrega ? po2.fecha_entrega.substring(0, 10) : (po2.filas[0]?.fecha_entrega || res.fecha_entrega || '');
                     pocState.page2.filas = po2.filas.map(f => ({
                         id_clase: f.id_clase || f.clase_id,
                         tipo_modelo: f.tipo_modelo || getTipoModeloFromClase(f.clase || f.descripcion),
@@ -4081,7 +4191,7 @@ window.abrirModalPreOrdenCasting = async function (ot) {
                         codigo: f.codigo || f.codigo_modelo || '',
                         peso_juego: f.peso_juego || 0,
                         peso_total: f.peso_total || 0,
-                        fecha_entrega: f.fecha_entrega || res.fecha_entrega || ''
+                        fecha_entrega: f.fecha_entrega || po2.fecha_entrega || res.fecha_entrega || ''
                     }));
 
                     document.getElementById('poc-has-page2').value = '1';
@@ -4429,6 +4539,9 @@ function loadPocPage(pageNum) {
             <td style="padding:8px;min-width:90px;">
                 <input type="number" step="0.01" name="peso_total" class="form-control poc-input-peso-total" value="${fila.peso_total || 0}" readonly style="background:#f1f5f9;">
             </td>
+            <td style="padding:8px;min-width:120px;">
+                <input type="date" name="fecha_entrega" class="form-control poc-input-fecha-entrega" value="${fila.fecha_entrega || pData.fecha_entrega || ''}" required style="font-size:0.9em; padding: 6px 10px;">
+            </td>
             <td style="padding:8px;text-align:center;">
                 <button type="button" class="btn-eliminar-fila" onclick="eliminarFilaPoc(${pageNum},${idx})" style="background:none;border:none;cursor:pointer;">
                     <img src="/images/quitar.png" style="width:24px;height:24px;">
@@ -4685,7 +4798,7 @@ function savePocPageData(pageNum) {
             rowState.codigo = tr.querySelector('.poc-input-codigo')?.value || '';
             rowState.peso_juego = parseFloat(tr.querySelector('.poc-input-peso-juego')?.value) || 0;
             rowState.peso_total = parseFloat(tr.querySelector('.poc-input-peso-total')?.value) || 0;
-            rowState.fecha_entrega = pData.fecha_entrega || '';
+            rowState.fecha_entrega = tr.querySelector('.poc-input-fecha-entrega')?.value || pData.fecha_entrega || '';
         });
     }
 }
@@ -4693,8 +4806,11 @@ function savePocPageData(pageNum) {
 document.getElementById('formPreOrdenCasting')?.addEventListener('submit', async function (e) {
     e.preventDefault();
 
-    savePocPageData(pocActivePage);
     const hasPage2 = document.getElementById('poc-has-page2').value === '1';
+    savePocPageData(1);
+    if (hasPage2) {
+        savePocPageData(2);
+    }
 
     const p1 = pocState.page1;
     if (!p1.proveedor || !p1.fecha) {
@@ -4764,6 +4880,7 @@ document.getElementById('formPreOrdenCasting')?.addEventListener('submit', async
             ot_raw: pocState.ot_raw,
             proveedor: p1.proveedor,
             fecha_creacion: p1.fecha,
+            fecha_entrega: p1.fecha_entrega,
             folio: p1.folio,
             moldura: pocState.moldura,
             observaciones: p1.observaciones,
@@ -4789,6 +4906,7 @@ document.getElementById('formPreOrdenCasting')?.addEventListener('submit', async
             ot_raw: pocState.ot_raw,
             proveedor: p2.proveedor,
             fecha_creacion: p2.fecha,
+            fecha_entrega: p2.fecha_entrega,
             folio: p2.folio,
             moldura: pocState.moldura,
             observaciones: p2.observaciones,
