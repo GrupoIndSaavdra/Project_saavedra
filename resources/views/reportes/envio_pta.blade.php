@@ -80,7 +80,7 @@
                 {{-- Correo fijo/obligatorio --}}
                 <div class="dest-fixed-row">
                     <span class="dest-fixed-badge">
-                        🔒 {{ \App\Http\Controllers\EnvioPtaController::DESTINATARIO }}
+                        {{ implode(', ', (array) \App\Http\Controllers\EnvioPtaController::DESTINATARIO) }}
                     </span>
                     <span class="dest-fixed-label">— siempre incluido</span>
                 </div>
