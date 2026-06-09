@@ -195,14 +195,19 @@ window.confirmarModelo = function (ot) {
         .then(data => {
             if (data.success) {
                 mostrarToast(data.message);
-                const container = document.getElementById(`status-modelo-${ot}`);
+                const container = document.getElementById(`status-modelo-${ot}`) || document.getElementById(`status-modelo-${ot.replace(/_R\d+$/i, '')}`);
                 const baseUrl = window.baseUrl || (window.location.origin + '/');
                 if (container) {
                     container.innerHTML = `
-                    <span class="badge-modelo-ok" title="Modelo disponible">
-                        <img src="${baseUrl}${baseUrl.endsWith('/') ? '' : '/'}images/aprobado.png" alt="OK" style="width: 35px; height: 35px;">
-                    </span>
-                `;
+                        <div class="status-modelo-container" style="display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 8px;">
+                            <span class="badge-modelo-icon" title="Modelo físico disponible en Almacén, en espera de revisión por Calidad" style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #f0f9ff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid #0ea5e9; transition: all 0.2s ease;">
+                                <img src="${baseUrl}${baseUrl.endsWith('/') ? '' : '/'}images/Espera.png" alt="Tengo Modelo" style="width: 28px; height: 28px; object-fit: contain;">
+                            </span>
+                            <span class="status-modelo-label" style="font-size: 10px; font-weight: 700; color: #0369a1; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
+                                Tengo Modelo
+                            </span>
+                        </div>
+                    `;
                 }
             } else {
                 mostrarToast(data.message || 'Error al actualizar estado del modelo', true);
@@ -730,26 +735,46 @@ document.getElementById('formPreOrden').addEventListener('submit', function (e) 
 
 // ── Envío Pre-Orden 2 (ELIMINADO) ──
 
-/**
- * Actualiza el icono de estado de modelo en la tabla principal (DOM)
- */
 function updateModelStatusUI(ot, status) {
-    const container = document.getElementById(`status-modelo-${ot}`);
+    const container = document.getElementById(`status-modelo-${ot}`) || document.getElementById(`status-modelo-${ot.replace(/_R\d+$/i, '')}`);
     if (!container) return;
 
+    let icon = 'Recibido.png';
+    let label = 'Recibido';
+    let tooltip = 'Alerta inicial recibida, pendiente de procesar modelo por Almacén';
+    let borderColor = '#cbd5e1';
+    let bgColor = '#f1f5f9';
+    let textColor = '#64748b';
+
     if (status === 'pendiente') {
-        container.innerHTML = `
-            <span class="badge-modelo-pending" title="Pre-orden enviada (Pendiente)">
-                <img src="/images/caducado.png" alt="Pendiente" style="width: 35px; height: 35px;">
-            </span>
-        `;
+        icon = 'Espera.png';
+        label = 'Tengo Modelo';
+        tooltip = 'Modelo físico disponible en Almacén, en espera de revisión por Calidad';
+        borderColor = '#0ea5e9';
+        bgColor = '#f0f9ff';
+        textColor = '#0369a1';
     } else if (status === 'ok') {
-        container.innerHTML = `
-            <span class="badge-modelo-ok" title="Modelo disponible">
-                <img src="/images/aprobado.png" alt="OK" style="width: 35px; height: 35px;">
-            </span>
-        `;
+        icon = 'Quality.png';
+        label = 'Aprobado';
+        tooltip = 'Modelo aprobado y liberado por Calidad';
+        borderColor = '#10b981';
+        bgColor = '#ecfdf5';
+        textColor = '#047857';
     }
+
+    const baseUrl = window.baseUrl || (window.location.origin + '/');
+    const imgUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'images/' + icon;
+
+    container.innerHTML = `
+        <div class="status-modelo-container" style="display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 8px;">
+            <span class="badge-modelo-icon" title="${tooltip}" style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: ${bgColor}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid ${borderColor}; transition: all 0.2s ease;">
+                <img src="${imgUrl}" alt="${label}" style="width: 28px; height: 28px; object-fit: contain;">
+            </span>
+            <span class="status-modelo-label" style="font-size: 10px; font-weight: 700; color: ${textColor}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
+                ${label}
+            </span>
+        </div>
+    `;
 }
 
 // ── FASE 2: ENVÍO DE CORREO ──
@@ -781,7 +806,9 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
                     ayudasPdfs.push(f);
                 } else {
                     const lower = f.nombre.toLowerCase();
-                    if (lower.includes('documentos_rechazados') || lower.includes('rechazado') || lower.includes('scar')) {
+                    if (lower.includes('escaneado_fundicion')) {
+                        aprobadosPdfs.push(f);
+                    } else if (lower.includes('documentos_rechazados') || lower.includes('rechazado') || lower.includes('scar')) {
                         rechazadosPdfs.push(f);
                     } else {
                         aprobadosPdfs.push(f);
@@ -966,11 +993,6 @@ document.getElementById('formEnviarPreOrden').addEventListener('submit', functio
     const fecha = document.getElementById('env-fecha-entrega').value;
     if (!fecha) {
         mostrarToast('Por favor, indica la fecha de entrega acordada.', true);
-        return;
-    }
-
-    if (adicionalesSelectedFiles.length === 0) {
-        mostrarToast('Por favor, adjunta al menos un archivo escaneado desde tu equipo.', true);
         return;
     }
 
@@ -1672,7 +1694,7 @@ window.cerrarModalLiberacion = function () {
  * @param {string} nuevoEstado - 'pendiente' | 'aprobado' | 'rechazado'
  */
 function _libActualizarBadgeEstado(ot, nuevoEstado) {
-    const container = document.getElementById(`status-modelo-${ot}`);
+    const container = document.getElementById(`status-modelo-${ot}`) || document.getElementById(`status-modelo-${ot.replace(/_R\d+$/i, '')}`);
     if (!container) return;
 
     const assets = window.almacenAppAssets ?? {};
@@ -2278,28 +2300,138 @@ const ModeloStateMachine = (() => {
 
     // ── Registro de estados ───────────────────────────────────────────────────
     const ESTADOS = {
-        // ── Nivel 1: Transitorios ──────────────────────────────────────────
-        recibido: { img: 'Recibido.png', cls: 'badge-modelo-recibido', nivel: 1, prio: 1, title: 'Recibido — En espera de revisión' },
-        revisando: { img: 'Revisando.png', cls: 'badge-modelo-revisando', nivel: 1, prio: 2, title: 'Revisando — Archivos abiertos' },
-        editando: { img: 'Editando.png', cls: 'badge-modelo-editando', nivel: 1, prio: 3, title: 'Editando — Tomando decisión de liberación' },
-        // ── Nivel 2: Permanentes ───────────────────────────────────────────
-        guardado: { img: 'Guardado.png', cls: 'badge-modelo-guardado', nivel: 2, prio: 4, title: 'Guardado — Datos capturados como borrador' },
-        descargado: { img: 'Descarga.png', cls: 'badge-modelo-descargado', nivel: 2, prio: 5, title: 'Descargado — Reporte PDF generado y descargado' },
-        espera: { img: 'Espera.png', cls: 'badge-modelo-espera', nivel: 2, prio: 6, title: 'En Espera — Departamento confirmó, procesando' },
-        // ── Nivel 3: Terminales ────────────────────────────────────────────
-        aprobado: { img: 'aprobado.png', cls: 'badge-modelo-ok', nivel: 3, prio: 99, title: 'Aprobado — Modelo liberado por Calidad' },
-        rechazado: { img: 'Rechazado.png', cls: 'badge-modelo-rechazado', nivel: 3, prio: 99, title: 'Rechazado — Liberación rechazada por Calidad' },
-        // ── Alias de compatibilidad (backend / v3 legacy) ─────────────────
-        pendiente: { img: 'Guardado.png', cls: 'badge-modelo-guardado', nivel: 2, prio: 4, title: 'Guardado — Datos capturados como borrador' },
-        enviando: { img: 'Espera.png', cls: 'badge-modelo-espera', nivel: 2, prio: 6, title: 'En Espera — Departamento confirmó, procesando' },
-        en_proceso: { img: 'Guardado.png', cls: 'badge-modelo-guardado', nivel: 2, prio: 4, title: 'Guardado — Datos capturados como borrador' },
-        documento: { img: 'Espera.png', cls: 'badge-modelo-espera', nivel: 2, prio: 6, title: 'En Espera — Departamento confirmó, procesando' },
+        recibido: {
+            img: 'Recibido.png',
+            label: 'Nuevo',
+            title: 'Alerta inicial recibida, pendiente de procesar modelo por Almacén',
+            borderColor: '#cbd5e1',
+            bgColor: '#f1f5f9',
+            textColor: '#64748b',
+            nivel: 1,
+            prio: 1
+        },
+        pre_orden: {
+            img: 'pdf-view.png',
+            label: 'Pre-Orden',
+            title: 'Pre-orden de modelo generada y guardada, pendiente de enviar',
+            borderColor: '#60a5fa',
+            bgColor: '#eff6ff',
+            textColor: '#2563eb',
+            nivel: 2,
+            prio: 2
+        },
+        correo_enviado: {
+            img: 'enviando.png',
+            label: 'Correo Enviado',
+            title: 'Pre-orden enviada por correo electrónico, esperando revisión de Calidad',
+            borderColor: '#818cf8',
+            bgColor: '#e0e7ff',
+            textColor: '#4f46e5',
+            nivel: 2,
+            prio: 3
+        },
+        tiene_modelo: {
+            img: 'Espera.png',
+            label: 'Tengo Modelo',
+            title: 'Modelo físico disponible en Almacén, en espera de revisión por Calidad',
+            borderColor: '#0ea5e9',
+            bgColor: '#f0f9ff',
+            textColor: '#0369a1',
+            nivel: 2,
+            prio: 4
+        },
+        revisando: {
+            img: 'Revisando.png',
+            label: 'En Revisión',
+            title: 'Calidad está realizando la revisión del modelo',
+            borderColor: '#f59e0b',
+            bgColor: '#fffbeb',
+            textColor: '#b45309',
+            nivel: 2,
+            prio: 5
+        },
+        aprobado: {
+            img: 'Quality.png',
+            label: 'Aprobado',
+            title: 'Modelo aprobado y liberado por Calidad',
+            borderColor: '#10b981',
+            bgColor: '#ecfdf5',
+            textColor: '#047857',
+            nivel: 3,
+            prio: 99
+        },
+        aprobado_final: {
+            img: 'Aprobado.png',
+            label: 'Aprobado',
+            title: 'Proceso de modelo y casting finalizado y aprobado',
+            borderColor: '#15803d',
+            bgColor: '#f0fdf4',
+            textColor: '#15803d',
+            nivel: 3,
+            prio: 100
+        },
+        rechazado: {
+            img: 'Quality.png',
+            label: 'Rechazado',
+            title: 'Modelo rechazado por Calidad debido a desviaciones',
+            borderColor: '#ef4444',
+            bgColor: '#fef2f2',
+            textColor: '#b91c1c',
+            nivel: 3,
+            prio: 99
+        },
+        rechazado_final: {
+            img: 'Rechazado.png',
+            label: 'Rechazado',
+            title: 'Modelo rechazado y reproceso iniciado por Almacén',
+            borderColor: '#dc2626',
+            bgColor: '#fef2f2',
+            textColor: '#b91c1c',
+            nivel: 3,
+            prio: 100
+        },
+        mixto: {
+            img: 'Quality.png',
+            label: 'Mixto',
+            title: 'Liberación mixta por Calidad (clases aprobadas y rechazadas)',
+            borderColor: '#eab308',
+            bgColor: '#fef9c3',
+            textColor: '#854d0e',
+            nivel: 3,
+            prio: 99
+        },
+        casting: {
+            img: 'pdf-view.png',
+            label: 'Casting',
+            title: 'Pre-orden de casting generada y aprobada',
+            borderColor: '#059669',
+            bgColor: '#f0fdf4',
+            textColor: '#15803d',
+            nivel: 3,
+            prio: 99
+        },
+        reproceso: {
+            img: 'Reproceso.png',
+            label: 'Reproceso',
+            title: 'Retornado hacia un nuevo ciclo de modelo (Reproceso)',
+            borderColor: '#ec4899',
+            bgColor: '#fdf2f8',
+            textColor: '#be185d',
+            nivel: 1,
+            prio: 1
+        }
     };
 
     /** Mapa alias → estado canónico para la caché interna */
     const _CANONICAL = {
-        pendiente: 'guardado', enviando: 'espera',
-        en_proceso: 'guardado', documento: 'espera',
+        editando: 'revisando',
+        guardado: 'revisando',
+        descargado: 'revisando',
+        pendiente: 'revisando',
+        en_proceso: 'revisando',
+        espera: 'tiene_modelo',
+        enviando: 'correo_enviado',
+        documento: 'tiene_modelo'
     };
 
     /** Caché: ot → estado canónico actual */
@@ -2307,17 +2439,27 @@ const ModeloStateMachine = (() => {
 
     // ── Aplicar estado al DOM ─────────────────────────────────────────────────
     function _render(ot, estado, cfg) {
-        const el = document.getElementById(`status-modelo-${ot}`);
+        const el = document.getElementById(`status-modelo-${ot}`) || document.getElementById(`status-modelo-${ot.replace(/_R\d+$/i, '')}`);
         if (!el) { console.warn(`[FSM] Contenedor no encontrado: #status-modelo-${ot}`); return; }
         const src = _baseUrl() + 'images/' + cfg.img;
-        el.innerHTML = `<span class="${cfg.cls}" title="${cfg.title}"><img src="${src}" alt="${cfg.title}" style="width:38px;height:38px;object-fit:contain;"></span>`;
+        el.innerHTML = `
+            <div class="status-modelo-container" style="display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 8px;">
+                <span class="badge-modelo-icon" title="${cfg.title}" style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: ${cfg.bgColor}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid ${cfg.borderColor}; transition: all 0.2s ease;">
+                    <img src="${src}" alt="${cfg.label}" style="width: 28px; height: 28px; object-fit: contain;">
+                </span>
+                <span class="status-modelo-label" style="font-size: 10px; font-weight: 700; color: ${cfg.textColor}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
+                    ${cfg.label}
+                </span>
+            </div>
+        `;
         console.info(`[FSM] "${ot}": → ${estado} (nivel ${cfg.nivel})`);
     }
 
     // ── Transición normal (respeta jerarquía) ─────────────────────────────────
     function transicion(ot, estado) {
-        const cfg = ESTADOS[estado];
-        if (!cfg) { console.warn(`[FSM] Estado desconocido: "${estado}"`); return false; }
+        const canonical = _CANONICAL[estado] ?? estado;
+        const cfg = ESTADOS[canonical];
+        if (!cfg) { console.warn(`[FSM] Estado desconocido: "${estado}" (canonical: "${canonical}")`); return false; }
 
         const actual = _cache[ot];
         const cfgActual = actual ? ESTADOS[actual] : null;
@@ -2333,43 +2475,61 @@ const ModeloStateMachine = (() => {
             return false;
         }
 
-        _cache[ot] = _CANONICAL[estado] ?? estado;
-        _render(ot, estado, cfg);
+        _cache[ot] = canonical;
+        _render(ot, canonical, cfg);
         return true;
     }
 
     // ── Forzar terminal (solo desde servidor) ─────────────────────────────────
     function _forzarTerminal(ot, estado) {
-        const cfg = ESTADOS[estado];
+        const canonical = _CANONICAL[estado] ?? estado;
+        const cfg = ESTADOS[canonical];
         if (!cfg || cfg.nivel !== 3) { console.warn(`[FSM] _forzarTerminal: "${estado}" no es terminal`); return false; }
-        _cache[ot] = estado;
-        _render(ot, estado, cfg);
+        _cache[ot] = canonical;
+        _render(ot, canonical, cfg);
         console.info(`[FSM] "${ot}": TERMINAL FORZADO → ${estado} ★`);
         return true;
     }
 
-    // ── Inicialización desde DOM ──────────────────────────────────────────────
-    /** Lee los badges ya renderizados por Blade y sincroniza el caché interno */
+    // ── Sincronización desde DOM ──────────────────────────────────────────────
     function init() {
-        const IMG_TO_ESTADO = {
-            'recibido.png': 'recibido', 'revisando.png': 'revisando',
-            'editando.png': 'editando', 'guardado.png': 'guardado',
-            'descarga.png': 'descargado', 'espera.png': 'espera',
-            'aprobado.png': 'aprobado', 'rechazado.png': 'rechazado',
-            // alias legacy que puedan venir del DOM en versiones anteriores
-            'documento.png': 'espera', 'enviando.png': 'espera',
-        };
         document.querySelectorAll('[id^="status-modelo-"]').forEach(el => {
             const ot = el.id.replace('status-modelo-', '');
-            const img = el.querySelector('img');
-            if (!img || _cache[ot]) return;
-            const filename = img.src.split('/').pop().toLowerCase();
-            const estado = IMG_TO_ESTADO[filename];
-            if (estado) { _cache[ot] = estado; console.info(`[FSM] init: "${ot}" → ${estado}`); }
+            const labelEl = el.querySelector('.status-modelo-label');
+            if (labelEl && !_cache[ot]) {
+                const txt = labelEl.textContent.trim().toUpperCase();
+                const imgEl = el.querySelector('img');
+                const imgSrc = imgEl ? imgEl.src.toUpperCase() : '';
+                let estado = 'recibido';
+                if (txt === 'RECIBIDO' || txt === 'NUEVO') estado = 'recibido';
+                else if (txt === 'PRE-ORDEN') estado = 'pre_orden';
+                else if (txt === 'CORREO ENVIADO') estado = 'correo_enviado';
+                else if (txt === 'TENGO MODELO') estado = 'tiene_modelo';
+                else if (txt === 'EN REVISIÓN') estado = 'revisando';
+                else if (txt === 'APROBADO') {
+                    if (imgSrc.includes('APROBADO.PNG')) {
+                        estado = 'aprobado_final';
+                    } else {
+                        estado = 'aprobado';
+                    }
+                }
+                else if (txt === 'RECHAZADO') {
+                    if (imgSrc.includes('RECHAZADO.PNG')) {
+                        estado = 'rechazado_final';
+                    } else {
+                        estado = 'rechazado';
+                    }
+                }
+                else if (txt === 'MIXTO') estado = 'mixto';
+                else if (txt === 'CASTING') estado = 'casting';
+                else if (txt === 'REPROCESO') estado = 'reproceso';
+
+                _cache[ot] = estado;
+                console.info(`[FSM] init: "${ot}" → ${estado}`);
+            }
         });
     }
 
-    // ── API semántica ─────────────────────────────────────────────────────────
     function getEstado(ot) { return _cache[ot] ?? null; }
     function getNivel(ot) { return ESTADOS[_cache[ot]]?.nivel ?? 0; }
 
@@ -2378,9 +2538,9 @@ const ModeloStateMachine = (() => {
     function onAbrirDecision(ot) { transicion(ot, 'editando'); }
     function onGuardar(ot) { transicion(ot, 'guardado'); }
     function onDescargado(ot) { transicion(ot, 'descargado'); }
-    function onCorreoEnviado(ot) { transicion(ot, 'espera'); }
-    function onConfirmarModelo(ot) { transicion(ot, 'espera'); }
-    function onEnEspera(ot) { transicion(ot, 'espera'); }
+    function onCorreoEnviado(ot) { transicion(ot, 'correo_enviado'); }
+    function onConfirmarModelo(ot) { transicion(ot, 'tiene_modelo'); }
+    function onEnEspera(ot) { transicion(ot, 'tiene_modelo'); }
     function onAprobado(ot) { _forzarTerminal(ot, 'aprobado'); }
     function onRechazado(ot) { _forzarTerminal(ot, 'rechazado'); }
 
@@ -3334,7 +3494,7 @@ function _libActualizarBotonesAccion(decision) {
 /**
  * Elimina un documento adicional (tipo imagen u otro) del servidor.
  */
-window.almacenEliminarOtroArchivo = function (ot, archivo, tipo, buttonEl) {
+window.almacenEliminarOtroArchivo = function (ot, archivo, tipo, buttonEl, origin) {
     if (!confirm('¿Estás seguro de que deseas eliminar permanentemente este archivo? Esta acción no se puede deshacer.')) {
         return;
     }
@@ -3352,7 +3512,8 @@ window.almacenEliminarOtroArchivo = function (ot, archivo, tipo, buttonEl) {
         body: JSON.stringify({
             ot: ot,
             archivo: archivo,
-            tipo: tipo
+            tipo: tipo,
+            origin: origin || ''
         })
     })
         .then(res => res.json())
@@ -4502,7 +4663,7 @@ function loadPocPage(pageNum) {
                 <input type="number" name="cant_fabricar" class="form-control poc-input-cant-fabricar" min="0" value="${fila.cant_fabricar !== undefined && fila.cant_fabricar !== null ? fila.cant_fabricar : ''}" required oninput="recalcPocRowWeight(${pageNum},${idx})">
             </td>
             <td style="padding:8px;min-width:90px;">
-                <input type="number" name="cant_consignacion" class="form-control poc-input-cant-consignacion" min="0" value="${fila.cant_consignacion || 0}" style="background:#f0fdf4;" title="Se calcula automáticamente al llenar Cant. Fabricar. Puedes modificarlo si es necesario.">
+                <input type="number" name="cant_consignacion" class="form-control poc-input-cant-consignacion" min="0" value="${fila.cant_consignacion || 0}" required style="background:#f0fdf4;" title="Se calcula automáticamente al llenar Cant. Fabricar. Puedes modificarlo si es necesario.">
             </td>
             <td style="padding:8px;">
                 <select name="id_clase" class="form-control poc-select-clase" required onchange="handlePocClaseChange(${pageNum},${idx},this)">
@@ -4537,7 +4698,7 @@ function loadPocPage(pageNum) {
                 <input type="number" step="0.01" name="peso_juego" class="form-control poc-input-peso-juego" min="0" value="${fila.peso_juego || 0}" required oninput="recalcPocRowWeight(${pageNum},${idx})">
             </td>
             <td style="padding:8px;min-width:90px;">
-                <input type="number" step="0.01" name="peso_total" class="form-control poc-input-peso-total" value="${fila.peso_total || 0}" readonly style="background:#f1f5f9;">
+                <input type="number" step="0.01" name="peso_total" class="form-control poc-input-peso-total" min="0" value="${fila.peso_total || 0}" required>
             </td>
             <td style="padding:8px;min-width:120px;">
                 <input type="date" name="fecha_entrega" class="form-control poc-input-fecha-entrega" value="${fila.fecha_entrega || pData.fecha_entrega || ''}" required style="font-size:0.9em; padding: 6px 10px;">
@@ -4828,7 +4989,12 @@ document.getElementById('formPreOrdenCasting')?.addEventListener('submit', async
 
     let p1Valid = true;
     p1.filas.forEach(f => {
-        if (!f.id_clase || f.impresiones <= 0 || (f.cant_fabricar === 0 && f.cant_consignacion === 0)) {
+        if (!f.id_clase || !f.tipo_modelo || !f.material || !f.codigo ||
+            (f.cant_fabricar === '' || f.cant_fabricar === null || f.cant_fabricar === undefined) ||
+            (!f.cant_consignacion && f.cant_consignacion !== 0) ||
+            (!f.peso_juego && f.peso_juego !== 0) ||
+            (!f.peso_total && f.peso_total !== 0) ||
+            !f.fecha_entrega) {
             p1Valid = false;
         }
     });
@@ -4855,7 +5021,12 @@ document.getElementById('formPreOrdenCasting')?.addEventListener('submit', async
 
         let p2Valid = true;
         p2.filas.forEach(f => {
-            if (!f.id_clase || f.impresiones <= 0 || (f.cant_fabricar === 0 && f.cant_consignacion === 0)) {
+            if (!f.id_clase || !f.tipo_modelo || !f.material || !f.codigo ||
+                (f.cant_fabricar === '' || f.cant_fabricar === null || f.cant_fabricar === undefined) ||
+                (!f.cant_consignacion && f.cant_consignacion !== 0) ||
+                (!f.peso_juego && f.peso_juego !== 0) ||
+                (!f.peso_total && f.peso_total !== 0) ||
+                !f.fecha_entrega) {
                 p2Valid = false;
             }
         });
@@ -5372,9 +5543,13 @@ window.cargarInputsCasting = function (ot, files) {
 
             let existingFile = null;
             if (files) {
+                let sanitizedOt = ot.replace(/[^\w\s\-]/g, '');
+                sanitizedOt = sanitizedOt.trim().replace(/[\s]+/g, '_').toUpperCase();
+
                 existingFile = files.find(f => {
                     const nameUpper = (f.nombre || '').toUpperCase();
-                    return f.origin === 'aprobado' && nameUpper.includes('F-CCL-LDM_' + c.toUpperCase()) && nameUpper.includes('APROBADO');
+                    return f.origin === 'aprobado' 
+                        && nameUpper.includes('F-CCL-LDM_' + c.toUpperCase() + '_' + sanitizedOt + '_APROBADO');
                 });
             }
 
@@ -5522,13 +5697,20 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
             let existingScar = null;
 
             if (files && files.length > 0) {
+                let sanitizedOt = ot.replace(/[^\w\s\-]/g, '');
+                sanitizedOt = sanitizedOt.trim().replace(/[\s]+/g, '_').toLowerCase();
+
                 existingRechazo = files.find(f => {
                     const nameLower = (f.nombre || '').toLowerCase();
-                    return nameLower.includes('/documentos_rechazados/' + c.toLowerCase() + '/') && nameLower.includes('_rechazado_');
+                    const filename = nameLower.split('/').pop();
+                    return nameLower.includes('documentos_rechazados/' + c.toLowerCase() + '/') 
+                        && filename.startsWith('rechazo_' + c.toLowerCase() + '_' + sanitizedOt + '.');
                 });
                 existingScar = files.find(f => {
                     const nameLower = (f.nombre || '').toLowerCase();
-                    return nameLower.includes('/documentos_rechazados/' + c.toLowerCase() + '/') && nameLower.includes('_scar_');
+                    const filename = nameLower.split('/').pop();
+                    return nameLower.includes('documentos_rechazados/' + c.toLowerCase() + '/') 
+                        && filename.startsWith('scar_' + c.toLowerCase() + '_' + sanitizedOt + '.');
                 });
             }
 

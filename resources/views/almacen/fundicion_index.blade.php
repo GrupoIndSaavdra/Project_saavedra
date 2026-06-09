@@ -75,41 +75,233 @@
 
         {{-- ── FILTROS ─────────────────────────────────────────────── --}}
         <div class="alm-filters-card">
-            <h2>Búsqueda y Filtros</h2>
-            <form method="GET" action="{{ route('almacen.fundicion.index') }}" id="alm-filter-form">
-                <div class="filters">
-                    <div class="filter">
-                        <select id="alm-search-ot" class="select-filter" name="ot" onchange="this.form.submit()">
-                            <option value="">Todas las OTs</option>
-                            @foreach ($listaOts as $otOption)
-                                <option value="{{ $otOption }}" {{ $busquedaOt === $otOption ? 'selected' : '' }}>
-                                    {{ preg_replace('/_\d{8}_\d{6}_.*/', '', $otOption) }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <label for="alm-search-ot">Orden de trabajo: </label>
-                    </div>
+                    <h2>Búsqueda y Filtros</h2>
+                    <form method="GET" action="{{ route('almacen.fundicion.index') }}" id="alm-filter-form">
+                        <div class="filters">
+                            <div class="filter">
+                                <select id="alm-search-ot" class="select-filter" name="ot" onchange="this.form.submit()">
+                                    <option value="">Todas las OTs</option>
+                                    @foreach ($listaOts as $otOption)
+                                        <option value="{{ $otOption }}" {{ $busquedaOt === $otOption ? 'selected' : '' }}>
+                                            {{ preg_replace('/_\d{8}_\d{6}_.*/', '', $otOption) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <label for="alm-search-ot">Orden de trabajo: </label>
+                            </div>
 
-                    <div class="filter">
-                        <input id="alm-desde" class="input-filter" type="date" name="desde" value="{{ $desde }}"
-                            onchange="this.form.submit()">
-                        <label for="alm-desde">Desde: </label>
-                    </div>
+                            <div class="filter">
+                                <input id="alm-desde" class="input-filter" type="date" name="desde" value="{{ $desde }}"
+                                    onchange="this.form.submit()">
+                                <label for="alm-desde">Desde: </label>
+                            </div>
 
-                    <div class="filter">
-                        <input id="alm-hasta" class="input-filter" type="date" name="hasta" value="{{ $hasta }}"
-                            onchange="this.form.submit()">
-                        <label for="alm-hasta">Hasta: </label>
-                    </div>
+                            <div class="filter">
+                                <input id="alm-hasta" class="input-filter" type="date" name="hasta" value="{{ $hasta }}"
+                                    onchange="this.form.submit()">
+                                <label for="alm-hasta">Hasta: </label>
+                            </div>
 
-                    @if ($busquedaOt || $desde || $hasta)
-                        <button type="button" class="btns btn-clear-filters"
-                            onclick="window.location.href='{{ route('almacen.fundicion.index') }}'">
-                            Limpiar Filtros
-                        </button>
-                    @endif
+                            @if ($busquedaOt || $desde || $hasta)
+                                <button type="button" class="btns btn-clear-filters"
+                                    onclick="window.location.href='{{ route('almacen.fundicion.index') }}'">
+                                    Limpiar Filtros
+                                </button>
+                            @endif
+                        </div>
+                    </form>
                 </div>
-            </form>
+
+        {{-- ── LEYENDA DE ESTADOS DE MODELO ───────────────────────── --}}
+        <div class="alm-filters-card"
+            style="margin-bottom: 2em; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
+            <div
+                style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
+                <img src="{{ asset('images/Quality.png') }}" alt="Leyenda"
+                    style="width: 28px; height: 28px; object-fit: contain;">
+                <h2 style="margin: 0; font-size: 1.25rem; color: #0f172a; font-weight: 700;">Guía de Estados de Modelo</h2>
+            </div>
+            <p style="font-size: 0.875rem; color: #64748b; margin-top: 0; margin-bottom: 15px;">
+                Los siguientes iconos indican la fase actual del control y liberación del modelo de fundición:
+            </p>
+            <div class="legend-list">
+
+                {{-- Recibido --}}
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <span
+                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #f1f5f9; border: 2px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                        <img src="{{ asset('images/Recibido.png') }}"
+                            style="width: 24px; height: 24px; object-fit: contain;">
+                    </span>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Nuevo</div>
+                        <div style="font-size: 0.75rem; color: #475569;">
+                            @if (Auth::user()->perfil == 4)
+                                Pre-orden recibida, espera Calidad.
+                            @else
+                                Alerta recibida. Pendiente Almacén.
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Pre-Orden --}}
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <span
+                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #eff6ff; border: 2px solid #60a5fa; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                        <img src="{{ asset('images/pdf-view.png') }}"
+                            style="width: 24px; height: 24px; object-fit: contain;">
+                    </span>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #2563eb; text-transform: uppercase;">Pre-Orden</div>
+                        <div style="font-size: 0.75rem; color: #475569;">Pre-orden generada, pendiente enviar.</div>
+                    </div>
+                </div>
+
+                {{-- Correo Enviado --}}
+                @if (Auth::user()->perfil != 4)
+                    <div
+                        style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <span
+                            style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #e0e7ff; border: 2px solid #818cf8; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                            <img src="{{ asset('images/enviando.png') }}"
+                                style="width: 24px; height: 24px; object-fit: contain;">
+                        </span>
+                        <div>
+                            <div style="font-size: 0.85rem; font-weight: 700; color: #4f46e5; text-transform: uppercase;">Correo Enviado</div>
+                            <div style="font-size: 0.75rem; color: #475569;">Enviada por correo. Esperando Calidad.</div>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Tengo Modelo --}}
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <span
+                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #f0f9ff; border: 2px solid #0ea5e9; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                        <img src="{{ asset('images/Espera.png') }}" style="width: 24px; height: 24px; object-fit: contain;">
+                    </span>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #0369a1; text-transform: uppercase;">Tengo Modelo</div>
+                        <div style="font-size: 0.75rem; color: #475569;">Modelo en Almacén. Esperando Calidad.</div>
+                    </div>
+                </div>
+
+                {{-- En Revisión --}}
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <span
+                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #fffbeb; border: 2px solid #f59e0b; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                        <img src="{{ asset('images/Revisando.png') }}"
+                            style="width: 24px; height: 24px; object-fit: contain;">
+                    </span>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #b45309; text-transform: uppercase;">En Revisión</div>
+                        <div style="font-size: 0.75rem; color: #475569;">Calidad capturando veredicto.</div>
+                    </div>
+                </div>
+
+                {{-- Aprobado --}}
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <span
+                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #ecfdf5; border: 2px solid #10b981; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                        <img src="{{ asset('images/Quality.png') }}"
+                            style="width: 24px; height: 24px; object-fit: contain;">
+                    </span>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #047857; text-transform: uppercase;">Aprobado (Calidad)</div>
+                        <div style="font-size: 0.75rem; color: #475569;">Aprobado y liberado por Calidad.</div>
+                    </div>
+                </div>
+
+                {{-- Rechazado --}}
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <span
+                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #fef2f2; border: 2px solid #ef4444; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                        <img src="{{ asset('images/Quality.png') }}"
+                            style="width: 24px; height: 24px; object-fit: contain;">
+                    </span>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #b91c1c; text-transform: uppercase;">Rechazado (Calidad)</div>
+                        <div style="font-size: 0.75rem; color: #475569;">Rechazado por Calidad (desviaciones).</div>
+                    </div>
+                </div>
+
+                {{-- Mixto --}}
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <span
+                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #fef9c3; border: 2px solid #eab308; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                        <img src="{{ asset('images/Quality.png') }}"
+                            style="width: 24px; height: 24px; object-fit: contain;">
+                    </span>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #854d0e; text-transform: uppercase;">Mixto (Calidad)</div>
+                        <div style="font-size: 0.75rem; color: #475569;">Liberación mixta (aprobado/rechazado).</div>
+                    </div>
+                </div>
+
+                {{-- Casting --}}
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <span
+                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #f0fdf4; border: 2px solid #059669; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                        <img src="{{ asset('images/pdf-view.png') }}"
+                            style="width: 24px; height: 24px; object-fit: contain;">
+                    </span>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #15803d; text-transform: uppercase;">Casting</div>
+                        <div style="font-size: 0.75rem; color: #475569;">Pre-orden de casting generada.</div>
+                    </div>
+                </div>
+
+                {{-- Reproceso --}}
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #ec4899; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                    <span
+                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #fdf2f8; border: 2px solid #ec4899; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                        <img src="{{ asset('images/Reproceso.png') }}"
+                            style="width: 24px; height: 24px; object-fit: contain;">
+                    </span>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #be185d; text-transform: uppercase;">Reproceso</div>
+                        <div style="font-size: 0.75rem; color: #475569;">Retornado para fabricar nuevo modelo.</div>
+                    </div>
+                </div>
+
+                {{-- Aprobado (Final) --}}
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <span
+                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #f0fdf4; border: 2px solid #15803d; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                        <img src="{{ asset('images/Aprobado.png') }}"
+                            style="width: 24px; height: 24px; object-fit: contain;">
+                    </span>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #15803d; text-transform: uppercase;">Aprobado (Final)</div>
+                        <div style="font-size: 0.75rem; color: #475569;">Proceso finalizado. Casting completado.</div>
+                    </div>
+                </div>
+
+                {{-- Rechazado (Final) --}}
+                <div
+                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <span
+                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #fef2f2; border: 2px solid #dc2626; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
+                        <img src="{{ asset('images/Rechazado.png') }}"
+                            style="width: 24px; height: 24px; object-fit: contain;">
+                    </span>
+                    <div>
+                        <div style="font-size: 0.85rem; font-weight: 700; color: #b91c1c; text-transform: uppercase;">Rechazado (Final)</div>
+                        <div style="font-size: 0.75rem; color: #475569;">Modelo rechazado y reproceso iniciado.</div>
+                    </div>
+                </div>
+
+            </div>
         </div>
 
         {{-- ── TABLAS ───────────────────────────────────────────────── --}}
@@ -162,22 +354,95 @@
                             <tbody id="alm-tbody-{{ $estado }}">
                                 @foreach ($registrosEstado as $reg)
                                     @php
+                                        $liberacionesReg = \App\Models\LiberacionModeloFundicion::where('ot', $reg->ot)->get();
+                                        $hasAprobados = $liberacionesReg->where('decision', 'aprobar')->isNotEmpty();
+
                                         $latestReproceso = null;
-                                        if ($reg->rechazos_procesados) {
+                                        if ($reg->rechazos_procesados && !$hasAprobados) {
                                             $latestReproceso = \App\Models\FundicionHistory::where('ot', 'LIKE', $reg->ot . '_R%')
                                                 ->orderBy('id', 'desc')
                                                 ->first();
                                         }
                                         $targetReg = ($reg->rechazos_procesados && $latestReproceso) ? $latestReproceso : $reg;
 
-                                        $archivos = is_array($reg->almacen_archivos) ? $reg->almacen_archivos : [];
-                                        $countDibujos = count($archivos);
-
                                         // ── RESOLVER TODOS LOS REGISTROS RELACIONADOS ──
-                                        $allOtNames = \App\Models\FundicionHistory::where('ot', '=', $reg->ot)
-                                            ->orWhere('ot', 'LIKE', $reg->ot . '_R%')
-                                            ->pluck('ot')
-                                            ->toArray();
+                                        $baseOtName = preg_replace('/_R\d+$/', '', $reg->ot);
+                                        $relatedRecords = \App\Models\FundicionHistory::where('ot', '=', $baseOtName)
+                                            ->orWhere('ot', 'LIKE', $baseOtName . '_R%')
+                                            ->get();
+                                        $allRelatedOtNames = $relatedRecords->pluck('ot')->toArray();
+                                        $allOtNames = $allRelatedOtNames;
+
+                                        // Obtener clases activas para filtrar archivos del historial
+                                        $po = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->first();
+                                        $activeClassesForOt = [];
+                                        if ($po) {
+                                            $filas = $po->filas;
+                                            if (is_string($filas)) {
+                                                $filas = json_decode($filas, true);
+                                            }
+                                            if (is_array($filas)) {
+                                                foreach ($filas as $f) {
+                                                    $val = null;
+                                                    if (isset($f['clase'])) {
+                                                        $val = strtolower($f['clase']);
+                                                    } elseif (isset($f['clase_nombre'])) {
+                                                        $val = strtolower($f['clase_nombre']);
+                                                    }
+                                                    if ($val) {
+                                                        foreach (['fondo', 'obturador', 'bombillo', 'molde'] as $kc) {
+                                                            if (strpos($val, $kc) !== false) {
+                                                                $activeClassesForOt[] = $kc;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (empty($activeClassesForOt)) {
+                                            $activeClassesForOt = ['fondo', 'bombillo', 'molde', 'obturador'];
+                                        }
+
+                                        $archivos = [];
+                                        $dibujoBaseNames = [];
+                                        foreach ($relatedRecords as $relRec) {
+                                            $relArchivos = is_array($relRec->almacen_archivos) ? $relRec->almacen_archivos : [];
+                                            foreach ($relArchivos as $archivo) {
+                                                $base = basename($archivo);
+                                                $fileLower = strtolower($archivo);
+                                                $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                                                $hasKnownClass = false;
+                                                foreach ($knownClasses as $kc) {
+                                                    if (strpos($fileLower, $kc) !== false) {
+                                                        $hasKnownClass = true;
+                                                        break;
+                                                    }
+                                                }
+                                                if ($hasKnownClass) {
+                                                    $matchesActive = false;
+                                                    foreach ($activeClassesForOt as $ac) {
+                                                        if (strpos($fileLower, $ac) !== false) {
+                                                            $matchesActive = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!$matchesActive)
+                                                        continue;
+                                                } else {
+                                                    if ($relRec->ot !== $reg->ot) {
+                                                        continue;
+                                                    }
+                                                }
+                                                if (!in_array($base, $dibujoBaseNames)) {
+                                                    $archivos[] = [
+                                                        'nombre' => $archivo,
+                                                        'ot' => $relRec->ot,
+                                                    ];
+                                                    $dibujoBaseNames[] = $base;
+                                                }
+                                            }
+                                        }
+                                        $countDibujos = count($archivos);
 
                                         $ayudasArchivos = [];
                                         $otrosArchivos = [];
@@ -189,7 +454,7 @@
                                             $otNameSanitized = trim(
                                                 preg_replace('/[\/\\\\]/', '', preg_replace('/\.\.+/', '', $otName)),
                                             );
-                                            
+
                                             // 1. Escanear ayudas visuales de Almacen
                                             $ayudasDir = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/ayudas_visuales';
                                             if (\Illuminate\Support\Facades\Storage::disk('local')->exists($ayudasDir)) {
@@ -206,6 +471,31 @@
                                                     $dirNorm = str_replace('\\', '/', $ayudasDir);
                                                     $relativePath = ltrim(str_replace($dirNorm, '', $fNorm), '/');
                                                     $base = basename($relativePath);
+
+                                                    $fileLower = strtolower($relativePath);
+                                                    $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                                                    $hasKnownClass = false;
+                                                    foreach ($knownClasses as $kc) {
+                                                        if (strpos($fileLower, $kc) !== false) {
+                                                            $hasKnownClass = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if ($hasKnownClass) {
+                                                        $matchesActive = false;
+                                                        foreach ($activeClassesForOt as $ac) {
+                                                            if (strpos($fileLower, $ac) !== false) {
+                                                                $matchesActive = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (!$matchesActive)
+                                                            continue;
+                                                    } else {
+                                                        if ($otName !== $reg->ot) {
+                                                            continue;
+                                                        }
+                                                    }
 
                                                     if (str_starts_with($relativePath, 'preordenes/')) {
                                                         if (!in_array($base, $baseNames)) {
@@ -248,6 +538,31 @@
                                                     $relativePath = ltrim(str_replace($dirNorm, '', $fNorm), '/');
                                                     $base = basename($relativePath);
 
+                                                    $fileLower = strtolower($relativePath);
+                                                    $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                                                    $hasKnownClass = false;
+                                                    foreach ($knownClasses as $kc) {
+                                                        if (strpos($fileLower, $kc) !== false) {
+                                                            $hasKnownClass = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if ($hasKnownClass) {
+                                                        $matchesActive = false;
+                                                        foreach ($activeClassesForOt as $ac) {
+                                                            if (strpos($fileLower, $ac) !== false) {
+                                                                $matchesActive = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (!$matchesActive)
+                                                            continue;
+                                                    } else {
+                                                        if ($otName !== $reg->ot) {
+                                                            continue;
+                                                        }
+                                                    }
+
                                                     if (!in_array($base, $baseNames)) {
                                                         $origin = 'otro';
                                                         $tipo = 'otro';
@@ -272,6 +587,73 @@
                                                 }
                                             }
 
+                                            // 2b. Escanear Documentos_Aprobados y Documentos_Rechazados de Almacen y Calidad
+                                            $newDirs = [
+                                                ['dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/Documentos_Aprobados', 'origin' => 'aprobado', 'prefix' => 'Documentos_Aprobados/'],
+                                                ['dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/Documentos_Rechazados', 'origin' => 'rechazado', 'prefix' => 'Documentos_Rechazados/'],
+                                                ['dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/Documentos_Aprobados', 'origin' => 'aprobado', 'prefix' => 'Documentos_Aprobados/'],
+                                                ['dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/Documentos_Rechazados', 'origin' => 'rechazado', 'prefix' => 'Documentos_Rechazados/'],
+                                            ];
+
+                                            foreach ($newDirs as $dirInfo) {
+                                                $targetDir = $dirInfo['dir'];
+                                                $origin = $dirInfo['origin'];
+                                                $prefix = $dirInfo['prefix'];
+
+                                                if (\Illuminate\Support\Facades\Storage::disk('local')->exists($targetDir)) {
+                                                    $files = \Illuminate\Support\Facades\Storage::disk('local')->allFiles($targetDir);
+                                                    foreach ($files as $f) {
+                                                        $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                                                        $isPdf = $ext === 'pdf';
+                                                        $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+
+                                                        if (!$isPdf && !$isImage)
+                                                            continue;
+
+                                                        $fNorm = str_replace('\\', '/', $f);
+                                                        $dirNorm = str_replace('\\', '/', $targetDir);
+                                                        $relativePath = ltrim(str_replace($dirNorm, '', $fNorm), '/');
+                                                        $base = basename($relativePath);
+
+                                                        $fileLower = strtolower($relativePath);
+                                                        $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                                                        $hasKnownClass = false;
+                                                        foreach ($knownClasses as $kc) {
+                                                            if (strpos($fileLower, $kc) !== false) {
+                                                                $hasKnownClass = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if ($hasKnownClass) {
+                                                            $matchesActive = false;
+                                                            foreach ($activeClassesForOt as $ac) {
+                                                                if (strpos($fileLower, $ac) !== false) {
+                                                                    $matchesActive = true;
+                                                                    break;
+                                                                }
+                                                            }
+                                                            if (!$matchesActive)
+                                                                continue;
+                                                        } else {
+                                                            if ($otName !== $reg->ot) {
+                                                                continue;
+                                                            }
+                                                        }
+
+                                                        if (!in_array($base, $baseNames)) {
+                                                            $relativePathWithPrefix = $prefix . $relativePath;
+                                                            $otrosArchivos[] = [
+                                                                'nombre' => $relativePathWithPrefix,
+                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePathWithPrefix, 'tipo' => 'otro', 'origin' => $origin]),
+                                                                'tipo' => $isImage ? 'imagen' : 'otro',
+                                                                'ot' => $otName,
+                                                            ];
+                                                            $baseNames[] = $base;
+                                                        }
+                                                    }
+                                                }
+                                            }
+
                                             // 3. Buscar PDFs generados en public/liberaciones_pdf (LDM y SCAR)
                                             $otSanitizada = preg_replace('/[^\w\s\-]/', '', $otName);
                                             $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
@@ -281,6 +663,30 @@
                                                 $ldmPattern = "{$liberacionesPath}/F-CCL-LDM_*_{$otSanitizada}*.pdf";
                                                 foreach (glob($ldmPattern) ?: [] as $f) {
                                                     $base = basename($f);
+                                                    $fileLower = strtolower($base);
+                                                    $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                                                    $hasKnownClass = false;
+                                                    foreach ($knownClasses as $kc) {
+                                                        if (strpos($fileLower, $kc) !== false) {
+                                                            $hasKnownClass = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if ($hasKnownClass) {
+                                                        $matchesActive = false;
+                                                        foreach ($activeClassesForOt as $ac) {
+                                                            if (strpos($fileLower, $ac) !== false) {
+                                                                $matchesActive = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (!$matchesActive)
+                                                            continue;
+                                                    } else {
+                                                        if ($otName !== $reg->ot) {
+                                                            continue;
+                                                        }
+                                                    }
                                                     if (!in_array($base, $baseNames)) {
                                                         $otrosArchivos[] = [
                                                             'nombre' => $base,
@@ -298,6 +704,30 @@
                                                 $scarFiles = array_merge(glob($scarPattern) ?: [], glob($scarPattern2) ?: []);
                                                 foreach (array_unique($scarFiles) as $f) {
                                                     $base = basename($f);
+                                                    $fileLower = strtolower($base);
+                                                    $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                                                    $hasKnownClass = false;
+                                                    foreach ($knownClasses as $kc) {
+                                                        if (strpos($fileLower, $kc) !== false) {
+                                                            $hasKnownClass = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if ($hasKnownClass) {
+                                                        $matchesActive = false;
+                                                        foreach ($activeClassesForOt as $ac) {
+                                                            if (strpos($fileLower, $ac) !== false) {
+                                                                $matchesActive = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (!$matchesActive)
+                                                            continue;
+                                                    } else {
+                                                        if ($otName !== $reg->ot) {
+                                                            continue;
+                                                        }
+                                                    }
                                                     if (!in_array($base, $baseNames)) {
                                                         $otrosArchivos[] = [
                                                             'nombre' => $base,
@@ -316,23 +746,36 @@
                                         if ($userPerfil != 1 && $userPerfil != 2) {
                                             $filteredOtros = [];
                                             foreach ($otrosArchivos as $archivo) {
-                                                $isPreorden = (in_array($archivo['tipo'], ['otro', 'imagen']) || str_starts_with($archivo['nombre'], 'preordenes/'));
+                                                $nameLow = strtolower($archivo['nombre']);
+                                                $isPreorden = (
+                                                    ((in_array($archivo['tipo'], ['otro', 'imagen']) || str_starts_with($archivo['nombre'], 'preordenes/')) &&
+                                                        strpos($nameLow, 'ldm') === false &&
+                                                        strpos($nameLow, 'scar') === false &&
+                                                        strpos($nameLow, 'liberacion') === false) ||
+                                                    strpos($nameLow, 'escaneado') !== false
+                                                );
 
                                                 if ($userPerfil == 4) { // Calidad
                                                     // Calidad solo ve preordenes si pre_orden_email_sent es true
-                                                    if (!$isPreorden || $targetReg->pre_orden_email_sent) {
+                                                    if (!$isPreorden) {
                                                         $filteredOtros[] = $archivo;
+                                                    } else {
+                                                        $fileHistory = $relatedRecords->firstWhere('ot', $archivo['ot']);
+                                                        if ($fileHistory && $fileHistory->pre_orden_email_sent) {
+                                                            $filteredOtros[] = $archivo;
+                                                        }
                                                     }
                                                 } elseif ($userPerfil == 5) { // Almacén
                                                     // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
                                                     if ($isPreorden) {
                                                         $filteredOtros[] = $archivo;
                                                     } else {
-                                                        $calidadAlertaEnviada = ($targetReg->calidad_revision_status === 'aprobado' ||
-                                                            \App\Models\ScarModelo::where(function($q) use ($reg) {
-                                                                $q->where('ot', '=', $reg->ot)
-                                                                  ->orWhere('ot', 'LIKE', $reg->ot . '_R%');
-                                                            })->where('estatus', '=', 'alertado')->exists());
+                                                        $fileHistory = $relatedRecords->firstWhere('ot', $archivo['ot']);
+                                                        $status = $fileHistory ? $fileHistory->calidad_revision_status : null;
+                                                        $calidadAlertaEnviada = (
+                                                            in_array($status, ['aprobado', 'rechazado', 'mixto', 'calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']) ||
+                                                            \App\Models\ScarModelo::where('ot', '=', $archivo['ot'])->where('estatus', '=', 'alertado')->exists()
+                                                        );
                                                         if ($calidadAlertaEnviada) {
                                                             $filteredOtros[] = $archivo;
                                                         }
@@ -346,7 +789,22 @@
                                         $archivosRechazados = [];
                                         foreach ($otrosArchivos as $archivo) {
                                             $nameLow = strtolower($archivo['nombre']);
-                                            if (strpos($nameLow, 'documentos_rechazados') !== false || strpos($nameLow, 'rechazado') !== false || strpos($nameLow, 'scar') !== false) {
+                                            $baseLow = strtolower(basename($archivo['nombre']));
+                                            if (strpos($nameLow, 'documentos_rechazados') !== false) {
+                                                $archivosRechazados[] = $archivo;
+                                            } elseif (strpos($nameLow, 'documentos_aprobados') !== false) {
+                                                $archivosAprobados[] = $archivo;
+                                            } elseif (
+                                                strpos($baseLow, 'pre-orden') !== false ||
+                                                strpos($baseLow, 'preorden') !== false ||
+                                                strpos($baseLow, 'confirmacion') !== false ||
+                                                strpos($baseLow, 'escaneado_fundicion') !== false
+                                            ) {
+                                                $archivosAprobados[] = $archivo;
+                                            } elseif (
+                                                strpos($baseLow, 'rechazado') !== false ||
+                                                strpos($baseLow, 'scar') !== false
+                                            ) {
                                                 $archivosRechazados[] = $archivo;
                                             } else {
                                                 $archivosAprobados[] = $archivo;
@@ -360,14 +818,14 @@
                                         $count = $countDibujos + $countAyudas + $countOtros;
 
                                         // ── CALCULAR APROBADOS Y RECHAZADOS DEL ÚLTIMO VEREDICTO DE CADA CLASE ──
-                                        $liberacionesAll = \App\Models\LiberacionModeloFundicion::whereIn('ot', $allOtNames)->get();
+                                        $liberacionesAll = \App\Models\LiberacionModeloFundicion::whereIn('ot', $allRelatedOtNames)->get();
                                         $latestLiberacionesByClass = [];
                                         foreach ($liberacionesAll as $lib) {
                                             $tipo = $lib->tipo_modelo;
                                             $libOt = $lib->ot;
 
                                             preg_match('/_R(\d+)$/', $libOt, $matches);
-                                            $suffixNum = isset($matches[1]) ? (int)$matches[1] : 0;
+                                            $suffixNum = isset($matches[1]) ? (int) $matches[1] : 0;
 
                                             if (!isset($latestLiberacionesByClass[$tipo]) || $suffixNum > $latestLiberacionesByClass[$tipo]['suffix']) {
                                                 $latestLiberacionesByClass[$tipo] = [
@@ -377,16 +835,43 @@
                                             }
                                         }
 
-                                        $aprobados = [];
-                                        $rechazados = [];
+                                        $aprobadosRaw = [];
+                                        $rechazadosRaw = [];
                                         foreach ($latestLiberacionesByClass as $tipo => $data) {
                                             $lib = $data['lib'];
                                             if ($lib->decision === 'aprobar') {
-                                                $aprobados[] = $tipo;
+                                                $aprobadosRaw[] = $tipo;
                                             } elseif ($lib->decision === 'rechazar') {
-                                                $rechazados[] = $tipo;
+                                                $rechazadosRaw[] = $tipo;
                                             }
                                         }
+
+                                        // Filtrar por clases activas en esta versión de la OT (desde la pre-orden de modelo)
+                                        $po = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->first();
+                                        $activeClassesForOt = [];
+                                        if ($po) {
+                                            $filas = $po->filas;
+                                            if (is_string($filas)) {
+                                                $filas = json_decode($filas, true);
+                                            }
+                                            if (is_array($filas)) {
+                                                foreach ($filas as $f) {
+                                                    if (isset($f['clase'])) {
+                                                        $activeClassesForOt[] = strtolower($f['clase']);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (empty($activeClassesForOt)) {
+                                            $activeClassesForOt = ['fondo', 'bombillo', 'molde', 'obturador'];
+                                        }
+
+                                        $aprobados = array_filter($aprobadosRaw, function ($clase) use ($activeClassesForOt) {
+                                            return in_array(strtolower($clase), $activeClassesForOt);
+                                        });
+                                        $rechazados = array_filter($rechazadosRaw, function ($clase) use ($activeClassesForOt) {
+                                            return in_array(strtolower($clase), $activeClassesForOt);
+                                        });
                                     @endphp
 
                                     {{-- Fila principal --}}
@@ -409,83 +894,107 @@
                                             <div id="status-modelo-{{ $reg->ot }}">
                                                 @php
                                                     $libStatus = $targetReg->calidad_revision_status ?? null;
-                                                    $perfil = Auth::user()->perfil;
+
+                                                    if ($libStatus === 'casting_aprobado') {
+                                                        $icon = 'Aprobado.png';
+                                                        $label = 'Aprobado';
+                                                        $tooltip = 'Proceso de modelo y casting finalizado y aprobado';
+                                                        $borderColor = '#15803d';
+                                                        $bgColor = '#f0fdf4';
+                                                        $textColor = '#15803d';
+                                                    } elseif ($targetReg->casting_pdf_generated) {
+                                                        $icon = 'pdf-view.png';
+                                                        $label = 'Casting';
+                                                        $tooltip = 'Pre-orden de casting generada, esperando envío';
+                                                        $borderColor = '#059669';
+                                                        $bgColor = '#f0fdf4';
+                                                        $textColor = '#15803d';
+                                                    } elseif (in_array($libStatus, ['aprobado', 'calidad_aprobado'])) {
+                                                        $icon = 'Quality.png';
+                                                        $label = 'Aprobado';
+                                                        $tooltip = 'Modelo aprobado y liberado por Calidad';
+                                                        $borderColor = '#10b981';
+                                                        $bgColor = '#ecfdf5';
+                                                        $textColor = '#047857';
+                                                    } elseif (in_array($libStatus, ['rechazado', 'calidad_rechazado'])) {
+                                                        $icon = 'Quality.png';
+                                                        $label = 'Rechazado';
+                                                        $tooltip = 'Modelo rechazado por Calidad debido a desviaciones';
+                                                        $borderColor = '#ef4444';
+                                                        $bgColor = '#fef2f2';
+                                                        $textColor = '#b91c1c';
+                                                    } elseif (in_array($libStatus, ['mixto', 'calidad_mixto'])) {
+                                                        $icon = 'Quality.png';
+                                                        $label = 'Mixto';
+                                                        $tooltip = 'Liberación mixta por Calidad (clases aprobadas y rechazadas)';
+                                                        $borderColor = '#eab308';
+                                                        $bgColor = '#fef9c3';
+                                                        $textColor = '#854d0e';
+                                                    } elseif ($libStatus === 'pendiente') {
+                                                        $icon = 'Revisando.png';
+                                                        $label = 'En Revisión';
+                                                        $tooltip = 'Calidad está realizando la revisión del modelo';
+                                                        $borderColor = '#f59e0b';
+                                                        $bgColor = '#fffbeb';
+                                                        $textColor = '#b45309';
+                                                    } elseif ($targetReg->pre_orden_email_sent) {
+                                                        if (Auth::user()->perfil == 4) {
+                                                            $icon = 'Recibido.png';
+                                                            $label = 'Nuevo';
+                                                            $tooltip = 'Pre-orden de fabricación de modelo recibida, esperando revisión de Calidad';
+                                                            $borderColor = '#cbd5e1';
+                                                            $bgColor = '#f1f5f9';
+                                                            $textColor = '#64748b';
+                                                        } else {
+                                                            $icon = 'enviando.png';
+                                                            $label = 'Correo Enviado';
+                                                            $tooltip = 'Pre-orden enviada por correo electrónico, esperando revisión de Calidad';
+                                                            $borderColor = '#818cf8';
+                                                            $bgColor = '#e0e7ff';
+                                                            $textColor = '#4f46e5';
+                                                        }
+                                                    } elseif ($targetReg->pre_orden_sent) {
+                                                        $icon = 'pdf-view.png';
+                                                        $label = 'Pre-Orden';
+                                                        $tooltip = 'Pre-orden de modelo generada y guardada, pendiente de enviar';
+                                                        $borderColor = '#60a5fa';
+                                                        $bgColor = '#eff6ff';
+                                                        $textColor = '#2563eb';
+                                                    } elseif ($targetReg->tiene_modelo) {
+                                                        $icon = 'Espera.png';
+                                                        $label = 'Tengo Modelo';
+                                                        $tooltip = 'Modelo físico disponible en Almacén, en espera de revisión por Calidad';
+                                                        $borderColor = '#0ea5e9';
+                                                        $bgColor = '#f0f9ff';
+                                                        $textColor = '#0369a1';
+                                                    } elseif ($reg->rechazos_procesados) {
+                                                        $icon = 'Rechazado.png';
+                                                        $label = 'Rechazado';
+                                                        $tooltip = 'Retornado hacia un nuevo ciclo de modelo (Reproceso)';
+                                                        $borderColor = '#dc2626';
+                                                        $bgColor = '#fef2f2';
+                                                        $textColor = '#b91c1c';
+                                                    } else {
+                                                        $icon = 'Recibido.png';
+                                                        $label = 'Nuevo';
+                                                        $tooltip = 'Alerta inicial recibida, pendiente de procesar modelo por Almacén';
+                                                        $borderColor = '#cbd5e1';
+                                                        $bgColor = '#f1f5f9';
+                                                        $textColor = '#64748b';
+                                                    }
                                                 @endphp
-                                                @if ($perfil == 4)
-                                                    {{-- VISTA CALIDAD --}}
-                                                    @if ($libStatus === 'casting_aprobado')
-                                                        <span class="badge-modelo-ok" title="Pre-orden de casting enviada y aprobada">
-                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado"
-                                                                style="width: 38px; height: 38px;">
-                                                        </span>
-                                                    @elseif (in_array($libStatus, ['aprobado', 'calidad_aprobado']))
-                                                        <span class="badge-modelo-ok" title="Modelo liberado y aprobado por Calidad">
-                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado"
-                                                                style="width: 38px; height: 38px;">
-                                                        </span>
-                                                    @elseif (in_array($libStatus, ['rechazado', 'calidad_rechazado']))
-                                                        <span class="badge-modelo-rechazado" title="Modelo rechazado por Calidad">
-                                                            <img src="{{ asset('images/Rechazado.png') }}" alt="Rechazado"
-                                                                style="width: 38px; height: 38px;">
-                                                        </span>
-                                                    @elseif (in_array($libStatus, ['mixto', 'calidad_mixto']))
-                                                        <span class="badge-modelo-ok" title="Modelo con liberación mixta por Calidad" style="background-color: #e0f2fe; border-color: #bae6fd;">
-                                                            <img src="{{ asset('images/Quality.png') }}" alt="Mixto"
-                                                                style="width: 38px; height: 38px; object-fit: contain;">
-                                                        </span>
-                                                    @elseif ($libStatus === 'pendiente')
-                                                        <span class="badge-modelo-guardado" title="Datos capturados por Calidad (borrador)">
-                                                            <img src="{{ asset('images/Guardado.png') }}" alt="Guardado"
-                                                                style="width: 38px; height: 38px;">
-                                                        </span>
-                                                    @elseif ($targetReg->tiene_modelo || $targetReg->pre_orden_sent)
-                                                        <span class="badge-modelo-recibido"
-                                                            title="Almacén ha procesado el modelo, pendiente de revisión por Calidad">
-                                                            <img src="{{ asset('images/Recibido.png') }}" alt="Recibido"
-                                                                style="width: 38px; height: 38px;">
-                                                        </span>
-                                                    @else
-                                                        <span class="badge-modelo-missing" title="En espera de que Almacén procese el modelo">
-                                                            <img src="{{ asset('images/Espera.png') }}" alt="En Espera"
-                                                                style="width: 38px; height: 38px;">
-                                                        </span>
-                                                    @endif
-                                                @else
-                                                    {{-- VISTA ALMACÉN --}}
-                                                    @if ($libStatus === 'casting_aprobado')
-                                                        <span class="badge-modelo-ok" title="Pre-orden de casting enviada y aprobada">
-                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado"
-                                                                style="width: 38px; height: 38px;">
-                                                        </span>
-                                                    @elseif (in_array($libStatus, ['aprobado', 'calidad_aprobado']))
-                                                        <span class="badge-modelo-ok" title="Modelo liberado y aprobado por Calidad">
-                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado"
-                                                                style="width: 38px; height: 38px;">
-                                                        </span>
-                                                    @elseif (in_array($libStatus, ['rechazado', 'calidad_rechazado']))
-                                                        <span class="badge-modelo-rechazado" title="Modelo rechazado por Calidad">
-                                                            <img src="{{ asset('images/Rechazado.png') }}" alt="Rechazado"
-                                                                style="width: 38px; height: 38px;">
-                                                        </span>
-                                                    @elseif (in_array($libStatus, ['mixto', 'calidad_mixto']))
-                                                        <span class="badge-modelo-espera" title="Modelo con liberación mixta por Calidad" style="background-color: #e0f2fe; border-color: #bae6fd;">
-                                                            <img src="{{ asset('images/Quality.png') }}" alt="Mixto"
-                                                                style="width: 38px; height: 38px; object-fit: contain;">
-                                                        </span>
-                                                    @elseif ($targetReg->tiene_modelo || $targetReg->pre_orden_sent)
-                                                        <span class="badge-modelo-espera"
-                                                            title="Procesado por Almacén, en espera de respuesta de Calidad">
-                                                            <img src="{{ asset('images/Espera.png') }}" alt="En Espera"
-                                                                style="width: 38px; height: 38px;">
-                                                        </span>
-                                                    @else
-                                                        <span class="badge-modelo-recibido"
-                                                            title="Alerta inicial recibida, pendiente de procesar modelo">
-                                                            <img src="{{ asset('images/Recibido.png') }}" alt="Recibido"
-                                                                style="width: 38px; height: 38px;">
-                                                        </span>
-                                                    @endif
-                                                @endif
+                                                <div class="status-modelo-container"
+                                                    style="display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 8px;">
+                                                    <span class="badge-modelo-icon" title="{{ $tooltip }}"
+                                                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: {{ $bgColor }}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid {{ $borderColor }}; transition: all 0.2s ease;">
+                                                        <img src="{{ asset('images/' . $icon) }}" alt="{{ $label }}"
+                                                            style="width: 28px; height: 28px; object-fit: contain;">
+                                                    </span>
+                                                    <span class="status-modelo-label"
+                                                        style="font-size: 10px; font-weight: 700; color: {{ $textColor }}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
+                                                        {{ $label }}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </td>
                                         <td class="alm-date d-text-center">
@@ -518,22 +1027,22 @@
                                                         style="margin-top: 15px; margin-bottom: 10px; color: #005194; border-bottom: 2px solid #005194; padding-bottom: 5px;">
                                                         Dibujos de Fundición</h3>
                                                     <div class="alm-pdf-grid">
-                                                        @foreach ($archivos as $archivo)
+                                                        @foreach ($archivos as $archivoInfo)
                                                             <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s;">
                                                                 <div class="file-icon-wrapper"
-                                                                    onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $archivo }}', 'dibujo')"
+                                                                    onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')"
                                                                     style="cursor: pointer;" title="Abrir PDF">
                                                                     <img src="{{ asset('images/pdf-view-shadow.png') }}"
                                                                         class="file-icon icon-default">
                                                                     <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
                                                                 </div>
                                                                 <div class="file-name" style="cursor: pointer;" title="Abrir PDF"
-                                                                    onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $archivo }}', 'dibujo')">
-                                                                    {{ basename($archivo) }}
+                                                                    onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
+                                                                    {{ basename($archivoInfo['nombre']) }}
                                                                 </div>
                                                                 <div class="file-actions">
                                                                     <button class="btn-dibujos btn-dibujos-sm btn-ver"
-                                                                        onclick="almacenVerPdf('{{ $reg->ot }}', '{{ $archivo }}', 'dibujo')">Ver</button>
+                                                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">Ver</button>
                                                                 </div>
                                                             </div>
                                                         @endforeach
@@ -610,9 +1119,9 @@
                                                                         <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                             style="background-color: #0369a1; color: white;"
                                                                             onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
-                                                                        <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
+                                                                        <button type="button" class="btn-dibujos btn-dibujos-sm btn-eliminar"
                                                                             style="background-color: #dc3545; color: white;"
-                                                                            onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro', this)">Eliminar</button>
+                                                                            onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
                                                                     </div>
                                                                 </div>
                                                             @else
@@ -634,9 +1143,9 @@
                                                                         <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                             style="background-color: #155724; color: white;"
                                                                             onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
-                                                                        <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
+                                                                        <button type="button" class="btn-dibujos btn-dibujos-sm btn-eliminar"
                                                                             style="background-color: #dc3545; color: white;"
-                                                                            onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this)">Eliminar</button>
+                                                                            onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
                                                                     </div>
                                                                 </div>
                                                             @endif
@@ -670,9 +1179,9 @@
                                                                         <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                             style="background-color: #0369a1; color: white;"
                                                                             onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
-                                                                        <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
+                                                                        <button type="button" class="btn-dibujos btn-dibujos-sm btn-eliminar"
                                                                             style="background-color: #dc3545; color: white;"
-                                                                            onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro', this)">Eliminar</button>
+                                                                            onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
                                                                     </div>
                                                                 </div>
                                                             @else
@@ -694,9 +1203,9 @@
                                                                         <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                             style="background-color: #9c0300; color: white;"
                                                                             onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
-                                                                        <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
+                                                                        <button type="button" class="btn-dibujos btn-dibujos-sm btn-eliminar"
                                                                             style="background-color: #dc3545; color: white;"
-                                                                            onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this)">Eliminar</button>
+                                                                            onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
                                                                     </div>
                                                                 </div>
                                                             @endif
@@ -714,7 +1223,7 @@
                                                             // Detectar si es una OT de re-proceso (_R1, _R2, etc.)
                                                             $esReproceso = (bool) preg_match('/_R\d+$/i', $reg->ot);
                                                             $controlDisabled = ($reg->tiene_modelo || $reg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '';
-                                                            $hideSiNo    = ($esReproceso || $reg->pre_orden_sent || $reg->pre_orden_email_sent) ? 'display: none;' : '';
+                                                            $hideSiNo = ($esReproceso || $reg->pre_orden_sent || $reg->pre_orden_email_sent) ? 'display: none;' : '';
                                                             $hideEditMail = ($reg->pre_orden_sent && !$reg->pre_orden_email_sent) ? '' : 'display: none;';
                                                             // Para reproceso: mostrar Pre-Orden si aún no se ha generado
                                                             $hideReprocesoPreOrden = ($esReproceso && !$reg->pre_orden_sent && !$reg->pre_orden_email_sent) ? '' : 'display: none;';
@@ -736,15 +1245,18 @@
                                                                         @if ($reg->tiene_modelo)
                                                                             ¡Modelo recibido y procesado! Pendiente de que Calidad lo revise.
                                                                         @elseif ($reg->pre_orden_email_sent)
-                                                                            ✅ Alerta enviada a Calidad. En espera de su revisión y nuevo veredicto de liberación.
+                                                                            Alerta enviada a Calidad. En espera de su revisión y nuevo veredicto de
+                                                                            liberación.
                                                                         @elseif ($reg->pre_orden_sent)
                                                                             @if ($esReproceso)
-                                                                                🔄 Pre-orden de re-proceso lista. Puedes editar los datos o enviar la alerta a Calidad para iniciar la revisión.
+                                                                                Pre-orden de re-proceso lista. Puedes editar los datos o enviar la alerta
+                                                                                a Calidad para iniciar la revisión.
                                                                             @else
                                                                                 Pre-orden lista. Puedes seguir editando los datos o enviarla por correo.
                                                                             @endif
                                                                         @elseif ($esReproceso)
-                                                                            🔄 OT en re-proceso por rechazo de Calidad. Genera o edita la pre-orden de modelo para iniciar el nuevo ciclo de fabricación.
+                                                                            OT en re-proceso por rechazo de Calidad. Genera o edita la pre-orden de
+                                                                            modelo para iniciar el nuevo ciclo de fabricación.
                                                                         @else
                                                                             ¿Ya cuentas con el modelo de esta OT o necesitas generar una pre-orden?
                                                                         @endif
@@ -767,12 +1279,14 @@
                                                                         {{-- Botón inicial para re-proceso: generar pre-orden --}}
                                                                         <button class="btn-modelo btn-modelo-no"
                                                                             onclick="abrirModalPreOrden('{{ $reg->ot }}')"
-                                                                            title="Generar / editar la pre-orden de fabricación de modelo" style="{{ $hideReprocesoPreOrden }}">
+                                                                            title="Generar / editar la pre-orden de fabricación de modelo"
+                                                                            style="{{ $hideReprocesoPreOrden }}">
                                                                             <img src="{{ asset('images/pdf.png') }}" alt="Pre-Orden">
                                                                             <span>Pre-Orden Modelo</span>
                                                                         </button>
 
-                                                                        {{-- Editar + Enviar Alerta (cuando pre-orden ya existe, normal o reproceso) --}}
+                                                                        {{-- Editar + Enviar Alerta (cuando pre-orden ya existe, normal o reproceso)
+                                                                        --}}
                                                                         <button class="btn-modelo btn-modelo-edit"
                                                                             onclick="abrirModalPreOrden('{{ $reg->ot }}')"
                                                                             title="Editar información de la preorden existente"
@@ -793,28 +1307,47 @@
                                                         </div>
                                                     @else
                                                         @php
+                                                            // Liberaciones solo de la OT base para determinar correctamente
+                                                            // si el veredicto es aprobado, rechazado o mixto.
+                                                            // El reproceso maneja su propio estado en la card de Rechazados.
                                                             $liberaciones = \App\Models\LiberacionModeloFundicion::where('ot', $reg->ot)->get();
-                                                            $aprobados = $liberaciones->where('decision', 'aprobar')->pluck('tipo_modelo')->toArray();
-                                                            $rechazados = $liberaciones->where('decision', 'rechazar')->pluck('tipo_modelo')->toArray();
+                                                            $aprobados = $liberaciones->where('decision', 'aprobar')->pluck('tipo_modelo')->unique()->values()->toArray();
+                                                            $rechazados = $liberaciones->where('decision', 'rechazar')->pluck('tipo_modelo')->unique()->values()->toArray();
                                                             $castingEmailSent = ($targetReg->calidad_revision_status === 'casting_aprobado');
+
+                                                            // Detectar si el último reproceso fue aprobado por Calidad.
+                                                            // En ese caso la card de Rechazados asume el rol de la card de Aprobados
+                                                            // para evitar mostrar dos cards en un caso que NO es mixto.
+                                                            $reprocesoAprobadoPorCalidad = $latestReproceso
+                                                                && in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado']);
                                                         @endphp
 
-                                                        {{-- Card Final: Pre-orden enviada por correo (flujo directo sin paso por Calidad/liberaciones) --}}
+                                                        {{-- Card Final: Pre-orden enviada por correo (flujo directo sin paso por
+                                                        Calidad/liberaciones) --}}
                                                         @if ($castingEmailSent && count($aprobados) === 0)
-                                                            <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}" style="margin-top: 15px; opacity: 0.9; pointer-events: none; border: 2px solid #16a34a;">
-                                                                <div class="lib-calidad-card-header" style="background: linear-gradient(135deg, #16a34a, #15803d); border-bottom: 2px solid rgba(22, 163, 74, 0.5);">
-                                                                    <img src="{{ asset('images/almacen.png') }}" alt="Almacén" style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
+                                                            <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}"
+                                                                style="margin-top: 15px; opacity: 0.9; pointer-events: none; border: 2px solid #16a34a;">
+                                                                <div class="lib-calidad-card-header"
+                                                                    style="background: linear-gradient(135deg, #16a34a, #15803d); border-bottom: 2px solid rgba(22, 163, 74, 0.5);">
+                                                                    <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
+                                                                        style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
                                                                     <div style="overflow:hidden;">
-                                                                        <span class="lib-calidad-card-title" style="color: #ffffff;">Control de Modelos &mdash; Almacén</span>
-                                                                        <span class="lib-calidad-card-ot" style="color: #d1fae5;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                        <span class="lib-calidad-card-title" style="color: #ffffff;">Control de Modelos
+                                                                            &mdash; Almacén</span>
+                                                                        <span class="lib-calidad-card-ot"
+                                                                            style="color: #d1fae5;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="lib-calidad-card-body">
                                                                     <div class="lib-calidad-action-row">
                                                                         <h4 class="lib-calidad-card-prompt">
-                                                                            <span style="color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                                                                                <img src="{{ asset('images/ready.png') }}" style="width: 22px; height: 22px; vertical-align: middle;" alt="Listo">
-                                                                                Proceso de pre-orden finalizado correctamente. El correo ha sido enviado al proveedor. Favor de esperar nuevas instrucciones.
+                                                                            <span
+                                                                                style="color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                                                                                <img src="{{ asset('images/ready.png') }}"
+                                                                                    style="width: 22px; height: 22px; vertical-align: middle;"
+                                                                                    alt="Listo">
+                                                                                Proceso de pre-orden finalizado correctamente. El correo ha sido enviado
+                                                                                al proveedor. Favor de esperar nuevas instrucciones.
                                                                             </span>
                                                                         </h4>
                                                                         <div class="lib-calidad-card-btns">
@@ -825,56 +1358,80 @@
                                                             </div>
                                                         @endif
 
-                                                        {{-- Card 1: Approved models --}}
+                                                        {{-- Card 1: Approved models.
+                                                        Solo se muestra si la OT tiene modelos aprobados. --}}
                                                         @if (count($aprobados) > 0)
                                                             @php
                                                                 $castingPre = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->where('pdf_filename', 'LIKE', '%Casting%')->first();
                                                                 $hasCastingPre = (bool) $castingPre;
                                                                 $aprobCardDisabled = $castingEmailSent ? 'opacity: 0.85; pointer-events: none;' : '';
                                                             @endphp
-                                                            <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}" style="margin-top: 15px; {{ $aprobCardDisabled }}">
-                                                                <div class="lib-calidad-card-header" style="background: linear-gradient(135deg, #16a34a, #15803d); border-bottom: 2px solid rgba(22, 163, 74, 0.5);">
-                                                                    <img src="{{ asset('images/almacen.png') }}" alt="Almacén" style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
+                                                            <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}"
+                                                                style="margin-top: 15px; {{ $aprobCardDisabled }}">
+                                                                <div class="lib-calidad-card-header"
+                                                                    style="background: linear-gradient(135deg, #16a34a, #15803d); border-bottom: 2px solid rgba(22, 163, 74, 0.5);">
+                                                                    <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
+                                                                        style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
                                                                     <div style="overflow:hidden;">
-                                                                        <span class="lib-calidad-card-title" style="color: #ffffff;">Control de Modelos &mdash; Almacén (Aprobados)</span>
-                                                                        <span class="lib-calidad-card-ot" style="color: #d1fae5;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                        <span class="lib-calidad-card-title" style="color: #ffffff;">Control de Modelos
+                                                                            &mdash; Almacén (Aprobados)</span>
+                                                                        <span class="lib-calidad-card-ot"
+                                                                            style="color: #d1fae5;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="lib-calidad-card-body">
                                                                     <div class="lib-calidad-action-row">
                                                                         <h4 class="lib-calidad-card-prompt">
                                                                             @if ($castingEmailSent)
-                                                                                <span style="color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                                                                                    <img src="{{ asset('images/ready.png') }}" style="width: 20px; height: 20px; vertical-align: middle;" alt="Listo">
-                                                                                    Proceso de pre-orden finalizado correctamente. El correo ha sido enviado al proveedor. Favor de esperar nuevas instrucciones.
+                                                                                <span
+                                                                                    style="color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                                                                                    <img src="{{ asset('images/ready.png') }}"
+                                                                                        style="width: 20px; height: 20px; vertical-align: middle;"
+                                                                                        alt="Listo">
+                                                                                    Proceso de pre-orden finalizado correctamente. El correo ha sido enviado
+                                                                                    al proveedor. Favor de esperar nuevas instrucciones.
                                                                                 </span>
                                                                             @elseif ($hasCastingPre)
-                                                                                Pre-orden de casting generada para los modelos: <strong>{{ implode(', ', $aprobados) }}</strong>. Puedes editar los datos o enviar la pre-orden por correo.
+                                                                                Pre-orden de casting generada para los modelos:
+                                                                                <strong>{{ implode(', ', $aprobados) }}</strong>. Puedes editar los datos o
+                                                                                enviar la pre-orden por correo.
                                                                             @elseif ($reg->casting_pdf_generated)
-                                                                                Formatos LDM subidos. Procede a generar la Pre-Orden de Fabricación de Casting para los modelos: <strong>{{ implode(', ', $aprobados) }}</strong>.
+                                                                                Formatos LDM subidos. Procede a generar la Pre-Orden de Fabricación de
+                                                                                Casting para los modelos: <strong>{{ implode(', ', $aprobados) }}</strong>.
                                                                             @else
-                                                                                Modelos Aprobados por Calidad: <strong>{{ implode(', ', $aprobados) }}</strong>. Procede a subir los formatos F-CCL-LDM firmados para iniciar el casting.
+                                                                                Modelos Aprobados por Calidad:
+                                                                                <strong>{{ implode(', ', $aprobados) }}</strong>. Procede a subir los
+                                                                                formatos F-CCL-LDM firmados para iniciar el casting.
                                                                             @endif
                                                                         </h4>
                                                                         <div class="lib-calidad-card-btns">
                                                                             @if ($castingEmailSent)
                                                                                 {{-- Controles ocultos tras finalizar el proceso --}}
                                                                             @elseif ($hasCastingPre)
-                                                                                <button class="btn-modelo btn-modelo-si" onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')" style="display: flex; background-color: #15803d; color: white;">
+                                                                                <button class="btn-modelo btn-modelo-si"
+                                                                                    onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')"
+                                                                                    style="display: flex; background-color: #15803d; color: white;">
                                                                                     <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
                                                                                     <span>Editar Pre-orden</span>
                                                                                 </button>
-                                                                                <button class="btn-modelo btn-modelo-email" onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'casting')" style="display: flex; background-color: #033966; color: white;">
+                                                                                <button class="btn-modelo btn-modelo-email"
+                                                                                    onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'casting')"
+                                                                                    style="display: flex; background-color: #033966; color: white;">
                                                                                     <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
                                                                                     <span>Enviar Correo</span>
                                                                                 </button>
                                                                             @elseif ($reg->casting_pdf_generated)
-                                                                                <button class="btn-modelo btn-modelo-si" onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')" style="display: flex; background-color: #15803d; color: white;">
-                                                                                    <img src="{{ asset('images/almacen.png') }}" alt="Preorden" style="width: 16px; height: 16px; filter: brightness(0) invert(1);">
+                                                                                <button class="btn-modelo btn-modelo-si"
+                                                                                    onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')"
+                                                                                    style="display: flex; background-color: #15803d; color: white;">
+                                                                                    <img src="{{ asset('images/almacen.png') }}" alt="Preorden"
+                                                                                        style="width: 16px; height: 16px; filter: brightness(0) invert(1);">
                                                                                     <span>Preorden de Casting</span>
                                                                                 </button>
                                                                             @else
-                                                                                <button class="btn-modelo btn-modelo-si" onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($aprobados) }}, [])" style="display: flex; background-color: #15803d; color: white;">
+                                                                                <button class="btn-modelo btn-modelo-si"
+                                                                                    onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($aprobados) }}, [])"
+                                                                                    style="display: flex; background-color: #15803d; color: white;">
                                                                                     <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
                                                                                     <span>Procesar Aceptados</span>
                                                                                 </button>
@@ -886,7 +1443,7 @@
                                                         @endif
 
                                                         {{-- Card 2: Rejected models --}}
-                                                        @if (count($rechazados) > 0)
+                                                        @if (count($rechazados) > 0 && !$reg->rechazos_procesados)
                                                             @php
                                                                 $latestReproceso = null;
                                                                 if ($reg->rechazos_procesados) {
@@ -897,48 +1454,145 @@
 
                                                                 $rechCardDisabled = '';
                                                                 $ultimoRechazadoPorCalidad = false;
+                                                                $reprocesoAprobadoPorCalidad = false;
                                                                 if ($reg->rechazos_procesados) {
-                                                                    $ultimoRechazadoPorCalidad = $latestReproceso && in_array($latestReproceso->calidad_revision_status, ['rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto']) && !$latestReproceso->rechazos_procesados;
-                                                                    if ($ultimoRechazadoPorCalidad) {
+                                                                    $ultimoRechazadoPorCalidad = $latestReproceso
+                                                                        && in_array($latestReproceso->calidad_revision_status, ['rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto'])
+                                                                        && !$latestReproceso->rechazos_procesados;
+                                                                    $reprocesoAprobadoPorCalidad = $latestReproceso
+                                                                        && in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado']);
+                                                                    if ($ultimoRechazadoPorCalidad || $reprocesoAprobadoPorCalidad) {
+                                                                        // Reproceso pendiente de procesamiento por Almacén (rechazado o aprobado por Calidad)
                                                                         $rechCardDisabled = '';
                                                                     } elseif (!$latestReproceso || $latestReproceso->pre_orden_email_sent || $latestReproceso->tiene_modelo) {
                                                                         $rechCardDisabled = 'opacity: 0.65; pointer-events: none;';
                                                                     }
                                                                 }
                                                             @endphp
-                                                            <div class="lib-calidad-card" id="control-almacen-rechazados-{{ md5($reg->ot) }}" style="margin-top: 15px; {{ $rechCardDisabled }}">
-                                                                <div class="lib-calidad-card-header" style="background: linear-gradient(135deg, #dc2626, #b91c1c); border-bottom: 2px solid rgba(220, 38, 38, 0.5);">
-                                                                    <img src="{{ asset('images/almacen.png') }}" alt="Almacén" style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
-                                                                    <div style="overflow:hidden;">
-                                                                        <span class="lib-calidad-card-title" style="color: #ffffff;">Control de Modelos &mdash; Almacén (Rechazados)</span>
-                                                                        <span class="lib-calidad-card-ot" style="color: #fee2e2;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                            <div class="lib-calidad-card" id="control-almacen-rechazados-{{ md5($reg->ot) }}"
+                                                                style="margin-top: 15px; {{ $rechCardDisabled }}">
+                                                                @if ($reprocesoAprobadoPorCalidad)
+                                                                    <div class="lib-calidad-card-header"
+                                                                        style="background: linear-gradient(135deg, #16a34a, #15803d); border-bottom: 2px solid rgba(22, 163, 74, 0.5);">
+                                                                        <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
+                                                                            style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
+                                                                        <div style="overflow:hidden;">
+                                                                            <span class="lib-calidad-card-title" style="color: #ffffff;">Control de Modelos
+                                                                                &mdash; Almacén (<span
+                                                                                    style="color: #ff0000; font-weight: 800;">Re-Proceso</span>)</span>
+                                                                            <span class="lib-calidad-card-ot"
+                                                                                style="color: #d1fae5;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                        </div>
                                                                     </div>
-                                                                </div>
+                                                                @else
+                                                                    <div class="lib-calidad-card-header"
+                                                                        style="background: linear-gradient(135deg, #dc2626, #b91c1c); border-bottom: 2px solid rgba(220, 38, 38, 0.5);">
+                                                                        <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
+                                                                            style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
+                                                                        <div style="overflow:hidden;">
+                                                                            <span class="lib-calidad-card-title" style="color: #ffffff;">Control de Modelos
+                                                                                &mdash; Almacén (Rechazados)</span>
+                                                                            <span class="lib-calidad-card-ot"
+                                                                                style="color: #fee2e2;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                @endif
                                                                 <div class="lib-calidad-card-body">
                                                                     <div class="lib-calidad-action-row">
                                                                         <h4 class="lib-calidad-card-prompt">
                                                                             @if ($reg->rechazos_procesados)
-                                                                                @if ($ultimoRechazadoPorCalidad && $latestReproceso)
-                                                                                    Modelos Rechazados por Calidad para la OT de re-proceso <strong>{{ $latestReproceso->ot }}</strong>: <strong>{{ implode(', ', $rechazados) }}</strong>. Procede a subir el Formato de Rechazo y el SCAR correspondiente.
+                                                                                @if ($reprocesoAprobadoPorCalidad && $latestReproceso)
+                                                                                    <span
+                                                                                        style="color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                                                                                        <img src="{{ asset('images/Aprobado.png') }}"
+                                                                                            style="width: 20px; height: 20px; vertical-align: middle;"
+                                                                                            alt="Aprobado">
+                                                                                        ¡Re-proceso
+                                                                                        <strong>{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $latestReproceso->ot) }}</strong>
+                                                                                        aprobado por Calidad! Los modelos:
+                                                                                        <strong>{{ implode(', ', $rechazados) }}</strong> han sido liberados.
+                                                                                        Procede a subir los formatos F-CCL-LDM firmados para iniciar el casting.
+                                                                                    </span>
+                                                                                @elseif ($ultimoRechazadoPorCalidad && $latestReproceso)
+                                                                                    Modelos Rechazados por Calidad para la OT de re-proceso
+                                                                                    <strong>{{ $latestReproceso->ot }}</strong>:
+                                                                                    <strong>{{ implode(', ', $rechazados) }}</strong>. Procede a subir el
+                                                                                    Formato de Rechazo y el SCAR correspondiente.
                                                                                 @elseif ($latestReproceso)
                                                                                     @if ($latestReproceso->pre_orden_email_sent)
-                                                                                        Alerta enviada a Calidad para la OT de re-proceso <strong>{{ $latestReproceso->ot }}</strong>. En espera de su revisión y nuevo veredicto.
+                                                                                        Alerta enviada a Calidad para la OT de re-proceso
+                                                                                        <strong>{{ $latestReproceso->ot }}</strong>. En espera de su revisión.
                                                                                     @elseif ($latestReproceso->pre_orden_sent)
-                                                                                        Pre-orden de re-proceso lista para <strong>{{ $latestReproceso->ot }}</strong>. Puedes editar los datos o enviar la alerta a Calidad para iniciar la revisión.
+                                                                                        Pre-orden de re-proceso lista para
+                                                                                        <strong>{{ $latestReproceso->ot }}</strong>. Puedes editar los datos o
+                                                                                        enviar la alerta a Calidad para iniciar la revisión.
                                                                                     @else
-                                                                                        OT en re-proceso por rechazo de Calidad (<strong>{{ $latestReproceso->ot }}</strong>). Genera o edita la pre-orden de modelo para iniciar el nuevo ciclo.
+                                                                                        OT en re-proceso por rechazo de Calidad
+                                                                                        (<strong>{{ $latestReproceso->ot }}</strong>). Genera o edita la pre-orden
+                                                                                        de modelo para iniciar el nuevo ciclo.
                                                                                     @endif
                                                                                 @else
-                                                                                    Formatos de rechazo y SCAR subidos para los modelos: <strong>{{ implode(', ', $rechazados) }}</strong>. Nueva pre-orden de modelo generada.
+                                                                                    Formatos de rechazo y SCAR subidos para los modelos:
+                                                                                    <strong>{{ implode(', ', $rechazados) }}</strong>. Nueva pre-orden de modelo
+                                                                                    generada.
                                                                                 @endif
                                                                             @else
-                                                                                Modelos Rechazados por Calidad: <strong>{{ implode(', ', $rechazados) }}</strong>. Procede a subir el Formato de Rechazo y el SCAR correspondiente.
+                                                                                Modelos Rechazados por Calidad:
+                                                                                <strong>{{ implode(', ', $rechazados) }}</strong>. Procede a subir el
+                                                                                Formato de Rechazo y el SCAR correspondiente.
                                                                             @endif
                                                                         </h4>
                                                                         <div class="lib-calidad-card-btns">
                                                                             @if ($reg->rechazos_procesados)
-                                                                                @if ($ultimoRechazadoPorCalidad && $latestReproceso)
-                                                                                    <button class="btn-modelo btn-modelo-no" onclick="abrirModalGestionVeredicto('{{ $latestReproceso->ot }}', [], {{ json_encode($rechazados) }})" style="display: flex; background-color: #b91c1c; color: white;">
+                                                                                @if ($reprocesoAprobadoPorCalidad && $latestReproceso)
+                                                                                    {{-- Reproceso aprobado: Almacén procesa los modelos aprobados del último
+                                                                                    ciclo --}}
+                                                                                    @php
+                                                                                        $latestAprobados = \App\Models\LiberacionModeloFundicion::where('ot', $latestReproceso->ot)
+                                                                                            ->where('decision', 'aprobar')
+                                                                                            ->pluck('tipo_modelo')
+                                                                                            ->toArray();
+                                                                                        $castingPreReproceso = \App\Models\PreOrdenFundicion::where('ot', $latestReproceso->ot)
+                                                                                            ->where('pdf_filename', 'LIKE', '%Casting%')
+                                                                                            ->first();
+                                                                                        $hasCastingPreReproceso = (bool) $castingPreReproceso;
+                                                                                        $castingEmailSentReproceso = ($latestReproceso->calidad_revision_status === 'casting_aprobado');
+                                                                                    @endphp
+                                                                                    @if ($castingEmailSentReproceso)
+                                                                                        {{-- Proceso terminado en el reproceso --}}
+                                                                                    @elseif ($hasCastingPreReproceso)
+                                                                                        <button class="btn-modelo btn-modelo-si"
+                                                                                            onclick="abrirModalPreOrdenCasting('{{ $latestReproceso->ot }}')"
+                                                                                            style="display: flex; background-color: #15803d; color: white;">
+                                                                                            <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
+                                                                                            <span>Editar Pre-orden</span>
+                                                                                        </button>
+                                                                                        <button class="btn-modelo btn-modelo-email"
+                                                                                            onclick="abrirModalEnviarPreOrden('{{ $latestReproceso->ot }}', 'casting')"
+                                                                                            style="display: flex; background-color: #033966; color: white;">
+                                                                                            <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
+                                                                                            <span>Enviar Correo</span>
+                                                                                        </button>
+                                                                                    @elseif ($latestReproceso->casting_pdf_generated)
+                                                                                        <button class="btn-modelo btn-modelo-si"
+                                                                                            onclick="abrirModalPreOrdenCasting('{{ $latestReproceso->ot }}')"
+                                                                                            style="display: flex; background-color: #15803d; color: white;">
+                                                                                            <img src="{{ asset('images/almacen.png') }}" alt="Preorden"
+                                                                                                style="width: 16px; height: 16px; filter: brightness(0) invert(1);">
+                                                                                            <span>Preorden de Casting</span>
+                                                                                        </button>
+                                                                                    @else
+                                                                                        <button class="btn-modelo btn-modelo-si"
+                                                                                            onclick="abrirModalGestionVeredicto('{{ $latestReproceso->ot }}', {{ json_encode($latestAprobados ?: $rechazados) }}, [])"
+                                                                                            style="display: flex; background-color: #15803d; color: white;">
+                                                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado">
+                                                                                            <span>Procesar Aceptados</span>
+                                                                                        </button>
+                                                                                    @endif
+                                                                                @elseif ($ultimoRechazadoPorCalidad && $latestReproceso)
+                                                                                    <button class="btn-modelo btn-modelo-no"
+                                                                                        onclick="abrirModalGestionVeredicto('{{ $latestReproceso->ot }}', [], {{ json_encode($rechazados) }})"
+                                                                                        style="display: flex; background-color: #b91c1c; color: white;">
                                                                                         <img src="{{ asset('images/Rechazado.png') }}" alt="No">
                                                                                         <span>Procesar Rechazados</span>
                                                                                     </button>
@@ -950,7 +1604,8 @@
                                                                                     {{-- Botón inicial para re-proceso: generar pre-orden --}}
                                                                                     <button class="btn-modelo btn-modelo-no"
                                                                                         onclick="abrirModalPreOrden('{{ $latestReproceso->ot }}')"
-                                                                                        title="Generar / editar la pre-orden de fabricación de modelo" style="{{ $hideReprocesoPreOrden }}">
+                                                                                        title="Generar / editar la pre-orden de fabricación de modelo"
+                                                                                        style="{{ $hideReprocesoPreOrden }}">
                                                                                         <img src="{{ asset('images/pdf.png') }}" alt="Pre-Orden">
                                                                                         <span>Pre-Orden Modelo</span>
                                                                                     </button>
@@ -971,13 +1626,16 @@
                                                                                         <span>Enviar Alerta</span>
                                                                                     </button>
                                                                                 @else
-                                                                                    <button class="btn-modelo btn-modelo-no" style="display: flex; background-color: #b91c1c; color: white;">
+                                                                                    <button class="btn-modelo btn-modelo-no"
+                                                                                        style="display: flex; background-color: #b91c1c; color: white;">
                                                                                         <img src="{{ asset('images/Rechazado.png') }}" alt="No">
                                                                                         <span>Rechazos Procesados</span>
                                                                                     </button>
                                                                                 @endif
                                                                             @else
-                                                                                <button class="btn-modelo btn-modelo-no" onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', [], {{ json_encode($rechazados) }})" style="display: flex; background-color: #b91c1c; color: white;">
+                                                                                <button class="btn-modelo btn-modelo-no"
+                                                                                    onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', [], {{ json_encode($rechazados) }})"
+                                                                                    style="display: flex; background-color: #b91c1c; color: white;">
                                                                                     <img src="{{ asset('images/Rechazado.png') }}" alt="No">
                                                                                     <span>Procesar Rechazados</span>
                                                                                 </button>
@@ -1005,19 +1663,22 @@
                                                         </div>
                                                         <div class="lib-calidad-card-body">
                                                             @if ($targetReg->calidad_revision_status === 'rechazado')
-                                                                <div class="lib-estado-badge lib-estado-rechazado" style="padding: 12px 16px; width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px;">
+                                                                <div class="lib-estado-badge lib-estado-rechazado"
+                                                                    style="padding: 12px 16px; width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px;">
                                                                     <img src="{{ asset('images/Rechazado.png') }}" alt=""
                                                                         style="width:18px;height:18px;object-fit:contain;flex-shrink:0;">
                                                                     <span>Liberacion rechazada anteriormente. Puedes revisar y volver a emitir
                                                                         un veredicto.</span>
                                                                 </div>
                                                             @elseif (is_null($targetReg->calidad_revision_status) && !$targetReg->pre_orden_sent && !$targetReg->tiene_modelo)
-                                                                <div class="lib-estado-badge lib-estado-info" style="width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px;">
+                                                                <div class="lib-estado-badge lib-estado-info"
+                                                                    style="width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px;">
                                                                     En espera de que Almacén envíe la información necesaria para realizar la
                                                                     liberación.
                                                                 </div>
                                                             @elseif ($targetReg->calidad_revision_status === 'pendiente')
-                                                                <div class="lib-estado-badge lib-estado-guardado" style="width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px;">
+                                                                <div class="lib-estado-badge lib-estado-guardado"
+                                                                    style="width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px;">
                                                                     <img src="{{ asset('images/Guardado.png') }}" alt=""
                                                                         style="width:18px;height:18px;object-fit:contain;flex-shrink:0;">
                                                                     Datos capturados como borrador.
@@ -1032,21 +1693,25 @@
 
                                                                 $clasesActivas = collect($targetReg->ayudas_config ?? [])
                                                                     ->filter(fn($c) => !str_contains(strtolower($c), 'opcional'))
-                                                                    ->filter(function($claseNombre) use ($reg) {
+                                                                    ->filter(function ($claseNombre) use ($reg) {
                                                                         $clLow = strtolower($claseNombre);
                                                                         $tipo = null;
-                                                                        if (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
-                                                                        elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
-                                                                        elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
-                                                                        elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
+                                                                        if (strpos($clLow, 'fondo') !== false)
+                                                                            $tipo = 'Fondo';
+                                                                        elseif (strpos($clLow, 'obturador') !== false)
+                                                                            $tipo = 'Obturador';
+                                                                        elseif (strpos($clLow, 'molde') !== false)
+                                                                            $tipo = 'Molde';
+                                                                        elseif (strpos($clLow, 'bombillo') !== false)
+                                                                            $tipo = 'Bombillo';
 
                                                                         if ($tipo) {
                                                                             $baseOt = preg_replace('/_R\d+$/i', '', $reg->ot);
-                                                                            $isAprobado = \App\Models\LiberacionModeloFundicion::where(function($q) use ($reg, $baseOt) {
-                                                                                    $q->where('ot', '=', $reg->ot)
-                                                                                      ->orWhere('ot', '=', $baseOt)
-                                                                                      ->orWhere('ot', 'LIKE', $baseOt . '_R%');
-                                                                                })
+                                                                            $isAprobado = \App\Models\LiberacionModeloFundicion::where(function ($q) use ($reg, $baseOt) {
+                                                                                $q->where('ot', '=', $reg->ot)
+                                                                                    ->orWhere('ot', '=', $baseOt)
+                                                                                    ->orWhere('ot', 'LIKE', $baseOt . '_R%');
+                                                                            })
                                                                                 ->where('tipo_modelo', '=', $tipo)
                                                                                 ->where('estado', '=', 'aprobado')
                                                                                 ->exists();
@@ -1113,11 +1778,11 @@
 
                                                                 $tiposGuardados = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                                                                     ->where('estado', '=', 'pendiente')
-                                                                    ->get(['tipo_modelo','decision']);
+                                                                    ->get(['tipo_modelo', 'decision']);
                                                                 $tiposLabel = implode(', ', $tiposGuardados->pluck('tipo_modelo')->toArray());
-                                                                $tiposAprobadosArr  = $tiposGuardados->where('decision','aprobar')->pluck('tipo_modelo')->values()->toArray();
-                                                                $tiposRechazadosArr = $tiposGuardados->where('decision','rechazar')->pluck('tipo_modelo')->values()->toArray();
-                                                                $tiposAprobadosJson  = json_encode($tiposAprobadosArr);
+                                                                $tiposAprobadosArr = $tiposGuardados->where('decision', 'aprobar')->pluck('tipo_modelo')->values()->toArray();
+                                                                $tiposRechazadosArr = $tiposGuardados->where('decision', 'rechazar')->pluck('tipo_modelo')->values()->toArray();
+                                                                $tiposAprobadosJson = json_encode($tiposAprobadosArr);
                                                                 $tiposRechazadosJson = json_encode($tiposRechazadosArr);
                                                              @endphp
                                                             <div class="lib-calidad-action-row">
@@ -1129,62 +1794,62 @@
                                                                             Borrador de aprobación guardado para esta OT. ¿Qué deseas hacer?
                                                                         @endif
                                                                     @elseif ($contClasesConDatos > 0)
-                                                                         Proceso de liberación en curso (capturados: {{ $contClasesConDatos }} de
-                                                                         {{ count($clasesActivas) }}).
-                                                                     @elseif ($targetReg->calidad_revision_status === 'rechazado')
-                                                                         El modelo fue rechazado antes. ¿Quieres revisarlo de nuevo?
-                                                                     @else
-                                                                         ¿Qué deseas hacer con este modelo? ¿Lo apruebas o lo rechazas?
-                                                                     @endif
-                                                                 </h4>
-                                                                 <div class="lib-calidad-card-btns">
-                                                                     @if ($todosGuardados)
-                                                                         <button class="btn-calidad-action btn-calidad-iniciar"
-                                                                             onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})"
-                                                                             title="Editar borrador del formato de liberación F-CCL-LDM">
-                                                                             <img src="{{ asset('images/editar-informacion.png') }}" alt="">
-                                                                             <span>Editar Datos</span>
-                                                                         </button>
+                                                                        Proceso de liberación en curso (capturados: {{ $contClasesConDatos }} de
+                                                                        {{ count($clasesActivas) }}).
+                                                                    @elseif ($targetReg->calidad_revision_status === 'rechazado')
+                                                                        El modelo fue rechazado antes. ¿Quieres revisarlo de nuevo?
+                                                                    @else
+                                                                        ¿Qué deseas hacer con este modelo? ¿Lo apruebas o lo rechazas?
+                                                                    @endif
+                                                                </h4>
+                                                                <div class="lib-calidad-card-btns">
+                                                                    @if ($todosGuardados)
+                                                                        <button class="btn-calidad-action btn-calidad-iniciar"
+                                                                            onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})"
+                                                                            title="Editar borrador del formato de liberación F-CCL-LDM">
+                                                                            <img src="{{ asset('images/editar-informacion.png') }}" alt="">
+                                                                            <span>Editar Datos</span>
+                                                                        </button>
 
-                                                                         @if ($hasRechazoBorrador)
-                                                                             @if (!$scarModelo)
-                                                                                 <button class="btn-calidad-action btn-calidad-borrador"
-                                                                                     onclick="abrirModalScar('{{ $targetReg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
-                                                                                     title="Generar el formato de acción correctiva SCAR">
-                                                                                     <img src="{{ asset('images/pdf.png') }}" alt="">
-                                                                                     <span>Generar Formato SCAR</span>
-                                                                                 </button>
-                                                                             @else
-                                                                                 <button class="btn-calidad-action btn-calidad-email"
-                                                                                     onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
-                                                                                     title="Finalizar proceso de Calidad y notificar por correo"
-                                                                                     style="background-color: #dc2626; color: white;">
-                                                                                     <img src="{{ asset('images/enviando.png') }}" alt="">
-                                                                                     <span>Finalizar Proceso</span>
-                                                                                 </button>
-                                                                             @endif
-                                                                         @else
-                                                                             <button class="btn-calidad-action btn-calidad-email"
-                                                                                 onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
-                                                                                 title="Finalizar proceso de Calidad y notificar por correo"
-                                                                                 style="background-color: #059669; color: white;">
-                                                                                 <img src="{{ asset('images/enviando.png') }}" alt="">
-                                                                                 <span>Finalizar Proceso</span>
-                                                                             </button>
-                                                                         @endif
-                                                                     @else
-                                                                         <button class="btn-calidad-action btn-calidad-iniciar" @if (!$targetReg->pre_orden_email_sent && !$targetReg->tiene_modelo) disabled
-                                                                             style="opacity: 0.55; cursor: not-allowed;"
-                                                                             title="En espera de que Almacén envíe la información necesaria para realizar la liberación"
-                                                                         @else
-                                                                                 title="{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Iniciar el proceso de liberación' }}"
-                                                                             @endif
-                                                                             onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})">
-                                                                             <img src="{{ asset('images/Liberar.png') }}" alt="">
-                                                                             <span>{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Empezar con el proceso de liberación' }}</span>
-                                                                         </button>
-                                                                     @endif
-                                                                 </div>
+                                                                        @if ($hasRechazoBorrador)
+                                                                            @if (!$scarModelo)
+                                                                                <button class="btn-calidad-action btn-calidad-borrador"
+                                                                                    onclick="abrirModalScar('{{ $targetReg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
+                                                                                    title="Generar el formato de acción correctiva SCAR">
+                                                                                    <img src="{{ asset('images/pdf.png') }}" alt="">
+                                                                                    <span>Generar Formato SCAR</span>
+                                                                                </button>
+                                                                            @else
+                                                                                <button class="btn-calidad-action btn-calidad-email"
+                                                                                    onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
+                                                                                    title="Finalizar proceso de Calidad y notificar por correo"
+                                                                                    style="background-color: #dc2626; color: white;">
+                                                                                    <img src="{{ asset('images/enviando.png') }}" alt="">
+                                                                                    <span>Finalizar Proceso</span>
+                                                                                </button>
+                                                                            @endif
+                                                                        @else
+                                                                            <button class="btn-calidad-action btn-calidad-email"
+                                                                                onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
+                                                                                title="Finalizar proceso de Calidad y notificar por correo"
+                                                                                style="background-color: #059669; color: white;">
+                                                                                <img src="{{ asset('images/enviando.png') }}" alt="">
+                                                                                <span>Finalizar Proceso</span>
+                                                                            </button>
+                                                                        @endif
+                                                                    @else
+                                                                        <button class="btn-calidad-action btn-calidad-iniciar" @if (!$targetReg->pre_orden_email_sent && !$targetReg->tiene_modelo)
+                                                                            disabled style="opacity: 0.55; cursor: not-allowed;"
+                                                                            title="En espera de que Almacén envíe la información necesaria para realizar la liberación"
+                                                                        @else
+                                                                                title="{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Iniciar el proceso de liberación' }}"
+                                                                            @endif
+                                                                            onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})">
+                                                                            <img src="{{ asset('images/Liberar.png') }}" alt="">
+                                                                            <span>{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Empezar con el proceso de liberación' }}</span>
+                                                                        </button>
+                                                                    @endif
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1199,38 +1864,50 @@
                                                                 $aprobados = $liberaciones->where('decision', 'aprobar')->pluck('tipo_modelo')->toArray();
                                                                 $rechazados = $liberaciones->where('decision', 'rechazar')->pluck('tipo_modelo')->toArray();
                                                             @endphp
-                                                            <div class="lib-calidad-card" id="control-calidad-finalizado-{{ md5($targetReg->ot) }}" style="opacity: 0.65; pointer-events: none; margin-top: 20px;">
-                                                                <div class="lib-calidad-card-header" style="background: linear-gradient(135deg, #475569, #334155); border-bottom: 2px solid rgba(71, 85, 105, 0.5);">
-                                                                    <img src="{{ asset('images/Quality.png') }}" alt="Calidad" style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
+                                                            <div class="lib-calidad-card" id="control-calidad-finalizado-{{ md5($targetReg->ot) }}"
+                                                                style="opacity: 0.65; pointer-events: none; margin-top: 20px;">
+                                                                <div class="lib-calidad-card-header"
+                                                                    style="background: linear-gradient(135deg, #475569, #334155); border-bottom: 2px solid rgba(71, 85, 105, 0.5);">
+                                                                    <img src="{{ asset('images/Quality.png') }}" alt="Calidad"
+                                                                        style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
                                                                     <div style="overflow:hidden;">
-                                                                        <span class="lib-calidad-card-title" style="color: #ffffff;">Control de Modelos &mdash; Calidad</span>
-                                                                        <span class="lib-calidad-card-ot" style="color: #cbd5e1;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $targetReg->ot) }}</span>
+                                                                        <span class="lib-calidad-card-title" style="color: #ffffff;">Control de Modelos
+                                                                            &mdash; Calidad</span>
+                                                                        <span class="lib-calidad-card-ot"
+                                                                            style="color: #cbd5e1;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $targetReg->ot) }}</span>
                                                                     </div>
                                                                 </div>
                                                                 <div class="lib-calidad-card-body">
                                                                     <div class="lib-calidad-action-row">
                                                                         <h4 class="lib-calidad-card-prompt">
                                                                             @if ($libStatusClean === 'aprobado')
-                                                                                Proceso Finalizado (Aprobado): Se envió la alerta de liberación aprobada para los modelos: <strong>{{ implode(', ', $aprobados) }}</strong>.
+                                                                                Proceso Finalizado (Aprobado): Se envió la alerta de liberación aprobada
+                                                                                para los modelos: <strong>{{ implode(', ', $aprobados) }}</strong>.
                                                                             @elseif ($libStatusClean === 'rechazado')
-                                                                                Proceso Finalizado (Rechazado): Se envió la alerta de rechazo para los modelos: <strong>{{ implode(', ', $rechazados) }}</strong>.
+                                                                                Proceso Finalizado (Rechazado): Se envió la alerta de rechazo para los
+                                                                                modelos: <strong>{{ implode(', ', $rechazados) }}</strong>.
                                                                             @elseif ($libStatusClean === 'mixto')
-                                                                                Proceso Finalizado (Mixto): Se enviaron las alertas correspondientes. Aprobados: <strong>{{ implode(', ', $aprobados) }}</strong> | Rechazados: <strong>{{ implode(', ', $rechazados) }}</strong>.
+                                                                                Proceso Finalizado (Mixto): Se enviaron las alertas correspondientes.
+                                                                                Aprobados: <strong>{{ implode(', ', $aprobados) }}</strong> | Rechazados:
+                                                                                <strong>{{ implode(', ', $rechazados) }}</strong>.
                                                                             @endif
                                                                         </h4>
                                                                         <div class="lib-calidad-card-btns">
                                                                             @if ($libStatusClean === 'aprobado')
-                                                                                <button class="btn-modelo btn-modelo-si" style="display: flex; background-color: #059669; color: white;">
+                                                                                <button class="btn-modelo btn-modelo-si"
+                                                                                    style="display: flex; background-color: #059669; color: white;">
                                                                                     <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
                                                                                     <span>Aprobado</span>
                                                                                 </button>
                                                                             @elseif ($libStatusClean === 'rechazado')
-                                                                                <button class="btn-modelo btn-modelo-no" style="display: flex; background-color: #dc2626; color: white;">
+                                                                                <button class="btn-modelo btn-modelo-no"
+                                                                                    style="display: flex; background-color: #dc2626; color: white;">
                                                                                     <img src="{{ asset('images/Rechazado.png') }}" alt="No">
                                                                                     <span>Rechazado</span>
                                                                                 </button>
                                                                             @elseif ($libStatusClean === 'mixto')
-                                                                                <button class="btn-modelo btn-modelo-edit" style="display: flex; background-color: #0284c7; color: white;">
+                                                                                <button class="btn-modelo btn-modelo-edit"
+                                                                                    style="display: flex; background-color: #0284c7; color: white;">
                                                                                     <img src="{{ asset('images/Quality.png') }}" alt="Mixto">
                                                                                     <span>Mixto</span>
                                                                                 </button>
@@ -1253,62 +1930,85 @@
             </div>
         @endforeach
 
-
     </div>{{-- /.alm-wrapper --}}
 
     {{-- ── MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS ── --}}
     <div id="modalConfirmarModelo" class="alm-modal" role="dialog" aria-modal="true">
-        <div class="alm-modal-content" style="max-width: 1100px; border-radius: 20px; border: 2.5px solid #0a8504; overflow: hidden;">
+        <div class="alm-modal-content"
+            style="max-width: 1100px; border-radius: 20px; border: 2.5px solid #0a8504; overflow: hidden;">
             <div class="alm-modal-header"
                 style="background: linear-gradient(135deg, #0a8504, #064e03); border-bottom: 2px solid #064e03; padding: 2.2em 2.5em 2em; position: relative;">
                 <div class="div-cerrar">
                     <button type="button" class="btn-cerrar" onclick="cerrarModalConfirmarModelo()"
                         style="position: absolute; top: 25px; right: 25px; background: rgba(255, 255, 255, 0.18); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 50%; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
-                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar" style="width: 14px; height: 14px; filter: brightness(0) invert(1);">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar"
+                            style="width: 14px; height: 14px; filter: brightness(0) invert(1);">
                     </button>
                 </div>
                 <div style="display: flex; align-items: center; gap: 18px;">
-                    <img src="{{ asset('images/Aprobado.png') }}" style="width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));" alt="">
+                    <img src="{{ asset('images/Aprobado.png') }}"
+                        style="width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));"
+                        alt="">
                     <div>
-                        <h3 style="color:#fff; margin:0; font-size:1.45em; font-weight: 800; font-family: 'Poppins', sans-serif;">Confirmar Disponibilidad del Modelo</h3>
-                        <div id="confirmar-modelo-subtitle" style="color: rgba(255,255,255,0.9); font-size: 0.95em; margin-top: 2px; font-weight: 500; font-family: 'Poppins', sans-serif;">OT: -</div>
+                        <h3
+                            style="color:#fff; margin:0; font-size:1.45em; font-weight: 800; font-family: 'Poppins', sans-serif;">
+                            Confirmar Disponibilidad del Modelo</h3>
+                        <div id="confirmar-modelo-subtitle"
+                            style="color: rgba(255,255,255,0.9); font-size: 0.95em; margin-top: 2px; font-weight: 500; font-family: 'Poppins', sans-serif;">
+                            OT: -</div>
                     </div>
                 </div>
             </div>
-            <div class="alm-modal-body" style="padding: 2.2em 2.5em; background: #fafafa; font-family: 'Poppins', sans-serif;">
+            <div class="alm-modal-body"
+                style="padding: 2.2em 2.5em; background: #fafafa; font-family: 'Poppins', sans-serif;">
                 <form id="formConfirmarModelo" enctype="multipart/form-data">
                     <input type="hidden" id="cm-ot" name="ot">
                     <input type="hidden" id="cm-id-hash" name="id_hash">
 
                     <div style="padding: 0 0 14px; color: #334155; font-size:0.97em;">
-                        <p style="margin-bottom:12px; font-weight: 500;">¿Confirmas que cuentas físicamente con el modelo para esta OT?</p>
-                        <p style="background:#fef9c3; border:1px solid #fde047; border-radius:12px; padding:12px 18px; color:#713f12; font-size:0.9em; line-height: 1.5; margin-bottom: 20px;">
-                            <strong>⚠ Documentos requeridos:</strong> Debes adjuntar los documentos que acrediten la
+                        <p style="margin-bottom:12px; font-weight: 500;">¿Confirmas que cuentas físicamente con el modelo
+                            para esta OT?</p>
+                        <p
+                            style="background:#fef9c3; border:1px solid #fde047; border-radius:12px; padding:12px 18px; color:#713f12; font-size:0.9em; line-height: 1.5; margin-bottom: 20px;">
+                            <strong>Documentos requeridos:</strong> Debes adjuntar los documentos que acrediten la
                             recepción del modelo (ej. remisión, hoja de entrega, fotos).
                         </p>
                     </div>
 
                     {{-- FECHA DE CONFIRMACIÓN / ENVÍO --}}
                     <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="cm-fecha" style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.15em;">
+                        <label for="cm-fecha"
+                            style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.15em;">
                             Fecha de Confirmación / Envío <span style="color:#9c0300;">*</span>
                         </label>
-                        <input type="date" id="cm-fecha" name="fecha" class="form-control" required style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
+                        <input type="date" id="cm-fecha" name="fecha" class="form-control" required
+                            style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
                     </div>
 
                     <div class="form-group" style="margin-bottom: 22px;">
-                        <label class="custom-file-upload-label" style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.15em;">
+                        <label class="custom-file-upload-label"
+                            style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.15em;">
                             Adjuntar documentos de recepción <span style="color:#9c0300;">*</span>
                         </label>
-                        <div class="custom-file-dropzone" style="border: 2px dashed #0a8504; background: #f0fdf4; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
-                            <input type="file" id="cm-archivos" name="archivos[]" class="custom-file-input" multiple accept=".pdf,image/*" style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
+                        <div class="custom-file-dropzone"
+                            style="border: 2px dashed #0a8504; background: #f0fdf4; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
+                            <input type="file" id="cm-archivos" name="archivos[]" class="custom-file-input" multiple
+                                accept=".pdf,image/*"
+                                style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
                             <div class="dropzone-content">
-                                <img src="{{ asset('images/anadir.png') }}" class="dropzone-icon" style="width: 40px; height: 40px; margin-bottom: 8px; object-fit: contain;">
-                                <span class="dropzone-text" style="font-weight: 700; color: #0a8504; font-size: 0.85em; text-align: center; font-family:'Poppins', sans-serif;">Arrastra archivos aquí o haz clic para buscar</span>
-                                <span class="dropzone-subtext" style="font-size: 0.7em; color: #64748b; margin-top: 2px; font-family:'Poppins', sans-serif;">Soporta múltiples archivos PDF o imágenes</span>
+                                <img src="{{ asset('images/anadir.png') }}" class="dropzone-icon"
+                                    style="width: 40px; height: 40px; margin-bottom: 8px; object-fit: contain;">
+                                <span class="dropzone-text"
+                                    style="font-weight: 700; color: #0a8504; font-size: 0.85em; text-align: center; font-family:'Poppins', sans-serif;">Arrastra
+                                    archivos aquí o haz clic para buscar</span>
+                                <span class="dropzone-subtext"
+                                    style="font-size: 0.7em; color: #64748b; margin-top: 2px; font-family:'Poppins', sans-serif;">Soporta
+                                    múltiples archivos PDF o imágenes</span>
                             </div>
                         </div>
-                        <div id="cm-archivos-list" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
+                        <div id="cm-archivos-list"
+                            style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;">
+                        </div>
                     </div>
 
                     <div class="form-actions" style="text-align:center; margin-top:24px;">
@@ -1324,13 +2024,19 @@
 
     {{-- ── MODAL: ENVIAR ALERTA DE LIBERACION (APROBADO/RECHAZADO) ── --}}
     <div id="modalEnviarAlertaLiberacion" class="alm-modal" role="dialog" aria-modal="true">
-        <div class="alm-modal-content" id="alerta-lib-modal-content" style="max-width: 1500px; width: 96vw; border-radius: 20px;">
-            <div class="alm-modal-header" id="alerta-lib-header" style="padding: 2.5em 3em 2.2em; border-top-left-radius: 18px; border-top-right-radius: 18px;">
+        <div class="alm-modal-content" id="alerta-lib-modal-content"
+            style="max-width: 1500px; width: 96vw; border-radius: 20px;">
+            <div class="alm-modal-header" id="alerta-lib-header"
+                style="padding: 2.5em 3em 2.2em; border-top-left-radius: 18px; border-top-right-radius: 18px;">
                 <div class="div-cerrar">
                     @include('almacen.partials._btn_cerrar', ['onclick' => 'cerrarModalEnviarAlertaLiberacion()'])
                 </div>
-                <h3 id="alerta-lib-title" style="font-size: 2.2em; margin: 0; font-family:'Poppins', sans-serif; font-weight: 700; color: #fff;">Enviar Alerta de Liberación</h3>
-                <p id="alerta-lib-subtitle" class="lib-modal-subtitle" style="color: #bae6fd; font-size: 1.15em; margin-top: 8px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500;"></p>
+                <h3 id="alerta-lib-title"
+                    style="font-size: 2.2em; margin: 0; font-family:'Poppins', sans-serif; font-weight: 700; color: #fff;">
+                    Enviar Alerta de Liberación</h3>
+                <p id="alerta-lib-subtitle" class="lib-modal-subtitle"
+                    style="color: #bae6fd; font-size: 1.15em; margin-top: 8px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500;">
+                </p>
             </div>
             <div class="alm-modal-body" style="padding: 3em 3.5em;">
                 <form id="formEnviarAlertaLiberacion" enctype="multipart/form-data" novalidate>
@@ -1339,21 +2045,28 @@
                     <input type="hidden" id="al-decision" name="decision">
                     <input type="hidden" id="al-tipo-modelo" name="tipo_modelo">
 
-                    <p style="margin-bottom:28px; font-family:'Poppins', sans-serif; font-weight:500; line-height:1.6; color:#334155; font-size: 1.3em;" id="al-prompt-text"></p>
+                    <p style="margin-bottom:28px; font-family:'Poppins', sans-serif; font-weight:500; line-height:1.6; color:#334155; font-size: 1.3em;"
+                        id="al-prompt-text"></p>
 
                     {{-- Destinatario(s) --}}
                     <div class="form-group" style="margin-bottom: 24px;">
-                        <label for="al-destinatario" style="font-size: 1.2em; font-weight: 700; color: #334155; display: block; margin-bottom: 10px; font-family:'Poppins', sans-serif;">Destinatario(s):</label>
-                        <input type="text" id="al-destinatario" name="destinatario" class="form-control" required value="jaxer020406@gmail.com" style="font-size: 1.15em; padding: 14px 20px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
-                        <span style="font-size: 0.9em; color: #64748b; margin-top: 8px; display: block;">Separa múltiples correos usando comas (,).</span>
+                        <label for="al-destinatario"
+                            style="font-size: 1.2em; font-weight: 700; color: #334155; display: block; margin-bottom: 10px; font-family:'Poppins', sans-serif;">Destinatario(s):</label>
+                        <input type="text" id="al-destinatario" name="destinatario" class="form-control" required
+                            value="jaxer020406@gmail.com"
+                            style="font-size: 1.15em; padding: 14px 20px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
+                        <span style="font-size: 0.9em; color: #64748b; margin-top: 8px; display: block;">Separa múltiples
+                            correos usando comas (,).</span>
                     </div>
 
                     {{-- FECHA --}}
                     <div class="form-group" style="margin-bottom: 28px;">
-                        <label id="al-fecha-label" for="al-fecha" style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.2em;">
+                        <label id="al-fecha-label" for="al-fecha"
+                            style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.2em;">
                             Fecha de Emisión / Entrega <span style="color:#9c0300;">*</span>
                         </label>
-                        <input type="date" id="al-fecha" name="fecha" class="form-control" required style="font-family:'Poppins', sans-serif; font-size: 1.15em; padding: 14px 20px; height: auto; border-radius: 10px;">
+                        <input type="date" id="al-fecha" name="fecha" class="form-control" required
+                            style="font-family:'Poppins', sans-serif; font-size: 1.15em; padding: 14px 20px; height: auto; border-radius: 10px;">
                     </div>
 
                     {{-- ═══ LAYOUT DUAL: Aprobados (izq) + Rechazados (der) si hay ambos, o uno solo al 100% ═══ --}}
@@ -1361,29 +2074,47 @@
 
                         {{-- ── COLUMNA APROBADOS ── --}}
                         <div id="al-col-aprobados" style="flex: 1; width: 100%; display: none;">
-                            <div style="border: 2.5px solid #059669; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 25px rgba(5,150,105,0.12);">
+                            <div
+                                style="border: 2.5px solid #059669; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 25px rgba(5,150,105,0.12);">
                                 {{-- Header Aprobados --}}
-                                <div style="background: linear-gradient(135deg, #059669, #047857); padding: 20px 24px; display: flex; align-items: center; gap: 14px;">
-                                    <img src="{{ asset('images/Aprobado.png') }}" style="width:36px;height:36px;object-fit:contain;" alt="">
+                                <div
+                                    style="background: linear-gradient(135deg, #059669, #047857); padding: 20px 24px; display: flex; align-items: center; gap: 14px;">
+                                    <img src="{{ asset('images/Aprobado.png') }}"
+                                        style="width:36px;height:36px;object-fit:contain;" alt="">
                                     <div>
-                                        <div style="font-weight:800; font-size:1.35em; color:#fff; font-family:'Poppins',sans-serif;">Documentos Aprobados</div>
-                                        <div id="al-aprobados-tipos-label" style="font-size:0.95em; color:#a7f3d0; font-family:'Poppins',sans-serif;">—</div>
+                                        <div
+                                            style="font-weight:800; font-size:1.35em; color:#fff; font-family:'Poppins',sans-serif;">
+                                            Documentos Aprobados</div>
+                                        <div id="al-aprobados-tipos-label"
+                                            style="font-size:0.95em; color:#a7f3d0; font-family:'Poppins',sans-serif;">—
+                                        </div>
                                     </div>
                                 </div>
                                 <div style="padding: 24px;">
                                     {{-- Archivos del servidor — Aprobados --}}
-                                    <label style="font-weight:700; color:#059669; font-size:1.15em; margin-bottom:12px; display:block; font-family:'Poppins',sans-serif;">Archivos en servidor (selecciona los que deseas adjuntar):</label>
-                                    <div id="al-server-files-aprobados" style="background:#f0fdf4; border:1.8px solid #bbf7d0; border-radius:14px; padding:20px; max-height:280px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; justify-items:center;">
-                                        <div style="text-align:center; color:#64748b; grid-column:1/-1; padding:12px; font-style:italic; font-size:0.95em; font-family:'Poppins',sans-serif;">Cargando archivos...</div>
+                                    <label
+                                        style="font-weight:700; color:#059669; font-size:1.15em; margin-bottom:12px; display:block; font-family:'Poppins',sans-serif;">Archivos
+                                        en servidor (selecciona los que deseas adjuntar):</label>
+                                    <div id="al-server-files-aprobados"
+                                        style="background:#f0fdf4; border:1.8px solid #bbf7d0; border-radius:14px; padding:20px; max-height:280px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; justify-items:center;">
+                                        <div
+                                            style="text-align:center; color:#64748b; grid-column:1/-1; padding:12px; font-style:italic; font-size:0.95em; font-family:'Poppins',sans-serif;">
+                                            Cargando archivos...</div>
                                     </div>
 
                                     {{-- Upload Firmados — por Modelo (Aprobados) --}}
                                     <div style="margin-top:24px;">
-                                        <label style="font-weight:700; color:#059669; font-size:1.15em; display:block; margin-bottom:10px; font-family:'Poppins',sans-serif;">
+                                        <label
+                                            style="font-weight:700; color:#059669; font-size:1.15em; display:block; margin-bottom:10px; font-family:'Poppins',sans-serif;">
                                             Subir Formato F-CCL-LDM Firmado (por modelo):
                                         </label>
-                                        <p style="font-size:0.9em; color:#64748b; margin-bottom:14px; font-family:'Poppins',sans-serif; line-height: 1.5;">Selecciona el tipo de modelo y luego sube el formato de liberación <strong>aprobado y firmado</strong> correspondiente.</p>
-                                        <div id="al-upload-aprobados-rows" style="display:flex; flex-direction:column; gap:14px;"></div>
+                                        <p
+                                            style="font-size:0.9em; color:#64748b; margin-bottom:14px; font-family:'Poppins',sans-serif; line-height: 1.5;">
+                                            Selecciona el tipo de modelo y luego sube el formato de liberación
+                                            <strong>aprobado y firmado</strong> correspondiente.
+                                        </p>
+                                        <div id="al-upload-aprobados-rows"
+                                            style="display:flex; flex-direction:column; gap:14px;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1391,29 +2122,46 @@
 
                         {{-- ── COLUMNA RECHAZADOS ── --}}
                         <div id="al-col-rechazados" style="flex: 1; width: 100%; display: none;">
-                            <div style="border: 2.5px solid #dc2626; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 25px rgba(220,38,38,0.12);">
+                            <div
+                                style="border: 2.5px solid #dc2626; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 25px rgba(220,38,38,0.12);">
                                 {{-- Header Rechazados --}}
-                                <div style="background: linear-gradient(135deg, #dc2626, #b91c1c); padding: 20px 24px; display: flex; align-items: center; gap: 14px;">
-                                    <img src="{{ asset('images/Rechazado.png') }}" style="width:36px;height:36px;object-fit:contain;" alt="">
+                                <div
+                                    style="background: linear-gradient(135deg, #dc2626, #b91c1c); padding: 20px 24px; display: flex; align-items: center; gap: 14px;">
+                                    <img src="{{ asset('images/Rechazado.png') }}"
+                                        style="width:36px;height:36px;object-fit:contain;" alt="">
                                     <div>
-                                        <div style="font-weight:800; font-size:1.35em; color:#fff; font-family:'Poppins',sans-serif;">Documentos Rechazados</div>
-                                        <div id="al-rechazados-tipos-label" style="font-size:0.95em; color:#fecaca; font-family:'Poppins',sans-serif;">—</div>
+                                        <div
+                                            style="font-weight:800; font-size:1.35em; color:#fff; font-family:'Poppins',sans-serif;">
+                                            Documentos Rechazados</div>
+                                        <div id="al-rechazados-tipos-label"
+                                            style="font-size:0.95em; color:#fecaca; font-family:'Poppins',sans-serif;">—
+                                        </div>
                                     </div>
                                 </div>
                                 <div style="padding: 24px;">
                                     {{-- Archivos del servidor — Rechazados --}}
-                                    <label style="font-weight:700; color:#dc2626; font-size:1.15em; margin-bottom:12px; display:block; font-family:'Poppins',sans-serif;">Archivos en servidor (selecciona los que deseas adjuntar):</label>
-                                    <div id="al-server-files-rechazados" style="background:#fef2f2; border:1.8px solid #fecaca; border-radius:14px; padding:20px; max-height:280px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; justify-items:center;">
-                                        <div style="text-align:center; color:#64748b; grid-column:1/-1; padding:12px; font-style:italic; font-size:0.95em; font-family:'Poppins',sans-serif;">Cargando archivos...</div>
+                                    <label
+                                        style="font-weight:700; color:#dc2626; font-size:1.15em; margin-bottom:12px; display:block; font-family:'Poppins',sans-serif;">Archivos
+                                        en servidor (selecciona los que deseas adjuntar):</label>
+                                    <div id="al-server-files-rechazados"
+                                        style="background:#fef2f2; border:1.8px solid #fecaca; border-radius:14px; padding:20px; max-height:280px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; justify-items:center;">
+                                        <div
+                                            style="text-align:center; color:#64748b; grid-column:1/-1; padding:12px; font-style:italic; font-size:0.95em; font-family:'Poppins',sans-serif;">
+                                            Cargando archivos...</div>
                                     </div>
 
                                     {{-- Upload Firmados — por Modelo (Rechazados) --}}
                                     <div style="margin-top:24px;">
-                                        <label style="font-weight:700; color:#dc2626; font-size:1.15em; display:block; margin-bottom:10px; font-family:'Poppins',sans-serif;">
+                                        <label
+                                            style="font-weight:700; color:#dc2626; font-size:1.15em; display:block; margin-bottom:10px; font-family:'Poppins',sans-serif;">
                                             Subir Formato F-CCL-LDM de Rechazo + SCAR Firmado (por modelo):
                                         </label>
-                                        <p style="font-size:0.9em; color:#64748b; margin-bottom:14px; font-family:'Poppins',sans-serif; line-height: 1.5;">Selecciona el tipo de modelo y luego sube el <strong>formato de liberación rechazado</strong> y el <strong>SCAR firmado</strong> correspondiente.</p>
-                                        <div id="al-upload-rechazados-rows" style="display:flex; flex-direction:column; gap:14px;"></div>
+                                        <p
+                                            style="font-size:0.9em; color:#64748b; margin-bottom:14px; font-family:'Poppins',sans-serif; line-height: 1.5;">
+                                            Selecciona el tipo de modelo y luego sube el <strong>formato de liberación
+                                                rechazado</strong> y el <strong>SCAR firmado</strong> correspondiente.</p>
+                                        <div id="al-upload-rechazados-rows"
+                                            style="display:flex; flex-direction:column; gap:14px;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1422,7 +2170,8 @@
                     </div>{{-- fin dual-layout --}}
 
                     <div class="form-actions" style="text-align: center; margin-top: 40px; margin-bottom: 12px;">
-                        <button type="submit" class="btn-save-preorden" id="btn-submit-alerta-liberacion" style="font-size:1.2em; padding:15px 32px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight: 700; height: auto;">
+                        <button type="submit" class="btn-save-preorden" id="btn-submit-alerta-liberacion"
+                            style="font-size:1.2em; padding:15px 32px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight: 700; height: auto;">
                             Enviar Alerta de Liberación
                         </button>
                     </div>
@@ -1503,7 +2252,9 @@
                         </div>
 
                         <div class="form-group" style="margin-top: 20px;">
-                            <div id="po-observaciones-cycle-prefix" style="display: none; padding: 8px 12px; background-color: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b; font-weight: bold; margin-bottom: 8px; border-radius: 4px; font-family: 'Poppins', sans-serif;"></div>
+                            <div id="po-observaciones-cycle-prefix"
+                                style="display: none; padding: 8px 12px; background-color: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b; font-weight: bold; margin-bottom: 8px; border-radius: 4px; font-family: 'Poppins', sans-serif;">
+                            </div>
                             <label for="po-observaciones">Observaciones:</label>
                             <textarea id="po-observaciones" name="observaciones" class="form-control" rows="3"></textarea>
                         </div>
@@ -1524,19 +2275,26 @@
 
     {{-- ── MODAL: PRE-ORDEN PARA FABRICAR CASTING (DOUBLE MODAL TABS) ── --}}
     <div id="modalPreOrdenCasting" class="alm-modal" role="dialog" aria-modal="true">
-        <div class="alm-modal-content" style="max-width: 1800px; width: 95vw; border-radius: 20px; overflow: hidden; border: 1.5px solid #0284c7;">
-            <div class="alm-modal-header" id="poc-header" style="background: linear-gradient(135deg, #0369a1, #0284c7); padding: 2.2em 2.5em 1.5em; position: relative;">
+        <div class="alm-modal-content"
+            style="max-width: 1800px; width: 95vw; border-radius: 20px; overflow: hidden; border: 1.5px solid #0284c7;">
+            <div class="alm-modal-header" id="poc-header"
+                style="background: linear-gradient(135deg, #0369a1, #0284c7); padding: 2.2em 2.5em 1.5em; position: relative;">
                 <div class="div-cerrar">
                     <button type="button" class="btn-cerrar" onclick="cerrarModalPreOrdenCasting()"
                         style="position: absolute; top: 25px; right: 25px; background: rgba(255, 255, 255, 0.18); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 50%; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
-                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" style="width: 14px; height: 14px; filter: brightness(0) invert(1);" alt="Cerrar">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}"
+                            style="width: 14px; height: 14px; filter: brightness(0) invert(1);" alt="Cerrar">
                     </button>
                 </div>
-                <h3 style="font-size: 2em; margin: 0; font-family:'Poppins', sans-serif; font-weight: 700; color: #fff;">Pre-Orden de Fabricación de Casting (4ALM-17)</h3>
-                <p id="poc-modal-subtitle" class="lib-modal-subtitle" style="color: #bae6fd; font-size: 1.15em; margin-top: 8px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500;"></p>
+                <h3 style="font-size: 2em; margin: 0; font-family:'Poppins', sans-serif; font-weight: 700; color: #fff;">
+                    Pre-Orden de Fabricación de Casting (4ALM-17)</h3>
+                <p id="poc-modal-subtitle" class="lib-modal-subtitle"
+                    style="color: #bae6fd; font-size: 1.15em; margin-top: 8px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500;">
+                </p>
 
                 {{-- Tabs/Pestañas para los dos proveedores --}}
-                <div style="display: flex; gap: 10px; margin-top: 25px; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 0; align-items: center;">
+                <div
+                    style="display: flex; gap: 10px; margin-top: 25px; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 0; align-items: center;">
                     <button type="button" id="tab-poc-page-1" class="btn-po-tab active" onclick="switchPocPage(1)"
                         style="border: none; padding: 12px 25px; border-top-left-radius: 12px; border-top-right-radius: 12px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 1.05em; cursor: pointer; transition: all 0.2s ease;">
                         Proveedor 1
@@ -1548,9 +2306,11 @@
 
                     <button type="button" id="btn-add-poc-page-2" class="btns btn-add-tab" onclick="agregarPocPagina2()"
                         style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(255,255,255,0.15); border: 1.5px dashed rgba(255,255,255,0.5); border-radius: 8px; color: white; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 0.9em; font-weight: 500; transition: all 0.2s ease; margin-left: 15px; height: auto;">
-                        <img src="{{ asset('images/anadir.png') }}" style="width: 14px; height: 14px; filter: brightness(0) invert(1);" alt=""> Agregar Proveedor 2
+                        <img src="{{ asset('images/anadir.png') }}"
+                            style="width: 14px; height: 14px; filter: brightness(0) invert(1);" alt=""> Agregar Proveedor 2
                     </button>
-                    <button type="button" id="btn-remove-poc-page-2" class="btns btn-remove-tab" onclick="removerPocPagina2()"
+                    <button type="button" id="btn-remove-poc-page-2" class="btns btn-remove-tab"
+                        onclick="removerPocPagina2()"
                         style="display: none; align-items: center; gap: 6px; padding: 8px 16px; background: #dc2626; border: 1.5px solid #b91c1c; border-radius: 8px; color: #ffffff; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 0.9em; font-weight: 500; transition: all 0.2s ease; margin-left: 15px; height: auto;">
                         Remover Proveedor 2
                     </button>
@@ -1564,50 +2324,85 @@
 
                     {{-- ══════════════ PAGINA 1 ══════════════ --}}
                     <div id="poc-page-1" class="poc-page">
-                        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
+                        <div class="form-grid"
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
                             <div class="form-group">
-                                <label for="poc-p1-proveedor" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Proveedor:</label>
-                                <select id="poc-p1-proveedor" name="page1_proveedor" class="form-control" required onchange="handlePocProveedorChange(1)" style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
-                                    <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de C. V.</option>
-                                    <option value="Fundición Especializada, S. A. de C. V.">Fundición Especializada, S. A. de C. V.</option>
+                                <label for="poc-p1-proveedor"
+                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Proveedor:</label>
+                                <select id="poc-p1-proveedor" name="page1_proveedor" class="form-control" required
+                                    onchange="handlePocProveedorChange(1)"
+                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
+                                    <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de
+                                        C. V.</option>
+                                    <option value="Fundición Especializada, S. A. de C. V.">Fundición Especializada, S. A.
+                                        de C. V.</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="poc-p1-fecha" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Fecha:</label>
-                                <input type="date" id="poc-p1-fecha" name="page1_fecha" class="form-control" readonly required style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
+                                <label for="poc-p1-fecha"
+                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Fecha:</label>
+                                <input type="date" id="poc-p1-fecha" name="page1_fecha" class="form-control" readonly
+                                    required
+                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
                             </div>
                             <div class="form-group">
-                                <label for="poc-p1-folio" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Folio:</label>
-                                <input type="text" id="poc-p1-folio" name="page1_folio" class="form-control" readonly required style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9; font-weight: bold; color: #0369a1;">
+                                <label for="poc-p1-folio"
+                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Folio:</label>
+                                <input type="text" id="poc-p1-folio" name="page1_folio" class="form-control" readonly
+                                    required
+                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9; font-weight: bold; color: #0369a1;">
                             </div>
                             <div class="form-group">
-                                <label for="poc-p1-moldura" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Moldura:</label>
-                                <input type="text" id="poc-p1-moldura" name="page1_moldura" class="form-control" readonly required style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
+                                <label for="poc-p1-moldura"
+                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Moldura:</label>
+                                <input type="text" id="poc-p1-moldura" name="page1_moldura" class="form-control" readonly
+                                    required
+                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
                             </div>
                             <div class="form-group">
-                                <label for="poc-p1-ot" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Orden de Trabajo:</label>
-                                <input type="text" id="poc-p1-ot" name="page1_ot" class="form-control" readonly required style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
+                                <label for="poc-p1-ot"
+                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Orden
+                                    de Trabajo:</label>
+                                <input type="text" id="poc-p1-ot" name="page1_ot" class="form-control" readonly required
+                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
                             </div>
                             <div class="form-group">
-                                <label for="poc-p1-fecha-entrega" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Fecha Entrega <span style="color:#dc2626;">*</span>:</label>
-                                <input type="date" id="poc-p1-fecha-entrega" name="page1_fecha_entrega" class="form-control" required style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
+                                <label for="poc-p1-fecha-entrega"
+                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Fecha
+                                    Entrega <span style="color:#dc2626;">*</span>:</label>
+                                <input type="date" id="poc-p1-fecha-entrega" name="page1_fecha_entrega" class="form-control"
+                                    required
+                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
                             </div>
                         </div>
 
-                        <div class="modal-table-container" style="overflow-x: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div class="modal-table-container"
+                            style="overflow-x: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                             <table class="modal-table" style="width: 100%; border-collapse: collapse; text-align: left;">
                                 <thead>
-                                    <tr style="border-bottom: 2px solid #cbd5e1; color: #475569; font-weight: 700; font-size: 0.95em;">
-                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Tipo de Modelo</th>
-                                        <th style="padding: 12px 10px; width: 8%; font-family:'Poppins', sans-serif;">Cant. Fabricar</th>
-                                        <th style="padding: 12px 10px; width: 8%; font-family:'Poppins', sans-serif;">Cant. Consign.</th>
-                                        <th style="padding: 12px 10px; width: 15%; font-family:'Poppins', sans-serif;">Descripción</th>
-                                        <th style="padding: 12px 10px; width: 14%; font-family:'Poppins', sans-serif;">Material</th>
-                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Código de Modelo</th>
-                                        <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso Juego (KG)</th>
-                                        <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso Total (KG)</th>
-                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Fecha Entrega</th>
-                                        <th style="padding: 12px 10px; width: 5%; text-align: center; font-family:'Poppins', sans-serif;">Acciones</th>
+                                    <tr
+                                        style="border-bottom: 2px solid #cbd5e1; color: #475569; font-weight: 700; font-size: 0.95em;">
+                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Tipo
+                                            de Modelo</th>
+                                        <th style="padding: 12px 10px; width: 8%; font-family:'Poppins', sans-serif;">Cant.
+                                            Fabricar</th>
+                                        <th style="padding: 12px 10px; width: 8%; font-family:'Poppins', sans-serif;">Cant.
+                                            Consign.</th>
+                                        <th style="padding: 12px 10px; width: 15%; font-family:'Poppins', sans-serif;">
+                                            Descripción</th>
+                                        <th style="padding: 12px 10px; width: 14%; font-family:'Poppins', sans-serif;">
+                                            Material</th>
+                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">
+                                            Código de Modelo</th>
+                                        <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso
+                                            Juego (KG)</th>
+                                        <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso
+                                            Total (KG)</th>
+                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Fecha
+                                            Entrega</th>
+                                        <th
+                                            style="padding: 12px 10px; width: 5%; text-align: center; font-family:'Poppins', sans-serif;">
+                                            Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="alm-tbody-poc-p1">
@@ -1615,64 +2410,104 @@
                                 </tbody>
                             </table>
                             <div style="margin-top: 15px; text-align: center;">
-                                <button type="button" class="btn-img-action" onclick="agregarFilaPoc(1)" title="Añadir una nueva fila" style="border: none; background: none; cursor: pointer; padding: 5px; outline: none; transition: transform 0.2s ease;">
-                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir" style="width: 38px; height: 38px;">
+                                <button type="button" class="btn-img-action" onclick="agregarFilaPoc(1)"
+                                    title="Añadir una nueva fila"
+                                    style="border: none; background: none; cursor: pointer; padding: 5px; outline: none; transition: transform 0.2s ease;">
+                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir"
+                                        style="width: 38px; height: 38px;">
                                 </button>
                             </div>
                         </div>
 
                         <div class="form-group" style="margin-top: 25px;">
-                            <label for="poc-p1-observaciones" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Observaciones:</label>
-                            <textarea id="poc-p1-observaciones" name="page1_observaciones" class="form-control" rows="3" style="border-radius: 10px; padding: 14px; font-family:'Poppins',sans-serif; font-size: 1em; width: 100%; box-sizing: border-box; border: 1.5px solid #cbd5e1;"></textarea>
+                            <label for="poc-p1-observaciones"
+                                style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Observaciones:</label>
+                            <textarea id="poc-p1-observaciones" name="page1_observaciones" class="form-control" rows="3"
+                                style="border-radius: 10px; padding: 14px; font-family:'Poppins',sans-serif; font-size: 1em; width: 100%; box-sizing: border-box; border: 1.5px solid #cbd5e1;"></textarea>
                         </div>
                     </div>
 
                     {{-- ══════════════ PAGINA 2 ══════════════ --}}
                     <div id="poc-page-2" class="poc-page" style="display: none;">
-                        <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
+                        <div class="form-grid"
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
                             <div class="form-group">
-                                <label for="poc-p2-proveedor" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Proveedor:</label>
-                                <select id="poc-p2-proveedor" name="page2_proveedor" class="form-control" required onchange="handlePocProveedorChange(2)" style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
-                                    <option value="Fundición Especializada, S. A. de C. V.">Fundición Especializada, S. A. de C. V.</option>
-                                    <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de C. V.</option>
+                                <label for="poc-p2-proveedor"
+                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Proveedor:</label>
+                                <select id="poc-p2-proveedor" name="page2_proveedor" class="form-control" required
+                                    onchange="handlePocProveedorChange(2)"
+                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
+                                    <option value="Fundición Especializada, S. A. de C. V.">Fundición Especializada, S. A.
+                                        de C. V.</option>
+                                    <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de
+                                        C. V.</option>
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label for="poc-p2-fecha" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Fecha:</label>
-                                <input type="date" id="poc-p2-fecha" name="page2_fecha" class="form-control" readonly required style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
+                                <label for="poc-p2-fecha"
+                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Fecha:</label>
+                                <input type="date" id="poc-p2-fecha" name="page2_fecha" class="form-control" readonly
+                                    required
+                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
                             </div>
                             <div class="form-group">
-                                <label for="poc-p2-folio" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Folio:</label>
-                                <input type="text" id="poc-p2-folio" name="page2_folio" class="form-control" readonly required style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9; font-weight: bold; color: #0369a1;">
+                                <label for="poc-p2-folio"
+                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Folio:</label>
+                                <input type="text" id="poc-p2-folio" name="page2_folio" class="form-control" readonly
+                                    required
+                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9; font-weight: bold; color: #0369a1;">
                             </div>
                             <div class="form-group">
-                                <label for="poc-p2-moldura" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Moldura:</label>
-                                <input type="text" id="poc-p2-moldura" name="page2_moldura" class="form-control" readonly required style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
+                                <label for="poc-p2-moldura"
+                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Moldura:</label>
+                                <input type="text" id="poc-p2-moldura" name="page2_moldura" class="form-control" readonly
+                                    required
+                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
                             </div>
                             <div class="form-group">
-                                <label for="poc-p2-ot" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Orden de Trabajo:</label>
-                                <input type="text" id="poc-p2-ot" name="page2_ot" class="form-control" readonly required style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
+                                <label for="poc-p2-ot"
+                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Orden
+                                    de Trabajo:</label>
+                                <input type="text" id="poc-p2-ot" name="page2_ot" class="form-control" readonly required
+                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
                             </div>
                             <div class="form-group">
-                                <label for="poc-p2-fecha-entrega" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Fecha Entrega <span style="color:#dc2626;">*</span>:</label>
-                                <input type="date" id="poc-p2-fecha-entrega" name="page2_fecha_entrega" class="form-control" required style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
+                                <label for="poc-p2-fecha-entrega"
+                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Fecha
+                                    Entrega <span style="color:#dc2626;">*</span>:</label>
+                                <input type="date" id="poc-p2-fecha-entrega" name="page2_fecha_entrega" class="form-control"
+                                    required
+                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
                             </div>
                         </div>
 
-                        <div class="modal-table-container" style="overflow-x: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <div class="modal-table-container"
+                            style="overflow-x: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                             <table class="modal-table" style="width: 100%; border-collapse: collapse; text-align: left;">
                                 <thead>
-                                    <tr style="border-bottom: 2px solid #cbd5e1; color: #475569; font-weight: 700; font-size: 0.95em;">
-                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Tipo de Modelo</th>
-                                        <th style="padding: 12px 10px; width: 8%; font-family:'Poppins', sans-serif;">Cant. Fabricar</th>
-                                        <th style="padding: 12px 10px; width: 8%; font-family:'Poppins', sans-serif;">Cant. Consign.</th>
-                                        <th style="padding: 12px 10px; width: 15%; font-family:'Poppins', sans-serif;">Descripción</th>
-                                        <th style="padding: 12px 10px; width: 14%; font-family:'Poppins', sans-serif;">Material</th>
-                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Código de Modelo</th>
-                                        <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso Juego (KG)</th>
-                                        <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso Total (KG)</th>
-                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Fecha Entrega</th>
-                                        <th style="padding: 12px 10px; width: 5%; text-align: center; font-family:'Poppins', sans-serif;">Acciones</th>
+                                    <tr
+                                        style="border-bottom: 2px solid #cbd5e1; color: #475569; font-weight: 700; font-size: 0.95em;">
+                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Tipo
+                                            de Modelo</th>
+                                        <th style="padding: 12px 10px; width: 8%; font-family:'Poppins', sans-serif;">Cant.
+                                            Fabricar</th>
+                                        <th style="padding: 12px 10px; width: 8%; font-family:'Poppins', sans-serif;">Cant.
+                                            Consign.</th>
+                                        <th style="padding: 12px 10px; width: 15%; font-family:'Poppins', sans-serif;">
+                                            Descripción</th>
+                                        <th style="padding: 12px 10px; width: 14%; font-family:'Poppins', sans-serif;">
+                                            Material</th>
+                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">
+                                            Código de Modelo</th>
+                                        <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso
+                                            Juego (KG)</th>
+                                        <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso
+                                            Total (KG)</th>
+                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Fecha
+                                            Entrega</th>
+                                        <th
+                                            style="padding: 12px 10px; width: 5%; text-align: center; font-family:'Poppins', sans-serif;">
+                                            Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="alm-tbody-poc-p2">
@@ -1680,20 +2515,26 @@
                                 </tbody>
                             </table>
                             <div style="margin-top: 15px; text-align: center;">
-                                <button type="button" class="btn-img-action" onclick="agregarFilaPoc(2)" title="Añadir una nueva fila" style="border: none; background: none; cursor: pointer; padding: 5px; outline: none; transition: transform 0.2s ease;">
-                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir" style="width: 38px; height: 38px;">
+                                <button type="button" class="btn-img-action" onclick="agregarFilaPoc(2)"
+                                    title="Añadir una nueva fila"
+                                    style="border: none; background: none; cursor: pointer; padding: 5px; outline: none; transition: transform 0.2s ease;">
+                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir"
+                                        style="width: 38px; height: 38px;">
                                 </button>
                             </div>
                         </div>
 
                         <div class="form-group" style="margin-top: 25px;">
-                            <label for="poc-p2-observaciones" style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Observaciones:</label>
-                            <textarea id="poc-p2-observaciones" name="page2_observaciones" class="form-control" rows="3" style="border-radius: 10px; padding: 14px; font-family:'Poppins',sans-serif; font-size: 1em; width: 100%; box-sizing: border-box; border: 1.5px solid #cbd5e1;"></textarea>
+                            <label for="poc-p2-observaciones"
+                                style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Observaciones:</label>
+                            <textarea id="poc-p2-observaciones" name="page2_observaciones" class="form-control" rows="3"
+                                style="border-radius: 10px; padding: 14px; font-family:'Poppins',sans-serif; font-size: 1em; width: 100%; box-sizing: border-box; border: 1.5px solid #cbd5e1;"></textarea>
                         </div>
                     </div>
 
                     <div class="form-actions" style="margin-top: 35px; text-align: center;">
-                        <button type="submit" class="btn-save-preorden" id="btn-submit-poc" style="font-size: 1.2em; padding: 15px 35px; border-radius: 10px; font-family: 'Poppins', sans-serif; font-weight: 700; background: linear-gradient(135deg, #0369a1, #0284c7); border: none; color: white; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(3, 105, 161, 0.3); height: auto;">
+                        <button type="submit" class="btn-save-preorden" id="btn-submit-poc"
+                            style="font-size: 1.2em; padding: 15px 35px; border-radius: 10px; font-family: 'Poppins', sans-serif; font-weight: 700; background: linear-gradient(135deg, #0369a1, #0284c7); border: none; color: white; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(3, 105, 161, 0.3); height: auto;">
                             Guardar y Descargar Pre-Orden de Casting
                         </button>
                     </div>
@@ -1704,18 +2545,26 @@
 
     {{-- ── MODAL: FINALIZAR PROCESO DE CALIDAD (CORREO Y FECHA) ── --}}
     <div id="modalFinalizarCalidad" class="alm-modal" role="dialog" aria-modal="true">
-        <div class="alm-modal-content" id="finalizar-calidad-modal-content" style="max-width: 1500px; width: 95vw; border-radius: 20px; overflow: hidden;">
-            <div class="alm-modal-header" id="finalizar-calidad-header" style="padding: 1.5em 5.5em 1.2em 2.2em; border-top-left-radius: 18px; border-top-right-radius: 18px; position: relative;">
+        <div class="alm-modal-content" id="finalizar-calidad-modal-content"
+            style="max-width: 1500px; width: 95vw; border-radius: 20px; overflow: hidden;">
+            <div class="alm-modal-header" id="finalizar-calidad-header"
+                style="padding: 1.5em 5.5em 1.2em 2.2em; border-top-left-radius: 18px; border-top-right-radius: 18px; position: relative;">
                 <div class="div-cerrar">
                     <button type="button" class="btn-cerrar" onclick="cerrarModalFinalizarCalidad()"
                         style="position: absolute; top: 18px; right: 22px; background: rgba(255, 255, 255, 0.18); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 50%; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
-                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" style="width: 12px; height: 12px; filter: brightness(0) invert(1);">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}"
+                            style="width: 12px; height: 12px; filter: brightness(0) invert(1);">
                     </button>
                 </div>
-                <h3 id="finalizar-calidad-title" style="font-size: 1.5em; margin: 0; font-family:'Poppins', sans-serif; font-weight: 700; color: #fff; line-height: 1.3;">Finalizar Proceso de Calidad</h3>
-                <p id="finalizar-calidad-subtitle" class="lib-modal-subtitle" style="color: #ffffff; font-size: 0.95em; margin-top: 5px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500; opacity: 0.9;"></p>
+                <h3 id="finalizar-calidad-title"
+                    style="font-size: 1.5em; margin: 0; font-family:'Poppins', sans-serif; font-weight: 700; color: #fff; line-height: 1.3;">
+                    Finalizar Proceso de Calidad</h3>
+                <p id="finalizar-calidad-subtitle" class="lib-modal-subtitle"
+                    style="color: #ffffff; font-size: 0.95em; margin-top: 5px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500; opacity: 0.9;">
+                </p>
             </div>
-            <div class="alm-modal-body" style="padding: 2.2em 2.5em; background: #fafafa; font-family: 'Poppins', sans-serif;">
+            <div class="alm-modal-body"
+                style="padding: 2.2em 2.5em; background: #fafafa; font-family: 'Poppins', sans-serif;">
                 <form id="formFinalizarCalidad" enctype="multipart/form-data" novalidate>
                     @csrf
                     <input type="hidden" id="fc-ot" name="ot">
@@ -1728,30 +2577,44 @@
 
                     {{-- Destinatario(s) --}}
                     <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="fc-destinatario" style="font-size: 1.1em; font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif;">Destinatario(s) <span style="color:#dc2626;">*</span></label>
-                        <input type="text" id="fc-destinatario" name="destinatario" class="form-control" required value="jaxer020406@gmail.com" style="font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
-                        <span style="font-size: 0.85em; color: #64748b; margin-top: 6px; display: block;">Separa múltiples correos usando comas (,).</span>
+                        <label for="fc-destinatario"
+                            style="font-size: 1.1em; font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif;">Destinatario(s)
+                            <span style="color:#dc2626;">*</span></label>
+                        <input type="text" id="fc-destinatario" name="destinatario" class="form-control" required
+                            value="jaxer020406@gmail.com"
+                            style="font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
+                        <span style="font-size: 0.85em; color: #64748b; margin-top: 6px; display: block;">Separa múltiples
+                            correos usando comas (,).</span>
                     </div>
 
                     {{-- FECHA (OBLIGATORIA) --}}
                     <div class="form-group" style="margin-bottom: 24px;">
-                        <label id="fc-fecha-label" for="fc-fecha" style="font-weight:700; color:#334155; display:block; margin-bottom:8px; font-family:'Poppins', sans-serif; font-size:1.1em;">
+                        <label id="fc-fecha-label" for="fc-fecha"
+                            style="font-weight:700; color:#334155; display:block; margin-bottom:8px; font-family:'Poppins', sans-serif; font-size:1.1em;">
                             Fecha de Finalización <span style="color:#dc2626;">*</span>
                         </label>
-                        <input type="date" id="fc-fecha" name="fecha" class="form-control" required style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
+                        <input type="date" id="fc-fecha" name="fecha" class="form-control" required
+                            style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
                     </div>
 
                     {{-- Listado de Documentos del Servidor --}}
                     <div class="form-group" style="margin-bottom: 24px;">
-                        <label style="font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif;">Archivos de liberación en servidor a adjuntar:</label>
-                        <div id="fc-server-files-container" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:15px; max-height:420px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill,minmax(200px, 1fr)); gap:8px; justify-items:center;">
-                            <div class="alm-spinner" id="fc-server-spinner" style="border-top-color: #0284c7; display: block; margin: 10px auto; grid-column:1/-1;"></div>
-                            <span style="text-align:center; color:#64748b; grid-column:1/-1;">Cargando archivos de la OT...</span>
+                        <label
+                            style="font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif;">Archivos
+                            de liberación en servidor a adjuntar:</label>
+                        <div id="fc-server-files-container"
+                            style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;">
+                            <div class="alm-spinner" id="fc-server-spinner"
+                                style="border-top-color: #0284c7; display: block; margin: 10px auto; grid-column:1/-1;">
+                            </div>
+                            <span style="text-align:center; color:#64748b; grid-column:1/-1;">Cargando archivos de la
+                                OT...</span>
                         </div>
                     </div>
 
                     <div class="form-actions" style="text-align: center; margin-top: 30px; margin-bottom: 10px;">
-                        <button type="submit" class="btn-save-preorden" id="btn-submit-finalizar-calidad" style="font-size:1.15em; padding:14px 30px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight: 700; height: auto;">
+                        <button type="submit" class="btn-save-preorden" id="btn-submit-finalizar-calidad"
+                            style="font-size:1.15em; padding:14px 30px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight: 700; height: auto;">
                             Finalizar y Enviar Correo
                         </button>
                     </div>
@@ -1798,7 +2661,7 @@
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label>Archivos de la OT disponibles para adjuntar:</label>
                         <div id="env-server-files-container"
-                            style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; justify-items: center;">
+                            style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;">
                             <div class="alm-spinner"
                                 style="border-top-color: #033966; display: block; margin: 10px auto; grid-column: 1 / -1;">
                             </div>
@@ -1847,7 +2710,8 @@
                     </button>
                 </div>
                 <h3 style="color: #ffffff;">Enviar Alerta SCAR al Proveedor</h3>
-                <p id="env-scar-modal-subtitle" class="lib-modal-subtitle" style="color: #ffd1d1; font-size: 0.9em; margin-top: 4px; margin-bottom: 0;"></p>
+                <p id="env-scar-modal-subtitle" class="lib-modal-subtitle"
+                    style="color: #ffd1d1; font-size: 0.9em; margin-top: 4px; margin-bottom: 0;"></p>
             </div>
             <div class="alm-modal-body lib-modal-body">
                 <form id="formEnviarScar" enctype="multipart/form-data" autocomplete="off">
@@ -1855,7 +2719,8 @@
 
                     {{-- Destinatario --}}
                     <div class="form-group" style="margin-bottom: 16px;">
-                        <label for="env-scar-destinatario" style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">
+                        <label for="env-scar-destinatario"
+                            style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">
                             Destinatario(s) (separados por coma):
                         </label>
                         <input type="text" id="env-scar-destinatario" name="destinatario" class="form-control" required
@@ -1864,21 +2729,35 @@
 
                     {{-- Fecha Compromiso --}}
                     <div class="form-group" style="margin-bottom: 16px;">
-                        <label for="env-scar-fecha-compromiso" style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">
+                        <label for="env-scar-fecha-compromiso"
+                            style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">
                             Fecha Compromiso de Devolución (Obligatoria):
                         </label>
-                        <input type="date" id="env-scar-fecha-compromiso" name="fecha_compromiso" class="form-control" required>
+                        <input type="date" id="env-scar-fecha-compromiso" name="fecha_compromiso" class="form-control"
+                            required>
                     </div>
 
                     {{-- SCAR Firmado --}}
                     <div class="form-group" style="margin-bottom: 20px;">
-                        <label for="env-scar-pdf-firmado" style="font-weight: 700; color: #9c0300; display: block; margin-bottom: 8px;">Subir SCAR Firmado Físicamente (PDF Obligatorio): <span style="color:#9c0300;">*</span></label>
-                        <div class="custom-file-dropzone" style="border: 2px dashed #dc2626; background: #fef2f2; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
-                            <input type="file" id="env-scar-pdf-firmado" name="pdf_firmado" class="custom-file-input" accept=".pdf" required style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;" onchange="handleAlertaFileChange(this, 'env-scar-pdf-text', 'pdf')">
-                            <div class="dropzone-content" style="display: flex; flex-direction: column; align-items: center; pointer-events: none;">
-                                <img src="{{ asset('images/pdf.png') }}" style="width: 24px; height: 24px; margin-bottom: 4px;" alt="PDF">
-                                <span id="env-scar-pdf-text" style="font-weight: 700; color: #dc2626; font-size: 0.85em; text-align: center; font-family:'Poppins', sans-serif;">Seleccionar o arrastrar PDF *</span>
-                                <span style="font-size: 0.7em; color: #64748b; margin-top: 2px; font-family:'Poppins', sans-serif;">Solo archivos PDF</span>
+                        <label for="env-scar-pdf-firmado"
+                            style="font-weight: 700; color: #9c0300; display: block; margin-bottom: 8px;">Subir SCAR Firmado
+                            Físicamente (PDF Obligatorio): <span style="color:#9c0300;">*</span></label>
+                        <div class="custom-file-dropzone"
+                            style="border: 2px dashed #dc2626; background: #fef2f2; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
+                            <input type="file" id="env-scar-pdf-firmado" name="pdf_firmado" class="custom-file-input"
+                                accept=".pdf" required
+                                style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;"
+                                onchange="handleAlertaFileChange(this, 'env-scar-pdf-text', 'pdf')">
+                            <div class="dropzone-content"
+                                style="display: flex; flex-direction: column; align-items: center; pointer-events: none;">
+                                <img src="{{ asset('images/pdf.png') }}"
+                                    style="width: 24px; height: 24px; margin-bottom: 4px;" alt="PDF">
+                                <span id="env-scar-pdf-text"
+                                    style="font-weight: 700; color: #dc2626; font-size: 0.85em; text-align: center; font-family:'Poppins', sans-serif;">Seleccionar
+                                    o arrastrar PDF *</span>
+                                <span
+                                    style="font-size: 0.7em; color: #64748b; margin-top: 2px; font-family:'Poppins', sans-serif;">Solo
+                                    archivos PDF</span>
                             </div>
                         </div>
                     </div>
@@ -1887,32 +2766,44 @@
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label>Archivos de la OT disponibles para adjuntar:</label>
                         <div id="env-scar-server-files-container"
-                            style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; justify-items: center;">
+                            style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;">
                             <div class="alm-spinner"
                                 style="border-top-color: #9c0300; display: block; margin: 10px auto; grid-column: 1 / -1;">
                             </div>
-                            <span style="text-align: center; color: #64748b; grid-column: 1 / -1;">Cargando archivos de la OT...</span>
+                            <span style="text-align: center; color: #64748b; grid-column: 1 / -1;">Cargando archivos de la
+                                OT...</span>
                         </div>
                     </div>
 
                     {{-- Evidencia adicional --}}
                     <div class="form-group" style="margin-bottom: 30px;">
-                        <label class="custom-file-upload-label" style="font-weight: 700; color: #9c0300; display: block; margin-bottom: 8px;">Subir Evidencia Adicional al Envío (Imágenes o PDFs adicionales):</label>
-                        <div class="custom-file-dropzone" style="border: 2px dashed #9c0300; background: #fff8f8; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
-                            <input type="file" id="env-scar-archivos-adicionales" name="archivos_adicionales[]" class="custom-file-input" multiple style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
+                        <label class="custom-file-upload-label"
+                            style="font-weight: 700; color: #9c0300; display: block; margin-bottom: 8px;">Subir Evidencia
+                            Adicional al Envío (Imágenes o PDFs adicionales):</label>
+                        <div class="custom-file-dropzone"
+                            style="border: 2px dashed #9c0300; background: #fff8f8; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
+                            <input type="file" id="env-scar-archivos-adicionales" name="archivos_adicionales[]"
+                                class="custom-file-input" multiple
+                                style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
                             <div class="dropzone-content">
-                                <img src="{{ asset('images/anadir.png') }}" class="dropzone-icon" style="width: 24px; height: 24px; margin-bottom: 4px; object-fit: contain;">
-                                <span class="dropzone-text" style="font-weight: 700; color: #9c0300; font-size: 0.85em; text-align: center; font-family:'Poppins', sans-serif;">Arrastra archivos aquí o haz clic para buscar</span>
-                                <span class="dropzone-subtext" style="font-size: 0.7em; color: #64748b; margin-top: 2px; font-family:'Poppins', sans-serif;">Imágenes, PDF, ZIP</span>
+                                <img src="{{ asset('images/anadir.png') }}" class="dropzone-icon"
+                                    style="width: 24px; height: 24px; margin-bottom: 4px; object-fit: contain;">
+                                <span class="dropzone-text"
+                                    style="font-weight: 700; color: #9c0300; font-size: 0.85em; text-align: center; font-family:'Poppins', sans-serif;">Arrastra
+                                    archivos aquí o haz clic para buscar</span>
+                                <span class="dropzone-subtext"
+                                    style="font-size: 0.7em; color: #64748b; margin-top: 2px; font-family:'Poppins', sans-serif;">Imágenes,
+                                    PDF, ZIP</span>
                             </div>
                         </div>
-                        <div id="env-scar-archivos-adicionales-list" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                        <div id="env-scar-archivos-adicionales-list"
+                            style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
                     </div>
 
                     {{-- Boton de Envio --}}
                     <div class="form-actions" style="text-align: center; margin-top: 20px;">
-                        <button type="submit" class="btn-lib-send" style="background: linear-gradient(135deg, #9c0300, #7a0200); box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3);">
-                            <img src="{{ asset('images/enviando.png') }}" alt="" style="width: 18px; height: 18px;">
+                        <button type="submit" class="btn-lib-send"
+                            style="background: linear-gradient(135deg, #9c0300, #7a0200); box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3);">
                             Enviar Alerta SCAR al Proveedor
                         </button>
                     </div>
