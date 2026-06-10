@@ -50,7 +50,7 @@ function createMenu(profile) {
     }
 }
 
-function createList(sections) {
+function createList(sections, isNested = false) {
     const fragment = document.createDocumentFragment();
     const currentPath = window.location.pathname;
 
@@ -59,6 +59,9 @@ function createList(sections) {
         if (section.title) {
             const liSection = document.createElement("li");
             liSection.classList.add("menu-section");
+            if (isNested) {
+                liSection.classList.add("nested-menu-section");
+            }
 
             const toggle = document.createElement("a");
             toggle.href = "#";
@@ -68,52 +71,94 @@ function createList(sections) {
             const ulSubmenu = document.createElement("ul");
             ulSubmenu.classList.add("submenu");
 
-            section.routes.forEach((route) => {
-                const li = document.createElement("li");
-                const a = document.createElement("a");
-                a.classList.add("nav-link");
-                a.href = window.routes[route[0]];
-                a.textContent = route[1];
+            // Si routes tiene sub-secciones (objetos) en lugar de arrays
+            const firstRoute = section.routes[0];
+            if (firstRoute && typeof firstRoute === "object" && !Array.isArray(firstRoute)) {
+                ulSubmenu.appendChild(createList(section.routes, true));
+            } else {
+                section.routes.forEach((route) => {
+                    const li = document.createElement("li");
+                    const a = document.createElement("a");
+                    a.classList.add("nav-link");
+                    a.href = window.routes[route[0]];
+                    a.textContent = route[1];
 
-                a.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    //Aparecer div opacity
-                    let div_opacity = document.createElement("div");
-                    div_opacity.classList.add("div-opacity");
+                    a.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        let div_opacity = document.createElement("div");
+                        div_opacity.classList.add("div-opacity");
 
-                    let div_loading = document.createElement("div");
-                    div_loading.classList.add("loading");
+                        let div_loading = document.createElement("div");
+                        div_loading.classList.add("loading");
 
-                    let img_loading = document.createElement("img");
-                    img_loading.classList.add("img-loading");
-                    img_loading.src = window.loading;
-                    img_loading.alt = "Cargando...";
-                    div_loading.appendChild(img_loading);
+                        let img_loading = document.createElement("img");
+                        img_loading.classList.add("img-loading");
+                        img_loading.src = window.loading;
+                        img_loading.alt = "Cargando...";
+                        div_loading.appendChild(img_loading);
 
-                    div_opacity.appendChild(div_loading);
-                    document.body.appendChild(div_opacity);
+                        div_opacity.appendChild(div_loading);
+                        document.body.appendChild(div_opacity);
 
-                    window.location.href = a.href;
+                        window.location.href = a.href;
+                    });
+
+                    const linkUrl  = new URL(a.href, window.location.origin);
+                    const linkPath = linkUrl.pathname;
+                    const linkSearch = linkUrl.search;
+
+                    const pathMatch   = currentPath === linkPath;
+                    const searchMatch = linkSearch
+                        ? window.location.search === linkSearch
+                        : window.location.search === '' || !window.location.search.includes('admin_only=1');
+
+                    if (pathMatch && searchMatch) {
+                        a.classList.add("active");
+                        
+                        // Expandir todos los menús y submenús padres
+                        let parentEl = liSection;
+                        while (parentEl && parentEl.tagName !== "NAV") {
+                            if (parentEl.classList.contains("menu-section")) {
+                                parentEl.classList.add("active");
+                                const sub = parentEl.querySelector(".submenu");
+                                if (sub) {
+                                    sub.style.display = "block";
+                                }
+                            }
+                            parentEl = parentEl.parentElement;
+                        }
+                    }
+
+                    li.appendChild(a);
+                    ulSubmenu.appendChild(li);
                 });
+            }
 
-                const linkUrl  = new URL(a.href, window.location.origin);
-                const linkPath = linkUrl.pathname;
-                const linkSearch = linkUrl.search; // query string del enlace (?admin_only=1 o vacío)
+            // Manejador del click para abrir/cerrar este submenú
+            toggle.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const parent = liSection;
+                const isAlreadyActive = parent.classList.contains("active");
 
-                // Comparar pathname siempre. Si el enlace tiene query string, compararlo también.
-                const pathMatch   = currentPath === linkPath;
-                const searchMatch = linkSearch
-                    ? window.location.search === linkSearch
-                    : window.location.search === '' || !window.location.search.includes('admin_only=1');
-
-                if (pathMatch && searchMatch) {
-                    a.classList.add("active");
-                    liSection.classList.add("active"); // para mostrar sección activa
-                    ulSubmenu.style.display = "block";
+                // Cerrar hermanos del mismo nivel (para evitar desorden)
+                const siblings = parent.parentElement.children;
+                for (let sibling of siblings) {
+                    if (sibling !== parent && sibling.classList.contains("menu-section")) {
+                        sibling.classList.remove("active");
+                        const submenu = sibling.querySelector(".submenu");
+                        if (submenu) submenu.style.display = "none";
+                    }
                 }
 
-                li.appendChild(a);
-                ulSubmenu.appendChild(li);
+                // Alternar el actual
+                if (isAlreadyActive) {
+                    parent.classList.remove("active");
+                    ulSubmenu.style.display = "none";
+                } else {
+                    parent.classList.add("active");
+                    ulSubmenu.style.display = "block";
+                }
             });
 
             liSection.appendChild(toggle);
@@ -131,7 +176,6 @@ function createList(sections) {
 
                 a.addEventListener("click", (e) => {
                     e.preventDefault();
-                    //Aparecer div opacity
                     let div_opacity = document.createElement("div");
                     div_opacity.classList.add("div-opacity");
 
@@ -273,12 +317,135 @@ function getRoutes(profile) {
             sections = [
                 {
                     title: null,
-                    routes: [routeHome, ["createUser", "Registrar usuario"]],
+                    routes: [routeHome],
                 },
                 {
-                    title: "Usuarios",
-                    routes: [["createUser", "Registrar usuario"]],
-                }
+                    title: "Administración",
+                    routes: [
+                        {
+                            title: "Molduras",
+                            routes: [
+                                ["createMolding", "Crear nueva moldura"],
+                                ["editMolding", "Editar moldura"],
+                            ],
+                        },
+                        {
+                            title: "Orden de Trabajo",
+                            routes: [
+                                ["manageWO", "Crear o Modificar O.T"],
+                                ["piecesInProgress", "Piezas en progreso"],
+                                ["showPiecesReport_view", "Reporte de piezas"],
+                                ["showReleasePieces_view", "Liberación de piezas"],
+                            ],
+                        },
+                        {
+                            title: "Documentación Técnica",
+                            routes: [
+                                ["ayudas_fundicion.manage", "Ayudas Visuales de Fundición"],
+                                ["ayudas.manage", "Ayudas Visuales de Maquinados"],
+                                ["fundicion.manage", "Dibujos de Fundición"],
+                                ["dibujos.manage", "Dibujos de Maquinados"],
+                                ["manuales.manage", "Manuales de Procesos"],
+                            ],
+                        },
+                        {
+                            title: "Usuarios",
+                            routes: [
+                                ['users', 'Ver usuarios'],
+                                ["createUser", "Registrar usuario"],
+                                ["recoverPassword", "Recuperar contraseña"],
+                            ],
+                        },
+                        {
+                            title: "Producción",
+                            routes: [
+                                ["productionData", "Datos de productividad"],
+                                ["cNominals", "Editar C.Nominales y Tolerancias"],
+                                ["machinesOccupied", "Máquinas ocupadas"],
+                                ["show_panelWO", "Panel de progreso de O.T"],
+                                ["systemLogsReport", "Auditoría de Producción"],
+                                ["adminLogsReport", "Logs de Administradores"],
+                            ],
+                        },
+                        {
+                            title: "Soldadura PTA",
+                            routes: [
+                                ["pta.analysis", "Análisis de Resultados PTA"],
+                                ["pta.segunda_pasada", "Segunda Pasada PTA"],
+                            ],
+                        },
+                        {
+                            title: "Reportes",
+                            routes: [
+                                ["reportes.reenvio", "Reenviar Reporte Diario"],
+                                ["reportes.pta", "Envío de Reportes PTA"],
+                            ],
+                        },
+                        {
+                            title: "Herramientas",
+                            routes: [
+                                ["herramientas.tecamac.index", "Herramientas Tecamac"],
+                            ],
+                        },
+                    ],
+                },
+                {
+                    title: "Calidad",
+                    routes: [
+                        {
+                            title: "Liberación de Piezas",
+                            routes: [["showReleasePieces_view", "Liberación de piezas"]],
+                        },
+                        {
+                            title: "Producción",
+                            routes: [
+                                ["piecesInProgress", "Piezas en progreso"],
+                                ["cNominals", "Editar C.Nominales y Tolerancias"],
+                            ],
+                        },
+                        {
+                            title: "Documentación Técnica",
+                            routes: [
+                                ["almacen.fundicion.index", "Dibujos y Ayudas de Fundición"],
+                                ["calidad.maquinados.index", "Dibujos y Ayudas de Maquinados"],
+                            ],
+                        },
+                    ],
+                },
+                {
+                    title: "Almacén",
+                    routes: [
+                        {
+                            title: "Orden de Trabajo",
+                            routes: [
+                                ["manageWO", "Modificar O.T"],
+                                ["piecesInProgress", "Piezas en progreso"],
+                            ],
+                        },
+                        {
+                            title: "Soldadura",
+                            routes: [
+                                ["soldadura.generarQRLote", "Generar QR por Lote"],
+                                ["soldadura.generarQRIndividual", "Generar QRs Botes"],
+                                ["soldadura.recepcionPlanta", "Registrar entrada de Soldadura"],
+                                ["soldadura.liberarQRPlanta", "Entrega de Soldadura a Planta"],
+                                ["soldadura.regenerarQR", "Regenerar QRs"],
+                            ],
+                        },
+                        {
+                            title: "Documentación Técnica",
+                            routes: [
+                                ["almacen.fundicion.index", "Dibujos y Ayudas de Fundición"],
+                            ],
+                        },
+                        {
+                            title: "Herramientas",
+                            routes: [
+                                ["herramientas.tecamac.index", "Herramientas Tecamac"],
+                            ],
+                        },
+                    ],
+                },
             ];
             break;
         case "4":
@@ -369,33 +536,6 @@ function getRoutes(profile) {
     return sections;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".submenu-toggle").forEach((toggle) => {
-        toggle.addEventListener("click", function (e) {
-            e.preventDefault();
-            const parent = this.parentElement;
-            const isAlreadyActive = parent.classList.contains("active");
-
-            // Cerrar todos los demás submenús abiertos
-            document.querySelectorAll(".menu-section.active").forEach((section) => {
-                if (section !== parent) {
-                    section.classList.remove("active");
-                    const submenu = section.querySelector(".submenu");
-                    if (submenu) submenu.style.display = "none";
-                }
-            });
-
-            // Alternar el actual
-            if (isAlreadyActive) {
-                parent.classList.remove("active");
-                this.nextElementSibling.style.display = "none";
-            } else {
-                parent.classList.add("active");
-                this.nextElementSibling.style.display = "block";
-            }
-        });
-    });
-});
 
 //Si window.pieces_released es de tipo Object convertirlo a Array
 if (window.pieces_Released) {
