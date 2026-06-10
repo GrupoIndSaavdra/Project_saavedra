@@ -13,15 +13,16 @@ use Illuminate\Support\Str;
  * HerramientasTecamacController
  *
  * Permisos:
- *   Perfil 1 (Admin)   → puede ver, editar, inactivar y reactivar (NO dar de alta)
- *   Perfil 5 (Almacén) → CRUD completo: alta, editar, inactivar, reactivar
+ *   Perfil 1 (Admin)   → puede ver, filtrar/buscar y editar SOLO mínimo y máximo
+ *   Perfil 5 (Almacén) → CRUD completo: alta, editar todo, fotos, inactivar, reactivar
  */
 class HerramientasTecamacController extends Controller
 {
     private const PERFILES_PERMITIDOS = ['1', '5'];
-    private const PERFILES_CRUD       = ['1', '5'];   // editar / inactivar / reactivar
-    private const PERFILES_ALTA       = ['5'];         // SOLO Almacén puede dar de alta
-    private const DIR_PUBLIC          = 'herramientas_tecamac';
+    private const PERFILES_ALMACEN   = ['5'];   // CRUD completo + inactivar/reactivar
+    private const PERFILES_STOCK     = ['1'];   // Solo editar mínimo y máximo
+
+    private const DIR_PUBLIC = 'herramientas_tecamac';
 
     private const TIPOS_IMAGEN = [
         'herramienta',
@@ -33,30 +34,12 @@ class HerramientasTecamacController extends Controller
 
     /** Lista oficial de procesos del sistema */
     public const PROCESOS = [
-        'Cepillado',
-        'Desbaste Exterior',
-        'Revisión Laterales',
-        '1ª Operación',
-        'Barreno Maniobra',
-        '2ª Operación',
-        'Soldadura',
-        'Soldadura PTA',
-        'Rectificado',
-        'Asentado',
-        'Calificado',
-        'Acabado Bombillo',
-        'Acabado Molde',
-        'Barreno Profundidad',
-        'Cavidades',
-        'Copiado',
-        'OffSet',
-        'Palomas',
-        'Rebajes',
-        'Grabado',
-        'Operación Equipo',
-        'Embudo CM',
-        '1ª Op. Cabeza Soplo',
-        '2ª Op. Cabeza Soplo',
+        'Cepillado', 'Desbaste Exterior', 'Revisión Laterales', '1ª Operación',
+        'Barreno Maniobra', '2ª Operación', 'Soldadura', 'Soldadura PTA',
+        'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo',
+        'Acabado Molde', 'Barreno Profundidad', 'Cavidades', 'Copiado',
+        'OffSet', 'Palomas', 'Rebajes', 'Grabado', 'Operación Equipo',
+        'Embudo CM', '1ª Op. Cabeza Soplo', '2ª Op. Cabeza Soplo',
     ];
 
     // ── ACCESO ────────────────────────────────────────────────────────────────
@@ -69,19 +52,22 @@ class HerramientasTecamacController extends Controller
         }
     }
 
-    private function verificarCrud(): void
+    /** Solo perfil 5 (Almacén) puede hacer CRUD completo */
+    private function verificarAlmacen(): void
     {
         $user = Auth::user();
-        if (!$user || !in_array((string) $user->perfil, self::PERFILES_CRUD, true)) {
-            abort(403, 'Sin permiso para modificar el catálogo.');
+        if (!$user || !in_array((string) $user->perfil, self::PERFILES_ALMACEN, true)) {
+            abort(403, 'Solo Almacén puede realizar esta operación.');
         }
     }
 
-    private function verificarAlta(): void
+    /** Perfil 1 (Admin) o Perfil 5 (Almacén) pueden editar stock */
+    private function verificarStock(): void
     {
         $user = Auth::user();
-        if (!$user || !in_array((string) $user->perfil, self::PERFILES_ALTA, true)) {
-            abort(403, 'Solo Almacén puede registrar nuevas herramientas.');
+        $permitidos = array_merge(self::PERFILES_ALMACEN, self::PERFILES_STOCK);
+        if (!$user || !in_array((string) $user->perfil, $permitidos, true)) {
+            abort(403, 'Sin permiso para editar el stock.');
         }
     }
 
@@ -91,12 +77,11 @@ class HerramientasTecamacController extends Controller
     {
         $this->verificarAcceso();
 
-        $perfil   = (string) Auth::user()->perfil;
-        $modo     = $request->query('modo', 'activas');
-        $busqueda = trim($request->query('q', ''));
+        $perfil        = (string) Auth::user()->perfil;
+        $modo          = $request->query('modo', 'activas');
+        $busqueda      = trim($request->query('q', ''));
         $filtroProceso = trim($request->query('proceso', ''));
 
-        // ── Herramientas a mostrar según modo ─────────────────────────────────
         if ($modo === 'inactivas') {
             $query = HerramientaTecamac::query()->where('activo', false);
         } elseif ($modo === 'stock_bajo') {
@@ -109,12 +94,10 @@ class HerramientasTecamacController extends Controller
             $query = HerramientaTecamac::query()->where('activo', true);
         }
 
-        // Filtro por proceso (JSON array: busca si contiene el proceso)
         if ($filtroProceso !== '') {
             $query->whereJsonContains('proceso', $filtroProceso);
         }
 
-        // Filtro de búsqueda
         if ($busqueda !== '') {
             $query->where(function ($q) use ($busqueda) {
                 $q->where('descripcion_herramienta', 'like', "%{$busqueda}%")
@@ -127,7 +110,6 @@ class HerramientasTecamacController extends Controller
 
         $herramientas = $query->with('imagenes')->orderBy('nombre_herramienta')->get();
 
-        // ── Contadores globales ────────────────────────────────────────────────
         $totalActivas   = HerramientaTecamac::where('activo', true)->count();
         $totalInactivas = HerramientaTecamac::where('activo', false)->count();
         $totalStockBajo = HerramientaTecamac::where('activo', true)
@@ -135,23 +117,27 @@ class HerramientasTecamacController extends Controller
             ->whereColumn('cantidad_portaherramientas', '<', 'minimo')
             ->count();
 
-        $esCrud = in_array($perfil, self::PERFILES_CRUD, true);
-        $esAlta = in_array($perfil, self::PERFILES_ALTA, true);
+        $esAlmacen = in_array($perfil, self::PERFILES_ALMACEN, true);
+        $esAdmin   = in_array($perfil, self::PERFILES_STOCK, true);
+
+        // Retrocompatibilidad con la vista existente
+        $esCrud = $esAlmacen;
+        $esAlta = $esAlmacen;
 
         $procesos = self::PROCESOS;
 
         return view('herramientas.index', compact(
             'herramientas', 'busqueda', 'modo', 'filtroProceso',
             'totalActivas', 'totalInactivas', 'totalStockBajo',
-            'esCrud', 'esAlta', 'procesos'
+            'esCrud', 'esAlta', 'esAlmacen', 'esAdmin', 'procesos'
         ));
     }
 
-    // ── STORE ─────────────────────────────────────────────────────────────────
+    // ── STORE (solo Almacén) ──────────────────────────────────────────────────
 
     public function store(Request $request): JsonResponse
     {
-        $this->verificarAlta();
+        $this->verificarAlmacen();
 
         $validated = $request->validate([
             'proceso'                    => 'nullable|array',
@@ -167,16 +153,16 @@ class HerramientasTecamacController extends Controller
             'avances'                    => 'nullable|string|max:100',
             'minimo'                     => 'nullable|integer|min:0',
             'maximo'                     => 'nullable|integer|min:0',
-            'img_herramienta.*'            => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_herramienta.*'            => 'nullable|string|max:150',
-            'img_accesorio.*'              => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_accesorio.*'              => 'nullable|string|max:150',
-            'img_tornilleria.*'            => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_tornilleria.*'            => 'nullable|string|max:150',
-            'img_tornilleria_accesorio.*'  => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_tornilleria_accesorio.*'  => 'nullable|string|max:150',
-            'img_imagen_fisica.*'          => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_imagen_fisica.*'          => 'nullable|string|max:150',
+            'img_herramienta.*'           => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_herramienta.*'           => 'nullable|string|max:150',
+            'img_accesorio.*'             => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_accesorio.*'             => 'nullable|string|max:150',
+            'img_tornilleria.*'           => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_tornilleria.*'           => 'nullable|string|max:150',
+            'img_tornilleria_accesorio.*' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_tornilleria_accesorio.*' => 'nullable|string|max:150',
+            'img_imagen_fisica.*'         => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_imagen_fisica.*'         => 'nullable|string|max:150',
         ]);
 
         $camposBase = collect($validated)->only([
@@ -184,7 +170,6 @@ class HerramientasTecamacController extends Controller
             'nombre_accesorio', 'accesorios', 'cantidad_portaherramientas',
             'profundidad_corte', 'rpm', 'avances', 'minimo', 'maximo',
         ])->toArray();
-        // proceso viene como array desde los checkboxes
         $camposBase['proceso'] = array_values(array_filter($request->input('proceso', [])));
 
         $herramienta = HerramientaTecamac::create($camposBase);
@@ -197,11 +182,11 @@ class HerramientasTecamacController extends Controller
         ], 201);
     }
 
-    // ── UPDATE ────────────────────────────────────────────────────────────────
+    // ── UPDATE completo (solo Almacén) ────────────────────────────────────────
 
     public function update(Request $request, int $id): JsonResponse
     {
-        $this->verificarCrud();
+        $this->verificarAlmacen();
 
         /** @var HerramientaTecamac $h */
         $h = HerramientaTecamac::findOrFail($id);
@@ -220,18 +205,18 @@ class HerramientasTecamacController extends Controller
             'avances'                    => 'nullable|string|max:100',
             'minimo'                     => 'nullable|integer|min:0',
             'maximo'                     => 'nullable|integer|min:0',
-            'img_herramienta.*'            => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_herramienta.*'            => 'nullable|string|max:150',
-            'img_accesorio.*'              => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_accesorio.*'              => 'nullable|string|max:150',
-            'img_tornilleria.*'            => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_tornilleria.*'            => 'nullable|string|max:150',
-            'img_tornilleria_accesorio.*'  => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_tornilleria_accesorio.*'  => 'nullable|string|max:150',
-            'img_imagen_fisica.*'          => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_imagen_fisica.*'          => 'nullable|string|max:150',
-            'delete_img_ids'               => 'nullable|array',
-            'delete_img_ids.*'             => 'integer',
+            'img_herramienta.*'           => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_herramienta.*'           => 'nullable|string|max:150',
+            'img_accesorio.*'             => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_accesorio.*'             => 'nullable|string|max:150',
+            'img_tornilleria.*'           => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_tornilleria.*'           => 'nullable|string|max:150',
+            'img_tornilleria_accesorio.*' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_tornilleria_accesorio.*' => 'nullable|string|max:150',
+            'img_imagen_fisica.*'         => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_imagen_fisica.*'         => 'nullable|string|max:150',
+            'delete_img_ids'              => 'nullable|array',
+            'delete_img_ids.*'            => 'integer',
         ]);
 
         $camposBase = collect($validated)->only([
@@ -243,12 +228,10 @@ class HerramientasTecamacController extends Controller
 
         $h->update($camposBase);
 
-        // Eliminar imágenes marcadas
         $deleteIds = $request->input('delete_img_ids', []);
         if (!empty($deleteIds)) {
             $toDelete = HerramientaImagen::whereIn('id', $deleteIds)
-                ->where('herramienta_id', $h->id)
-                ->get();
+                ->where('herramienta_id', $h->id)->get();
             foreach ($toDelete as $img) {
                 $path = public_path($img->ruta);
                 if (file_exists($path)) @unlink($path);
@@ -265,25 +248,95 @@ class HerramientasTecamacController extends Controller
         ]);
     }
 
-    // ── DESTROY ───────────────────────────────────────────────────────────────
+    // ── UPDATE STOCK (Admin o Almacén — solo mínimo y máximo) ─────────────────
+
+    public function updateStock(Request $request, int $id): JsonResponse
+    {
+        $this->verificarStock();
+
+        /** @var HerramientaTecamac $h */
+        $h = HerramientaTecamac::findOrFail($id);
+
+        $validated = $request->validate([
+            'minimo' => 'nullable|integer|min:0',
+            'maximo' => 'nullable|integer|min:0',
+        ]);
+
+        $h->update([
+            'minimo' => array_key_exists('minimo', $validated) ? $validated['minimo'] : $h->minimo,
+            'maximo' => array_key_exists('maximo', $validated) ? $validated['maximo'] : $h->maximo,
+        ]);
+
+        return response()->json([
+            'ok'      => true,
+            'message' => 'Stock actualizado correctamente.',
+            'minimo'  => $h->fresh()->minimo,
+            'maximo'  => $h->fresh()->maximo,
+        ]);
+    }
+
+    // ── DESTROY (solo Almacén) ────────────────────────────────────────────────
 
     public function destroy(int $id): JsonResponse
     {
-        $this->verificarCrud();
+        $this->verificarAlmacen();
         HerramientaTecamac::findOrFail($id)->update(['activo' => false]);
         return response()->json(['ok' => true, 'message' => 'Herramienta desactivada.']);
     }
 
-    // ── REACTIVAR ─────────────────────────────────────────────────────────────
+    // ── REACTIVAR (solo Almacén) ──────────────────────────────────────────────
 
     public function reactivar(int $id): JsonResponse
     {
-        $this->verificarCrud();
+        $this->verificarAlmacen();
         HerramientaTecamac::findOrFail($id)->update(['activo' => true]);
         return response()->json(['ok' => true, 'message' => 'Herramienta reactivada correctamente.']);
     }
 
+    // ── RENAME IMAGEN (solo Almacén) ──────────────────────────────────────────────
+
+    public function renameImagen(Request $request, int $imgId): JsonResponse
+    {
+        $this->verificarAlmacen();
+
+        $validated = $request->validate([
+            'nombre' => 'required|string|max:150',
+        ]);
+
+        $img = HerramientaImagen::findOrFail($imgId);
+        $img->update(['nombre' => trim($validated['nombre'])]);
+
+        return response()->json(['ok' => true, 'nombre' => $img->nombre, 'message' => 'Imagen renombrada.']);
+    }
+
+    // ── REPLACE IMAGEN (solo Almacén) ─────────────────────────────────────────────
+
+    public function replaceImagen(Request $request, int $imgId): JsonResponse
+    {
+        $this->verificarAlmacen();
+
+        $request->validate([
+            'imagen' => 'required|file|mimes:jpg,jpeg,png,webp|max:8192',
+        ]);
+
+        $img  = HerramientaImagen::findOrFail($imgId);
+
+        // Eliminar archivo anterior
+        $oldPath = public_path($img->ruta);
+        if (file_exists($oldPath)) @unlink($oldPath);
+
+        // Guardar nuevo archivo
+        $img->update(['ruta' => $this->guardarImagen($request->file('imagen'))]);
+
+        return response()->json([
+            'ok'  => true,
+            'url' => asset($img->ruta),
+            'message' => 'Imagen sustituida correctamente.',
+        ]);
+    }
+
     // ── HELPERS ───────────────────────────────────────────────────────────────
+
 
     private function guardarImagenesMultiples(Request $request, HerramientaTecamac $h): void
     {

@@ -575,7 +575,7 @@ Route::middleware(['auth'])->prefix('herramientas/tecamac')->name('herramientas.
     Route::get('/', [HerramientasTecamacController::class, 'index'])
         ->name('index');
 
-    // CRUD (solo Admin)
+    // CRUD completo (solo Almacén — verificado en el controlador)
     Route::post('/', [HerramientasTecamacController::class, 'store'])
         ->name('store');
     Route::post('/{id}', [HerramientasTecamacController::class, 'update'])
@@ -584,4 +584,14 @@ Route::middleware(['auth'])->prefix('herramientas/tecamac')->name('herramientas.
         ->name('destroy');
     Route::post('/{id}/reactivar', [HerramientasTecamacController::class, 'reactivar'])
         ->name('reactivar');
+
+    // Actualizar solo stock mín/máx (Admin o Almacén — verificado en el controlador)
+    Route::patch('/{id}/stock', [HerramientasTecamacController::class, 'updateStock'])
+        ->name('updateStock');
+
+    // Gestión individual de imágenes (solo Almacén — verificado en el controlador)
+    Route::patch('/imagen/{imgId}/rename', [HerramientasTecamacController::class, 'renameImagen'])
+        ->name('imagen.rename');
+    Route::post('/imagen/{imgId}/replace', [HerramientasTecamacController::class, 'replaceImagen'])
+        ->name('imagen.replace');
 });

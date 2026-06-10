@@ -59,8 +59,18 @@ function paletaProceso($proceso, &$paleta) {
             <h1>Herramientas Tecamac</h1>
             <p>Catálogo de herramientas de corte y tornillería — Planta Tecamac.</p>
         </div>
-        @if($esCrud)
-            <span class="ht-crud-badge">✎ Edición completa</span>
+
+        {{-- Badge de rol diferenciado --}}
+        @if($esAlmacen)
+            <span class="ht-rol-badge ht-rol-almacen">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                Almacén — Acceso Completo
+            </span>
+        @elseif($esAdmin)
+            <span class="ht-rol-badge ht-rol-admin">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                Administrador — Solo Stock
+            </span>
         @endif
     </div>
 
@@ -107,23 +117,13 @@ function paletaProceso($proceso, &$paleta) {
 
     {{-- ── TOOLBAR ─────────────────────────────────────────────────────── --}}
     <div class="ht-toolbar">
-        {{-- Búsqueda por nombre --}}
+        {{-- Búsqueda única --}}
         <div class="ht-search-wrap">
             <span class="ht-search-icon">🔍</span>
             <input type="text" id="ht-search" class="ht-search-input"
-                   placeholder="Buscar nombre, descripción…"
+                   placeholder="Buscar por nombre, descripción…"
                    value="{{ $busqueda }}" autocomplete="off">
         </div>
-
-        {{-- Filtro por nombre de herramienta --}}
-        <div class="ht-search-wrap">
-            <span class="ht-search-icon">🏷</span>
-            <input type="text" id="ht-filter-nombre" class="ht-search-input"
-                   placeholder="Filtrar por nombre herramienta…"
-                   value="" autocomplete="off">
-        </div>
-
-
 
         @if($esAlta && $modo === 'activas')
             <button id="ht-btn-nuevo" class="ht-btn-nuevo">＋ Nueva Herramienta</button>
@@ -135,7 +135,7 @@ function paletaProceso($proceso, &$paleta) {
         <div class="ht-banner banner-warning">⚠️ Mostrando herramientas cuya <strong>cantidad es menor al mínimo</strong>.</div>
     @elseif($modo === 'inactivas')
         <div class="ht-banner banner-info">📦 Herramientas dadas de baja.
-            @if($esCrud) Usa <strong>Reactivar</strong> para devolverlas al catálogo. @endif
+            @if($esAlmacen) Usa <strong>Reactivar</strong> para devolverlas al catálogo. @endif
         </div>
     @endif
 
@@ -147,7 +147,6 @@ function paletaProceso($proceso, &$paleta) {
                 @elseif($modo === 'inactivas') 📦 Inactivas
                 @else 🔧 Catálogo — Herramientas Tecamac
                 @endif
-
             </h2>
             <span class="ht-results-count" id="ht-count">
                 {{ $herramientas->count() }} resultado{{ $herramientas->count() !== 1 ? 's' : '' }}
@@ -178,7 +177,7 @@ function paletaProceso($proceso, &$paleta) {
                             <th colspan="1" class="th-group-tornilleria">🔩 TORNILLERÍA</th>
                             <th colspan="1" class="th-group-fisica">🖼️ IMAGEN FÍSICA</th>
                             <th colspan="2" class="th-group-stock">📊 STOCK</th>
-                            @if($esCrud)<th rowspan="2" class="th-acciones">ACCIONES</th>@endif
+                            @if($esCrud || $esAdmin)<th rowspan="2" class="th-acciones">ACCIONES</th>@endif
                         </tr>
                         <tr class="ht-thead-cols">
                             <th>NOMBRE<br>HERRAMIENTA</th>
@@ -252,7 +251,6 @@ function paletaProceso($proceso, &$paleta) {
                                 </td>
 
                                 <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsHerramienta])</td>
-
                                 <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsAccesorio])</td>
 
                                 {{-- CONDICIONES DE CORTE --}}
@@ -277,18 +275,38 @@ function paletaProceso($proceso, &$paleta) {
                                     @else <span class="ht-na">—</span> @endif
                                 </td>
 
-                                @if($esCrud)
+                                {{-- ACCIONES según rol --}}
+                                @if($esAlmacen)
                                 <td class="d-center">
                                     <div class="ht-actions">
                                         @if($h->activo)
                                             <button class="ht-btn-accion ht-btn-edit"
-                                                    onclick="htAbrirEditar({{ $h->id }})" title="Editar">✎</button>
+                                                    onclick="htAbrirEditar({{ $h->id }})" title="Editar herramienta">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                                Editar
+                                            </button>
                                             <button class="ht-btn-accion ht-btn-delete"
-                                                    onclick="htEliminar({{ $h->id }}, '{{ addslashes($h->descripcion_herramienta) }}')" title="Dar de baja">✕</button>
+                                                    onclick="htEliminar({{ $h->id }}, '{{ addslashes($h->descripcion_herramienta) }}')" title="Dar de baja">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                                Inactivar
+                                            </button>
                                         @else
                                             <button class="ht-btn-accion ht-btn-reactivar"
-                                                    onclick="htReactivar({{ $h->id }}, '{{ addslashes($h->descripcion_herramienta) }}')" title="Reactivar">↺ Reactivar</button>
+                                                    onclick="htReactivar({{ $h->id }}, '{{ addslashes($h->descripcion_herramienta) }}')" title="Reactivar">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.38"/></svg>
+                                                Reactivar
+                                            </button>
                                         @endif
+                                    </div>
+                                </td>
+                                @elseif($esAdmin)
+                                <td class="d-center">
+                                    <div class="ht-actions">
+                                        <button class="ht-btn-accion ht-btn-stock"
+                                                onclick="htAbrirStock({{ $h->id }})" title="Editar mínimo y máximo de stock">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                                            Stock
+                                        </button>
                                     </div>
                                 </td>
                                 @endif
@@ -306,9 +324,9 @@ function paletaProceso($proceso, &$paleta) {
 </div>{{-- /.ht-wrapper --}}
 
 {{-- ════════════════════════════════════════════════
-     MODAL CRUD — Admin / Almacén
+     MODAL CRUD COMPLETO — Solo Almacén
 ════════════════════════════════════════════════ --}}
-@if($esCrud)
+@if($esAlmacen)
 <div class="ht-modal-overlay" id="ht-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ht-modal-title">
     <div class="ht-modal">
         <div class="ht-modal-header">
@@ -321,7 +339,6 @@ function paletaProceso($proceso, &$paleta) {
         <div class="ht-modal-body">
             <form id="ht-form" enctype="multipart/form-data" novalidate>
                 @csrf
-
 
                 {{-- ═══════════════════════════════
                      SECCIÓN: HERRAMIENTA
@@ -483,23 +500,84 @@ function paletaProceso($proceso, &$paleta) {
 </div>
 @endif
 
+{{-- ════════════════════════════════════════════════
+     MODAL STOCK — Solo Admin (mín/máx + datos readonly)
+════════════════════════════════════════════════ --}}
+@if($esAdmin)
+<div class="ht-modal-overlay" id="ht-modal-stock-overlay" role="dialog" aria-modal="true" aria-labelledby="ht-stock-title">
+    <div class="ht-modal ht-modal-stock">
+        <div class="ht-modal-header" style="background:linear-gradient(135deg,#027a3a,#02903f);">
+            <div>
+                <h3 id="ht-stock-title">📊 Editar Stock</h3>
+                <p class="ht-modal-subtitle" id="ht-stock-subtitle">Solo puede editar Mínimo y Máximo</p>
+            </div>
+            <button class="ht-modal-close" id="ht-stock-close" type="button">✕</button>
+        </div>
+        <div class="ht-modal-body">
+
+            {{-- Datos de referencia (solo lectura) --}}
+            <div class="ht-stock-readonly-card">
+                <div class="ht-stock-readonly-label">Herramienta</div>
+                <div class="ht-stock-readonly-value" id="ht-stock-nombre">—</div>
+                <div class="ht-stock-readonly-label" style="margin-top:0.6em;">Descripción / Inserto</div>
+                <div class="ht-stock-readonly-value" id="ht-stock-desc">—</div>
+                <div class="ht-stock-readonly-label" style="margin-top:0.6em;">Cantidad en Planta</div>
+                <div class="ht-stock-readonly-value" id="ht-stock-cantidad">—</div>
+            </div>
+
+            {{-- Campos editables --}}
+            <div class="ht-stock-edit-grid">
+                <div class="ht-form-field">
+                    <label for="ht-stock-minimo">
+                        <span class="ht-stock-field-icon" style="color:#9c0300;">▼</span>
+                        Mínimo en Stock
+                    </label>
+                    <input type="number" id="ht-stock-minimo" name="minimo" min="0"
+                           placeholder="Ej. 5" class="ht-stock-input">
+                </div>
+                <div class="ht-form-field">
+                    <label for="ht-stock-maximo">
+                        <span class="ht-stock-field-icon" style="color:#027a3a;">▲</span>
+                        Máximo en Stock
+                    </label>
+                    <input type="number" id="ht-stock-maximo" name="maximo" min="0"
+                           placeholder="Ej. 30" class="ht-stock-input">
+                </div>
+            </div>
+        </div>
+        <div class="ht-modal-footer">
+            <button class="ht-btn-cancel" id="ht-stock-cancel" type="button">Cancelar</button>
+            <button class="ht-btn-save ht-btn-save-stock" id="ht-stock-save" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Guardar Stock
+            </button>
+        </div>
+    </div>
+</div>
+@endif
+
 {{-- Lightbox --}}
 <div class="ht-lightbox-overlay" id="ht-lightbox-overlay">
     <button class="ht-lightbox-close" id="ht-lightbox-close" type="button">✕</button>
-    <img id="ht-lightbox-img" class="ht-lightbox-img" src="" alt="Imagen ampliada">
-    <p id="ht-lightbox-caption" style="color:#fff;margin-top:0.8em;font-size:0.9em;text-align:center;"></p>
+    <div class="ht-lightbox-img-wrap">
+        <img id="ht-lightbox-img" class="ht-lightbox-img" src="" alt="Imagen ampliada">
+    </div>
+    <p id="ht-lightbox-caption"></p>
 </div>
 
 <script>
     window.htRoutes = {
-        store    : "{{ route('herramientas.tecamac.store') }}",
-        update   : "{{ url('herramientas/tecamac') }}/{id}",
-        destroy  : "{{ url('herramientas/tecamac') }}/{id}",
-        reactivar: "{{ url('herramientas/tecamac') }}/{id}/reactivar",
+        store      : "{{ route('herramientas.tecamac.store') }}",
+        update     : "{{ url('herramientas/tecamac') }}/{id}",
+        destroy    : "{{ url('herramientas/tecamac') }}/{id}",
+        reactivar  : "{{ url('herramientas/tecamac') }}/{id}/reactivar",
+        updateStock: "{{ url('herramientas/tecamac') }}/{id}/stock",
     };
-    window.htModo   = "{{ $modo }}";
-    window.htEsCrud = {{ $esCrud ? 'true' : 'false' }};
-    window.htEsAlta = {{ $esAlta ? 'true' : 'false' }};
+    window.htModo      = "{{ $modo }}";
+    window.htEsCrud    = {{ $esCrud    ? 'true' : 'false' }};
+    window.htEsAlta    = {{ $esAlta   ? 'true' : 'false' }};
+    window.htEsAlmacen = {{ $esAlmacen ? 'true' : 'false' }};
+    window.htEsAdmin   = {{ $esAdmin  ? 'true' : 'false' }};
     // Paleta de colores por proceso (para preview en modal)
     window.htProcesoPaleta = @json($procesoPaleta);
 </script>

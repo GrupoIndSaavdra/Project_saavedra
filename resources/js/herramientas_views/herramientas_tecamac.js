@@ -3,16 +3,19 @@
  * Lógica de la vista Herramientas Tecamac.
  *
  * Perfiles:
- *   esCrud (1/5) → modal completo: nueva herramienta, editar todo, inactivar, reactivar
- *   esMM   (2)   → modal simplificado: solo mínimo y máximo
+ *   htEsAlmacen → modal completo CRUD: nueva herramienta, editar todo, fotos, inactivar, reactivar
+ *   htEsAdmin   → modal simplificado: solo mínimo y máximo (updateStock)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
     initBusqueda();
-    initFiltroNombre();
-    if (window.htEsCrud) {
+
+    if (window.htEsAlmacen) {
         initModal();
         initConfirm();
+    }
+    if (window.htEsAdmin) {
+        initStockModal();
     }
     initLightbox();
 });
@@ -23,7 +26,7 @@ function getCsrf() {
     return document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 }
 
-// ── BÚSQUEDA REACTIVA (descripción general) ───────────────────────────────────
+// ── BÚSQUEDA REACTIVA ─────────────────────────────────────────────────────────
 
 function initBusqueda() {
     const input = document.getElementById('ht-search');
@@ -31,18 +34,9 @@ function initBusqueda() {
     input.addEventListener('input', aplicarFiltros);
 }
 
-// ── FILTRO POR NOMBRE DE HERRAMIENTA ──────────────────────────────────────────
-
-function initFiltroNombre() {
-    const input = document.getElementById('ht-filter-nombre');
-    if (!input) return;
-    input.addEventListener('input', aplicarFiltros);
-}
-
-/** Aplica búsqueda + filtro de nombre simultáneamente sobre las filas. */
+/** Filtra las filas de la tabla por nombre, descripción, inserto y proceso. */
 function aplicarFiltros() {
-    const termGeneral = (document.getElementById('ht-search')?.value ?? '').trim().toLowerCase();
-    const termNombre  = (document.getElementById('ht-filter-nombre')?.value ?? '').trim().toLowerCase();
+    const term  = (document.getElementById('ht-search')?.value ?? '').trim().toLowerCase();
     const tbody = document.getElementById('ht-tbody');
     const count = document.getElementById('ht-count');
     const noRes = document.getElementById('ht-no-results');
@@ -51,11 +45,8 @@ function aplicarFiltros() {
     const rows = tbody.querySelectorAll('tr.ht-row');
     let visible = 0;
     rows.forEach(row => {
-        const searchData  = row.dataset.search ?? '';
-        const nombreData  = (row.dataset.nombreHerramienta ?? '').toLowerCase();
-        const matchGeneral = !termGeneral || searchData.includes(termGeneral);
-        const matchNombre  = !termNombre  || nombreData.includes(termNombre);
-        const show = matchGeneral && matchNombre;
+        const searchData = row.dataset.search ?? '';
+        const show = !term || searchData.includes(term);
         row.style.display = show ? '' : 'none';
         if (show) visible++;
     });
@@ -63,13 +54,10 @@ function aplicarFiltros() {
     if (noRes) noRes.style.display = visible === 0 ? 'block' : 'none';
 }
 
-// ── PREVIEW DE PROCESO EN MODAL ───────────────────────────────────────────────
-
-
-// ── MODAL CRUD ────────────────────────────────────────────────────────────────
+// ── MODAL CRUD (solo Almacén) ─────────────────────────────────────────────────
 
 let editingId        = null;
-let imagenesEliminar = new Set(); // IDs de imágenes a eliminar
+let imagenesEliminar = new Set();
 
 const TIPOS_IMAGEN = ['herramienta', 'accesorio', 'tornilleria', 'tornilleria_accesorio', 'imagen_fisica'];
 
@@ -83,7 +71,7 @@ function initModal() {
     if (!overlay) return;
 
     if (btnNuevo)  btnNuevo.addEventListener('click', () => {
-        if (!window.htEsAlta) return; // Solo Almacén puede crear
+        if (!window.htEsAlmacen) return;
         abrirModal(null);
     });
     if (btnClose)  btnClose.addEventListener('click', cerrarModal);
@@ -105,13 +93,11 @@ function abrirModal(id) {
     if (!overlay || !form) return;
 
     form.reset();
-    // Limpiar listas de imágenes
     TIPOS_IMAGEN.forEach(tipo => {
         const list = document.getElementById(`ht-imgs-${tipo}`);
         if (list) list.innerHTML = '';
     });
 
-    // Desmarcar todos los checkboxes de proceso
     document.querySelectorAll('input[name="proceso[]"]').forEach(cb => cb.checked = false);
 
     if (id) {
@@ -153,7 +139,7 @@ function cargarDatosEnModal(id) {
         if (el && val !== undefined && val !== 'null') el.value = val;
     });
 
-    // Cargar checkboxes de proceso (multi-selección)
+    // Checkboxes de proceso
     const allCbs = document.querySelectorAll('input[name="proceso[]"]');
     allCbs.forEach(cb => cb.checked = false);
     try {
@@ -164,7 +150,7 @@ function cargarDatosEnModal(id) {
         });
     } catch (e) { /* no procesos */ }
 
-    // Cargar imágenes existentes
+    // Imágenes existentes
     try {
         const imgs = JSON.parse(fila.dataset.imgs || '[]');
         imgs.forEach(img => agregarFilaImagenExistente(img));
@@ -235,7 +221,7 @@ window.htMarcarEliminar = function(btn, imgId) {
     }
 };
 
-// ── GUARDAR ───────────────────────────────────────────────────────────────────
+// ── GUARDAR CRUD (Almacén) ────────────────────────────────────────────────────
 
 async function guardarHerramienta() {
     const form    = document.getElementById('ht-form');
@@ -266,7 +252,6 @@ async function guardarHerramienta() {
         if (contentType.includes('application/json')) {
             json = await res.json();
         } else {
-            // El servidor devolvió HTML (error 500, 419 CSRF, etc.)
             const text = await res.text();
             const match = text.match(/<title>(.*?)<\/title>/i);
             mostrarToast('Error del servidor: ' + (match?.[1] ?? `HTTP ${res.status}`), true);
@@ -292,91 +277,126 @@ async function guardarHerramienta() {
     }
 }
 
-// ── MODAL MIN/MAX (Producción) ─────────────────────────────────────────────────
+// ── MODAL STOCK (Admin — solo mínimo y máximo) ────────────────────────────────
 
-let minmaxId = null;
+let stockEditingId = null;
 
-function initMinMaxModal() {
-    const overlay = document.getElementById('ht-minmax-overlay');
-    const close   = document.getElementById('ht-minmax-close');
-    const cancel  = document.getElementById('ht-minmax-cancel');
-    const save    = document.getElementById('ht-minmax-save');
+function initStockModal() {
+    const overlay = document.getElementById('ht-modal-stock-overlay');
+    const close   = document.getElementById('ht-stock-close');
+    const cancel  = document.getElementById('ht-stock-cancel');
+    const save    = document.getElementById('ht-stock-save');
     if (!overlay) return;
 
-    if (close)  close.addEventListener('click',  cerrarMinMax);
-    if (cancel) cancel.addEventListener('click', cerrarMinMax);
-    if (save)   save.addEventListener('click',   guardarMinMax);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) cerrarMinMax(); });
+    if (close)  close.addEventListener('click',  cerrarStockModal);
+    if (cancel) cancel.addEventListener('click', cerrarStockModal);
+    if (save)   save.addEventListener('click',   guardarStock);
+
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) cerrarStockModal();
+    });
 }
 
-window.htAbrirMinMax = function(id, minimo, maximo) {
-    minmaxId = id;
-    const overlay = document.getElementById('ht-minmax-overlay');
-    const fila    = document.querySelector(`tr.ht-row[data-id="${id}"]`);
+window.htAbrirStock = function(id) {
+    stockEditingId = id;
+    const overlay  = document.getElementById('ht-modal-stock-overlay');
+    const fila     = document.querySelector(`tr.ht-row[data-id="${id}"]`);
     if (!overlay) return;
 
-    const nombre = fila?.dataset.desc ?? `Herramienta #${id}`;
-    const label  = document.getElementById('ht-minmax-nombre');
-    if (label) label.textContent = nombre;
+    const elNombre   = document.getElementById('ht-stock-nombre');
+    const elDesc     = document.getElementById('ht-stock-desc');
+    const elCantidad = document.getElementById('ht-stock-cantidad');
+    const elMinimo   = document.getElementById('ht-stock-minimo');
+    const elMaximo   = document.getElementById('ht-stock-maximo');
 
-    const mmMin = document.getElementById('ht-mm-minimo');
-    const mmMax = document.getElementById('ht-mm-maximo');
-    if (mmMin) mmMin.value = (minimo !== null && minimo !== undefined) ? minimo : '';
-    if (mmMax) mmMax.value = (maximo !== null && maximo !== undefined) ? maximo : '';
+    const nombre   = fila?.dataset.nombreHerramienta;
+    const desc     = fila?.dataset.inserto || fila?.dataset.desc;
+    const cantidad = fila?.dataset.cantidad;
+    const minimo   = fila?.dataset.minimo;
+    const maximo   = fila?.dataset.maximo;
+
+    if (elNombre)   elNombre.textContent   = nombre   || '—';
+    if (elDesc)     elDesc.textContent     = desc     || '—';
+    if (elCantidad) elCantidad.textContent = cantidad !== undefined ? cantidad : '—';
+
+    if (elMinimo) elMinimo.value = (minimo !== 'null' && minimo !== undefined && minimo !== '') ? minimo : '';
+    if (elMaximo) elMaximo.value = (maximo !== 'null' && maximo !== undefined && maximo !== '') ? maximo : '';
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
+    if (elMinimo) setTimeout(() => elMinimo.focus(), 150);
 };
 
-function cerrarMinMax() {
-    const overlay = document.getElementById('ht-minmax-overlay');
+function cerrarStockModal() {
+    const overlay = document.getElementById('ht-modal-stock-overlay');
     if (!overlay) return;
     overlay.classList.remove('open');
     document.body.style.overflow = '';
-    minmaxId = null;
+    stockEditingId = null;
 }
 
-async function guardarMinMax() {
-    const btnSave = document.getElementById('ht-minmax-save');
-    const minimo  = document.getElementById('ht-mm-minimo')?.value;
-    const maximo  = document.getElementById('ht-mm-maximo')?.value;
+async function guardarStock() {
+    const btnSave = document.getElementById('ht-stock-save');
+    const minimo  = document.getElementById('ht-stock-minimo')?.value;
+    const maximo  = document.getElementById('ht-stock-maximo')?.value;
+    if (!stockEditingId) return;
 
-    if (!minmaxId) return;
-    if (btnSave) { btnSave.disabled = true; btnSave.innerHTML = '<span class="ht-spinner"></span>'; }
+    if (btnSave) {
+        btnSave.disabled = true;
+        btnSave.innerHTML = '<span class="ht-spinner"></span> Guardando…';
+    }
 
-    const formData = new FormData();
-    formData.append('_method', 'POST');
-    if (minimo !== '') formData.append('minimo', minimo);
-    if (maximo !== '') formData.append('maximo', maximo);
-
-    const url = (window.htRoutes?.update ?? '/herramientas/tecamac/{id}').replace('{id}', minmaxId);
+    const url = (window.htRoutes?.updateStock ?? '/herramientas/tecamac/{id}/stock')
+        .replace('{id}', stockEditingId);
 
     try {
-        const res  = await fetch(url, {
-            method : 'POST',
-            headers: { 'X-CSRF-TOKEN': getCsrf() },
-            body   : formData,
+        const body = {};
+        if (minimo !== '') body.minimo = parseInt(minimo, 10);
+        if (maximo !== '') body.maximo = parseInt(maximo, 10);
+
+        const res = await fetch(url, {
+            method : 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': getCsrf(),
+                'Accept'      : 'application/json',
+            },
+            body: JSON.stringify(body),
         });
-        const json = await res.json();
-        if (json.ok) {
-            mostrarToast(json.message ?? 'Stock actualizado.');
-            // Actualizar celda en tabla sin recargar
-            const fila   = document.querySelector(`tr.ht-row[data-id="${minmaxId}"]`);
-            const celdas = fila?.querySelectorAll('td');
-            // Recarga para reflejar cambios visuales (stock bajo, etc.)
-            cerrarMinMax();
-            setTimeout(() => window.location.reload(), 700);
+
+        let json;
+        const ct = res.headers.get('content-type') ?? '';
+        if (ct.includes('application/json')) {
+            json = await res.json();
         } else {
-            mostrarToast(json.message ?? 'Error.', true);
+            const text = await res.text();
+            mostrarToast('Error del servidor: HTTP ' + res.status, true);
+            console.error(text.substring(0, 500));
+            return;
+        }
+
+        if (json.ok) {
+            mostrarToast(json.message ?? 'Stock actualizado correctamente.');
+            cerrarStockModal();
+            setTimeout(() => window.location.reload(), 800);
+        } else {
+            const err = json.errors
+                ? Object.values(json.errors).flat().join(' | ')
+                : (json.message ?? 'Error al guardar.');
+            mostrarToast(err, true);
         }
     } catch (e) {
-        mostrarToast('Error de conexión.', true);
+        mostrarToast('Error de conexión: ' + e.message, true);
+        console.error(e);
     } finally {
-        if (btnSave) { btnSave.disabled = false; btnSave.innerHTML = 'Guardar'; }
+        if (btnSave) {
+            btnSave.disabled = false;
+            btnSave.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Guardar Stock`;
+        }
     }
 }
 
-// ── ELIMINAR / REACTIVAR ─────────────────────────────────────────────────────
+// ── ELIMINAR / REACTIVAR (solo Almacén) ───────────────────────────────────────
 
 let confirmCallback = null;
 
