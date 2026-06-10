@@ -177,7 +177,7 @@
         }
 
         .tbl-firmas td {
-            width: 33.33%;
+            width: 50%;
             text-align: center;
             padding: 0 20px;
             border: none;
@@ -368,14 +368,8 @@
             <td>
                 <div class="firma-espacio"></div>
                 <div class="firma-linea"></div>
-                <div class="firma-rol">Departamento de Calidad</div>
-                <div class="firma-sub">(Nombre y Firma)</div>
-            </td>
-            <td>
-                <div class="firma-espacio"></div>
-                <div class="firma-linea"></div>
-                <div class="firma-rol">Gerente de Planta</div>
-                <div class="firma-sub">(Nombre y Firma)</div>
+                <div class="firma-rol">Departamento de Ingeniería (Proveedor)</div>
+                <div class="firma-sub">(Nombre, Firma y Sello)</div>
             </td>
         </tr>
     </table>

@@ -601,7 +601,7 @@ class DibujosFundicionPdfController extends Controller
      *
      * @param string $otName
      */
-    private function copyToAlmacen(string $otName): void
+    public static function copyToAlmacen(string $otName): void
     {
         $srcDir = self::BASE_DIR . '/' . $otName;
         $dstDir = self::ALMACEN_DIR . '/' . $otName;
@@ -884,6 +884,7 @@ class DibujosFundicionPdfController extends Controller
             return response()->json(['success' => false, 'message' => 'La carpeta no existe.'], 404);
         }
 
+        // 1. Eliminar carpetas de trabajo físicas en Ingeniería
         if ($existsBase) {
             Storage::disk('local')->deleteDirectory($dirPath);
         }
@@ -891,34 +892,60 @@ class DibujosFundicionPdfController extends Controller
             Storage::disk('local')->deleteDirectory($oldDirPath);
         }
 
-        // Eliminar también la copia en Almacén
-        Storage::disk('local')->deleteDirectory(self::ALMACEN_DIR . '/' . $otNorm);
-
-        // Eliminar también los PDFs de liberación generados para esta OT
-        $liberacionesPath = storage_path('app/public/liberaciones_pdf');
-        $otSanitizada = preg_replace('/[^\w\s\-]/', '', $otNorm);
-        $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
-        if (file_exists($liberacionesPath)) {
-            $pattern = "{$liberacionesPath}/F-CCL-LDM_*_{$otSanitizada}*.pdf";
-            foreach (glob($pattern) as $oldFile) {
-                @unlink($oldFile);
-            }
+        // 2. Renombrar la carpeta en Almacén en vez de eliminarla para guardar precedentes
+        $timestamp = date('_Ymd_His_del');
+        $almacenPath = self::ALMACEN_DIR . '/' . $otNorm;
+        if (Storage::disk('local')->exists($almacenPath)) {
+            Storage::disk('local')->move($almacenPath, $almacenPath . $timestamp);
         }
 
-        $this->logAction('eliminar_carpeta', $otNorm, 'Eliminación de Directorio Raíz OT');
+        $this->logAction('eliminar_carpeta', $otNorm, 'Eliminación de Directorio Raíz OT (Conservando Almacén como precedente)');
 
-        // Respaldar registros de historial, pre-orden y liberación renombrando el OT para liberar el original
-        $timestamp = date('_Ymd_His_del');
+        // 3. Respaldar registros de historial, pre-orden y liberación renombrando el OT para liberar el original
         FundicionHistory::where('ot', '=', $otNorm, 'and')
             ->update([
                 'ot' => \Illuminate\Support\Facades\DB::raw("CONCAT(ot, '{$timestamp}')"),
-                'status' => 'inactiva',
-                'almacen_archivos' => json_encode([])
+                'status' => 'inactiva'
+                // Se conserva almacen_archivos intacto para el registro de archivos
             ]);
         \App\Models\PreOrdenFundicion::where('ot', '=', $otNorm, 'and')
             ->update(['ot' => \Illuminate\Support\Facades\DB::raw("CONCAT(ot, '{$timestamp}')")]);
         \App\Models\LiberacionModeloFundicion::where('ot', '=', $otNorm, 'and')
             ->update(['ot' => \Illuminate\Support\Facades\DB::raw("CONCAT(ot, '{$timestamp}')")]);
+
+        // Si es la OT Original (sin R1, R2, etc.), también desactivamos y renombrarmos todos sus reprocesos
+        $isOriginal = !preg_match('/_R\d+$/i', $otNorm);
+        if ($isOriginal) {
+            $reprocessHistories = FundicionHistory::where('ot', 'LIKE', $otNorm . '_R%')->get();
+            foreach ($reprocessHistories as $rh) {
+                // Eliminar físicamente los directorios de los reprocesos en Ingeniería
+                $rDirPath = self::BASE_DIR . '/' . $rh->ot;
+                $rOldDirPath = self::OLD_BASE_DIR . '/' . $rh->ot;
+                
+                if (Storage::disk('local')->exists($rDirPath)) {
+                    Storage::disk('local')->deleteDirectory($rDirPath);
+                }
+                if (Storage::disk('local')->exists($rOldDirPath)) {
+                    Storage::disk('local')->deleteDirectory($rOldDirPath);
+                }
+                
+                // Renombrar copia en Almacén del reproceso en vez de eliminarla
+                $rAlmacenPath = self::ALMACEN_DIR . '/' . $rh->ot;
+                if (Storage::disk('local')->exists($rAlmacenPath)) {
+                    Storage::disk('local')->move($rAlmacenPath, $rAlmacenPath . $timestamp);
+                }
+
+                FundicionHistory::where('id', $rh->id)->update([
+                    'ot' => $rh->ot . $timestamp,
+                    'status' => 'inactiva'
+                    // Se conserva almacen_archivos intacto
+                ]);
+                \App\Models\PreOrdenFundicion::where('ot', '=', $rh->ot, 'and')
+                    ->update(['ot' => $rh->ot . $timestamp]);
+                \App\Models\LiberacionModeloFundicion::where('ot', '=', $rh->ot, 'and')
+                    ->update(['ot' => $rh->ot . $timestamp]);
+            }
+        }
 
         return response()->json([
             'success' => true,
@@ -1158,7 +1185,7 @@ class DibujosFundicionPdfController extends Controller
     /**
      * @param mixed string $path
      */
-    private function sanitizePath(string $path): string
+    public static function sanitizePath(string $path): string
     {
         $path = preg_replace('/\.\.+/', '', $path);
         $path = preg_replace('/[\/\\\\]/', '', $path);
@@ -1184,7 +1211,7 @@ class DibujosFundicionPdfController extends Controller
     /**
      * Normaliza el nombre de la OT para tratar consistentemente guiones largos, cortos y espacios.
      */
-    private function normalizeOTName(?string $name): string
+    public static function normalizeOTName(?string $name): string
     {
         if (!$name) return '';
         // Reemplazar guiones especiales y espacios de no ruptura

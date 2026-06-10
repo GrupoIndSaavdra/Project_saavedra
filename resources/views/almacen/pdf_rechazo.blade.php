@@ -152,7 +152,7 @@
         }
 
         .footer-table td {
-            width: 33.33%;
+            width: 50%;
             text-align: center;
             padding: 0 5px;
             vertical-align: bottom;
@@ -525,11 +525,6 @@
                         <td>
                             <div class="signature-line"></div>
                             <div class="signature-name">Departamento de Calidad</div>
-                            <div class="signature-role">Nombre y Firma</div>
-                        </td>
-                        <td>
-                            <div class="signature-line"></div>
-                            <div class="signature-name">Gerente de Planta</div>
                             <div class="signature-role">Nombre y Firma</div>
                         </td>
                     </tr>

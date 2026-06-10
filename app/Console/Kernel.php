@@ -39,6 +39,12 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/sync_maquinados.log'));
 
+        // ── Sincronización Calidad Fundición — cada 5 minutos ─────────────────
+        $schedule->command('calidad:sync-fundicion')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/sync_fundicion.log'));
+
         // ── Depuración cada 3 días de Logs ──────────────────────────────────────────────────────
         // Programación: Cada 3 días a las 23:00 (11 PM)
         $schedule->command('app:depurar-logs')
