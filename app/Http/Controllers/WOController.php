@@ -105,9 +105,6 @@ class WOController extends Controller
         return view('wo_views.show_wo', compact('workOrder', 'molding', 'classes', 'processes'));
     }
 
-    /**
-     * @param mixed $idWOrder
-     */
     public function destroy($idWOrder)
     {
         $pieces = Pieza::query()->where('id_ot', $idWOrder)->get(); //Busco las piezas de la OT
@@ -119,15 +116,42 @@ class WOController extends Controller
             }
             $workOrder = Orden_trabajo::query()->find($idWOrder);
             if ($workOrder) {
+                // Desactivar en FundicionHistory (bandeja de Almacén/Calidad) para mantener históricos
+                $isOriginal = !preg_match('/_R\d+$/i', $idWOrder);
+                if ($isOriginal) {
+                    $histories = \App\Models\FundicionHistory::query()
+                        ->where('ot', 'LIKE', "OT {$idWOrder}%")
+                        ->get();
+                    foreach ($histories as $history) {
+                        $pattern = '/^OT\s*' . preg_quote($idWOrder, '/') . '(?:\b|_R\d+|$)/i';
+                        if (preg_match($pattern, $history->ot)) {
+                            // Sincronizar y copiar dibujos a la carpeta protegida de Almacén antes de inactivar
+                            \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($history->ot);
+                            $history->update(['status' => 'inactiva']);
+                        }
+                    }
+                } else {
+                    $baseId = preg_replace('/_R\d+$/i', '', $idWOrder);
+                    $histories = \App\Models\FundicionHistory::query()
+                        ->where('ot', 'LIKE', "OT {$baseId}%")
+                        ->get();
+                    foreach ($histories as $history) {
+                        preg_match('/_R\d+$/i', $idWOrder, $suffixMatch);
+                        $suffix = $suffixMatch[0] ?? '';
+                        if (!empty($suffix) && str_contains($history->ot, $suffix)) {
+                            // Sincronizar y copiar dibujos a la carpeta protegida de Almacén antes de inactivar
+                            \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($history->ot);
+                            $history->update(['status' => 'inactiva']);
+                        }
+                    }
+                }
+
                 $workOrder->delete(); //Eliminar OT
             }
             return redirect()->route('manageWO')->with('success', '¡Orden de trabajo eliminada con éxito!'); //Redirecciono a la vista de registro de la OT
         }
         return redirect()->route('showWO', ['workOrder' => $idWOrder])->with('error', '¡La orden de trabajo no se puede eliminar porque tiene piezas o metas asociadas!');
     }
-    /**
-     * @param mixed $idWOrder
-     */
     public function generatePDF($idWOrder)
     {
         $workOrder = Orden_trabajo::query()->find($idWOrder);

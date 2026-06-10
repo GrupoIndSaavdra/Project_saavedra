@@ -2888,7 +2888,6 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
                                     <div class="file-name" style="cursor: pointer;" title="Abrir Archivo" onclick="almacenVerPdf('${ot}', '${file.nombre}', 'otro')">${dispName}</div>
                                     <div class="file-actions">
                                         <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" onclick="almacenVerPdf('${ot}', '${file.nombre}', 'otro')">Ver</button>
-                                        <button type="button" class="btn-dibujos btn-dibujos-sm btn-dibujos-danger btn-eliminar" onclick="almacenEliminarOtroArchivo('${ot}', '${file.nombre}', 'otro', this)">Eliminar</button>
                                     </div>
                                 </div>
                             `;
@@ -3945,7 +3944,7 @@ document.getElementById('formEnviarAlertaLiberacion')?.addEventListener('submit'
     const fd = new FormData(this);
     const orig = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = `<img src="/images/enviando.png" class="spinning" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;"> Enviando...`;
+    btn.innerHTML = `Enviando...`;
     try {
         const resp = await fetch(window.almacenRoutes.enviarAlertaLiberacion, {
             method: 'POST',
@@ -4157,7 +4156,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const fd = new FormData(this);
             const orig = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = `<img src="/images/enviando.png" class="spinning" style="width:16px;height:16px;vertical-align:middle;margin-right:6px;"> Enviando...`;
+            btn.innerHTML = `Enviando...`;
 
             try {
                 const resp = await fetch(window.almacenRoutes.enviarAlertaLiberacion, {
