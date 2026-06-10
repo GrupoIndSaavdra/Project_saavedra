@@ -36,45 +36,248 @@
             <span class="alm-readonly-badge">Solo lectura</span>
         </div>
 
-        {{-- ── STATS ───────────────────────────────────────────────── --}}
-        @php
-            $total = $registros->count();
-            $activas = $registros->where('status', 'activa')->count();
-            $inactivas = $registros->where('status', 'inactiva')->count();
-        @endphp
+        <div class="alm-main-layout">
+            {{-- ── COLUMNA IZQUIERDA (SIDEBAR) ───────────────────────── --}}
+            <aside class="alm-sidebar">
+                {{-- ── LEYENDA DE ESTADOS DE MODELO ───────────────────────── --}}
+                <div class="alm-filters-card"
+                    style="margin-bottom: 2em; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); position: relative; padding: 1.8em;">
+                    <div
+                        style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
+                        <img src="{{ asset('images/Quality.png') }}" alt="Leyenda"
+                            style="width: 32px; height: 32px; object-fit: contain;">
+                        <h2 style="margin: 0; font-size: 1.35rem; color: #0f172a; font-weight: 700;">Guía de Estados</h2>
+                    </div>
+                    <p style="font-size: 0.88rem; color: #64748b; margin-top: 0; margin-bottom: 16px;">
+                        Haz clic en cada icono para ver detalles del estado:
+                    </p>
 
-        <div class="alm-stats">
-            <div class="alm-stat-card stat-total">
-                <div class="alm-stat-icon">
-                    <img src="{{ asset('images/pdf-view.png') }}" alt="Total" style="width: 60px;">
-                </div>
-                <div>
-                    <div class="alm-stat-value">{{ $total }}</div>
-                    <div class="alm-stat-label">OTs en historial</div>
-                </div>
-            </div>
-            <div class="alm-stat-card stat-activas">
-                <div class="alm-stat-icon">
-                    <img src="{{ asset('images/ready.png') }}" alt="Activas" style="width: 60px;">
-                </div>
-                <div>
-                    <div class="alm-stat-value">{{ $activas }}</div>
-                    <div class="alm-stat-label">OTs activas</div>
-                </div>
-            </div>
-            <div class="alm-stat-card stat-inactivas">
-                <div class="alm-stat-icon">
-                    <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Archivadas" style="width: 60px;">
-                </div>
-                <div>
-                    <div class="alm-stat-value">{{ $inactivas }}</div>
-                    <div class="alm-stat-label">OTs archivadas</div>
-                </div>
-            </div>
-        </div>
+                    <div class="legend-grid-compact" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
+                        {{-- Nuevo --}}
+                        <div class="legend-compact-item" onclick="showLegendDetail(this, 'Nuevo', '{{ Auth::user()->perfil == 4 ? 'Pre-orden recibida, espera Calidad.' : 'Alerta recibida. Pendiente Almacén.' }}')"
+                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #f1f5f9; border: 2px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Recibido.png') }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #475569; margin-top: 10px; text-align: center; line-height: 1.1;">Nuevo</span>
+                        </div>
 
-        {{-- ── FILTROS ─────────────────────────────────────────────── --}}
-        <div class="alm-filters-card">
+                        {{-- Pre-Orden --}}
+                        <div class="legend-compact-item" onclick="showLegendDetail(this, 'Pre-Orden', 'Pre-orden generada, pendiente enviar.')"
+                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #eff6ff; border: 2px solid #60a5fa; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/pdf-view.png') }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #2563eb; margin-top: 10px; text-align: center; line-height: 1.1;">Pre-Orden</span>
+                        </div>
+
+                        {{-- Correo Enviado --}}
+                        @if (Auth::user()->perfil != 4)
+                            <div class="legend-compact-item" onclick="showLegendDetail(this, 'Correo Enviado', 'Enviada por correo. Esperando Calidad.')"
+                                style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
+                                <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #e0e7ff; border: 2px solid #818cf8; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                    <img src="{{ asset('images/enviando.png') }}" style="width: 32px; height: 32px; object-fit: contain;">
+                                </span>
+                                <span style="font-size: 0.82rem; font-weight: 700; color: #4f46e5; margin-top: 10px; text-align: center; line-height: 1.1;">Correo Enviado</span>
+                            </div>
+                        @endif
+
+                        {{-- Tengo Modelo --}}
+                        <div class="legend-compact-item" onclick="showLegendDetail(this, 'Tengo Modelo', 'Modelo en Almacén. Esperando Calidad.')"
+                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #f0f9ff; border: 2px solid #0ea5e9; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Espera.png') }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #0369a1; margin-top: 10px; text-align: center; line-height: 1.1;">Tengo Modelo</span>
+                        </div>
+
+                        {{-- En Revisión --}}
+                        <div class="legend-compact-item" onclick="showLegendDetail(this, 'En Revisión', 'Calidad capturando veredicto.')"
+                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #fffbeb; border: 2px solid #f59e0b; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Revisando.png') }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #b45309; margin-top: 10px; text-align: center; line-height: 1.1;">En Revisión</span>
+                        </div>
+
+                        {{-- Aprobado --}}
+                        <div class="legend-compact-item" onclick="showLegendDetail(this, 'Aprobado (Calidad)', 'Aprobado y liberado por Calidad.')"
+                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #ecfdf5; border: 2px solid #10b981; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Quality.png') }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #047857; margin-top: 10px; text-align: center; line-height: 1.1;">Aprobado (Calidad)</span>
+                        </div>
+
+                        {{-- Rechazado --}}
+                        <div class="legend-compact-item" onclick="showLegendDetail(this, 'Rechazado (Calidad)', 'Rechazado por Calidad (desviaciones).')"
+                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #fef2f2; border: 2px solid #ef4444; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Quality.png') }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #b91c1c; margin-top: 10px; text-align: center; line-height: 1.1;">Rechazado (Calidad)</span>
+                        </div>
+
+                        {{-- Mixto --}}
+                        <div class="legend-compact-item" onclick="showLegendDetail(this, 'Mixto (Calidad)', 'Liberación mixta (aprobado/rechazado).')"
+                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #fef9c3; border: 2px solid #eab308; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Quality.png') }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #854d0e; margin-top: 10px; text-align: center; line-height: 1.1;">Mixto (Calidad)</span>
+                        </div>
+
+                        {{-- Casting --}}
+                        <div class="legend-compact-item" onclick="showLegendDetail(this, 'Casting', 'Pre-orden de casting generada.')"
+                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #f0fdf4; border: 2px solid #059669; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/pdf-view.png') }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #15803d; margin-top: 10px; text-align: center; line-height: 1.1;">Casting</span>
+                        </div>
+
+                        {{-- Reproceso --}}
+                        <div class="legend-compact-item" onclick="showLegendDetail(this, 'Reproceso', 'Retornado para fabricar nuevo modelo.')"
+                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #fdf2f8; border: 2px solid #ec4899; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Reproceso.png') }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #be185d; margin-top: 10px; text-align: center; line-height: 1.1;">Reproceso</span>
+                        </div>
+
+                        {{-- Aprobado (Final) --}}
+                        <div class="legend-compact-item" onclick="showLegendDetail(this, 'Aprobado Final', 'Proceso finalizado. Casting completado.')"
+                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #f0fdf4; border: 2px solid #15803d; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Aprobado.png') }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #15803d; margin-top: 10px; text-align: center; line-height: 1.1;">Aprobado (Final)</span>
+                        </div>
+
+                        {{-- Rechazado (Final) --}}
+                        <div class="legend-compact-item" onclick="showLegendDetail(this, 'Rechazado Final', 'Modelo rechazado y reproceso iniciado.')"
+                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #fef2f2; border: 2px solid #dc2626; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Rechazado.png') }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.82rem; font-weight: 700; color: #b91c1c; margin-top: 10px; text-align: center; line-height: 1.1;">Rechazado (Final)</span>
+                        </div>
+                    </div>
+
+                    {{-- Mini panel de detalles --}}
+                    <div id="legend-detail-card" style="display: none; margin-top: 14px; padding: 12px 16px; background: #f0f9ff; border: 1.5px solid #0ea5e9; border-radius: 10px; animation: almFadeIn 0.25s ease;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span id="legend-detail-title" style="font-size: 0.95rem; font-weight: 800; color: #0369a1; text-transform: uppercase; letter-spacing: 0.5px;"></span>
+                            <span onclick="closeLegendDetail()" style="cursor: pointer; font-size: 1.4rem; font-weight: 700; color: #0ea5e9; line-height: 1; padding: 2px 6px;">&times;</span>
+                        </div>
+                        <p id="legend-detail-desc" style="margin: 0; font-size: 0.9rem; color: #0369a1; line-height: 1.4; font-weight: 600;"></p>
+                    </div>
+                </div>
+
+                <style>
+                    .legend-compact-item {
+                        transition: all 0.2s ease-in-out !important;
+                    }
+                    .legend-compact-item:hover {
+                        transform: translateY(-2px);
+                        box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+                        border-color: #cbd5e1 !important;
+                    }
+                    @keyframes almFadeIn {
+                        from { opacity: 0; transform: translateY(4px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                </style>
+
+                <script>
+                    function showLegendDetail(element, title, desc) {
+                        document.querySelectorAll('.legend-compact-item').forEach(item => {
+                            item.style.borderColor = '#e2e8f0';
+                            item.style.background = '#f8fafc';
+                        });
+                        
+                        // Extract style tokens from inner circle and label text
+                        const circleSpan = element.querySelector('span');
+                        const labelSpan = element.querySelectorAll('span')[1];
+                        
+                        const bgColor = circleSpan.style.background || window.getComputedStyle(circleSpan).backgroundColor;
+                        const borderColor = circleSpan.style.borderColor || window.getComputedStyle(circleSpan).borderColor;
+                        const textColor = labelSpan.style.color || window.getComputedStyle(labelSpan).color;
+                        
+                        element.style.borderColor = borderColor;
+                        element.style.background = bgColor;
+                        
+                        const card = document.getElementById('legend-detail-card');
+                        const titleSpan = document.getElementById('legend-detail-title');
+                        const descP = document.getElementById('legend-detail-desc');
+                        const closeBtn = card.querySelector('span[onclick="closeLegendDetail()"]');
+                        
+                        titleSpan.textContent = title;
+                        descP.textContent = desc;
+                        
+                        // Dynamic adaptation of the detail card's colors
+                        card.style.background = bgColor;
+                        card.style.borderColor = borderColor;
+                        titleSpan.style.color = textColor;
+                        descP.style.color = textColor;
+                        if (closeBtn) {
+                            closeBtn.style.color = textColor;
+                        }
+                        
+                        card.style.display = 'block';
+                    }
+
+                    function closeLegendDetail() {
+                        document.querySelectorAll('.legend-compact-item').forEach(item => {
+                            item.style.borderColor = '#e2e8f0';
+                            item.style.background = '#f8fafc';
+                        });
+                        document.getElementById('legend-detail-card').style.display = 'none';
+                    }
+                </script>
+            </aside>
+
+            {{-- ── COLUMNA DERECHA (CONTENIDO PRINCIPAL) ────────────────── --}}
+            <main class="alm-content">
+                {{-- ── STATS ───────────────────────────────────────────────── --}}
+                @php
+                    $total = $registros->count();
+                    $activas = $registros->where('status', 'activa')->count();
+                    $inactivas = $registros->where('status', 'inactiva')->count();
+                @endphp
+
+                <div class="alm-stats">
+                    <div class="alm-stat-card stat-total">
+                        <div class="alm-stat-icon">
+                            <img src="{{ asset('images/pdf-view.png') }}" alt="Total" style="width: 60px;">
+                        </div>
+                        <div>
+                            <div class="alm-stat-value">{{ $total }}</div>
+                            <div class="alm-stat-label">OTs en historial</div>
+                        </div>
+                    </div>
+                    <div class="alm-stat-card stat-activas">
+                        <div class="alm-stat-icon">
+                            <img src="{{ asset('images/ready.png') }}" alt="Activas" style="width: 60px;">
+                        </div>
+                        <div>
+                            <div class="alm-stat-value">{{ $activas }}</div>
+                            <div class="alm-stat-label">OTs activas</div>
+                        </div>
+                    </div>
+                    <div class="alm-stat-card stat-inactivas">
+                        <div class="alm-stat-icon">
+                            <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Archivadas" style="width: 60px;">
+                        </div>
+                        <div>
+                            <div class="alm-stat-value">{{ $inactivas }}</div>
+                            <div class="alm-stat-label">OTs archivadas</div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- ── FILTROS ─────────────────────────────────────────────── --}}
+                <div class="alm-filters-card">
                     <h2>Búsqueda y Filtros</h2>
                     <form method="GET" action="{{ route('almacen.fundicion.index') }}" id="alm-filter-form">
                         <div class="filters">
@@ -112,199 +315,6 @@
                     </form>
                 </div>
 
-        {{-- ── LEYENDA DE ESTADOS DE MODELO ───────────────────────── --}}
-        <div class="alm-filters-card"
-            style="margin-bottom: 2em; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);">
-            <div
-                style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
-                <img src="{{ asset('images/Quality.png') }}" alt="Leyenda"
-                    style="width: 28px; height: 28px; object-fit: contain;">
-                <h2 style="margin: 0; font-size: 1.25rem; color: #0f172a; font-weight: 700;">Guía de Estados de Modelo</h2>
-            </div>
-            <p style="font-size: 0.875rem; color: #64748b; margin-top: 0; margin-bottom: 15px;">
-                Los siguientes iconos indican la fase actual del control y liberación del modelo de fundición:
-            </p>
-            <div class="legend-list">
-
-                {{-- Recibido --}}
-                <div
-                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span
-                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #f1f5f9; border: 2px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                        <img src="{{ asset('images/Recibido.png') }}"
-                            style="width: 24px; height: 24px; object-fit: contain;">
-                    </span>
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Nuevo</div>
-                        <div style="font-size: 0.75rem; color: #475569;">
-                            @if (Auth::user()->perfil == 4)
-                                Pre-orden recibida, espera Calidad.
-                            @else
-                                Alerta recibida. Pendiente Almacén.
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Pre-Orden --}}
-                <div
-                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span
-                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #eff6ff; border: 2px solid #60a5fa; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                        <img src="{{ asset('images/pdf-view.png') }}"
-                            style="width: 24px; height: 24px; object-fit: contain;">
-                    </span>
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: #2563eb; text-transform: uppercase;">Pre-Orden</div>
-                        <div style="font-size: 0.75rem; color: #475569;">Pre-orden generada, pendiente enviar.</div>
-                    </div>
-                </div>
-
-                {{-- Correo Enviado --}}
-                @if (Auth::user()->perfil != 4)
-                    <div
-                        style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                        <span
-                            style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #e0e7ff; border: 2px solid #818cf8; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                            <img src="{{ asset('images/enviando.png') }}"
-                                style="width: 24px; height: 24px; object-fit: contain;">
-                        </span>
-                        <div>
-                            <div style="font-size: 0.85rem; font-weight: 700; color: #4f46e5; text-transform: uppercase;">Correo Enviado</div>
-                            <div style="font-size: 0.75rem; color: #475569;">Enviada por correo. Esperando Calidad.</div>
-                        </div>
-                    </div>
-                @endif
-
-                {{-- Tengo Modelo --}}
-                <div
-                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span
-                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #f0f9ff; border: 2px solid #0ea5e9; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                        <img src="{{ asset('images/Espera.png') }}" style="width: 24px; height: 24px; object-fit: contain;">
-                    </span>
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: #0369a1; text-transform: uppercase;">Tengo Modelo</div>
-                        <div style="font-size: 0.75rem; color: #475569;">Modelo en Almacén. Esperando Calidad.</div>
-                    </div>
-                </div>
-
-                {{-- En Revisión --}}
-                <div
-                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span
-                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #fffbeb; border: 2px solid #f59e0b; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                        <img src="{{ asset('images/Revisando.png') }}"
-                            style="width: 24px; height: 24px; object-fit: contain;">
-                    </span>
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: #b45309; text-transform: uppercase;">En Revisión</div>
-                        <div style="font-size: 0.75rem; color: #475569;">Calidad capturando veredicto.</div>
-                    </div>
-                </div>
-
-                {{-- Aprobado --}}
-                <div
-                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span
-                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #ecfdf5; border: 2px solid #10b981; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                        <img src="{{ asset('images/Quality.png') }}"
-                            style="width: 24px; height: 24px; object-fit: contain;">
-                    </span>
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: #047857; text-transform: uppercase;">Aprobado (Calidad)</div>
-                        <div style="font-size: 0.75rem; color: #475569;">Aprobado y liberado por Calidad.</div>
-                    </div>
-                </div>
-
-                {{-- Rechazado --}}
-                <div
-                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span
-                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #fef2f2; border: 2px solid #ef4444; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                        <img src="{{ asset('images/Quality.png') }}"
-                            style="width: 24px; height: 24px; object-fit: contain;">
-                    </span>
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: #b91c1c; text-transform: uppercase;">Rechazado (Calidad)</div>
-                        <div style="font-size: 0.75rem; color: #475569;">Rechazado por Calidad (desviaciones).</div>
-                    </div>
-                </div>
-
-                {{-- Mixto --}}
-                <div
-                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span
-                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #fef9c3; border: 2px solid #eab308; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                        <img src="{{ asset('images/Quality.png') }}"
-                            style="width: 24px; height: 24px; object-fit: contain;">
-                    </span>
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: #854d0e; text-transform: uppercase;">Mixto (Calidad)</div>
-                        <div style="font-size: 0.75rem; color: #475569;">Liberación mixta (aprobado/rechazado).</div>
-                    </div>
-                </div>
-
-                {{-- Casting --}}
-                <div
-                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span
-                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #f0fdf4; border: 2px solid #059669; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                        <img src="{{ asset('images/pdf-view.png') }}"
-                            style="width: 24px; height: 24px; object-fit: contain;">
-                    </span>
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: #15803d; text-transform: uppercase;">Casting</div>
-                        <div style="font-size: 0.75rem; color: #475569;">Pre-orden de casting generada.</div>
-                    </div>
-                </div>
-
-                {{-- Reproceso --}}
-                <div
-                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #ec4899; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                    <span
-                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #fdf2f8; border: 2px solid #ec4899; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                        <img src="{{ asset('images/Reproceso.png') }}"
-                            style="width: 24px; height: 24px; object-fit: contain;">
-                    </span>
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: #be185d; text-transform: uppercase;">Reproceso</div>
-                        <div style="font-size: 0.75rem; color: #475569;">Retornado para fabricar nuevo modelo.</div>
-                    </div>
-                </div>
-
-                {{-- Aprobado (Final) --}}
-                <div
-                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span
-                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #f0fdf4; border: 2px solid #15803d; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                        <img src="{{ asset('images/Aprobado.png') }}"
-                            style="width: 24px; height: 24px; object-fit: contain;">
-                    </span>
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: #15803d; text-transform: uppercase;">Aprobado (Final)</div>
-                        <div style="font-size: 0.75rem; color: #475569;">Proceso finalizado. Casting completado.</div>
-                    </div>
-                </div>
-
-                {{-- Rechazado (Final) --}}
-                <div
-                    style="display: flex; align-items: center; gap: 12px; padding: 10px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <span
-                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #fef2f2; border: 2px solid #dc2626; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;">
-                        <img src="{{ asset('images/Rechazado.png') }}"
-                            style="width: 24px; height: 24px; object-fit: contain;">
-                    </span>
-                    <div>
-                        <div style="font-size: 0.85rem; font-weight: 700; color: #b91c1c; text-transform: uppercase;">Rechazado (Final)</div>
-                        <div style="font-size: 0.75rem; color: #475569;">Modelo rechazado y reproceso iniciado.</div>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        {{-- ── TABLAS ───────────────────────────────────────────────── --}}
         @foreach (['activa' => 'Dibujos Activos', 'inactiva' => 'Dibujos Inactivos (Histórico)'] as $estado => $titulo)
             @php
                 $registrosEstado = $registros->where('status', $estado);
@@ -986,12 +996,12 @@
                                                 <div class="status-modelo-container"
                                                     style="display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 8px;">
                                                     <span class="badge-modelo-icon" title="{{ $tooltip }}"
-                                                        style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: {{ $bgColor }}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid {{ $borderColor }}; transition: all 0.2s ease;">
+                                                        style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background: {{ $bgColor }}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid {{ $borderColor }}; transition: all 0.2s ease;">
                                                         <img src="{{ asset('images/' . $icon) }}" alt="{{ $label }}"
-                                                            style="width: 28px; height: 28px; object-fit: contain;">
+                                                            style="width: 34px; height: 34px; object-fit: contain;">
                                                     </span>
                                                     <span class="status-modelo-label"
-                                                        style="font-size: 10px; font-weight: 700; color: {{ $textColor }}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
+                                                        style="font-size: 11px; font-weight: 700; color: {{ $textColor }}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
                                                         {{ $label }}
                                                     </span>
                                                 </div>
@@ -1929,7 +1939,8 @@
                 @endif
             </div>
         @endforeach
-
+            </main>
+        </div>
     </div>{{-- /.alm-wrapper --}}
 
     {{-- ── MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS ── --}}

@@ -200,10 +200,10 @@ window.confirmarModelo = function (ot) {
                 if (container) {
                     container.innerHTML = `
                         <div class="status-modelo-container" style="display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 8px;">
-                            <span class="badge-modelo-icon" title="Modelo físico disponible en Almacén, en espera de revisión por Calidad" style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: #f0f9ff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid #0ea5e9; transition: all 0.2s ease;">
-                                <img src="${baseUrl}${baseUrl.endsWith('/') ? '' : '/'}images/Espera.png" alt="Tengo Modelo" style="width: 28px; height: 28px; object-fit: contain;">
+                            <span class="badge-modelo-icon" title="Modelo físico disponible en Almacén, en espera de revisión por Calidad" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background: #f0f9ff; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid #0ea5e9; transition: all 0.2s ease;">
+                                <img src="${baseUrl}${baseUrl.endsWith('/') ? '' : '/'}images/Espera.png" alt="Tengo Modelo" style="width: 34px; height: 34px; object-fit: contain;">
                             </span>
-                            <span class="status-modelo-label" style="font-size: 10px; font-weight: 700; color: #0369a1; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
+                            <span class="status-modelo-label" style="font-size: 11px; font-weight: 700; color: #0369a1; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
                                 Tengo Modelo
                             </span>
                         </div>
@@ -767,10 +767,10 @@ function updateModelStatusUI(ot, status) {
 
     container.innerHTML = `
         <div class="status-modelo-container" style="display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 8px;">
-            <span class="badge-modelo-icon" title="${tooltip}" style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: ${bgColor}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid ${borderColor}; transition: all 0.2s ease;">
-                <img src="${imgUrl}" alt="${label}" style="width: 28px; height: 28px; object-fit: contain;">
+            <span class="badge-modelo-icon" title="${tooltip}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background: ${bgColor}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid ${borderColor}; transition: all 0.2s ease;">
+                <img src="${imgUrl}" alt="${label}" style="width: 34px; height: 34px; object-fit: contain;">
             </span>
-            <span class="status-modelo-label" style="font-size: 10px; font-weight: 700; color: ${textColor}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
+            <span class="status-modelo-label" style="font-size: 11px; font-weight: 700; color: ${textColor}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
                 ${label}
             </span>
         </div>
@@ -2444,10 +2444,10 @@ const ModeloStateMachine = (() => {
         const src = _baseUrl() + 'images/' + cfg.img;
         el.innerHTML = `
             <div class="status-modelo-container" style="display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 8px;">
-                <span class="badge-modelo-icon" title="${cfg.title}" style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 50%; background: ${cfg.bgColor}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid ${cfg.borderColor}; transition: all 0.2s ease;">
-                    <img src="${src}" alt="${cfg.label}" style="width: 28px; height: 28px; object-fit: contain;">
+                <span class="badge-modelo-icon" title="${cfg.title}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background: ${cfg.bgColor}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid ${cfg.borderColor}; transition: all 0.2s ease;">
+                    <img src="${src}" alt="${cfg.label}" style="width: 34px; height: 34px; object-fit: contain;">
                 </span>
-                <span class="status-modelo-label" style="font-size: 10px; font-weight: 700; color: ${cfg.textColor}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
+                <span class="status-modelo-label" style="font-size: 11px; font-weight: 700; color: ${cfg.textColor}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
                     ${cfg.label}
                 </span>
             </div>
