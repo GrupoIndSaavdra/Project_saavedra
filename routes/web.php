@@ -595,3 +595,15 @@ Route::middleware(['auth'])->prefix('herramientas/tecamac')->name('herramientas.
     Route::post('/imagen/{imgId}/replace', [HerramientasTecamacController::class, 'replaceImagen'])
         ->name('imagen.replace');
 });
+
+Route::get('/test-user', function() {
+    if (auth()->check()) {
+        return response()->json([
+            'id' => auth()->id(),
+            'nombre' => auth()->user()->nombre,
+            'perfil' => auth()->user()->perfil,
+            'perfil_type' => gettype(auth()->user()->perfil)
+        ]);
+    }
+    return 'Not logged in';
+});
