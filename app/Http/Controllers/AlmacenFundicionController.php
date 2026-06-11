@@ -155,7 +155,7 @@ class AlmacenFundicionController extends Controller
             $allOtNames[] = $ot;
         }
 
-        $modelPreOrden = PreOrdenFundicion::where('ot', $ot)->where('pdf_filename', 'NOT LIKE', '%Casting%')->first();
+        $modelPreOrden = PreOrdenFundicion::where('ot', '=', $ot)->where('pdf_filename', 'NOT LIKE', '%Casting%')->first();
         $activeClasses = [];
         if ($modelPreOrden) {
             $filas = $modelPreOrden->filas;
@@ -1131,7 +1131,7 @@ class AlmacenFundicionController extends Controller
 
         $baseOt = preg_replace('/_R\d+$/i', '', $otFull);
 
-        $modelPreOrden = PreOrdenFundicion::where('ot', $otFull)->where('pdf_filename', 'NOT LIKE', '%Casting%')->first();
+        $modelPreOrden = PreOrdenFundicion::where('ot', '=', $otFull)->where('pdf_filename', 'NOT LIKE', '%Casting%')->first();
         $activeClasses = [];
         if ($modelPreOrden) {
             $filas = $modelPreOrden->filas;
@@ -1176,7 +1176,7 @@ class AlmacenFundicionController extends Controller
 
             if ($tipo) {
                 $isAprobado = LiberacionModeloFundicion::query()
-                    ->where(function($q) use ($otFull, $baseOt) {
+                    ->whereNested(function($q) use ($otFull, $baseOt) {
                         $q->where('ot', '=', $otFull)
                           ->orWhere('ot', '=', $baseOt)
                           ->orWhere('ot', 'LIKE', $baseOt . '_R%');
@@ -1210,7 +1210,7 @@ class AlmacenFundicionController extends Controller
 
             if ($tipo) {
                 $isAprobado = LiberacionModeloFundicion::query()
-                    ->where(function($q) use ($otFull, $baseOt) {
+                    ->whereNested(function($q) use ($otFull, $baseOt) {
                         $q->where('ot', '=', $otFull)
                           ->orWhere('ot', '=', $baseOt)
                           ->orWhere('ot', 'LIKE', $baseOt . '_R%');
@@ -1304,7 +1304,7 @@ class AlmacenFundicionController extends Controller
 
                     if ($tipo) {
                         $isAprobado = LiberacionModeloFundicion::query()
-                            ->where(function($q) use ($otFull, $baseOt) {
+                            ->whereNested(function($q) use ($otFull, $baseOt) {
                                 $q->where('ot', '=', $otFull)
                                   ->orWhere('ot', '=', $baseOt)
                                   ->orWhere('ot', 'LIKE', $baseOt . '_R%');
@@ -1448,7 +1448,7 @@ class AlmacenFundicionController extends Controller
 
                 if ($tipo) {
                     $isAprobado = LiberacionModeloFundicion::query()
-                        ->where(function($q) use ($otRaw, $baseOt) {
+                        ->whereNested(function($q) use ($otRaw, $baseOt) {
                             $q->where('ot', '=', $otRaw)
                               ->orWhere('ot', '=', $baseOt)
                               ->orWhere('ot', 'LIKE', $baseOt . '_R%');

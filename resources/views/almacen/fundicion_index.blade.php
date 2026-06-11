@@ -1995,7 +1995,20 @@
                                                                                     <img src="{{ asset('images/editar-informacion.png') }}" alt="">
                                                                                     <span>Editar Datos</span>
                                                                                 </button>
+                                                                            @else
+                                                                                <button class="btn-calidad-action btn-calidad-iniciar" @if (!$targetReg->pre_orden_email_sent && !$targetReg->tiene_modelo)
+                                                                                    disabled style="opacity: 0.55; cursor: not-allowed;"
+                                                                                    title="En espera de que Almacén envíe la información necesaria para realizar la liberación"
+                                                                                @else
+                                                                                        title="{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Iniciar el proceso de liberación' }}"
+                                                                                    @endif
+                                                                                    onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})">
+                                                                                    <img src="{{ asset('images/Liberar.png') }}" alt="">
+                                                                                    <span>{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Empezar con el proceso de liberación' }}</span>
+                                                                                </button>
+                                                                            @endif
 
+                                                                            @if ($contClasesConDatos > 0)
                                                                                 @if ($hasRechazoBorrador)
                                                                                     @if (!$scarModelo)
                                                                                         <button class="btn-calidad-action btn-calidad-borrador"
@@ -2022,17 +2035,6 @@
                                                                                         <span>Finalizar Proceso</span>
                                                                                     </button>
                                                                                 @endif
-                                                                            @else
-                                                                                <button class="btn-calidad-action btn-calidad-iniciar" @if (!$targetReg->pre_orden_email_sent && !$targetReg->tiene_modelo)
-                                                                                    disabled style="opacity: 0.55; cursor: not-allowed;"
-                                                                                    title="En espera de que Almacén envíe la información necesaria para realizar la liberación"
-                                                                                @else
-                                                                                        title="{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Iniciar el proceso de liberación' }}"
-                                                                                    @endif
-                                                                                    onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})">
-                                                                                    <img src="{{ asset('images/Liberar.png') }}" alt="">
-                                                                                    <span>{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Empezar con el proceso de liberación' }}</span>
-                                                                                </button>
                                                                             @endif
                                                                         </div>
                                                                     </div>
