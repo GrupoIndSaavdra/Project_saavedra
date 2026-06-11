@@ -924,6 +924,58 @@ class AlmacenFundicionControllerTest extends TestCase
         $response->assertJson(['success' => true]);
         $this->assertFalse(Storage::disk('local')->exists($calidadDir . '/ayudas_visuales/preordenes/evidencias/evidencia_adicional_0_OT-DEL-TEST-4.png'));
     }
+
+    public function test_reprocess_control_card_binds_to_active_cycle_record()
+    {
+        $user = User::factory()->create(['perfil' => '5']); // Almacen
+        $this->actingAs($user);
+
+        $ot = 'OT-REPROCESS-CARD-TEST';
+
+        // Base history: already completed/email sent, rechazos_procesados = true
+        $baseHistory = FundicionHistory::create([
+            'ot' => $ot,
+            'tiene_modelo' => true,
+            'pre_orden_sent' => true,
+            'pre_orden_email_sent' => true,
+            'alert_sent_at' => now(),
+            'status' => 'activa',
+            'almacen_archivos' => ['dummy_drawing.pdf']
+        ]);
+        $baseHistory->rechazos_procesados = true;
+        $baseHistory->save();
+
+        // Reprocess cycle _R1: currently waiting for pre-order, not yet confirmed
+        FundicionHistory::create([
+            'ot' => $ot . '_R1',
+            'tiene_modelo' => false,
+            'pre_orden_sent' => false,
+            'pre_orden_email_sent' => false,
+            'status' => 'activa'
+        ]);
+
+        $response = $this->get(route('almacen.fundicion.index'));
+        $response->assertStatus(200);
+
+        // Assert the card is not disabled and prompts for generating pre-order in reprocess
+        $response->assertSee('id="control-modelo-' . md5($ot) . '"', false);
+        $response->assertDontSee('id="control-modelo-' . md5($ot) . '" style="opacity: 0.5; pointer-events: none;"', false);
+        $response->assertSee('OT en re-proceso por rechazo de Calidad');
+
+        // Now update reprocess model status so it should block
+        $reprocessReg = FundicionHistory::where('ot', $ot . '_R1')->first();
+        $reprocessReg->tiene_modelo = true;
+        $reprocessReg->save();
+
+        $response2 = $this->get(route('almacen.fundicion.index'));
+        $response2->assertStatus(200);
+        $content = $response2->getContent();
+        $hash = md5($ot);
+        $this->assertMatchesRegularExpression(
+            '/<div class="lib-calidad-card"\s+id="control-modelo-' . $hash . '"[^>]*?style="opacity:\s*0\.5;\s*pointer-events:\s*none;"/i',
+            $content
+        );
+    }
 }
 
 

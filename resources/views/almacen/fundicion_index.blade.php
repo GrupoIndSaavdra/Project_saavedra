@@ -440,7 +440,7 @@
                                                 $hasAprobados = $liberacionesReg->where('decision', 'aprobar')->isNotEmpty();
 
                                                 $latestReproceso = null;
-                                                if ($reg->rechazos_procesados && !$hasAprobados) {
+                                                if ($reg->rechazos_procesados) {
                                                     $latestReproceso = \App\Models\FundicionHistory::where('ot', 'LIKE', $reg->ot . '_R%')
                                                         ->orderBy('id', 'desc')
                                                         ->first();
@@ -1367,17 +1367,17 @@
                                                         {{-- ── SECCIÓN CONTROL DE MODELOS (Solo Almacén y OTs Activas) ── --}}
                                                         @if (Auth::user()->perfil != 4 && $estado === 'activa')
                                                             @php
-                                                                $isFinalized = in_array($reg->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto', 'casting_aprobado']);
+                                                                $isFinalized = in_array($targetReg->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto', 'casting_aprobado']);
                                                             @endphp
                                                             @if (!$isFinalized)
                                                                 @php
                                                                     // Detectar si es una OT de re-proceso (_R1, _R2, etc.)
-                                                                    $esReproceso = (bool) preg_match('/_R\d+$/i', $reg->ot);
-                                                                    $controlDisabled = ($reg->tiene_modelo || $reg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '';
-                                                                    $hideSiNo = ($esReproceso || $reg->pre_orden_sent || $reg->pre_orden_email_sent) ? 'display: none;' : '';
-                                                                    $hideEditMail = ($reg->pre_orden_sent && !$reg->pre_orden_email_sent) ? '' : 'display: none;';
+                                                                    $esReproceso = (bool) preg_match('/_R\d+$/i', $targetReg->ot);
+                                                                    $controlDisabled = ($targetReg->tiene_modelo || $targetReg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '';
+                                                                    $hideSiNo = ($esReproceso || $targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent) ? 'display: none;' : '';
+                                                                    $hideEditMail = ($targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent) ? '' : 'display: none;';
                                                                     // Para reproceso: mostrar Pre-Orden si aún no se ha generado
-                                                                    $hideReprocesoPreOrden = ($esReproceso && !$reg->pre_orden_sent && !$reg->pre_orden_email_sent) ? '' : 'display: none;';
+                                                                    $hideReprocesoPreOrden = ($esReproceso && !$targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent) ? '' : 'display: none;';
                                                                 @endphp
                                                                 <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}"
                                                                     style="{{ $controlDisabled }}">
@@ -1388,19 +1388,19 @@
                                                                             <span class="lib-calidad-card-title">Control de Modelos &mdash;
                                                                                 Almacén</span>
                                                                             <span
-                                                                                class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                                class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $targetReg->ot) }}</span>
                                                                         </div>
                                                                     </div>
                                                                     <div class="lib-calidad-card-body">
                                                                         <div class="lib-calidad-action-row">
                                                                             <h4 class="lib-calidad-card-prompt">
-                                                                                @if ($reg->tiene_modelo)
+                                                                                @if ($targetReg->tiene_modelo)
                                                                                     ¡Modelo recibido y procesado! Pendiente de que Calidad lo revise.
-                                                                                @elseif ($reg->pre_orden_email_sent)
+                                                                                @elseif ($targetReg->pre_orden_email_sent)
                                                                                     Alerta enviada a Calidad. En espera de su revisión y nuevo veredicto
                                                                                     de
                                                                                     liberación.
-                                                                                @elseif ($reg->pre_orden_sent)
+                                                                                @elseif ($targetReg->pre_orden_sent)
                                                                                     @if ($esReproceso)
                                                                                         Pre-orden de re-proceso lista. Puedes editar los datos o enviar la
                                                                                         alerta
@@ -1421,14 +1421,14 @@
                                                                             <div class="lib-calidad-card-btns">
                                                                                 {{-- Botones para OT normal (no reproceso) --}}
                                                                                 <button class="btn-modelo btn-modelo-si"
-                                                                                    onclick="abrirModalConfirmarModelo('{{ $reg->ot }}', '{{ md5($reg->ot) }}')"
+                                                                                    onclick="abrirModalConfirmarModelo('{{ $targetReg->ot }}', '{{ md5($reg->ot) }}')"
                                                                                     title="Sí, cuento con el modelo de esta OT"
                                                                                     style="{{ $hideSiNo }}">
                                                                                     <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
                                                                                     <span>Tengo el Modelo</span>
                                                                                 </button>
                                                                                 <button class="btn-modelo btn-modelo-no"
-                                                                                    onclick="abrirModalPreOrden('{{ $reg->ot }}')"
+                                                                                    onclick="abrirModalPreOrden('{{ $targetReg->ot }}')"
                                                                                     title="No cuento con él, generar formato PDF"
                                                                                     style="{{ $hideSiNo }}">
                                                                                     <img src="{{ asset('images/pdf.png') }}" alt="PDF">
@@ -1437,7 +1437,7 @@
 
                                                                                 {{-- Botón inicial para re-proceso: generar pre-orden --}}
                                                                                 <button class="btn-modelo btn-modelo-no"
-                                                                                    onclick="abrirModalPreOrden('{{ $reg->ot }}')"
+                                                                                    onclick="abrirModalPreOrden('{{ $targetReg->ot }}')"
                                                                                     title="Generar / editar la pre-orden de fabricación de modelo"
                                                                                     style="{{ $hideReprocesoPreOrden }}">
                                                                                     <img src="{{ asset('images/pdf.png') }}" alt="Pre-Orden">
@@ -1448,7 +1448,7 @@
                                                                                 reproceso)
                                                                                 --}}
                                                                                 <button class="btn-modelo btn-modelo-edit"
-                                                                                    onclick="abrirModalPreOrden('{{ $reg->ot }}')"
+                                                                                    onclick="abrirModalPreOrden('{{ $targetReg->ot }}')"
                                                                                     title="Editar información de la preorden existente"
                                                                                     style="{{ $hideEditMail }}">
                                                                                     <img src="{{ asset('images/editar-informacion.png') }}"
@@ -1456,7 +1456,7 @@
                                                                                     <span>Editar Pre-orden</span>
                                                                                 </button>
                                                                                 <button class="btn-modelo btn-modelo-email"
-                                                                                    onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'modelo')"
+                                                                                    onclick="abrirModalEnviarPreOrden('{{ $targetReg->ot }}', 'modelo')"
                                                                                     title="{{ $esReproceso ? 'Enviar alerta a Calidad para iniciar revisión de re-proceso' : 'Enviar pre-orden por correo electrónico' }}"
                                                                                     style="{{ $hideEditMail }}">
                                                                                     <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
