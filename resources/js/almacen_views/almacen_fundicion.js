@@ -3176,39 +3176,39 @@ window.cerrarModalEnviarScar = function () {
 // BLOQUE 2 — MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS
 // =============================================================================
 
-window.abrirModalConfirmarModelo = async function (ot, idHash) {
-    const fd = new FormData();
-    fd.append('ot', ot);
-    const h = new Date();
-    fd.append('fecha', `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}`);
+window.abrirModalConfirmarModelo = function (ot, idHash) {
+    const modal = document.getElementById('modalConfirmarModelo');
+    if (!modal) return;
 
-    try {
-        const resp = await fetch(window.almacenRoutes.confirmarModelo, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
-                'X-Requested-With': 'XMLHttpRequest',
-            },
-            body: fd,
-        });
-        const data = await resp.json();
+    // Resetear lista de archivos seleccionados y badges
+    cmConfirmarSelectedFiles = [];
+    renderCmConfirmarBadges();
 
-        if (data.success) {
-            almacenToast(data.message || 'Alerta enviada a calidad', 'success');
-            // Actualizar FSM y bloquear card visualmente
-            if (window.ModeloStateMachine) window.ModeloStateMachine.onConfirmarModelo(ot);
-            if (idHash) {
-                const container = document.getElementById('control-modelo-' + idHash);
-                if (container) { container.style.opacity = '0.5'; container.style.pointerEvents = 'none'; }
-            }
-            setTimeout(() => location.reload(), 1600);
-        } else {
-            almacenToast(data.message || 'Error al registrar el modelo.', 'error');
-        }
-    } catch (err) {
-        console.error('Error confirmando modelo:', err);
-        almacenToast('Error de red al registrar el modelo.', 'error');
+    // Resetear formulario
+    const form = document.getElementById('formConfirmarModelo');
+    if (form) form.reset();
+
+    // Asignar valores a campos ocultos
+    const otInput = document.getElementById('cm-ot');
+    if (otInput) otInput.value = ot;
+
+    const hashInput = document.getElementById('cm-id-hash');
+    if (hashInput) hashInput.value = idHash || '';
+
+    // Asignar subtítulo con la OT
+    const subtitle = document.getElementById('confirmar-modelo-subtitle');
+    if (subtitle) subtitle.textContent = `OT: ${ot}`;
+
+    // Asignar fecha actual por defecto
+    const fechaInput = document.getElementById('cm-fecha');
+    if (fechaInput) {
+        const h = new Date();
+        fechaInput.value = `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}`;
     }
+
+    // Abrir modal y bloquear scroll de la página
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
 };
 
 window.cerrarModalConfirmarModelo = function () {
