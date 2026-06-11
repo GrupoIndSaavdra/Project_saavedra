@@ -3374,22 +3374,43 @@ window.abrirModalLiberacionUnificado = function (ot, clasesActivas, todasClases)
     // Resetear selector visual a "Aprobar"
     libSeleccionarDecision('aprobar');
 
-    // Filtrar el <select id="lib-tipo"> según las clases activas
-    _libFiltrarTiposModelo(clasesActivas);
+    // Filtrar el <select id="lib-tipo"> según las clases activas y obtener el mejor a seleccionar
+    const autoSelectValue = _libFiltrarTiposModelo(clasesActivas);
+    
+    if (autoSelectValue) {
+        const select = document.getElementById('lib-tipo');
+        if (select) {
+            select.value = autoSelectValue;
+            libCambiarTipo(autoSelectValue);
+        }
+    }
 };
 
 /**
  * Filtra las opciones del select #lib-tipo según las clases activas de la OT.
  * Mapa: nombre de clase contiene → valor de option
+ * Retorna el valor del primer modelo no procesado, o en su defecto el primer disponible.
  */
 function _libFiltrarTiposModelo(clasesActivas) {
     const select = document.getElementById('lib-tipo');
-    if (!select) return;
+    if (!select) return null;
+
+    let firstAvailable = null;
+    let firstUnprocessed = null;
 
     // Si no hay clases activas, mostrar todas las opciones
     if (!clasesActivas || clasesActivas.length === 0) {
-        select.querySelectorAll('option').forEach(opt => { opt.hidden = false; });
-        return;
+        select.querySelectorAll('option').forEach(opt => { 
+            opt.hidden = false; 
+            if (opt.value) {
+                if (!firstAvailable) firstAvailable = opt.value;
+                const cached = window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[opt.value];
+                if (!cached && !firstUnprocessed) {
+                    firstUnprocessed = opt.value;
+                }
+            }
+        });
+        return firstUnprocessed || firstAvailable;
     }
 
     const MAPA_TIPO = {
@@ -3410,14 +3431,33 @@ function _libFiltrarTiposModelo(clasesActivas) {
 
     // Si ninguna clase coincide con el mapa, mostrar todas (fallback)
     if (tiposDisponibles.size === 0) {
-        select.querySelectorAll('option').forEach(opt => { opt.hidden = false; });
-        return;
+        select.querySelectorAll('option').forEach(opt => { 
+            opt.hidden = false; 
+            if (opt.value) {
+                if (!firstAvailable) firstAvailable = opt.value;
+                const cached = window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[opt.value];
+                if (!cached && !firstUnprocessed) {
+                    firstUnprocessed = opt.value;
+                }
+            }
+        });
+        return firstUnprocessed || firstAvailable;
     }
 
     select.querySelectorAll('option').forEach(opt => {
         if (!opt.value) { opt.hidden = false; return; } // Mantener placeholder
         opt.hidden = !tiposDisponibles.has(opt.value);
+        
+        if (!opt.hidden) {
+            if (!firstAvailable) firstAvailable = opt.value;
+            const cached = window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[opt.value];
+            if (!cached && !firstUnprocessed) {
+                firstUnprocessed = opt.value;
+            }
+        }
     });
+    
+    return firstUnprocessed || firstAvailable;
 }
 
 /**
