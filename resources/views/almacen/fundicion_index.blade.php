@@ -2171,7 +2171,7 @@
                         <label for="al-destinatario"
                             style="font-size: 1.2em; font-weight: 700; color: #334155; display: block; margin-bottom: 10px; font-family:'Poppins', sans-serif;">Destinatario(s):</label>
                         <input type="text" id="al-destinatario" name="destinatario" class="form-control" required
-                            value="jaxer020406@gmail.com"
+                            value="inspecciontec@grupoindsaavedra.com"
                             style="font-size: 1.15em; padding: 14px 20px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
                         <span style="font-size: 0.9em; color: #64748b; margin-top: 8px; display: block;">Separa múltiples
                             correos usando comas (,).</span>
@@ -2319,8 +2319,10 @@
                         <div class="form-grid">
                             <div class="form-group po-proveedor-group">
                                 <label for="po-proveedor">Proveedor:</label>
-                                <input type="text" id="po-proveedor" name="proveedor" class="form-control" readonly required
-                                    value="SS Metal Foundry, S. de R. L. de C. V.">
+                                <select id="po-proveedor" name="proveedor" class="form-control" required>
+                                    <option value="SS Metal Foundry, S. de R. L. de C. V." selected>SS Metal Foundry, S. de R. L. de C. V.</option>
+                                    <option value="Sociedad Cooperativa de Producción Jacarandas">Sociedad Cooperativa de Producción Jacarandas</option>
+                                </select>
                             </div>
                             <div class="form-group po-fecha-group">
                                 <label for="po-fecha">Fecha:</label>
@@ -2699,7 +2701,7 @@
                             style="font-size: 1.1em; font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif;">Destinatario(s)
                             <span style="color:#dc2626;">*</span></label>
                         <input type="text" id="fc-destinatario" name="destinatario" class="form-control" required
-                            value="jaxer020406@gmail.com"
+                            value=""
                             style="font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
                         <span style="font-size: 0.85em; color: #64748b; margin-top: 6px; display: block;">Separa múltiples
                             correos usando comas (,).</span>
@@ -2762,7 +2764,7 @@
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label for="env-destinatario">Destinatario(s):</label>
                         <input type="text" id="env-destinatario" name="destinatario" class="form-control" required
-                            value="jaxer020406@gmail.com">
+                            value="ingenieria3@steelfs.com.mx, auxingenieria@ssmetalf.mx">
                         <span style="font-size: 0.8em; color: #64748b; margin-top: 4px;">Separa múltiples correos usando
                             comas (,).</span>
                     </div>
@@ -2842,7 +2844,7 @@
                             Destinatario(s) (separados por coma):
                         </label>
                         <input type="text" id="env-scar-destinatario" name="destinatario" class="form-control" required
-                            value="jaxer020406@gmail.com">
+                            value="produccion@ssmetalf.mx, asistenteprod@ssmetalf.mx, laboratorio@ssmetalf.mx">
                     </div>
 
                     {{-- Fecha Compromiso --}}

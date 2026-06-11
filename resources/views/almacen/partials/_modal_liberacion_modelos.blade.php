@@ -409,7 +409,7 @@
           </label>
           <input type="text" id="lib-destinatario" name="destinatario"
                  class="form-control" style="margin-top:6px;"
-                 value="jaxer020406@gmail.com"
+                 value=""
                  placeholder="correo@empresa.com, otro@empresa.com">
         </div>
 
