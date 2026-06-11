@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Normalizer;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -196,8 +197,8 @@ class AlmacenFundicionController extends Controller
             $relFolder = $this->sanitizePath($this->normalizeOTName($relatedOt));
             
             // Dibujos y Ayudas Visuales (no pre-ordenes) son cargados por Admin y compartidos.
-            $sharedDir = self::ALMACEN_DIR . '/' . $relFolder;
-            $sharedAyudasDir = $sharedDir . '/ayudas_visuales';
+            $sharedDir = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder);
+            $sharedAyudasDir = $this->resolveCaseInsensitivePath($sharedDir . '/ayudas_visuales');
 
             if (!$soloPreorden) {
                 // 1. Obtener dibujos principales (desde sharedDir)
@@ -313,62 +314,62 @@ class AlmacenFundicionController extends Controller
             // --- NUEVO ESQUEMA DE APARTADOS ESPECÍFICOS ---
             // Todos pueden leer de Documentos_Aprobados
             $dirsToScan[] = [
-                'path' => self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Aprobados',
+                'path' => $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Aprobados'),
                 'origin' => 'aprobado',
                 'prefix' => 'Documentos_Aprobados/'
             ];
             // Todos pueden leer de Documentos_Rechazados
             $dirsToScan[] = [
-                'path' => self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Rechazados',
+                'path' => $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Rechazados'),
                 'origin' => 'rechazado',
                 'prefix' => 'Documentos_Rechazados/'
             ];
 
             if ($isAdmin) {
                 $dirsToScan[] = [
-                    'path' => self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Aprobados',
+                    'path' => $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Aprobados'),
                     'origin' => 'aprobado',
                     'prefix' => 'Documentos_Aprobados/'
                 ];
                 $dirsToScan[] = [
-                    'path' => self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Rechazados',
+                    'path' => $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Rechazados'),
                     'origin' => 'rechazado',
                     'prefix' => 'Documentos_Rechazados/'
                 ];
 
                 // Legacy
                 $dirsToScan[] = [
-                    'path' => self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes',
+                    'path' => $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes'),
                     'origin' => 'almacen',
                     'prefix' => 'preordenes/'
                 ];
                 $dirsToScan[] = [
-                    'path' => self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes',
+                    'path' => $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes'),
                     'origin' => 'calidad',
                     'prefix' => 'preordenes/'
                 ];
             } elseif ($isQuality) {
                 $dirsToScan[] = [
-                    'path' => self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Aprobados',
+                    'path' => $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Aprobados'),
                     'origin' => 'aprobado',
                     'prefix' => 'Documentos_Aprobados/'
                 ];
                 $dirsToScan[] = [
-                    'path' => self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Rechazados',
+                    'path' => $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Rechazados'),
                     'origin' => 'rechazado',
                     'prefix' => 'Documentos_Rechazados/'
                 ];
 
                 // Legacy
                 $dirsToScan[] = [
-                    'path' => self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes',
+                    'path' => $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes'),
                     'origin' => 'calidad',
                     'prefix' => 'preordenes/'
                 ];
             } else {
                 // Legacy
                 $dirsToScan[] = [
-                    'path' => self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes',
+                    'path' => $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes'),
                     'origin' => 'almacen',
                     'prefix' => 'preordenes/'
                 ];
@@ -376,12 +377,12 @@ class AlmacenFundicionController extends Controller
 
             // Legacy/Compatibilidad
             $dirsToScan[] = [
-                'path' => self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_aprobados',
+                'path' => $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_aprobados'),
                 'origin' => 'aprobado',
                 'prefix' => 'preordenes/documentos_aprobados/'
             ];
             $dirsToScan[] = [
-                'path' => self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_rechazados',
+                'path' => $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_rechazados'),
                 'origin' => 'rechazado',
                 'prefix' => 'preordenes/documentos_rechazados/'
             ];
@@ -567,6 +568,8 @@ class AlmacenFundicionController extends Controller
             }
         }
 
+        $baseDir = $this->resolveCaseInsensitivePath($baseDir);
+
         // Si el directorio principal no existe, intentar fallback cross-OT (base ↔ _R1/_R2)
         if (!Storage::disk('local')->exists($baseDir)) {
             $baseOtRaw = preg_replace('/_R\d+$/', '', $ot);
@@ -580,26 +583,32 @@ class AlmacenFundicionController extends Controller
             ];
             $found = false;
             foreach ($altDirs as $altDir) {
-                if (Storage::disk('local')->exists($altDir)) {
-                    $baseDir = $altDir;
+                $resolvedAltDir = $this->resolveCaseInsensitivePath($altDir);
+                if (Storage::disk('local')->exists($resolvedAltDir)) {
+                    $baseDir = $resolvedAltDir;
                     $found = true;
                     break;
                 }
             }
             if (!$found) {
+                Log::warning("Directorio no encontrado en Almacén (serveFile). OT: {$ot}, Archivo buscado: {$archivo}. Buscado en múltiples alternativas cross-OT.");
                 abort(404, 'Directorio no encontrado.');
             }
         }
 
         $files = Storage::disk('local')->allFiles($baseDir);
         $foundFile = null;
+        $archivoNorm = Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), Normalizer::FORM_C);
+
         foreach ($files as $f) {
             $fNorm = str_replace('\\', '/', $f);
             $baseDirNorm = str_replace('\\', '/', $baseDir);
             $relName = ltrim(str_replace($baseDirNorm, '', $fNorm), '/');
             
             $utf8RelName = $this->toUtf8($relName);
-            if ($utf8RelName === $archivo) {
+            $utf8RelNameNorm = Normalizer::normalize(mb_strtolower($utf8RelName, 'UTF-8'), Normalizer::FORM_C);
+
+            if ($utf8RelNameNorm === $archivoNorm) {
                 if ($tipo === 'dibujo' && strpos($relName, 'ayudas_visuales/') === 0) continue;
                 
                 $foundFile = $f;
@@ -622,17 +631,20 @@ class AlmacenFundicionController extends Controller
                 self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales',
             ];
             foreach ($possibleDirs as $possibleDir) {
-                if ($possibleDir === $baseDir) continue;
-                if (!Storage::disk('local')->exists($possibleDir)) continue;
+                $resolvedPossibleDir = $this->resolveCaseInsensitivePath($possibleDir);
+                if ($resolvedPossibleDir === $baseDir) continue;
+                if (!Storage::disk('local')->exists($resolvedPossibleDir)) continue;
                 
-                $pFiles = Storage::disk('local')->allFiles($possibleDir);
+                $pFiles = Storage::disk('local')->allFiles($resolvedPossibleDir);
                 foreach ($pFiles as $f) {
                     $fNorm = str_replace('\\', '/', $f);
-                    $pDirNorm = str_replace('\\', '/', $possibleDir);
+                    $pDirNorm = str_replace('\\', '/', $resolvedPossibleDir);
                     $relName = ltrim(str_replace($pDirNorm, '', $fNorm), '/');
                     
                     $utf8RelName = $this->toUtf8($relName);
-                    if ($utf8RelName === $archivo) {
+                    $utf8RelNameNorm = Normalizer::normalize(mb_strtolower($utf8RelName, 'UTF-8'), Normalizer::FORM_C);
+
+                    if ($utf8RelNameNorm === $archivoNorm) {
                         $foundFile = $f;
                         break 2;
                     }
@@ -641,6 +653,7 @@ class AlmacenFundicionController extends Controller
         }
 
         if (!$foundFile) {
+            Log::warning("Archivo no encontrado en Almacén (serveFile). OT: {$ot}, Archivo buscado: {$archivo}, Directorio Final: {$baseDir}");
             abort(404, 'Archivo no encontrado.');
         }
 
@@ -741,6 +754,8 @@ class AlmacenFundicionController extends Controller
             }
         }
 
+        $baseDir = $this->resolveCaseInsensitivePath($baseDir);
+
         if (!Storage::disk('local')->exists($baseDir)) {
             // Fallback ampliado incluyendo la OT base para reprocesos
             $baseOtRaw = preg_replace('/_R\d+$/', '', $ot);
@@ -754,8 +769,9 @@ class AlmacenFundicionController extends Controller
             ];
             $found = false;
             foreach ($altDirs as $altDir) {
-                if (Storage::disk('local')->exists($altDir)) {
-                    $baseDir = $altDir;
+                $resolvedAltDir = $this->resolveCaseInsensitivePath($altDir);
+                if (Storage::disk('local')->exists($resolvedAltDir)) {
+                    $baseDir = $resolvedAltDir;
                     $found = true;
                     break;
                 }
@@ -773,7 +789,7 @@ class AlmacenFundicionController extends Controller
             $relName = ltrim(str_replace($baseDirNorm, '', $fNorm), '/');
             
             $utf8RelName = $this->toUtf8($relName);
-            if ($utf8RelName === $archivo) {
+            if (mb_strtolower($utf8RelName, 'UTF-8') === mb_strtolower($archivo, 'UTF-8')) {
                 if ($tipo === 'dibujo' && strpos($relName, 'ayudas_visuales/') === 0) continue;
                 
                 $foundFile = $f;
@@ -790,17 +806,18 @@ class AlmacenFundicionController extends Controller
                 self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales',
             ];
             foreach ($possibleDirs as $possibleDir) {
-                if ($possibleDir === $baseDir) continue;
-                if (!Storage::disk('local')->exists($possibleDir)) continue;
+                $resolvedPossibleDir = $this->resolveCaseInsensitivePath($possibleDir);
+                if ($resolvedPossibleDir === $baseDir) continue;
+                if (!Storage::disk('local')->exists($resolvedPossibleDir)) continue;
                 
-                $pFiles = Storage::disk('local')->allFiles($possibleDir);
+                $pFiles = Storage::disk('local')->allFiles($resolvedPossibleDir);
                 foreach ($pFiles as $f) {
                     $fNorm = str_replace('\\', '/', $f);
-                    $pDirNorm = str_replace('\\', '/', $possibleDir);
+                    $pDirNorm = str_replace('\\', '/', $resolvedPossibleDir);
                     $relName = ltrim(str_replace($pDirNorm, '', $fNorm), '/');
                     
                     $utf8RelName = $this->toUtf8($relName);
-                    if ($utf8RelName === $archivo) {
+                    if (mb_strtolower($utf8RelName, 'UTF-8') === mb_strtolower($archivo, 'UTF-8')) {
                         $foundFile = $f;
                         break 2;
                     }
@@ -884,6 +901,68 @@ class AlmacenFundicionController extends Controller
     // =========================================================================
     // HELPERS PRIVADOS
     // =========================================================================
+
+    private function resolveCaseInsensitivePath(string $path): string
+    {
+        $parts = explode('/', str_replace('\\', '/', $path));
+        $resolved = '';
+
+        foreach ($parts as $part) {
+            if ($part === '') continue;
+
+            $currentSearch = $resolved ? $resolved : '.';
+            if (!Storage::disk('local')->exists($currentSearch)) {
+                $resolved = $resolved ? $resolved . '/' . $part : $part;
+                continue;
+            }
+
+            $subdirs = Storage::disk('local')->directories($currentSearch);
+            $found = false;
+
+            $partNorm = mb_strtolower($part, 'UTF-8');
+            $partNorm = str_replace(['—', '–'], '-', $partNorm);
+            $partNorm = preg_replace('/\s+/', ' ', $partNorm);
+            $partNorm = trim($partNorm);
+
+            foreach ($subdirs as $subdir) {
+                $base = basename($subdir);
+                $baseNorm = mb_strtolower($base, 'UTF-8');
+                $baseNorm = str_replace(['—', '–'], '-', $baseNorm);
+                $baseNorm = preg_replace('/\s+/', ' ', $baseNorm);
+                $baseNorm = trim($baseNorm);
+
+                if ($baseNorm === $partNorm) {
+                    $resolved = $resolved ? $resolved . '/' . $base : $base;
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                // Si no se encuentra en las subcarpetas, intentar buscar en archivos (si es el segmento final)
+                $files = Storage::disk('local')->files($currentSearch);
+                foreach ($files as $file) {
+                    $base = basename($file);
+                    $baseNorm = mb_strtolower($base, 'UTF-8');
+                    $baseNorm = str_replace(['—', '–'], '-', $baseNorm);
+                    $baseNorm = preg_replace('/\s+/', ' ', $baseNorm);
+                    $baseNorm = trim($baseNorm);
+
+                    if ($baseNorm === $partNorm) {
+                        $resolved = $resolved ? $resolved . '/' . $base : $base;
+                        $found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$found) {
+                $resolved = $resolved ? $resolved . '/' . $part : $part;
+            }
+        }
+
+        return $resolved;
+    }
 
     private function sanitizePath(string $path): string
     {

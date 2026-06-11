@@ -2941,20 +2941,21 @@
 
     <script>
         window.almacenRoutes = {
-            archivos: "{{ parse_url(route('almacen.fundicion.archivos'), PHP_URL_PATH) }}",
-            serve: "{{ parse_url(route('almacen.fundicion.serve'), PHP_URL_PATH) }}",
-            confirmarModelo: "{{ parse_url(route('almacen.fundicion.confirmarModelo'), PHP_URL_PATH) }}",
-            getOtData: "{{ parse_url(route('almacen.fundicion.getOtData'), PHP_URL_PATH) }}",
-            storePreOrden: "{{ parse_url(route('almacen.fundicion.storePreOrden'), PHP_URL_PATH) }}",
-            sendEmailPreOrden: "{{ parse_url(route('almacen.fundicion.sendEmailPreOrden'), PHP_URL_PATH) }}",
-            getLiberacion: "{{ parse_url(route('almacen.fundicion.getLiberacion'), PHP_URL_PATH) }}",
-            submitLiberacion: "{{ parse_url(route('almacen.fundicion.submitLiberacion'), PHP_URL_PATH) }}",
-            generateScar: "{{ parse_url(route('almacen.fundicion.generateScar'), PHP_URL_PATH) }}",
-            getScar: "{{ parse_url(route('almacen.fundicion.getScar'), PHP_URL_PATH) }}",
-            sendScarAlert: "{{ parse_url(route('almacen.fundicion.sendScarAlert'), PHP_URL_PATH) }}",
-            enviarAlertaLiberacion: "{{ parse_url(route('almacen.fundicion.enviarAlertaLiberacion'), PHP_URL_PATH) }}",
-            deleteFile: "{{ parse_url(route('almacen.fundicion.deleteFile'), PHP_URL_PATH) }}",
+            archivos: "{{ route('almacen.fundicion.archivos') }}",
+            serve: "{{ route('almacen.fundicion.serve') }}",
+            confirmarModelo: "{{ route('almacen.fundicion.confirmarModelo') }}",
+            getOtData: "{{ route('almacen.fundicion.getOtData') }}",
+            storePreOrden: "{{ route('almacen.fundicion.storePreOrden') }}",
+            sendEmailPreOrden: "{{ route('almacen.fundicion.sendEmailPreOrden') }}",
+            getLiberacion: "{{ route('almacen.fundicion.getLiberacion') }}",
+            submitLiberacion: "{{ route('almacen.fundicion.submitLiberacion') }}",
+            generateScar: "{{ route('almacen.fundicion.generateScar') }}",
+            getScar: "{{ route('almacen.fundicion.getScar') }}",
+            sendScarAlert: "{{ route('almacen.fundicion.sendScarAlert') }}",
+            enviarAlertaLiberacion: "{{ route('almacen.fundicion.enviarAlertaLiberacion') }}",
+            deleteFile: "{{ route('almacen.fundicion.deleteFile') }}",
         };
+
         window.almacenAppAssets = {
             liberar: "{{ asset('images/Liberar.png') }}",
             descarga: "{{ asset('images/Descarga.png') }}",

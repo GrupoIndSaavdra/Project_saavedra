@@ -45,35 +45,58 @@ Nunca uses URLs relativas o el helper `asset()` si tu servidor no tiene DNS resu
 ```
 
 ## 4. Estilos Inline vs Estilos Bloque
-Aunque es posible usar una hoja de estilos ligada o un bloque `<style>`, `domPDF` interpreta mucho mejor los estilos Inline para elementos críticos (márgenes, bordes de tabla).
+Aunque es posible usar un bloque `<style>`, `domPDF` interpreta mucho mejor los estilos Inline para elementos críticos (márgenes, bordes de tabla).
 
 ```html
 <!-- Mejor compatibilidad en domPDF -->
 <td style="border: 1px solid #000; background-color: #f0f0f0; padding: 5px;">Dato</td>
 ```
 
-## 5. Saltos de Página Controlados
-Si una tabla es muy larga, puede que se corte mal en medio de una fila.
-Para obligar a saltar de hoja:
+## 5. Saltos de Página Controlados en Tablas
+Si una tabla es muy larga, puede que se corte mal en medio de una fila (el texto de una celda se divide a la mitad).
+- Para obligar a saltar de hoja:
 ```css
 .page-break {
     page-break-after: always;
 }
-.avoid-break {
-    page-break-inside: avoid; /* Intenta no partir este bloque a la mitad */
+```
+- Para evitar que filas individuales de una tabla se partan a la mitad entre dos páginas, aplica este estilo en el `tr`:
+```css
+tr {
+    page-break-inside: avoid;
+}
+```
+- Evita alturas fijas (`height`) en celdas de tablas de datos largos, permitiendo que la tabla crezca naturalmente.
+
+## 6. Configuración de Fuentes (Fonts)
+`domPDF` no soporta fuentes cargadas dinámicamente vía `@import` o enlaces web externos con fiabilidad (ej. Google Fonts directas de la CDN).
+- **Mejor opción:** Usa fuentes estándar del sistema (como `Helvetica`, `Arial`, `Times-Roman` o `Courier`) para una máxima portabilidad.
+- **Fuentes personalizadas:** Si necesitas una fuente específica del corporativo (como *Orbitron* o *Inter*), debes descargar el archivo `.ttf` en el servidor y declararlo con `@font-face` localmente:
+```css
+@font-face {
+    font-family: 'Orbitron';
+    src: url('{{ public_path("fonts/Orbitron-Regular.ttf") }}') format('truetype');
+    font-weight: normal;
+    font-style: normal;
 }
 ```
 
-## 6. Configuración del Controlador (Orientación)
-Si el reporte tiene más de 6-7 columnas de datos, la hoja vertical (`portrait`) no va a servir.
+## 7. Configuración del Controlador e Imágenes Remotas
+Si vas a consumir imágenes de servidores externos (como generadores de QRs en línea: `api.qrserver.com`), debes habilitar la opción `isRemoteEnabled` en el objeto de configuración de Dompdf en tu controlador:
 
 ```php
-// En el controlador:
-$pdf = FacadePdf::loadView('reportes.vista', compact('datos'));
+use Barryvdh\DomPDF\Facade\Pdf;
 
-// Forzar hoja Carta en Horizontal (Landscape)
-$pdf->setPaper('letter', 'landscape');
-
-// Para visualizar en navegador en lugar de forzar descarga:
-return $pdf->stream('Reporte.pdf'); 
+public function generarReporte() {
+    $pdf = Pdf::loadView('reportes.vista', compact('datos'));
+    
+    // Configuración para permitir imágenes externas y scripts PHP embebidos
+    $pdf->getDomPDF()->set_option('isRemoteEnabled', true);
+    $pdf->getDomPDF()->set_option('isPhpEnabled', true);
+    
+    // Forzar hoja Carta en Horizontal (Landscape)
+    $pdf->setPaper('letter', 'landscape');
+    
+    return $pdf->stream('Reporte.pdf'); 
+}
 ```

@@ -20,7 +20,7 @@ Cualquier método que afecte múltiples modelos (`insert`, `update`, `delete`) *
 use Illuminate\Support\Facades\DB;
 
 public function store(Request $request) {
-    // 1. Validaciones previas
+    // 1. Validaciones previas (o usa FormRequests, ver sección 5)
     $request->validate(['n_pieza' => 'required', 'estado' => 'required']);
 
     try {
@@ -58,7 +58,6 @@ $workOrders = Orden_trabajo::query()
 ```
 
 ## 4. Tipos de Respuestas (Blade vs JSON vs Redirect)
-
 El desarrollador debe saber exactamente cómo debe responder el controlador basándose en quién hizo la solicitud (El Navegador o JavaScript).
 
 - **Renderizado Completo (Blade):** Para navegación de menús. 
@@ -69,7 +68,8 @@ El desarrollador debe saber exactamente cómo debe responder el controlador bas�
   ```php
   return response()->json([
       'success' => true,
-      'data' => $resultadosHtml // Puedes mandar HTML pre-renderizado aquí
+      'message' => 'Pieza procesada con éxito',
+      'data' => $resultadosHtml // Puedes mandar HTML pre-renderizado aquí si es necesario
   ], 200);
   ```
 - **Formularios Síncronos (`<form action="...">`):** Redirige a la vista anterior con mensajes de estado.
@@ -78,3 +78,42 @@ El desarrollador debe saber exactamente cómo debe responder el controlador bas�
   // O con errores:
   return redirect()->route('home')->withErrors(['error' => 'No tienes permiso']);
   ```
+
+## 5. Validación Avanzada con Form Requests
+Para evitar saturar los controladores con reglas de validación complejas, utiliza Form Requests dedicados (`php artisan make:request GuardarPiezaRequest`).
+
+```php
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class GuardarPiezaRequest extends FormRequest
+{
+    public function authorize() {
+        // Autorizar por perfil (Ej: solo perfil de calidad o administrador)
+        return in_array(auth()->user()->perfil, [1, 8]);
+    }
+
+    public function rules() {
+        return [
+            'ot_id' => 'required|exists:ordenes_trabajo,id',
+            'n_pieza' => 'required|string|max:50',
+            'estado' => 'required|in:Aprobado,Rechazado,Scrap',
+        ];
+    }
+}
+```
+*En el controlador, inyectas la clase directamente:*
+```php
+public function store(GuardarPiezaRequest $request) {
+    // Si llega aquí, ya pasó la validación y la autorización
+    $validated = $request->validated();
+    // Procesar...
+}
+```
+
+## 6. Controladores Delgados / Modelos Gordos (Thin Controllers)
+Mantén los controladores enfocados únicamente en recibir la solicitud (`Request`) y devolver la respuesta (`Response`). Toda la lógica compleja de base de datos o lógica de negocio pesada debe estar en:
+- El **Modelo** (usando scopes locales, mutadores, o métodos de modelo).
+- Un **Servicio** dedicado (Service Pattern) si involucra flujos de múltiples pasos.
+- **Helpers** si son formateos de texto o cálculos compartidos.

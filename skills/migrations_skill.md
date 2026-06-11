@@ -20,6 +20,58 @@ Cuando se necesita alterar o añadir campos a una tabla vieja que ya existe y es
 
 ---
 
+## 🏗️ Estándares de Estructura e Integridad
+
+### 1. Naming Conventions (Convenciones de Nombres)
+- **Tablas:** Siempre en plural y snake_case (Ej: `ordenes_trabajo`, `soldadura_lotes`).
+- **Columnas:** Siempre en singular, minúsculas y snake_case (Ej: `peso_kg`, `botes_generados`).
+- **Llaves Foráneas:** Siguiendo el estándar de Laravel: `[nombre_singular_tabla_padre]_id` (Ej: `lote_id` para relacionar con `soldadura_lotes`).
+
+### 2. Llaves Foráneas e Índices
+Declara las relaciones de manera explícita y con borrado/actualización controlada. Coloca índices en columnas que frecuentemente son parte del `where` de consultas pesadas para optimizar el rendimiento.
+
+```php
+Schema::create('soldadura_botes', function (Blueprint $table) {
+    $table->id();
+    
+    // Llave foránea declarada de forma moderna
+    $table->foreignId('lote_id')
+          ->constrained('soldadura_lotes')
+          ->onDelete('cascade'); // Elimina los botes si el lote es eliminado
+          
+    $table->string('matricula')->unique(); // Crea índice unique automático
+    $table->string('estado');
+    
+    // Índice explícito para búsquedas por estado
+    $table->index('estado');
+    
+    $table->timestamps();
+});
+```
+
+### 3. Borrado Suave (Soft Deletes)
+Para evitar la pérdida accidental de datos históricos en el sistema de producción, utiliza Soft Deletes en lugar de borrados físicos.
+
+- **En la Migración:**
+```php
+Schema::table('ordenes_trabajo', function (Blueprint $table) {
+    $table->softDeletes(); // Crea la columna 'deleted_at'
+});
+```
+
+- **En el Modelo Asociado (`Orden_trabajo.php`):**
+```php
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Orden_trabajo extends Model {
+    use SoftDeletes;
+    
+    protected $dates = ['deleted_at'];
+}
+```
+
+---
+
 ## 🚦 Proceso de Verificación
 Antes de proponer una migración nueva, sigue este flujo de toma de decisiones:
 
