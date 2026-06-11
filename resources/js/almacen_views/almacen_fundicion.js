@@ -1793,6 +1793,9 @@ window.libCambiarTipo = function (tipo) {
         _libSetDecisionUI('aprobar');
     }
 
+    // CARGAR BORRADOR AUTOMÁTICAMENTE ANTES DE CAPTURAR EL ESTADO INICIAL
+    window.loadLiberacionDraft();
+
     // Capturar el estado despues de llenar la UI
     setTimeout(() => {
         window._libLastSavedState = _libGetSerializedForm();
@@ -2199,6 +2202,9 @@ async function _libSubmit(accion) {
 
         if (data.success) {
             almacenToast(data.message, 'success');
+            
+            // LIMPIAR BORRADOR TRAS ÉXITO
+            window.clearLiberacionDraft();
 
             // Descargar PDF automaticamente con nombre estetico
             if (data.pdf_url) {
@@ -6152,5 +6158,86 @@ document.getElementById('formMgvRechazados')?.addEventListener('submit', async f
             submitBtn.disabled = false;
             submitBtn.querySelector('span').innerText = 'Subir Formatos y Continuar';
         }
+    }
+});
+
+/* =========================================================================
+   AUTOGUARDADO DE FORMATO DE LIBERACION (LOCALSTORAGE)
+   ========================================================================= */
+
+window._libAutoSaveTimeout = null;
+
+window.saveLiberacionDraft = function() {
+    const form = document.getElementById('formLiberacion');
+    if (!form) return;
+    
+    const ot = document.getElementById('lib-ot')?.value;
+    const tipo = document.getElementById('lib-tipo')?.value;
+    if (!ot || !tipo) return;
+
+    // Solo guardar inputs numéricos y textareas para evitar pisar campos ocultos
+    const inputs = form.querySelectorAll('.lib-num-input, .lib-num-input-sm, .lib-textarea, #lib-motivo-rechazo');
+    const draftData = {};
+    
+    inputs.forEach(inp => {
+        if (inp.name) {
+            draftData[inp.name] = inp.value;
+        }
+    });
+
+    const key = `liberacion_draft_${ot}_${tipo}`;
+    localStorage.setItem(key, JSON.stringify(draftData));
+};
+
+window.loadLiberacionDraft = function() {
+    const form = document.getElementById('formLiberacion');
+    if (!form) return;
+
+    const ot = document.getElementById('lib-ot')?.value;
+    const tipo = document.getElementById('lib-tipo')?.value;
+    if (!ot || !tipo) return;
+
+    const key = `liberacion_draft_${ot}_${tipo}`;
+    const draftDataStr = localStorage.getItem(key);
+    
+    if (draftDataStr) {
+        try {
+            const draftData = JSON.parse(draftDataStr);
+            const inputs = form.querySelectorAll('.lib-num-input, .lib-num-input-sm, .lib-textarea, #lib-motivo-rechazo');
+            
+            inputs.forEach(inp => {
+                if (inp.name && draftData[inp.name] !== undefined) {
+                    inp.value = draftData[inp.name];
+                }
+            });
+            console.log(`[Autosave] Borrador cargado para OT: ${ot}, Tipo: ${tipo}`);
+        } catch (e) {
+            console.error("Error al parsear el borrador:", e);
+        }
+    }
+};
+
+window.clearLiberacionDraft = function() {
+    const ot = document.getElementById('lib-ot')?.value;
+    const tipo = document.getElementById('lib-tipo')?.value;
+    if (ot && tipo) {
+        const key = `liberacion_draft_${ot}_${tipo}`;
+        localStorage.removeItem(key);
+        console.log(`[Autosave] Borrador limpiado para OT: ${ot}, Tipo: ${tipo}`);
+    }
+};
+
+// Configurar el listener en el formulario para detectar cambios y disparar el autosave con debounce
+document.addEventListener('DOMContentLoaded', () => {
+    const formLib = document.getElementById('formLiberacion');
+    if (formLib) {
+        formLib.addEventListener('input', (e) => {
+            if (e.target.matches('.lib-num-input, .lib-num-input-sm, .lib-textarea, #lib-motivo-rechazo')) {
+                clearTimeout(window._libAutoSaveTimeout);
+                window._libAutoSaveTimeout = setTimeout(() => {
+                    window.saveLiberacionDraft();
+                }, 800); // 800ms debounce
+            }
+        });
     }
 });
