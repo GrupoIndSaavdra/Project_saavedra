@@ -2171,7 +2171,7 @@
                         <label for="al-destinatario"
                             style="font-size: 1.2em; font-weight: 700; color: #334155; display: block; margin-bottom: 10px; font-family:'Poppins', sans-serif;">Destinatario(s):</label>
                         <input type="text" id="al-destinatario" name="destinatario" class="form-control" required
-                            value="jaxer020406@gmail.com"
+                            value="inspecciontec@grupoindsaavedra.com"
                             style="font-size: 1.15em; padding: 14px 20px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
                         <span style="font-size: 0.9em; color: #64748b; margin-top: 8px; display: block;">Separa múltiples
                             correos usando comas (,).</span>
@@ -2319,8 +2319,10 @@
                         <div class="form-grid">
                             <div class="form-group po-proveedor-group">
                                 <label for="po-proveedor">Proveedor:</label>
-                                <input type="text" id="po-proveedor" name="proveedor" class="form-control" readonly required
-                                    value="SS Metal Foundry, S. de R. L. de C. V.">
+                                <select id="po-proveedor" name="proveedor" class="form-control" required>
+                                    <option value="SS Metal Foundry, S. de R. L. de C. V." selected>SS Metal Foundry, S. de R. L. de C. V.</option>
+                                    <option value="Sociedad Cooperativa de Producción Jacarandas">Sociedad Cooperativa de Producción Jacarandas</option>
+                                </select>
                             </div>
                             <div class="form-group po-fecha-group">
                                 <label for="po-fecha">Fecha:</label>
@@ -2699,7 +2701,7 @@
                             style="font-size: 1.1em; font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif;">Destinatario(s)
                             <span style="color:#dc2626;">*</span></label>
                         <input type="text" id="fc-destinatario" name="destinatario" class="form-control" required
-                            value="jaxer020406@gmail.com"
+                            value=""
                             style="font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
                         <span style="font-size: 0.85em; color: #64748b; margin-top: 6px; display: block;">Separa múltiples
                             correos usando comas (,).</span>
@@ -2762,7 +2764,7 @@
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label for="env-destinatario">Destinatario(s):</label>
                         <input type="text" id="env-destinatario" name="destinatario" class="form-control" required
-                            value="jaxer020406@gmail.com">
+                            value="ingenieria3@steelfs.com.mx, auxingenieria@ssmetalf.mx">
                         <span style="font-size: 0.8em; color: #64748b; margin-top: 4px;">Separa múltiples correos usando
                             comas (,).</span>
                     </div>
@@ -2842,7 +2844,7 @@
                             Destinatario(s) (separados por coma):
                         </label>
                         <input type="text" id="env-scar-destinatario" name="destinatario" class="form-control" required
-                            value="jaxer020406@gmail.com">
+                            value="produccion@ssmetalf.mx, asistenteprod@ssmetalf.mx, laboratorio@ssmetalf.mx">
                     </div>
 
                     {{-- Fecha Compromiso --}}
@@ -2941,20 +2943,21 @@
 
     <script>
         window.almacenRoutes = {
-            archivos: "{{ parse_url(route('almacen.fundicion.archivos'), PHP_URL_PATH) }}",
-            serve: "{{ parse_url(route('almacen.fundicion.serve'), PHP_URL_PATH) }}",
-            confirmarModelo: "{{ parse_url(route('almacen.fundicion.confirmarModelo'), PHP_URL_PATH) }}",
-            getOtData: "{{ parse_url(route('almacen.fundicion.getOtData'), PHP_URL_PATH) }}",
-            storePreOrden: "{{ parse_url(route('almacen.fundicion.storePreOrden'), PHP_URL_PATH) }}",
-            sendEmailPreOrden: "{{ parse_url(route('almacen.fundicion.sendEmailPreOrden'), PHP_URL_PATH) }}",
-            getLiberacion: "{{ parse_url(route('almacen.fundicion.getLiberacion'), PHP_URL_PATH) }}",
-            submitLiberacion: "{{ parse_url(route('almacen.fundicion.submitLiberacion'), PHP_URL_PATH) }}",
-            generateScar: "{{ parse_url(route('almacen.fundicion.generateScar'), PHP_URL_PATH) }}",
-            getScar: "{{ parse_url(route('almacen.fundicion.getScar'), PHP_URL_PATH) }}",
-            sendScarAlert: "{{ parse_url(route('almacen.fundicion.sendScarAlert'), PHP_URL_PATH) }}",
-            enviarAlertaLiberacion: "{{ parse_url(route('almacen.fundicion.enviarAlertaLiberacion'), PHP_URL_PATH) }}",
-            deleteFile: "{{ parse_url(route('almacen.fundicion.deleteFile'), PHP_URL_PATH) }}",
+            archivos: "{{ route('almacen.fundicion.archivos') }}",
+            serve: "{{ route('almacen.fundicion.serve') }}",
+            confirmarModelo: "{{ route('almacen.fundicion.confirmarModelo') }}",
+            getOtData: "{{ route('almacen.fundicion.getOtData') }}",
+            storePreOrden: "{{ route('almacen.fundicion.storePreOrden') }}",
+            sendEmailPreOrden: "{{ route('almacen.fundicion.sendEmailPreOrden') }}",
+            getLiberacion: "{{ route('almacen.fundicion.getLiberacion') }}",
+            submitLiberacion: "{{ route('almacen.fundicion.submitLiberacion') }}",
+            generateScar: "{{ route('almacen.fundicion.generateScar') }}",
+            getScar: "{{ route('almacen.fundicion.getScar') }}",
+            sendScarAlert: "{{ route('almacen.fundicion.sendScarAlert') }}",
+            enviarAlertaLiberacion: "{{ route('almacen.fundicion.enviarAlertaLiberacion') }}",
+            deleteFile: "{{ route('almacen.fundicion.deleteFile') }}",
         };
+
         window.almacenAppAssets = {
             liberar: "{{ asset('images/Liberar.png') }}",
             descarga: "{{ asset('images/Descarga.png') }}",

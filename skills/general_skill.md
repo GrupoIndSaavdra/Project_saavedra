@@ -1,28 +1,39 @@
 # 👑 Guía Maestra (Master Skill) - Arquitectura Project_saavedra
 
 **ESTA ES LA INSTRUCCIÓN PRINCIPAL DEL SISTEMA.**
+
 Cualquier agente, LLM o desarrollador que trabaje en `Project_saavedra` **DEBE** leer y aplicar las directrices enlazadas a continuación antes de escribir una sola línea de código. Este proyecto utiliza un stack basado en **Laravel (PHP), Blade, Vanilla JS y CSS Puro**. 
 
 No asumas patrones comunes si no están definidos aquí. Sigue el flujo de trabajo orquestado para evitar romper la integridad del sistema.
 
+---
+
 ## 🗂️ Índice de Habilidades (Skills) Obligatorias
 
 1. **[⚙️ Controladores (Controllers)](controllers_skill.md):** 
-   *Qué aprenderás:* Eager Loading avanzado, inyección de dependencias, transacciones DB, try-catch, y formateo de respuestas JSON vs Blade.
+   *Qué aprenderás:* Eager Loading avanzado, inyección de dependencias, transacciones DB, try-catch, validación de Form Requests, controladores delgados y formateo de respuestas JSON vs Blade.
 2. **[🧠 Lógica y Modelos (Logic)](logic_skill.md):** 
-   *Qué aprenderás:* Consultas optimizadas con Eloquent, manejo de `auth()->user()->perfil` (Seguridad), fechas con Carbon, y el uso correcto del Estado de Sesión Temporal.
+   *Qué aprenderás:* Consultas optimizadas con Eloquent, scopes locales, relaciones explícitas, castings y mutadores de atributos, manejo de `auth()->user()->perfil` y el estado de sesión temporal.
 3. **[👁️ Vistas (Views - Blade)](views_skill.md):** 
-   *Qué aprenderás:* Uso de layouts (`appMenu`), paso de variables al frontend (`@json`, `window.routes`), inyección de Vite y componentes parciales.
+   *Qué aprenderás:* Uso de layouts (`appMenu`), visualización de errores, toasts/flash messages, inyección modular con stacks, escape seguro de datos e inyección de Vite.
 4. **[🎨 Estilos y UI (Styles)](styles_skill.md):** 
-   *Qué aprenderás:* CSS Vanilla Premium, variables de colores institucionales (`#0a8504`, `#030041`), Glassmorphism, sombreados de profundidad y reglas de responsive design.
+   *Qué aprenderás:* CSS Vanilla Premium, variables de colores institucionales, Glassmorphism, animaciones, diseño responsivo (breakpoints) y layouts modernos con Flexbox/Grid.
 5. **[⚡ JavaScript (JS Puro)](javascript_skill.md):** 
-   *Qué aprenderás:* Peticiones Fetch API con `X-CSRF-TOKEN`, manejo del DOM, FormData (Subida de archivos) y alertas con SweetAlert2.
+   *Qué aprenderás:* Aislamiento de scopes, eventos DOMContentLoaded, peticiones Fetch API, FormData, alertas de Swal, validación frontend y delegación de eventos.
 6. **[📄 Generación de PDFs (PDF)](pdf_skill.md):** 
-   *Qué aprenderás:* Limitaciones estrictas de DOMPDF, maquetación con tablas HTML obsoletas (obligatorio), paginación y rutas absolutas para imágenes.
+   *Qué aprenderás:* Limitaciones de DOMPDF, maquetación estricta con tablas, fuentes personalizadas TTF localizadas, prevención de cortes de fila y configuración de imágenes remotas.
 7. **[💾 Migraciones (Migrations)](migrations_skill.md):**
-   *Qué aprenderás:* Reglas para añadir columnas en la migración original (tablas locales/nuevas) versus crear migraciones incremental (tablas de producción).
-8. **[❌ No Pruebas (No Testing Rule)](no_testing_skill.md):**
-   *Qué aprenderás:* El agente no realiza pruebas en navegador o con el DOM; el foco es puramente el desarrollo y el programador realiza las pruebas.
+   *Qué aprenderás:* Reglas para añadir columnas en desarrollo local vs. producción, estándares de nomenclatura de base de datos, Soft Deletes e índices de búsqueda.
+8. **[🛡️ Validación y Sanitización (Validation)](validation_skill.md):**
+   *Qué aprenderás:* Reglas de validación avanzadas, Form Requests independientes, limpieza de caracteres especiales y sanitización contra ataques XSS.
+9. **[🔍 Generación y Lectura de QRs (QR Codes)](qr_codes_skill.md):**
+   *Qué aprenderás:* Formateo de payloads JSON en QRs, corrección del mapeo corrupto por emulación de teclado de lectores físicos de hardware y enfoque de escaneo frontend.
+10. **[📝 Registro de Errores y Debugging (Error Logging)](error_logging_skill.md):**
+    *Qué aprenderás:* Logging estructurado con contexto asociativo, excepciones silenciosas de backend vs. excepciones de negocio para la UI, y la localización física de archivos log.
+11. **[🔒 Seguridad y Protección (Security)](security_skill.md):**
+    *Qué aprenderás:* Prevención de inyecciones SQL, tokens CSRF para forms y fetch, autorizaciones basadas en perfil y protección de manipulación de parámetros.
+12. **[❌ No Pruebas en Navegador (No Testing Rule)](no_testing_skill.md):**
+    *Qué aprenderás:* El agente no realiza pruebas visuales en navegador web ni usa subagentes de DOM; el foco técnico es la validación sintáctica (`php -l` o tests unitarios locales).
 
 ---
 
@@ -30,12 +41,13 @@ No asumas patrones comunes si no están definidos aquí. Sigue el flujo de traba
 
 Cuando recibas un nuevo requerimiento, debes ejecutar mentalmente este flujo:
 
-1. **Análisis de la Base de Datos:** ¿Necesita migraciones? Ve a la guía de *Lógica*. ¿Qué modelo interviene?
-2. **Definición de Seguridad:** ¿Qué *perfiles* (`1`, `4`, `6`, `8`) pueden ejecutar esto? Defínelo en el Controlador.
-3. **Construcción del Endpoint:** Diseña el método en el *Controlador* aplicando `try/catch` y `DB::transaction` si se van a modificar múltiples tablas.
-4. **Armado de la Vista:** Construye la estructura en Blade extendiendo de `layouts.appMenu`. Inyecta los `window.routes` necesarios.
-5. **Estilizado Premium:** Ve a la carpeta CSS y aplica *Glassmorphism*, transiciones y sombras. Asegúrate de que funciona en móviles.
-6. **Interactividad:** Haz que el botón principal no recargue la página si es un proceso intermedio. Ve a la guía de *JavaScript* y usa `fetch()` con un loading state.
-7. **Documentación:** Deja comentarios en PHP y JS explicando **por qué** se tomó la decisión, no *qué* hace el código.
+1. **Análisis de la Base de Datos:** ¿Necesita migraciones? Ve a la guía de *Migraciones*. Diseña los índices y decide si usará *Soft Deletes*.
+2. **Definición de Seguridad:** ¿Qué *perfiles* (`1`, `2`, `5`, `6`, `8`) están autorizados a interactuar con este recurso? Ve a la guía de *Seguridad*.
+3. **Validación Estricta:** Define las reglas de entrada. Si es un formulario complejo, crea un Form Request dedicado. Ve a la guía de *Validación*.
+4. **Construcción del Endpoint (Controlador):** Diseña el método. Si altera datos de múltiples tablas, usa transacciones de base de datos y try/catch. Si el servidor falla, registra un log estructurado (ver *Error Logging*).
+5. **Armado de la Vista:** Construye la estructura en Blade extendiendo de `layouts.appMenu`. Usa `@stack` y `@push` para inyectar scripts locales de manera limpia (ver *Views*).
+6. **Estilizado Premium:** Aplica *Glassmorphism*, layouts responsivos con Flexbox/Grid y micro-animaciones en CSS Vanilla (ver *Styles*).
+7. **Interactividad y Validaciones JS:** Envuelve tu script en un scope aislado de `DOMContentLoaded`. Implementa deshabilitación de botones y spinners visuales mientras se procesan las peticiones AJAX (ver *JavaScript*).
+8. **Documentación:** Deja comentarios en PHP y JS explicando **por qué** se tomó la decisión técnica o la regla de negocio, no solo *qué* hace la línea de código.
 
-**Falla en seguir estas guías resultará en código ineficiente (N+1), inseguro (sin CSRF) o visualmente deficiente.**
+**Falla en seguir estas guías resultará en código ineficiente (N+1), inseguro (sin CSRF o vulnerable a inyección) o visualmente deficiente.**

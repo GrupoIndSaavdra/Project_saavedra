@@ -11,6 +11,8 @@ use App\Mail\DibujoFundicionAlertMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Normalizer;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -389,22 +391,31 @@ class DibujosFundicionPdfController extends Controller
             }
         }
 
+        $dirPath = $this->resolveCaseInsensitivePath($dirPath);
+
         if (!Storage::disk('local')->exists($dirPath)) {
+            Log::warning("Directorio no encontrado en Fundicion (Dibujos). OT solicitada: {$ot}, Clase: {$clase}. Directorio esperado: {$dirPath}");
             abort(404, 'Archivo no encontrado.');
         }
 
         $files = Storage::disk('local')->files($dirPath);
         $foundFile = null;
+        
+        $archivoNorm = Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), Normalizer::FORM_C);
+
         foreach ($files as $f) {
             $rawName = basename($f);
             $utf8Name = $this->toUtf8($rawName);
-            if ($utf8Name === $archivo) {
+            $utf8NameNorm = Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), Normalizer::FORM_C);
+
+            if ($utf8NameNorm === $archivoNorm) {
                 $foundFile = $f;
                 break;
             }
         }
 
         if (!$foundFile) {
+            Log::warning("Archivo no encontrado en Fundicion (Dibujos). OT: {$ot}, Archivo buscado: {$archivo}, dentro del directorio: {$dirPath}");
             abort(404, 'Archivo no encontrado.');
         }
 
@@ -471,7 +482,7 @@ class DibujosFundicionPdfController extends Controller
                 'clase' => $clase,
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Error en DibujosFundicionPdfController@createFolder: " . $e->getMessage());
+            Log::error("Error en DibujosFundicionPdfController@createFolder: " . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno al crear la carpeta: ' . $e->getMessage(),
@@ -1180,6 +1191,68 @@ class DibujosFundicionPdfController extends Controller
                 'details'        => $detailsMap[$action] ?? "Administrador realizó la acción '{$action}' en {$ruta}.",
             ]);
         }
+    }
+
+    private function resolveCaseInsensitivePath(string $path): string
+    {
+        $parts = explode('/', str_replace('\\', '/', $path));
+        $resolved = '';
+
+        foreach ($parts as $part) {
+            if ($part === '') continue;
+
+            $currentSearch = $resolved ? $resolved : '.';
+            if (!Storage::disk('local')->exists($currentSearch)) {
+                $resolved = $resolved ? $resolved . '/' . $part : $part;
+                continue;
+            }
+
+            $subdirs = Storage::disk('local')->directories($currentSearch);
+            $found = false;
+
+            $partNorm = mb_strtolower($part, 'UTF-8');
+            $partNorm = str_replace(['—', '–'], '-', $partNorm);
+            $partNorm = preg_replace('/\s+/', ' ', $partNorm);
+            $partNorm = trim($partNorm);
+
+            foreach ($subdirs as $subdir) {
+                $base = basename($subdir);
+                $baseNorm = mb_strtolower($base, 'UTF-8');
+                $baseNorm = str_replace(['—', '–'], '-', $baseNorm);
+                $baseNorm = preg_replace('/\s+/', ' ', $baseNorm);
+                $baseNorm = trim($baseNorm);
+
+                if ($baseNorm === $partNorm) {
+                    $resolved = $resolved ? $resolved . '/' . $base : $base;
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                // Si no se encuentra en las subcarpetas, intentar buscar en archivos (si es el segmento final)
+                $files = Storage::disk('local')->files($currentSearch);
+                foreach ($files as $file) {
+                    $base = basename($file);
+                    $baseNorm = mb_strtolower($base, 'UTF-8');
+                    $baseNorm = str_replace(['—', '–'], '-', $baseNorm);
+                    $baseNorm = preg_replace('/\s+/', ' ', $baseNorm);
+                    $baseNorm = trim($baseNorm);
+
+                    if ($baseNorm === $partNorm) {
+                        $resolved = $resolved ? $resolved . '/' . $base : $base;
+                        $found = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!$found) {
+                $resolved = $resolved ? $resolved . '/' . $part : $part;
+            }
+        }
+
+        return $resolved;
     }
 
     /**

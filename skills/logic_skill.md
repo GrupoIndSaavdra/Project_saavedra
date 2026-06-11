@@ -3,7 +3,6 @@
 Los modelos en `Project_saavedra` gestionan la estructura profunda de datos. Esta guía define cómo filtrar de forma masiva, cómo manipular fechas correctamente y cómo orquestar permisos de usuario complejos.
 
 ## 1. El Pilar de Perfiles (`auth()->user()->perfil`)
-
 Todo el flujo de negocio cambia dependiendo de quién sea el usuario. El perfil numérico debe usarse para condicionales tempranos (Early Returns).
 
 ```php
@@ -23,7 +22,6 @@ public function procesarReporte() {
 ```
 
 ## 2. Eloquent Queries - Optimizaciones de Búsqueda
-
 Evita iterar sobre `->get()` para hacer sumatorias. Usa métodos de agregación directos en la BD para ahorrar memoria del servidor.
 
 ```php
@@ -50,7 +48,6 @@ $fechaLegible = Carbon::parse($registro->fecha_inicio)->translatedFormat('l d \d
 ```
 
 ## 4. Sesiones y Estados Temporales (Flujos Multi-paso)
-
 Los flujos como **PTA (Procedimiento de Trabajo Autorizado)** exigen que el usuario haga operaciones parciales que no se guardan permanentemente de inmediato.
 
 - **Variables de Estado en Sesión:**
@@ -82,5 +79,59 @@ $maquinasDb = Maquinas::all()->keyBy('id'); // Indexado por ID
 foreach($registros as $reg) {
     // 0 costo, búsqueda en hash map O(1)
     $nombreMaquina = $maquinasDb->get($reg->maquina_id)?->nombre ?? 'N/A';
+}
+```
+
+## 6. Relaciones Explícitas en Eloquent
+Dado que la base de datos de `Project_saavedra` tiene muchas tablas heredadas u orientadas a procesos específicos sin llaves foráneas estrictas de base de datos, debes declarar explícitamente la llave local y la foránea en los modelos para evitar fallos.
+
+```php
+// En el modelo Orden_trabajo.php
+public function piezas() {
+    // belongsTo / hasMany (ClaseRelacionada, llave_foranea, llave_local)
+    return $this->hasMany(Pieza::class, 'id_ot', 'id');
+}
+```
+
+## 7. Scopes Locales para Consultas Reutilizables
+Evita duplicar consultas de base de datos (`where`) en múltiples controladores. Define consultas comunes en el modelo usando `scopes`.
+
+```php
+// En el modelo Pieza.php
+public function scopeDeCalidad($query) {
+    return $query->where('liberada', 1)->whereNotNull('verificado_por');
+}
+
+public function scopePorLote($query, $loteId) {
+    return $query->where('lote_id', $loteId);
+}
+
+// En el controlador se usa de manera fluida:
+$piezasCalidad = Pieza::deCalidad()->porLote($loteId)->get();
+```
+
+## 8. Mutadores, Accesores y Attribute Casting
+Formatea la información automáticamente al leerla o guardarla de la base de datos.
+- **Casting de Atributos:** Convierte tipos de datos automáticamente (ej. JSON a array, enteros, booleanos).
+```php
+// En el modelo
+protected $casts = [
+    'metadatos' => 'array',
+    'fecha_liberacion' => 'datetime',
+    'aprobado' => 'boolean'
+];
+```
+- **Accesores (Getters) y Mutadores (Setters):**
+```php
+// Laravel 9+: Accesor para nombre completo formateado
+use Illuminate\Database\Eloquent\Casts\Attribute;
+
+protected function nombreCompleto(): Attribute {
+    return Attribute::make(
+        get: fn ($value, $attributes) => "{$attributes['nombre']} {$attributes['apellido']}",
+        set: fn ($value) => [
+            'nombre' => strtolower($value) // Guarda en minúscula
+        ]
+    );
 }
 ```

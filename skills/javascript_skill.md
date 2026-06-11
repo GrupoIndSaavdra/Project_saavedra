@@ -17,7 +17,6 @@ async function procesarPieza(idPieza) {
         const token = document.querySelector('meta[name="csrf-token"]').content;
         
         // 3. Reemplazar ID en la URL inyectada por window.routes
-        // Si route era /api/pieza/:id, la reemplazamos:
         const url = window.routes.apiProcesarPieza.replace(':id', idPieza);
 
         // 4. Hacer petición
@@ -88,7 +87,6 @@ async function subirDocumento(formularioHTML) {
         const response = await fetch(window.routes.apiSubir, {
             method: 'POST',
             headers: {
-                // NO especifiques 'Content-Type'. fetch lo hace solo para FormData.
                 'X-CSRF-TOKEN': token
             },
             body: formData
@@ -109,7 +107,6 @@ Para inyectar HTML, usa siempre literales para que el código sea limpio y legib
 function agregarFila(datos) {
     const tbody = document.getElementById('tabla-datos').querySelector('tbody');
     
-    // Inyecta el HTML usando literales
     const fila = `
         <tr id="fila-${datos.id}" class="fade-in">
             <td>${datos.nombre}</td>
@@ -123,4 +120,81 @@ function agregarFila(datos) {
     
     tbody.insertAdjacentHTML('beforeend', fila);
 }
+```
+
+## 5. Aislamiento de Variables y Event Listener del DOM
+Para evitar la colisión de variables globales y errores al cargar el script antes del HTML, envuelve todo tu código JavaScript en el evento `DOMContentLoaded`.
+
+```javascript
+(function () {
+    'use strict';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Inicialización de componentes, listeners, etc.
+        const selectLote = document.getElementById('lote_id');
+        if (selectLote) {
+            selectLote.addEventListener('change', (e) => {
+                actualizarDetallesLote(e.target.value);
+            });
+        }
+    });
+
+    // Funciones internas del módulo (no expuestas globalmente)
+    async function actualizarDetallesLote(id) {
+        // ... Lógica fetch ...
+    }
+})();
+```
+
+## 6. Manejo de Estados de Carga Visual (Visual Loading State)
+Nunca dejes al usuario esperando sin retroalimentación visual al enviar datos.
+- Deshabilita los botones.
+- Agrega una clase CSS de spinner o un overlay de loading.
+
+```javascript
+function setVisualLoading(elemento, isLoading) {
+    if (isLoading) {
+        elemento.disabled = true;
+        elemento.dataset.originalText = elemento.innerHTML;
+        elemento.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...`;
+    } else {
+        elemento.disabled = false;
+        elemento.innerHTML = elemento.dataset.originalText || 'Enviar';
+    }
+}
+```
+
+## 7. Validación Temprana en el Frontend
+Valida la entrada del usuario antes de realizar una petición fetch para evitar consumos de red innecesarios.
+
+```javascript
+function validarEntradaPieza(formulario) {
+    const nPieza = formulario.querySelector('#n_pieza').value.trim();
+    
+    if (nPieza === '') {
+        mostrarAlerta('Advertencia', 'El número de pieza es obligatorio', 'warning');
+        return false;
+    }
+    
+    if (nPieza.length < 3) {
+        mostrarAlerta('Advertencia', 'El número de pieza debe tener al menos 3 caracteres', 'warning');
+        return false;
+    }
+    
+    return true;
+}
+```
+
+## 8. Delegación de Eventos para Elementos Dinámicos
+Cuando tengas tablas o listas cuyos elementos se agregan de forma dinámica mediante JavaScript, no agregues event listeners individuales. Utiliza delegación de eventos en el contenedor padre.
+
+```javascript
+document.getElementById('tabla-piezas').addEventListener('click', (e) => {
+    // Buscar si el clic se hizo en el botón de eliminar pieza
+    const deleteBtn = e.target.closest('.btn-eliminar-pieza');
+    if (deleteBtn) {
+        const idPieza = deleteBtn.dataset.id;
+        confirmarEliminacion(idPieza);
+    }
+});
 ```
