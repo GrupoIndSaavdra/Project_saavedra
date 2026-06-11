@@ -33,7 +33,7 @@ class AlmacenFundicionController extends Controller
      * Perfiles de usuario que tienen acceso a esta vista.
      * 1 = Admin | 2 = Admin | 4 = Calidad | 5 = Almacen
      */
-    private const PERFILES_PERMITIDOS = ['1', '2', '4', '5'];
+    private const PERFILES_PERMITIDOS = ['1', '2', '3', '4', '5'];
 
     // =========================================================================
     // GATE DE ACCESO

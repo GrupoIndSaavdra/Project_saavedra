@@ -24,7 +24,7 @@ class CalidadMaquinadosController extends Controller
      * Perfiles de usuario con acceso.
      * 1 = Administrador | 4 = Calidad
      */
-    private const PERFILES_PERMITIDOS = ['1', '4'];
+    private const PERFILES_PERMITIDOS = ['1', '3', '4'];
 
     // =========================================================================
     // GATE DE ACCESO
