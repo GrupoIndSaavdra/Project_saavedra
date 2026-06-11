@@ -3176,34 +3176,39 @@ window.cerrarModalEnviarScar = function () {
 // BLOQUE 2 — MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS
 // =============================================================================
 
-window.abrirModalConfirmarModelo = function (ot, idHash) {
-    const modal = document.getElementById('modalConfirmarModelo');
-    if (!modal) return;
-    document.getElementById('cm-ot').value = ot;
-    document.getElementById('cm-id-hash').value = idHash || '';
-    // Reset del form
-    const form = document.getElementById('formConfirmarModelo');
-    if (form) form.reset();
+window.abrirModalConfirmarModelo = async function (ot, idHash) {
+    const fd = new FormData();
+    fd.append('ot', ot);
+    const h = new Date();
+    fd.append('fecha', `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}`);
 
-    // Actualizar subtítulo con OT
-    const subtitle = document.getElementById('confirmar-modelo-subtitle');
-    if (subtitle) {
-        subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, '')}`;
+    try {
+        const resp = await fetch(window.almacenRoutes.confirmarModelo, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            body: fd,
+        });
+        const data = await resp.json();
+
+        if (data.success) {
+            almacenToast(data.message || 'Alerta enviada a calidad', 'success');
+            // Actualizar FSM y bloquear card visualmente
+            if (window.ModeloStateMachine) window.ModeloStateMachine.onConfirmarModelo(ot);
+            if (idHash) {
+                const container = document.getElementById('control-modelo-' + idHash);
+                if (container) { container.style.opacity = '0.5'; container.style.pointerEvents = 'none'; }
+            }
+            setTimeout(() => location.reload(), 1600);
+        } else {
+            almacenToast(data.message || 'Error al registrar el modelo.', 'error');
+        }
+    } catch (err) {
+        console.error('Error confirmando modelo:', err);
+        almacenToast('Error de red al registrar el modelo.', 'error');
     }
-
-    // Colocar fecha de hoy
-    const fi = document.getElementById('cm-fecha');
-    if (fi) {
-        const h = new Date();
-        fi.value = `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}`;
-    }
-
-    // Reset files
-    cmConfirmarSelectedFiles = [];
-    renderCmConfirmarBadges();
-
-    modal.classList.add('open');
-    document.body.classList.add('modal-open');
 };
 
 window.cerrarModalConfirmarModelo = function () {

@@ -33,7 +33,7 @@ class AlmacenFundicionControllerTest extends TestCase
 
     public function test_non_permitted_profile_cannot_access_get_files()
     {
-        $user = User::factory()->create(['perfil' => '3']); // Profile 3 not allowed
+        $user = User::factory()->create(['perfil' => '6']); // Profile 6 not allowed
         $this->actingAs($user);
 
         $response = $this->getJson(route('almacen.fundicion.archivos', ['ot' => 'OT-TEST']));
@@ -807,6 +807,122 @@ class AlmacenFundicionControllerTest extends TestCase
         // Verify that Fondo drawing and approved doc are NOT present
         $this->assertFalse(in_array('Fondo - Dibujo 1.pdf', $fileNames));
         $this->assertFalse(in_array('Documentos_Aprobados/Fondo_Aprobado.pdf', $fileNames));
+    }
+
+    public function test_user_can_delete_own_file_before_alert()
+    {
+        $user = User::factory()->create(['perfil' => '5']); // Almacen
+        $this->actingAs($user);
+
+        $ot = 'OT-DEL-TEST-1';
+        $folderName = 'OT-DEL-TEST-1';
+        $almacenDir = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $folderName;
+        Storage::disk('local')->put($almacenDir . '/ayudas_visuales/preordenes/ConfirmacionModelo_Test.pdf', 'dummy content');
+
+        FundicionHistory::create([
+            'ot' => $ot,
+            'tiene_modelo' => true,
+            'alert_sent_at' => now(),
+            'pre_orden_email_sent' => false,
+            'pre_orden_sent' => false
+        ]);
+
+        $response = $this->postJson(route('almacen.fundicion.deleteFile'), [
+            'ot' => $ot,
+            'archivo' => 'preordenes/ConfirmacionModelo_Test.pdf',
+            'tipo' => 'otro'
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+        $this->assertFalse(Storage::disk('local')->exists($almacenDir . '/ayudas_visuales/preordenes/ConfirmacionModelo_Test.pdf'));
+    }
+
+    public function test_user_cannot_delete_file_after_alert_is_sent()
+    {
+        $user = User::factory()->create(['perfil' => '5']); // Almacen
+        $this->actingAs($user);
+
+        $ot = 'OT-DEL-TEST-2';
+        $folderName = 'OT-DEL-TEST-2';
+        $almacenDir = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $folderName;
+        Storage::disk('local')->put($almacenDir . '/ayudas_visuales/preordenes/ConfirmacionModelo_Test2.pdf', 'dummy content');
+
+        FundicionHistory::create([
+            'ot' => $ot,
+            'tiene_modelo' => true,
+            'alert_sent_at' => now(),
+            'pre_orden_email_sent' => true,
+            'pre_orden_sent' => true
+        ]);
+
+        $response = $this->postJson(route('almacen.fundicion.deleteFile'), [
+            'ot' => $ot,
+            'archivo' => 'preordenes/ConfirmacionModelo_Test2.pdf',
+            'tipo' => 'otro'
+        ]);
+
+        $response->assertStatus(403);
+        $response->assertJsonFragment(['error' => 'No se puede eliminar. La alerta de Almacén ya ha sido enviada.']);
+        $this->assertTrue(Storage::disk('local')->exists($almacenDir . '/ayudas_visuales/preordenes/ConfirmacionModelo_Test2.pdf'));
+    }
+
+    public function test_user_cannot_delete_file_from_another_department()
+    {
+        $user = User::factory()->create(['perfil' => '5']); // Almacen trying to delete Calidad file
+        $this->actingAs($user);
+
+        $ot = 'OT-DEL-TEST-3';
+        $folderName = 'OT-DEL-TEST-3';
+        $calidadDir = 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $folderName;
+        Storage::disk('local')->put($calidadDir . '/ayudas_visuales/preordenes/evidencias/evidencia_adicional_0_OT-DEL-TEST-3.png', 'dummy image content');
+
+        FundicionHistory::create([
+            'ot' => $ot,
+            'tiene_modelo' => true,
+            'alert_sent_at' => now(),
+            'calidad_revision_status' => 'pendiente'
+        ]);
+
+        $response = $this->postJson(route('almacen.fundicion.deleteFile'), [
+            'ot' => $ot,
+            'archivo' => 'preordenes/evidencias/evidencia_adicional_0_OT-DEL-TEST-3.png',
+            'tipo' => 'otro',
+            'origin' => 'calidad'
+        ]);
+
+        $response->assertStatus(403);
+        $response->assertJsonFragment(['error' => 'Acceso denegado. Solo Calidad puede eliminar este documento.']);
+        $this->assertTrue(Storage::disk('local')->exists($calidadDir . '/ayudas_visuales/preordenes/evidencias/evidencia_adicional_0_OT-DEL-TEST-3.png'));
+    }
+
+    public function test_admin_can_delete_any_file_before_alert()
+    {
+        $user = User::factory()->create(['perfil' => '1']); // Admin
+        $this->actingAs($user);
+
+        $ot = 'OT-DEL-TEST-4';
+        $folderName = 'OT-DEL-TEST-4';
+        $calidadDir = 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $folderName;
+        Storage::disk('local')->put($calidadDir . '/ayudas_visuales/preordenes/evidencias/evidencia_adicional_0_OT-DEL-TEST-4.png', 'dummy image content');
+
+        FundicionHistory::create([
+            'ot' => $ot,
+            'tiene_modelo' => true,
+            'alert_sent_at' => now(),
+            'calidad_revision_status' => 'pendiente'
+        ]);
+
+        $response = $this->postJson(route('almacen.fundicion.deleteFile'), [
+            'ot' => $ot,
+            'archivo' => 'preordenes/evidencias/evidencia_adicional_0_OT-DEL-TEST-4.png',
+            'tipo' => 'otro',
+            'origin' => 'calidad'
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+        $this->assertFalse(Storage::disk('local')->exists($calidadDir . '/ayudas_visuales/preordenes/evidencias/evidencia_adicional_0_OT-DEL-TEST-4.png'));
     }
 }
 

@@ -586,6 +586,8 @@
                                                                         'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'otro']),
                                                                         'tipo' => $isImage ? 'imagen' : 'otro',
                                                                         'ot' => $otName,
+                                                                        'origin' => 'otro',
+                                                                        'owner' => 'almacen',
                                                                     ];
                                                                     $baseNames[] = $base;
                                                                 }
@@ -663,6 +665,8 @@
                                                                     'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePathWithPrefix, 'tipo' => 'otro', 'origin' => $origin]),
                                                                     'tipo' => $isImage ? 'imagen' : 'otro',
                                                                     'ot' => $otName,
+                                                                    'origin' => $origin,
+                                                                    'owner' => 'calidad',
                                                                 ];
                                                                 $baseNames[] = $base;
                                                             }
@@ -671,10 +675,10 @@
 
                                                     // 2b. Escanear Documentos_Aprobados y Documentos_Rechazados de Almacen y Calidad
                                                     $newDirs = [
-                                                        ['dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/Documentos_Aprobados', 'origin' => 'aprobado', 'prefix' => 'Documentos_Aprobados/'],
-                                                        ['dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/Documentos_Rechazados', 'origin' => 'rechazado', 'prefix' => 'Documentos_Rechazados/'],
-                                                        ['dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/Documentos_Aprobados', 'origin' => 'aprobado', 'prefix' => 'Documentos_Aprobados/'],
-                                                        ['dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/Documentos_Rechazados', 'origin' => 'rechazado', 'prefix' => 'Documentos_Rechazados/'],
+                                                        ['dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/Documentos_Aprobados', 'origin' => 'aprobado', 'prefix' => 'Documentos_Aprobados/', 'owner' => 'almacen'],
+                                                        ['dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/Documentos_Rechazados', 'origin' => 'rechazado', 'prefix' => 'Documentos_Rechazados/', 'owner' => 'almacen'],
+                                                        ['dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/Documentos_Aprobados', 'origin' => 'aprobado', 'prefix' => 'Documentos_Aprobados/', 'owner' => 'calidad'],
+                                                        ['dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/Documentos_Rechazados', 'origin' => 'rechazado', 'prefix' => 'Documentos_Rechazados/', 'owner' => 'calidad'],
                                                     ];
 
                                                     foreach ($newDirs as $dirInfo) {
@@ -729,6 +733,8 @@
                                                                         'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePathWithPrefix, 'tipo' => 'otro', 'origin' => $origin]),
                                                                         'tipo' => $isImage ? 'imagen' : 'otro',
                                                                         'ot' => $otName,
+                                                                        'origin' => $origin,
+                                                                        'owner' => $dirInfo['owner'],
                                                                     ];
                                                                     $baseNames[] = $base;
                                                                 }
@@ -775,6 +781,8 @@
                                                                     'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $base, 'tipo' => 'liberacion']),
                                                                     'tipo' => 'liberacion',
                                                                     'ot' => $otName,
+                                                                    'origin' => '',
+                                                                    'owner' => 'calidad',
                                                                 ];
                                                                 $baseNames[] = $base;
                                                             }
@@ -816,6 +824,8 @@
                                                                     'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $base, 'tipo' => 'liberacion']),
                                                                     'tipo' => 'liberacion',
                                                                     'ot' => $otName,
+                                                                    'origin' => '',
+                                                                    'owner' => 'calidad',
                                                                 ];
                                                                 $baseNames[] = $base;
                                                             }
@@ -1187,6 +1197,28 @@
                                                                 Documentos Aprobados</h3>
                                                             <div class="alm-pdf-grid">
                                                                 @foreach ($archivosAprobados as $otroArchivo)
+                                                                    @php
+                                                                        $canDelete = false;
+                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
+                                                                        $userPerfil = Auth::user()->perfil;
+                                                                        
+                                                                        $alertSent = false;
+                                                                        if ($fileOwner === 'almacen') {
+                                                                            $alertSent = (bool)($reg->pre_orden_email_sent || $reg->pre_orden_sent);
+                                                                        } elseif ($fileOwner === 'calidad') {
+                                                                            $alertSent = in_array($reg->calidad_revision_status, ['aprobado', 'rechazado', 'mixto', 'calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                                        }
+
+                                                                        if (!$alertSent) {
+                                                                            if ($userPerfil == 1 || $userPerfil == 2) {
+                                                                                $canDelete = true;
+                                                                            } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
+                                                                                $canDelete = true;
+                                                                            } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                                $canDelete = true;
+                                                                            }
+                                                                        }
+                                                                    @endphp
                                                                     @if ($otroArchivo['tipo'] === 'imagen')
                                                                         {{-- Tarjeta para imágenes (fotos de evidencia) --}}
                                                                         <div class="dibujos-file-card card-otro card-imagen"
@@ -1206,6 +1238,11 @@
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                                     style="background-color: #0369a1; color: white;"
                                                                                     onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
+                                                                                @if ($canDelete)
+                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-dibujos-danger"
+                                                                                        style="background-color: #9c0300; color: white;"
+                                                                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                @endif
                                                                             </div>
                                                                         </div>
                                                                     @else
@@ -1228,6 +1265,11 @@
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                                     style="background-color: #155724; color: white;"
                                                                                     onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                @if ($canDelete)
+                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-dibujos-danger"
+                                                                                        style="background-color: #9c0300; color: white;"
+                                                                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                @endif
                                                                             </div>
                                                                         </div>
                                                                     @endif
@@ -1242,6 +1284,28 @@
                                                                 Documentos Rechazados</h3>
                                                             <div class="alm-pdf-grid">
                                                                 @foreach ($archivosRechazados as $otroArchivo)
+                                                                    @php
+                                                                        $canDelete = false;
+                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
+                                                                        $userPerfil = Auth::user()->perfil;
+                                                                        
+                                                                        $alertSent = false;
+                                                                        if ($fileOwner === 'almacen') {
+                                                                            $alertSent = (bool)($reg->pre_orden_email_sent || $reg->pre_orden_sent);
+                                                                        } elseif ($fileOwner === 'calidad') {
+                                                                            $alertSent = in_array($reg->calidad_revision_status, ['aprobado', 'rechazado', 'mixto', 'calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                                        }
+
+                                                                        if (!$alertSent) {
+                                                                            if ($userPerfil == 1 || $userPerfil == 2) {
+                                                                                $canDelete = true;
+                                                                            } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
+                                                                                $canDelete = true;
+                                                                            } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                                $canDelete = true;
+                                                                            }
+                                                                        }
+                                                                    @endphp
                                                                     @if ($otroArchivo['tipo'] === 'imagen')
                                                                         {{-- Tarjeta para imágenes (fotos de evidencia) --}}
                                                                         <div class="dibujos-file-card card-otro card-imagen"
@@ -1261,6 +1325,11 @@
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                                     style="background-color: #0369a1; color: white;"
                                                                                     onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
+                                                                                @if ($canDelete)
+                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-dibujos-danger"
+                                                                                        style="background-color: #9c0300; color: white;"
+                                                                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                @endif
                                                                             </div>
                                                                         </div>
                                                                     @else
@@ -1283,6 +1352,11 @@
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                                     style="background-color: #9c0300; color: white;"
                                                                                     onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                @if ($canDelete)
+                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-dibujos-danger"
+                                                                                        style="background-color: #9c0300; color: white;"
+                                                                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                @endif
                                                                             </div>
                                                                         </div>
                                                                     @endif

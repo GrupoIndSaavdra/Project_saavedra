@@ -829,6 +829,50 @@ class AlmacenFundicionController extends Controller
             return response()->json(['success' => false, 'error' => 'Archivo no encontrado.'], 404);
         }
 
+        // Determinar el dueño del archivo y verificar restricciones
+        $fNormTemp = str_replace('\\', '/', $foundFile);
+        $fileNameOnlyTemp = basename($foundFile);
+        
+        $fileOwner = 'almacen'; // default
+        if (
+            str_contains($fNormTemp, 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/') ||
+            str_contains($fileNameOnlyTemp, 'F-CCL-LDM') ||
+            str_contains($fileNameOnlyTemp, 'F-CCL-SCAR') ||
+            str_contains($fileNameOnlyTemp, 'SCAR')
+        ) {
+            $fileOwner = 'calidad';
+        }
+
+        // Validar que el rol del usuario que realiza la petición coincida con el dueño del documento (o sea Admin)
+        if ($user->perfil != 1 && $user->perfil != 2) {
+            if ($fileOwner === 'almacen' && $user->perfil != 5) {
+                return response()->json(['success' => false, 'error' => 'Acceso denegado. Solo Almacén puede eliminar este documento.'], 403);
+            }
+            if ($fileOwner === 'calidad' && $user->perfil != 4) {
+                return response()->json(['success' => false, 'error' => 'Acceso denegado. Solo Calidad puede eliminar este documento.'], 403);
+            }
+        }
+
+        // Verificar el estado de la alerta
+        $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
+        if (!$history) {
+            $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
+        }
+
+        if ($history) {
+            if ($fileOwner === 'almacen') {
+                $alertSent = (bool)($history->pre_orden_email_sent || $history->pre_orden_sent);
+                if ($alertSent) {
+                    return response()->json(['success' => false, 'error' => 'No se puede eliminar. La alerta de Almacén ya ha sido enviada.'], 403);
+                }
+            } elseif ($fileOwner === 'calidad') {
+                $alertSent = in_array($history->calidad_revision_status, ['aprobado', 'rechazado', 'mixto', 'calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                if ($alertSent) {
+                    return response()->json(['success' => false, 'error' => 'No se puede eliminar. La alerta de Calidad ya ha sido enviada.'], 403);
+                }
+            }
+        }
+
         Storage::disk('local')->delete($foundFile);
 
         // Sincronizar eliminación entre ALMACEN_FUNDICION and CALIDAD_FUNDICION
