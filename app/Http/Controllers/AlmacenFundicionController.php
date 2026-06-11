@@ -1968,9 +1968,9 @@ class AlmacenFundicionController extends Controller
             ];
         }
 
-        // 1. Archivos del servidor seleccionados
+        // 1. Archivos del servidor seleccionados (Omitir si es pre-orden de casting)
         $archivosSeleccionados = $request->input('archivos_seleccionados', []);
-        if (is_array($archivosSeleccionados)) {
+        if (!$isCastingPo && is_array($archivosSeleccionados)) {
             foreach ($archivosSeleccionados as $archivo) {
                 // Si es el mismo PDF de la pre-orden, omitirlo para no duplicarlo
                 $isPoPdf = $preOrdenes->contains(function ($po) use ($archivo) {
@@ -2052,8 +2052,8 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        // 2. Archivos adicionales cargados desde la computadora
-        if ($request->hasFile('archivos_adicionales')) {
+        // 2. Archivos adicionales cargados desde la computadora (Omitir si es pre-orden de casting)
+        if (!$isCastingPo && $request->hasFile('archivos_adicionales')) {
             $uploadedFiles = $request->file('archivos_adicionales');
             $filesArray = is_array($uploadedFiles) ? $uploadedFiles : [$uploadedFiles];
             
@@ -2086,8 +2086,8 @@ class AlmacenFundicionController extends Controller
             // Si es un re-proceso de rechazados, los destinatarios ya vienen del formulario
             // (se eliminó el lookup automático de usuarios calidad por columna 'email' inexistente)
 
-            // ── AUTO-ADJUNTOS: Si es re-proceso (_R1, _R2...), adjuntar docs de toda la historia ──
-            if (preg_match('/^(.+?)(_[rR](\d+))$/', $ot, $match)) {
+            // ── AUTO-ADJUNTOS: Si es re-proceso (_R1, _R2...), adjuntar docs de toda la historia (Omitir si es pre-orden de casting)
+            if (!$isCastingPo && preg_match('/^(.+?)(_[rR](\d+))$/', $ot, $match)) {
                 $otBase = $match[1];
                 $currentIteration = (int)$match[3];
                 

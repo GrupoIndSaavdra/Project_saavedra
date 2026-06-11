@@ -954,7 +954,15 @@ window.abrirModalEnviarPreOrden = function (ot, tipo) {
                 let baseUrl = window.baseUrl || (window.location.origin + '/');
                 if (!baseUrl.endsWith('/')) baseUrl += '/';
 
-                const sectionsHtml = generarHtmlCategorizadoArchivos(data.archivos, ot, baseUrl, 'preorden');
+                let archivosAMostrar = data.archivos;
+                if (tipo === 'casting') {
+                    archivosAMostrar = data.archivos.filter(f => {
+                        const n = (f.nombre || '').toLowerCase();
+                        return n.includes('pre-orden_casting') || (n.includes('pre-orden') && n.includes('casting'));
+                    });
+                }
+
+                const sectionsHtml = generarHtmlCategorizadoArchivos(archivosAMostrar, ot, baseUrl, 'preorden');
                 filesContainer.innerHTML = sectionsHtml || `
                     <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
                         No se encontraron archivos en el servidor para esta OT.
