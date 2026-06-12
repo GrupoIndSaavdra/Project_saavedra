@@ -409,8 +409,8 @@
           </label>
           <input type="text" id="lib-destinatario" name="destinatario"
                  class="form-control" style="margin-top:6px;"
-                 value=""
-                 placeholder="correo@empresa.com, otro@empresa.com">
+                 value="inspecciontec@grupoindsaavedra.com"
+                 placeholder="inspecciontec@grupoindsaavedra.com">
         </div>
 
         {{-- BOTONES DE ACCION --}}

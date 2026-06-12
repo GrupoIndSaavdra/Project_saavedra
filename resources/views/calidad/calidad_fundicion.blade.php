@@ -1907,7 +1907,7 @@
                             style="font-size: 1.1em; font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif;">Destinatario(s)
                             <span style="color:#dc2626;">*</span></label>
                         <input type="text" id="fc-destinatario" name="destinatario" class="form-control" required
-                            value=""
+                            value="inspecciontec@grupoindsaavedra.com"
                             style="font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
                         <span style="font-size: 0.85em; color: #64748b; margin-top: 6px; display: block;">Separa múltiples
                             correos usando comas (,).</span>
@@ -1976,7 +1976,7 @@
                             Destinatario(s) (separados por coma):
                         </label>
                         <input type="text" id="env-scar-destinatario" name="destinatario" class="form-control" required
-                            value="produccion@ssmetalf.mx, asistenteprod@ssmetalf.mx, laboratorio@ssmetalf.mx">
+                            value="produccion@ssmetalf.mx, laboratorio@ssmetalf.mx, alejandross@grupoindsaavedra.com, analilia@grupoindsaavedra.com, blanca@grupoindsaavedra.com, juanss@grupoindsaavedra.com, abraham@grupoindsaavedra.com, inspecciontec@grupoindsaavedra.com, requisicionestec@grupoindsaavedra.com, auxadmtec@grupoindsaavedra.com, producciontec@grupoindsaavedra.com">
                     </div>
 
                     {{-- Fecha Compromiso --}}

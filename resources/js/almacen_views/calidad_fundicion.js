@@ -4268,12 +4268,12 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
     fetch(`${window.almacenRoutes.getLiberacion}?ot=${encodeURIComponent(ot)}`)
         .then(r => r.json())
         .then(data => {
-            let dest = data.registros_por_tipo?.[primerTipo]?.destinatario || data.liberacion?.destinatario || 'jaxer020406@gmail.com';
+            let dest = data.registros_por_tipo?.[primerTipo]?.destinatario || data.liberacion?.destinatario || 'inspecciontec@grupoindsaavedra.com';
             const d = document.getElementById('fc-destinatario');
             if (d) d.value = dest;
         }).catch(() => {
             const d = document.getElementById('fc-destinatario');
-            if (d) d.value = 'jaxer020406@gmail.com';
+            if (d) d.value = 'inspecciontec@grupoindsaavedra.com';
         });
 
     modal.classList.add('open');

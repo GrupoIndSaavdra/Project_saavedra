@@ -5,7 +5,7 @@
         $perfil = Auth::user()->perfil;
         $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
     @endphp
-    <title>Almacén â€” Dibujos de Fundición | GIS</title>
+    <title>Almacén — Dibujos de Fundición | GIS</title>
     <meta name="description"
         content="Consulta histórica de dibujos de fundición enviados a Almacén y Calidad. Vista de solo lectura.">
     @vite(['resources/css/almacen_views/almacen_fundicion.css', 'resources/js/almacen_views/almacen_fundicion.js'])
@@ -17,7 +17,7 @@
 
     <div class="alm-wrapper">
 
-        {{-- â”€â”€ HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+        {{-- ── HEADER ─────────────────────────────────────────────── --}}
         @php
             $perfil = Auth::user()->perfil;
             $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
@@ -29,7 +29,7 @@
                 <img src="{{ asset('images/' . $deptIcon) }}" alt="{{ $deptName }}" style="width: 90px;">
             </div>
             <div class="alm-header-text">
-                <h1>Almacén â€” Dibujos y Ayudas Visuales de Fundición</h1>
+                <h1>Almacén — Dibujos y Ayudas Visuales de Fundición</h1>
                 <p>Consulta histórica de todos los dibujos y ayudas visuales enviados a Almacén. Registro
                     permanente e inmutable.</p>
             </div>
@@ -37,16 +37,16 @@
         </div>
 
         <div class="alm-main-layout">
-            {{-- â”€â”€ COLUMNA IZQUIERDA (SIDEBAR) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+            {{-- ── COLUMNA IZQUIERDA (SIDEBAR) ───────────────────────── --}}
             <aside class="alm-sidebar">
-                {{-- â”€â”€ LEYENDA DE ESTADOS DE MODELO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+                {{-- ── LEYENDA DE ESTADOS DE MODELO ───────────────────────── --}}
                 <div class="alm-filters-card"
                     style="margin-bottom: 2em; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); position: relative; padding: 1.8em;">
                     <div
                         style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
                         <img src="{{ asset('images/Quality.png') }}" alt="Leyenda"
                             style="width: 32px; height: 32px; object-fit: contain;">
-                        <h2 style="margin: 0; font-size: 1.35rem; color: #0f172a; font-weight: 700;">Guí­a de Estados</h2>
+                        <h2 style="margin: 0; font-size: 1.35rem; color: #0f172a; font-weight: 700;">Guía de Estados</h2>
                     </div>
                     <p style="font-size: 0.88rem; color: #64748b; margin-top: 0; margin-bottom: 16px;">
                         Haz clic en cada icono para ver detalles del estado:
@@ -308,9 +308,9 @@
                 </script>
             </aside>
 
-            {{-- â”€â”€ COLUMNA DERECHA (CONTENIDO PRINCIPAL) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+            {{-- ── COLUMNA DERECHA (CONTENIDO PRINCIPAL) ────────────────── --}}
             <main class="alm-content">
-                {{-- â”€â”€ STATS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+                {{-- ── STATS ───────────────────────────────────────────────── --}}
                 @php
                     $total = $registros->count();
                     $activas = $registros->where('status', 'activa')->count();
@@ -347,9 +347,9 @@
                     </div>
                 </div>
 
-                {{-- â”€â”€ FILTROS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+                {{-- ── FILTROS ─────────────────────────────────────────────── --}}
                 <div class="alm-filters-card">
-                    <h2>Bíºsqueda y Filtros</h2>
+                    <h2>Búsqueda y Filtros</h2>
                     <form method="GET" action="{{ route('almacen.fundicion.index') }}" id="alm-filter-form">
                         <div class="filters">
                             <div class="filter">
@@ -409,7 +409,7 @@
                                     @if ($busquedaOt || $desde || $hasta)
                                         No se encontraron registros de {{ strtolower($titulo) }} con los filtros aplicados.
                                     @else
-                                        Aíºn no hay registros en la bandeja de {{ strtolower($titulo) }}.
+                                        Aún no hay registros en la bandeja de {{ strtolower($titulo) }}.
                                     @endif
                                 </p>
                             </div>
@@ -426,7 +426,7 @@
                                             <th style="width:12%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                                 class="d-text-center">Modelo</th>
                                             <th style="width:18%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
-                                                class="d-text-center">íšltimo enví­o</th>
+                                                class="d-text-center">Último envío</th>
                                             <th style="width:10%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                                 class="d-text-center">Archivos</th>
                                             <th style="width:16%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
@@ -449,7 +449,7 @@
                                                 }
                                                 $targetReg = ($reg->rechazos_procesados && $latestReproceso) ? $latestReproceso : $reg;
 
-                                                // â”€â”€ RESOLVER TODOS LOS REGISTROS RELACIONADOS â”€â”€
+                                                // ── RESOLVER TODOS LOS REGISTROS RELACIONADOS ──
                                                 $baseOtName = preg_replace('/_R\d+$/', '', $reg->ot);
                                                 $relatedRecords = \App\Models\FundicionHistory::where('ot', '=', $baseOtName)
                                                     ->orWhere('ot', 'LIKE', $baseOtName . '_R%')
@@ -1024,7 +1024,7 @@
                                                 $countOtros = count($otrosArchivos);
                                                 $count = $countDibujos + $countAyudas + $countOtros;
 
-                                                // â”€â”€ CALCULAR APROBADOS Y RECHAZADOS DEL íšLTIMO VEREDICTO DE CADA CLASE â”€â”€
+                                                // ── CALCULAR APROBADOS Y RECHAZADOS DEL ÚLTIMO VEREDICTO DE CADA CLASE ──
                                                 $liberacionesAll = \App\Models\LiberacionModeloFundicion::whereIn('ot', $allRelatedOtNames)->get();
                                                 $latestLiberacionesByClass = [];
                                                 foreach ($liberacionesAll as $lib) {
@@ -1098,7 +1098,7 @@
                                                             } elseif ($targetReg->casting_pdf_generated) {
                                                                 $icon = 'pdf-view.png';
                                                                 $label = 'Casting';
-                                                                $tooltip = 'Pre-orden de casting generada, esperando enví­o';
+                                                                $tooltip = 'Pre-orden de casting generada, esperando envío';
                                                                 $borderColor = '#059669';
                                                                 $bgColor = '#f0fdf4';
                                                                 $textColor = '#15803d';
@@ -1156,7 +1156,7 @@
                                                             } elseif ($targetReg->tiene_modelo) {
                                                                 $icon = 'Espera.png';
                                                                 $label = 'Tengo Modelo';
-                                                                $tooltip = 'Modelo fí­sico disponible en Almacén, en espera de revisión por Calidad';
+                                                                $tooltip = 'Modelo físico disponible en Almacén, en espera de revisión por Calidad';
                                                                 $borderColor = '#0ea5e9';
                                                                 $bgColor = '#f0f9ff';
                                                                 $textColor = '#0369a1';
@@ -1207,7 +1207,7 @@
                                                     </div>
                                                 </td>
                                                 <td class="alm-date d-text-center">
-                                                    {{ $reg->alert_sent_at ? $reg->alert_sent_at->format('d/m/Y H:i') : 'â€”' }}
+                                                    {{ $reg->alert_sent_at ? $reg->alert_sent_at->format('d/m/Y H:i') : '—' }}
                                                 </td>
                                                 <td class="d-text-center">
                                                     <span class="badge-pdf-count">{{ $count }}</span>
@@ -1260,11 +1260,11 @@
                                                                 @endforeach
                                                             </div>
                                                         @elseif ($countDibujos > 0 && !$reg->alert_sent_at)
-                                                            {{-- Dibujos existentes pero alerta aíºn no enviada desde Ingenierí­a --}}
+                                                            {{-- Dibujos existentes pero alerta aún no enviada desde Ingeniería --}}
                                                             <div
                                                                 style="margin-top: 15px; padding: 14px 18px; background: rgba(0,81,148,0.06); border: 1.5px dashed #005194; border-radius: 10px; color: #005194; font-size: 0.93em;">
                                                                 <strong>Dibujos pendientes:</strong> Los dibujos estarán disponibles una vez que
-                                                                Ingenierí­a enví­e la alerta oficial desde el sistema de gestión documental.
+                                                                Ingeniería envíe la alerta oficial desde el sistema de gestión documental.
                                                             </div>
                                                         @endif
 
@@ -1300,7 +1300,7 @@
                                                                 style="margin-top: 20px; padding: 15px; background: #fff5f5; border: 1px solid #feb2b2; border-radius: 8px; color: #9c0300;">
                                                                 <strong>Aviso:</strong> Se han vinculado
                                                                 {{ count($reg->ayudas_config) }} clases de ayudas visuales, pero
-                                                                los archivos aíºn no se han sincronizado con {{ $deptName }}. Por favor,
+                                                                los archivos aún no se han sincronizado con {{ $deptName }}. Por favor,
                                                                 <strong>Vuelve a Vincular</strong> las ayudas desde la vista de
                                                                 administración.
                                                             </div>
@@ -1480,7 +1480,7 @@
                                                             </div>
                                                         @endif
 
-                                                        {{-- â”€â”€ SECCIí“N CONTROL DE MODELOS (Solo Almacén y OTs Activas) â”€â”€ --}}
+                                                        {{-- ── SECCIí“N CONTROL DE MODELOS (Solo Almacén y OTs Activas) ── --}}
                                                         @if (Auth::user()->perfil != 4 && $estado === 'activa')
                                                             @php
                                                                 $isFinalized = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
@@ -1492,7 +1492,7 @@
                                                                     $controlDisabled = ($reg->tiene_modelo || $reg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '';
                                                                     $hideSiNo = ($esReproceso || $reg->pre_orden_sent || $reg->pre_orden_email_sent) ? 'display: none;' : '';
                                                                     $hideEditMail = ($reg->pre_orden_sent && !$reg->pre_orden_email_sent) ? '' : 'display: none;';
-                                                                    // Para reproceso: mostrar Pre-Orden si aíºn no se ha generado
+                                                                    // Para reproceso: mostrar Pre-Orden si aún no se ha generado
                                                                     $hideReprocesoPreOrden = ($esReproceso && !$reg->pre_orden_sent && !$reg->pre_orden_email_sent) ? '' : 'display: none;';
                                                                 @endphp
                                                                 <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}"
@@ -1511,7 +1511,7 @@
                                                                         <div class="lib-calidad-action-row">
                                                                             <h4 class="lib-calidad-card-prompt">
                                                                                 @if ($reg->tiene_modelo)
-                                                                                    Â¡Modelo recibido y procesado! Pendiente de que Calidad lo revise.
+                                                                                    ¡Modelo recibido y procesado! Pendiente de que Calidad lo revise.
                                                                                 @elseif ($reg->pre_orden_email_sent)
                                                                                     Alerta enviada a Calidad. En espera de su revisión y nuevo veredicto
                                                                                     de
@@ -1530,7 +1530,7 @@
                                                                                     de
                                                                                     modelo para iniciar el nuevo ciclo de fabricación.
                                                                                 @else
-                                                                                    Â¿Ya cuentas con el modelo de esta OT o necesitas generar una
+                                                                                    ¿Ya cuentas con el modelo de esta OT o necesitas generar una
                                                                                     pre-orden?
                                                                                 @endif
                                                                             </h4>
@@ -1538,7 +1538,7 @@
                                                                                 {{-- Botones para OT normal (no reproceso) --}}
                                                                                 <button class="btn-modelo btn-modelo-si"
                                                                                     onclick="abrirModalConfirmarModelo('{{ $reg->ot }}', '{{ md5($reg->ot) }}')"
-                                                                                    title="Sí­, cuento con el modelo de esta OT"
+                                                                                    title="Sí, cuento con el modelo de esta OT"
                                                                                     style="{{ $hideSiNo }}">
                                                                                     <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
                                                                                     <span>Tengo el Modelo</span>
@@ -1592,7 +1592,7 @@
                                                                     $rechazados = $liberaciones->where('decision', 'rechazar')->pluck('tipo_modelo')->unique()->values()->toArray();
                                                                     $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado');
 
-                                                                    // Detectar si el íºltimo reproceso fue aprobado por Calidad.
+                                                                    // Detectar si el último reproceso fue aprobado por Calidad.
                                                                     // En ese caso la card de Rechazados asume el rol de la card de Aprobados
                                                                     // para evitar mostrar dos cards en un caso que NO es mixto.
                                                                     $reprocesoAprobadoPorCalidad = $latestReproceso
@@ -1799,7 +1799,7 @@
                                                                                                 <img src="{{ asset('images/Aprobado.png') }}"
                                                                                                     style="width: 20px; height: 20px; vertical-align: middle;"
                                                                                                     alt="Aprobado">
-                                                                                                Â¡Re-proceso
+                                                                                                ¡Re-proceso
                                                                                                 <strong>{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $latestReproceso->ot) }}</strong>
                                                                                                 aprobado por Calidad! Los modelos:
                                                                                                 <strong>{{ implode(', ', $rechazados) }}</strong> han sido
@@ -1846,7 +1846,7 @@
                                                                                     @if ($reg->rechazos_procesados)
                                                                                         @if ($reprocesoAprobadoPorCalidad && $latestReproceso)
                                                                                             {{-- Reproceso aprobado: Almacén procesa los modelos aprobados del
-                                                                                            íºltimo
+                                                                                            último
                                                                                             ciclo --}}
                                                                                             @php
                                                                                                 $latestAprobados = \App\Models\LiberacionModeloFundicion::where('ot', $latestReproceso->ot)
@@ -1966,7 +1966,7 @@
         </div>
     </div>{{-- /.alm-wrapper --}}
 
-    {{-- â”€â”€ MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS â”€â”€ --}}
+    {{-- ── MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS ── --}}
     <div id="modalConfirmarModelo" class="alm-modal" role="dialog" aria-modal="true">
         <div class="alm-modal-content"
             style="max-width: 1100px; border-radius: 20px; border: 2.5px solid #0a8504; overflow: hidden;">
@@ -2000,7 +2000,7 @@
                     <input type="hidden" id="cm-id-hash" name="id_hash">
 
                     <div style="padding: 0 0 14px; color: #334155; font-size:0.97em;">
-                        <p style="margin-bottom:12px; font-weight: 500;">Â¿Confirmas que cuentas fí­sicamente con el modelo
+                        <p style="margin-bottom:12px; font-weight: 500;">¿Confirmas que cuentas físicamente con el modelo
                             para esta OT?</p>
                         <p
                             style="background:#fef9c3; border:1px solid #fde047; border-radius:12px; padding:12px 18px; color:#713f12; font-size:0.9em; line-height: 1.5; margin-bottom: 20px;">
@@ -2013,7 +2013,7 @@
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label for="cm-fecha"
                             style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.15em;">
-                            Fecha de Confirmación / Enví­o <span style="color:#9c0300;">*</span>
+                            Fecha de Confirmación / Envío <span style="color:#9c0300;">*</span>
                         </label>
                         <input type="date" id="cm-fecha" name="fecha" class="form-control" required
                             style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
@@ -2034,10 +2034,10 @@
                                     style="width: 40px; height: 40px; margin-bottom: 8px; object-fit: contain;">
                                 <span class="dropzone-text"
                                     style="font-weight: 700; color: #0a8504; font-size: 0.85em; text-align: center; font-family:'Poppins', sans-serif;">Arrastra
-                                    archivos aquí­ o haz clic para buscar</span>
+                                    archivos aquí o haz clic para buscar</span>
                                 <span class="dropzone-subtext"
                                     style="font-size: 0.7em; color: #64748b; margin-top: 2px; font-family:'Poppins', sans-serif;">Soporta
-                                    míºltiples archivos PDF o imágenes</span>
+                                    múltiples archivos PDF o imágenes</span>
                             </div>
                         </div>
                         <div id="cm-archivos-list"
@@ -2056,9 +2056,9 @@
         </div>
     </div>
 
-    {{-- â”€â”€ MODAL: ENVIAR ALERTA DE LIBERACION (APROBADO/RECHAZADO) â”€â”€ --}}
+    {{-- ── MODAL: ENVIAR ALERTA DE LIBERACION (APROBADO/RECHAZADO) ── --}}
 
-    {{-- â”€â”€ MODAL: PRE-ORDEN PARA FABRICAR MODELOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+    {{-- ── MODAL: PRE-ORDEN PARA FABRICAR MODELOS ──────────────────── --}}
     <div id="modalPreOrden" class="alm-modal">
         <div class="alm-modal-content">
             <div class="alm-modal-header">
@@ -2069,11 +2069,11 @@
                 </div>
                 <h3>Pre-Orden para Fabricar Modelos (4ALM-17)</h3>
 
-                {{-- Pestaí±as eliminadas para flujo simplificado --}}
+                {{-- Pestañas eliminadas para flujo simplificado --}}
             </div>
             <div class="alm-modal-body">
 
-                {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â• PESTAí‘A 1 â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+                {{-- ────────────── PESTAÑA 1 ────────────── --}}
                 <div id="po-page-1" class="po-page">
                     <form id="formPreOrden">
                         <div class="form-grid">
@@ -2124,9 +2124,9 @@
                             </table>
                             <div style="margin-top: 10px; text-align: center;">
                                 <button type="button" id="btn-add-clase-po" class="btn-img-action"
-                                    onclick="agregarFilaPreOrden()" title="Aí±adir una nueva clase a la pre-orden"
+                                    onclick="agregarFilaPreOrden()" title="Añadir una nueva clase a la pre-orden"
                                     style="display: inline-block;">
-                                    <img src="{{ asset('images/anadir.png') }}" alt="Aí±adir" style="width: 40px;">
+                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir" style="width: 40px;">
                                 </button>
                             </div>
                         </div>
@@ -2147,13 +2147,13 @@
                     </form>
                 </div>
 
-                {{-- Pestaí±a 2 eliminada --}}
+                {{-- Pestaña 2 eliminada --}}
 
             </div>
         </div>
     </div>
 
-    {{-- â”€â”€ MODAL: PRE-ORDEN PARA FABRICAR CASTING (DOUBLE MODAL TABS) â”€â”€ --}}
+    {{-- ── MODAL: PRE-ORDEN PARA FABRICAR CASTING (DOUBLE MODAL TABS) ── --}}
     <div id="modalPreOrdenCasting" class="alm-modal" role="dialog" aria-modal="true">
         <div class="alm-modal-content"
             style="max-width: 1800px; width: 95vw; border-radius: 20px; overflow: hidden; border: 1.5px solid #0284c7;">
@@ -2172,7 +2172,7 @@
                     style="color: #bae6fd; font-size: 1.15em; margin-top: 8px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500;">
                 </p>
 
-                {{-- Tabs/Pestaí±as para los dos proveedores --}}
+                {{-- Tabs/Pestañas para los dos proveedores --}}
                 <div
                     style="display: flex; gap: 10px; margin-top: 25px; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 0; align-items: center;">
                     <button type="button" id="tab-poc-page-1" class="btn-po-tab active" onclick="switchPocPage(1)"
@@ -2202,7 +2202,7 @@
                     @csrf
                     <input type="hidden" id="poc-has-page2" name="has_page2" value="0">
 
-                    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â• PAGINA 1 â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+                    {{-- ────────────── PAGINA 1 ────────────── --}}
                     <div id="poc-page-1" class="poc-page">
                         <div class="form-grid"
                             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
@@ -2290,9 +2290,9 @@
                             </table>
                             <div style="margin-top: 15px; text-align: center;">
                                 <button type="button" class="btn-img-action" onclick="agregarFilaPoc(1)"
-                                    title="Aí±adir una nueva fila"
+                                    title="Añadir una nueva fila"
                                     style="border: none; background: none; cursor: pointer; padding: 5px; outline: none; transition: transform 0.2s ease;">
-                                    <img src="{{ asset('images/anadir.png') }}" alt="Aí±adir"
+                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir"
                                         style="width: 38px; height: 38px;">
                                 </button>
                             </div>
@@ -2306,7 +2306,7 @@
                         </div>
                     </div>
 
-                    {{-- â•â•â•â•â•â•â•â•â•â•â•â•â•â• PAGINA 2 â•â•â•â•â•â•â•â•â•â•â•â•â•â• --}}
+                    {{-- ────────────── PAGINA 2 ────────────── --}}
                     <div id="poc-page-2" class="poc-page" style="display: none;">
                         <div class="form-grid"
                             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
@@ -2394,9 +2394,9 @@
                             </table>
                             <div style="margin-top: 15px; text-align: center;">
                                 <button type="button" class="btn-img-action" onclick="agregarFilaPoc(2)"
-                                    title="Aí±adir una nueva fila"
+                                    title="Añadir una nueva fila"
                                     style="border: none; background: none; cursor: pointer; padding: 5px; outline: none; transition: transform 0.2s ease;">
-                                    <img src="{{ asset('images/anadir.png') }}" alt="Aí±adir"
+                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir"
                                         style="width: 38px; height: 38px;">
                                 </button>
                             </div>
@@ -2421,9 +2421,9 @@
         </div>
     </div>
 
-    {{-- â”€â”€ MODAL: FINALIZAR PROCESO DE CALIDAD (CORREO Y FECHA) â”€â”€ --}}
+    {{-- ── MODAL: FINALIZAR PROCESO DE CALIDAD (CORREO Y FECHA) ── --}}
 
-    {{-- â”€â”€ MODAL: ENVIAR PRE-ORDEN POR CORREO CON ADJUNTOS (FASE 2) â”€â”€ --}}
+    {{-- ── MODAL: ENVIAR PRE-ORDEN POR CORREO CON ADJUNTOS (FASE 2) ── --}}
     <div id="modalEnviarPreOrden" class="alm-modal">
         <div class="alm-modal-content" style="max-width: 1100px;">
             <div class="alm-modal-header">
@@ -2445,7 +2445,7 @@
                         <label for="env-destinatario">Destinatario(s):</label>
                         <input type="text" id="env-destinatario" name="destinatario" class="form-control" required
                             value="inspecciontec@grupoindsaavedra.com">
-                        <span style="font-size: 0.8em; color: #64748b; margin-top: 4px;">Separa míºltiples correos usando
+                        <span style="font-size: 0.8em; color: #64748b; margin-top: 4px;">Separa múltiples correos usando
                             comas (,).</span>
                     </div>
 
@@ -2480,8 +2480,8 @@
                             <div class="dropzone-content">
                                 <img src="{{ asset('images/anadir.png') }}" class="dropzone-icon"
                                     style="width: 40px; height: 40px; margin-bottom: 8px; object-fit: contain;">
-                                <span class="dropzone-text">Arrastra archivos aquí­ o haz clic para buscar</span>
-                                <span class="dropzone-subtext">Soporta míºltiples archivos PDF o imágenes</span>
+                                <span class="dropzone-text">Arrastra archivos aquí o haz clic para buscar</span>
+                                <span class="dropzone-subtext">Soporta múltiples archivos PDF o imágenes</span>
                             </div>
                         </div>
                         <div id="env-archivos-adicionales-list"
@@ -2500,13 +2500,13 @@
     </div>
 
 
-    {{-- â”€â”€ MODAL: ENVIAR ALERTA SCAR (Paso 2) â”€â”€ --}}
+    {{-- ── MODAL: ENVIAR ALERTA SCAR (Paso 2) ── --}}
 
-    {{-- â”€â”€ MODAL: LIBERACIí“N DE MODELOS (Calidad) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
+    {{-- ── MODAL: LIBERACIí“N DE MODELOS (Calidad) ──────────────────── --}}
 
-    {{-- â”€â”€ MODAL: SCAR (Solicitud de Acción Correctiva de Rechazo) â”€â”€â”€ --}}
+    {{-- ── MODAL: SCAR (Solicitud de Acción Correctiva de Rechazo) ─── --}}
 
-    {{-- â”€â”€ MODAL: INICIAR CASTING / GESTION VEREDICTO (Almacén) â”€â”€â”€â”€â”€â”€ --}}
+    {{-- ── MODAL: INICIAR CASTING / GESTION VEREDICTO (Almacén) ────── --}}
     @include('almacen.partials._modal_iniciar_casting')
 
     <script>
