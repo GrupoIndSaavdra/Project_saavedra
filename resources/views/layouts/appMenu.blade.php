@@ -91,6 +91,7 @@
         'ayudas.manage': @json(route('ayudas.manage')),
         'ayudas_fundicion.manage': @json(route('ayudas_fundicion.manage')),
         'almacen.fundicion.index': @json(route('almacen.fundicion.index')),
+        'calidad.fundicion.index': @json(route('calidad.fundicion.index')),
         'calidad.maquinados.index': @json(route('calidad.maquinados.index')),
         'herramientas.tecamac.index': @json(route('herramientas.tecamac.index')),
         systemLogsReport: @json(route('systemLogsReport')),

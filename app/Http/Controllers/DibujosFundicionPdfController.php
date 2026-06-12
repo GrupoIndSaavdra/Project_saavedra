@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Normalizer;
+use App\Services\FundicionPaths;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -51,14 +52,14 @@ class DibujosFundicionPdfController extends Controller
         $otSeleccionadaId = $request->query('ot_id');
         $claseSeleccionadaId = $request->query('clase_id');
 
-        $otActiva = $otSeleccionadaId ? $todasLasOTs->first(fn($ot) => (int)$ot->id === (int)$otSeleccionadaId) : null;
+        $otActiva = $otSeleccionadaId ? $todasLasOTs->first(fn($ot) => (int) $ot->id === (int) $otSeleccionadaId) : null;
         $claseActiva = null;
         if ($claseSeleccionadaId) {
             if (is_numeric($claseSeleccionadaId)) {
-                $claseActiva = optional($otActiva?->clases)->first(fn($c) => (int)$c->id === (int)$claseSeleccionadaId);
+                $claseActiva = optional($otActiva?->clases)->first(fn($c) => (int) $c->id === (int) $claseSeleccionadaId);
             } elseif (in_array($claseSeleccionadaId, ['Pistones', 'Guías', 'Guias'])) {
                 // Clase virtual para ayudas manuales
-                $claseActiva = (object)[
+                $claseActiva = (object) [
                     'id' => $claseSeleccionadaId,
                     'nombre' => $claseSeleccionadaId
                 ];
@@ -165,7 +166,7 @@ class DibujosFundicionPdfController extends Controller
         }
 
         $todasLasClases = Clase::all();
-        
+
         // Consolidar historiales (agrupar por nombre normalizado para evitar duplicidades por guiones)
         $historialesRaw = FundicionHistory::all();
         $historiales = [];
@@ -227,7 +228,8 @@ class DibujosFundicionPdfController extends Controller
     public function getTotalFiles(Request $request)
     {
         $ot = $this->sanitizePath($request->query('ot', ''));
-        if (empty($ot)) return response()->json(['total' => 0]);
+        if (empty($ot))
+            return response()->json(['total' => 0]);
 
         $otNorm = $this->normalizeOTName($ot);
         $total = 0;
@@ -400,7 +402,7 @@ class DibujosFundicionPdfController extends Controller
 
         $files = Storage::disk('local')->files($dirPath);
         $foundFile = null;
-        
+
         $archivoNorm = Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), Normalizer::FORM_C);
 
         foreach ($files as $f) {
@@ -617,82 +619,84 @@ class DibujosFundicionPdfController extends Controller
         $srcDir = self::BASE_DIR . '/' . $otName;
         $dstDir = self::ALMACEN_DIR . '/' . $otName;
 
-        // 1. Sincronizar dibujos por clase (Recursivo)
+        // 1. Sincronizar dibujos por clase → nueva ruta: {Clase}/Dibujos/
         if (Storage::disk('local')->exists($srcDir)) {
             if (!Storage::disk('local')->exists($dstDir)) {
                 Storage::disk('local')->makeDirectory($dstDir);
             }
 
-            // Obtener todos los PDFs en subcarpetas (clases)
+            // Obtener todos los PDFs organizados por clase (subcarpetas directas de la OT)
             $srcFilesFull = collect(Storage::disk('local')->allFiles($srcDir))
                 ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf');
 
-            // Mapear rutas relativas al directorio de la OT
-            $srcFilesRel = $srcFilesFull->map(fn($f) => str_replace($srcDir . '/', '', $f))->toArray();
+            // Mapear rutas relativas al directorio fuente de la OT
+            $srcFilesRel = $srcFilesFull->map(fn($f) => str_replace(str_replace('\\', '/', $srcDir) . '/', '', str_replace('\\', '/', $f)))->toArray();
 
-            // Obtener archivos actuales en Almacén (excluyendo ayudas_visuales)
+            // Obtener archivos actuales en Almacén en la carpeta Dibujos/ (nueva estructura)
             $dstFilesFull = collect(Storage::disk('local')->allFiles($dstDir))
                 ->filter(function ($f) use ($dstDir) {
-                    $rel = str_replace($dstDir . '/', '', $f);
-                    return strpos($rel, 'ayudas_visuales/') !== 0 && strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf';
+                    $rel = str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f));
+                    // Solo archivos dentro de {Clase}/Dibujos/ (nueva) o {Clase}/ (legacy)
+                    return !str_starts_with($rel, 'Ayudas_Visuales/')
+                        && !str_starts_with($rel, 'ayudas_visuales/')
+                        && !str_starts_with($rel, 'Documentos_Aprobados/')
+                        && !str_starts_with($rel, 'Documentos_Rechazados/')
+                        && strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf';
                 });
 
-            $dstFilesRel = $dstFilesFull->map(fn($f) => str_replace($dstDir . '/', '', $f))->toArray();
+            $dstFilesRel = $dstFilesFull->map(fn($f) => str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f)))->toArray();
 
-            // Sincronizar espejo: Eliminar dibujos en Almacén que ya no existen en la carpeta de Ingeniería
+            // Sincronizar: eliminar dibujos en Almacén que ya no existen en Ingeniería
             foreach ($dstFilesRel as $dfRel) {
-                if (!in_array($dfRel, $srcFilesRel)) {
+                // Normalizar: si el destino tiene /Dibujos/ en la ruta, comparar sin él
+                $dfRelNorm = preg_replace('#/Dibujos/#', '/', $dfRel);
+                $srcFilesRelNorm = array_map(fn($r) => preg_replace('#/Dibujos/#', '/', $r), $srcFilesRel);
+                if (!in_array($dfRelNorm, $srcFilesRelNorm)) {
                     Storage::disk('local')->delete($dstDir . '/' . $dfRel);
                 }
             }
 
-            // Copiar nuevos o actualizados (con sus subcarpetas)
+            // Copiar dibujos a nueva ruta: {Clase}/Dibujos/{archivo}
             foreach ($srcFilesRel as $sfRel) {
-                $srcPath = $srcDir . '/' . $sfRel;
-                $dstPath = $dstDir . '/' . $sfRel;
+                // sfRel viene como: {Clase}/{archivo.pdf}  (estructura de DIBUJOS_FUNDICION)
+                $parts = explode('/', $sfRel, 2);
+                if (count($parts) === 2) {
+                    [$clase, $archivo] = $parts;
+                    // Nueva ruta: {Clase}/Dibujos/{archivo}
+                    $dstPath = $dstDir . '/' . $clase . '/' . FundicionPaths::DIBUJOS . '/' . $archivo;
+                } else {
+                    // Archivo en raíz de la OT (sin clase) → lo dejamos tal cual
+                    $dstPath = $dstDir . '/' . $sfRel;
+                }
 
-                // Asegurar que existe el directorio destino de la clase
                 $parentDir = dirname($dstPath);
                 if (!Storage::disk('local')->exists($parentDir)) {
                     Storage::disk('local')->makeDirectory($parentDir);
                 }
-
-                if (!Storage::disk('local')->exists($dstPath)) {
-                    Storage::disk('local')->copy($srcPath, $dstPath);
+                // Copia completa e independiente: sobreescribir siempre
+                if (Storage::disk('local')->exists($dstPath)) {
+                    Storage::disk('local')->delete($dstPath);
                 }
+                Storage::disk('local')->copy($srcDir . '/' . $sfRel, $dstPath);
             }
         }
 
-        // 2. Copiar y Sincronizar Ayudas Visuales (Mirroring)
+        // 2. Copiar Ayudas Visuales → nueva ruta: {Clase}/Ayudas_Visuales/
         $history = FundicionHistory::where('ot', '=', $otName, 'and')->first();
         $ayudasVinculadas = $history ? ($history->ayudas_config ?? []) : [];
-        $ayudasDstDir = $dstDir . '/ayudas_visuales';
-
-        // Sincronizar carpetas de clases en Almacén: Eliminar clases desvinculadas
-        if (Storage::disk('local')->exists($ayudasDstDir)) {
-            $clasesEnAlmacen = array_map('basename', Storage::disk('local')->directories($ayudasDstDir));
-            foreach ($clasesEnAlmacen as $claseAlmacen) {
-                if ($claseAlmacen !== 'preordenes' && !in_array($claseAlmacen, $ayudasVinculadas)) {
-                    Storage::disk('local')->deleteDirectory($ayudasDstDir . '/' . $claseAlmacen);
-                }
-            }
-        }
 
         if (!empty($ayudasVinculadas)) {
-            if (!Storage::disk('local')->exists($ayudasDstDir)) {
-                Storage::disk('local')->makeDirectory($ayudasDstDir);
-            }
-
             $newBase = 'DOCUMENTACION_GIS/AYUDAS_FUNDICION';
             $oldBase = 'AYUDAS_GIS';
 
             foreach ($ayudasVinculadas as $clase) {
-                $claseDstDir = $ayudasDstDir . '/' . $clase;
+                // Nueva ruta de destino: {OT}/{Clase}/Ayudas_Visuales/
+                $claseDstDir = $dstDir . '/' . $clase . '/' . FundicionPaths::AYUDAS_VISUALES;
                 if (!Storage::disk('local')->exists($claseDstDir)) {
                     Storage::disk('local')->makeDirectory($claseDstDir);
                 }
 
-                // Obtener archivos maestros actuales (Nuevo esquema y Legacy)
+                // Obtener archivos maestros (nuevo esquema y legacy)
                 $masterFiles = [];
                 $bases = [$newBase, $oldBase];
                 foreach ($bases as $base) {
@@ -712,24 +716,22 @@ class DibujosFundicionPdfController extends Controller
                     }
                 }
 
-                // Sincronizar archivos dentro de la clase
-                $filesInAlmacen = collect(Storage::disk('local')->files($claseDstDir))
-                    ->map(fn($f) => basename($f))
-                    ->toArray();
-
-                // Eliminar huérfanos dentro de la clase
-                foreach ($filesInAlmacen as $fa) {
+                // Eliminar huérfanos
+                $filesInDst = collect(Storage::disk('local')->files($claseDstDir))
+                    ->map(fn($f) => basename($f))->toArray();
+                foreach ($filesInDst as $fa) {
                     if (!isset($masterFiles[$fa])) {
                         Storage::disk('local')->delete($claseDstDir . '/' . $fa);
                     }
                 }
 
-                // Copiar nuevos
+                // Copiar todas (sobreescribir siempre)
                 foreach ($masterFiles as $name => $srcPath) {
-                    $dstPath = $claseDstDir . '/' . $name;
-                    if (!Storage::disk('local')->exists($dstPath)) {
-                        Storage::disk('local')->copy($srcPath, $dstPath);
+                    $targetAyudaPath = $claseDstDir . '/' . $name;
+                    if (Storage::disk('local')->exists($targetAyudaPath)) {
+                        Storage::disk('local')->delete($targetAyudaPath);
                     }
+                    Storage::disk('local')->copy($srcPath, $targetAyudaPath);
                 }
             }
         }
@@ -739,10 +741,15 @@ class DibujosFundicionPdfController extends Controller
         if (Storage::disk('local')->exists($dstDir)) {
             $almacenFiles = collect(Storage::disk('local')->allFiles($dstDir))
                 ->filter(function ($f) use ($dstDir) {
-                    $rel = str_replace($dstDir . '/', '', $f);
-                    return strpos($rel, 'ayudas_visuales/') !== 0 && strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf';
+                    $rel = str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f));
+                    // Incluir solo dibujos (nuevos en Dibujos/ o legacy en raíz de clase)
+                    return !str_starts_with($rel, 'Ayudas_Visuales/')
+                        && !str_starts_with($rel, 'ayudas_visuales/')
+                        && !str_starts_with($rel, 'Documentos_Aprobados/')
+                        && !str_starts_with($rel, 'Documentos_Rechazados/')
+                        && strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf';
                 })
-                ->map(fn($f) => str_replace($dstDir . '/', '', $f))
+                ->map(fn($f) => str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f)))
                 ->values()
                 ->toArray();
         }
@@ -763,6 +770,40 @@ class DibujosFundicionPdfController extends Controller
                 'calidad_revision_status' => null,
             ]
         );
+
+        // 5. Espejo Almacén → Calidad: Copiar dibujos + ayudas_visuales al directorio de Calidad
+        //    para que el equipo de Calidad vea los mismos archivos que subió Almacén.
+        //    Se excluye la subcarpeta preordenes/ (es territorio exclusivo de Calidad).
+        $calidadDir = 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otName;
+        if (Storage::disk('local')->exists($dstDir)) {
+            $allAlmacenFiles = Storage::disk('local')->allFiles($dstDir);
+            foreach ($allAlmacenFiles as $srcFile) {
+                $relPath = ltrim(substr(str_replace('\\', '/', $srcFile), strlen(str_replace('\\', '/', $dstDir))), '/');
+
+                // Excluir carpetas exclusivas de Calidad (documentos generados y escaneados)
+                if (
+                    str_starts_with($relPath, 'Documentos_Aprobados/') ||
+                    str_starts_with($relPath, 'Documentos_Rechazados/') ||
+                    str_starts_with($relPath, 'ayudas_visuales/preordenes/') ||
+                    str_starts_with($relPath, 'preordenes/')
+                ) {
+                    continue;
+                }
+
+                $targetPath = $calidadDir . '/' . $relPath;
+                $targetDirPath = dirname($targetPath);
+
+                if (!Storage::disk('local')->exists($targetDirPath)) {
+                    Storage::disk('local')->makeDirectory($targetDirPath);
+                }
+
+                // Copia completa e independiente hacia Calidad: sobreescribir siempre
+                if (Storage::disk('local')->exists($targetPath)) {
+                    Storage::disk('local')->delete($targetPath);
+                }
+                Storage::disk('local')->copy($srcFile, $targetPath);
+            }
+        }
     }
 
     /**
@@ -839,7 +880,7 @@ class DibujosFundicionPdfController extends Controller
         $ot = $this->sanitizePath($request->input('ot'));
         $otNorm = $this->normalizeOTName($ot);
         $clase = $this->sanitizePath($request->input('clase'));
-        
+
         $dirPath = self::BASE_DIR . '/' . $otNorm . '/' . $clase;
         $oldDirPath = self::OLD_BASE_DIR . '/' . $otNorm . '/' . $clase;
 
@@ -884,7 +925,7 @@ class DibujosFundicionPdfController extends Controller
         $request->validate(['ot' => 'required|string|max:200']);
         $ot = $this->sanitizePath($request->input('ot'));
         $otNorm = $this->normalizeOTName($ot);
-        
+
         $dirPath = self::BASE_DIR . '/' . $otNorm;
         $oldDirPath = self::OLD_BASE_DIR . '/' . $otNorm;
 
@@ -927,26 +968,26 @@ class DibujosFundicionPdfController extends Controller
         // Si es la OT Original (sin R1, R2, etc.), también desactivamos y renombrarmos todos sus reprocesos
         $isOriginal = !preg_match('/_R\d+$/i', $otNorm);
         if ($isOriginal) {
-            $reprocessHistories = FundicionHistory::where('ot', 'LIKE', $otNorm . '_R%')->get();
+            $reprocessHistories = FundicionHistory::where('ot', '=', 'LIKE', $otNorm . '_R%', 'and')->get();
             foreach ($reprocessHistories as $rh) {
                 // Eliminar físicamente los directorios de los reprocesos en Ingeniería
                 $rDirPath = self::BASE_DIR . '/' . $rh->ot;
                 $rOldDirPath = self::OLD_BASE_DIR . '/' . $rh->ot;
-                
+
                 if (Storage::disk('local')->exists($rDirPath)) {
                     Storage::disk('local')->deleteDirectory($rDirPath);
                 }
                 if (Storage::disk('local')->exists($rOldDirPath)) {
                     Storage::disk('local')->deleteDirectory($rOldDirPath);
                 }
-                
+
                 // Renombrar copia en Almacén del reproceso en vez de eliminarla
                 $rAlmacenPath = self::ALMACEN_DIR . '/' . $rh->ot;
                 if (Storage::disk('local')->exists($rAlmacenPath)) {
                     Storage::disk('local')->move($rAlmacenPath, $rAlmacenPath . $timestamp);
                 }
 
-                FundicionHistory::where('id', $rh->id)->update([
+                FundicionHistory::where('id', '=', $rh->id, 'and')->update([
                     'ot' => $rh->ot . $timestamp,
                     'status' => 'inactiva'
                     // Se conserva almacen_archivos intacto
@@ -981,7 +1022,7 @@ class DibujosFundicionPdfController extends Controller
         $clase = $this->sanitizePath($request->input('clase'));
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
         $dirPath = ($clase === '--') ? self::BASE_DIR . '/' . $otNorm : self::BASE_DIR . '/' . $otNorm . '/' . $clase;
-        
+
         $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
         $foundFile = null;
         foreach ($files as $f) {
@@ -1039,18 +1080,18 @@ class DibujosFundicionPdfController extends Controller
 
         $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
         $ayudasPrevias = $history ? ($history->ayudas_config ?? []) : [];
-        
+
         // Mantener las que no son manuales (automáticas) + las nuevas manuales seleccionadas
-        $ayudasFiltradas = array_filter($ayudasPrevias, function($a) use ($ayudasManualesPosibles, $nuevasAyudasManuales) {
+        $ayudasFiltradas = array_filter($ayudasPrevias, function ($a) use ($ayudasManualesPosibles, $nuevasAyudasManuales) {
             if (in_array($a, $ayudasManualesPosibles)) {
                 return in_array($a, $nuevasAyudasManuales);
             }
             return !empty($a);
         });
-        
+
         // Limpiar nulos o basura antes de guardar
-        $ayudasFinales = array_values(array_filter(array_unique(array_merge($ayudasFiltradas, $nuevasAyudasManuales)), function($v) {
-            $val = trim(strtolower((string)$v));
+        $ayudasFinales = array_values(array_filter(array_unique(array_merge($ayudasFiltradas, $nuevasAyudasManuales)), function ($v) {
+            $val = trim(strtolower((string) $v));
             return !empty($val) && $val !== 'null' && $val !== 'undefined';
         }));
 
@@ -1168,27 +1209,27 @@ class DibujosFundicionPdfController extends Controller
 
         // Mapeo de acciones técnicas a acciones legibles para system_logs
         $actionMap = [
-            'subir_pdf'        => 'Subida de Dibujo Fundición',
-            'eliminar_pdf'     => 'Eliminación de Dibujo Fundición',
-            'reemplazar_pdf'   => 'Reemplazo de Dibujo Fundición',
-            'crear_carpeta'    => 'Creación de Carpeta',
-            'vaciar_carpeta'   => 'Eliminación de Dibujo Fundición',
+            'subir_pdf' => 'Subida de Dibujo Fundición',
+            'eliminar_pdf' => 'Eliminación de Dibujo Fundición',
+            'reemplazar_pdf' => 'Reemplazo de Dibujo Fundición',
+            'crear_carpeta' => 'Creación de Carpeta',
+            'vaciar_carpeta' => 'Eliminación de Dibujo Fundición',
             'eliminar_carpeta' => 'Eliminación de Dibujo Fundición',
         ];
         $systemAction = $actionMap[$action] ?? null;
         if ($systemAction && $user) {
             $detailsMap = [
-                'subir_pdf'        => "El administrador subió el dibujo de fundición '{$archivo}' en la ruta {$ruta}.",
-                'eliminar_pdf'     => "El administrador eliminó el dibujo de fundición '{$archivo}' de la ruta {$ruta}.",
-                'reemplazar_pdf'   => "El administrador reemplazó el dibujo de fundición en {$ruta}: {$archivo}.",
-                'crear_carpeta'    => "El administrador creó la carpeta de fundición: {$ruta}.",
-                'vaciar_carpeta'   => "El administrador vació la carpeta de fundición: {$ruta}.",
+                'subir_pdf' => "El administrador subió el dibujo de fundición '{$archivo}' en la ruta {$ruta}.",
+                'eliminar_pdf' => "El administrador eliminó el dibujo de fundición '{$archivo}' de la ruta {$ruta}.",
+                'reemplazar_pdf' => "El administrador reemplazó el dibujo de fundición en {$ruta}: {$archivo}.",
+                'crear_carpeta' => "El administrador creó la carpeta de fundición: {$ruta}.",
+                'vaciar_carpeta' => "El administrador vació la carpeta de fundición: {$ruta}.",
                 'eliminar_carpeta' => "El administrador eliminó la carpeta de fundición: {$ruta}.",
             ];
             \App\Models\SystemLog::create([
                 'user_matricula' => $user->matricula,
-                'action'         => $systemAction,
-                'details'        => $detailsMap[$action] ?? "Administrador realizó la acción '{$action}' en {$ruta}.",
+                'action' => $systemAction,
+                'details' => $detailsMap[$action] ?? "Administrador realizó la acción '{$action}' en {$ruta}.",
             ]);
         }
     }
@@ -1199,7 +1240,8 @@ class DibujosFundicionPdfController extends Controller
         $resolved = '';
 
         foreach ($parts as $part) {
-            if ($part === '') continue;
+            if ($part === '')
+                continue;
 
             $currentSearch = $resolved ? $resolved : '.';
             if (!Storage::disk('local')->exists($currentSearch)) {
@@ -1286,7 +1328,8 @@ class DibujosFundicionPdfController extends Controller
      */
     public static function normalizeOTName(?string $name): string
     {
-        if (!$name) return '';
+        if (!$name)
+            return '';
         // Reemplazar guiones especiales y espacios de no ruptura
         $name = str_replace(['—', '–', "\xc2\xa0"], '-', $name);
         // Todo a mayúsculas para evitar problemas de case-sensitivity

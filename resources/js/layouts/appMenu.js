@@ -406,7 +406,7 @@ function getRoutes(profile) {
                         {
                             title: "Documentación Técnica",
                             routes: [
-                                ["almacen.fundicion.index", "Dibujos y Ayudas de Fundición"],
+                                ["calidad.fundicion.index", "Dibujos y Ayudas de Fundición"],
                                 ["calidad.maquinados.index", "Dibujos y Ayudas de Maquinados"],
                             ],
                         },
@@ -469,7 +469,7 @@ function getRoutes(profile) {
                 {
                     title: "Documentación Técnica",
                     routes: [
-                        ["almacen.fundicion.index", "Dibujos y Ayudas de Fundición"],
+                        ["calidad.fundicion.index", "Dibujos y Ayudas de Fundición"],
                         ["calidad.maquinados.index", "Dibujos y Ayudas de Maquinados"],
                     ],
                 },

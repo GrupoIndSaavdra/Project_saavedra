@@ -25,13 +25,14 @@ class AlmacenFundicionControllerTest extends TestCase
         Mail::fake();
     }
 
-    public function test_unauthenticated_user_cannot_access_get_files()
+
+public function test_unauthenticated_user_cannot_access_get_files()
     {
         $response = $this->getJson(route('almacen.fundicion.archivos', ['ot' => 'OT-TEST']));
         $response->assertStatus(401);
     }
 
-    public function test_non_permitted_profile_cannot_access_get_files()
+public function test_non_permitted_profile_cannot_access_get_files()
     {
         $user = User::factory()->create(['perfil' => '6']); // Profile 6 not allowed
         $this->actingAs($user);
@@ -40,9 +41,9 @@ class AlmacenFundicionControllerTest extends TestCase
         $response->assertStatus(403);
     }
 
-    public function test_get_files_returns_no_files_if_history_does_not_exist()
+public function test_get_files_returns_no_files_if_history_does_not_exist()
     {
-        $user = User::factory()->create(['perfil' => '4']); // Quality profile
+        $user = User::factory()->create(['perfil' => '5']); // Almacen profile
         $this->actingAs($user);
 
         $response = $this->getJson(route('almacen.fundicion.archivos', ['ot' => 'OT-NON-EXISTENT']));
@@ -52,119 +53,7 @@ class AlmacenFundicionControllerTest extends TestCase
         ]);
     }
 
-    public function test_attachment_parsing_and_routing_in_enviar_alerta_liberacion()
-    {
-        // 1. Setup mock files on fake local storage
-        $ot = 'OT-TEST-123';
-        $folderName = 'OT-TEST-123';
-        
-        $almacenDir = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $folderName;
-        $calidadDir = 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $folderName;
-
-        // Create drawing file in Almacen
-        Storage::disk('local')->put($almacenDir . '/Dibujo_Bombillo.pdf', 'dummy pdf content');
-        // Create visual aid file in Almacen
-        Storage::disk('local')->put($almacenDir . '/ayudas_visuales/Ayuda_Fondo.pdf', 'dummy pdf content');
-        // Create preorden file in Calidad
-        Storage::disk('local')->put($calidadDir . '/ayudas_visuales/preordenes/Pre-Orden_OT-TEST-123.pdf', 'dummy pdf content');
-        // Create rejection file in Calidad
-        Storage::disk('local')->put($calidadDir . '/ayudas_visuales/preordenes/documentos_rechazados/molde/SCAR_FOTO_Rechazado.png', 'dummy image content');
-
-        // 2. Setup database records using Transactions (will be rolled back)
-        $user = User::factory()->create(['perfil' => '4']); // Quality profile
-        $this->actingAs($user);
-
-        // Create FundicionHistory
-        FundicionHistory::create([
-            'ot' => $ot,
-            'tiene_modelo' => true,
-            'alert_sent_at' => now(),
-            'calidad_revision_status' => 'espera'
-        ]);
-
-        // Create LiberacionModeloFundicion
-        LiberacionModeloFundicion::create([
-            'ot' => $ot,
-            'tipo_modelo' => 'Bombillo',
-            'decision' => 'aprobar',
-            'estado' => 'espera',
-            'pdf_filename' => 'F-CCL-LDM_BOMBILLO_APROBADO.pdf'
-        ]);
-
-        LiberacionModeloFundicion::create([
-            'ot' => $ot,
-            'tipo_modelo' => 'Molde',
-            'decision' => 'rechazar',
-            'estado' => 'espera',
-            'pdf_filename' => 'F-CCL-LDM_MOLDE_RECHAZADO.pdf'
-        ]);
-
-        // 3. Perform enviarAlertaLiberacion POST request
-        $response = $this->postJson(route('almacen.fundicion.enviarAlertaLiberacion'), [
-            'ot' => $ot,
-            'decision' => 'mixto',
-            'tipo_modelo' => 'Bombillo, Molde',
-            'fecha' => '2026-06-02',
-            'destinatario' => 'test@example.com',
-            // Selected files
-            'dibujos_aprobados' => ['Dibujo_Bombillo.pdf'],
-            'dibujos_rechazados' => ['preordenes/documentos_rechazados/molde/SCAR_FOTO_Rechazado.png']
-        ]);
-
-        $response->assertStatus(200);
-        $response->assertJson(['success' => true]);
-
-        // 4. Assert emails were sent with correct attachments
-        Mail::assertSent(LiberacionModeloMailable::class, function ($mail) {
-            if ($mail->estado === 'aprobado') {
-                $attachments = $mail->emailAttachments;
-                $hasDibujo = false;
-                foreach ($attachments as $att) {
-                    if (str_ends_with($att['name'], 'Dibujo_Bombillo.pdf')) {
-                        $hasDibujo = true;
-                    }
-                }
-                return $hasDibujo;
-            }
-            return true;
-        });
-
-        Mail::assertSent(LiberacionModeloMailable::class, function ($mail) {
-            if ($mail->estado === 'rechazado') {
-                $attachments = $mail->emailAttachments;
-                $hasRechazo = false;
-                foreach ($attachments as $att) {
-                    if (str_ends_with($att['name'], 'SCAR_FOTO_Rechazado.png')) {
-                        $hasRechazo = true;
-                    }
-                }
-                return $hasRechazo;
-            }
-            return true;
-        });
-    }
-
-    public function test_enviar_alerta_liberacion_fails_without_fecha()
-    {
-        $user = User::factory()->create(['perfil' => '4']); // Quality profile
-        $this->actingAs($user);
-
-        $response = $this->postJson(route('almacen.fundicion.enviarAlertaLiberacion'), [
-            'ot' => 'OT-TEST-123',
-            'decision' => 'aprobar',
-            'tipo_modelo' => 'Bombillo',
-            // 'fecha' is missing
-            'destinatario' => 'test@example.com'
-        ]);
-
-        $response->assertStatus(422);
-        $response->assertJsonFragment([
-            'success' => false,
-            'message' => 'Campos obligatorios incompletos: fecha'
-        ]);
-    }
-
-    public function test_store_pre_orden_casting_generates_and_saves_correctly()
+public function test_store_pre_orden_casting_generates_and_saves_correctly()
     {
         $user = User::factory()->create(['perfil' => '2']); // Warehouse profile
         $this->actingAs($user);
@@ -216,7 +105,7 @@ class AlmacenFundicionControllerTest extends TestCase
         ]);
     }
 
-    public function test_send_email_pre_orden_casting_updates_status_and_sends_email()
+public function test_send_email_pre_orden_casting_updates_status_and_sends_email()
     {
         $user = User::factory()->create(['perfil' => '2']); // Warehouse profile
         $this->actingAs($user);
@@ -269,7 +158,7 @@ class AlmacenFundicionControllerTest extends TestCase
         ]);
     }
 
-    public function test_send_email_pre_orden_modelo_only_updates_pre_orden_email_sent()
+public function test_send_email_pre_orden_modelo_only_updates_pre_orden_email_sent()
     {
         $user = User::factory()->create(['perfil' => '2']); // Warehouse profile
         $this->actingAs($user);
@@ -322,7 +211,7 @@ class AlmacenFundicionControllerTest extends TestCase
         ]);
     }
 
-    public function test_send_email_pre_orden_succeeds_without_archivos_adicionales()
+public function test_send_email_pre_orden_succeeds_without_archivos_adicionales()
     {
         $user = User::factory()->create(['perfil' => '2']); // Warehouse profile
         $this->actingAs($user);
@@ -371,7 +260,7 @@ class AlmacenFundicionControllerTest extends TestCase
         ]);
     }
 
-    public function test_store_pre_orden_casting_with_two_suppliers_generates_single_combined_pdf()
+public function test_store_pre_orden_casting_with_two_suppliers_generates_single_combined_pdf()
     {
         $user = User::factory()->create(['perfil' => '2']);
         $this->actingAs($user);
@@ -459,184 +348,9 @@ class AlmacenFundicionControllerTest extends TestCase
         ]);
     }
 
-    public function test_reproceso_cycle_reaches_multiple_iterations()
+public function test_get_files_returns_correct_structured_new_folders()
     {
-        $user = User::factory()->create(['perfil' => '5']); // Almacen profile
-        $this->actingAs($user);
-
-        $otBase = 'OT-REPROCESO-123';
-
-        // Create base history
-        FundicionHistory::create([
-            'ot' => $otBase,
-            'status' => 'activa',
-            'tiene_modelo' => 1,
-            'pre_orden_sent' => 1,
-            'pre_orden_email_sent' => 1,
-            'calidad_revision_status' => 'rechazado',
-            'ayudas_config' => ['Molde'],
-            'almacen_archivos' => []
-        ]);
-
-        // Create base PreOrden
-        PreOrdenFundicion::create([
-            'ot' => $otBase,
-            'folio' => 'MOD-2026-9999',
-            'proveedor' => 'SS Metal Foundry',
-            'fecha_creacion' => now(),
-            'fecha_entrega' => now()->addDays(7),
-            'moldura' => 'TEST MOLDURA',
-            'observaciones' => 'Base Preorden',
-            'filas' => [[
-                'clase' => 'Molde',
-                'tipo_modelo' => 'Molde',
-                'clase_nombre' => 'Molde',
-                'cantidad' => 1,
-                'cant_fabricar' => 1,
-                'cantidad_fabricar' => 1,
-                'cantidad_consignacion' => 0,
-                'cant_consignacion' => 0,
-                'descripcion' => 'Molde Test',
-                'material' => 'Hierro',
-                'codigo_modelo' => 'M-9999',
-                'peso_juego' => 10,
-                'peso_total' => 10,
-                'fecha_entrega' => '2026-06-15'
-            ]],
-            'user_id' => $user->id,
-            'user_nombre' => $user->nombre,
-            'version' => 1,
-            'pdf_filename' => 'Pre-Orden_OT-REPROCESO-123.pdf'
-        ]);
-
-        // Simulate processing rejection on base OT to generate _R1
-        $fileRechazo = \Illuminate\Http\UploadedFile::fake()->create('rechazo_molde.pdf', 100);
-        $fileScar = \Illuminate\Http\UploadedFile::fake()->create('scar_molde.pdf', 100);
-
-        $response = $this->postJson(route('almacen.fundicion.procesarRechazos'), [
-            'ot' => $otBase,
-            'fecha_recepcion' => '2026-06-08',
-            'clases_rechazadas' => json_encode(['Molde']),
-            'rechazo_molde' => $fileRechazo,
-            'scar_molde' => $fileScar
-        ]);
-
-        $response->assertStatus(200);
-        $response->assertJson(['success' => true]);
-
-        // Assert base OT is marked as rechazos_procesados = true
-        $this->assertDatabaseHas('fundicion_history', [
-            'ot' => $otBase,
-            'rechazos_procesados' => true
-        ]);
-
-        // Assert _R1 history is created
-        $this->assertDatabaseHas('fundicion_history', [
-            'ot' => $otBase . '_R1',
-            'status' => 'activa',
-            'tiene_modelo' => 0,
-            'pre_orden_sent' => 0,
-            'pre_orden_email_sent' => 0,
-            'calidad_revision_status' => null
-        ]);
-
-        // Assert PreOrden for _R1 exists
-        $this->assertDatabaseHas('pre_ordenes_fundicion', [
-            'ot' => $otBase . '_R1',
-            'folio' => 'MOD-2026-9999_R1'
-        ]);
-
-        // Simulate processing rejection on _R1 OT to generate _R2
-        $response2 = $this->postJson(route('almacen.fundicion.procesarRechazos'), [
-            'ot' => $otBase . '_R1',
-            'fecha_recepcion' => '2026-06-09',
-            'clases_rechazadas' => json_encode(['Molde']),
-            'rechazo_molde' => $fileRechazo,
-            'scar_molde' => $fileScar
-        ]);
-
-        $response2->assertStatus(200);
-        $response2->assertJson(['success' => true]);
-
-        // Assert _R1 is marked as rechazos_procesados = true
-        $this->assertDatabaseHas('fundicion_history', [
-            'ot' => $otBase . '_R1',
-            'rechazos_procesados' => true
-        ]);
-
-        // Assert _R2 history is created
-        $this->assertDatabaseHas('fundicion_history', [
-            'ot' => $otBase . '_R2',
-            'status' => 'activa'
-        ]);
-
-        // Assert PreOrden for _R2 exists
-        $this->assertDatabaseHas('pre_ordenes_fundicion', [
-            'ot' => $otBase . '_R2',
-            'folio' => 'MOD-2026-9999_R1_R2'
-        ]);
-    }
-
-    public function test_enviar_alerta_liberacion_approved_attaches_rejected_files_if_selected()
-    {
-        $ot = 'OT-TEST-ATT-123';
-        $folderName = 'OT-TEST-ATT-123';
-        
-        $calidadDir = 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $folderName;
-
-        // Create rejection file in Calidad
-        Storage::disk('local')->put($calidadDir . '/ayudas_visuales/preordenes/documentos_rechazados/molde/SCAR_FOTO_Rechazado.png', 'dummy image content');
-
-        $user = User::factory()->create(['perfil' => '4']); // Quality profile
-        $this->actingAs($user);
-
-        // Create FundicionHistory
-        FundicionHistory::create([
-            'ot' => $ot,
-            'tiene_modelo' => true,
-            'alert_sent_at' => now(),
-            'calidad_revision_status' => 'espera'
-        ]);
-
-        // Create LiberacionModeloFundicion
-        LiberacionModeloFundicion::create([
-            'ot' => $ot,
-            'tipo_modelo' => 'Molde',
-            'decision' => 'aprobar',
-            'estado' => 'espera',
-            'pdf_filename' => 'F-CCL-LDM_MOLDE_APROBADO.pdf'
-        ]);
-
-        // Perform enviarAlertaLiberacion POST request
-        $response = $this->postJson(route('almacen.fundicion.enviarAlertaLiberacion'), [
-            'ot' => $ot,
-            'decision' => 'aprobar',
-            'tipo_modelo' => 'Molde',
-            'fecha' => '2026-06-02',
-            'destinatario' => 'test@example.com',
-            // Selected files
-            'dibujos_rechazados' => ['preordenes/documentos_rechazados/molde/SCAR_FOTO_Rechazado.png']
-        ]);
-
-        $response->assertStatus(200);
-        $response->assertJson(['success' => true]);
-
-        // Assert email was sent with correct attachments
-        Mail::assertSent(LiberacionModeloMailable::class, function ($mail) {
-            $attachments = $mail->emailAttachments;
-            $hasRechazo = false;
-            foreach ($attachments as $att) {
-                if (str_ends_with($att['name'], 'SCAR_FOTO_Rechazado.png')) {
-                    $hasRechazo = true;
-                }
-            }
-            return $hasRechazo;
-        });
-    }
-
-    public function test_get_files_returns_correct_structured_new_folders()
-    {
-        $user = User::factory()->create(['perfil' => '4']); // Quality profile
+        $user = User::factory()->create(['perfil' => '5']); // Quality profile
         $this->actingAs($user);
 
         $ot = 'OT-FOLDER-TEST';
@@ -647,7 +361,7 @@ class AlmacenFundicionControllerTest extends TestCase
 
         // Save files to new folders
         Storage::disk('local')->put($almacenDir . '/Documentos_Aprobados/Preorden_Modelo/Pre-Orden_OT-FOLDER-TEST.pdf', 'dummy content');
-        Storage::disk('local')->put($calidadDir . '/Documentos_Rechazados/Scar/molde/SCAR_Molde.pdf', 'dummy content');
+        Storage::disk('local')->put($almacenDir . '/Documentos_Rechazados/SCAR/molde/SCAR_Molde.pdf', 'dummy content');
 
         // Create FundicionHistory
         FundicionHistory::create([
@@ -667,13 +381,13 @@ class AlmacenFundicionControllerTest extends TestCase
         ]);
 
         $response->assertJsonFragment([
-            'nombre' => 'Documentos_Rechazados/Scar/molde/SCAR_Molde.pdf',
+            'nombre' => 'Documentos_Rechazados/SCAR/molde/SCAR_Molde.pdf',
             'tipo' => 'otro',
             'origin' => 'rechazado'
         ]);
     }
 
-    public function test_serve_file_allows_case_insensitive_preorden_flow_and_multiple_statuses()
+public function test_serve_file_allows_case_insensitive_preorden_flow_and_multiple_statuses()
     {
         $user = User::factory()->create(['perfil' => '5']); // Almacen profile
         $this->actingAs($user);
@@ -701,7 +415,7 @@ class AlmacenFundicionControllerTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_mixed_alert_does_not_shadow_target_reg()
+public function test_mixed_alert_does_not_shadow_target_reg()
     {
         $user = User::factory()->create(['perfil' => '5']); // Almacen profile
         $this->actingAs($user);
@@ -744,9 +458,9 @@ class AlmacenFundicionControllerTest extends TestCase
         $response->assertSee($ot . '_R1');
     }
 
-    public function test_mixed_alert_filters_files_by_active_class()
+public function test_mixed_alert_filters_files_by_active_class()
     {
-        $user = User::factory()->create(['perfil' => '4']); // Quality profile
+        $user = User::factory()->create(['perfil' => '5']); // Quality profile
         $this->actingAs($user);
 
         $ot = 'OT-MIXED-FILES-TEST';
@@ -809,7 +523,7 @@ class AlmacenFundicionControllerTest extends TestCase
         $this->assertFalse(in_array('Documentos_Aprobados/Fondo_Aprobado.pdf', $fileNames));
     }
 
-    public function test_user_can_delete_own_file_before_alert()
+public function test_user_can_delete_own_file_before_alert()
     {
         $user = User::factory()->create(['perfil' => '5']); // Almacen
         $this->actingAs($user);
@@ -838,7 +552,7 @@ class AlmacenFundicionControllerTest extends TestCase
         $this->assertFalse(Storage::disk('local')->exists($almacenDir . '/ayudas_visuales/preordenes/ConfirmacionModelo_Test.pdf'));
     }
 
-    public function test_user_cannot_delete_file_after_alert_is_sent()
+public function test_user_cannot_delete_file_after_alert_is_sent()
     {
         $user = User::factory()->create(['perfil' => '5']); // Almacen
         $this->actingAs($user);
@@ -867,7 +581,7 @@ class AlmacenFundicionControllerTest extends TestCase
         $this->assertTrue(Storage::disk('local')->exists($almacenDir . '/ayudas_visuales/preordenes/ConfirmacionModelo_Test2.pdf'));
     }
 
-    public function test_user_cannot_delete_file_from_another_department()
+public function test_user_cannot_delete_file_from_another_department()
     {
         $user = User::factory()->create(['perfil' => '5']); // Almacen trying to delete Calidad file
         $this->actingAs($user);
@@ -896,7 +610,7 @@ class AlmacenFundicionControllerTest extends TestCase
         $this->assertTrue(Storage::disk('local')->exists($calidadDir . '/ayudas_visuales/preordenes/evidencias/evidencia_adicional_0_OT-DEL-TEST-3.png'));
     }
 
-    public function test_admin_can_delete_any_file_before_alert()
+public function test_admin_can_delete_any_file_before_alert()
     {
         $user = User::factory()->create(['perfil' => '1']); // Admin
         $this->actingAs($user);
@@ -925,7 +639,7 @@ class AlmacenFundicionControllerTest extends TestCase
         $this->assertFalse(Storage::disk('local')->exists($calidadDir . '/ayudas_visuales/preordenes/evidencias/evidencia_adicional_0_OT-DEL-TEST-4.png'));
     }
 
-    public function test_reprocess_control_card_binds_to_active_cycle_record()
+public function test_reprocess_control_card_binds_to_active_cycle_record()
     {
         $user = User::factory()->create(['perfil' => '5']); // Almacen
         $this->actingAs($user);
@@ -976,6 +690,119 @@ class AlmacenFundicionControllerTest extends TestCase
             $content
         );
     }
+
+    public function test_reproceso_copies_only_rejected_class_files_and_model_preorder()
+    {
+        $user = User::factory()->create(['perfil' => '5']); // Almacen
+        $this->actingAs($user);
+
+        $otBase = 'OT-REPROCESO-COPY-TEST';
+        $folderNameOriginal = 'OT-REPROCESO-COPY-TEST';
+        $folderNameNew = 'OT-REPROCESO-COPY-TEST_R1';
+
+        // Base directories in fake storage
+        $originalBaseDir = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $folderNameOriginal;
+        $newBaseDir = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $folderNameNew;
+
+        // Create base files in fake storage
+        Storage::disk('local')->put($originalBaseDir . '/bombillo/Dibujos/Bombillo_dibujo.pdf', 'bombillo drawing pdf');
+        Storage::disk('local')->put($originalBaseDir . '/fondo/Dibujos/Fondo_dibujo.pdf', 'fondo drawing pdf');
+        Storage::disk('local')->put($originalBaseDir . '/bombillo/Ayudas_Visuales/Bombillo_ayuda.pdf', 'bombillo visual aid pdf');
+        Storage::disk('local')->put($originalBaseDir . '/fondo/Ayudas_Visuales/Fondo_ayuda.pdf', 'fondo visual aid pdf');
+        Storage::disk('local')->put($originalBaseDir . '/Documentos_Aprobados/preordenes/Pre-Orden_Fundicion-MOD-1234_OT_2102.pdf', 'pre-orden fundicion model pdf');
+        Storage::disk('local')->put($originalBaseDir . '/Documentos_Aprobados/preordenes/Pre-Orden_Casting-MOD-1234_OT_2102.pdf', 'pre-orden casting pdf');
+        Storage::disk('local')->put($originalBaseDir . '/Documentos_Aprobados/FDLDM/F-CCL-LDM_FONDO_APROBADO.pdf', 'approved ldm pdf');
+        Storage::disk('local')->put($originalBaseDir . '/Documentos_Rechazados/FDRDM/Rechazo_BOMBILLO_OT-REPROCESO-COPY-TEST.pdf', 'rejected bombillo pdf');
+        Storage::disk('local')->put($originalBaseDir . '/Documentos_Rechazados/FDRDM/Rechazo_FONDO_OT-REPROCESO-COPY-TEST.pdf', 'rejected fondo pdf');
+
+        // Create base database records
+        FundicionHistory::create([
+            'ot' => $otBase,
+            'status' => 'activa',
+            'tiene_modelo' => 1,
+            'pre_orden_sent' => 1,
+            'pre_orden_email_sent' => 1,
+            'calidad_revision_status' => 'calidad_rechazado',
+            'ayudas_config' => ['bombillo', 'fondo'],
+            'almacen_archivos' => []
+        ]);
+
+        PreOrdenFundicion::create([
+            'ot' => $otBase,
+            'folio' => 'MOD-2026-1111',
+            'proveedor' => 'SS Metal Foundry',
+            'fecha_creacion' => now(),
+            'fecha_entrega' => now()->addDays(7),
+            'moldura' => 'TEST MOLDURA',
+            'observaciones' => 'Base Preorden',
+            'filas' => [
+                [
+                    'clase' => 'bombillo',
+                    'tipo_modelo' => 'Suelto',
+                    'clase_nombre' => 'bombillo',
+                    'cantidad' => 1,
+                    'cant_fabricar' => 1,
+                    'cantidad_consignacion' => 0,
+                    'cant_consignacion' => 0,
+                    'descripcion' => 'Bombillo Test',
+                    'material' => 'Hierro',
+                    'codigo_modelo' => 'B-1111',
+                    'peso_juego' => 10,
+                    'peso_total' => 10,
+                    'fecha_entrega' => '2026-06-15'
+                ],
+                [
+                    'clase' => 'fondo',
+                    'tipo_modelo' => 'Suelto',
+                    'clase_nombre' => 'fondo',
+                    'cantidad' => 1,
+                    'cant_fabricar' => 1,
+                    'cantidad_consignacion' => 0,
+                    'cant_consignacion' => 0,
+                    'descripcion' => 'Fondo Test',
+                    'material' => 'Hierro',
+                    'codigo_modelo' => 'F-1111',
+                    'peso_juego' => 10,
+                    'peso_total' => 10,
+                    'fecha_entrega' => '2026-06-15'
+                ]
+            ],
+            'user_id' => $user->id,
+            'user_nombre' => $user->nombre,
+            'version' => 1,
+            'pdf_filename' => 'Pre-Orden_Fundicion-MOD-1234_OT_2102.pdf'
+        ]);
+
+        // POST request to procesarRechazos, only rejecting 'bombillo'
+        $response = $this->postJson(route('almacen.fundicion.procesarRechazos'), [
+            'ot' => $otBase,
+            'fecha_recepcion' => '2026-06-12',
+            'clases_rechazadas' => json_encode(['bombillo'])
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        // Check file copies in the new OT (_R1) folder
+        // 1. Bombillo drawings and visual aids SHOULD be copied (as they belong to the rejected class 'bombillo')
+        $this->assertTrue(Storage::disk('local')->exists($newBaseDir . '/bombillo/Dibujos/Bombillo_dibujo.pdf'));
+        $this->assertTrue(Storage::disk('local')->exists($newBaseDir . '/bombillo/Ayudas_Visuales/Bombillo_ayuda.pdf'));
+
+        // 2. Fondo drawings and visual aids SHOULD NOT be copied (class 'fondo' was not rejected)
+        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/fondo/Dibujos/Fondo_dibujo.pdf'));
+        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/fondo/Ayudas_Visuales/Fondo_ayuda.pdf'));
+
+        // 3. Rejected files matching class 'bombillo' SHOULD be copied
+        $this->assertTrue(Storage::disk('local')->exists($newBaseDir . '/Documentos_Rechazados/FDRDM/Rechazo_BOMBILLO_OT-REPROCESO-COPY-TEST.pdf'));
+
+        // 4. Rejected files matching class 'fondo' SHOULD NOT be copied
+        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/Documentos_Rechazados/FDRDM/Rechazo_FONDO_OT-REPROCESO-COPY-TEST.pdf'));
+
+        // 5. Approved files: first pre-order (starts with Pre-Orden_Fundicion-) SHOULD be copied
+        $this->assertTrue(Storage::disk('local')->exists($newBaseDir . '/Documentos_Aprobados/preordenes/Pre-Orden_Fundicion-MOD-1234_OT_2102.pdf'));
+
+        // 6. Approved files: casting pre-order (starts with Pre-Orden_Casting-) and other files (like FDLDM approval) SHOULD NOT be copied
+        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/Documentos_Aprobados/preordenes/Pre-Orden_Casting-MOD-1234_OT_2102.pdf'));
+        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/Documentos_Aprobados/FDLDM/F-CCL-LDM_FONDO_APROBADO.pdf'));
+    }
 }
-
-

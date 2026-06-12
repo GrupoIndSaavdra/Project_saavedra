@@ -398,10 +398,9 @@ Route::middleware(['auth'])->prefix('fundicion')->name('fundicion.')->group(func
 });
 
 /* ===========================
-   Vista Almacén/Calidad — Dibujos de Fundición (Solo Lectura)
-   Acceso: Departamentos de Almacén y Calidad únicamente.
+   Vista Almacén — Dibujos de Fundición
+   Acceso: Departamentos de Almacén únicamente.
 =========================== */
-
 Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicion.')->group(function () {
     // Vista principal con tabla histórica + buscador + filtros de fecha
     Route::get('/', [\App\Http\Controllers\AlmacenFundicionController::class, 'index'])
@@ -410,7 +409,6 @@ Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicio
     // API: lista de archivos de una OT desde FUNDICION_ALMACEN
     Route::get('/archivos', [\App\Http\Controllers\AlmacenFundicionController::class, 'getFiles'])
         ->name('archivos');
-
 
     // Servir PDF protegido desde el directorio aislado
     Route::get('/serve', [\App\Http\Controllers\AlmacenFundicionController::class, 'serveFile'])
@@ -433,25 +431,6 @@ Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicio
     Route::post('/send-email-preorden', [\App\Http\Controllers\AlmacenFundicionController::class, 'sendEmailPreOrden'])
         ->name('sendEmailPreOrden');
 
-    // --- RUTAS: Liberacion de Modelos (Calidad) ---
-    Route::get('/liberacion', [\App\Http\Controllers\AlmacenFundicionController::class, 'getLiberacion'])
-        ->name('getLiberacion');
-
-    Route::post('/submit-liberacion', [\App\Http\Controllers\AlmacenFundicionController::class, 'submitLiberacion'])
-        ->name('submitLiberacion');
-
-    Route::post('/generate-scar', [\App\Http\Controllers\AlmacenFundicionController::class, 'generateScar'])
-        ->name('generateScar');
-
-    Route::get('/get-scar', [\App\Http\Controllers\AlmacenFundicionController::class, 'getScar'])
-        ->name('getScar');
-
-    Route::post('/send-scar-alert', [\App\Http\Controllers\AlmacenFundicionController::class, 'sendScarAlert'])
-        ->name('sendScarAlert');
-
-    Route::post('/enviar-alerta-liberacion', [\App\Http\Controllers\AlmacenFundicionController::class, 'enviarAlertaLiberacion'])
-        ->name('enviarAlertaLiberacion');
-
     Route::post('/confirmar-recepcion-rechazo', [\App\Http\Controllers\AlmacenFundicionController::class, 'confirmarRecepcionRechazo'])
         ->name('confirmarRecepcionRechazo');
 
@@ -460,6 +439,47 @@ Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicio
 
     Route::post('/procesar-rechazos', [\App\Http\Controllers\AlmacenFundicionController::class, 'procesarRechazos'])
         ->name('procesarRechazos');
+});
+
+/* ===========================
+   Vista Calidad — Dibujos de Fundición
+   Acceso: Departamentos de Calidad únicamente.
+=========================== */
+Route::middleware(['auth'])->prefix('calidad/fundicion')->name('calidad.fundicion.')->group(function () {
+    // Vista principal con tabla histórica + buscador + filtros de fecha
+    Route::get('/', [\App\Http\Controllers\CalidadFundicionController::class, 'index'])
+        ->name('index');
+
+    // API: lista de archivos de una OT
+    Route::get('/archivos', [\App\Http\Controllers\CalidadFundicionController::class, 'getFiles'])
+        ->name('archivos');
+
+    // Servir PDF protegido
+    Route::get('/serve', [\App\Http\Controllers\CalidadFundicionController::class, 'serveFile'])
+        ->name('serve');
+
+    // Eliminar PDF
+    Route::post('/delete-file', [\App\Http\Controllers\CalidadFundicionController::class, 'deleteFile'])
+        ->name('deleteFile');
+
+    // --- RUTAS: Liberacion de Modelos (Calidad) ---
+    Route::get('/liberacion', [\App\Http\Controllers\CalidadFundicionController::class, 'getLiberacion'])
+        ->name('getLiberacion');
+
+    Route::post('/submit-liberacion', [\App\Http\Controllers\CalidadFundicionController::class, 'submitLiberacion'])
+        ->name('submitLiberacion');
+
+    Route::post('/generate-scar', [\App\Http\Controllers\CalidadFundicionController::class, 'generateScar'])
+        ->name('generateScar');
+
+    Route::get('/get-scar', [\App\Http\Controllers\CalidadFundicionController::class, 'getScar'])
+        ->name('getScar');
+
+    Route::post('/send-scar-alert', [\App\Http\Controllers\CalidadFundicionController::class, 'sendScarAlert'])
+        ->name('sendScarAlert');
+
+    Route::post('/enviar-alerta-liberacion', [\App\Http\Controllers\CalidadFundicionController::class, 'enviarAlertaLiberacion'])
+        ->name('enviarAlertaLiberacion');
 });
 
 /* ===========================

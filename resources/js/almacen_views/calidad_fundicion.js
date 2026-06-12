@@ -709,7 +709,7 @@ function submitPreOrden(payload, btn, originalText, onSuccess) {
 
 // ── Envío Pre-Orden 1 ──
 
-document.getElementById('formPreOrden').addEventListener('submit', function (e) {
+document.getElementById('formPreOrden')?.addEventListener('submit', function (e) {
     e.preventDefault();
 
     const btn = document.getElementById('btn-submit-preorden');
@@ -1012,7 +1012,7 @@ window.cerrarModalEnviarPreOrden = function () {
     renderSelectedFilesBadges();
 };
 
-document.getElementById('formEnviarPreOrden').addEventListener('submit', function (e) {
+document.getElementById('formEnviarPreOrden')?.addEventListener('submit', function (e) {
     e.preventDefault();
 
     const fecha = document.getElementById('env-fecha-entrega').value;
@@ -4221,15 +4221,32 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
                     const pl = f.nombre.toLowerCase();
                     const isRechazadoFile = pl.includes('documentos_rechazados') || pl.includes('rechazado') || pl.includes('scar');
                     const isDibujoOrAyuda = f.tipo === 'dibujo' || f.tipo === 'ayuda';
+                    const isPreordenFile = pl.includes('pre-orden') || pl.includes('preorden') || (pl.includes('confirmacionmodelo') && !pl.includes('casting'));
+
+                    if (isPreordenFile) return true;
+
+                    const belongsToClasses = (classesArray) => {
+                        return classesArray.some(c => pl.includes(c.toLowerCase().trim()));
+                    };
+
+                    const inAprobados = belongsToClasses(arrAprobados);
+                    const inRechazados = belongsToClasses(arrRechazados);
 
                     if (decision === 'aprobar') {
-                        return true;
+                        if (isRechazadoFile) return false;
+                        return inAprobados;
                     }
+                    
                     if (decision === 'rechazar') {
-                        const isPreordenFile = pl.includes('pre-orden') || pl.includes('preorden');
-                        return isRechazadoFile || isDibujoOrAyuda || isPreordenFile;
+                        if (isDibujoOrAyuda) return false;
+                        if (!isRechazadoFile) return false;
+                        return inRechazados;
                     }
-                    return true; // mixed shows both
+
+                    // mixto
+                    if (inAprobados || inRechazados) return true;
+                    
+                    return false;
                 });
                 const sectionsHtml = generarHtmlCategorizadoArchivos(filteredFiles, ot, baseUrl, 'calidad');
                 if (filesContainer) {
@@ -5134,10 +5151,10 @@ document.getElementById('formPreOrdenCasting')?.addEventListener('submit', async
     let p1Valid = true;
     p1.filas.forEach(f => {
         if (!f.id_clase || !f.tipo_modelo || !f.material || !f.codigo ||
-            (f.cant_fabricar === '' || f.cant_fabricar === null || f.cant_fabricar === undefined || f.cant_fabricar <= 0) ||
+            (f.cant_fabricar === '' || f.cant_fabricar === null || f.cant_fabricar === undefined) ||
             (!f.cant_consignacion && f.cant_consignacion !== 0) ||
-            (!f.peso_juego || f.peso_juego <= 0) ||
-            (!f.peso_total || f.peso_total <= 0) ||
+            (!f.peso_juego && f.peso_juego !== 0) ||
+            (!f.peso_total && f.peso_total !== 0) ||
             !f.fecha_entrega) {
             p1Valid = false;
         }
@@ -5166,10 +5183,10 @@ document.getElementById('formPreOrdenCasting')?.addEventListener('submit', async
         let p2Valid = true;
         p2.filas.forEach(f => {
             if (!f.id_clase || !f.tipo_modelo || !f.material || !f.codigo ||
-                (f.cant_fabricar === '' || f.cant_fabricar === null || f.cant_fabricar === undefined || f.cant_fabricar <= 0) ||
+                (f.cant_fabricar === '' || f.cant_fabricar === null || f.cant_fabricar === undefined) ||
                 (!f.cant_consignacion && f.cant_consignacion !== 0) ||
-                (!f.peso_juego || f.peso_juego <= 0) ||
-                (!f.peso_total || f.peso_total <= 0) ||
+                (!f.peso_juego && f.peso_juego !== 0) ||
+                (!f.peso_total && f.peso_total !== 0) ||
                 !f.fecha_entrega) {
                 p2Valid = false;
             }
