@@ -18,6 +18,17 @@ return new class extends Migration
             // Nombre de la Orden de Trabajo (carpeta raíz)
             $table->string('ot', 100);
             $table->enum('status', ['activa', 'inactiva'])->default('activa');
+
+            // Columnas de PreOrdenes / Control de Modelos
+            $table->boolean('tiene_modelo')->default(false);
+            $table->boolean('pre_orden_sent')->default(false);
+            $table->boolean('pre_orden_email_sent')->default(false);
+            $table->string('calidad_revision_status', 30)
+                ->nullable()
+                ->comment('null | pendiente | aprobado | rechazado');
+            $table->boolean('casting_pdf_generated')->default(false);
+            $table->boolean('rechazos_procesados')->default(false);
+
             $table->json('ayudas_config')->nullable();
             $table->timestamp('alert_sent_at')->nullable();
             $table->json('almacen_archivos')->nullable();

@@ -22,6 +22,9 @@ return new class extends Migration
             // Estado de la revisión de Calidad
             // Valores posibles: pendiente | aprobado | rechazado
             $table->string('estado', 30)->default('pendiente');
+
+            // Decisión de Calidad (aprobado | rechazado)
+            $table->string('decision', 30)->nullable();
             
             // Archivo PDF generado
             $table->string('pdf_filename')->nullable();

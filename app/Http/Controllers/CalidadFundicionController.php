@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\FundicionHistory;
+use App\Models\LiberacionLog;
 use App\Models\LiberacionModeloFundicion;
 use App\Models\Orden_trabajo;
 use App\Models\PreOrdenFundicion;
+use App\Models\RechazoLog;
+use App\Models\ScarLog;
 use App\Models\ScarModelo;
 use App\Mail\LiberacionModeloMailable;
 use Illuminate\Http\Request;
@@ -1288,6 +1291,33 @@ class CalidadFundicionController extends Controller
         FundicionHistory::where('ot', '=', $ot, 'and')
             ->update(['calidad_revision_status' => $estadoGlobal]);
 
+        // Registrar auditoría de Liberación / Rechazo
+        try {
+            LiberacionLog::create([
+                'ot'           => $ot,
+                'tipo_modelo'  => $tipo,
+                'accion'       => $accion,          // 'guardar' | 'aprobar' | 'rechazar'
+                'pdf_filename' => $pdfFilename,
+                'estado_global' => $estadoGlobal,
+                'user_id'      => $user->id,
+                'user_nombre'  => $user->name,
+            ]);
+
+            // Si es un rechazo, también registrar en rechazo_logs
+            if ($accion === 'rechazar') {
+                RechazoLog::create([
+                    'ot'             => $ot,
+                    'tipo_modelo'    => $tipo,
+                    'accion'         => 'generar',
+                    'pdf_filename'   => $pdfFilename,
+                    'motivo_rechazo' => $request->input('motivo_rechazo'),
+                    'user_id'        => $user->id,
+                    'user_nombre'    => $user->name,
+                ]);
+            }
+        } catch (\Exception $logEx) {
+            Log::warning('Error al registrar log de liberación: ' . $logEx->getMessage());
+        }
 
         return response()->json([
             'success'      => true,
@@ -1575,6 +1605,22 @@ class CalidadFundicionController extends Controller
 
             // Guardar y generar: solo devolver URL del PDF
             $this->eliminarCarpetasVacias($ot);
+
+            // Registrar auditoría de generación de SCAR
+            try {
+                ScarLog::create([
+                    'ot'           => $ot,
+                    'tipo_modelo'  => $tipoModelo,
+                    'no_scar'      => $scarData->no_scar ?? null,
+                    'accion'       => 'generar',
+                    'pdf_filename' => $pdfFilename,
+                    'proveedor'    => $scarData->proveedor ?? null,
+                    'user_id'      => $user->id,
+                    'user_nombre'  => $user->name,
+                ]);
+            } catch (\Exception $logEx) {
+                Log::warning('Error al registrar log de SCAR: ' . $logEx->getMessage());
+            }
 
             return response()->json([
                 'success'      => true,
@@ -1889,6 +1935,22 @@ class CalidadFundicionController extends Controller
                 'success' => false,
                 'message' => 'Los datos se guardaron pero la alerta por correo no pudo enviarse: ' . $mailEx->getMessage(),
             ], 500);
+        }
+
+        // Registrar auditoría de envío de alerta SCAR
+        try {
+            ScarLog::create([
+                'ot'           => $ot,
+                'tipo_modelo'  => $scar->tipo_modelo ?? null,
+                'no_scar'      => $scar->no_scar ?? null,
+                'accion'       => 'enviar_alerta',
+                'pdf_filename' => $scar->pdf_filename ?? null,
+                'proveedor'    => $scar->proveedor ?? null,
+                'user_id'      => $user->id,
+                'user_nombre'  => $user->name,
+            ]);
+        } catch (\Exception $logEx) {
+            Log::warning('Error al registrar log de alerta SCAR: ' . $logEx->getMessage());
         }
 
         return response()->json([

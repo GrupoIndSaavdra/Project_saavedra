@@ -6,6 +6,8 @@ use App\Models\FundicionHistory;
 use App\Models\LiberacionModeloFundicion;
 use App\Models\Orden_trabajo;
 use App\Models\PreOrdenFundicion;
+use App\Models\PreOrdenLog;
+use App\Models\RechazoLog;
 use App\Models\ScarModelo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -1714,7 +1716,21 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        // 9. Retornar el PDF para descarga automática en el navegador
+        // 9. Registrar auditoría de generación de Pre-Orden
+        try {
+            PreOrdenLog::create([
+                'ot'          => $otRaw,
+                'proveedor'   => $data['proveedor'] ?? null,
+                'accion'      => $existeEnBD ? 'generar' : 'generar',
+                'pdf_filename' => $fileName,
+                'user_id'     => $user ? $user->id : null,
+                'user_nombre' => $user ? $user->name : null,
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('Error al registrar log de pre-orden: ' . $e->getMessage());
+        }
+
+        // 10. Retornar el PDF para descarga automática en el navegador
         return response($pdf->output(), 200)
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
@@ -2319,6 +2335,21 @@ class AlmacenFundicionController extends Controller
 
             FundicionHistory::where('ot', '=', $ot, 'and')->update($updateData);
 
+            // Registrar auditoría de envío de alerta de Pre-Orden
+            try {
+                $sendUser = Auth::user();
+                PreOrdenLog::create([
+                    'ot'          => $ot,
+                    'proveedor'   => $preOrdenes->pluck('proveedor')->unique()->implode(', '),
+                    'accion'      => 'enviar_alerta',
+                    'pdf_filename' => $firstPo->pdf_filename ?? null,
+                    'user_id'     => $sendUser ? $sendUser->id : null,
+                    'user_nombre' => $sendUser ? $sendUser->name : null,
+                ]);
+            } catch (\Exception $logEx) {
+                Log::warning('Error al registrar log de envío pre-orden: ' . $logEx->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'El correo electrónico de la pre-orden con sus adjuntos ha sido enviado con éxito.'
@@ -2356,9 +2387,30 @@ class AlmacenFundicionController extends Controller
         ]);
 
         // Cambiar el estado de las liberaciones rechazadas a historico_rechazado
-        LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
+        $liberacionesRechazadas = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
             ->where('estado', '=', 'rechazado', 'and')
-            ->update(['estado' => 'historico_rechazado']);
+            ->get();
+        foreach ($liberacionesRechazadas as $libRechazada) {
+            $libRechazada->update(['estado' => 'historico_rechazado']);
+        }
+
+        // Registrar auditoría de confirmación de rechazo
+        try {
+            $rechazoUser = Auth::user();
+            foreach ($liberacionesRechazadas as $libRechazada) {
+                RechazoLog::create([
+                    'ot'             => $ot,
+                    'tipo_modelo'    => $libRechazada->tipo_modelo,
+                    'accion'         => 'confirmar_recepcion',
+                    'pdf_filename'   => $libRechazada->pdf_filename,
+                    'motivo_rechazo' => $libRechazada->motivo_rechazo,
+                    'user_id'        => $rechazoUser ? $rechazoUser->id : null,
+                    'user_nombre'    => $rechazoUser ? $rechazoUser->name : null,
+                ]);
+            }
+        } catch (\Exception $logEx) {
+            Log::warning('Error al registrar log de rechazo: ' . $logEx->getMessage());
+        }
 
         return response()->json([
             'success' => true,

@@ -21,6 +21,8 @@ class FundicionHistory extends Model
         'pre_orden_sent',
         'pre_orden_email_sent',
         'calidad_revision_status',
+        'casting_pdf_generated',
+        'rechazos_procesados',
     ];
 
     protected $casts = [
@@ -30,5 +32,7 @@ class FundicionHistory extends Model
         'tiene_modelo'            => 'boolean',
         'pre_orden_sent'          => 'boolean',
         'pre_orden_email_sent'    => 'boolean',
+        'casting_pdf_generated'   => 'boolean',
+        'rechazos_procesados'     => 'boolean',
     ];
 }

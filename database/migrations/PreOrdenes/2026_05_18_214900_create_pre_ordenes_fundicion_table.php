@@ -41,8 +41,8 @@ return new class extends Migration
 
             $table->timestamps();
 
-            // Una OT solo tiene una pre-orden activa (se sobreescribe al editar)
-            $table->unique('ot', 'uq_preorden_ot');
+            // Una OT y proveedor tienen una sola pre-orden activa (se sobreescribe al editar)
+            $table->unique(['ot', 'proveedor'], 'uq_preorden_ot_proveedor');
         });
     }
 
