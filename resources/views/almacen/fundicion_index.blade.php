@@ -1238,11 +1238,9 @@
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                                     style="background-color: #0369a1; color: white;"
                                                                                     onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
-                                                                                @if ($canDelete)
-                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
-                                                                                        style="background-color: #dc3545; color: white;"
-                                                                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
-                                                                                @endif
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
+                                                                                    style="background-color: #dc3545; color: white;"
+                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
                                                                             </div>
                                                                         </div>
                                                                     @else
@@ -1265,11 +1263,9 @@
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                                     style="background-color: #155724; color: white;"
                                                                                     onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
-                                                                                @if ($canDelete)
-                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
-                                                                                        style="background-color: #dc3545; color: white;"
-                                                                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
-                                                                                @endif
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
+                                                                                    style="background-color: #dc3545; color: white;"
+                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
                                                                             </div>
                                                                         </div>
                                                                     @endif
@@ -1325,11 +1321,9 @@
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                                     style="background-color: #0369a1; color: white;"
                                                                                     onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
-                                                                                @if ($canDelete)
-                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
-                                                                                        style="background-color: #dc3545; color: white;"
-                                                                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
-                                                                                @endif
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
+                                                                                    style="background-color: #dc3545; color: white;"
+                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
                                                                             </div>
                                                                         </div>
                                                                     @else
@@ -1352,11 +1346,9 @@
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                                     style="background-color: #9c0300; color: white;"
                                                                                     onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
-                                                                                @if ($canDelete)
-                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
-                                                                                        style="background-color: #dc3545; color: white;"
-                                                                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
-                                                                                @endif
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
+                                                                                    style="background-color: #dc3545; color: white;"
+                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
                                                                             </div>
                                                                         </div>
                                                                     @endif

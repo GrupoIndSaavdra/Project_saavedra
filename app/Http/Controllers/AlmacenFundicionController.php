@@ -155,7 +155,7 @@ class AlmacenFundicionController extends Controller
             $allOtNames[] = $ot;
         }
 
-        $modelPreOrden = PreOrdenFundicion::where('ot', '=', $ot)->where('pdf_filename', 'NOT LIKE', '%Casting%')->first();
+        $modelPreOrden = PreOrdenFundicion::where('ot', '=', $ot, 'and')->where('pdf_filename', 'NOT LIKE', '%Casting%', 'and')->first();
         $activeClasses = [];
         if ($modelPreOrden) {
             $filas = $modelPreOrden->filas;
@@ -859,7 +859,7 @@ class AlmacenFundicionController extends Controller
             $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
         }
 
-        if ($history) {
+        if ($history && $user->perfil != 1 && $user->perfil != 2) {
             if ($fileOwner === 'almacen') {
                 $alertSent = (bool)($history->pre_orden_email_sent || $history->pre_orden_sent);
                 if ($alertSent) {
@@ -1131,7 +1131,7 @@ class AlmacenFundicionController extends Controller
 
         $baseOt = preg_replace('/_R\d+$/i', '', $otFull);
 
-        $modelPreOrden = PreOrdenFundicion::where('ot', '=', $otFull)->where('pdf_filename', 'NOT LIKE', '%Casting%')->first();
+        $modelPreOrden = PreOrdenFundicion::where('ot', '=', $otFull, 'and')->where('pdf_filename', 'NOT LIKE', '%Casting%', 'and')->first();
         $activeClasses = [];
         if ($modelPreOrden) {
             $filas = $modelPreOrden->filas;
@@ -1177,10 +1177,10 @@ class AlmacenFundicionController extends Controller
             if ($tipo) {
                 $isAprobado = LiberacionModeloFundicion::query()
                     ->whereNested(function($q) use ($otFull, $baseOt) {
-                        $q->where('ot', '=', $otFull)
-                          ->orWhere('ot', '=', $baseOt)
-                          ->orWhere('ot', 'LIKE', $baseOt . '_R%');
-                    })
+                        $q->where('ot', '=', $otFull, 'and')
+                          ->orWhere('ot', '=', $baseOt, 'and')
+                          ->orWhere('ot', 'LIKE', $baseOt . '_R%', 'and');
+                    }, 'and')
                     ->where('tipo_modelo', '=', $tipo, 'and')
                     ->where('estado', '=', 'aprobado', 'and')
                     ->exists();
@@ -1211,10 +1211,10 @@ class AlmacenFundicionController extends Controller
             if ($tipo) {
                 $isAprobado = LiberacionModeloFundicion::query()
                     ->whereNested(function($q) use ($otFull, $baseOt) {
-                        $q->where('ot', '=', $otFull)
-                          ->orWhere('ot', '=', $baseOt)
-                          ->orWhere('ot', 'LIKE', $baseOt . '_R%');
-                    })
+                        $q->where('ot', '=', $otFull, 'and')
+                          ->orWhere('ot', '=', $baseOt, 'and')
+                          ->orWhere('ot', 'LIKE', $baseOt . '_R%', 'and');
+                    }, 'and')
                     ->where('tipo_modelo', '=', $tipo, 'and')
                     ->where('estado', '=', 'aprobado', 'and')
                     ->exists();
@@ -1305,10 +1305,10 @@ class AlmacenFundicionController extends Controller
                     if ($tipo) {
                         $isAprobado = LiberacionModeloFundicion::query()
                             ->whereNested(function($q) use ($otFull, $baseOt) {
-                                $q->where('ot', '=', $otFull)
-                                  ->orWhere('ot', '=', $baseOt)
-                                  ->orWhere('ot', 'LIKE', $baseOt . '_R%');
-                            })
+                                $q->where('ot', '=', $otFull, 'and')
+                                  ->orWhere('ot', '=', $baseOt, 'and')
+                                  ->orWhere('ot', 'LIKE', $baseOt . '_R%', 'and');
+                            }, 'and')
                             ->where('tipo_modelo', '=', $tipo, 'and')
                             ->where('estado', '=', 'aprobado', 'and')
                             ->exists();
@@ -1449,10 +1449,10 @@ class AlmacenFundicionController extends Controller
                 if ($tipo) {
                     $isAprobado = LiberacionModeloFundicion::query()
                         ->whereNested(function($q) use ($otRaw, $baseOt) {
-                            $q->where('ot', '=', $otRaw)
-                              ->orWhere('ot', '=', $baseOt)
-                              ->orWhere('ot', 'LIKE', $baseOt . '_R%');
-                        })
+                            $q->where('ot', '=', $otRaw, 'and')
+                              ->orWhere('ot', '=', $baseOt, 'and')
+                              ->orWhere('ot', 'LIKE', $baseOt . '_R%', 'and');
+                        }, 'and')
                         ->where('tipo_modelo', '=', $tipo, 'and')
                         ->where('estado', '=', 'aprobado', 'and')
                         ->exists();
@@ -2531,6 +2531,21 @@ class AlmacenFundicionController extends Controller
             ->first();
 
         if (!$liberacion) {
+            // Intenta buscar uno con tipo_modelo NULL o vacio
+            $liberacion = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
+                ->where(function($q) {
+                    $q->whereNull('tipo_modelo')
+                      ->orWhere('tipo_modelo', '=', '');
+                })
+                ->first();
+        }
+
+        if (!$liberacion) {
+            // Fallback de fallback: busca cualquier registro para esta OT
+            $liberacion = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->first();
+        }
+
+        if (!$liberacion) {
             return response()->json(['success' => false, 'message' => 'No se encontró un borrador guardado para esta liberación.'], 404);
         }
 
@@ -2597,9 +2612,28 @@ class AlmacenFundicionController extends Controller
         $libRechazada = null;
 
         foreach ($liberacionesOT as $libRow) {
+            // Si el tipo de modelo o decision es null en BD (ej: registro inicial), los inicializamos con los valores de la alerta
+            if (is_null($libRow->tipo_modelo) && !empty($tipos)) {
+                $libRow->tipo_modelo = $tipos[0];
+            }
+            if (is_null($libRow->decision)) {
+                if ($decision === 'mixto') {
+                    $tiposApro = array_filter(array_map('trim', explode(',', $request->input('tipos_aprobados', ''))));
+                    if (in_array($libRow->tipo_modelo, $tiposApro)) {
+                        $libRow->decision = 'aprobar';
+                    } else {
+                        $libRow->decision = 'rechazar';
+                    }
+                } else {
+                    $libRow->decision = $decision;
+                }
+            }
+
             $libNuevoEst = $libRow->decision === 'aprobar' ? 'aprobado' : 'rechazado';
             
             $libRow->update([
+                'tipo_modelo'    => $libRow->tipo_modelo,
+                'decision'       => $libRow->decision,
                 'estado'         => $libNuevoEst,
                 'fecha_revision' => $fecha,
                 'pdf_filename'   => $libRow->pdf_filename,

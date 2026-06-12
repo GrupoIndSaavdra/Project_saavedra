@@ -2187,7 +2187,7 @@ async function _libSubmit(accion) {
     }
 
     const fd = new FormData(form);
-    fd.set('accion', accion);
+    fd.set('accion', accion === 'accion' ? decisionVal : accion);
     fd.set('decision', decisionVal);
     fd.set('ot', ot);
 
