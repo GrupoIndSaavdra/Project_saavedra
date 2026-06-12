@@ -968,7 +968,7 @@ class DibujosFundicionPdfController extends Controller
         // Si es la OT Original (sin R1, R2, etc.), también desactivamos y renombrarmos todos sus reprocesos
         $isOriginal = !preg_match('/_R\d+$/i', $otNorm);
         if ($isOriginal) {
-            $reprocessHistories = FundicionHistory::where('ot', '=', 'LIKE', $otNorm . '_R%', 'and')->get();
+            $reprocessHistories = FundicionHistory::where('ot', 'LIKE', $otNorm . '_R%', 'and')->get();
             foreach ($reprocessHistories as $rh) {
                 // Eliminar físicamente los directorios de los reprocesos en Ingeniería
                 $rDirPath = self::BASE_DIR . '/' . $rh->ot;

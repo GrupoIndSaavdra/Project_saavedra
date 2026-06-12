@@ -665,7 +665,8 @@ public function test_reprocess_control_card_binds_to_active_cycle_record()
             'tiene_modelo' => false,
             'pre_orden_sent' => false,
             'pre_orden_email_sent' => false,
-            'status' => 'activa'
+            'status' => 'activa',
+            'alert_sent_at' => now()
         ]);
 
         $response = $this->get(route('almacen.fundicion.index'));
