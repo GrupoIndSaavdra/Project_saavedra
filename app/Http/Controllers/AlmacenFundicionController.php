@@ -506,6 +506,29 @@ class AlmacenFundicionController extends Controller
         $tipo = $request->query('tipo', 'dibujo');
         $origin = $request->query('origin', '');
 
+        // Normalización y auto-detección de tipo y origin para mayor robustez
+        if ($tipo === 'aprobado' || $tipo === 'rechazado') {
+            $origin = $tipo;
+            $tipo = 'otro';
+        }
+
+        $archivoLower = strtolower($archivo);
+        if (empty($origin)) {
+            if (
+                str_contains($archivoLower, 'documentos_aprobados') ||
+                str_contains($archivoLower, 'confirmacion') ||
+                str_contains($archivoLower, 'preorden_modelo')
+            ) {
+                $origin = 'aprobado';
+            } elseif (
+                str_contains($archivoLower, 'documentos_rechazados') ||
+                str_contains($archivoLower, 'rechazo') ||
+                str_contains($archivoLower, 'scar')
+            ) {
+                $origin = 'rechazado';
+            }
+        }
+
         if (empty($ot) || empty($archivo)) {
             abort(422, 'Parámetros inválidos.');
         }
@@ -576,6 +599,9 @@ class AlmacenFundicionController extends Controller
             $baseFolder = $this->sanitizePath($this->normalizeOTName($baseOtRaw));
             $altDirs = [
                 self::ALMACEN_DIR . '/' . $baseFolder,
+                self::CALIDAD_DIR . '/' . $baseFolder,
+                self::ALMACEN_DIR . '/' . $folderName,
+                self::CALIDAD_DIR . '/' . $folderName,
                 self::ALMACEN_DIR . '/' . $baseFolder . '/ayudas_visuales',
                 self::CALIDAD_DIR . '/' . $baseFolder . '/ayudas_visuales',
                 self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales',
@@ -690,6 +716,30 @@ class AlmacenFundicionController extends Controller
         $ot = $this->sanitizePath($request->input('ot', ''));
         $archivo = $this->sanitizeFileNameWithFolder($request->input('archivo', ''));
         $tipo = $request->input('tipo', 'otro');
+        $origin = $request->input('origin', '');
+
+        // Normalización y auto-detección de tipo y origin para mayor robustez
+        if ($tipo === 'aprobado' || $tipo === 'rechazado') {
+            $origin = $tipo;
+            $tipo = 'otro';
+        }
+
+        $archivoLower = strtolower($archivo);
+        if (empty($origin)) {
+            if (
+                str_contains($archivoLower, 'documentos_aprobados') ||
+                str_contains($archivoLower, 'confirmacion') ||
+                str_contains($archivoLower, 'preorden_modelo')
+            ) {
+                $origin = 'aprobado';
+            } elseif (
+                str_contains($archivoLower, 'documentos_rechazados') ||
+                str_contains($archivoLower, 'rechazo') ||
+                str_contains($archivoLower, 'scar')
+            ) {
+                $origin = 'rechazado';
+            }
+        }
 
         if (empty($ot) || empty($archivo)) {
             return response()->json(['success' => false, 'error' => 'Parámetros inválidos.'], 422);
@@ -736,7 +786,6 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        $origin = $request->input('origin', '');
         if ($tipo === 'liberacion') {
             $baseDir = 'public/liberaciones_pdf';
         } else {
@@ -762,6 +811,9 @@ class AlmacenFundicionController extends Controller
             $baseFolder = $this->sanitizePath($this->normalizeOTName($baseOtRaw));
             $altDirs = [
                 self::ALMACEN_DIR . '/' . $baseFolder,
+                self::CALIDAD_DIR . '/' . $baseFolder,
+                self::ALMACEN_DIR . '/' . $folderName,
+                self::CALIDAD_DIR . '/' . $folderName,
                 self::ALMACEN_DIR . '/' . $baseFolder . '/ayudas_visuales',
                 self::CALIDAD_DIR . '/' . $baseFolder . '/ayudas_visuales',
                 self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales',

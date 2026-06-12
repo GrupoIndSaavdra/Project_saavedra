@@ -649,16 +649,12 @@
 
                                                             if (!in_array($base, $baseNames)) {
                                                                 $origin = 'otro';
-                                                                $tipo = 'otro';
                                                                 if (strpos($relativePath, 'documentos_aprobados') !== false) {
                                                                     $origin = 'aprobado';
-                                                                    $relativePathWithPrefix = 'preordenes/documentos_aprobados/' . $relativePath;
                                                                 } elseif (strpos($relativePath, 'documentos_rechazados') !== false) {
                                                                     $origin = 'rechazado';
-                                                                    $relativePathWithPrefix = 'preordenes/documentos_rechazados/' . $relativePath;
-                                                                } else {
-                                                                    $relativePathWithPrefix = 'preordenes/' . $relativePath;
                                                                 }
+                                                                $relativePathWithPrefix = 'preordenes/' . $relativePath;
 
                                                                 $otrosArchivos[] = [
                                                                     'nombre' => $relativePathWithPrefix,
@@ -2042,10 +2038,13 @@
                                                                         $liberaciones = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)->get();
                                                                         $aprobados = $liberaciones->where('decision', 'aprobar')->pluck('tipo_modelo')->toArray();
                                                                         $rechazados = $liberaciones->where('decision', 'rechazar')->pluck('tipo_modelo')->toArray();
+                                                                        $decisionFinal = ($libStatusClean === 'aprobado') ? 'aprobar' : (($libStatusClean === 'rechazado') ? 'rechazar' : 'mixto');
+                                                                        $tiposAprobadosJson = json_encode(array_values($aprobados));
+                                                                        $tiposRechazadosJson = json_encode(array_values($rechazados));
                                                                     @endphp
                                                                     <div class="lib-calidad-card"
                                                                         id="control-calidad-finalizado-{{ md5($targetReg->ot) }}"
-                                                                        style="opacity: 0.65; pointer-events: none; margin-top: 20px;">
+                                                                        style="margin-top: 20px;">
                                                                         <div class="lib-calidad-card-header"
                                                                             style="background: linear-gradient(135deg, #475569, #334155); border-bottom: 2px solid rgba(71, 85, 105, 0.5);">
                                                                             <img src="{{ asset('images/Quality.png') }}" alt="Calidad"
@@ -2077,26 +2076,37 @@
                                                                                         <strong>{{ implode(', ', $rechazados) }}</strong>.
                                                                                     @endif
                                                                                 </h4>
-                                                                                <div class="lib-calidad-card-btns">
+                                                                                <div class="lib-calidad-card-btns" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                                                                                     @if ($libStatusClean === 'aprobado')
                                                                                         <button class="btn-modelo btn-modelo-si"
-                                                                                            style="display: flex; background-color: #059669; color: white;">
+                                                                                            style="display: flex; background-color: #059669; color: white; cursor: default;"
+                                                                                            disabled>
                                                                                             <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
                                                                                             <span>Aprobado</span>
                                                                                         </button>
                                                                                     @elseif ($libStatusClean === 'rechazado')
                                                                                         <button class="btn-modelo btn-modelo-no"
-                                                                                            style="display: flex; background-color: #dc2626; color: white;">
+                                                                                            style="display: flex; background-color: #dc2626; color: white; cursor: default;"
+                                                                                            disabled>
                                                                                             <img src="{{ asset('images/Rechazado.png') }}" alt="No">
                                                                                             <span>Rechazado</span>
                                                                                         </button>
                                                                                     @elseif ($libStatusClean === 'mixto')
                                                                                         <button class="btn-modelo btn-modelo-edit"
-                                                                                            style="display: flex; background-color: #0284c7; color: white;">
+                                                                                            style="display: flex; background-color: #0284c7; color: white; cursor: default;"
+                                                                                            disabled>
                                                                                             <img src="{{ asset('images/Quality.png') }}" alt="Mixto">
                                                                                             <span>Mixto</span>
                                                                                         </button>
                                                                                     @endif
+
+                                                                                    <button class="btn-calidad-action btn-calidad-email"
+                                                                                        onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionFinal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
+                                                                                        title="Enviar alerta de calidad de forma manual"
+                                                                                        style="background-color: #0ea5e9; color: white;">
+                                                                                        <img src="{{ asset('images/enviando.png') }}" alt="">
+                                                                                        <span>Enviar Alerta</span>
+                                                                                    </button>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
