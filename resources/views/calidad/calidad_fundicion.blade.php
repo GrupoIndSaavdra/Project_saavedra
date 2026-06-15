@@ -1239,9 +1239,9 @@
                                                                         
                                                                         $alertSent = false;
                                                                         if ($fileOwner === 'almacen') {
-                                                                            $alertSent = (bool)($reg->pre_orden_email_sent || $reg->pre_orden_sent);
+                                                                            $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
                                                                         } elseif ($fileOwner === 'calidad') {
-                                                                            $alertSent = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
                                                                         }
 
                                                                         if (!$alertSent) {
@@ -1326,9 +1326,9 @@
                                                                         
                                                                         $alertSent = false;
                                                                         if ($fileOwner === 'almacen') {
-                                                                            $alertSent = (bool)($reg->pre_orden_email_sent || $reg->pre_orden_sent);
+                                                                            $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
                                                                         } elseif ($fileOwner === 'calidad') {
-                                                                            $alertSent = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
                                                                         }
 
                                                                         if (!$alertSent) {
