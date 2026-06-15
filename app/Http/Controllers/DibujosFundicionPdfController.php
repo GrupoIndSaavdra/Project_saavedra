@@ -614,7 +614,7 @@ class DibujosFundicionPdfController extends Controller
      *
      * @param string $otName
      */
-    public static function copyToAlmacen(string $otName): void
+    public static function copyToAlmacen(string $otName, bool $resetFlags = true): void
     {
         $srcDir = self::BASE_DIR . '/' . $otName;
         $dstDir = self::ALMACEN_DIR . '/' . $otName;
@@ -754,22 +754,36 @@ class DibujosFundicionPdfController extends Controller
                 ->toArray();
         }
 
-        // 4. Limpiar los registros antiguos de Almacén y Calidad
+        // 4. Limpiar los registros antiguos de Almacén y Calidad si se indica
         // Esto garantiza que cada vez que se envía un correo, el flujo se reinicia (borrón y cuenta nueva)
-        \App\Models\PreOrdenFundicion::where('ot', '=', $otName, 'and')->delete();
-        \App\Models\LiberacionModeloFundicion::where('ot', '=', $otName, 'and')->delete();
+        if ($resetFlags) {
+            \App\Models\PreOrdenFundicion::where('ot', '=', $otName, 'and')->delete();
+            \App\Models\LiberacionModeloFundicion::where('ot', '=', $otName, 'and')->delete();
 
-        FundicionHistory::updateOrCreate(
-            ['ot' => $otName],
-            [
-                'status' => 'activa',
-                'alert_sent_at' => now(), // Asegurar que aparezca en Almacén inmediatamente
-                'almacen_archivos' => $almacenFiles,
-                'tiene_modelo' => false,
-                'pre_orden_sent' => false,
-                'calidad_revision_status' => null,
-            ]
-        );
+            FundicionHistory::updateOrCreate(
+                ['ot' => $otName],
+                [
+                    'status' => 'activa',
+                    'alert_sent_at' => now(), // Asegurar que aparezca en Almacén inmediatamente
+                    'almacen_archivos' => $almacenFiles,
+                    'tiene_modelo' => false,
+                    'pre_orden_sent' => false,
+                    'pre_orden_email_sent' => false,
+                    'calidad_revision_status' => null,
+                    'casting_pdf_generated' => false,
+                    'rechazos_procesados' => false,
+                ]
+            );
+        } else {
+            // Si no se resetean los flags, solo actualizamos los archivos
+            FundicionHistory::updateOrCreate(
+                ['ot' => $otName],
+                [
+                    'status' => 'activa',
+                    'almacen_archivos' => $almacenFiles,
+                ]
+            );
+        }
 
         // 5. Espejo Almacén → Calidad: Copiar dibujos + ayudas_visuales al directorio de Calidad
         //    para que el equipo de Calidad vea los mismos archivos que subió Almacén.

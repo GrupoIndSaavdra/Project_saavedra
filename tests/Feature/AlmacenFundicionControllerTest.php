@@ -910,4 +910,51 @@ public function test_reprocess_control_card_binds_to_active_cycle_record()
 
         $serveResponse->assertStatus(200);
     }
+
+    public function test_copy_to_almacen_with_reset_flags_false_retains_status_flags()
+    {
+        $ot = 'OT-COPY-TEST';
+
+        $history = FundicionHistory::create([
+            'ot' => $ot,
+            'status' => 'activa',
+            'tiene_modelo' => true,
+            'pre_orden_sent' => true,
+            'pre_orden_email_sent' => true,
+            'calidad_revision_status' => 'calidad_aprobado',
+            'casting_pdf_generated' => true,
+            'rechazos_procesados' => true,
+        ]);
+
+        // Mock folder creation and a pdf file
+        Storage::disk('local')->makeDirectory('DIBUJOS_FUNDICION/' . $ot . '/Bombillo');
+        Storage::disk('local')->put('DIBUJOS_FUNDICION/' . $ot . '/Bombillo/drawing.pdf', 'pdf content');
+
+        // Sync with resetFlags = false
+        \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, false);
+
+        $updatedHistory = FundicionHistory::where('ot', $ot)->first();
+        $this->assertTrue((bool)$updatedHistory->tiene_modelo);
+        $this->assertTrue((bool)$updatedHistory->pre_orden_sent);
+        $this->assertTrue((bool)$updatedHistory->pre_orden_email_sent);
+        $this->assertEquals('calidad_aprobado', $updatedHistory->calidad_revision_status);
+        $this->assertTrue((bool)$updatedHistory->casting_pdf_generated);
+        $this->assertTrue((bool)$updatedHistory->rechazos_procesados);
+
+        // Sync with resetFlags = true (default)
+        \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, true);
+
+        $resetHistory = FundicionHistory::where('ot', $ot)->first();
+        $this->assertFalse((bool)$resetHistory->tiene_modelo);
+        $this->assertFalse((bool)$resetHistory->pre_orden_sent);
+        $this->assertFalse((bool)$resetHistory->pre_orden_email_sent);
+        $this->assertNull($resetHistory->calidad_revision_status);
+        $this->assertFalse((bool)$resetHistory->casting_pdf_generated);
+        $this->assertFalse((bool)$resetHistory->rechazos_procesados);
+
+        // Clean up
+        Storage::disk('local')->deleteDirectory('DIBUJOS_FUNDICION/' . $ot);
+        Storage::disk('local')->deleteDirectory('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot);
+    }
 }
+

@@ -30,7 +30,7 @@ class SyncFundicionDocs extends Command
             foreach ($activeHistories as $history) {
                 $this->line("  Sincronizando: {$history->ot}...");
                 try {
-                    DibujosFundicionPdfController::copyToAlmacen($history->ot);
+                    DibujosFundicionPdfController::copyToAlmacen($history->ot, false);
                     $this->info("    -> Completado.");
                 } catch (Throwable $e) {
                     $this->error("    -> Error al sincronizar {$history->ot}: " . $e->getMessage());
