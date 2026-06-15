@@ -445,7 +445,7 @@
                                                         ->orderBy('id', 'desc')
                                                         ->first();
                                                 }
-                                                $targetReg = ($reg->rechazos_procesados && $latestReproceso) ? $latestReproceso : $reg;
+                                                $targetReg = $reg;
 
                                                 // ── RESOLVER TODOS LOS REGISTROS RELACIONADOS ──
                                                 $baseOtName = preg_replace('/_R\d+$/', '', $reg->ot);
@@ -957,6 +957,10 @@
                                                 $countOtros = count($otrosArchivos);
                                                 $count = $countDibujos + $countAyudas + $countOtros;
 
+                                                $isQualityFinalized = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                $showQualityCard = (Auth::user()->perfil == 4 && $estado === 'activa' && !$isQualityFinalized);
+                                                $hasFilesOrControl = ($count > 0 || $showQualityCard);
+
                                                 // ── CALCULAR APROBADOS Y RECHAZADOS DEL ÚLTIMO VEREDICTO DE CADA CLASE ──
                                                 $liberacionesAll = \App\Models\LiberacionModeloFundicion::whereIn('ot', $allRelatedOtNames)->get();
                                                 $latestLiberacionesByClass = [];
@@ -1128,7 +1132,7 @@
                                                     <span class="badge-pdf-count">{{ $count }}</span>
                                                 </td>
                                                 <td class="d-text-center">
-                                                    @if ($count > 0)
+                                                    @if ($hasFilesOrControl)
                                                         <button class="btn-toggle-files"
                                                             data-target="files-{{ $estado }}-{{ $loop->index }}" data-ot="{{ $reg->ot }}"
                                                             id="toggle-btn-{{ $estado }}-{{ $loop->index }}" aria-expanded="false">
@@ -1141,7 +1145,7 @@
                                             </tr>
 
                                             {{-- Fila desplegable de archivos --}}
-                                            @if ($count > 0)
+                                            @if ($hasFilesOrControl)
                                                 <tr class="alm-files-row" id="files-{{ $estado }}-{{ $loop->index }}">
                                                     <td colspan="6">
                                                         {{-- BLOQUE 1: Dibujos solo visibles si la alerta fue enviada desde

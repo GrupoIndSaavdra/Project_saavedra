@@ -673,8 +673,8 @@ public function test_reprocess_control_card_binds_to_active_cycle_record()
         $response->assertStatus(200);
 
         // Assert the card is not disabled and prompts for generating pre-order in reprocess
-        $response->assertSee('id="control-modelo-' . md5($ot) . '"', false);
-        $response->assertDontSee('id="control-modelo-' . md5($ot) . '" style="opacity: 0.5; pointer-events: none;"', false);
+        $response->assertSee('id="control-modelo-' . md5($ot . '_R1') . '"', false);
+        $response->assertDontSee('id="control-modelo-' . md5($ot . '_R1') . '" style="opacity: 0.5; pointer-events: none;"', false);
         $response->assertSee('OT en re-proceso por rechazo de Calidad');
 
         // Now update reprocess model status so it should block
@@ -685,7 +685,7 @@ public function test_reprocess_control_card_binds_to_active_cycle_record()
         $response2 = $this->get(route('almacen.fundicion.index'));
         $response2->assertStatus(200);
         $content = $response2->getContent();
-        $hash = md5($ot);
+        $hash = md5($ot . '_R1');
         $this->assertMatchesRegularExpression(
             '/<div class="lib-calidad-card"\s+id="control-modelo-' . $hash . '"[^>]*?style="opacity:\s*0\.5;\s*pointer-events:\s*none;"/i',
             $content
@@ -805,5 +805,58 @@ public function test_reprocess_control_card_binds_to_active_cycle_record()
         // 6. Approved files: casting pre-order (starts with Pre-Orden_Casting-) and other files (like FDLDM approval) SHOULD NOT be copied
         $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/Documentos_Aprobados/preordenes/Pre-Orden_Casting-MOD-1234_OT_2102.pdf'));
         $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/Documentos_Aprobados/FDLDM/F-CCL-LDM_FONDO_APROBADO.pdf'));
+    }
+
+    public function test_get_files_with_todo_parameter_returns_all_files_ignoring_active_class_filters()
+    {
+        $user = User::factory()->create(['perfil' => '5']); // Almacen
+        $this->actingAs($user);
+
+        $ot = 'OT-TODO-TEST';
+
+        // Create history records
+        FundicionHistory::create([
+            'ot' => $ot,
+            'tiene_modelo' => true,
+            'status' => 'activa'
+        ]);
+
+        // Create approved liberacion record for Fondo class
+        LiberacionModeloFundicion::create([
+            'ot' => $ot,
+            'tipo_modelo' => 'Fondo',
+            'decision' => 'aprobar',
+            'estado' => 'aprobado'
+        ]);
+
+        // Create rejected liberacion record for Obturador class
+        LiberacionModeloFundicion::create([
+            'ot' => $ot,
+            'tipo_modelo' => 'Obturador',
+            'decision' => 'rechazar',
+            'estado' => 'rechazado'
+        ]);
+
+        // Setup files on disk
+        $baseAlmacenDir = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot;
+
+        // Fondo drawing (approved class)
+        Storage::disk('local')->put($baseAlmacenDir . '/Fondo/Dibujos/Fondo_dibujo.pdf', 'dummy content');
+        // Obturador drawing (rejected class)
+        Storage::disk('local')->put($baseAlmacenDir . '/Obturador/Dibujos/Obturador_dibujo.pdf', 'dummy content');
+
+        // Request files without todo parameter (should only return Fondo, the approved class)
+        $response1 = $this->getJson(route('almacen.fundicion.archivos', ['ot' => $ot]));
+        $response1->assertStatus(200);
+        $fileNames1 = array_column($response1->json('archivos'), 'nombre');
+        $this->assertTrue(in_array('Fondo/Dibujos/Fondo_dibujo.pdf', $fileNames1));
+        $this->assertFalse(in_array('Obturador/Dibujos/Obturador_dibujo.pdf', $fileNames1));
+
+        // Request files with todo=1 parameter (should return both Fondo and Obturador)
+        $response2 = $this->getJson(route('almacen.fundicion.archivos', ['ot' => $ot, 'todo' => '1']));
+        $response2->assertStatus(200);
+        $fileNames2 = array_column($response2->json('archivos'), 'nombre');
+        $this->assertTrue(in_array('Fondo/Dibujos/Fondo_dibujo.pdf', $fileNames2));
+        $this->assertTrue(in_array('Obturador/Dibujos/Obturador_dibujo.pdf', $fileNames2));
     }
 }

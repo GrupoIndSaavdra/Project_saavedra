@@ -184,56 +184,62 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        // Filtrar clases activas basándose en las decisiones de Calidad
-        $isReproceso = preg_match('/_R\d+$/i', $ot);
-        if ($isReproceso) {
-            // Para un reproceso, solo mostramos las clases que fueron RECHAZADAS en el ciclo anterior
-            $prevOt = preg_replace_callback('/_R(\d+)$/i', function($m) {
-                $num = intval($m[1]) - 1;
-                return $num > 0 ? '_R' . $num : '';
-            }, $ot);
-            
-            $rechazados = LiberacionModeloFundicion::where('ot', '=', $prevOt, 'and')
-                ->where('decision', '=', 'rechazar', 'and')
-                ->pluck('tipo_modelo')
-                ->toArray();
-                
-            $validClasses = [];
-            foreach ($rechazados as $r) {
-                $clases = array_map('trim', explode(',', strtolower($r)));
-                foreach ($clases as $c) {
-                    $validClasses[] = $c;
-                }
-            }
-            if (!empty($validClasses)) {
-                $activeClasses = $validClasses;
-            }
+        $todo = $request->query('todo', '0') === '1';
+
+        if ($todo) {
+            $activeClasses = ['fondo', 'bombillo', 'molde', 'obturador'];
         } else {
-            // Para la OT base, si ya pasó por Calidad, solo mostramos las APROBADAS (para Casting)
-            $hasLiberaciones = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->exists();
-            if ($hasLiberaciones) {
-                $aprobados = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
-                    ->where('decision', '=', 'aprobar', 'and')
+            // Filtrar clases activas basándose en las decisiones de Calidad
+            $isReproceso = preg_match('/_R\d+$/i', $ot);
+            if ($isReproceso) {
+                // Para un reproceso, solo mostramos las clases que fueron RECHAZADAS en el ciclo anterior
+                $prevOt = preg_replace_callback('/_R(\d+)$/i', function($m) {
+                    $num = intval($m[1]) - 1;
+                    return $num > 0 ? '_R' . $num : '';
+                }, $ot);
+                
+                $rechazados = LiberacionModeloFundicion::where('ot', '=', $prevOt, 'and')
+                    ->where('decision', '=', 'rechazar', 'and')
                     ->pluck('tipo_modelo')
                     ->toArray();
                     
                 $validClasses = [];
-                foreach ($aprobados as $a) {
-                    $clases = array_map('trim', explode(',', strtolower($a)));
+                foreach ($rechazados as $r) {
+                    $clases = array_map('trim', explode(',', strtolower($r)));
                     foreach ($clases as $c) {
                         $validClasses[] = $c;
                     }
                 }
                 if (!empty($validClasses)) {
                     $activeClasses = $validClasses;
-                } else {
-                    $activeClasses = [];
+                }
+            } else {
+                // Para la OT base, si ya pasó por Calidad, solo mostramos las APROBADAS (para Casting)
+                $hasLiberaciones = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->exists();
+                if ($hasLiberaciones) {
+                    $aprobados = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
+                        ->where('decision', '=', 'aprobar', 'and')
+                        ->pluck('tipo_modelo')
+                        ->toArray();
+                        
+                    $validClasses = [];
+                    foreach ($aprobados as $a) {
+                        $clases = array_map('trim', explode(',', strtolower($a)));
+                        foreach ($clases as $c) {
+                            $validClasses[] = $c;
+                        }
+                    }
+                    if (!empty($validClasses)) {
+                        $activeClasses = $validClasses;
+                    } else {
+                        $activeClasses = [];
+                    }
                 }
             }
-        }
 
-        if (empty($activeClasses)) {
-            $activeClasses = ['fondo', 'bombillo', 'molde', 'obturador'];
+            if (empty($activeClasses)) {
+                $activeClasses = ['fondo', 'bombillo', 'molde', 'obturador'];
+            }
         }
 
         $user = Auth::user();
@@ -476,9 +482,6 @@ class AlmacenFundicionController extends Controller
                                     return false;
                             } else {
                                 if ($relatedOt !== $ot) {
-                                    if (strpos($fileLower, 'confirmacionmodelo') !== false || strpos($fileLower, 'pre-orden') !== false || strpos($fileLower, 'preorden') !== false) {
-                                        return true;
-                                    }
                                     return false;
                                 }
                             }

@@ -583,11 +583,7 @@
                                                                 continue;
                                                         } else {
                                                             if ($relRec->ot !== $reg->ot) {
-                                                                if (strpos($fileLower, 'confirmacionmodelo') !== false || strpos($fileLower, 'pre-orden') !== false || strpos($fileLower, 'preorden') !== false) {
-                                                                    // allowed
-                                                                } else {
-                                                                    continue;
-                                                                }
+                                                                continue;
                                                             }
                                                         }
                                                         if (!in_array($base, $dibujoBaseNames)) {
@@ -746,11 +742,7 @@
                                                                     continue;
                                                             } else {
                                                                 if ($otName !== $reg->ot) {
-                                                                    if (strpos($fileLower, 'confirmacionmodelo') !== false || strpos($fileLower, 'pre-orden') !== false || strpos($fileLower, 'preorden') !== false) {
-                                                                        // allowed
-                                                                    } else {
-                                                                        continue;
-                                                                    }
+                                                                    continue;
                                                                 }
                                                             }
 
@@ -825,11 +817,7 @@
                                                                         continue;
                                                                 } else {
                                                                     if ($otName !== $reg->ot) {
-                                                                        if (strpos($fileLower, 'confirmacionmodelo') !== false || strpos($fileLower, 'pre-orden') !== false || strpos($fileLower, 'preorden') !== false) {
-                                                                            // allowed
-                                                                        } else {
-                                                                            continue;
-                                                                        }
+                                                                        continue;
                                                                     }
                                                                 }
 
@@ -879,11 +867,7 @@
                                                                     continue;
                                                             } else {
                                                                 if ($otName !== $reg->ot) {
-                                                                    if (strpos($fileLower, 'confirmacionmodelo') !== false || strpos($fileLower, 'pre-orden') !== false || strpos($fileLower, 'preorden') !== false) {
-                                                                        // allowed
-                                                                    } else {
-                                                                        continue;
-                                                                    }
+                                                                    continue;
                                                                 }
                                                             }
                                                             if (!in_array($base, $baseNames)) {
@@ -926,11 +910,7 @@
                                                                     continue;
                                                             } else {
                                                                 if ($otName !== $reg->ot) {
-                                                                    if (strpos($fileLower, 'confirmacionmodelo') !== false || strpos($fileLower, 'pre-orden') !== false || strpos($fileLower, 'preorden') !== false) {
-                                                                        // allowed
-                                                                    } else {
-                                                                        continue;
-                                                                    }
+                                                                    continue;
                                                                 }
                                                             }
                                                             if (!in_array($base, $baseNames)) {
@@ -1023,6 +1003,10 @@
                                                 $countAyudas = count($ayudasArchivos);
                                                 $countOtros = count($otrosArchivos);
                                                 $count = $countDibujos + $countAyudas + $countOtros;
+
+                                                $isFinalized = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                $showControlCard = (Auth::user()->perfil != 4 && $estado === 'activa' && !$isFinalized);
+                                                $hasFilesOrControl = ($count > 0 || $showControlCard);
 
                                                 // ── CALCULAR APROBADOS Y RECHAZADOS DEL ÚLTIMO VEREDICTO DE CADA CLASE ──
                                                 $liberacionesAll = \App\Models\LiberacionModeloFundicion::whereIn('ot', $allRelatedOtNames)->get();
@@ -1213,7 +1197,7 @@
                                                     <span class="badge-pdf-count">{{ $count }}</span>
                                                 </td>
                                                 <td class="d-text-center">
-                                                    @if ($count > 0)
+                                                    @if ($hasFilesOrControl)
                                                         <button class="btn-toggle-files"
                                                             data-target="files-{{ $estado }}-{{ $loop->index }}" data-ot="{{ $reg->ot }}"
                                                             id="toggle-btn-{{ $estado }}-{{ $loop->index }}" aria-expanded="false">
@@ -1226,7 +1210,7 @@
                                             </tr>
 
                                             {{-- Fila desplegable de archivos --}}
-                                            @if ($count > 0)
+                                            @if ($hasFilesOrControl)
                                                 <tr class="alm-files-row" id="files-{{ $estado }}-{{ $loop->index }}">
                                                     <td colspan="6">
                                                         {{-- BLOQUE 1: Dibujos solo visibles si la alerta fue enviada desde
@@ -1481,11 +1465,7 @@
                                                         @endif
 
                                                         {{-- ── SECCIí“N CONTROL DE MODELOS (Solo Almacén y OTs Activas) ── --}}
-                                                        @if (Auth::user()->perfil != 4 && $estado === 'activa')
-                                                            @php
-                                                                $isFinalized = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
-                                                            @endphp
-                                                            @if (!$isFinalized)
+                                                        @if ($showControlCard)
                                                                 @php
                                                                     // Detectar si es una OT de re-proceso (_R1, _R2, etc.)
                                                                     $esReproceso = (bool) preg_match('/_R\d+$/i', $targetReg->ot);
@@ -1949,7 +1929,6 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                            @endif
                                                         @endif
 
                                                     </td>

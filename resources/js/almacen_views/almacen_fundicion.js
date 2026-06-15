@@ -3527,15 +3527,15 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
         });
     }
 
-    // Mostrar/ocultar opciones según tiposConfigurados
+    // Mostrar/ocultar opciones según tiposActivos
     select.querySelectorAll('option').forEach(opt => {
         if (!opt.value) { opt.hidden = false; return; } // Mantener placeholder
         
-        // Si no hay clases configuradas, mostramos todo
-        if (tiposConfigurados.size === 0) {
+        // Si no hay clases activas, mostramos todo
+        if (tiposActivos.size === 0) {
             opt.hidden = false;
         } else {
-            opt.hidden = !tiposConfigurados.has(opt.value);
+            opt.hidden = !tiposActivos.has(opt.value);
         }
         
         if (!opt.hidden) {
@@ -6105,7 +6105,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
     if (hasAprobados) switchMgvTab('aprobados');
     else if (hasRechazados) switchMgvTab('rechazados');
 
-    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}&todo=1`)
         .then(res => res.json())
         .then(data => {
             cargarInputsCasting(ot, data.archivos);
