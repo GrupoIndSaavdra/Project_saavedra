@@ -2232,7 +2232,9 @@ class AlmacenFundicionController extends Controller
             }
 
             foreach ($filesArray as $file) {
-                $name = 'Escaneado_Fundicion-' . $file->getClientOriginalName();
+                $ext = $file->getClientOriginalExtension();
+                $safeName = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
+                $name = 'Escaneado_Fundicion-' . trim($safeName, '_.') . ($ext ? '.' . $ext : '');
                 $savedPath = $file->storeAs($destDir, $name, 'local');
                 $attachments[] = [
                     'path' => storage_path('app/' . $savedPath),

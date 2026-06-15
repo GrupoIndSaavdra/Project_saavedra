@@ -654,6 +654,7 @@ public function test_reprocess_control_card_binds_to_active_cycle_record()
             'pre_orden_email_sent' => true,
             'alert_sent_at' => now(),
             'status' => 'activa',
+            'calidad_revision_status' => 'calidad_rechazado',
             'almacen_archivos' => ['dummy_drawing.pdf']
         ]);
         $baseHistory->rechazos_procesados = true;
@@ -858,5 +859,55 @@ public function test_reprocess_control_card_binds_to_active_cycle_record()
         $fileNames2 = array_column($response2->json('archivos'), 'nombre');
         $this->assertTrue(in_array('Fondo/Dibujos/Fondo_dibujo.pdf', $fileNames2));
         $this->assertTrue(in_array('Obturador/Dibujos/Obturador_dibujo.pdf', $fileNames2));
+    }
+
+    public function test_uploaded_file_name_sanitization()
+    {
+        $user = User::factory()->create(['perfil' => '2']); // Admin/user with permission
+        $this->actingAs($user);
+
+        $ot = 'OT-SAN-TEST';
+
+        FundicionHistory::create([
+            'ot' => $ot,
+            'tiene_modelo' => false,
+            'status' => 'activa',
+            'calidad_revision_status' => 'espera'
+        ]);
+
+        PreOrdenFundicion::create([
+            'ot' => $ot,
+            'proveedor' => 'Provider A',
+            'folio' => 'MOD-2026-0200',
+            'pdf_filename' => 'Pre-Orden_Modelo-MOD-2026-0200.pdf',
+            'fecha_creacion' => now(),
+            'filas' => []
+        ]);
+
+        $file = \Illuminate\Http\UploadedFile::fake()->create('DOCUMENTO (1) - COPIA.pdf', 100, 'application/pdf');
+
+        $response = $this->postJson(route('almacen.fundicion.sendEmailPreOrden'), [
+            'ot' => $ot,
+            'destinatario' => 'test@example.com',
+            'fecha_entrega' => '2026-06-20',
+            'archivos_adicionales' => [$file]
+        ]);
+
+        $response->assertStatus(200);
+
+        // Verify that the file name is sanitized on disk and can be served
+        $sanitizedName = 'Escaneado_Fundicion-DOCUMENTO _1_ - COPIA.pdf';
+        $fullPath = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot . '/Documentos_Aprobados/Preorden_Modelo/' . $sanitizedName;
+        $this->assertTrue(Storage::disk('local')->exists($fullPath));
+
+        // Verify we can serve it without 404
+        $serveResponse = $this->get(route('almacen.fundicion.serve', [
+            'ot' => $ot,
+            'archivo' => 'Documentos_Aprobados/Preorden_Modelo/' . $sanitizedName,
+            'tipo' => 'otro',
+            'origin' => 'aprobado'
+        ]));
+
+        $serveResponse->assertStatus(200);
     }
 }

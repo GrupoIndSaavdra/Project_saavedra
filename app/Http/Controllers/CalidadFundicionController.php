@@ -2386,7 +2386,9 @@ class CalidadFundicionController extends Controller
                     }
                     
                     $prefix    = $item['tipo'] ? strtoupper($item['tipo']) . '_Aprobado_' : 'Aprobado_';
-                    $extraName = $prefix . $extraFile->getClientOriginalName();
+                    $ext       = $extraFile->getClientOriginalExtension();
+                    $safeName  = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', pathinfo($extraFile->getClientOriginalName(), PATHINFO_FILENAME));
+                    $extraName = $prefix . trim($safeName, '_.') . ($ext ? '.' . $ext : '');
                     $savedPath = $extraFile->storeAs($destPath, $extraName, 'local');
                     $attachmentsAprobados[] = [
                         'path' => storage_path('app/' . $savedPath),
@@ -2423,7 +2425,9 @@ class CalidadFundicionController extends Controller
                     }
                     
                     $prefix    = $item['tipo'] ? strtoupper($item['tipo']) . '_Rechazado_' : 'Rechazado_';
-                    $extraName = $prefix . $extraFile->getClientOriginalName();
+                    $ext       = $extraFile->getClientOriginalExtension();
+                    $safeName  = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', pathinfo($extraFile->getClientOriginalName(), PATHINFO_FILENAME));
+                    $extraName = $prefix . trim($safeName, '_.') . ($ext ? '.' . $ext : '');
                     $savedPath = $extraFile->storeAs($destPath, $extraName, 'local');
                     $attachmentsRechazados[] = [
                         'path' => storage_path('app/' . $savedPath),
@@ -2460,7 +2464,9 @@ class CalidadFundicionController extends Controller
                     }
                     
                     $prefix    = $item['tipo'] ? strtoupper($item['tipo']) . '_SCAR_' : 'SCAR_';
-                    $extraName = $prefix . $extraFile->getClientOriginalName();
+                    $ext       = $extraFile->getClientOriginalExtension();
+                    $safeName  = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', pathinfo($extraFile->getClientOriginalName(), PATHINFO_FILENAME));
+                    $extraName = $prefix . trim($safeName, '_.') . ($ext ? '.' . $ext : '');
                     $savedPath = $extraFile->storeAs($destPath, $extraName, 'local');
                     $attachmentsRechazados[] = [
                         'path' => storage_path('app/' . $savedPath),

@@ -445,7 +445,7 @@
                                                         ->orderBy('id', 'desc')
                                                         ->first();
                                                 }
-                                                $targetReg = $reg;
+                                                $targetReg = ($reg->rechazos_procesados && $latestReproceso) ? $latestReproceso : $reg;
 
                                                 // ── RESOLVER TODOS LOS REGISTROS RELACIONADOS ──
                                                 $baseOtName = preg_replace('/_R\d+$/', '', $reg->ot);
