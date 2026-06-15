@@ -1742,7 +1742,7 @@
                         <label for="al-destinatario"
                             style="font-size: 1.2em; font-weight: 700; color: #334155; display: block; margin-bottom: 10px; font-family:'Poppins', sans-serif;">Destinatario(s):</label>
                         <input type="text" id="al-destinatario" name="destinatario" class="form-control" required
-                            value="inspecciontec@grupoindsaavedra.com"
+                            value="almacentex@grupoindsaavedra.com"
                             style="font-size: 1.15em; padding: 14px 20px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
                         <span style="font-size: 0.9em; color: #64748b; margin-top: 8px; display: block;">Separa múltiples
                             correos usando comas (,).</span>
@@ -1911,7 +1911,7 @@
                             style="font-size: 1.1em; font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif;">Destinatario(s)
                             <span style="color:#dc2626;">*</span></label>
                         <input type="text" id="fc-destinatario" name="destinatario" class="form-control" required
-                            value="inspecciontec@grupoindsaavedra.com"
+                            value="almacentex@grupoindsaavedra.com"
                             style="font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
                         <span style="font-size: 0.85em; color: #64748b; margin-top: 6px; display: block;">Separa múltiples
                             correos usando comas (,).</span>
