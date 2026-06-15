@@ -4,6 +4,12 @@
   */
 console.log('ALMACEN_FUNDICION_JS_V2_LOADED');
 
+function getBaseUrl() {
+    let base = window.baseUrl || (window.location.origin + '/');
+    if (!base.endsWith('/')) base += '/';
+    return base;
+}
+
 // Helper para notificaciones usando el sistema del layout
 function almacenToast(message, type = 'success') {
     if (typeof window.mostrarNotificacion === 'function') {
@@ -1374,6 +1380,9 @@ function renderScarOtrosBadges() {
         card.style.border = '2px solid #0369a1';
         card.style.background = '#fff';
 
+        let baseUrl = window.baseUrl || (window.location.origin + '/');
+        if (!baseUrl.endsWith('/')) baseUrl += '/';
+
         let iconHtml = '';
         const fileUrl = URL.createObjectURL(file);
         if (file.type.startsWith('image/')) {
@@ -1385,8 +1394,8 @@ function renderScarOtrosBadges() {
         } else {
             iconHtml = `
                 <div class="file-icon-wrapper" style="cursor: pointer; margin-top: 10px;" title="Abrir PDF" onclick="window.open('${fileUrl}', '_blank')">
-                    <img src="/images/pdf-view-shadow.png" class="file-icon icon-default">
-                    <img src="/images/pdf-view.png" class="file-icon icon-hover">
+                    <img src="${baseUrl}images/pdf-view-shadow.png" class="file-icon icon-default">
+                    <img src="${baseUrl}images/pdf-view.png" class="file-icon icon-hover">
                 </div>
             `;
         }
@@ -1440,6 +1449,9 @@ function renderCmConfirmarBadges() {
         card.style.border = '2px solid #10b981';
         card.style.background = '#fff';
 
+        let baseUrl = window.baseUrl || (window.location.origin + '/');
+        if (!baseUrl.endsWith('/')) baseUrl += '/';
+
         // Determinar icono o thumbnail
         let iconHtml = '';
         const fileUrl = URL.createObjectURL(file);
@@ -1452,8 +1464,8 @@ function renderCmConfirmarBadges() {
         } else {
             iconHtml = `
                 <div class="file-icon-wrapper" style="cursor: pointer; margin-top: 10px;" title="Abrir PDF" onclick="window.open('${fileUrl}', '_blank')">
-                    <img src="/images/pdf-view-shadow.png" class="file-icon icon-default">
-                    <img src="/images/pdf-view.png" class="file-icon icon-hover">
+                    <img src="${baseUrl}images/pdf-view-shadow.png" class="file-icon icon-default">
+                    <img src="${baseUrl}images/pdf-view.png" class="file-icon icon-hover">
                 </div>
             `;
         }
@@ -4840,7 +4852,7 @@ function loadPocPage(pageNum) {
                         ${(materialFila && !MATERIALES_CASTING_FIJOS.includes(materialFila) && materialFila !== 'Otro')
                 ? `<button type="button" class="btn-eliminar-material-opcion" onclick="eliminarMaterialGlobal(${pageNum}, '${materialFila.replace(/'/g, "\\'")}')" 
                                 style="background:#fff;border:none;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0;" title="Quitar de la lista de materiales">
-                                <img src="/images/quitar.png" style="width:16px;height:16px;">
+                                <img src="${getBaseUrl()}images/quitar.png" style="width:16px;height:16px;">
                                </button>`
                 : ''
             }
@@ -4866,7 +4878,7 @@ function loadPocPage(pageNum) {
             </td>
             <td style="padding:8px;text-align:center;">
                 <button type="button" class="btn-eliminar-fila" onclick="eliminarFilaPoc(${pageNum},${idx})" style="background:none;border:none;cursor:pointer;">
-                    <img src="/images/quitar.png" style="width:24px;height:24px;">
+                    <img src="${getBaseUrl()}images/quitar.png" style="width:24px;height:24px;">
                 </button>
             </td>
         `;
@@ -5723,7 +5735,7 @@ window.cargarInputsCasting = function (ot, files) {
                     <label style="font-weight:700;color:#15803d;margin-bottom:6px;display:block;font-family:'Poppins',sans-serif;font-size:0.95em;">Formato LDM — ${label} <span style="background:#dcfce7;color:#15803d;border-radius:20px;padding:2px 8px;font-size:0.82em;margin-left:4px;">Cargado</span></label>
                     <div style="background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:10px 15px;display:flex;align-items:center;justify-content:space-between;gap:15px;">
                         <div style="display:flex;align-items:center;gap:10px;overflow:hidden;width:100%;">
-                            <img src="/images/pdf.png" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">
+                            <img src="${getBaseUrl()}images/pdf.png" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">
                             <span style="font-weight:600;color:#15803d;font-size:0.9em;font-family:'Poppins',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${cleanName}">${cleanName}</span>
                         </div>
                         <div style="display:flex;gap:8px;flex-shrink:0;">
@@ -5739,8 +5751,8 @@ window.cargarInputsCasting = function (ot, files) {
                         <input type="file" name="ldm_${c}" accept=".pdf" required style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;" onchange="updateCustomFileLabel(this)">
                         <div style="display:flex;align-items:center;gap:10px;width:100%;">
                             <div class="file-icon-wrapper" style="position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                <img src="/images/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
-                                <img src="/images/pdf-view.png" class="file-icon icon-hover" style="width:38px;height:38px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
+                                <img src="${getBaseUrl()}images/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
+                                <img src="${getBaseUrl()}images/pdf-view.png" class="file-icon icon-hover" style="width:38px;height:38px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
                             </div>
                             <div style="overflow:hidden;">
                                 <span class="dropzone-text-label" style="font-weight:700;color:#16a34a;font-size:0.9em;font-family:'Poppins',sans-serif;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Arrastra formato F-CCL-LDM firmado o haz clic</span>
@@ -5888,7 +5900,7 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                         <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block; font-family: 'Poppins', sans-serif; font-size: 0.95em;">Formato de Rechazo <span style="background:#dcfce7;color:#15803d;border-radius:20px;padding:2px 8px;font-size:0.82em;margin-left:4px;">Cargado</span></label>
                         <div style="background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:10px 15px;display:flex;align-items:center;justify-content:space-between;gap:15px;">
                             <div style="display:flex;align-items:center;gap:10px;overflow:hidden;width:100%;">
-                                <img src="/images/pdf.png" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">
+                                <img src="${getBaseUrl()}images/pdf.png" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">
                                 <span style="font-weight:600;color:#15803d;font-size:0.9em;font-family:'Poppins',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${cleanName}">${cleanName}</span>
                             </div>
                             <div style="display:flex;gap:8px;flex-shrink:0;">
@@ -5906,8 +5918,8 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                             <input type="file" name="rechazo_${c.toLowerCase()}" data-type="rechazo" accept=".pdf" required style="position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;" onchange="updateCustomFileLabel(this)">
                             <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
                                 <div class="file-icon-wrapper" style="position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                    <img src="/images/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
-                                    <img src="/images/pdf-view.png" class="file-icon icon-hover" style="width:38px;height:38px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
+                                    <img src="${getBaseUrl()}images/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
+                                    <img src="${getBaseUrl()}images/pdf-view.png" class="file-icon icon-hover" style="width:38px;height:38px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
                                 </div>
                                 <div style="overflow:hidden;">
                                     <span class="dropzone-text-label" style="font-weight: 700; color: #dc2626; font-size: 0.9em; font-family:'Poppins', sans-serif; display: block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Arrastra formato de rechazo o haz clic para buscar</span>
@@ -5926,7 +5938,7 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                         <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block; font-family: 'Poppins', sans-serif; font-size: 0.95em;">SCAR <span style="background:#dcfce7;color:#15803d;border-radius:20px;padding:2px 8px;font-size:0.82em;margin-left:4px;">Cargado</span></label>
                         <div style="background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:10px 15px;display:flex;align-items:center;justify-content:space-between;gap:15px;">
                             <div style="display:flex;align-items:center;gap:10px;overflow:hidden;width:100%;">
-                                <img src="/images/pdf.png" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">
+                                <img src="${getBaseUrl()}images/pdf.png" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">
                                 <span style="font-weight:600;color:#15803d;font-size:0.9em;font-family:'Poppins',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${cleanName}">${cleanName}</span>
                             </div>
                             <div style="display:flex;gap:8px;flex-shrink:0;">
@@ -5944,8 +5956,8 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                             <input type="file" name="scar_${c.toLowerCase()}" data-type="scar" accept=".pdf" required style="position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;" onchange="updateCustomFileLabel(this)">
                             <div style="display: flex; align-items: center; gap: 10px; width: 100%;">
                                 <div class="file-icon-wrapper" style="position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                    <img src="/images/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
-                                    <img src="/images/pdf-view.png" class="file-icon icon-hover" style="width:38px;height:38px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
+                                    <img src="${getBaseUrl()}images/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
+                                    <img src="${getBaseUrl()}images/pdf-view.png" class="file-icon icon-hover" style="width:38px;height:38px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
                                 </div>
                                 <div style="overflow:hidden;">
                                     <span class="dropzone-text-label" style="font-weight: 700; color: #ca8a04; font-size: 0.9em; font-family:'Poppins', sans-serif; display: block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Arrastra SCAR o haz clic para buscar</span>
