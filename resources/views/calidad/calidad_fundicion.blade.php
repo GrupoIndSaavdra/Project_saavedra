@@ -950,6 +950,63 @@
                                                         $archivosAprobados[] = $archivo;
                                                     }
                                                 }
+                                                
+                                                $clasesActivas = collect($targetReg->ayudas_config ?? [])
+                                                    ->filter(fn($c) => !str_contains(strtolower($c), 'opcional'))
+                                                    ->filter(function ($claseNombre) use ($targetReg) {
+                                                        $clLow = strtolower($claseNombre);
+                                                        $tipo = null;
+                                                        if (strpos($clLow, 'fondo') !== false)
+                                                            $tipo = 'Fondo';
+                                                        elseif (strpos($clLow, 'obturador') !== false)
+                                                            $tipo = 'Obturador';
+                                                        elseif (strpos($clLow, 'molde') !== false)
+                                                            $tipo = 'Molde';
+                                                        elseif (strpos($clLow, 'bombillo') !== false)
+                                                            $tipo = 'Bombillo';
+
+                                                        if ($tipo) {
+                                                            $baseOt = preg_replace('/_R\d+$/i', '', $targetReg->ot);
+                                                            $isAprobado = \App\Models\LiberacionModeloFundicion::where(fn($q) => $q->where('ot', '=', $baseOt)
+                                                                ->orWhere('ot', 'LIKE', $baseOt . '_R%'))
+                                                                ->where('ot', '!=', $targetReg->ot)
+                                                                ->where('tipo_modelo', '=', $tipo)
+                                                                ->where('estado', '=', 'aprobado')
+                                                                ->exists();
+                                                            return !$isAprobado;
+                                                        }
+                                                        return true;
+                                                    })
+                                                    ->values()
+                                                    ->toArray();
+
+                                                $todosGuardados = true;
+                                                foreach ($clasesActivas as $clName) {
+                                                    $clLow = strtolower($clName);
+                                                    $tipo = null;
+                                                    if (strpos($clLow, 'fondo') !== false)
+                                                        $tipo = 'Fondo';
+                                                    elseif (strpos($clLow, 'obturador') !== false)
+                                                        $tipo = 'Obturador';
+                                                    elseif (strpos($clLow, 'molde') !== false)
+                                                        $tipo = 'Molde';
+                                                    elseif (strpos($clLow, 'bombillo') !== false)
+                                                        $tipo = 'Bombillo';
+
+                                                    if ($tipo) {
+                                                        $hasData = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
+                                                            ->where('tipo_modelo', '=', $tipo)
+                                                            ->exists();
+                                                        if (!$hasData) {
+                                                            $todosGuardados = false;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                if (empty($clasesActivas)) {
+                                                    $todosGuardados = false;
+                                                }
+
                                                 $countAprobados = count($archivosAprobados);
                                                 $countRechazados = count($archivosRechazados);
 
@@ -957,7 +1014,8 @@
                                                 $countOtros = count($otrosArchivos);
                                                 $count = $countDibujos + $countAyudas + $countOtros;
 
-                                                $isQualityFinalized = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                $hasFinalStatus = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                $isQualityFinalized = $hasFinalStatus && $todosGuardados;
                                                 $showQualityCard = (Auth::user()->perfil == 4 && $estado === 'activa' && !$isQualityFinalized);
                                                 $hasFilesOrControl = ($count > 0 || $showQualityCard);
 
@@ -1401,7 +1459,7 @@
 
 
                                                         {{-- ── ACCIONES DE CALIDAD / ESTADOS DE LIBERACION ── --}}
-                                                        @if (Auth::user()->perfil == 4 && $estado === 'activa' && (in_array($targetReg->calidad_revision_status, [null, 'pendiente']) || ($targetReg->calidad_revision_status === 'rechazado' && ($targetReg->tiene_modelo || $targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent))))
+                                                        @if (Auth::user()->perfil == 4 && $estado === 'activa' && !$isQualityFinalized)
                                                             <div class="lib-calidad-card">
                                                                 <div class="lib-calidad-card-header">
                                                                     <img src="{{ asset('images/Quality.png') }}" alt="Calidad"
@@ -1606,7 +1664,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        @elseif (Auth::user()->perfil == 4 && in_array($targetReg->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto', 'casting_aprobado']))
+                                                        @elseif (Auth::user()->perfil == 4 && $isQualityFinalized)
                                                                 @php
                                                                     $libStatusClean = str_replace('calidad_', '', $targetReg->calidad_revision_status);
                                                                 @endphp

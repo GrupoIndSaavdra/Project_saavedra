@@ -622,4 +622,57 @@ public function test_admin_can_delete_any_file_before_alert()
             return !$hasFondo && $hasRechazo && $hasPreorder;
         });
     }
+
+    public function test_quality_card_remains_active_when_classes_are_pending_even_with_finalized_status()
+    {
+        $user = User::factory()->create(['perfil' => '4']); // Calidad
+        $this->actingAs($user);
+
+        $ot = 'OT-PENDING-CARD-TEST';
+
+        // 1. Create history with 2 required classes in ayudas_config and 'calidad_aprobado' status
+        $history = FundicionHistory::create([
+            'ot' => $ot,
+            'status' => 'activa',
+            'tiene_modelo' => true,
+            'alert_sent_at' => now(),
+            'ayudas_config' => ['Fondo', 'Molde'],
+            'calidad_revision_status' => 'calidad_aprobado',
+            'almacen_archivos' => ['Fondo/Dibujos/Dibujo_Fondo.pdf']
+        ]);
+
+        // 2. Submit only 1 class (Fondo)
+        LiberacionModeloFundicion::create([
+            'ot' => $ot,
+            'tipo_modelo' => 'Fondo',
+            'decision' => 'aprobar',
+            'estado' => 'aprobado'
+        ]);
+
+        // 3. Request quality fundicion index page
+        $response = $this->get(route('calidad.fundicion.index'));
+
+        $response->assertStatus(200);
+        
+        // Assert that the page contains the active card start / edit release process text
+        // (Since one class is missing, card remains active and says "Proceso de liberación en curso")
+        $response->assertSee('Proceso de liberación en curso');
+        $response->assertSee('Continuar con el proceso de liberación');
+        
+        // 4. Submit the second class (Molde)
+        LiberacionModeloFundicion::create([
+            'ot' => $ot,
+            'tipo_modelo' => 'Molde',
+            'decision' => 'aprobar',
+            'estado' => 'aprobado'
+        ]);
+
+        // 5. Request index page again
+        $response2 = $this->get(route('calidad.fundicion.index'));
+        $response2->assertStatus(200);
+
+        // Now that both are registered, the card becomes finalized.
+        $response2->assertSee('Proceso Finalizado');
+        $response2->assertDontSee('Continuar con el proceso de liberación');
+    }
 }
