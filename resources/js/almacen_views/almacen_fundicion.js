@@ -4440,7 +4440,7 @@ window.abrirModalPreOrdenCasting = async function (ot) {
     document.getElementById('poc-modal-subtitle').textContent = `OT: ${ot}`;
 
     try {
-        const resp = await fetch(`/almacen/fundicion/ot-data?ot=${encodeURIComponent(ot)}&type=casting`);
+        const resp = await fetch(`${window.almacenRoutes.getOtData}?ot=${encodeURIComponent(ot)}&type=casting`);
         const res = await resp.json();
         if (res.success) {
             pocState.allClases = res.clases || [];
