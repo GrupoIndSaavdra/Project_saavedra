@@ -2091,6 +2091,7 @@
             sendScarAlert: "{{ route('calidad.fundicion.sendScarAlert') }}",
             enviarAlertaLiberacion: "{{ route('calidad.fundicion.enviarAlertaLiberacion') }}",
             deleteFile: "{{ route('calidad.fundicion.deleteFile') }}",
+            iniciarCasting: "{{ route('almacen.fundicion.iniciarCasting') }}",
         };
 
         window.almacenAppAssets = {

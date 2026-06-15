@@ -5661,8 +5661,8 @@ function generarHtmlCategorizadoCastingAprobados(archivos, otClean, isRechazados
             const baseName = nombre.split('/').pop();
             const ext = baseName.split('.').pop().toLowerCase();
             const isImg = ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext);
-            const iconDefault = isImg ? '/images/galeria-shadow.png' : '/images/pdf-view-shadow.png';
-            const iconHover = isImg ? '/images/galeria.png' : '/images/pdf-view.png';
+            const iconDefault = isImg ? `${getBaseUrl()}images/galeria-shadow.png` : `${getBaseUrl()}images/pdf-view-shadow.png`;
+            const iconHover = isImg ? `${getBaseUrl()}images/galeria.png` : `${getBaseUrl()}images/pdf-view.png`;
             const tipoParam = f.tipo || 'otro';
 
             html += `<div class="dibujos-file-card ${sec.claseCard} select-file-card" style="position:relative;width:100%;max-width:220px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.05);background:#fff;padding:10px;border:1.5px solid #e2e8f0;">
@@ -5718,7 +5718,7 @@ window.cargarInputsCasting = function (ot, files) {
                     <label style="font-weight:700;color:#15803d;margin-bottom:6px;display:block;font-family:'Poppins',sans-serif;font-size:0.95em;">Formato LDM — ${label} <span style="background:#dcfce7;color:#15803d;border-radius:20px;padding:2px 8px;font-size:0.82em;margin-left:4px;">Cargado</span></label>
                     <div style="background:#f0fdf4;border:2px solid #86efac;border-radius:10px;padding:10px 15px;display:flex;align-items:center;justify-content:space-between;gap:15px;">
                         <div style="display:flex;align-items:center;gap:10px;overflow:hidden;width:100%;">
-                            <img src="/images/pdf.png" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">
+                            <img src="${getBaseUrl()}images/pdf.png" style="width:24px;height:24px;object-fit:contain;flex-shrink:0;">
                             <span style="font-weight:600;color:#15803d;font-size:0.9em;font-family:'Poppins',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${cleanName}">${cleanName}</span>
                         </div>
                         <div style="display:flex;gap:8px;flex-shrink:0;">
@@ -5734,8 +5734,8 @@ window.cargarInputsCasting = function (ot, files) {
                         <input type="file" name="ldm_${c}" accept=".pdf" required style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:pointer;" onchange="updateCustomFileLabel(this)">
                         <div style="display:flex;align-items:center;gap:10px;width:100%;">
                             <div class="file-icon-wrapper" style="position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                <img src="/images/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
-                                <img src="/images/pdf-view.png" class="file-icon icon-hover" style="width:38px;height:38px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
+                                <img src="${getBaseUrl()}images/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
+                                <img src="${getBaseUrl()}images/pdf-view.png" class="file-icon icon-hover" style="width:38px;height:38px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
                             </div>
                             <div style="overflow:hidden;">
                                 <span class="dropzone-text-label" style="font-weight:700;color:#16a34a;font-size:0.9em;font-family:'Poppins',sans-serif;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Arrastra formato F-CCL-LDM firmado o haz clic</span>
@@ -6217,7 +6217,7 @@ document.getElementById('formMgvAprobados')?.addEventListener('submit', async fu
     }
 
     try {
-        const response = await fetch('/almacen/fundicion/iniciar-casting', {
+        const response = await fetch(window.almacenRoutes.iniciarCasting, {
             method: 'POST',
             body: formData,
             headers: {

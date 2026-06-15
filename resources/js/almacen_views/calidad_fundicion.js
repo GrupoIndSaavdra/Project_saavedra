@@ -5678,8 +5678,8 @@ function generarHtmlCategorizadoCastingAprobados(archivos, otClean, isRechazados
             const baseName = nombre.split('/').pop();
             const ext = baseName.split('.').pop().toLowerCase();
             const isImg = ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext);
-            const iconDefault = isImg ? '/images/galeria-shadow.png' : '/images/pdf-view-shadow.png';
-            const iconHover = isImg ? '/images/galeria.png' : '/images/pdf-view.png';
+            const iconDefault = isImg ? `${getBaseUrl()}images/galeria-shadow.png` : `${getBaseUrl()}images/pdf-view-shadow.png`;
+            const iconHover = isImg ? `${getBaseUrl()}images/galeria.png` : `${getBaseUrl()}images/pdf-view.png`;
             const tipoParam = f.tipo || 'otro';
 
             html += `<div class="dibujos-file-card ${sec.claseCard} select-file-card" style="position:relative;width:100%;max-width:220px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.05);background:#fff;padding:10px;border:1.5px solid #e2e8f0;">
@@ -6234,7 +6234,7 @@ document.getElementById('formMgvAprobados')?.addEventListener('submit', async fu
     }
 
     try {
-        const response = await fetch('/almacen/fundicion/iniciar-casting', {
+        const response = await fetch(window.almacenRoutes.iniciarCasting, {
             method: 'POST',
             body: formData,
             headers: {
