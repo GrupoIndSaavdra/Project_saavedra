@@ -126,6 +126,7 @@
                                 <th rowspan="2" style="width: 25px;">VL</th>
                                 <th rowspan="2" style="width: 20px;">T. de P.</th>
                                 <th rowspan="2" style="width: 25px;">Precal.<br>(°C)</th>
+                                <th rowspan="2" style="width: 55px;">Soldadura</th>
                                 <th colspan="3" class="th-section">Soldadura</th>
                                 <th colspan="3" class="th-section">Corriente</th>
                                 <th rowspan="2" style="width: 22px;">Gas<br>Argón</th>
@@ -180,6 +181,7 @@
                                     <td>{{ $fila?->tipo_preparacion ?? '—' }}</td>
                                     @if ($subIdx === 0)
                                         <td rowspan="3" class="td-precal">{{ $filaPrecal?->precalentamiento ?? '—' }}</td>
+                                        <td rowspan="3" class="td-precal" style="font-size:7px;">{{ $filaPrecal?->material_soldadura ?? '—' }}</td>
                                     @endif
                                     <td>{{ $fila?->sold_inicial ?? '—' }}</td>
                                     <td>{{ $fila?->sold_aplicada ?? '—' }}</td>

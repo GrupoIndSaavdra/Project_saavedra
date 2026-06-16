@@ -23,7 +23,8 @@
                 <th>Clase</th>
                 <th>OT</th>
                 <th>Peso por Pieza</th>
-                <th>Tipo Soldadura</th>
+                <th>Tipo de Preparación (1 Y 2)</th>
+                <th>Soldadura</th>
                 <th>Lote</th>
                 <th>Fecha</th>
                 <th>Hora</th>
@@ -39,6 +40,7 @@
                     <td>{{ $piece['orden_trabajo'] }}</td>
                     <td>{{ $piece['peso_pieza'] }}</td>
                     <td>{{ $piece['tipo_soldadura'] }}</td>
+                    <td>{{ $piece['material_soldadura'] ?? 'N/A' }}</td>
                     <td>{{ $piece['lote'] }}</td>
                     <td>{{ $piece['fecha'] }}</td>
                     <td>{{ $piece['hora'] }}</td>

@@ -926,19 +926,22 @@ function enableTable() {
             disabledInputsTable(table);
         });
     } else {
-        let table = document.querySelector(".table");
+        let selector = window.arrayData["process"] === "Soldadura PTA" ? ".pta-table" : ".table";
+        let table = document.querySelector(selector);
         disabledInputsTable(table);
     }
     redirectToEndTable();
-
-
 }
 function disabledInputsTable(table) {
     if (table) {
-        let inputs = table.querySelectorAll("input");
+        let inputs = table.querySelectorAll("input:not([type='hidden']), select, textarea");
         if (inputs.length > 0) {
             inputs.forEach((input) => {
-                if (input.className != "input input-pieceUsed" && input.className != "input-medio input-pieceUsed") {
+                const isFreeInput = input.classList.contains("input-pieceUsed")
+                    || input.classList.contains("mat-sold-input")   // ← input de material libre
+                    || input.classList.contains("mat-sold-select")   // select de material
+                    || input.classList.contains("mat-sold-btn-back");
+                if (!isFreeInput) {
                     if (window.arrayData["edit"] == 2) {
                         input.disabled =
                             input.parentElement.parentElement.className === "table-row-cNominals" ? true : false;
@@ -946,19 +949,33 @@ function disabledInputsTable(table) {
                         input.disabled = true;
                     }
                 } else {
-                    input.style.backgroundColor = "#fff";
+                    input.disabled = false;
+                    if (input.tagName === "INPUT") {
+                        input.style.backgroundColor = "#fff";
+                    }
                 }
             });
         }
+        // También asegurar que el botón "← volver" del widget no quede deshabilitado
+        table.querySelectorAll(".mat-sold-btn-back").forEach(btn => {
+            btn.disabled = false;
+        });
     }
 }
+
 function redirectToEndTable() {
-    window.onload = function () {
-        const lastLine = document.querySelector(".table tr:last-child");
+    const scrollFn = () => {
+        const selector = window.arrayData && window.arrayData["process"] === "Soldadura PTA" ? ".pta-table tr:last-child" : ".table tr:last-child";
+        const lastLine = document.querySelector(selector);
         if (lastLine) {
             lastLine.scrollIntoView({ behavior: "smooth", block: "end" });
         }
     };
+    if (document.readyState === "complete") {
+        scrollFn();
+    } else {
+        window.addEventListener("load", scrollFn);
+    }
 }
 function createBtnMetaEdit() {
     let wrapper = document.createElement("div");
@@ -2842,4 +2859,39 @@ window.openTechDocsModal = function () {
 
 // Alias para compatibilidad con código que use mostrarNotificacion
 window.mostrarNotificacion = toastpremium;
+
+// Manejadores para el selector de material de soldadura con opción "Otro"
+window.handlePTAMaterialSelectChange = function(idWidget) {
+    const selectEl = document.getElementById('select_' + idWidget);
+    const otroWrap = document.getElementById('otro_wrap_' + idWidget);
+    const inputEl = document.getElementById('input_' + idWidget);
+
+    if (selectEl.value === '__otro__') {
+        const name = selectEl.name;
+        selectEl.name = '';
+        selectEl.style.display = 'none';
+        
+        otroWrap.style.display = 'flex';
+        otroWrap.classList.add('visible');
+        inputEl.name = name;
+        inputEl.disabled = false; // ← Asegurar habilitado en JS al alternar
+        inputEl.focus();
+    }
+};
+
+window.handlePTAMaterialBackClick = function(idWidget, originalName) {
+    const selectEl = document.getElementById('select_' + idWidget);
+    const otroWrap = document.getElementById('otro_wrap_' + idWidget);
+    const inputEl = document.getElementById('input_' + idWidget);
+
+    inputEl.name = '';
+    inputEl.value = '';
+    inputEl.disabled = true; // ← Deshabilitar para que no interfiera ni se envíe vacío
+    otroWrap.style.display = 'none';
+    otroWrap.classList.remove('visible');
+
+    selectEl.name = originalName;
+    selectEl.value = '';
+    selectEl.style.display = 'block';
+};
 

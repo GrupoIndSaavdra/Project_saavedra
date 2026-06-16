@@ -16,6 +16,7 @@ class Soldadura_pza extends Model
         'temperatura_precalentado',
         'tiempo_aplicacion',
         'tipo_soldadura',
+        'material_soldadura',
         'error',
         'lote',
         'observaciones',

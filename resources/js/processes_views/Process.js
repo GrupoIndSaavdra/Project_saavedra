@@ -193,30 +193,30 @@ export class Process {
                 break;
 
             case "Soldadura PTA": //Proceso de soldadura PTA
-                this.tableTitles = ["Pieza", "Temperatura de precalentado", "Temperatura en dispositivo", "Limpieza"];
+                this.tableTitles = ["Pieza", "Temperatura de precalentado", "Temperatura en dispositivo", "Limpieza", "Soldadura"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [null];
 
                 positionSelects = [
-                    [3, 4],
+                    [3, 5],
                     [["Si", "No"], ["Ninguno", "Fundicion"]]
                 ];
 
-                fields = ["id", "temp_calentado", "temp_dispositivo", "limpieza"];
+                fields = ["id", "temp_calentado", "temp_dispositivo", "limpieza", "material_soldadura"];
                 break;
             case "Soldadura": //Proceso de soldadura
-                this.tableTitles = ["Pieza", "Peso por pieza", "Temperatura de precalentado °", "Tiempo de aplicacion", "Tipo de soldadura", "Lote"];
+                this.tableTitles = ["Pieza", "Peso por pieza", "Temperatura de precalentado °", "Tiempo de aplicacion", "Tipo de Preparación (1 Y 2)", "Soldadura", "Lote"];
 
                 divisionsCNomi = [null];
                 divisionsTole = [null];
 
                 positionSelects = [
-                    [6],
+                    [7],
                     [["Ninguno", "Fundicion"]]
                 ];
 
-                fields = ["id", "pesoxpieza", "temperatura_precalentado", "tiempo_aplicacion", "tipo_soldadura", "lote"];
+                fields = ["id", "pesoxpieza", "temperatura_precalentado", "tiempo_aplicacion", "tipo_soldadura", "material_soldadura", "lote"];
                 break;
             case "Rectificado": //Proceso de rectificado
                 this.tableTitles = ["Pieza", "Cumple"];
@@ -702,7 +702,9 @@ export class Process {
                                                     td.appendChild(this.crearInputs("input-medio", "entrada", piece.piece["entrada"], piece.piece["entrada"]));
                                                     td.appendChild(this.crearInputs("input-medio", "salida", piece.piece["salida"], piece.piece["salida"]));
                                                 } else {
-                                                    if (fields[i] == "tipo_soldadura" || fields[i] == "lote") {
+                                                    if (fields[i] == "material_soldadura") {
+                                                        td.appendChild(this.crearMaterialSoldaduraWidget(fields[i], piece.piece[fields[i]], this.nameProcess, true));
+                                                    } else if (fields[i] == "tipo_soldadura" || fields[i] == "lote") {
                                                         td.appendChild(this.crearInputs("input", fields[i], piece.piece[fields[i]], this.dataType(piece.piece[fields[i]])));
                                                     } else {
                                                         td.appendChild(this.crearInputs("input", fields[i], piece.piece[fields[i]], this.dataType(piece.piece[fields[i]])));
@@ -789,7 +791,9 @@ export class Process {
                             td.appendChild(this.crearInputs("input-medio input-pieceUsed", "entrada", null, "number"));
                             td.appendChild(this.crearInputs("input-medio input-pieceUsed", "salida", null, "number"));
                         } else {
-                            if (fields[x] == "tipo_soldadura" || fields[x] == "lote") {
+                            if (fields[x] == "material_soldadura") {
+                                td.appendChild(this.crearMaterialSoldaduraWidget(fields[x], null, this.nameProcess, false));
+                            } else if (fields[x] == "tipo_soldadura" || fields[x] == "lote") {
                                 td.appendChild(this.crearInputs("input input-pieceUsed", fields[x], null));
                             } else {
                                 td.appendChild(this.crearInputs("input input-pieceUsed", fields[x], null, "number"));
@@ -854,5 +858,230 @@ export class Process {
     }
     dataType(value) {
         return value != null && !isNaN(value) && String(value).trim() !== "" ? "number" : "text";
+    }
+
+    /**
+     * Crea un widget de selector de material de soldadura con opción "Otro" (texto libre).
+     * Select e input se INTERCAMBIAN (nunca apilados) para evitar desbordamiento de la celda.
+     */
+    crearMaterialSoldaduraWidget(name, currentValue, proceso, isEdit) {
+        const optionsSoldadura = [
+            "UNIMETAL 225",
+            "LSN220/PW2",
+            "COLMONOY 226FW",
+            "UNIMETAL 235 PISTON LSN370-FS2",
+        ];
+        const optionsPTA = [
+            "COMMERSAL 23PSP",
+            "LSN 250-PL2",
+            "UNIMETAL 200",
+            "COLMONOY 42SA",
+        ];
+
+        const opts = proceso === "Soldadura" ? optionsSoldadura : optionsPTA;
+
+        /* ── Inyectar estilos una sola vez ── */
+        if (!document.getElementById("__mat-sold-styles__")) {
+            const styleTag = document.createElement("style");
+            styleTag.id = "__mat-sold-styles__";
+            styleTag.textContent = `
+                .mat-sold-wrap {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 100%;
+                    height: 100%;
+                    box-sizing: border-box;
+                    padding: 4px;
+                }
+                .mat-sold-select {
+                    width: 100%;
+                    height: 38px;
+                    padding: 6px 28px 6px 12px;
+                    font-size: 0.88em;
+                    font-family: "Poppins", sans-serif;
+                    font-weight: 600;
+                    color: #033966;
+                    background-color: #ffffff;
+                    border: 1.5px solid #033966a0;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    appearance: none;
+                    -webkit-appearance: none;
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23033966' d='M6 8.5L2 4.5h8z'/%3E%3C/svg%3E");
+                    background-repeat: no-repeat;
+                    background-position: right 10px center;
+                    background-size: 10px;
+                    box-shadow: 0 2px 4px rgba(3, 57, 102, 0.08);
+                    transition: all 0.2s ease;
+                    box-sizing: border-box;
+                }
+                .mat-sold-select:hover {
+                    border-color: #033966;
+                    background-color: #f4f8fc;
+                    box-shadow: 0 3px 6px rgba(3, 57, 102, 0.15);
+                }
+                .mat-sold-select:focus {
+                    outline: none;
+                    border-color: #0056b3;
+                    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
+                }
+                .mat-sold-select option { color: #033966; font-weight: 500; background:#fff; text-align: left; }
+
+                .mat-sold-otro-wrap {
+                    display: none;
+                    width: 100%;
+                    height: 38px;
+                    align-items: center;
+                    gap: 6px;
+                    box-sizing: border-box;
+                    padding: 0;
+                    margin: 0;
+                    animation: mat-fade-in .15s ease;
+                }
+                .mat-sold-otro-wrap.visible { display: flex; }
+
+                .mat-sold-btn-back {
+                    flex-shrink: 0;
+                    width: 28px;
+                    height: 28px;
+                    border: 1.5px solid #033966a0;
+                    border-radius: 6px;
+                    background: #ffffff;
+                    color: #033966;
+                    font-size: 1em;
+                    font-weight: 700;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: all 0.2s ease;
+                    box-sizing: border-box;
+                }
+                .mat-sold-btn-back:hover {
+                    background: #f4f8fc;
+                    border-color: #033966;
+                }
+
+                .mat-sold-input {
+                    flex: 1;
+                    min-width: 0;
+                    height: 100%;
+                    padding: 6px 12px;
+                    font-size: 0.88em;
+                    font-family: "Poppins", sans-serif;
+                    font-weight: 600;
+                    color: #033966;
+                    background-color: #ffffff;
+                    border: 1.5px dashed #033966a0;
+                    border-radius: 6px;
+                    box-sizing: border-box;
+                    box-shadow: 0 2px 4px rgba(3, 57, 102, 0.05);
+                    transition: all 0.2s ease;
+                }
+                .mat-sold-input::placeholder {
+                    color: #7da8c7;
+                    font-style: italic;
+                    font-size: 0.78rem;
+                }
+                .mat-sold-input:focus {
+                    outline: none;
+                    border: 1.5px solid #033966;
+                    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
+                }
+                @keyframes mat-fade-in {
+                    from { opacity:0; transform:translateX(-4px); }
+                    to   { opacity:1; transform:translateX(0); }
+                }
+            `;
+            document.head.appendChild(styleTag);
+        }
+
+        /* ── Wrapper principal (flex row, ocupa toda la celda) ── */
+        const wrapper = document.createElement("div");
+        wrapper.className = "mat-sold-wrap";
+
+        /* ── SELECT ── */
+        const select = document.createElement("select");
+        select.className = "mat-sold-select";
+        select.name = isEdit ? `${name}[]` : name;
+
+        const placeholderOpt = document.createElement("option");
+        placeholderOpt.value = "";
+        placeholderOpt.text = "— Seleccionar —";
+        select.appendChild(placeholderOpt);
+
+        opts.forEach((opt) => {
+            const o = document.createElement("option");
+            o.value = opt;
+            o.text = opt;
+            select.appendChild(o);
+        });
+
+        const otroOpt = document.createElement("option");
+        otroOpt.value = "__otro__";
+        otroOpt.text = "Otro...";
+        select.appendChild(otroOpt);
+
+        /* ── BLOQUE "OTRO" (botón atrás + input) ── */
+        const otroWrap = document.createElement("div");
+        otroWrap.className = "mat-sold-otro-wrap";
+
+        // Botón ← volver al select
+        const btnBack = document.createElement("button");
+        btnBack.type = "button";
+        btnBack.className = "mat-sold-btn-back";
+        btnBack.title = "Volver al selector";
+        btnBack.innerHTML = "&#8592;"; // ←
+
+        // Input de texto libre
+        const inputOtro = document.createElement("input");
+        inputOtro.type = "text";
+        inputOtro.className = "mat-sold-input";
+        inputOtro.placeholder = "Escribir material...";
+        inputOtro.maxLength = 80;
+        // Nombre vacío por defecto (se activa al mostrar)
+        inputOtro.name = isEdit ? `${name}_otro[]` : `${name}_otro`;
+
+        otroWrap.appendChild(btnBack);
+        otroWrap.appendChild(inputOtro);
+
+        /* ── Lógica: mostrar select o bloque "otro" ── */
+        const showSelect = () => {
+            select.style.display = "";          // visible
+            select.name = isEdit ? `${name}[]` : name;
+            otroWrap.classList.remove("visible");
+            inputOtro.name = isEdit ? `${name}_otro[]` : `${name}_otro`;
+            inputOtro.value = "";
+            inputOtro.disabled = true;          // ← Deshabilitar para no enviar valor erróneo
+            select.value = "";                  // resetear a placeholder
+        };
+
+        const showOtro = (existingValue = "") => {
+            select.style.display = "none";      // ocultar select
+            select.name = isEdit ? `${name}_select[]` : `${name}_select`; // nombre auxiliar
+            otroWrap.classList.add("visible");
+            inputOtro.name = isEdit ? `${name}[]` : name; // este lleva el valor real
+            inputOtro.disabled = false;         // ← Habilitar
+            if (existingValue) inputOtro.value = existingValue;
+            setTimeout(() => inputOtro.focus(), 30);
+        };
+
+        /* ── Aplicar valor actual de la BD ── */
+        if (currentValue && opts.includes(currentValue)) {
+            select.selectedIndex = opts.indexOf(currentValue) + 1;
+        } else if (currentValue && currentValue.trim() !== "") {
+            showOtro(currentValue);
+        }
+
+        /* ── Eventos ── */
+        select.addEventListener("change", () => {
+            if (select.value === "__otro__") showOtro();
+        });
+        btnBack.addEventListener("click", () => showSelect());
+
+        wrapper.appendChild(select);
+        wrapper.appendChild(otroWrap);
+        return wrapper;
     }
 }

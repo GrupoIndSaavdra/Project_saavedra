@@ -31,6 +31,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                 <th rowspan="2">VL</th>
                 <th rowspan="2">T. de P.</th>
                 <th rowspan="2">Precal.<br>(°C)</th>
+                <th rowspan="2">Soldadura</th>
 
                 {{-- Bloque Soldadura --}}
                 <th colspan="3" style="background:#055a9e;">Soldadura</th>
@@ -219,6 +220,54 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                     <br><small style="color:#888;">°C</small>
                                 @endif
                             </td>
+                            <td class="td-precal" rowspan="3" style="min-width: 140px;">
+                                @if ($modo === 'captura')
+                                    @php
+                                        $idWidget = 'mat_sold_' . ($filaPrecal?->id ?? 'new_' . $nPieza . '_D_Conexion_pico');
+                                        $nameField = 'material_soldadura[' . ($filaPrecal?->id ?? 'new_' . $nPieza . '_D_Conexion_pico') . ']';
+                                        $currentVal = $filaPrecal?->material_soldadura ?? '';
+                                        $options = [
+                                            "COMMERSAL 23PSP",
+                                            "LSN 250-PL2",
+                                            "UNIMETAL 200",
+                                            "COLMONOY 42SA"
+                                        ];
+                                        $isOtro = !empty($currentVal) && !in_array($currentVal, $options);
+                                    @endphp
+                                    <div class="mat-sold-wrap">
+                                        <select id="select_{{ $idWidget }}" 
+                                                class="pta-select mat-sold-select" 
+                                                style="display: {{ $isOtro ? 'none' : 'block' }};"
+                                                onchange="handlePTAMaterialSelectChange('{{ $idWidget }}')"
+                                                @if(!$isOtro) name="{{ $nameField }}" @endif>
+                                            <option value="">— Seleccionar —</option>
+                                            @foreach ($options as $opt)
+                                                <option value="{{ $opt }}" {{ $currentVal === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                            @endforeach
+                                            <option value="__otro__" {{ $isOtro ? 'selected' : '' }}>Otro...</option>
+                                        </select>
+                                        <div id="otro_wrap_{{ $idWidget }}" 
+                                             class="mat-sold-otro-wrap {{ $isOtro ? 'visible' : '' }}" 
+                                             style="display: {{ $isOtro ? 'flex' : 'none' }}; gap: 4px; width: 100%;">
+                                            <button type="button" 
+                                                    class="mat-sold-btn-back" 
+                                                    style="cursor: pointer;"
+                                                    onclick="handlePTAMaterialBackClick('{{ $idWidget }}', '{{ $nameField }}')">
+                                                ←
+                                            </button>
+                                            <input type="text" 
+                                                   id="input_{{ $idWidget }}" 
+                                                   class="pta-input mat-sold-input" 
+                                                   placeholder="Escribir material..." 
+                                                   maxlength="80" 
+                                                   @if($isOtro) name="{{ $nameField }}" @else disabled @endif
+                                                   value="{{ $isOtro ? $currentVal : '' }}">
+                                        </div>
+                                    </div>
+                                @else
+                                    {{ $filaPrecal?->material_soldadura ?? '—' }}
+                                @endif
+                            </td>
                         @endif
 
                         {{-- ── Soldadura Inicial ── --}}
@@ -395,7 +444,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                     {{-- Opcional fila de control checkbox para habilitar edición extra en historial --}}
                     @if ($modo === 'captura')
                         <tr style="background:#055a9e; border-top:2px solid #034a87;">
-                            <td colspan="17" style="padding:.4rem .8rem;">
+                            <td colspan="18" style="padding:.4rem .8rem;">
                                 <label
                                     style="display:flex; align-items:center; gap:.5rem; cursor:pointer; font-size:.82rem; color:#fff;">
                                     <input type="checkbox" checked onchange="handleP2Checkbox('{{ $p2IdUniqH }}')"
@@ -469,6 +518,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                     style="color:#888;">°C</small>
                             @endif
                         </td>
+                        <td class="td-precal">—</td>
                         <td>
                             @if ($modo === 'captura')
                                 <input type="number" step="0.001" name="p2_sold_inicial[{{ $keyP2H }}]"
@@ -626,7 +676,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                         : ($tipoA === 'D_Conexion_obt' ? 'd_conexion_obt' : 'perfilado');
                                 @endphp
                                 <input type="number" step="0.001" name="{{ $campoA }}[{{ $keyA }}]"
-                                    value="{{ $filaA?->$campoA ?? '' }}" class="pta-input" placeholder="0.000" required>
+                                    value="{{ $filaA?->$campoA ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required>
                                 <input type="hidden" name="piece_id[{{ $keyA }}]" value="{{ $filaA?->id ?? '' }}">
                                 <input type="hidden" name="tipo_medida[{{ $keyA }}]" value="{{ $tipoA }}">
                                 <input type="hidden" name="n_pieza_ref[{{ $keyA }}]" value="{{ $nPiezaA }}">
@@ -634,11 +684,11 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                             {{-- VL --}}
                             <td><input type="number" step="0.001" name="vl[{{ $keyA }}]" value="{{ $filaA?->vl ?? '' }}"
-                                    class="pta-input" placeholder="0.000" required></td>
+                                    class="pta-input input-pieceUsed" placeholder="0.000" required></td>
 
                             {{-- Tipo preparación --}}
                             <td>
-                                <select name="tipo_preparacion[{{ $keyA }}]" class="pta-select" required>
+                                <select name="tipo_preparacion[{{ $keyA }}]" class="pta-select input-pieceUsed" required>
                                     <option value="">—</option>
                                     @foreach ([1, 2, 3] as $opt)
                                         <option value="{{ $opt }}" {{ ($filaA?->tipo_preparacion ?? '') == $opt ? 'selected' : '' }}>
@@ -653,38 +703,82 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                 <td class="td-precal" rowspan="3">
                                     <input type="number" step="0.01"
                                         name="precalentamiento[{{ $filaPrecalA?->id ?? 'new_' . $nPiezaA . '_precal' }}]"
-                                        value="{{ $filaPrecalA?->precalentamiento ?? '' }}" class="pta-input" placeholder="°C" required>
+                                        value="{{ $filaPrecalA?->precalentamiento ?? '' }}" class="pta-input input-pieceUsed" placeholder="°C" required>
+                                </td>
+                                <td class="td-precal" rowspan="3" style="min-width: 140px;">
+                                    @php
+                                        $idWidgetA = 'mat_sold_' . $keyA;
+                                        $nameFieldA = 'material_soldadura[' . $keyA . ']';
+                                        $currentValA = $filaPrecalA?->material_soldadura ?? '';
+                                        $optionsA = [
+                                            "COMMERSAL 23PSP",
+                                            "LSN 250-PL2",
+                                            "UNIMETAL 200",
+                                            "COLMONOY 42SA"
+                                        ];
+                                        $isOtroA = !empty($currentValA) && !in_array($currentValA, $optionsA);
+                                    @endphp
+                                    <div class="mat-sold-wrap">
+                                        <select id="select_{{ $idWidgetA }}" 
+                                                class="pta-select mat-sold-select" 
+                                                style="display: {{ $isOtroA ? 'none' : 'block' }};"
+                                                onchange="handlePTAMaterialSelectChange('{{ $idWidgetA }}')"
+                                                @if(!$isOtroA) name="{{ $nameFieldA }}" @endif>
+                                            <option value="">— Seleccionar —</option>
+                                            @foreach ($optionsA as $opt)
+                                                <option value="{{ $opt }}" {{ $currentValA === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                            @endforeach
+                                            <option value="__otro__" {{ $isOtroA ? 'selected' : '' }}>Otro...</option>
+                                        </select>
+                                        <div id="otro_wrap_{{ $idWidgetA }}" 
+                                             class="mat-sold-otro-wrap {{ $isOtroA ? 'visible' : '' }}" 
+                                             style="display: {{ $isOtroA ? 'flex' : 'none' }}; gap: 4px; width: 100%;">
+                                            <button type="button" 
+                                                    class="mat-sold-btn-back" 
+                                                    style="cursor: pointer;"
+                                                    onclick="handlePTAMaterialBackClick('{{ $idWidgetA }}', '{{ $nameFieldA }}')">
+                                                ←
+                                            </button>
+                                            <input type="text" 
+                                                   id="input_{{ $idWidgetA }}" 
+                                                   class="pta-input mat-sold-input" 
+                                                   placeholder="Escribir material..." 
+                                                   maxlength="80" 
+                                                   @if($isOtroA) name="{{ $nameFieldA }}" @else disabled @endif
+                                                   value="{{ $isOtroA ? $currentValA : '' }}">
+                                        </div>
+                                    </div>
                                 </td>
                             @endif
 
                             {{-- Soldadura --}}
                             <td><input type="number" step="0.001" name="sold_inicial[{{ $keyA }}]"
-                                    value="{{ $filaA?->sold_inicial ?? '' }}" class="pta-input" placeholder="0.000" required></td>
+                                    value="{{ $filaA?->sold_inicial ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
                             <td><input type="number" step="0.001" name="sold_aplicada[{{ $keyA }}]"
-                                    value="{{ $filaA?->sold_aplicada ?? '' }}" class="pta-input" placeholder="0.000" required></td>
+                                    value="{{ $filaA?->sold_aplicada ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
                             <td><input type="number" step="0.001" name="sold_final[{{ $keyA }}]"
-                                    value="{{ $filaA?->sold_final ?? '' }}" class="pta-input" placeholder="0.000" required></td>
+                                    value="{{ $filaA?->sold_final ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
 
                             {{-- Corriente --}}
                             <td><input type="number" step="0.001" name="corr_inicial[{{ $keyA }}]"
-                                    value="{{ $filaA?->corr_inicial ?? '' }}" class="pta-input" placeholder="0.000" required></td>
+                                    value="{{ $filaA?->corr_inicial ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
                             <td><input type="number" step="0.001" name="corr_aplicada[{{ $keyA }}]"
-                                    value="{{ $filaA?->corr_aplicada ?? '' }}" class="pta-input" placeholder="0.000" required></td>
+                                    value="{{ $filaA?->corr_aplicada ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
                             <td><input type="number" step="0.001" name="corr_final[{{ $keyA }}]"
-                                    value="{{ $filaA?->corr_final ?? '' }}" class="pta-input" placeholder="0.000" required></td>
+                                    value="{{ $filaA?->corr_final ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
 
                             {{-- Gas argón --}}
                             <td><input type="number" step="0.001" name="gas_argon[{{ $keyA }}]"
-                                    value="{{ $filaA?->gas_argon ?? '' }}" class="pta-input" placeholder="0.000" required></td>
+                                    value="{{ $filaA?->gas_argon ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
 
                             {{-- Velocidad calculada --}}
                             <td><input type="number" step="0.001" name="velocidad_calculada[{{ $keyA }}]"
-                                    value="{{ $filaA?->velocidad_calculada ?? '' }}" class="pta-input" placeholder="0.000" required>
+                                    value="{{ $filaA?->velocidad_calculada ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required>
                             </td>
 
                             {{-- Resultado --}}
                             <td>
-                                <select name="resultado[{{ $keyA }}]" class="pta-select" required>
+                                <select name="resultado[{{ $keyA }}]" class="pta-select input-pieceUsed" required>
                                     <option value="">—</option>
                                     <option value="Bien" {{ ($filaA?->resultado ?? '') === 'Bien' ? 'selected' : '' }}>Bien</option>
                                     <option value="Mal" {{ ($filaA?->resultado ?? '') === 'Mal' ? 'selected' : '' }}>Mal</option>
@@ -693,7 +787,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                             {{-- Defecto --}}
                             <td>
-                                <select name="defecto_pta[{{ $keyA }}]" class="pta-select" required>
+                                <select name="defecto_pta[{{ $keyA }}]" class="pta-select input-pieceUsed" required>
                                     <option value="Ninguno" {{ ($filaA?->defecto_pta ?? 'Ninguno') === 'Ninguno' ? 'selected' : '' }}>
                                         Ninguno</option>
                                     <option value="Fundición" {{ ($filaA?->defecto_pta ?? '') === 'Fundición' ? 'selected' : '' }}>
@@ -705,7 +799,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             @if ($esPrimeraA)
                                 <td rowspan="3" style="min-width:120px; text-align:left; padding:6px;">
                                     <textarea name="observaciones[{{ $filaPrecalA?->id ?? 'new_' . $nPiezaA . '_obs' }}]"
-                                        class="pta-input" rows="3" style="resize:vertical; min-width:110px;"
+                                        class="pta-input input-pieceUsed" rows="3" style="resize:vertical; min-width:110px;"
                                         placeholder="Observaciones...">{{ $filaPrecalA?->observaciones ?? '' }}</textarea>
                                 </td>
                             @endif
@@ -732,11 +826,12 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                     {{-- Fila de control: checkbox --}}
                     <tr id="row-p2-ctrl-{{ $p2IdUniq }}" style="background:#055a9e; border-top:2px solid #034a87;">
-                        <td colspan="17" style="padding:.4rem .8rem;">
+                        <td colspan="18" style="padding:.4rem .8rem;">
                             <label
                                 style="display:flex; align-items:center; gap:1rem; cursor:pointer; font-size:1rem; color:#fff;">
                                 <input type="checkbox" id="chk-p2-{{ $p2IdUniq }}" {{ $p2YaActiva ? 'checked' : '' }}
                                     onchange="handleP2Checkbox('{{ $p2IdUniq }}')"
+                                    class="input-pieceUsed"
                                     style="width:20px; height:20px; cursor:pointer; margin-left: 5rem; accent-color:#fff;">
                                 <strong>Aplicar 2da pasada</strong>
                                 @if($p2YaActiva)
@@ -795,7 +890,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                         {{-- SELECT: tipo de medida --}}
                         <td class="td-tipo-medida" style="min-width:130px;">
-                            <select name="p2_tipo_medida[{{ $keyP2 }}]" class="pta-select"
+                            <select name="p2_tipo_medida[{{ $keyP2 }}]" class="pta-select input-pieceUsed"
                                 style="font-size:1.2rem; color:#034a87; font-weight:600; width:100%;">
                                 <option value="">— Medida —</option>
                                 <option value="D_Conexion_pico" {{ $tipoP2Guardado === 'D_Conexion_pico' ? 'selected' : '' }}>D.
@@ -810,16 +905,16 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         {{-- Valor de la medida seleccionada --}}
                         <td>
                             <input type="number" step="0.001" name="p2_valor[{{ $keyP2 }}]" value="{{ $valorP2Guardado ?? '' }}"
-                                class="pta-input" placeholder="0.000">
+                                class="pta-input input-pieceUsed" placeholder="0.000">
                         </td>
 
                         {{-- VL --}}
                         <td><input type="number" step="0.001" name="p2_vl[{{ $keyP2 }}]" value="{{ $filaP2?->p2_vl ?? '' }}"
-                                class="pta-input" placeholder="0.000"></td>
+                                class="pta-input input-pieceUsed" placeholder="0.000"></td>
 
                         {{-- Tipo Preparación --}}
                         <td>
-                            <select name="p2_tipo_preparacion[{{ $keyP2 }}]" class="pta-select">
+                            <select name="p2_tipo_preparacion[{{ $keyP2 }}]" class="pta-select input-pieceUsed">
                                 <option value="">—</option>
                                 @foreach ([1, 2, 3] as $optP2)
                                     <option value="{{ $optP2 }}" {{ ($filaP2?->p2_tipo_preparacion ?? '') == $optP2 ? 'selected' : '' }}>{{ $optP2 }}</option>
@@ -830,36 +925,37 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         {{-- Precalentamiento --}}
                         <td class="td-precal">
                             <input type="number" step="0.01" name="p2_precalentamiento[{{ $keyP2 }}]"
-                                value="{{ $filaP2?->p2_precalentamiento ?? '' }}" class="pta-input" placeholder="°C">
+                                value="{{ $filaP2?->p2_precalentamiento ?? '' }}" class="pta-input input-pieceUsed" placeholder="°C">
                         </td>
+                        <td class="td-precal">—</td>
 
                         {{-- Soldadura --}}
                         <td><input type="number" step="0.001" name="p2_sold_inicial[{{ $keyP2 }}]"
-                                value="{{ $filaP2?->p2_sold_inicial ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_sold_inicial ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000"></td>
                         <td><input type="number" step="0.001" name="p2_sold_aplicada[{{ $keyP2 }}]"
-                                value="{{ $filaP2?->p2_sold_aplicada ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_sold_aplicada ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000"></td>
                         <td><input type="number" step="0.001" name="p2_sold_final[{{ $keyP2 }}]"
-                                value="{{ $filaP2?->p2_sold_final ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_sold_final ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000"></td>
 
                         {{-- Corriente --}}
                         <td><input type="number" step="0.001" name="p2_corr_inicial[{{ $keyP2 }}]"
-                                value="{{ $filaP2?->p2_corr_inicial ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_corr_inicial ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000"></td>
                         <td><input type="number" step="0.001" name="p2_corr_aplicada[{{ $keyP2 }}]"
-                                value="{{ $filaP2?->p2_corr_aplicada ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_corr_aplicada ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000"></td>
                         <td><input type="number" step="0.001" name="p2_corr_final[{{ $keyP2 }}]"
-                                value="{{ $filaP2?->p2_corr_final ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_corr_final ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000"></td>
 
                         {{-- Gas Argón --}}
                         <td><input type="number" step="0.001" name="p2_gas_argon[{{ $keyP2 }}]"
-                                value="{{ $filaP2?->p2_gas_argon ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_gas_argon ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000"></td>
 
                         {{-- Velocidad Calculada --}}
                         <td><input type="number" step="0.001" name="p2_velocidad_calculada[{{ $keyP2 }}]"
-                                value="{{ $filaP2?->p2_velocidad_calculada ?? '' }}" class="pta-input" placeholder="0.000"></td>
+                                value="{{ $filaP2?->p2_velocidad_calculada ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000"></td>
 
                         {{-- Resultado --}}
                         <td>
-                            <select name="p2_resultado[{{ $keyP2 }}]" class="pta-select">
+                            <select name="p2_resultado[{{ $keyP2 }}]" class="pta-select input-pieceUsed">
                                 <option value="">—</option>
                                 <option value="Bien" {{ ($filaP2?->p2_resultado ?? '') === 'Bien' ? 'selected' : '' }}>Bien
                                 </option>
@@ -869,7 +965,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                         {{-- Defecto --}}
                         <td>
-                            <select name="p2_defecto_pta[{{ $keyP2 }}]" class="pta-select">
+                            <select name="p2_defecto_pta[{{ $keyP2 }}]" class="pta-select input-pieceUsed">
                                 <option value="Ninguno" {{ ($filaP2?->p2_defecto_pta ?? 'Ninguno') === 'Ninguno' ? 'selected' : '' }}>Ninguno</option>
                                 <option value="Fundición" {{ ($filaP2?->p2_defecto_pta ?? '') === 'Fundición' ? 'selected' : '' }}>Fundición</option>
                             </select>
@@ -877,7 +973,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                         {{-- Observaciones --}}
                         <td style="min-width:120px; text-align:left; padding:6px;">
-                            <textarea name="p2_observaciones[{{ $keyP2 }}]" class="pta-input" rows="2"
+                            <textarea name="p2_observaciones[{{ $keyP2 }}]" class="pta-input input-pieceUsed" rows="2"
                                 style="resize:vertical; min-width:110px;"
                                 placeholder="Obs. 2da pasada...">{{ $filaP2?->p2_observaciones ?? '' }}</textarea>
                         </td>
@@ -995,6 +1091,6 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                 }
             }
         }
+        }
     });
-
 </script>

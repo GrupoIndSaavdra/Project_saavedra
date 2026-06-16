@@ -19,6 +19,7 @@ class SoldaduraPTA_pza extends Model
         'temp_calentado',
         'temp_dispositivo',
         'limpieza',
+        'material_soldadura',
         'error',
         'observaciones',
 

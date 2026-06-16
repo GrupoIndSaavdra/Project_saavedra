@@ -119,6 +119,7 @@ class SoldaduraPTAController extends Controller
                 $piece->d_conexion_pico = $request->d_conexion_pico[$key] ?? null;
                 $piece->precalentamiento = $request->precalentamiento[$key] ?? null;
                 $piece->observaciones = $request->observaciones[$key] ?? null;
+                $piece->material_soldadura = $request->material_soldadura[$key] ?? null;
             } elseif ($tipo === 'D_Conexion_obt') {
                 $piece->d_conexion_obt = $request->d_conexion_obt[$key] ?? null;
             } elseif ($tipo === 'Perfilado') {

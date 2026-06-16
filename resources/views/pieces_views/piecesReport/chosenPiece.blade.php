@@ -192,7 +192,7 @@
 
                     case 'Soldadura':
                         titulos = ['No. Pieza', 'Peso x Pieza', 'Temperatura precalentado ', 'Tiempo de aplicación',
-                            'Tipo de soldadura', 'Lote', 'Error', 'Observaciones'
+                            'Tipo de Preparación (1 Y 2)', 'Soldadura', 'Lote', 'Error', 'Observaciones'
                         ];
 
                         cNomiPosiciones = [null]; // Posiciones de los inputs de c.nominal
@@ -204,13 +204,13 @@
                         valoresTole = null;
 
                         nombres = ['n_juego', 'pesoxpieza', 'temperatura_precalentado', 'tiempo_aplicacion',
-                            'tipo_soldadura', 'lote', 'error', 'observaciones'
+                            'tipo_soldadura', 'material_soldadura', 'lote', 'error', 'observaciones'
                         ];
                         break;
 
                     case 'Soldadura PTA':
                         titulos = ['No. Pieza', 'Temperatura de calentado', 'Temperatura en dispositivo ', 'Limpieza',
-                            'Error', 'Observaciones'
+                            'Soldadura', 'Error', 'Observaciones'
                         ];
 
                         cNomiPosiciones = [null]; // Posiciones de los inputs de c.nominal
@@ -221,8 +221,8 @@
 
                         valoresTole = null;
 
-                        nombres = ['n_juego', 'temp_calentado', 'temp_dispositivo', 'limpieza', 'error',
-                            'observaciones'
+                        nombres = ['n_juego', 'temp_calentado', 'temp_dispositivo', 'limpieza',
+                            'material_soldadura', 'error', 'observaciones'
                         ];
                         break;
 

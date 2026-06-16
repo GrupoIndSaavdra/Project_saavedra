@@ -16,8 +16,6 @@
 @section('content')
 
     <div class="alm-wrapper">
-
-        {{-- ── HEADER ─────────────────────────────────────────────── --}}
         @php
             $perfil = Auth::user()->perfil;
             $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
@@ -30,6 +28,7 @@
             </div>
             <div class="alm-header-text">
                 <h1>Almacén — Dibujos y Ayudas Visuales de Fundición</h1>
+
                 <p>Consulta histórica de todos los dibujos y ayudas visuales enviados a Almacén. Registro
                     permanente e inmutable.</p>
             </div>
@@ -37,9 +36,9 @@
         </div>
 
         <div class="alm-main-layout">
-            {{-- ── COLUMNA IZQUIERDA (SIDEBAR) ───────────────────────── --}}
+
             <aside class="alm-sidebar">
-                {{-- ── LEYENDA DE ESTADOS DE MODELO ───────────────────────── --}}
+
                 <div class="alm-filters-card"
                     style="margin-bottom: 2em; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); position: relative; padding: 1.8em;">
                     <div
@@ -54,7 +53,7 @@
 
                     <div class="legend-grid-compact"
                         style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
-                        {{-- Nuevo --}}
+
                         <div class="legend-compact-item"
                             onclick="showLegendDetail(this, 'Nuevo', '{{ Auth::user()->perfil == 4 ? 'Pre-orden recibida, espera Calidad.' : 'Alerta recibida. Pendiente Almacén.' }}')"
                             style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
@@ -67,7 +66,6 @@
                                 style="font-size: 0.82rem; font-weight: 700; color: #475569; margin-top: 10px; text-align: center; line-height: 1.1;">Nuevo</span>
                         </div>
 
-                        {{-- Pre-Orden --}}
                         <div class="legend-compact-item"
                             onclick="showLegendDetail(this, 'Pre-Orden', 'Pre-orden generada, pendiente enviar.')"
                             style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
@@ -509,12 +507,12 @@
                                                         $num = intval($m[1]) - 1;
                                                         return $num > 0 ? '_R' . $num : '';
                                                     }, $reg->ot);
-                                                    
+
                                                     $rechazados = \App\Models\LiberacionModeloFundicion::where('ot', '=', $prevOt)
                                                         ->where('decision', '=', 'rechazar')
                                                         ->pluck('tipo_modelo')
                                                         ->toArray();
-                                                        
+
                                                     $validClasses = [];
                                                     foreach ($rechazados as $r) {
                                                         $clases = array_map('trim', explode(',', strtolower($r)));
@@ -532,7 +530,7 @@
                                                             ->where('decision', '=', 'aprobar')
                                                             ->pluck('tipo_modelo')
                                                             ->toArray();
-                                                            
+
                                                         $validClasses = [];
                                                         foreach ($aprobados as $a) {
                                                             $clases = array_map('trim', explode(',', strtolower($a)));
@@ -941,7 +939,7 @@
                                                             strpos($nameLow, 'liberacion') === false) ||
                                                         strpos($nameLow, 'escaneado') !== false
                                                     );
-                                                
+
                                                     // Si el archivo es de Calidad y no es preorden ni confirmacion, ocultar hasta que se envie la alerta
                                                     if ($archivo['owner'] === 'calidad' && !$isPreorden && strpos($nameLow, 'confirmacion') === false) {
                                                         $fileHistory = $relatedRecords->firstWhere('ot', $archivo['ot']);
@@ -954,7 +952,7 @@
                                                             continue; // Ocultar para todos los perfiles, incluidos Admin y Supervisor
                                                         }
                                                     }
-                                                
+
                                                     if ($userPerfil != 1 && $userPerfil != 2) {
                                                         if ($userPerfil == 4) { // Calidad
                                                             // Calidad solo ve preordenes si pre_orden_email_sent es true
@@ -1213,9 +1211,7 @@
                                             @if ($hasFilesOrControl)
                                                 <tr class="alm-files-row" id="files-{{ $estado }}-{{ $loop->index }}">
                                                     <td colspan="6">
-                                                        {{-- BLOQUE 1: Dibujos solo visibles si la alerta fue enviada desde
-                                                        manage_documentation.js
-                                                        --}}
+
                                                         @if ($countDibujos > 0 && $reg->alert_sent_at)
                                                             <h3
                                                                 style="margin-top: 15px; margin-bottom: 10px; color: #005194; border-bottom: 2px solid #005194; padding-bottom: 5px;">
@@ -1301,7 +1297,7 @@
                                                                         $canDelete = false;
                                                                         $fileOwner = $otroArchivo['owner'] ?? '';
                                                                         $userPerfil = Auth::user()->perfil;
-                                                                        
+
                                                                         $alertSent = false;
                                                                         if ($fileOwner === 'almacen') {
                                                                             $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
@@ -1388,7 +1384,7 @@
                                                                         $canDelete = false;
                                                                         $fileOwner = $otroArchivo['owner'] ?? '';
                                                                         $userPerfil = Auth::user()->perfil;
-                                                                        
+
                                                                         $alertSent = false;
                                                                         if ($fileOwner === 'almacen') {
                                                                             $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
@@ -1464,15 +1460,15 @@
                                                             </div>
                                                         @endif
 
-                                                        {{-- ── SECCIí“N CONTROL DE MODELOS (Solo Almacén y OTs Activas) ── --}}
+
                                                         @if ($showControlCard)
                                                                 @php
-                                                                    // Detectar si es una OT de re-proceso (_R1, _R2, etc.)
+
                                                                     $esReproceso = (bool) preg_match('/_R\d+$/i', $targetReg->ot);
                                                                     $controlDisabled = ($targetReg->tiene_modelo || $targetReg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '';
                                                                     $hideSiNo = ($esReproceso || $targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent) ? 'display: none;' : '';
                                                                     $hideEditMail = ($targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent) ? '' : 'display: none;';
-                                                                    // Para reproceso: mostrar Pre-Orden si aún no se ha generado
+
                                                                     $hideReprocesoPreOrden = ($esReproceso && !$targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent) ? '' : 'display: none;';
                                                                 @endphp
                                                                 <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}"
@@ -1540,9 +1536,7 @@
                                                                                     <span>Pre-Orden Modelo</span>
                                                                                 </button>
 
-                                                                                {{-- Editar + Enviar Alerta (cuando pre-orden ya existe, normal o
-                                                                                reproceso)
-                                                                                --}}
+
                                                                                 <button class="btn-modelo btn-modelo-edit"
                                                                                     onclick="abrirModalPreOrden('{{ $targetReg->ot }}')"
                                                                                     title="Editar información de la preorden existente"
@@ -1564,9 +1558,7 @@
                                                                 </div>
                                                             @else
                                                                 @php
-                                                                    // Liberaciones solo de la OT base para determinar correctamente
-                                                                    // si el veredicto es aprobado, rechazado o mixto.
-                                                                    // El reproceso maneja su propio estado en la card de Rechazados.
+
                                                                     $liberaciones = \App\Models\LiberacionModeloFundicion::where('ot', $reg->ot)->where('estado', '!=', 'pendiente')->get();
                                                                     $aprobados = $liberaciones->where('decision', 'aprobar')->pluck('tipo_modelo')->unique()->values()->toArray();
                                                                     $rechazados = $liberaciones->where('decision', 'rechazar')->pluck('tipo_modelo')->unique()->values()->toArray();
@@ -1579,8 +1571,6 @@
                                                                         && in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado']);
                                                                 @endphp
 
-                                                                {{-- Card Final: Pre-orden enviada por correo (flujo directo sin paso por
-                                                                Calidad/liberaciones) --}}
                                                                 @if ($castingEmailSent && count($aprobados) === 0)
                                                                     <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}"
                                                                         style="margin-top: 15px; opacity: 0.9; pointer-events: none; border: 2px solid #16a34a;">
@@ -1617,8 +1607,6 @@
                                                                     </div>
                                                                 @endif
 
-                                                                {{-- Card 1: Approved models.
-                                                                Solo se muestra si la OT tiene modelos aprobados. --}}
                                                                 @if (count($aprobados) > 0)
                                                                     @php
                                                                         $castingPre = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->where('pdf_filename', 'LIKE', '%Casting%')->first();
@@ -1732,7 +1720,7 @@
                                                                             if ($castingEmailSentReproceso) {
                                                                                 $rechCardDisabled = 'opacity: 0.5; pointer-events: none;';
                                                                             } elseif ($ultimoRechazadoPorCalidad || $reprocesoAprobadoPorCalidad) {
-                                                                                // Reproceso pendiente de procesamiento por Almacén (rechazado o aprobado por Calidad)
+
                                                                                 $rechCardDisabled = '';
                                                                             } elseif (!$latestReproceso || $latestReproceso->pre_orden_email_sent || $latestReproceso->tiene_modelo) {
                                                                                 $rechCardDisabled = 'opacity: 0.65; pointer-events: none;';
@@ -1825,9 +1813,7 @@
                                                                                 <div class="lib-calidad-card-btns">
                                                                                     @if ($reg->rechazos_procesados)
                                                                                         @if ($reprocesoAprobadoPorCalidad && $latestReproceso)
-                                                                                            {{-- Reproceso aprobado: Almacén procesa los modelos aprobados del
-                                                                                            último
-                                                                                            ciclo --}}
+
                                                                                             @php
                                                                                                 $latestAprobados = \App\Models\LiberacionModeloFundicion::where('ot', $latestReproceso->ot)
                                                                                                     ->where('estado', '!=', 'pendiente')
@@ -1841,7 +1827,7 @@
                                                                                                 $castingEmailSentReproceso = ($latestReproceso->calidad_revision_status === 'casting_aprobado');
                                                                                             @endphp
                                                                                             @if ($castingEmailSentReproceso)
-                                                                                                {{-- Proceso terminado en el reproceso --}}
+
                                                                                             @elseif ($hasCastingPreReproceso)
                                                                                                 <button class="btn-modelo btn-modelo-si"
                                                                                                     onclick="abrirModalPreOrdenCasting('{{ $latestReproceso->ot }}')"
@@ -1943,9 +1929,8 @@
                 @endforeach
             </main>
         </div>
-    </div>{{-- /.alm-wrapper --}}
+    </div>
 
-    {{-- ── MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS ── --}}
     <div id="modalConfirmarModelo" class="alm-modal" role="dialog" aria-modal="true">
         <div class="alm-modal-content"
             style="max-width: 1100px; border-radius: 20px; border: 2.5px solid #0a8504; overflow: hidden;">
@@ -2035,9 +2020,6 @@
         </div>
     </div>
 
-    {{-- ── MODAL: ENVIAR ALERTA DE LIBERACION (APROBADO/RECHAZADO) ── --}}
-
-    {{-- ── MODAL: PRE-ORDEN PARA FABRICAR MODELOS ──────────────────── --}}
     <div id="modalPreOrden" class="alm-modal">
         <div class="alm-modal-content">
             <div class="alm-modal-header">
@@ -2048,11 +2030,9 @@
                 </div>
                 <h3>Pre-Orden para Fabricar Modelos (4ALM-17)</h3>
 
-                {{-- Pestañas eliminadas para flujo simplificado --}}
             </div>
             <div class="alm-modal-body">
 
-                {{-- ────────────── PESTAÑA 1 ────────────── --}}
                 <div id="po-page-1" class="po-page">
                     <form id="formPreOrden">
                         <div class="form-grid">
@@ -2098,7 +2078,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="alm-tbody-preorden">
-                                    {{-- Se llenará por JS --}}
+
                                 </tbody>
                             </table>
                             <div style="margin-top: 10px; text-align: center;">
@@ -2126,13 +2106,11 @@
                     </form>
                 </div>
 
-                {{-- Pestaña 2 eliminada --}}
 
             </div>
         </div>
     </div>
 
-    {{-- ── MODAL: PRE-ORDEN PARA FABRICAR CASTING (DOUBLE MODAL TABS) ── --}}
     <div id="modalPreOrdenCasting" class="alm-modal" role="dialog" aria-modal="true">
         <div class="alm-modal-content"
             style="max-width: 1800px; width: 95vw; border-radius: 20px; overflow: hidden; border: 1.5px solid #0284c7;">
@@ -2151,7 +2129,6 @@
                     style="color: #bae6fd; font-size: 1.15em; margin-top: 8px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500;">
                 </p>
 
-                {{-- Tabs/Pestañas para los dos proveedores --}}
                 <div
                     style="display: flex; gap: 10px; margin-top: 25px; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 0; align-items: center;">
                     <button type="button" id="tab-poc-page-1" class="btn-po-tab active" onclick="switchPocPage(1)"
@@ -2181,7 +2158,7 @@
                     @csrf
                     <input type="hidden" id="poc-has-page2" name="has_page2" value="0">
 
-                    {{-- ────────────── PAGINA 1 ────────────── --}}
+
                     <div id="poc-page-1" class="poc-page">
                         <div class="form-grid"
                             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
@@ -2264,7 +2241,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="alm-tbody-poc-p1">
-                                    {{-- Se llenará por JS --}}
+
                                 </tbody>
                             </table>
                             <div style="margin-top: 15px; text-align: center;">
@@ -2285,7 +2262,7 @@
                         </div>
                     </div>
 
-                    {{-- ────────────── PAGINA 2 ────────────── --}}
+
                     <div id="poc-page-2" class="poc-page" style="display: none;">
                         <div class="form-grid"
                             style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
@@ -2368,7 +2345,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="alm-tbody-poc-p2">
-                                    {{-- Se llenará por JS --}}
+
                                 </tbody>
                             </table>
                             <div style="margin-top: 15px; text-align: center;">
@@ -2400,9 +2377,6 @@
         </div>
     </div>
 
-    {{-- ── MODAL: FINALIZAR PROCESO DE CALIDAD (CORREO Y FECHA) ── --}}
-
-    {{-- ── MODAL: ENVIAR PRE-ORDEN POR CORREO CON ADJUNTOS (FASE 2) ── --}}
     <div id="modalEnviarPreOrden" class="alm-modal">
         <div class="alm-modal-content" style="max-width: 1100px;">
             <div class="alm-modal-header">
@@ -2479,13 +2453,7 @@
     </div>
 
 
-    {{-- ── MODAL: ENVIAR ALERTA SCAR (Paso 2) ── --}}
 
-    {{-- ── MODAL: LIBERACIí“N DE MODELOS (Calidad) ──────────────────── --}}
-
-    {{-- ── MODAL: SCAR (Solicitud de Acción Correctiva de Rechazo) ─── --}}
-
-    {{-- ── MODAL: INICIAR CASTING / GESTION VEREDICTO (Almacén) ────── --}}
     @include('almacen.partials._modal_iniciar_casting')
 
     <script>
