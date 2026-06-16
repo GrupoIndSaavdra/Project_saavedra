@@ -1355,6 +1355,13 @@ window.addEventListener("load", updateCachedSections);
 
 // Lógica de los botones de navegación rápida y scroll snap con velocidad controlada (no tan rápida ni tan lenta)
 document.addEventListener("DOMContentLoaded", () => {
+    // Forzar el fondo a la imagen requerida y eliminar colores de fondo
+    const bUrl = window.baseUrl || (window.location.origin + '/');
+    const bSlash = bUrl.endsWith('/') ? '' : '/';
+    document.body.style.setProperty('background', `url('${bUrl}${bSlash}images/fondoLogin.jpg') no-repeat center center fixed`, 'important');
+    document.body.style.setProperty('background-size', 'cover', 'important');
+    document.body.style.setProperty('background-color', 'transparent', 'important');
+
     const btnTop = document.getElementById("btn-scroll-top");
     const btnBottom = document.getElementById("btn-scroll-bottom");
 

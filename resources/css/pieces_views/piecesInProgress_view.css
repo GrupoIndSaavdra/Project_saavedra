@@ -15,8 +15,8 @@ html {
 }
 
 body {
-    background-color: #121212 !important;
-    background-image: url("/public/images/fondoLogin.jpg") !important;
+    background-color: transparent !important;
+    background-image: url("/images/fondoLogin.jpg") !important;
     background-size: cover !important;
     background-attachment: fixed !important;
     background-position: center !important;
