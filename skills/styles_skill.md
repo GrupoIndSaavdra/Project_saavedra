@@ -30,11 +30,12 @@ El proyecto asume que todo elemento tiene caja por bordes y no tiene márgenes b
 ## 2. Paleta Oficial Estricta
 Los colores no son sugerencias. Son la identidad del corporativo.
 
-- **Verde Principal (Éxito/Acción):** `#0a8504` (o `--color-primary-green`)
-- **Rojo Peligro (Cerrar/Scrap/Paro):** `#b30404` (o `--color-danger-red`)
-- **Azul Marino Saavedra (Paneles/Headers):** `#030041` (o `--color-primary-blue`)
+- **Verde Principal (Éxito/Acción):** `#0C8201` (o `--color-primary-green`)
+- **Rojo Peligro (Cerrar/Scrap/Paro):** `#9D0402` (o `--color-danger-red`)
+- **Azul Marino Saavedra (Paneles/Headers):** `#033861` (o `--color-primary-blue`)
+- **Gris Oscuro (Acentos):** `#424141` (o `--color-dark-gray`)
 - **Fondo General/Gris Neutro:** `#f4f7f6`
-- **Textos Oscuros (Lectura):** `#333333` o `#1a1a1a`
+- **Textos Oscuros (Lectura):** `#151114` o `#070707`
 
 ## 3. Arquitectura del "Glassmorphism" (Paneles Premium)
 Cuando crees menús superpuestos (como el menú hamburguesa o paneles de detalles), usa esta arquitectura de cristal esmerilado que deja ver el fondo desenfocado.
@@ -44,9 +45,9 @@ Cuando crees menús superpuestos (como el menú hamburguesa o paneles de detalle
     /* 1. Fondo translúcido (25% opacidad) */
     background: rgba(3, 57, 102, 0.25); 
     
-    /* 2. El filtro que hace la magia */
-    backdrop-filter: blur(12px);
+    /* 2. El filtro que hace la magia (Prefijos primero para evitar warnings del IDE) */
     -webkit-backdrop-filter: blur(12px); 
+    backdrop-filter: blur(12px);
     
     /* 3. Borde fino para delimitar el "cristal" */
     border: 1px solid rgba(255, 255, 255, 0.3);

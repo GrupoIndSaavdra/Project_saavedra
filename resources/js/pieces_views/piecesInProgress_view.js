@@ -115,7 +115,7 @@ class PTACardComponent {
 
     // ── Construye una barra vacía con IDs predecibles ────────
     // bgColor: color de fondo del contenedor; fillGradient: gradiente del fill
-    _buildBar(barId, bgColor = "#dbeafe", fillGradient = "linear-gradient(to right, #1d415e, #0060ae)") {
+    _buildBar(barId, bgColor = "rgba(3, 56, 97, 0.15)", fillGradient = "linear-gradient(to right, #416d90, #033861)") {
         const wrap = document.createElement("div");
         wrap.className = "progress-bar";
         wrap.style.backgroundColor = bgColor;
@@ -181,6 +181,42 @@ class PTACardComponent {
         // Esto evita el bug donde el servidor devuelve 0 porque auto-libera al guardar.
         const sinLiberar = Math.max(0, terminadas - this.liberadas - this.rechazadas);
 
+        // Si no hay juegos terminados ni rechazados, marcar la tarjeta como inactiva
+        if (terminadas === 0 && this.rechazadas === 0) {
+            root.classList.add("inactive-process");
+        } else {
+            root.classList.remove("inactive-process");
+        }
+
+        // Borde verde si el proceso está concluido (100%)
+        if (this.snapshot && this.snapshot.total > 0) {
+            let ptaPercentage = (terminadas * 100) / this.snapshot.total;
+            let hue = 30 + (Math.min(100, ptaPercentage) * 0.9);
+            root.style.setProperty('--glow-hue', hue);
+
+            // Tooltip descriptivo
+            if (ptaPercentage === 0) {
+                root.title = "Proceso aún no iniciado. Esperando primeras piezas.";
+            } else if (ptaPercentage < 50) {
+                root.title = `Progreso bajo (${ptaPercentage.toFixed(1)}%). Se requiere atención.`;
+            } else if (ptaPercentage < 100) {
+                root.title = `Progreso estable (${ptaPercentage.toFixed(1)}%). Buen ritmo de trabajo.`;
+            } else {
+                root.title = "¡Proceso completado exitosamente al 100%!";
+            }
+
+            if (ptaPercentage >= 100) {
+                root.style.borderColor = '#4ade80';
+                root.style.boxShadow = 'none';
+            } else if (ptaPercentage > 0) {
+                root.style.borderColor = `hsl(${hue}, 100%, 50%)`;
+                root.style.boxShadow = 'none';
+            } else {
+                root.style.borderColor = '';
+                root.style.boxShadow = '';
+            }
+        }
+
         // Etiqueta terminadas (texto informativo, sin barra)
         const labelT = root.querySelector(`#label-term-${this.uniqueId}`);
         if (labelT) labelT.textContent =
@@ -240,8 +276,19 @@ class PTACardComponent {
     async _poll() {
         // Guard: petición en vuelo
         if (this._busy) return;
+
+        // Guard extra: si el contenedor original ya no está en el DOM, destruir el timer.
+        if (this.targetContainer && !this.targetContainer.isConnected) {
+            this._destroy();
+            return;
+        }
+
         // Guard extra: si el nodo ya fue montado, verificar que sigue conectado
-        if (this._mounted && this.root && !this.root.isConnected) return;
+        if (this._mounted && this.root && !this.root.isConnected) {
+            this._destroy();
+            return;
+        }
+
         this._busy = true;
 
         try {
@@ -249,6 +296,7 @@ class PTACardComponent {
             if (!res.ok) return;
 
             const data = await res.json();
+            if (data.error) return;
             const rawTotal = data.totalPTA || 0;
             const totalJuegos = rawTotal; // Trust the backend game count
 
@@ -303,6 +351,362 @@ class PTACardComponent {
 
 
     // ── Destrucción limpia ───────────────────────────────────
+    _destroy() {
+        clearInterval(this._pollTimer);
+        this._pollTimer = null;
+        if (this.root && this.root.isConnected) {
+            this.root.remove();
+        }
+    }
+}
+
+// ══════════════════════════════════════════════════════════
+// FundicionChecklistCard — Checklist reactivo del flujo de
+// fundición (Modelo → Liberación → SCAR → Casting/Reproceso)
+//
+// Patrón idéntico a PTACardComponent:
+//   - Carga inicial desde window.fundicionChecklist
+//   - Polling AJAX cada 30s para refrescar sin reload
+//   - Solo se instancia para perfiles 1 y 2 (guard en Dashboard)
+//   - Auto-actualiza borde y colores según estado global
+// ══════════════════════════════════════════════════════════
+class FundicionChecklistCard {
+    /**
+     * @param {string}  otId        - Clave de la OT (ej. "6748" o "6748_R1")
+     * @param {object}  initialData - { esReproceso: bool, pasos: { key: { label, estado } } }
+     * @param {Element} container   - Div wrapper donde se monta la card
+     */
+    constructor(otId, initialData, container) {
+        this.otId = otId;
+        this._data = initialData;
+        this.container = container;
+        this._pollTimer = null;
+        this._mounted = false;
+        this.root = null;
+
+        this._mount();
+        this._startPolling();
+    }
+
+    // ── Montar el DOM ─────────────────────────────────────
+    _mount() {
+        if (this._mounted) return;
+        this.root = this._render();
+        this.container.appendChild(this.root);
+        this._mounted = true;
+    }
+
+    // ── Icono según estado ────────────────────────────────
+    _getIconFor(estado) {
+        const baseUrl = window.baseUrl || (window.location.origin + '/');
+        const slash = baseUrl.endsWith('/') ? '' : '/';
+        let imgName = '';
+        switch (estado) {
+            case 'completado':
+                imgName = 'Aprobado.png';
+                break;
+            case 'pendiente':
+                imgName = 'Espera.png';
+                break;
+            case 'rechazado':
+                imgName = 'Rechazado.png';
+                break;
+            case 'inactivo':
+            default:
+                imgName = 'Recibido.png';
+                break;
+        }
+        return `${baseUrl}${slash}images/${imgName}`;
+    }
+
+    // ── Color del borde izquierdo según estado global ─────
+    // Verde si todos completados, rojo si alguno rechazado, naranja si en progreso
+    _getBorderColor(data) {
+        const pasos = Object.values(data.pasos || {});
+        if (pasos.some(p => p.estado === 'rechazado')) return '#9D0402'; // corporate red
+        if (pasos.length > 0 && pasos.every(p => p.estado === 'completado')) return '#0C8201'; // corporate green
+        return '#424141'; // pending - corporate gray
+    }
+
+    // ── Construir el DOM inicial ──────────────────────────
+    _render() {
+        const card = document.createElement('div');
+        card.className = 'fundicion-checklist-card';
+        card.id = `fundicion-checklist-${this.otId}`;
+
+        // — Header —
+        const header = document.createElement('div');
+        header.className = 'checklist-header';
+
+        const title = document.createElement('span');
+        title.className = 'checklist-title';
+        title.textContent = 'Levantamiento de OT';
+        header.appendChild(title);
+
+        const badge = document.createElement('span');
+        badge.className = 'checklist-reproceso-badge';
+        badge.id = `checklist-badge-${this.otId}`;
+        badge.textContent = this._data.badgeText || 'Reproceso';
+        badge.style.display = this._data.isBadgeVisible ? 'inline-block' : 'none';
+        header.appendChild(badge);
+
+        card.appendChild(header);
+
+        // — Contenedor de pasos —
+        const itemsContainer = document.createElement('div');
+        itemsContainer.className = 'checklist-items';
+        itemsContainer.id = `checklist-items-${this.otId}`;
+        card.appendChild(itemsContainer);
+
+        // Render inicial de estados
+        this._updateCard(card, this._data);
+
+        return card;
+    }
+
+    // ── Actualiza borde + badge + pasos (sin re-render completo) ─
+    _updateCard(card, data) {
+        if (!card) return;
+
+        // Contorno verde si completado, rojo si rechazado, sin glow
+        let colorHex = this._getBorderColor(data);
+        if (colorHex === '#9D0402') { // Red
+            card.style.borderColor = '#9D0402';
+            card.style.boxShadow = 'none';
+        } else if (colorHex === '#0C8201') { // Green
+            card.style.borderColor = '#0C8201';
+            card.style.boxShadow = 'none';
+        } else {
+            card.style.borderColor = '';
+            card.style.boxShadow = '';
+        }
+
+        // Badge de reproceso
+        const badge = card.querySelector(`#checklist-badge-${this.otId}`);
+        if (badge) {
+            badge.style.display = data.isBadgeVisible ? 'inline-flex' : 'none';
+            if (data.badgeText) {
+                badge.textContent = data.badgeText;
+            }
+        }
+
+        // Reconstruir lista de pasos
+        const container = card.querySelector(`#checklist-items-${this.otId}`);
+        if (!container) return;
+        container.innerHTML = '';
+
+        const pasosEntries = Object.entries(data.pasos || {});
+
+        pasosEntries.forEach(([key, paso], idx) => {
+            if (!paso) return;
+
+            const item = document.createElement('div');
+            item.className = `checklist-item checklist-item--${paso.estado}`;
+            if (paso.tooltip) {
+                item.title = paso.tooltip;
+                item.style.cursor = 'help';
+            }
+
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'checklist-icon';
+
+            const img = document.createElement('img');
+            img.src = this._getIconFor(paso.estado);
+            img.alt = paso.estado;
+            img.className = 'checklist-state-icon';
+            // Removed inline width/height to use CSS size, making it smaller
+            iconSpan.appendChild(img);
+
+            const label = document.createElement('span');
+            label.className = 'checklist-label';
+            label.textContent = paso.label;
+
+            item.appendChild(iconSpan);
+            item.appendChild(label);
+            container.appendChild(item);
+        });
+    }
+
+    // ── Polling AJAX cada 30s ──────────────────────────────
+    _startPolling() {
+        // 30_000ms = 30 segundos; suficiente para un checklist de bajo cambio
+        this._pollTimer = setInterval(() => this._poll(), 30_000);
+    }
+
+    async _poll() {
+        // Guard: si el nodo fue desmontado, cancelar polling
+        if (!this.root || !this.root.isConnected) {
+            this._destroy();
+            return;
+        }
+        try {
+            const res = await fetch(`${window.fundicionChecklistUrl}/${this.otId}`);
+            if (!res.ok) return; // 404 si la OT dejó de tener flujo — se deja morir en siguiente tick
+
+            const data = await res.json();
+            if (data && !data.error) {
+                this._data = data;
+                this._updateCard(this.root, data);
+            }
+        } catch (_) {
+            // Error de red — silencioso, el próximo tick reintenta
+        }
+    }
+
+    // ── Destrucción limpia ─────────────────────────────────
+    _destroy() {
+        clearInterval(this._pollTimer);
+        this._pollTimer = null;
+        if (this.root && this.root.isConnected) {
+            this.root.remove();
+        }
+    }
+}
+
+// ══════════════════════════════════════════════════════════
+// PlaneacionChecklistCard — Checklist reactivo de Planeación
+// por clase (Dibujos Maquinado, Cotas, Proceso).
+// ══════════════════════════════════════════════════════════
+class PlaneacionChecklistCard {
+    constructor(otId, claseId, container) {
+        this.otId = otId;
+        this.claseId = claseId;
+        this.container = container;
+        this._pollTimer = null;
+        this._mounted = false;
+        this.root = null;
+
+        this._mount();
+        this._startPolling();
+    }
+
+    _mount() {
+        if (this._mounted) return;
+        this.root = this._render();
+        this.container.appendChild(this.root);
+        this._mounted = true;
+    }
+
+    _getIconFor(estado) {
+        const baseUrl = window.baseUrl || (window.location.origin + '/');
+        const slash = baseUrl.endsWith('/') ? '' : '/';
+        let imgName = '';
+        switch (estado) {
+            case 'completado': imgName = 'Aprobado.png'; break;
+            case 'pendiente': imgName = 'Espera.png'; break;
+            case 'rechazado': imgName = 'Rechazado.png'; break;
+            case 'inactivo':
+            default: imgName = 'Recibido.png'; break;
+        }
+        return `${baseUrl}${slash}images/${imgName}`;
+    }
+
+    _getBorderColor(pasos) {
+        if (!pasos || Object.keys(pasos).length === 0) return '#424141';
+        const vals = Object.values(pasos);
+        if (vals.some(p => p.estado === 'rechazado')) return '#9D0402';
+        if (vals.every(p => p.estado === 'completado')) return '#0C8201';
+        return '#424141';
+    }
+
+    _render() {
+        const card = document.createElement('div');
+        card.className = 'fundicion-checklist-card';
+        card.id = `planeacion-checklist-${this.otId}-${this.claseId}`;
+
+        // Contenedores base
+        card.innerHTML = `
+            <div class="checklist-header">
+                <span class="checklist-title">Planeación</span>
+            </div>
+            <div class="checklist-items" id="planeacion-items-${this.otId}-${this.claseId}" style="padding-top: 5px;">
+                <div class="checklist-item checklist-item--pendiente" title="Pendiente">
+                    <span class="checklist-icon"><img src="${this._getIconFor('pendiente')}" alt="pendiente" class="checklist-state-icon"></span>
+                    <span class="checklist-label">Dibujos de maquinados subidos</span>
+                </div>
+                <div class="checklist-item checklist-item--inactivo" title="Inactivo">
+                    <span class="checklist-icon"><img src="${this._getIconFor('inactivo')}" alt="inactivo" class="checklist-state-icon"></span>
+                    <span class="checklist-label">Cotas de OT/Clase subidas (Admin)</span>
+                </div>
+                <div class="checklist-item checklist-item--completado" title="Completado">
+                    <span class="checklist-icon"><img src="${this._getIconFor('completado')}" alt="completado" class="checklist-state-icon"></span>
+                    <span class="checklist-label">Proceso asignado</span>
+                </div>
+            </div>
+        `;
+        return card;
+    }
+
+    _updateCard(data) {
+        if (!this.root) return;
+        const container = this.root.querySelector(`#planeacion-items-${this.otId}-${this.claseId}`);
+        if (!container) return;
+
+        const pasosData = data[this.claseId];
+
+        if (!pasosData) {
+            container.innerHTML = `<div style="font-size: 13px; color: #94a3b8; text-align: center; padding: 10px;">Sin datos para esta clase</div>`;
+            return;
+        }
+
+        let colorHex = this._getBorderColor(pasosData);
+        if (colorHex === '#9D0402') {
+            this.root.style.borderColor = '#9D0402';
+        } else if (colorHex === '#0C8201') {
+            this.root.style.borderColor = '#0C8201';
+        } else {
+            this.root.style.borderColor = '';
+        }
+
+        container.innerHTML = '';
+        const pasosEntries = Object.entries(pasosData);
+
+        pasosEntries.forEach(([key, paso], idx) => {
+            if (!paso) return;
+
+            const item = document.createElement('div');
+            item.className = `checklist-item checklist-item--${paso.estado}`;
+
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'checklist-icon';
+
+            const img = document.createElement('img');
+            img.src = this._getIconFor(paso.estado);
+            img.alt = paso.estado;
+            img.className = 'checklist-state-icon';
+            // Removed inline width/height to use CSS size
+            iconSpan.appendChild(img);
+
+            const label = document.createElement('span');
+            label.className = 'checklist-label';
+            label.textContent = paso.label;
+
+            item.appendChild(iconSpan);
+            item.appendChild(label);
+            container.appendChild(item);
+        });
+    }
+
+    _startPolling() {
+        this._poll();
+        this._pollTimer = setInterval(() => this._poll(), 30_000);
+    }
+
+    async _poll() {
+        if (!this.root || !this.root.isConnected) {
+            this._destroy();
+            return;
+        }
+        try {
+            const res = await fetch(`${window.planeacionChecklistUrl}/${this.otId}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data && !data.error) {
+                this._updateCard(data);
+            }
+        } catch (_) { }
+    }
+
     _destroy() {
         clearInterval(this._pollTimer);
         this._pollTimer = null;
@@ -376,6 +780,94 @@ class Dashboard {
                 }
 
                 section.appendChild(headerSection);
+
+                // ── Checklist de Fundición (entre header y procesos) ──────────
+                // Guard de perfil: solo perfiles 1 (Master) y 2 (Admin), igual que PTA.
+                // La card solo se instancia si la OT tiene flujo activo en fundicion_history.
+                let userProfileChecklist = document.getElementById("profile");
+                if (
+                    userProfileChecklist &&
+                    (userProfileChecklist.value === "1" || userProfileChecklist.value === "2")
+                ) {
+                    section.classList.add('section--has-checklist');
+                    const checklistWrapper = document.createElement('div');
+                    checklistWrapper.className = 'fundicion-checklist-wrapper';
+                    checklistWrapper.style.display = 'flex';
+                    checklistWrapper.style.gap = '20px';
+                    checklistWrapper.style.flexWrap = 'nowrap';
+
+                    if (window.fundicionChecklist && window.fundicionChecklist[wOrderName]) {
+                        const levantamientoCard = new FundicionChecklistCard(
+                            wOrderName,
+                            window.fundicionChecklist[wOrderName],
+                            checklistWrapper
+                        );
+                        // The component FundicionChecklistCard internally appends to checklistWrapper
+                        // We just need to make sure the root element gets flex sizing
+                        if (levantamientoCard.root) {
+                            levantamientoCard.root.style.flex = '1';
+                            levantamientoCard.root.style.minWidth = '300px';
+                        }
+                    } else {
+                        // Render empty state card
+                        const emptyCard = document.createElement('div');
+                        emptyCard.className = 'fundicion-checklist-card empty-checklist-card';
+                        emptyCard.style.borderLeftColor = '#424141';
+                        emptyCard.style.flex = '1';
+                        emptyCard.style.minWidth = '300px';
+                        emptyCard.innerHTML = `
+                            <div class="checklist-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+                                <span class="checklist-title" style="color: #ffffff;">
+                                    Levantamiento de OT No Disponible
+                                </span>
+                            </div>
+                            <div style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); margin-top: 0.4rem; text-align: left;">
+                                Esta orden de trabajo es antigua o no requiere el levantamiento de OT.
+                            </div>
+                        `;
+                        checklistWrapper.appendChild(emptyCard);
+                    }
+
+                    // Card 2: Tratamiento Térmico (Referencia)
+                    const termicoCard = document.createElement('div');
+                    termicoCard.className = 'fundicion-checklist-card';
+                    termicoCard.style.flex = '0 1 350px';
+                    termicoCard.style.minWidth = '250px';
+                    const baseUrl = window.baseUrl || (window.location.origin + '/');
+                    const slash = baseUrl.endsWith('/') ? '' : '/';
+                    const iconUrl = `${baseUrl}${slash}images/Espera.png`;
+                    termicoCard.innerHTML = `
+                        <div class="checklist-header">
+                            <span class="checklist-title">Tratamiento Térmico</span>
+                        </div>
+                        <div class="checklist-items" style="padding-top: 5px;">
+                            <div class="checklist-item checklist-item--pendiente" title="Piezas en tratamiento térmico" style="cursor: help;">
+                                <span class="checklist-icon">
+                                    <img src="${iconUrl}" alt="pendiente" class="checklist-state-icon">
+                                </span>
+                                <span class="checklist-label">Piezas en tratamiento: 0 / ${classArray["pieces"]}</span>
+                            </div>
+                        </div>
+                    `;
+                    checklistWrapper.appendChild(termicoCard);
+
+                    // Card 3: Planeación (Reactiva)
+                    const planeacionCard = new PlaneacionChecklistCard(
+                        wOrderName,
+                        classArray["id"],
+                        checklistWrapper
+                    );
+                    if (planeacionCard.root) {
+                        planeacionCard.root.style.flex = '1';
+                        planeacionCard.root.style.minWidth = '300px';
+                    }
+
+                    // ── [FIN] DUMMY CARDS Y CARDS REACTIVAS ──
+
+                    section.appendChild(checklistWrapper);
+                }
+                // ─────────────────────────────────────────────────────────────
+
                 section.appendChild(processesSection);
                 body.appendChild(section);
             });
@@ -386,48 +878,155 @@ class Dashboard {
             [
                 `${wOrderName} ${moldingName}`,
                 `${className}`,
-                `Fecha de inicio: ${classArray["startDate"]}`,
-                `Fecha de término: ${classArray["endDate"]}`,
+                `<span class="header-label">Fecha de inicio:</span> <span class="header-value highlight-date">${classArray["startDate"]}</span>`,
+                `<span class="header-label">Fecha de término:</span> <span class="header-value highlight-date">${classArray["endDate"]}</span>`,
             ],
             [
-                `Pedido: ${classArray["order"]}`,
-                `Pedido mas consignación: ${classArray["pieces"]}`,
-                `Piezas completadas: ${this.getCompletedPieces(classArray)}`,
+                `<span class="header-label" style="display: block; font-size: 0.85em; color: #94a3b8; margin-bottom: 5px; letter-spacing: 0.5px;">Pedido:</span> <span class="header-value highlight-value" style="display: block; font-size: 1.4em; font-weight: bold; text-align: center;">${classArray["order"]}</span>`,
+                `<span class="header-label" style="display: block; font-size: 0.85em; color: #94a3b8; margin-bottom: 5px; letter-spacing: 0.5px;">Pedido + consignación:</span> <span class="header-value highlight-value" style="display: block; font-size: 1.4em; font-weight: bold; text-align: center;">${classArray["pieces"]}</span>`,
+                `<span class="header-label" style="display: block; font-size: 0.85em; color: #94a3b8; margin-bottom: 5px; letter-spacing: 0.5px;">Piezas entregadas:</span> <span class="header-value highlight-value" style="display: block; font-size: 1.4em; font-weight: bold; color: #10b981; text-align: center;">0</span>`,
+                `<span class="header-label" style="display: block; font-size: 0.85em; color: #94a3b8; margin-bottom: 5px; letter-spacing: 0.5px;">Piezas completadas:</span> <span class="header-value completed-value" style="display: block; font-size: 1.4em; font-weight: bold; text-align: center;">${this.getCompletedPieces(classArray)}</span>`,
             ],
         ];
         let classText = [
             ["workOrder-text", "class-text", "start-date-text", "end-date-text"],
-            ["order-text", "pieces-text", "completed-pieces-text"],
+            ["order-text", "pieces-text", "delivered-pieces-text", "completed-pieces-text"],
         ];
 
-        let header_section = document.createElement("divHeader");
+        let header_section = document.createElement("div");
         header_section.className = "header-section";
+
+        let a = document.createElement("a");
+        let baseUrl = window.baseUrl ? window.baseUrl : '';
+        a.href = `${baseUrl}/finishOrder/${wOrderName}/${className}`;
+        a.className = "finish-order";
+        a.innerHTML = "Finalizar pedido";
 
         for (let i = 0; i < valueText.length; i++) {
             let div = document.createElement("div");
-            div.className = "title-div";
-            for (let j = 0; j < valueText[i].length; j++) {
-                let h3 = document.createElement("h3");
-                h3.className = classText[i][j];
-                h3.innerHTML = valueText[i][j];
 
-                div.appendChild(h3);
+            if (i === 1) {
+                // Fila 2: Renderizarla como un div completo con clase "title-div"
+                div.className = "title-div";
+                div.style.flexDirection = "column";
+                div.style.alignItems = "stretch";
+                div.style.justifyContent = "center";
+                div.style.padding = "1.2rem 2rem";
+                div.style.gap = "1.2rem";
+                div.style.marginTop = "0px";
+                div.style.flex = "1";
+
+                // Título
+                let titleDiv = document.createElement("div");
+                titleDiv.style.borderBottom = "1px solid rgba(255, 255, 255, 0.15)";
+                titleDiv.style.paddingBottom = "0.6rem";
+                titleDiv.style.textAlign = "center";
+                titleDiv.style.width = "100%";
+
+                let titleSpan = document.createElement("span");
+                titleSpan.style.color = "#fff";
+                titleSpan.style.fontSize = "1.25rem";
+                titleSpan.style.fontWeight = "800";
+                titleSpan.style.display = "block";
+                titleSpan.style.textTransform = "uppercase";
+                titleSpan.style.letterSpacing = "0.03em";
+                titleSpan.textContent = "Recepción de Material";
+                titleDiv.appendChild(titleSpan);
+                div.appendChild(titleDiv);
+
+                // Contenedor interno para los valores (abajo, distribuidos horizontalmente)
+                let itemsContainer = document.createElement("div");
+                itemsContainer.style.display = "flex";
+                itemsContainer.style.flexDirection = "row";
+                itemsContainer.style.justifyContent = "space-around";
+                itemsContainer.style.alignItems = "center";
+                itemsContainer.style.gap = "30px";
+                itemsContainer.style.width = "100%";
+
+                for (let j = 0; j < valueText[i].length; j++) {
+                    let h3 = document.createElement("h3");
+                    h3.className = classText[i][j];
+                    h3.style.margin = "0";
+                    h3.style.display = "flex";
+                    h3.style.flexDirection = "column";
+                    h3.style.alignItems = "center";
+                    h3.style.justifyContent = "center";
+                    h3.innerHTML = valueText[i][j];
+                    itemsContainer.appendChild(h3);
+                }
+                div.appendChild(itemsContainer);
+            } else {
+                // Fila 1 (Izquierda): Datos de la OT y Clase alineados en una sola fila con cabecera principal
+                div.className = "title-div";
+                div.style.flexDirection = "column";
+                div.style.justifyContent = "center";
+                div.style.setProperty('padding', '1.2rem 2rem', 'important');
+                div.style.gap = "0.8rem";
+
+                // Cabecera principal: Información de la OT
+                let titleDiv = document.createElement("div");
+                titleDiv.style.borderBottom = "none";
+                titleDiv.style.paddingBottom = "0.6rem";
+                titleDiv.style.textAlign = "center";
+                titleDiv.style.width = "100%";
+                titleDiv.style.marginBottom = "0.2rem";
+
+                let titleSpan = document.createElement("span");
+                titleSpan.style.color = "#fff";
+                titleSpan.style.fontSize = "1.25rem";
+                titleSpan.style.fontWeight = "800";
+                titleSpan.style.display = "block";
+                titleSpan.style.textTransform = "uppercase";
+                titleSpan.style.letterSpacing = "0.03em";
+                titleSpan.textContent = "Información de la OT";
+                titleDiv.appendChild(titleSpan);
+                div.appendChild(titleDiv);
+
+                // Fila de datos: OT (izquierda) y Clase (derecha) - sin líneas de separación
+                let otClassRow = document.createElement("div");
+                otClassRow.style.display = "flex";
+                otClassRow.style.flexDirection = "row";
+                otClassRow.style.justifyContent = "space-between";
+                otClassRow.style.alignItems = "center";
+                otClassRow.style.width = "100%";
+                otClassRow.style.marginBottom = "0.4rem";
+
+                // OT text
+                let otH3 = document.createElement("h3");
+                otH3.className = "workOrder-text";
+                otH3.style.setProperty('margin', '0', 'important');
+                otH3.style.setProperty('font-size', '1.6rem', 'important');
+                otH3.style.setProperty('line-height', '1.2', 'important');
+                otH3.innerHTML = `<span style="font-size: 0.75em; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-right: 5px; letter-spacing: 0.5px;">OT:</span>${wOrderName} ${moldingName}`;
+                
+                // Clase text
+                let classH3 = document.createElement("h3");
+                classH3.className = "class-text";
+                classH3.style.setProperty('margin', '0', 'important');
+                classH3.style.setProperty('font-size', '1.4rem', 'important');
+                classH3.style.setProperty('margin-bottom', '0', 'important');
+                classH3.innerHTML = `<span style="font-size: 0.75em; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-right: 5px; letter-spacing: 0.5px;">Clase:</span>${className}`;
+
+                otClassRow.appendChild(otH3);
+                otClassRow.appendChild(classH3);
+                div.appendChild(otClassRow);
+
+                // Fechas (Start Date and End Date) - las fechas sí llevan línea de separación (Start Date tiene línea, End Date no en el CSS)
+                for (let j = 2; j < valueText[i].length; j++) {
+                    let h3 = document.createElement("h3");
+                    h3.className = classText[i][j];
+                    h3.style.margin = "0";
+                    h3.innerHTML = valueText[i][j];
+                    div.appendChild(h3);
+                }
             }
+
             header_section.appendChild(div);
-        }
 
-        let a = document.createElement("a");
-        a.href = `/finishOrder/${wOrderName}/${className}`;
-        a.className = "finish-order";
-        a.innerHTML = "Finalizar pedido";
-        a.addEventListener("click", (e) => {
-            e.preventDefault();
-            if (confirm("¿Estás seguro de que deseas finalizar esta orden de trabajo?")) {
-                let url = `${window.baseUrl}/finishOrder/${wOrderName}/${className}`;
-                window.location.href = url;
+            if (i === 0) {
+                header_section.appendChild(a);
             }
-        });
-        header_section.appendChild(a);
+        }
 
         return header_section;
     }
@@ -474,23 +1073,68 @@ class Dashboard {
         processSection.appendChild(limitLabel);
 
         let pieces = [processesArray["pieces"]["good"], processesArray["pieces"]["bad"]];
+
+        // Si no hay piezas procesadas (buenas ni malas), oscurecer los textos
+        if (pieces[0] === 0 && pieces[1] === 0) {
+            processSection.classList.add("inactive-process");
+        }
+
+        // Efectos dinámicos y cálculo de colores
+        let goodPercentage = limitPieces == 0 ? (pieces[0] > 0 ? 100 : 0) : (pieces[0] * 100) / limitPieces;
+        goodPercentage = Math.min(100, goodPercentage); // Clamp a 100%
+
+        let hue = 30 + (goodPercentage * 0.9);
+        processSection.style.setProperty('--glow-hue', hue);
+
+        // Tooltip descriptivo
+        if (goodPercentage === 0) {
+            processSection.title = "Proceso aún no iniciado. Esperando primeras piezas.";
+        } else if (goodPercentage < 50) {
+            processSection.title = `Progreso bajo (${goodPercentage.toFixed(1)}%). Se requiere atención.`;
+        } else if (goodPercentage < 100) {
+            processSection.title = `Progreso estable (${goodPercentage.toFixed(1)}%). Buen ritmo de trabajo.`;
+        } else {
+            processSection.title = "¡Proceso completado exitosamente al 100%!";
+        }
+
+        // Borde verde si el proceso está concluido (100%)
+        if (goodPercentage >= 100) {
+            processSection.style.borderColor = '#4ade80';
+            processSection.style.boxShadow = 'none';
+        } else if (goodPercentage > 0) {
+            processSection.style.borderColor = `hsl(${hue}, 100%, 50%)`;
+            processSection.style.boxShadow = 'none';
+        } else {
+            processSection.style.borderColor = '';
+            processSection.style.boxShadow = '';
+        }
+
         for (let i = 0; i < pieces.length; i++) {
             //Crear barra de progreso
             let progressBar = document.createElement("div");
             progressBar.className = "progress-bar";
-            progressBar.style.backgroundColor = i == 0 ? "#e1fcc6" : "#fcc6c6";
+            progressBar.style.backgroundColor = i == 0 ? "rgba(12, 130, 1, 0.15)" : "rgba(157, 4, 2, 0.15)";
 
             let progress = document.createElement("div");
             progress.className = i == 0 ? "good-progress" : "bad-progress";
             progress.classList.add("progress");
-            let percentage = pieces[i] == 0 ? 0 : (pieces[i] * 100) / limitPieces;
+
+            let percentage = limitPieces == 0 ? (pieces[i] > 0 ? 100 : 0) : (pieces[i] * 100) / limitPieces;
+            let displayPercentage = percentage;
+            percentage = Math.min(100, percentage); // Clamp para el width visual y el color
 
             progress.style.width = `${percentage}%`;
 
-            percentage = percentage != 0 ? percentage.toFixed(1) : 0;
+            // Cambiar color de barra según progreso (Naranja -> Verde)
+            if (i == 0 && percentage > 0) {
+                let hue = 30 + (percentage * 0.9);
+                progress.style.backgroundColor = `hsl(${hue}, 100%, 40%)`;
+            }
+
+            displayPercentage = displayPercentage != 0 ? displayPercentage.toFixed(1) : 0;
             let div = document.createElement("div");
             div.className = "progress-percentage";
-            div.innerHTML = pieces[i] == 1 ? `${percentage}% ${pieces[i]} pieza` : `${percentage}% ${pieces[i]} piezas`;
+            div.innerHTML = pieces[i] == 1 ? `${displayPercentage}% ${pieces[i]} pieza` : `${displayPercentage}% ${pieces[i]} piezas`;
 
             progressBar.appendChild(progress);
             progressBar.appendChild(div);
@@ -650,59 +1294,145 @@ class Dashboard {
 
 let div_opacity = document.querySelector(".div-opacity");
 if (div_opacity) {
-    document.querySelector(".btn-cerrar").addEventListener("click", () => {
-        let div_padre = document.querySelector(".div-opacity");
-        div_padre.remove();
+    let btn_cerrar = document.querySelector(".btn-cerrar");
+    if (btn_cerrar) {
+        btn_cerrar.addEventListener("click", (e) => {
+            e.stopPropagation();
+            let div_padre = document.querySelector(".div-opacity");
+            if (div_padre) div_padre.remove();
+        });
+    }
+    div_opacity.addEventListener("click", (e) => {
+        if (e.target === div_opacity) {
+            let div_padre = document.querySelector(".div-opacity");
+            if (div_padre) div_padre.remove();
+        }
     });
-    div_opacity.addEventListener("click", () => {
-        let div_padre = document.querySelector(".div-opacity");
-        div_padre.remove();
-    });
+}
+
+// Referencias y caché para el scroll snap manual
+let cachedSections = [];
+function updateCachedSections() {
+    const elements = document.querySelectorAll("section");
+    cachedSections = Array.from(elements).map(sec => ({
+        element: sec,
+        offsetTop: sec.offsetTop
+    }));
 }
 
 if (Object.keys(wOrderArray).length > 0) {
     let dashboard = new Dashboard(wOrderArray);
     dashboard.createSections();
+    updateCachedSections();
 
-
-
-    const secciones = document.querySelectorAll("section");
-    let scrollTimeout = null;
-
-    function getClosestSection() {
+    window.getClosestSection = function () {
         let closest = null;
         let minDist = Infinity;
-        const scrollY = window.scrollY;
+        const scrollY = window.scrollY || document.documentElement.scrollTop;
 
-        secciones.forEach((sec) => {
+        for (let i = 0; i < cachedSections.length; i++) {
+            const sec = cachedSections[i];
             const dist = Math.abs(sec.offsetTop - scrollY);
             if (dist < minDist) {
                 minDist = dist;
-                closest = sec;
+                closest = sec.element;
             }
-        });
+        }
 
         return closest;
     }
-
-    window.addEventListener("scroll", () => {
-        if (scrollTimeout) {
-            clearTimeout(scrollTimeout);
-        }
-
-        // Espera 200ms tras dejar de hacer scroll
-        scrollTimeout = setTimeout(() => {
-            const destino = getClosestSection();
-            if (destino) {
-                destino.scrollIntoView({ behavior: "smooth" });
-            }
-        }, 200);
-    });
 } else {
     let body = document.querySelector("body");
     let noDataMessage = document.createElement("h2");
     noDataMessage.className = "no-data-message";
     noDataMessage.innerHTML = "No hay órdenes de trabajo en progreso.";
     body.appendChild(noDataMessage);
-
 }
+
+// Actualizar caché al cambiar el tamaño de ventana o al cargar
+window.addEventListener("resize", updateCachedSections);
+window.addEventListener("load", updateCachedSections);
+
+// Lógica de los botones de navegación rápida y scroll snap con velocidad controlada (no tan rápida ni tan lenta)
+document.addEventListener("DOMContentLoaded", () => {
+    const btnTop = document.getElementById("btn-scroll-top");
+    const btnBottom = document.getElementById("btn-scroll-bottom");
+
+    window.isScrollingProgrammatically = false;
+
+    // Función de scroll suave personalizado (easeInOutQuad) para controlar la duración exacta
+    function smoothScrollTo(targetY, duration = 550, onComplete = null) {
+        window.isScrollingProgrammatically = true;
+        const startY = window.scrollY || document.documentElement.scrollTop;
+        const difference = targetY - startY;
+        const startTime = performance.now();
+
+        function easeInOutQuad(t, b, c, d) {
+            t /= d / 2;
+            if (t < 1) return c / 2 * t * t + b;
+            t--;
+            return -c / 2 * (t * (t - 2) - 1) + b;
+        }
+
+        function animate(currentTime) {
+            const timeElapsed = currentTime - startTime;
+            const nextY = easeInOutQuad(timeElapsed, startY, difference, duration);
+
+            window.scrollTo(0, nextY);
+
+            if (timeElapsed < duration) {
+                requestAnimationFrame(animate);
+            } else {
+                window.scrollTo(0, targetY);
+                setTimeout(() => {
+                    window.isScrollingProgrammatically = false;
+                    if (onComplete) onComplete();
+                }, 50);
+            }
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    let isUpdatingButtons = false;
+    function updateScrollButtons() {
+        if (isUpdatingButtons) return;
+        isUpdatingButtons = true;
+        requestAnimationFrame(() => {
+            isUpdatingButtons = false;
+            if (!btnTop || !btnBottom) return;
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight;
+            const clientHeight = document.documentElement.clientHeight;
+
+            // Tolerancia de 5px para desactivar botón arriba
+            const atTop = scrollTop <= 5;
+            btnTop.disabled = atTop;
+            btnTop.style.opacity = atTop ? "0.2" : "1";
+            btnTop.style.pointerEvents = atTop ? "none" : "auto";
+            btnTop.style.transform = atTop ? "scale(0.9)" : "none";
+
+            // Tolerancia de 10px para desactivar botón abajo
+            const atBottom = scrollTop + clientHeight >= scrollHeight - 10;
+            btnBottom.disabled = atBottom;
+            btnBottom.style.opacity = atBottom ? "0.2" : "1";
+            btnBottom.style.pointerEvents = atBottom ? "none" : "auto";
+            btnBottom.style.transform = atBottom ? "scale(0.9)" : "none";
+        });
+    }
+
+    if (btnTop) {
+        btnTop.addEventListener("click", () => {
+            smoothScrollTo(0, 600); // 600ms es la velocidad ideal para toda la página
+        });
+    }
+    if (btnBottom) {
+        btnBottom.addEventListener("click", () => {
+            smoothScrollTo(document.body.scrollHeight, 600);
+        });
+    }
+
+    updateScrollButtons(); // Ejecutar inicialmente
+    setTimeout(updateCachedSections, 200);
+});
+

@@ -117,3 +117,14 @@ Mantén los controladores enfocados únicamente en recibir la solicitud (`Reques
 - El **Modelo** (usando scopes locales, mutadores, o métodos de modelo).
 - Un **Servicio** dedicado (Service Pattern) si involucra flujos de múltiples pasos.
 - **Helpers** si son formateos de texto o cálculos compartidos.
+
+## 7. Tipado Estricto de Parámetros (Type Hinting)
+Para evitar advertencias del IDE y asegurar un código más predecible, todos los parámetros de los métodos del controlador (como IDs provenientes de las rutas) deben tener un tipado estricto (`string`, `int`, etc.).
+
+```php
+// ❌ MAL: Sin tipo, genera advertencias en IDEs estrictos.
+public function destroy($idWOrder) { ... }
+
+// ✅ BIEN: Tipado estricto. (Laravel inyecta los parámetros de ruta como strings por defecto)
+public function destroy(string $idWOrder) { ... }
+```

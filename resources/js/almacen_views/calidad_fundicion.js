@@ -136,13 +136,31 @@ function initToggleFiles() {
  * @param {string} ot      - Nombre de la carpeta OT
  * @param {string} archivo - Nombre del archivo PDF
  */
-window.almacenVerPdf = function (ot, archivo, tipo = 'dibujo') {
-    const url = window.almacenRoutes.serve
+window.calidadVerPdf = function (ot, archivo, tipo = 'dibujo') {
+    const url = window.calidadRoutes.serve
         + '?ot=' + encodeURIComponent(ot)
         + '&archivo=' + encodeURIComponent(archivo)
         + '&tipo=' + encodeURIComponent(tipo);
 
     window.open(url, '_blank', 'noopener,noreferrer');
+
+    // Registrar "Visto/Revisado"
+    let flagToUpdate = null;
+    if (tipo === 'dibujo' || tipo === 'adicionales' || tipo === 'preorden') {
+        flagToUpdate = 'documentos_revisados_calidad';
+    }
+
+    if (flagToUpdate) {
+        let otClean = ot.replace(/[^0-9]/g, '');
+        fetch((window.baseUrl || '') + '/fundicion/updateFlag', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            },
+            body: JSON.stringify({ ot: otClean, flag: flagToUpdate })
+        }).catch(err => console.error('Error actualizando flag visto', err));
+    }
 };
 
 // ── TOAST NOTIFICACIONES ──────────────────────────────────────────────────────

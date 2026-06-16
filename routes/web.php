@@ -85,6 +85,9 @@ Route::controller(WOController::class)->group(function () {
     Route::get('/finishOrder/{wOrderName}/{className}', 'finishOrder')->name('finishOrder'); //Finalizar pedido
     Route::get('/show_panelWO', 'show_panelWO')->name('show_panelWO');
     Route::get('/piecesInProgress/ptaCard/{otId}/{claseId}', 'getPtaCardData')->name('ptaCardData'); // AJAX endpoint para card PTA
+    Route::get('/piecesInProgress/fundicionChecklist/{otId}', 'getFundicionChecklist')->name('fundicionChecklistData'); // AJAX endpoint para checklist de fundición
+    Route::get('/piecesInProgress/planeacionChecklist/{otId}', 'getPlaneacionChecklist')->name('planeacionChecklistData'); // AJAX endpoint para checklist de planeación
+    Route::post('/fundicion/updateFlag', 'markFundicionFlag')->name('fundicionUpdateFlag');
 });
 
 Route::controller(ClassController::class)->group(function () {

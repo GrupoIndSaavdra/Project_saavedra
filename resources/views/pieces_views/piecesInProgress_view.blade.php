@@ -27,10 +27,24 @@
             </div>
         </div>
     @endif
+
+    {{-- Botones flotantes de navegación rápida (Inicio / Fin) --}}
+    <div class="scroll-navigation-container">
+        <button id="btn-scroll-top" class="scroll-nav-btn" title="Ir al inicio">▲</button>
+        <button id="btn-scroll-bottom" class="scroll-nav-btn" title="Ir al final">▼</button>
+    </div>
+
     <script>
         window.wOInProgress = @json($wOInProgress);
+
+        {{-- Checklist de fundición: solo OTs con flujo activo (perfiles 1 y 2 lo usan en JS) --}}
+        window.fundicionChecklist    = @json($fundicionChecklist ?? []);
+        window.fundicionChecklistUrl = "{{ url('/piecesInProgress/fundicionChecklist') }}";
+        window.planeacionChecklistUrl = "{{ url('/piecesInProgress/planeacionChecklist') }}";
+
+        {{-- Timeout elevado a 120s: el polling de las cards cubre actualizaciones frecuentes --}}
         setTimeout(() => {
             location.reload();
-        }, 50000);
+        }, 120000);
     </script>
 @endsection

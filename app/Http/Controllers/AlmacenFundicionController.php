@@ -1531,6 +1531,15 @@ class AlmacenFundicionController extends Controller
             $otRaw = $p1Data['ot_raw'];
             $proveedor1 = $p1Data['proveedor'];
 
+            // VALIDACIÓN ESTRICTA: No generar pre-orden de casting si faltan formatos LDM
+            $history = FundicionHistory::where('ot', '=', $otRaw, 'and')->first();
+            if (!$history || !$history->casting_pdf_generated) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'No se puede generar la Pre-orden de Casting. Debe subir los Formatos LDM firmados obligatoriamente.'
+                ], 422);
+            }
+
             // Clean up any other suppliers if not in page 2
             $keepSuppliers = [$proveedor1];
             if ($hasPage2) {
@@ -1582,6 +1591,20 @@ class AlmacenFundicionController extends Controller
         }
 
         $baseOt = preg_replace('/_R\d+$/i', '', $otRaw);
+        $esReprocesoRegistro = (bool) preg_match('/_R\d+$/i', $otRaw);
+
+        // VALIDACIÓN ESTRICTA: Para generar una pre-orden de modelo de reproceso, el SCAR debe estar emitido.
+        if ($esReprocesoRegistro) {
+            $scarExists = \App\Models\ScarModelo::where('ot', '=', $baseOt, 'and')
+                              ->orWhere('ot', '=', $otRaw, 'or')
+                              ->exists();
+            if (!$scarExists) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se puede generar la Pre-orden de Modelo de Reproceso. Calidad debe emitir y firmar el formato de Rechazo y el SCAR primero.'
+                ], 422);
+            }
+        }
         // Filtrar filas para no guardar ni imprimir las clases ya aprobadas
         $filasFiltradas = [];
         if (!empty($data['filas'])) {

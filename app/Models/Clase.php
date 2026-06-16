@@ -26,4 +26,14 @@ class Clase extends Model
     {
         return $this->hasMany(\App\Models\Pieza::class, 'id_clase');
     }
+
+    public function procesos()
+    {
+        return $this->hasOne(\App\Models\Procesos::class, 'id_clase');
+    }
+
+    public function fechasProcesos()
+    {
+        return $this->hasMany(\App\Models\Fecha_proceso::class, 'clase');
+    }
 }

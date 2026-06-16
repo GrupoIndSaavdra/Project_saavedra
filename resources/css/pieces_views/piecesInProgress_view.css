@@ -1,20 +1,66 @@
-@import url("https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Poppins&display=swap");
-/*NUMEROS DE PROCENTAJES EN INTERFAZ*/
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+/* ══════════════════════════════════════════════════════════
+   GLOBAL STYLES & RESET
+   ══════════════════════════════════════════════════════════ */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
-body {
-    background-image: url("/public/images/fondoLogin.jpg");
-    background-repeat: repeat;
-    background-size: auto;
+
+html {
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
 }
+
+body {
+    background-color: #121212 !important;
+    background-image: url("/public/images/fondoLogin.jpg") !important;
+    background-size: cover !important;
+    background-attachment: fixed !important;
+    background-position: center !important;
+    font-family:
+        "Segoe UI",
+        Tahoma,
+        Geneva,
+        Verdana,
+        sans-serif,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Inter",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif !important;
+    color: #ffffff;
+    overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(18, 18, 18, 0.6);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(3, 57, 102, 0.8);
+    border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #033861;
+}
+
 header {
     position: fixed;
+    z-index: 10;
 }
+
+/* ── Snap scroll target sections ── */
 .section {
-    padding-top: 2rem;
+    padding: 5rem 0 1.5rem 0 !important;
     box-sizing: border-box;
     width: 100%;
     height: 100vh;
@@ -22,218 +68,547 @@ header {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    box-shadow: #0a8504 0px 0px 10px;
-    scrollbar-width: thin;
-    scrollbar-color: #033966 #f1f1f1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
 }
+
+/* ══════════════════════════════════════════════════════════
+   HEADER SECTION (OT DETAILS)
+   ══════════════════════════════════════════════════════════ */
 .header-section {
     position: relative;
-    width: 90%;
-    height: 25%;
-    margin: auto;
+    width: 98%;
+    height: auto !important;
+    margin: 0 auto 1.5rem !important;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    padding: 1em;
-    box-sizing: border-box;
+    align-items: stretch;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    gap: 1.5rem;
 }
+
 .title-div {
-    width: 40%;
-    background: #033966;
-    margin: 0 12px;
-    padding: 20px;
-    color: #fff;
-    border-radius: 10px;
+    flex: 1;
+    background: rgba(2, 38, 68, 0.85) !important; /* Darker to match the process cards */
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 16px !important;
+    padding: 2rem !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    text-align: start;
-    box-shadow: #033966 0px 0px 10px;
+    text-align: left !important;
+    gap: 0.5rem;
 }
-.text-header-class {
-    font-size: 2em;
-    font-weight: 100;
+
+/* Container para la segunda caja (KPIs de piezas) */
+.title-div:last-child {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    gap: 1rem;
 }
+
+/* Typography styles */
 .workOrder-text {
-    font-size: 2.5em;
-    font-weight: 700;
+    font-size: 2.2rem !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    margin-bottom: 0.2rem;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
 }
+
 .class-text {
-    font-size: 2em;
-    font-weight: 700;
+    font-size: 1.5rem !important;
+    font-weight: 600 !important;
+    color: #4ade80 !important;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
+
 .start-date-text,
 .end-date-text {
-    text-align: start;
-    font-size: 1.5em;
-    font-weight: 500;
+    font-size: 1.1rem !important;
+    font-weight: 500 !important;
+    color: #e2e8f0 !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.2rem;
 }
+.end-date-text {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
 .order-text,
 .pieces-text,
 .completed-pieces-text {
-    text-align: start;
-    font-size: 1.5em;
-    font-weight: 700;
-}
-.finish-order {
-    width: 13%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 10px;
-    background: #0a8504;
-    color: #fff;
-    font-size: 1.5em;
-    font-weight: 700;
-    border-radius: 10px;
-    text-decoration: none;
-    transition: 0.2s all;
+    gap: 0.5rem;
 }
+
+.header-label {
+    color: #94a3b8 !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.header-value {
+    font-size: 1.8rem !important;
+    font-weight: 800 !important;
+    line-height: 1;
+}
+
+.highlight-date {
+    font-size: 1.1rem !important;
+    color: #f8fafc !important;
+}
+
+.highlight-value {
+    color: #fbbf24 !important;
+    font-size: 3rem !important; /* Huge KPI numbers */
+}
+
+.completed-value {
+    color: #4ade80 !important;
+    font-size: 3rem !important; /* Huge KPI numbers */
+}
+
+/* Primary Action Button (Corporate style) */
+.finish-order {
+    flex: 0 0 auto;
+    padding: 15px 40px !important;
+    background-color: #0c8201 !important; /* Verde Principal */
+    color: #ffffff !important;
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    border-radius: 8px !important;
+    text-decoration: none !important;
+    border: 2px solid rgba(255, 255, 255, 0.4) !important;
+    position: relative !important;
+    transform: none !important;
+    top: auto !important;
+    left: auto !important;
+    align-self: center;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
 .finish-order:hover {
-    box-shadow: #033966 0px 0px 10px;
+    transform: translateY(-2px) scale(1.03) !important;
+    box-shadow: 0 8px 15px rgba(12, 130, 1, 0.5) !important;
+    background-color: #0c9e05 !important;
 }
-.div-opacity {
+
+.finish-order:active {
+    transform: translateY(1px) scale(0.98) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   PROCESSES GRID SECTION
+   ══════════════════════════════════════════════════════════ */
+.processes-section {
+    width: 98% !important;
+    height: auto !important;
+    flex-grow: 1;
+    margin: 0 auto !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 1.5rem !important;
+    align-content: flex-start;
+    justify-content: center;
+    padding-bottom: 2.5rem;
+}
+
+.process-section {
+    flex: 1 1 320px !important;
+    max-width: none !important; /* Permitir auto-ajuste para llenar espacio */
+    min-width: 280px !important;
+    margin: 0 !important;
+    padding: 1.4rem !important;
+    border-radius: 12px !important;
+    background: rgba(2, 38, 68, 0.85) !important; /* Darkest corporate gray/black for high contrast */
+    border: 3px solid rgba(255, 255, 255, 0.15); /* Removed !important for dynamic JS styling */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); /* Removed !important for dynamic JS styling */
+    color: #ffffff !important;
+    transition:
+        transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1),
+        border-color 0.25s ease,
+        box-shadow 0.25s cubic-bezier(0.25, 0.8, 0.25, 1),
+        background-color 0.25s ease !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.process-section:hover {
+    transform: translateY(-2px) scale(1.01);
+    border-color: hsla(var(--glow-hue, 60), 100%, 60%, 1) !important;
+    box-shadow: 0 8px 28px hsla(var(--glow-hue, 60), 100%, 50%, 0.65) !important;
+    background: rgba(3, 56, 97, 0.95) !important; /* Turn deep blue on hover */
+    cursor: pointer;
+}
+
+.process-title {
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    margin-bottom: 0.45rem !important;
+    text-align: center !important;
+    letter-spacing: -0.01em;
+}
+
+.limit-label {
+    display: block;
+    font-size: 0.8rem !important;
+    color: #e2e8f0 !important;
+    margin-bottom: 0.8rem !important;
+    text-align: center !important;
+    font-weight: 500;
+}
+
+/* Opacidad para textos de procesos inactivos (sin piezas aún) */
+.inactive-process .process-title,
+.inactive-process .limit-label,
+.inactive-process .progress-percentage {
+    opacity: 0.4 !important;
+    transition: opacity 0.3s ease;
+}
+
+/* ══════════════════════════════════════════════════════════
+   PROGRESS BARS SYSTEM
+   ══════════════════════════════════════════════════════════ */
+.progress-bar {
+    position: relative;
+    width: 100% !important;
+    height: 22px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+    margin: 8px 0 !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    /* Do NOT enforce background-color !important so JS can set light green/pink tracks */
+}
+
+.progress {
+    height: 100% !important;
+    border-radius: 8px !important;
+}
+
+.good-progress {
+    background-color: #0c8201; /* Verde Principal (default) */
+}
+
+.bad-progress {
+    background-color: #9d0402 !important; /* Rojo Peligro */
+}
+
+.progress-percentage {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    pointer-events: none;
+    /* Sombra sutil para profundidad sin borde negro */
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CARD CHECKLIST DE FUNDICIÓN
+   ══════════════════════════════════════════════════════════ */
+.fundicion-checklist-wrapper {
+    width: 98% !important;
+    margin: 0 auto 1.5rem !important;
+    animation: checklistFadeIn 0.4s ease both;
+    display: flex;
+    justify-content: center;
+}
+
+@keyframes checklistFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fundicion-checklist-card {
+    background: rgba(2, 38, 68, 0.85) !important; /* Darkest corporate gray/black */
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 4px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px !important;
+    padding: 1.4rem !important;
+    color: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+    width: 100%;
+}
+
+/* Eliminado el hover de fundicion-checklist-card para hacerla estática */
+
+.empty-checklist-card {
+    background: rgba(2, 38, 68, 0.85) !important;
+    max-width: 600px;
+    text-align: center;
+}
+
+/* Header de la card */
+.checklist-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.8rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    gap: 0.8rem;
+}
+
+.checklist-title {
+    font-size: 1.25rem !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+/* Badge "Reproceso" */
+.checklist-reproceso-badge {
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+    background-color: #9d0402; /* Rojo Peligro */
+    color: #ffffff;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    box-shadow: 0 2px 10px rgba(157, 4, 2, 0.5);
+    animation: pulseBadgeFundicion 2.2s ease-in-out infinite;
+}
+
+@keyframes pulseBadgeFundicion {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Lista de pasos (flex para centrado) */
+.checklist-items {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.8rem;
+}
+
+/* Conector entre pasos - Oculto para hacer un diseño compacto de lista */
+.checklist-connector {
+    display: none;
+}
+
+.checklist-connector--completado {
+    display: none;
+}
+
+/* Cada paso del checklist (diseño estilo pill) */
+.checklist-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9rem !important;
+    font-weight: 600;
+    padding: 0.3rem 0.5rem !important;
+    border-radius: 6px;
+    background: transparent;
+    border: none;
+    white-space: normal; /* Permitir salto de línea */
+    word-break: break-word;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    width: auto;
+}
+
+.checklist-item:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.05) !important;
+    cursor: pointer;
+}
+
+.checklist-item--completado {
+    opacity: 1 !important;
+}
+
+.checklist-item--completado:hover {
+    background: rgba(74, 222, 128, 0.1) !important;
+}
+
+.checklist-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0;
+}
+
+.checklist-state-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.checklist-item:hover .checklist-state-icon {
+    transform: scale(1.1);
+}
+
+.checklist-label {
+    font-weight: 600;
+    font-size: 0.85rem !important;
+    text-align: center;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    transition: color 0.2s ease;
+}
+
+/* Estados de color y pill */
+.checklist-item--completado .checklist-label {
+    color: #4ade80 !important;
+}
+
+.checklist-item--pendiente .checklist-label {
+    color: #f59e0b !important;
+}
+.checklist-item--pendiente:hover {
+    background: rgba(245, 158, 11, 0.08) !important;
+}
+
+.checklist-item--rechazado .checklist-label {
+    color: #f87171 !important;
+}
+.checklist-item--rechazado:hover {
+    background: rgba(248, 113, 113, 0.08) !important;
+}
+
+.checklist-item--inactivo {
+    opacity: 0.5;
+}
+.checklist-item--inactivo .checklist-label {
+    color: #94a3b8 !important;
+}
+.checklist-item--inactivo:hover {
+    opacity: 0.7;
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Ajustes de sección para cuando tiene checklist */
+@media (min-width: 992px) {
+    .section.section--has-checklist .header-section {
+        height: auto !important;
+        margin: 0 auto 1rem !important;
+    }
+    .section.section--has-checklist .processes-section {
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════
+   MODALS AND DIALOGS (DARK TEMPLATE)
+   ══════════════════════════════════════════════════════════ */
+.opacity-div {
     position: fixed;
     top: 0;
+    left: 0;
     width: 100vw;
     height: 100vh;
     box-sizing: border-box;
     display: flex;
     justify-content: center;
     align-items: center;
-    text-align: center;
-    background: #0000003a;
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(8px); /* Safari */
-    z-index: 1;
-}
-.alert-finishOrder {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    background-color: white;
-    width: 50%;
-    max-width: 900px;
-    font-size: 1.5em;
-    font-weight: 800;
-    transition: 0.2s;
-    padding: 2em;
-    border-radius: 10px;
-}
-.div-cerrar {
-    width: 3em;
-    margin-left: 95%;
-}
-.btn-cerrar {
-    border: none;
-    background: transparent;
-    transition: 0.2s;
-}
-.img-cerrar {
-    width: 100%;
-    transition: 0.2s all;
-}
-.img-cerrar:hover {
-    transform: scale(1.2);
-}
-.img-error {
-    width: 15em;
-    padding: 10px;
-    margin-bottom: 10px;
-}
-.processes-section {
-    width: 100%;
-    height: 70%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-}
-.process-section {
-    width: 20%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    margin: 5px;
-    padding: 10px;
-    border-radius: 10px;
-    background: #404040bb;
-    box-shadow: #000 0px 0px 5px;
-    color: #fff;
-    font-size: 1em;
-    transition: 0.2s all;
-}
-.process-section:hover {
-    background: #033966;
-    transform: scale(1.05);
-    cursor: pointer;
-}
-.progress-bar {
-    position: relative;
-    width: 100%;
-    height: 20px;
-    background-color: #f3f3f3;
-    border-radius: 10px;
-    overflow: hidden;
-    margin: 3px 0;
-}
-.progress {
-    height: 100%;
-}
-.good-progress {
-    background: linear-gradient(to right, #9ff390, #0a8504);
-}
-.bad-progress {
-    background: linear-gradient(to right, #f38080, #9c0303);
+    background: rgba(18, 18, 18, 0.85) !important;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    z-index: 1000 !important;
 }
 
-.progress-percentage {
-    position: absolute;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    text-align: center;
-    color: #000000;
-    font-weight: 700;
-    font-size: 1em;
-}
-
-.opacity-div {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000000aa;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 .modal {
     position: relative;
-    width: 50%;
-    height: 50%;
-    background: #fff;
-    border-radius: 10px;
-    text-align: center;
-    padding: 2em;
+    width: 95% !important;
+    max-width: 900px !important;
+    height: auto !important;
+    max-height: 85vh !important;
+    background: #033861 !important; /* Azul Marino Saavedra */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
+    color: #ffffff !important;
+    text-align: left !important;
+    padding: 2rem !important;
+    display: flex;
+    flex-direction: column;
 }
+
+.modal-title {
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin-bottom: 1.2rem !important;
+    text-align: left !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+    padding-bottom: 0.8rem !important;
+}
+
 .modal-close {
     position: absolute;
-    top: 0.5em;
-    right: 0.5em;
-    width: 2em;
-    cursor: pointer;
-    font-size: 1.5em;
-    background: transparent;
-    border: none;
+    top: 1.5rem !important;
+    right: 1.5rem !important;
+    width: 2rem !important;
+    height: 2rem !important;
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    color: #aaaaaa !important;
+    transition: color 0.2s ease !important;
 }
+
+.modal-close:hover {
+    color: #ffffff !important;
+}
+
 .img-close {
     width: 100%;
 }
@@ -242,270 +617,303 @@ header {
 .bad-pieces-table {
     box-sizing: border-box;
     display: block;
-    width: 100%;
-    height: 85%;
-    border-collapse: collapse;
-    margin-top: 1em;
-    border-top: 2px solid #033966;
-    font-size: 1em;
+    width: 100% !important;
+    max-height: 55vh !important;
+    border-collapse: collapse !important;
+    margin-top: 1rem !important;
+    border-top: none !important;
+    font-size: 0.95rem !important;
     overflow-y: auto;
 }
-.bad-pieces-table th,
-.bad-pieces-table td {
-    padding: 0.5em;
+
+.bad-pieces-table th {
+    background: rgba(255, 255, 255, 0.05) !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    padding: 1rem !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.15) !important;
+    text-transform: uppercase;
+    font-size: 0.8rem !important;
+    letter-spacing: 0.05em;
     text-align: center;
 }
-.no-bad-pieces {
-    font-style: italic;
-    color: #404040;
-    padding: 10px;
-    background: #f9f9f9;
+
+.bad-pieces-table td {
+    padding: 1rem !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    text-align: center;
+    color: #cccccc !important;
 }
+
+.bad-pieces-table tr:hover {
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.no-bad-pieces {
+    font-style: italic !important;
+    color: #aaaaaa !important;
+    padding: 2.5rem !important;
+    background: transparent !important;
+    text-align: center !important;
+}
+
+/* ── Alert Order Finished ── */
+.alert-finishOrder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: #033861 !important; /* Azul Marino Saavedra */
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    width: 90% !important;
+    max-width: 500px !important;
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    transition: 0.3s;
+    padding: 2.5rem !important;
+    border-radius: 12px !important;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6) !important;
+    transform: scale(0.85);
+    opacity: 0;
+    animation: bounceInAlert 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes bounceInAlert {
+    0% { transform: scale(0.85); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Background overlay animation */
+.div-opacity {
+    opacity: 0;
+    animation: fadeInOverlay 0.3s ease forwards;
+}
+
+@keyframes fadeInOverlay {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.div-cerrar {
+    width: 2.5em;
+    margin-left: auto;
+    margin-bottom: 0.8rem;
+}
+
+.btn-cerrar {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #aaaaaa;
+}
+
+.img-cerrar {
+    width: 100%;
+    transition: 0.2s all;
+}
+
+.img-error {
+    width: 80px !important;
+    margin-bottom: 1.2rem !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   NO DATA MESSAGE
+   ══════════════════════════════════════════════════════════ */
 .no-data-message {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     display: inline-block;
-    font-size: 1.5em;
-    color: #404040;
+    font-size: 1.3rem !important;
+    color: #ffffff !important;
     text-align: center;
-    margin-top: 2em;
-    font-weight: 700;
-    padding: 3em;
-    background: #f9f9f9;
-    box-shadow: #033966 0px 0px 5px;
-    border-radius: 10px;
+    font-weight: 600 !important;
+    padding: 3rem 4rem !important;
+    background: rgba(3, 57, 102, 0.25) !important;
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4) !important;
+    border-radius: 12px !important;
 }
 
-/* ── Grid de cards PTA (parte inferior) ───────────────────── */
-.pta-cards-section {
-    margin-top: 2.5rem;
-    padding: 1rem 1.5rem 3rem;
-}
-
-.pta-cards-section-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1e3a5f;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.pta-cards-section-title::before {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: #dce8f5;
-}
-
-.pta-cards-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    justify-content: flex-end;
-}
-
-.pta-cards-grid > * {
-    width: 280px;
-    min-width: 220px;
-}
-
-/* Estilos de la card PTA */
-.pta-results-card {
-    border-radius: 10px;
-    transition:
-        transform 0.15s,
-        box-shadow 0.15s;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.pta-results-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(30, 58, 95, 0.18) !important;
-}
-
-.pta-card-link {
-    text-decoration: none;
-    display: block;
-}
-
-.pta-card-header {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
-    border-radius: 10px 10px 0 0;
-    padding: 0.75rem 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.pta-header-icon {
-    font-size: 1.2rem;
-}
-
-.pta-card-body {
-    padding: 1rem;
-}
-
-.pta-ot-badge {
-    font-size: 0.1rem;
-    color: #6c757d;
-    margin-bottom: 0.75rem;
-}
-
-.pta-progress-row {
-    margin-bottom: 0.75rem;
-}
-
-.pta-progress-label {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.25rem;
-    font-size: 0.8rem;
-}
-
-.pta-progress {
-    height: 8px;
-    border-radius: 4px;
-    background: #e9ecef;
-    overflow: hidden;
-}
-
-.pta-progress-fill {
-    height: 100%;
-    border-radius: 4px;
-    transition: width 0.4s ease;
-}
-
-.pta-card-footer {
-    background: transparent;
-    border-top: 1px solid #e8eef5;
-    padding: 0.5rem 1rem;
-    text-align: right;
-}
-
-/* RESPONSIVE */
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN (TABLETS & PHONES)
+   ══════════════════════════════════════════════════════════ */
 @media (max-width: 991.98px) {
     body {
-        overflow-x: hidden;
         overflow-y: auto;
     }
 
     .section {
-        height: auto;
+        height: auto !important;
         min-height: 100vh;
-        overflow-y: auto;
-        padding-bottom: 2em;
+        overflow-y: visible !important;
+        padding-bottom: 3rem !important;
     }
 
     .header-section {
-        flex-direction: column;
-        align-items: center;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+        border-radius: 0 !important;
+        border-left: none !important;
+        border-right: none !important;
+        gap: 1.2rem;
+        padding: 1.5rem !important;
     }
 
     .title-div {
-        width: 90%;
-        margin: 1em auto;
-        padding: 0.5em;
+        width: 100% !important;
     }
 
-    .workOrder-text,
-    .pieces-text {
-        font-size: 1.5em;
-        margin-bottom: 0.2em;
-    }
-
-    .text-header-class {
-        font-size: 1.2em;
-        text-align: center;
+    .workOrder-text {
+        font-size: 1.3rem !important;
     }
 
     .finish-order {
-        position: relative;
-        margin: 1em auto;
-        top: auto;
-        left: auto;
-        transform: none;
-        font-size: 1em;
-        padding: 0.8em 2em;
-    }
-
-    .finish-order:hover {
-        padding: 0.9em 2.2em;
-        font-size: 1.1em;
-        transition: 0.2s;
-    }
-
-    .process-title {
-        font-size: 1em;
-        margin-bottom: 0.2em;
+        width: 100% !important;
+        text-align: center !important;
+        margin-top: 0.5rem !important;
     }
 
     .processes-section {
+        width: 98% !important;
+        grid-template-columns: 1fr !important; /* Stack vertically on small mobile */
+        gap: 1.2rem !important;
+        padding-bottom: 2.5rem;
+    }
+
+    .process-section {
+        padding: 1.2rem !important;
+    }
+
+    .fundicion-checklist-wrapper {
+        width: 98% !important;
+        margin-bottom: 1rem;
+    }
+
+    .checklist-items {
         flex-direction: column;
-        width: 90%;
-        height: auto;
-        margin: 0.5em auto;
+        align-items: flex-start;
+        gap: 0.6rem;
     }
 
-    .process-section {
-        width: 100%;
-        height: auto;
-        padding: 1em;
-        font-size: 1.2em;
+    .checklist-connector {
+        display: none;
     }
 
-    .process-section {
-        width: 100%;
-        font-size: 0.9em;
-        height: auto;
-        margin: 0.8em 0;
-    }
-
-    .progress-bar {
-        height: 24px;
-    }
-
-    .bad-pieces-table {
-        font-size: 1.2em;
-        max-height: 60%;
-        overflow-y: auto;
-        display: block;
-    }
-
-    .good-progress {
-        background: linear-gradient(to right, #9ff390, #0a8504);
-    }
-
-    .bad-progress {
-        background: linear-gradient(to right, #f38080, #9c0303);
+    .checklist-item {
+        font-size: 0.9rem !important;
     }
 
     .modal {
-        width: 90%;
-        height: 80%;
-        top: 5%;
-        padding: 1.2em;
-        overflow-y: auto;
-    }
-
-    .modal-close {
-        width: 1.5em;
-        height: 2em;
-        font-size: 1.2em;
-    }
-
-    .modal-title {
-        font-size: 1em;
-        margin-bottom: 1em;
-    }
-
-    .bad-pieces-table th,
-    .bad-pieces-table td {
-        padding: 0.3em;
-        font-size: 0.8em;
+        width: 98% !important;
+        padding: 1.5rem !important;
     }
 }
+
+/* ══════════════════════════════════════════════════════════
+   BOTONES DE NAVEGACIÓN RÁPIDA (FLOATING SCROLL SYSTEM)
+   ══════════════════════════════════════════════════════════ */
+.scroll-navigation-container {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 100;
+    animation: scrollContainerFadeIn 0.5s ease both;
+}
+
+@keyframes scrollContainerFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.scroll-nav-btn {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: rgba(18, 24, 40, 0.75) !important;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #4ade80 !important; /* Elegant green icon matching header */
+    font-size: 1.15rem;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    outline: none;
+}
+
+.scroll-nav-btn:hover {
+    background: rgba(12, 130, 1, 0.9) !important; /* Turn green on hover */
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-3px) scale(1.08);
+    box-shadow: 0 12px 24px rgba(12, 130, 1, 0.4);
+}
+
+.scroll-nav-btn:active {
+    transform: translateY(1px) scale(0.95);
+    box-shadow: 0 4px 12px rgba(12, 130, 1, 0.3);
+}
+
+/* Hide or adjust on very small devices if needed */
+@media (max-width: 480px) {
+    .scroll-navigation-container {
+        bottom: 15px;
+        right: 15px;
+        gap: 8px;
+    }
+    .scroll-nav-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 0.95rem;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════
+   BADGE DE REPROCESO ("MÁS CHIDO")
+   ══════════════════════════════════════════════════════════ */
+.checklist-reproceso-badge {
+    background: linear-gradient(135deg, #c20603 0%, #9d0402 100%);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    margin-left: 10px;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    animation: pulseBadge 2s infinite;
+}
+
+@keyframes pulseBadge {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.08);
+    }
+}
+

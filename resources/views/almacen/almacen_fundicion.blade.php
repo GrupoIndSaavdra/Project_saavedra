@@ -1869,14 +1869,17 @@
                                                                                             @php
                                                                                                 $hideReprocesoPreOrden = (!$latestReproceso->pre_orden_sent && !$latestReproceso->pre_orden_email_sent) ? '' : 'display: none;';
                                                                                                 $hideEditMail = ($latestReproceso->pre_orden_sent && !$latestReproceso->pre_orden_email_sent) ? '' : 'display: none;';
+                                                                                                
+                                                                                                // VALIDACIÓN ESTRICTA: SCAR Obligatorio
+                                                                                                $scarExists = \App\Models\ScarModelo::where('ot', preg_replace('/_R\d+$/i', '', $latestReproceso->ot))->orWhere('ot', $latestReproceso->ot)->exists();
+                                                                                                $scarDisabledAttr = (!$scarExists) ? 'disabled style="opacity: 0.5; cursor: not-allowed; ' . $hideReprocesoPreOrden . '" title="Requisito faltante: SCAR firmado y Formato de Rechazo"' : 'style="' . $hideReprocesoPreOrden . '" title="Generar / editar la pre-orden de fabricación de modelo"';
                                                                                             @endphp
                                                                                             {{-- Botón inicial para re-proceso: generar pre-orden --}}
                                                                                             <button class="btn-modelo btn-modelo-no"
                                                                                                 onclick="abrirModalPreOrden('{{ $latestReproceso->ot }}')"
-                                                                                                title="Generar / editar la pre-orden de fabricación de modelo"
-                                                                                                style="{{ $hideReprocesoPreOrden }}">
+                                                                                                {!! $scarDisabledAttr !!}>
                                                                                                 <img src="{{ asset('images/pdf.png') }}" alt="Pre-Orden">
-                                                                                                <span>Pre-Orden Modelo</span>
+                                                                                                <span>Pre-Orden de Modelo</span>
                                                                                             </button>
 
                                                                                             {{-- Editar + Enviar Alerta (cuando pre-orden ya existe) --}}
