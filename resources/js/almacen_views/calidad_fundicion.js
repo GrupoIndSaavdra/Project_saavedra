@@ -137,7 +137,8 @@ function initToggleFiles() {
  * @param {string} archivo - Nombre del archivo PDF
  */
 window.calidadVerPdf = function (ot, archivo, tipo = 'dibujo') {
-    const url = window.calidadRoutes.serve
+    const routesObj = window.calidadRoutes || window.almacenRoutes;
+    const url = routesObj.serve
         + '?ot=' + encodeURIComponent(ot)
         + '&archivo=' + encodeURIComponent(archivo)
         + '&tipo=' + encodeURIComponent(tipo);
