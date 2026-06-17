@@ -1930,6 +1930,16 @@ class AlmacenFundicionController extends Controller
             ], 422);
         }
 
+        $destinatariosArray = array_map('trim', explode(',', $destinatario));
+        foreach ($destinatariosArray as $email) {
+            if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "El correo electrónico proporcionado no es válido: $email"
+                ], 422);
+            }
+        }
+
         // Obtener la OT
         $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
         if (!$history) {

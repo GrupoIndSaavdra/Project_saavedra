@@ -375,9 +375,13 @@ class FundicionChecklistCard {
      * @param {string}  otId        - Clave de la OT (ej. "6748" o "6748_R1")
      * @param {object}  initialData - { esReproceso: bool, pasos: { key: { label, estado } } }
      * @param {Element} container   - Div wrapper donde se monta la card
+     * @param {string}  [instanceId] - Sufijo único para IDs del DOM (por defecto = otId).
+     *                                  Usar el nombre de la clase cuando la OT tiene varias secciones.
      */
-    constructor(otId, initialData, container) {
+    constructor(otId, initialData, container, instanceId) {
         this.otId = otId;
+        this.className = instanceId || '';
+        this._instanceId = instanceId ? `${otId}-${instanceId}` : otId;
         this._data = initialData;
         this.container = container;
         this._pollTimer = null;
@@ -402,16 +406,16 @@ class FundicionChecklistCard {
         const slash = baseUrl.endsWith('/') ? '' : '/';
         let imgName = '';
         switch (estado) {
-            case 'completado':
+            case 'Completado':
                 imgName = 'Aprobado.png';
                 break;
-            case 'pendiente':
+            case 'En Espera':
                 imgName = 'Espera.png';
                 break;
-            case 'rechazado':
-                imgName = 'Rechazado.png';
+            case 'Revisando':
+                imgName = 'Revisando.png';
                 break;
-            case 'inactivo':
+            case 'Incompleto':
             default:
                 imgName = 'Recibido.png';
                 break;
@@ -423,8 +427,11 @@ class FundicionChecklistCard {
     // Verde si todos completados, rojo si alguno rechazado, naranja si en progreso
     _getBorderColor(data) {
         const pasos = Object.values(data.pasos || {});
-        if (pasos.some(p => p.estado === 'rechazado')) return '#9D0402'; // corporate red
-        if (pasos.length > 0 && pasos.every(p => p.estado === 'completado')) return '#0C8201'; // corporate green
+        if (pasos.some(p => (p.estado || '').toLowerCase() === 'rechazado')) return '#9D0402'; // corporate red
+        if (pasos.length > 0 && pasos.every(p => {
+            const st = (p.estado || '').toLowerCase();
+            return st === 'completado' || st === 'proveedor' || st === 'aprobado' || st === 'aprobado_final';
+        })) return '#0C8201'; // corporate green
         return '#424141'; // pending - corporate gray
     }
 
@@ -432,7 +439,7 @@ class FundicionChecklistCard {
     _render() {
         const card = document.createElement('div');
         card.className = 'fundicion-checklist-card';
-        card.id = `fundicion-checklist-${this.otId}`;
+        card.id = `fundicion-checklist-${this._instanceId}`;
 
         // — Header —
         const header = document.createElement('div');
@@ -445,7 +452,7 @@ class FundicionChecklistCard {
 
         const badge = document.createElement('span');
         badge.className = 'checklist-reproceso-badge';
-        badge.id = `checklist-badge-${this.otId}`;
+        badge.id = `checklist-badge-${this._instanceId}`;
         badge.textContent = this._data.badgeText || 'Reproceso';
         badge.style.display = this._data.isBadgeVisible ? 'inline-block' : 'none';
         header.appendChild(badge);
@@ -455,8 +462,23 @@ class FundicionChecklistCard {
         // — Contenedor de pasos —
         const itemsContainer = document.createElement('div');
         itemsContainer.className = 'checklist-items';
-        itemsContainer.id = `checklist-items-${this.otId}`;
+        itemsContainer.id = `checklist-items-${this._instanceId}`;
+        itemsContainer.style.display = 'none';
         card.appendChild(itemsContainer);
+
+        card.classList.add('is-closed');
+
+        // Toggle logic: make whole card clickable
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', () => {
+            if (itemsContainer.style.display === 'none') {
+                itemsContainer.style.display = '';
+                card.classList.remove('is-closed');
+            } else {
+                itemsContainer.style.display = 'none';
+                card.classList.add('is-closed');
+            }
+        });
 
         // Render inicial de estados
         this._updateCard(card, this._data);
@@ -470,19 +492,34 @@ class FundicionChecklistCard {
 
         // Contorno verde si completado, rojo si rechazado, sin glow
         let colorHex = this._getBorderColor(data);
+        card.classList.remove('card-state-completado', 'card-state-incompleto', 'card-state-rechazado');
         if (colorHex === '#9D0402') { // Red
-            card.style.borderColor = '#9D0402';
-            card.style.boxShadow = 'none';
+            card.style.borderColor = '';
+            card.classList.add('card-state-rechazado');
         } else if (colorHex === '#0C8201') { // Green
-            card.style.borderColor = '#0C8201';
-            card.style.boxShadow = 'none';
+            card.style.borderColor = '';
+            card.classList.add('card-state-completado');
         } else {
             card.style.borderColor = '';
-            card.style.boxShadow = '';
+            card.classList.add('card-state-incompleto');
+        }
+
+        const titleSpan = card.querySelector('.checklist-title');
+        if (titleSpan) {
+            if (colorHex === '#0C8201') {
+                titleSpan.style.color = '#4ade80';
+                titleSpan.style.textShadow = '0 0 10px rgba(74, 222, 128, 0.5)';
+            } else if (colorHex === '#9D0402') {
+                titleSpan.style.color = '#f87171';
+                titleSpan.style.textShadow = '0 0 10px rgba(248, 113, 113, 0.5)';
+            } else {
+                titleSpan.style.color = '';
+                titleSpan.style.textShadow = '';
+            }
         }
 
         // Badge de reproceso
-        const badge = card.querySelector(`#checklist-badge-${this.otId}`);
+        const badge = card.querySelector(`#checklist-badge-${this._instanceId}`);
         if (badge) {
             badge.style.display = data.isBadgeVisible ? 'inline-flex' : 'none';
             if (data.badgeText) {
@@ -491,39 +528,177 @@ class FundicionChecklistCard {
         }
 
         // Reconstruir lista de pasos
-        const container = card.querySelector(`#checklist-items-${this.otId}`);
+        const container = card.querySelector(`#checklist-items-${this._instanceId}`);
         if (!container) return;
         container.innerHTML = '';
 
-        const pasosEntries = Object.entries(data.pasos || {});
+        // Solo mostrar los pasos que no estén inactivos (para que vayan apareciendo uno a uno)
+        const pasosEntries = Object.entries(data.pasos || {}).filter(([key, paso]) => paso.estado !== 'Incompleto');
 
         pasosEntries.forEach(([key, paso], idx) => {
             if (!paso) return;
 
+            const safeEstado = paso.estado.toLowerCase().replace(/\s+/g, '_');
             const item = document.createElement('div');
-            item.className = `checklist-item checklist-item--${paso.estado}`;
+            item.className = `checklist-item checklist-item--${safeEstado}`;
             if (paso.tooltip) {
                 item.title = paso.tooltip;
                 item.style.cursor = 'help';
             }
+
+            // 1. Área del Ícono (Izquierda)
+            const iconCol = document.createElement('div');
+            iconCol.className = 'checklist-icon-col';
 
             const iconSpan = document.createElement('span');
             iconSpan.className = 'checklist-icon';
 
             const img = document.createElement('img');
             img.src = this._getIconFor(paso.estado);
-            img.alt = paso.estado;
+            img.alt = safeEstado;
             img.className = 'checklist-state-icon';
-            // Removed inline width/height to use CSS size, making it smaller
             iconSpan.appendChild(img);
+            
+            iconCol.appendChild(iconSpan);
 
-            const label = document.createElement('span');
-            label.className = 'checklist-label';
-            label.textContent = paso.label;
+            // Conector vertical
+            if (idx < pasosEntries.length - 1) {
+                const line = document.createElement('div');
+                line.className = 'checklist-connector-line';
+                iconCol.appendChild(line);
+            }
 
-            item.appendChild(iconSpan);
-            item.appendChild(label);
-            container.appendChild(item);
+            // 2. Área de Descripción (Centro)
+            const contentCol = document.createElement('div');
+            contentCol.className = 'checklist-content-col';
+
+            const labelParts = paso.label.split(': ');
+            
+            const labelDesc = document.createElement('span');
+            labelDesc.className = 'checklist-label-desc';
+            labelDesc.textContent = labelParts.length > 1 ? labelParts[1] : paso.label;
+            
+            contentCol.appendChild(labelDesc);
+
+            if (labelParts.length > 1) {
+                const labelDept = document.createElement('span');
+                labelDept.className = 'checklist-label-dept';
+                labelDept.textContent = labelParts[0];
+                contentCol.appendChild(labelDept);
+            }
+
+            // 3. Área de Acción / Status (Derecha)
+            const actionCol = document.createElement('div');
+            actionCol.className = 'checklist-action-col';
+
+            const statusBadge = document.createElement('span');
+            statusBadge.className = `checklist-status-badge badge--${safeEstado.replace(/_/g, '-')}`;
+            statusBadge.textContent = paso.estado.toUpperCase();
+            
+            actionCol.appendChild(statusBadge);
+
+            item.appendChild(iconCol);
+            item.appendChild(contentCol);
+            item.appendChild(actionCol);
+
+            // Add sub-pasos rendering if they exist
+            const activeSubPasos = (paso.subPasos || []).filter(sp => sp.estado !== 'Incompleto');
+            if (activeSubPasos.length > 0) {
+                const subPasosContainer = document.createElement('div');
+                subPasosContainer.className = 'checklist-subpasos-container';
+                subPasosContainer.style.display = 'none';
+
+                activeSubPasos.forEach((subPaso, spIdx) => {
+                    const spEstado = subPaso.estado.toLowerCase().replace(/\s+/g, '_');
+                    const spItem = document.createElement('div');
+                    spItem.className = `checklist-subpaso-item checklist-subpaso-item--${spEstado}`;
+                    
+                    const spIconCol = document.createElement('div');
+                    spIconCol.className = 'checklist-subpaso-icon-col';
+                    
+                    const spIcon = document.createElement('img');
+                    spIcon.src = this._getIconFor(subPaso.estado);
+                    spIcon.className = 'checklist-subpaso-icon';
+                    spIconCol.appendChild(spIcon);
+
+                    if (spIdx < activeSubPasos.length - 1) {
+                        const spLine = document.createElement('div');
+                        spLine.className = 'checklist-subpaso-connector';
+                        spIconCol.appendChild(spLine);
+                    }
+
+                    const spContentCol = document.createElement('div');
+                    spContentCol.className = 'checklist-subpaso-content-col';
+                    
+                    const spLabel = document.createElement('span');
+                    spLabel.className = 'checklist-subpaso-label';
+                    spLabel.textContent = subPaso.label;
+                    spContentCol.appendChild(spLabel);
+
+                    if (subPaso.detalle) {
+                        const spDetalle = document.createElement('span');
+                        spDetalle.className = 'checklist-subpaso-detalle';
+                        spDetalle.textContent = subPaso.detalle;
+                        spContentCol.appendChild(spDetalle);
+                    }
+
+                    const spBadgeCol = document.createElement('div');
+                    spBadgeCol.className = 'checklist-subpaso-badge-col';
+                    
+                    const spStatusBadge = document.createElement('span');
+                    spStatusBadge.className = `checklist-subpaso-badge badge--${spEstado.replace(/_/g, '-')}`;
+                    spStatusBadge.textContent = subPaso.estado.toUpperCase();
+                    spBadgeCol.appendChild(spStatusBadge);
+
+                    spItem.appendChild(spIconCol);
+                    spItem.appendChild(spContentCol);
+                    spItem.appendChild(spBadgeCol);
+                    
+                    subPasosContainer.appendChild(spItem);
+                });
+
+                // Add expand indicator icon to main item
+                const expandIcon = document.createElement('span');
+                expandIcon.className = 'checklist-expand-icon';
+                expandIcon.innerHTML = '▼';
+                actionCol.appendChild(expandIcon);
+
+                item.style.cursor = 'pointer';
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Avoid triggering the main card toggle
+                    
+                    // Close other expanded items
+                    const allExpandedItems = container.querySelectorAll('.checklist-item.is-expanded');
+                    allExpandedItems.forEach(expandedItem => {
+                        if (expandedItem !== item) {
+                            expandedItem.classList.remove('is-expanded');
+                            const relatedContainer = expandedItem.nextElementSibling;
+                            if (relatedContainer && relatedContainer.classList.contains('checklist-subpasos-container')) {
+                                relatedContainer.style.display = 'none';
+                            }
+                            const relatedIcon = expandedItem.querySelector('.checklist-expand-icon');
+                            if (relatedIcon) {
+                                relatedIcon.innerHTML = '▼';
+                            }
+                        }
+                    });
+
+                    if (subPasosContainer.style.display === 'none') {
+                        subPasosContainer.style.display = 'flex';
+                        item.classList.add('is-expanded');
+                        expandIcon.innerHTML = '▲';
+                    } else {
+                        subPasosContainer.style.display = 'none';
+                        item.classList.remove('is-expanded');
+                        expandIcon.innerHTML = '▼';
+                    }
+                });
+
+                container.appendChild(item);
+                container.appendChild(subPasosContainer);
+            } else {
+                container.appendChild(item);
+            }
         });
     }
 
@@ -540,7 +715,8 @@ class FundicionChecklistCard {
             return;
         }
         try {
-            const res = await fetch(`${window.fundicionChecklistUrl}/${this.otId}`);
+            const url = this.className ? `${window.fundicionChecklistUrl}/${this.otId}/${this.className}` : `${window.fundicionChecklistUrl}/${this.otId}`;
+            const res = await fetch(url);
             if (!res.ok) return; // 404 si la OT dejó de tener flujo — se deja morir en siguiente tick
 
             const data = await res.json();
@@ -604,8 +780,8 @@ class PlaneacionChecklistCard {
     _getBorderColor(pasos) {
         if (!pasos || Object.keys(pasos).length === 0) return '#424141';
         const vals = Object.values(pasos);
-        if (vals.some(p => p.estado === 'rechazado')) return '#9D0402';
-        if (vals.every(p => p.estado === 'completado')) return '#0C8201';
+        if (vals.some(p => (p.estado || '').toLowerCase() === 'rechazado')) return '#9D0402';
+        if (vals.every(p => (p.estado || '').toLowerCase() === 'completado')) return '#0C8201';
         return '#424141';
     }
 
@@ -619,21 +795,58 @@ class PlaneacionChecklistCard {
             <div class="checklist-header">
                 <span class="checklist-title">Planeación</span>
             </div>
-            <div class="checklist-items" id="planeacion-items-${this.otId}-${this.claseId}" style="padding-top: 5px;">
+            <div class="checklist-items" id="planeacion-items-${this.otId}-${this.claseId}" style="padding-top: 5px; display: none;">
                 <div class="checklist-item checklist-item--pendiente" title="Pendiente">
-                    <span class="checklist-icon"><img src="${this._getIconFor('pendiente')}" alt="pendiente" class="checklist-state-icon"></span>
-                    <span class="checklist-label">Dibujos de maquinados subidos</span>
+                    <div class="checklist-icon-col">
+                        <span class="checklist-icon"><img src="${this._getIconFor('pendiente')}" alt="pendiente" class="checklist-state-icon"></span>
+                        <div class="checklist-connector-line"></div>
+                    </div>
+                    <div class="checklist-content-col">
+                        <span class="checklist-label">Dibujos de maquinados subidos</span>
+                    </div>
+                    <div class="checklist-action-col">
+                        <span class="checklist-status-badge badge--pendiente">PENDIENTE</span>
+                    </div>
                 </div>
                 <div class="checklist-item checklist-item--inactivo" title="Inactivo">
-                    <span class="checklist-icon"><img src="${this._getIconFor('inactivo')}" alt="inactivo" class="checklist-state-icon"></span>
-                    <span class="checklist-label">Cotas de OT/Clase subidas (Admin)</span>
+                    <div class="checklist-icon-col">
+                        <span class="checklist-icon"><img src="${this._getIconFor('inactivo')}" alt="inactivo" class="checklist-state-icon"></span>
+                        <div class="checklist-connector-line"></div>
+                    </div>
+                    <div class="checklist-content-col">
+                        <span class="checklist-label">Cotas de OT/Clase subidas (Admin)</span>
+                    </div>
+                    <div class="checklist-action-col">
+                        <span class="checklist-status-badge badge--inactivo">INACTIVO</span>
+                    </div>
                 </div>
                 <div class="checklist-item checklist-item--completado" title="Completado">
-                    <span class="checklist-icon"><img src="${this._getIconFor('completado')}" alt="completado" class="checklist-state-icon"></span>
-                    <span class="checklist-label">Proceso asignado</span>
+                    <div class="checklist-icon-col">
+                        <span class="checklist-icon"><img src="${this._getIconFor('completado')}" alt="completado" class="checklist-state-icon"></span>
+                    </div>
+                    <div class="checklist-content-col">
+                        <span class="checklist-label">Proceso asignado</span>
+                    </div>
+                    <div class="checklist-action-col">
+                        <span class="checklist-status-badge badge--completado">COMPLETADO</span>
+                    </div>
                 </div>
             </div>
         `;
+        
+        const itemsContainer = card.querySelector('.checklist-items');
+        card.classList.add('is-closed');
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', () => {
+            if (itemsContainer.style.display === 'none') {
+                itemsContainer.style.display = '';
+                card.classList.remove('is-closed');
+            } else {
+                itemsContainer.style.display = 'none';
+                card.classList.add('is-closed');
+            }
+        });
+
         return card;
     }
 
@@ -650,39 +863,88 @@ class PlaneacionChecklistCard {
         }
 
         let colorHex = this._getBorderColor(pasosData);
+        this.root.classList.remove('card-state-completado', 'card-state-incompleto', 'card-state-rechazado');
         if (colorHex === '#9D0402') {
-            this.root.style.borderColor = '#9D0402';
+            this.root.style.borderColor = '';
+            this.root.classList.add('card-state-rechazado');
         } else if (colorHex === '#0C8201') {
-            this.root.style.borderColor = '#0C8201';
+            this.root.style.borderColor = '';
+            this.root.classList.add('card-state-completado');
         } else {
             this.root.style.borderColor = '';
+            this.root.classList.add('card-state-incompleto');
+        }
+
+        const titleSpan = this.root.querySelector('.checklist-title');
+        if (titleSpan) {
+            if (colorHex === '#0C8201') {
+                titleSpan.style.color = '#4ade80';
+                titleSpan.style.textShadow = '0 0 10px rgba(74, 222, 128, 0.5)';
+            } else if (colorHex === '#9D0402') {
+                titleSpan.style.color = '#f87171';
+                titleSpan.style.textShadow = '0 0 10px rgba(248, 113, 113, 0.5)';
+            } else {
+                titleSpan.style.color = '';
+                titleSpan.style.textShadow = '';
+            }
         }
 
         container.innerHTML = '';
-        const pasosEntries = Object.entries(pasosData);
+        // Solo mostrar los pasos que no estén inactivos
+        const pasosEntries = Object.entries(pasosData).filter(([key, paso]) => paso.estado !== 'Incompleto');
 
         pasosEntries.forEach(([key, paso], idx) => {
             if (!paso) return;
 
+            const safeEstado = paso.estado.toLowerCase().replace(/\s+/g, '_');
             const item = document.createElement('div');
-            item.className = `checklist-item checklist-item--${paso.estado}`;
+            item.className = `checklist-item checklist-item--${safeEstado}`;
+
+            // 1. Área del Ícono (Izquierda)
+            const iconCol = document.createElement('div');
+            iconCol.className = 'checklist-icon-col';
 
             const iconSpan = document.createElement('span');
             iconSpan.className = 'checklist-icon';
 
             const img = document.createElement('img');
             img.src = this._getIconFor(paso.estado);
-            img.alt = paso.estado;
+            img.alt = safeEstado;
             img.className = 'checklist-state-icon';
-            // Removed inline width/height to use CSS size
             iconSpan.appendChild(img);
+            
+            iconCol.appendChild(iconSpan);
+
+            // Conector vertical
+            if (idx < pasosEntries.length - 1) {
+                const line = document.createElement('div');
+                line.className = 'checklist-connector-line';
+                iconCol.appendChild(line);
+            }
+
+            // 2. Área de Descripción (Centro)
+            const contentCol = document.createElement('div');
+            contentCol.className = 'checklist-content-col';
 
             const label = document.createElement('span');
             label.className = 'checklist-label';
             label.textContent = paso.label;
+            
+            contentCol.appendChild(label);
 
-            item.appendChild(iconSpan);
-            item.appendChild(label);
+            // 3. Área de Acción / Status (Derecha)
+            const actionCol = document.createElement('div');
+            actionCol.className = 'checklist-action-col';
+
+            const actionBadge = document.createElement('span');
+            actionBadge.className = `checklist-status-badge badge--${safeEstado.replace(/_/g, '-')}`;
+            actionBadge.textContent = paso.estado.toUpperCase();
+            
+            actionCol.appendChild(actionBadge);
+
+            item.appendChild(iconCol);
+            item.appendChild(contentCol);
+            item.appendChild(actionCol);
             container.appendChild(item);
         });
     }
@@ -795,44 +1057,45 @@ class Dashboard {
                     checklistWrapper.style.display = 'flex';
                     checklistWrapper.style.gap = '20px';
                     checklistWrapper.style.flexWrap = 'nowrap';
+                    checklistWrapper.style.alignItems = 'flex-start';
 
-                    if (window.fundicionChecklist && window.fundicionChecklist[wOrderName]) {
-                        const levantamientoCard = new FundicionChecklistCard(
-                            wOrderName,
-                            window.fundicionChecklist[wOrderName],
-                            checklistWrapper
-                        );
-                        // The component FundicionChecklistCard internally appends to checklistWrapper
-                        // We just need to make sure the root element gets flex sizing
-                        if (levantamientoCard.root) {
-                            levantamientoCard.root.style.flex = '1';
-                            levantamientoCard.root.style.minWidth = '300px';
+                    if (window.fundicionChecklist && window.fundicionChecklist[wOrderName] && window.fundicionChecklist[wOrderName][className]) {
+                            const levantamientoCard = new FundicionChecklistCard(
+                                wOrderName,
+                                window.fundicionChecklist[wOrderName][className],
+                                checklistWrapper,
+                                className   // instanceId único por sección de clase
+                            );
+                            if (levantamientoCard.root) {
+                                levantamientoCard.root.style.flex = '1';
+                                levantamientoCard.root.style.minWidth = '300px';
+                            }
+                        } else {
+                            // Render empty state card
+                            const emptyCard = document.createElement('div');
+                            emptyCard.className = 'fundicion-checklist-card empty-checklist-card inactive-process';
+                            emptyCard.style.borderLeftColor = '#424141';
+                            emptyCard.style.flex = '1';
+                            emptyCard.style.minWidth = '300px';
+                            emptyCard.style.pointerEvents = 'none';
+                            emptyCard.innerHTML = `
+                                <div class="checklist-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0; justify-content: center;">
+                                    <span class="checklist-title" style="color: #ffffff;">
+                                        Levantamiento de OT No Disponible
+                                    </span>
+                                </div>
+                                <div class="empty-checklist-text" style="font-size: 0.95rem; color: rgba(255, 255, 255, 0.7); margin-top: 0.8rem; text-align: center;">
+                                    Esta orden de trabajo es antigua o no requiere el levantamiento de OT.
+                                </div>
+                            `;
+                            checklistWrapper.appendChild(emptyCard);
                         }
-                    } else {
-                        // Render empty state card
-                        const emptyCard = document.createElement('div');
-                        emptyCard.className = 'fundicion-checklist-card empty-checklist-card';
-                        emptyCard.style.borderLeftColor = '#424141';
-                        emptyCard.style.flex = '1';
-                        emptyCard.style.minWidth = '300px';
-                        emptyCard.innerHTML = `
-                            <div class="checklist-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
-                                <span class="checklist-title" style="color: #ffffff;">
-                                    Levantamiento de OT No Disponible
-                                </span>
-                            </div>
-                            <div style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7); margin-top: 0.4rem; text-align: left;">
-                                Esta orden de trabajo es antigua o no requiere el levantamiento de OT.
-                            </div>
-                        `;
-                        checklistWrapper.appendChild(emptyCard);
-                    }
 
                     // Card 2: Tratamiento Térmico (Referencia)
                     const termicoCard = document.createElement('div');
-                    termicoCard.className = 'fundicion-checklist-card';
-                    termicoCard.style.flex = '0 1 350px';
-                    termicoCard.style.minWidth = '250px';
+                    termicoCard.className = 'fundicion-checklist-card card-state-incompleto';
+                    termicoCard.style.flex = '1 1 0%';
+                    termicoCard.style.minWidth = '300px';
                     const baseUrl = window.baseUrl || (window.location.origin + '/');
                     const slash = baseUrl.endsWith('/') ? '' : '/';
                     const iconUrl = `${baseUrl}${slash}images/Espera.png`;
@@ -840,15 +1103,34 @@ class Dashboard {
                         <div class="checklist-header">
                             <span class="checklist-title">Tratamiento Térmico</span>
                         </div>
-                        <div class="checklist-items" style="padding-top: 5px;">
+                        <div class="checklist-items" style="padding-top: 15px; display: none;">
                             <div class="checklist-item checklist-item--pendiente" title="Piezas en tratamiento térmico" style="cursor: help;">
-                                <span class="checklist-icon">
-                                    <img src="${iconUrl}" alt="pendiente" class="checklist-state-icon">
-                                </span>
-                                <span class="checklist-label">Piezas en tratamiento: 0 / ${classArray["pieces"]}</span>
+                                <div class="checklist-icon-col">
+                                    <span class="checklist-icon">
+                                        <img src="${iconUrl}" alt="pendiente" class="checklist-state-icon">
+                                    </span>
+                                </div>
+                                <div class="checklist-content-col">
+                                    <span class="checklist-label">Piezas en tratamiento: 0 / ${classArray["pieces"]}</span>
+                                </div>
+                                <div class="checklist-action-col">
+                                    <span class="checklist-status-badge badge--pendiente">PENDIENTE</span>
+                                </div>
                             </div>
                         </div>
                     `;
+                    const tItems = termicoCard.querySelector('.checklist-items');
+                    termicoCard.classList.add('is-closed');
+                    termicoCard.style.cursor = 'pointer';
+                    termicoCard.addEventListener('click', () => {
+                        if (tItems.style.display === 'none') {
+                            tItems.style.display = '';
+                            termicoCard.classList.remove('is-closed');
+                        } else {
+                            tItems.style.display = 'none';
+                            termicoCard.classList.add('is-closed');
+                        }
+                    });
                     checklistWrapper.appendChild(termicoCard);
 
                     // Card 3: Planeación (Reactiva)
@@ -901,6 +1183,40 @@ class Dashboard {
         a.href = `${baseUrl}/finishOrder/${wOrderName}/${className}`;
         a.className = "finish-order";
         a.innerHTML = "Finalizar pedido";
+
+        a.addEventListener("click", async (e) => {
+            e.preventDefault();
+            if (a.dataset.loading === "true") return;
+            
+            a.dataset.loading = "true";
+            let originalText = a.innerHTML;
+            a.innerHTML = "Procesando...";
+            a.style.opacity = "0.7";
+            a.style.pointerEvents = "none";
+            
+            try {
+                let response = await fetch(a.href, {
+                    headers: {
+                        "Accept": "application/json",
+                        "X-Requested-With": "XMLHttpRequest"
+                    }
+                });
+                
+                let data = await response.json();
+                
+                // Muestra modal dinámico
+                mostrarModalFinalizarPedido(data[0], data[1], data[0] === "success");
+                
+            } catch (err) {
+                console.error("Error al finalizar pedido, intentando redirigir...", err);
+                window.location.href = a.href;
+            } finally {
+                a.innerHTML = originalText;
+                a.style.opacity = "1";
+                a.style.pointerEvents = "auto";
+                delete a.dataset.loading;
+            }
+        });
 
         for (let i = 0; i < valueText.length; i++) {
             let div = document.createElement("div");
@@ -1440,6 +1756,66 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     updateScrollButtons(); // Ejecutar inicialmente
+    window.addEventListener('scroll', () => {
+        updateScrollButtons();
+        
+        // Cerrar automáticamente las tarjetas de checklist al hacer scroll
+        if (!window.isScrollingProgrammatically) {
+            document.querySelectorAll('.fundicion-checklist-card:not(.is-closed)').forEach(card => {
+                const itemsContainer = card.querySelector('.checklist-items');
+                if (itemsContainer && itemsContainer.style.display !== 'none') {
+                    itemsContainer.style.display = 'none';
+                    card.classList.add('is-closed');
+                }
+            });
+        }
+    }, { passive: true });
+    window.addEventListener('resize', updateScrollButtons, { passive: true });
     setTimeout(updateCachedSections, 200);
 });
 
+window.mostrarModalFinalizarPedido = function(tipo, mensaje, recargar = false) {
+    let divOpacity = document.createElement("div");
+    divOpacity.className = "div-opacity";
+    
+    let alertDiv = document.createElement("div");
+    alertDiv.className = "alert-finishOrder";
+    
+    let divCerrar = document.createElement("div");
+    divCerrar.className = "div-cerrar";
+    
+    let btnCerrar = document.createElement("button");
+    btnCerrar.className = "btn-cerrar";
+    btnCerrar.innerHTML = `<img class="img-cerrar" src="${window.cerrarImgUrl || window.baseUrl + '/images/cerrar.png'}">`;
+    
+    btnCerrar.addEventListener("click", (e) => {
+        e.stopPropagation();
+        divOpacity.remove();
+        if (recargar) location.reload();
+    });
+    
+    divCerrar.appendChild(btnCerrar);
+    alertDiv.appendChild(divCerrar);
+    
+    let imgRoute = (tipo === "error") ? "/images/error.png" : "/images/ready.png";
+    let img = document.createElement("img");
+    img.className = "img-error";
+    img.src = (window.baseUrl || "") + imgRoute;
+    img.alt = "alert image";
+    alertDiv.appendChild(img);
+    
+    let label = document.createElement("label");
+    label.textContent = mensaje;
+    alertDiv.appendChild(label);
+    
+    divOpacity.appendChild(alertDiv);
+    
+    divOpacity.addEventListener("click", (e) => {
+        if (e.target === divOpacity) {
+            divOpacity.remove();
+            if (recargar) location.reload();
+        }
+    });
+    
+    document.body.appendChild(divOpacity);
+};

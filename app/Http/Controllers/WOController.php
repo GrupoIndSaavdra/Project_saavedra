@@ -21,6 +21,11 @@ use App\Models\LiberacionModeloFundicion;
 use App\Models\ScarModelo;
 use App\Models\PreOrdenFundicion;
 
+/**
+ * @noinspection PhpUndefinedFieldInspection
+ * @noinspection PhpParamsInspection
+ * @noinspection PhpMissingParamTypeInspection
+ */
 class WOController extends Controller
 {
     /** @var \App\Http\Controllers\ClassController */
@@ -42,32 +47,34 @@ class WOController extends Controller
     public function manage()
     {
         // ── OPTIMIZACIÓN: eager loading evita N+1 queries de moldura y clases ──
-        $moldings       = Moldura::all();
-        $workOrdersAll  = Orden_trabajo::query()->with(['clases', 'moldura'])->get();
-        $workOrders     = null;
+        $moldings = Moldura::all();
+        $workOrdersAll = Orden_trabajo::query()->with(['clases', 'moldura'])->get();
+        $workOrders = null;
 
         if ($workOrdersAll->isNotEmpty()) {
             $workOrders = [];
-            $counter    = 0;
+            $counter = 0;
             foreach ($workOrdersAll as $workOrder) {
                 $clases = $workOrder->clases;
                 if (auth()->user()->perfil == 5) {
-                    if ($clases->count() == 0) continue;
+                    if ($clases->count() == 0)
+                        continue;
                 } else {
                     $clases = $clases->where('finalizada', 0);
-                    if ($clases->count() == 0) continue;
+                    if ($clases->count() == 0)
+                        continue;
                 }
                 // Moldura ya cargada con eager loading (0 queries)
                 $workOrders[$counter]['workOrder'] = $workOrder->id;
-                $workOrders[$counter]['molding']   = $workOrder->moldura ? $workOrder->moldura->nombre : '?';
+                $workOrders[$counter]['molding'] = $workOrder->moldura ? $workOrder->moldura->nombre : '?';
                 $counter++;
             }
         }
         return view('wo_views.manage_wo', compact('moldings', 'workOrders'));
     }
 
-        /**
-     * @param \Illuminate\Http\Request OTRequest $request
+    /**
+     * @param OTRequest $request
      */
     public function store(OTRequest $request) //Funcion para registrar una OT.
     {
@@ -75,19 +82,19 @@ class WOController extends Controller
             //Creacion de la orden de trabajo registrada
             $newWorkOrder = new Orden_trabajo();
             $newWorkOrder->id = $request->workOrderAdded;
-            $newWorkOrder->id_moldura = $request->moldingSelected;
+            $newWorkOrder->id_moldura = $request->input('moldingSelected');
             $newWorkOrder->save();
-            
+
             SystemLog::create([
                 'user_matricula' => auth()->user()->matricula,
                 'action' => 'Cargo de OT',
-                'details' => "El administrador registró la OT {$request->workOrderAdded} con id_moldura {$request->moldingSelected}.",
-                'ot' => $request->workOrderAdded,
-                'id_ot' => $request->workOrderAdded,
+                'details' => "El administrador registró la OT {$request->input('workOrderAdded')} con id_moldura {$request->input('moldingSelected')}.",
+                'ot' => $request->input('workOrderAdded'),
+                'id_ot' => $request->input('workOrderAdded'),
             ]);
         }
         //Busqueda de la orden de trabajo ingresada o creada
-        $workOrder = Orden_trabajo::query()->find(isset($request->workOrderAdded) ? $request->workOrderAdded : $request->workOrderSelected);
+        $workOrder = Orden_trabajo::query()->find(isset($request->workOrderAdded) ? $request->input('workOrderAdded') : $request->input('workOrderSelected'), ['*']);
 
         return redirect()->route('showWO', ['workOrder' => $workOrder]);
     }
@@ -97,8 +104,8 @@ class WOController extends Controller
      */
     public function show($workOrder)
     {
-        $workOrder = Orden_trabajo::query()->find($workOrder);
-        $molding = Moldura::query()->find($workOrder->id_moldura);
+        $workOrder = Orden_trabajo::query()->find($workOrder, ['*']);
+        $molding = Moldura::query()->find($workOrder->id_moldura, ['*']);
 
         //Se obtienen las clases de la Orden de trabajo
         $classes = $this->classController->getClasses($workOrder);
@@ -111,20 +118,20 @@ class WOController extends Controller
 
     public function destroy(string $idWOrder)
     {
-        $pieces = Pieza::query()->where('id_ot', $idWOrder)->get(); //Busco las piezas de la OT
-        $goal = Metas::query()->where('id_ot', $idWOrder)->get();
+        $pieces = Pieza::query()->where('id_ot', '=', $idWOrder)->get(); //Busco las piezas de la OT
+        $goal = Metas::query()->where('id_ot', '=', $idWOrder)->get();
         if (count($pieces) == 0 && count($goal) == 0) { //Si la OT no tiene piezas ni metas asociadas entonces
-            $classes = Clase::query()->where('id_ot', $idWOrder)->get(); //Busco todas las clases que pertenecen a la OT
+            $classes = Clase::query()->where('id_ot', '=', $idWOrder)->get(); //Busco todas las clases que pertenecen a la OT
             foreach ($classes as $class) { //Recorro las clases de la OT
                 $this->classController->destroy($class->id, $idWOrder); //Elimino las clases
             }
-            $workOrder = Orden_trabajo::query()->find($idWOrder);
+            $workOrder = Orden_trabajo::query()->find($idWOrder, ['*']);
             if ($workOrder) {
                 // Desactivar en FundicionHistory (bandeja de Almacén/Calidad) para mantener históricos
                 $isOriginal = !preg_match('/_R\d+$/i', $idWOrder);
                 if ($isOriginal) {
-                    $histories = \App\Models\FundicionHistory::query()
-                        ->where('ot', 'LIKE', "OT {$idWOrder}%")
+                    $histories = FundicionHistory::query()
+                        ->where('ot', 'LIKE', "OT {$idWOrder}%", 'and')
                         ->get();
                     foreach ($histories as $history) {
                         $pattern = '/^OT\s*' . preg_quote($idWOrder, '/') . '(?:\b|_R\d+|$)/i';
@@ -136,8 +143,8 @@ class WOController extends Controller
                     }
                 } else {
                     $baseId = preg_replace('/_R\d+$/i', '', $idWOrder);
-                    $histories = \App\Models\FundicionHistory::query()
-                        ->where('ot', 'LIKE', "OT {$baseId}%")
+                    $histories = FundicionHistory::query()
+                        ->where('ot', 'LIKE', "OT {$baseId}%", 'and')
                         ->get();
                     foreach ($histories as $history) {
                         preg_match('/_R\d+$/i', $idWOrder, $suffixMatch);
@@ -158,8 +165,8 @@ class WOController extends Controller
     }
     public function generatePDF(string $idWOrder)
     {
-        $workOrder = Orden_trabajo::query()->find($idWOrder);
-        $molding = Moldura::query()->find($workOrder->id_moldura);
+        $workOrder = Orden_trabajo::query()->find($idWOrder, ['*']);
+        $molding = Moldura::query()->find($workOrder->id_moldura, ['*']);
 
         $classes = $this->classController->getClasses($workOrder);
         $classes = $classes->count() == 0 ? null : $classes;
@@ -191,7 +198,7 @@ class WOController extends Controller
      */
     public function getMolding($moldingId)
     {
-        $molding = Moldura::query()->find($moldingId);
+        $molding = Moldura::query()->find($moldingId, ['*']);
         return $molding ? $molding->nombre : null;
     }
     /**
@@ -296,10 +303,10 @@ class WOController extends Controller
      */
     public function getDateEndFromProcess($process, $class)
     {
-        if ($class instanceof \App\Models\Clase) {
+        if ($class instanceof Clase) {
             $processesArray = (array) $process;
             $dateEnd = $class->fechasProcesos
-                ->first(function($fp) use ($processesArray) {
+                ->first(function ($fp) use ($processesArray) {
                     return in_array($fp->proceso, $processesArray);
                 });
         } else {
@@ -318,44 +325,81 @@ class WOController extends Controller
     /**
      * Construye el array de checklist del flujo de fundición para una OT activa.
      */
-    private function buildFundicionChecklistForOt(string $otId): ?array
+    private function buildFundicionChecklistForOt(string $otId, ?string $className = null): ?array
     {
-        $history = FundicionHistory::query()
-            ->where(function($q) use ($otId) {
+        $histories = FundicionHistory::query()
+            ->where(function ($q) use ($otId) {
                 $q->where('ot', 'LIKE', "OT {$otId} - %")
-                  ->orWhere('ot', 'LIKE', "OT {$otId}_R% - %")
-                  ->orWhere('ot', '=', "OT {$otId}")
-                  ->orWhere('ot', 'LIKE', "OT {$otId}_R%");
+                    ->orWhere('ot', 'LIKE', "OT {$otId}_R% - %")
+                    ->orWhere('ot', '=', "OT {$otId}")
+                    ->orWhere('ot', 'LIKE', "OT {$otId}_R%");
             })
             ->where('status', '!=', 'inactiva')
-            ->orderByDesc('updated_at')
-            ->first();
+            ->orderBy('id', 'asc')
+            ->get();
 
-        if (!$history) {
+        if ($histories->isEmpty()) {
             return null;
         }
 
-        $otKey = $history->ot;
+        $otKey = $histories->last()->ot;
+        $history = $histories->last();
 
-        $liberacion = LiberacionModeloFundicion::query()->where('ot', $otKey)
-            ->orderByDesc('created_at')
-            ->first();
+        if ($className) {
+            foreach ($histories as $h) {
+                $otKey = $h->ot;
+                $history = $h;
+                
+                // Si la clase tiene un SCAR en esta iteración, significa que fue rechazada
+                // y su flujo continúa en el siguiente Reproceso (_R).
+                $hasScar = ScarModelo::query()
+                    ->where('ot', $otKey)
+                    ->where('tipo_modelo', $className)
+                    ->exists();
+                    
+                if (!$hasScar) {
+                    // Si no tiene SCAR, su flujo de revisión se detuvo en este nivel (aprobada o pendiente).
+                    break;
+                }
+            }
+        }
 
-        $scar = ScarModelo::query()->where('ot', $otKey)
-            ->orderByDesc('created_at')
-            ->first();
+        $libQ = LiberacionModeloFundicion::query()->where('ot', $otKey);
+        if ($className) {
+            $libQ->where('tipo_modelo', $className);
+        }
+        $liberacion = $libQ->orderByDesc('created_at')->first();
+
+        $scarQ = ScarModelo::query()->where('ot', $otKey);
+        if ($className) {
+            $scarQ->where('tipo_modelo', $className);
+        }
+        $scar = $scarQ->orderByDesc('created_at')->first();
 
         $esReprocesoRegistro = (bool) preg_match('/_R\d+$/i', $otKey);
+        $preOrdenReprocesoQ = PreOrdenFundicion::query()->orderByDesc('created_at');
         if ($esReprocesoRegistro) {
-            $preOrdenReproceso = PreOrdenFundicion::query()
-                ->where('ot', '=', $otKey)
-                ->orderByDesc('created_at')
-                ->first();
+            $preOrdenReprocesoQ->where('ot', '=', $otKey);
         } else {
-            $preOrdenReproceso = PreOrdenFundicion::query()
-                ->where('ot', 'LIKE', "{$otKey}_R%")
-                ->orderByDesc('created_at')
-                ->first();
+            $preOrdenReprocesoQ->where('ot', 'LIKE', "{$otKey}_R%");
+        }
+        
+        $preOrdenList = $preOrdenReprocesoQ->get();
+        $preOrdenReproceso = null;
+        foreach ($preOrdenList as $po) {
+            if (!$className) {
+                $preOrdenReproceso = $po;
+                break;
+            }
+            $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
+            if (is_array($filas)) {
+                foreach ($filas as $f) {
+                    if (strcasecmp($f['clase'] ?? ($f['clase_nombre'] ?? ''), $className) === 0) {
+                        $preOrdenReproceso = $po;
+                        break 2;
+                    }
+                }
+            }
         }
 
         $esReproceso = $liberacion && ($liberacion->decision === 'rechazar' || $liberacion->decision === 'rechazado' || $liberacion->decision === 'mixto');
@@ -385,119 +429,295 @@ class WOController extends Controller
         $vistosAlmacen = $history->dibujos_vistos_almacen;
 
         $almacenProceso = $history->tiene_modelo || $history->pre_orden_sent;
-        $preordenAutorizada = $history->pre_orden_autorizada;
+        $preordenAutorizada = $history->pre_orden_email_sent;
 
-        $alertaCalidad = $history->alerta_calidad_sent;
+        $alertaCalidad = $history->pre_orden_email_sent;
         $revisadosCalidad = $history->documentos_revisados_calidad;
         $tieneLiberacion = $liberacion !== null;
         $tieneScar = $esReproceso ? ($scar !== null) : true;
         $formatoCompletado = $tieneLiberacion && $tieneScar;
 
-        $alertaAlmacen2 = $history->alerta_almacen_2_sent;
+        $alertaAlmacen2 = ($history->calidad_revision_status !== null);
         $vistosAlmacen2 = $history->documentos_vistos_almacen_2;
         $firmadosCargados = $history->documentos_firmados_cargados;
-        $castingPreordenExists = PreOrdenFundicion::query()
+        $castingPreordenExists = false;
+        $castingList = PreOrdenFundicion::query()
             ->where('ot', '=', $otKey)
-            ->where(function($q) {
+            ->where(function ($q) {
                 $q->where('pdf_filename', 'LIKE', '%casting%')
-                  ->orWhere('pdf_filename', 'LIKE', '%Casting%');
+                    ->orWhere('pdf_filename', 'LIKE', '%Casting%');
             })
-            ->exists();
+            ->get();
+            
+        foreach ($castingList as $po) {
+            if (!$className) {
+                $castingPreordenExists = true;
+                break;
+            }
+            $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
+            if (is_array($filas)) {
+                foreach ($filas as $f) {
+                    if (strcasecmp($f['clase'] ?? ($f['clase_nombre'] ?? ''), $className) === 0) {
+                        $castingPreordenExists = true;
+                        break 2;
+                    }
+                }
+            }
+        }
         $pasoFinalGenerado = $esReproceso ? ($preOrdenReproceso !== null) : $castingPreordenExists;
 
+        // Determinar si la liberación de este ciclo fue aprobada o rechazada
+        // (calculado ANTES de la cascada, con el valor real de $liberacion en BD)
+        $decisionActual = $liberacion ? ($liberacion->decision ?? $liberacion->estado ?? null) : null;
+        $cicloAprobado = in_array($decisionActual, ['aprobar', 'aprobado']);
+        $cicloRechazado = in_array($decisionActual, ['rechazar', 'rechazado', 'mixto']);
 
-        // --- FASE 1: Admin (Dibujos Fundición) ---
-        $estado1 = 'inactivo';
-        $label1 = 'Admin: Dibujos Fundición';
+        // --- AUTO-COMPLETADO ESCALONADO (de atrás hacia adelante) ---
+        // Cada nivel sólo se auto-completa cuando hay evidencia REAL de actividad en niveles posteriores.
+        // NOTA: almacenProceso (tiene_modelo=true) NO dispara solo la cascada de Fases 0/1
+        //       porque puede setearse antes de que Admin haya enviado los dibujos.
+
+        // Si hay paso final generado, Almacén debió cargar formatos firmados
+        if ($pasoFinalGenerado) {
+            $firmadosCargados = true;
+        }
+
+        // Si hay carga de formatos firmados, Almacén 2 debió recibir alerta y revisar
+        if ($firmadosCargados || $pasoFinalGenerado) {
+            $alertaAlmacen2 = true;
+            $vistosAlmacen2 = true;
+        }
+
+        // Si hay actividad en Almacén 2 o posterior, Calidad debió completar formatos
+        if ($alertaAlmacen2 || $firmadosCargados || $pasoFinalGenerado) {
+            $tieneLiberacion = true;
+            $tieneScar = true;
+            $formatoCompletado = true;
+        }
+
+        // Si Calidad tiene liberación o hay actividad posterior, debió recibir la alerta
+        if ($tieneLiberacion || $formatoCompletado || $alertaAlmacen2 || $firmadosCargados || $pasoFinalGenerado) {
+            $alertaCalidad = true;
+            $revisadosCalidad = true;
+        }
+
+        // Si Calidad ya fue alertada o hay actividad posterior, Fase 2 debió completarse
+        if ($alertaCalidad || $revisadosCalidad || $tieneLiberacion || $alertaAlmacen2 || $firmadosCargados || $pasoFinalGenerado) {
+            $almacenProceso = true;
+            if (!$history->tiene_modelo) {
+                $preordenAutorizada = true;
+            }
+        }
+
+        // Fases 0 y 1 se auto-completan cuando hay evidencia de actividad real en Fase 2 o posteriores
+        // (almacenProceso solo ya no es suficiente: esperamos alerta a Calidad, liberación, o más allá)
+        if (
+            $alertaCalidad || $tieneLiberacion || $alertaAlmacen2 || $firmadosCargados || $pasoFinalGenerado
+            || $almacenProceso || $preordenAutorizada
+        ) {
+            $tieneArchivos = true;
+            $alertaAlmacen = true;
+            $vistosAlmacen = true;
+        }
+
+        // --- FASE 0: Administración (Programación) ---
+        $estado0 = 'Incompleto';
+        $label0 = 'Administración: Dibujos y Ayudas Visuales de Fundición Completadas';
         if (!$tieneArchivos) {
-            $estado1 = 'pendiente';
-            $label1 = 'Admin: Esperando dibujos de fundición';
+            $estado0 = 'En Espera';
+            $label0 = 'Administración: Programación (Esperando Dibujos)';
         } elseif (!$alertaAlmacen) {
-            $estado1 = 'pendiente';
-            $label1 = 'Admin: Dibujos cargados (Falta alerta a Almacén)';
+            $estado0 = 'En Espera';
+            $label0 = 'Administración: Programación (Falta Alerta a Almacén)';
+        } else {
+            $estado0 = 'Completado';
+        }
+
+        $pasos['fase0'] = [
+            'label' => $label0,
+            'estado' => $estado0,
+            'tooltip' => $label0,
+            'subPasos' => [
+                ['label' => 'Subida de Dibujos y Ayudas Visuales', 'estado' => $tieneArchivos ? 'Completado' : 'En Espera'],
+                ['label' => 'Envío de Alerta a Almacén', 'estado' => $alertaAlmacen ? 'Completado' : 'En Espera'],
+            ],
+        ];
+
+        // --- FASE 1: Almacén (Revisión de Dibujos) ---
+        $estado1 = 'Incompleto';
+        $label1 = 'Almacén: Revisión de Dibujos';
+        if ($estado0 !== 'Completado') {
+            $estado1 = 'Incompleto';
         } elseif (!$vistosAlmacen) {
-            $estado1 = 'pendiente';
-            $label1 = 'Almacén: Alerta enviada (Esperando revisión)';
+            $estado1 = 'Revisando';
+            $label1 = 'Almacén: Alerta Enviada (Esperando Revisión)';
         } else {
-            $estado1 = 'completado';
-            $label1 = 'Admin: Dibujos de fundición completados';
+            $estado1 = 'Completado';
+            $label1 = 'Almacén: Dibujos y Ayudas Visuales de Fundición Revisados';
         }
-        $pasos['fase1'] = ['label' => $label1, 'estado' => $estado1, 'tooltip' => $label1];
+
+        $pasos['fase1'] = [
+            'label' => $label1,
+            'estado' => $estado1,
+            'tooltip' => $label1,
+            'subPasos' => [
+                ['label' => 'Revisión de Dibujos por Almacén', 'estado' => $vistosAlmacen ? 'Completado' : 'Revisando'],
+            ],
+        ];
 
 
-        // --- FASE 2: Almacén (Modelo) ---
-        $estado2 = 'inactivo';
+        // --- FASE 2: Almacén (Modelo) — DOS CAMINOS POSIBLES ---
+        $estado2 = 'Incompleto';
         $label2 = 'Almacén: Gestión de Modelo';
-        if ($estado1 !== 'completado') {
-            $estado2 = 'inactivo';
+
+        if ($estado1 !== 'Completado') {
+            $estado2 = 'Incompleto';
         } elseif (!$almacenProceso) {
-            $estado2 = 'pendiente';
-            $label2 = 'Almacén: Esperando evaluación de modelo';
-        } elseif (!$preordenAutorizada && !$history->tiene_modelo) {
-            $estado2 = 'pendiente';
-            $label2 = 'Almacén: Preorden generada (Falta subir escaneo firmado)';
+            $estado2 = 'En Espera';
+            $label2 = 'Almacén: Esperando Evaluación de Modelo';
+        } elseif ($history->tiene_modelo) {
+            // CAMINO A: tiene modelo físico → sólo escaneo
+            if (!$alertaCalidad) {
+                $estado2 = 'Revisando';
+                $label2 = 'Almacén: Escaneado de Modelo Existente (Falta Enviar a Calidad)';
+            } else {
+                $estado2 = 'Completado';
+                $label2 = 'Almacén: Escaneado de Modelo Existente';
+            }
         } else {
-            $estado2 = 'completado';
-            $label2 = $history->tiene_modelo ? 'Almacén: Escaneado de modelo existente' : 'Almacén: Preorden de modelo autorizada';
+            // CAMINO B: no tiene modelo → preorden + escaneo firmado
+            if (!$preordenAutorizada) {
+                $estado2 = 'Revisando';
+                $label2 = 'Almacén: Preorden Generada (Falta Subir Escaneo Firmado)';
+            } else {
+                $estado2 = 'Completado';
+                $label2 = 'Almacén: Preorden de Modelo Autorizada';
+            }
         }
-        if ($alertaCalidad) $estado2 = 'completado';
-        $pasos['fase2'] = ['label' => $label2, 'estado' => $estado2, 'tooltip' => $label2];
+
+        // Subpasos de Fase 2 según el camino
+        if ($history->tiene_modelo) {
+            // Camino A
+            $subPasosFase2 = [
+                ['label' => 'Evaluación de Modelo Físico', 'estado' => $almacenProceso ? 'Completado' : 'En Espera'],
+                ['label' => 'Decisión: ¿Se tiene el modelo?', 'estado' => $almacenProceso ? 'Completado' : 'Incompleto', 'detalle' => $almacenProceso ? 'Se cuenta con el modelo físico' : ''],
+                ['label' => 'Subida de Escaneo del Modelo Existente', 'estado' => $alertaCalidad ? 'Completado' : ($almacenProceso ? 'En Espera' : 'Incompleto')],
+            ];
+        } else {
+            // Camino B
+            $subPasosFase2 = [
+                ['label' => 'Evaluación de Modelo Físico', 'estado' => $almacenProceso ? 'Completado' : 'En Espera'],
+                ['label' => 'Decisión: ¿Se tiene el modelo?', 'estado' => $almacenProceso ? 'Completado' : 'Incompleto', 'detalle' => $almacenProceso ? 'No se tiene el modelo físico' : ''],
+                ['label' => 'Generación de Preorden de Modelo', 'estado' => $almacenProceso ? ($preordenAutorizada ? 'Completado' : 'Revisando') : 'Incompleto'],
+                ['label' => 'Subida de Preorden Firmada (Escaneo)', 'estado' => $preordenAutorizada ? 'Completado' : ($almacenProceso ? 'En Espera' : 'Incompleto')],
+            ];
+        }
+
+        $pasos['fase2'] = [
+            'label' => $label2,
+            'estado' => $estado2,
+            'tooltip' => $label2,
+            'subPasos' => $subPasosFase2,
+        ];
 
 
         // --- FASE 3: Calidad (Liberación de modelo) ---
-        $estado3 = 'inactivo';
-        $label3 = 'Calidad: Liberación de Modelo';
-        $labelFormatoFinal = $esReproceso ? 'Calidad: Formato de Rechazo (FDRM) y SCAR' : 'Calidad: Formato de Liberación (FDLM)';
+        $labelFormatoFinal = $cicloRechazado ? 'Calidad: Formato de Rechazo (FDRM) y SCAR' : 'Calidad: Formato de Liberación (FDLM)';
 
-        if ($estado2 !== 'completado') {
-            $estado3 = 'inactivo';
+        $estado3 = 'Incompleto';
+        $label3 = 'Calidad: Liberación de Modelo';
+
+        if ($estado2 !== 'Completado') {
+            $estado3 = 'Incompleto';
         } elseif (!$alertaCalidad) {
-            $estado3 = 'pendiente';
-            $label3 = 'Calidad: Esperando alerta de Almacén';
+            $estado3 = 'En Espera';
+            $label3 = 'Calidad: Esperando Alerta de Almacén';
         } elseif (!$revisadosCalidad) {
-            $estado3 = 'pendiente';
-            $label3 = 'Calidad: Alerta recibida (Esperando evaluación)';
+            $estado3 = 'Revisando';
+            $label3 = 'Calidad: Alerta Recibida (Esperando Evaluación)';
         } elseif (!$formatoCompletado) {
-            $estado3 = 'pendiente';
-            $label3 = 'Calidad: Documentos revisados (Falta FDLM o FDRM+SCAR)';
+            $estado3 = 'Revisando';
+            $label3 = 'Calidad: Documentos Revisados (Falta Generar Formato)';
         } else {
-            $estado3 = 'completado';
+            $estado3 = 'Completado';
             $label3 = $labelFormatoFinal;
         }
-        if ($alertaAlmacen2) $estado3 = 'completado';
-        $pasos['fase3'] = ['label' => $label3, 'estado' => $estado3, 'tooltip' => $label3];
 
-
-        // --- FASE 4: Almacén (Casting / Reproceso) ---
-        $estado4 = 'inactivo';
-        $label4 = 'Almacén: Proceso de Casting';
-        $labelFinal = $esReproceso ? 'Almacén: Ciclo de Reproceso Iniciado' : 'Almacén: Preorden de Casting Generada';
-
-        if ($estado3 !== 'completado') {
-            $estado4 = 'inactivo';
-        } elseif (!$alertaAlmacen2) {
-            $estado4 = 'pendiente';
-            $label4 = 'Almacén: Esperando alerta de Calidad';
-        } elseif (!$vistosAlmacen2) {
-            $estado4 = 'pendiente';
-            $label4 = 'Almacén: Alerta recibida (Esperando revisión)';
-        } elseif (!$firmadosCargados) {
-            $estado4 = 'pendiente';
-            $label4 = 'Almacén: Falta subir formatos firmados de Calidad';
-        } elseif (!$pasoFinalGenerado) {
-            $estado4 = 'pendiente';
-            $label4 = $esReproceso ? 'Almacén: Iniciando ciclo de Reproceso...' : 'Almacén: Falta generar Preorden de Casting';
-        } else {
-            $estado4 = 'completado';
-            $label4 = $labelFinal;
+        if ($alertaAlmacen2 || $firmadosCargados || $pasoFinalGenerado) {
+            $estado3 = 'Completado';
+            if (strpos($label3, 'Falta') !== false || $label3 === 'Calidad: Liberación de Modelo' || $label3 === 'Calidad: Esperando Alerta de Almacén' || $label3 === 'Calidad: Alerta Recibida (Esperando Evaluación)') {
+                $label3 = $labelFormatoFinal;
+            }
         }
-        $pasos['fase4'] = ['label' => $label4, 'estado' => $estado4, 'tooltip' => $label4];
+
+        $detalleDecision = $tieneLiberacion ? ($cicloRechazado ? 'Modelo Rechazado' : 'Modelo Aprobado') : '';
+        $labelGeneraFormato = $cicloRechazado ? 'Generación de FDRM (Rechazo) + SCAR' : 'Generación de FDLM (Liberación de Modelo)';
+
+        $pasos['fase3'] = [
+            'label' => $label3,
+            'estado' => $estado3,
+            'tooltip' => $label3,
+            'subPasos' => [
+                ['label' => 'Recepción de Alerta por Calidad', 'estado' => $alertaCalidad ? 'Completado' : 'En Espera'],
+                ['label' => 'Evaluación del Modelo', 'estado' => $tieneLiberacion ? 'Completado' : ($alertaCalidad ? 'Revisando' : 'Incompleto'), 'detalle' => $detalleDecision],
+                ['label' => $labelGeneraFormato, 'estado' => $formatoCompletado ? 'Completado' : ($tieneLiberacion ? 'Revisando' : 'Incompleto')],
+            ],
+        ];
+
+
+        // --- FASE 4: Almacén (Casting si aprobado / Reproceso si rechazado) ---
+        $esCaminoReproceso = $cicloRechazado; // El camino lo define la decisión de Calidad, no el ciclo estructural
+        $labelPasoFinal = $esCaminoReproceso ? 'Almacén: Ciclo de Reproceso Iniciado' : 'Almacén: Enviado a Proveedor (Casting)';
+        $labelStepFinal = $esCaminoReproceso ? 'Inicio de Reproceso de Modelo' : 'Generación de Preorden de Casting';
+        $castingEnviado = $history->calidad_revision_status === 'casting_aprobado';
+
+        $estado4 = 'Incompleto';
+        $label4 = 'Almacén: Proceso de Casting';
+
+        if ($estado3 !== 'Completado') {
+            $estado4 = 'Incompleto';
+        } elseif (!$alertaAlmacen2) {
+            $estado4 = 'En Espera';
+            $label4 = 'Almacén: Esperando Alerta de Calidad';
+        } elseif (!$vistosAlmacen2) {
+            $estado4 = 'Revisando';
+            $label4 = 'Almacén: Alerta Recibida (Esperando Revisión)';
+        } elseif (!$firmadosCargados) {
+            $estado4 = 'En Espera';
+            $label4 = 'Almacén: Falta Subir Formatos Firmados de Calidad';
+        } elseif (!$pasoFinalGenerado) {
+            $estado4 = 'En Espera';
+            $label4 = $esCaminoReproceso ? 'Almacén: Iniciando Ciclo de Reproceso...' : 'Almacén: Falta Generar Preorden de Casting';
+        } elseif (!$esCaminoReproceso && !$castingEnviado) {
+            $estado4 = 'Revisando';
+            $label4 = 'Almacén: Falta Enviar Preorden a Proveedor';
+        } else {
+            $estado4 = 'Completado';
+            $label4 = $labelPasoFinal;
+        }
+
+        $subPasos4 = [
+            ['label' => 'Revisión de Respuesta de Calidad', 'estado' => $vistosAlmacen2 ? 'Completado' : ($alertaAlmacen2 ? 'Revisando' : 'En Espera')],
+            ['label' => 'Carga de Formatos Firmados al Sistema', 'estado' => $firmadosCargados ? 'Completado' : ($vistosAlmacen2 ? 'En Espera' : 'Incompleto')],
+            ['label' => $labelStepFinal, 'estado' => $pasoFinalGenerado ? 'Completado' : ($firmadosCargados ? 'En Espera' : 'Incompleto')],
+        ];
+
+        if (!$esCaminoReproceso) {
+            $subPasos4[] = ['label' => 'Envío de Preorden a Proveedor', 'estado' => $castingEnviado ? 'Completado' : ($pasoFinalGenerado ? 'En Espera' : 'Incompleto')];
+        }
+
+        $pasos['fase4'] = [
+            'label' => $label4,
+            'estado' => $estado4,
+            'tooltip' => $label4,
+            'subPasos' => $subPasos4,
+        ];
 
         return [
-            'esReproceso'    => $esReproceso,
+            'esReproceso' => $esReproceso,
             'isBadgeVisible' => $isBadgeVisible,
-            'badgeText'      => $badgeText,
-            'pasos'          => $pasos,
+            'badgeText' => $badgeText,
+            'pasos' => $pasos,
         ];
     }
 
@@ -507,11 +727,11 @@ class WOController extends Controller
         // ── OPTIMIZACIÓN: eager loading evita N+1 de clases, moldura, procesos, fechas y piezas ──
         $wOInProgress = array();
         $workOrders = Orden_trabajo::query()
-            ->whereHas('clases', function($q) {
+            ->whereHas('clases', function ($q) {
                 $q->where('finalizada', 0);
             })
             ->with([
-                'clases' => function($q) {
+                'clases' => function ($q) {
                     $q->where('finalizada', 0);
                 },
                 'clases.procesos',
@@ -529,8 +749,8 @@ class WOController extends Controller
                     if ($process) {
                         if ($index === $classes->keys()->first()) {
                             $wOInProgress[$workOrder->id] = array();
-                            $wOInProgress[$workOrder->id]['molding']  = $workOrder->moldura ? $workOrder->moldura->nombre : '?';
-                            $wOInProgress[$workOrder->id]['classes']  = array();
+                            $wOInProgress[$workOrder->id]['molding'] = $workOrder->moldura ? $workOrder->moldura->nombre : '?';
+                            $wOInProgress[$workOrder->id]['classes'] = array();
                         }
                         $this->insertClassesData($wOInProgress[$workOrder->id]['classes'], $class);
                     }
@@ -560,9 +780,15 @@ class WOController extends Controller
         // Se construye en bloque; OTs sin flujo de fundición retornan null y se omiten.
         $fundicionChecklist = [];
         foreach (array_keys($wOInProgress) as $otId) {
-            $checklistData = $this->buildFundicionChecklistForOt((string) $otId);
-            if ($checklistData !== null) {
-                $fundicionChecklist[$otId] = $checklistData;
+            $fundicionChecklist[$otId] = [];
+            foreach ($wOInProgress[$otId]['classes'] as $className => $classData) {
+                $checklistData = $this->buildFundicionChecklistForOt((string) $otId, $className);
+                if ($checklistData !== null) {
+                    $fundicionChecklist[$otId][$className] = $checklistData;
+                }
+            }
+            if (empty($fundicionChecklist[$otId])) {
+                unset($fundicionChecklist[$otId]);
             }
         }
 
@@ -598,9 +824,9 @@ class WOController extends Controller
      *
      * @param  string $otId  Número de OT (ej. "6748" o "6748_R1")
      */
-    public function getFundicionChecklist(string $otId)
+    public function getFundicionChecklist(string $otId, ?string $className = null)
     {
-        $data = $this->buildFundicionChecklistForOt($otId);
+        $data = $this->buildFundicionChecklistForOt($otId, $className);
         if ($data === null) {
             return response()->json(['error' => 'No fundicion data'], 200);
         }
@@ -614,13 +840,13 @@ class WOController extends Controller
     public function getPlaneacionChecklist(string $otId)
     {
         $otIdClean = explode('_', $otId)[0];
-        $ot = \App\Models\Orden_trabajo::with('clases')->find($otIdClean);
+        $ot = Orden_trabajo::with('clases')->find($otIdClean);
         if (!$ot) {
             return response()->json([]);
         }
 
         $baseOtStr = "OT " . $ot->id . ($ot->moldura ? " - " . $ot->moldura->nombre : "");
-        
+
         $baseOtClean = str_replace(['—', '–', "\xc2\xa0"], '-', $baseOtStr);
         $baseOtClean = mb_strtoupper($baseOtClean, 'UTF-8');
         $baseOtClean = preg_replace('/\s+/', ' ', $baseOtClean);
@@ -632,15 +858,16 @@ class WOController extends Controller
         $checklist = [];
 
         foreach ($ot->clases as $clase) {
-            if ($clase->finalizada) continue;
-            
+            if ($clase->finalizada)
+                continue;
+
             $claseNameClean = trim(preg_replace('/[\/\\\\]/', '', preg_replace('/\.\.+/', '', $clase->nombre)));
-            
+
             // 1. Dibujos de maquinados subidos
             $hasDibujos = false;
             $newPath = $dibujosDir . '/' . $claseNameClean;
             $oldPath = $oldDibujosDir . '/' . $claseNameClean;
-            
+
             if (\Illuminate\Support\Facades\Storage::disk('local')->exists($newPath)) {
                 $files = \Illuminate\Support\Facades\Storage::disk('local')->files($newPath);
                 $hasDibujos = count(array_filter($files, fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')) > 0;
@@ -653,7 +880,7 @@ class WOController extends Controller
             // 2. Cotas de OT/Clase subidas (Admin)
             // Se asume que Admin modificó cotas si hay un SystemLog, o simplemente chequeando si la clase tiene procesos con cotas.
             // Para ser exactos y rápidos, consultamos si existe el registro de Admin en SystemLog para esta OT/Clase.
-            $hasCotas = \App\Models\SystemLog::query()->where('id_ot', $ot->id)
+            $hasCotas = SystemLog::query()->where('id_ot', $ot->id)
                 ->where('clase', $clase->nombre)
                 ->where('action', 'Cargo/Modificación Cotas Nominales')
                 ->exists();
@@ -661,23 +888,23 @@ class WOController extends Controller
             // 3. Proceso asignado
             // Chequear si existe un registro en `procesos` donde al menos una columna no sea id_clase tenga un valor positivo.
             // Pero de forma simplificada, si el registro existe.
-            $hasProceso = \App\Models\Procesos::query()->where('id_clase', $clase->id)->exists();
+            $hasProceso = Procesos::query()->where('id_clase', $clase->id)->exists();
 
             // Armar el estado del checklist
             $pasos = [];
-            
+
             // Paso 1
             $pasos['fase1'] = [
                 'label' => 'Dibujos de maquinados subidos',
                 'estado' => $hasDibujos ? 'completado' : 'pendiente'
             ];
-            
+
             // Paso 2
             $pasos['fase2'] = [
                 'label' => 'Cotas de OT/Clase subidas (Admin)',
                 'estado' => $hasCotas ? 'completado' : ($hasDibujos ? 'pendiente' : 'inactivo')
             ];
-            
+
             // Paso 3
             $pasos['fase3'] = [
                 'label' => 'Proceso asignado',
@@ -698,13 +925,13 @@ class WOController extends Controller
     {
         $otId = $request->input('ot');
         $flag = $request->input('flag');
-        
+
         $history = FundicionHistory::query()
-            ->where(function($q) use ($otId) {
+            ->where(function ($q) use ($otId) {
                 $q->where('ot', 'LIKE', "OT {$otId} - %")
-                  ->orWhere('ot', 'LIKE', "OT {$otId}_R% - %")
-                  ->orWhere('ot', '=', "OT {$otId}")
-                  ->orWhere('ot', 'LIKE', "OT {$otId}_R%");
+                    ->orWhere('ot', 'LIKE', "OT {$otId}_R% - %")
+                    ->orWhere('ot', '=', "OT {$otId}")
+                    ->orWhere('ot', 'LIKE', "OT {$otId}_R%");
             })
             ->where('status', '!=', 'inactiva')
             ->orderByDesc('updated_at')
@@ -789,7 +1016,7 @@ class WOController extends Controller
             case "pOperacion":
                 return "Primera Operacion";
             case "barreno_maniobra":
-                return "Barreno maniobra";
+                return "Barreno Maniobra";
             case "sOperacion":
                 return "Segunda Operacion";
             case "soldadura":
@@ -870,12 +1097,18 @@ class WOController extends Controller
 
             if ($total < $class->piezas) {
                 $finishOrder = ["error", $text];
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json($finishOrder);
+                }
                 return redirect()->back()->with('finishOrder', $finishOrder);
             }
         }
         $class->finalizada = 1;
         $class->save();
         $finishOrder = ["success", "Se ha finalizado el pedido correctamente"];
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($finishOrder);
+        }
         return redirect()->route('showPiecesInProgress')->with('finishOrder', $finishOrder);
     }
     /**
@@ -886,7 +1119,7 @@ class WOController extends Controller
     function getPieces($class, $processName, &$piecesBadData)
     {
         $setStoredParts = array();
-        $piecesArray    = ['good' => [], 'bad' => [], 'total' => 0];
+        $piecesArray = ['good' => [], 'bad' => [], 'total' => 0];
         $processNamesArray = $processName === 'Soldadura y Soldadura PTA'
             ? ['Soldadura', 'Soldadura PTA']
             : [$processName];
@@ -894,7 +1127,7 @@ class WOController extends Controller
         // ── OPTIMIZACIÓN: pre-cargar users en memoria de forma estática (se ejecuta solo una vez por request) ──
         static $usersCache = null;
         if ($usersCache === null) {
-            $usersCache = \App\Models\User::all()->keyBy('matricula');
+            $usersCache = User::all()->keyBy('matricula');
         }
 
         foreach ($processNamesArray as $pName) {
@@ -904,7 +1137,8 @@ class WOController extends Controller
                 : $class->piezas()->get();
             $pieces = $piezasRelation->where('proceso', $pName);
 
-            if ($pieces->isEmpty()) continue;
+            if ($pieces->isEmpty())
+                continue;
 
             // ── Mapa n_pieza → pieza para buscar H/M sin queries adicionales ──
             $piecesMap = $pieces->keyBy('n_pieza');
@@ -920,7 +1154,7 @@ class WOController extends Controller
 
                         // ── 0 queries: buscar H/M desde el mapa en memoria ──
                         $pFemale = $piecesMap->get($noSet . 'H');
-                        $pMale   = $piecesMap->get($noSet . 'M');
+                        $pMale = $piecesMap->get($noSet . 'M');
 
                         if ($pFemale && $pMale) {
                             if ($pFemale->liberacion == 0) {
@@ -930,15 +1164,19 @@ class WOController extends Controller
                                     if ($processName === 'Soldadura PTA') {
                                         if (in_array($pFemale->error, ['Fundicion', 'Fundición']) || in_array($pMale->error, ['Fundicion', 'Fundición'])) {
                                             array_push($piecesArray['bad'], $pFemale, $pMale);
-                                            if (in_array($pFemale->error, ['Fundicion', 'Fundición'])) array_push($piecesBadData, $this->getBadPiecesData($pFemale, null, '- - - ', $usersCache));
-                                            if (in_array($pMale->error, ['Fundicion', 'Fundición']))   array_push($piecesBadData, $this->getBadPiecesData($pMale, null, '- - - ', $usersCache));
+                                            if (in_array($pFemale->error, ['Fundicion', 'Fundición']))
+                                                array_push($piecesBadData, $this->getBadPiecesData($pFemale, null, '- - - ', $usersCache));
+                                            if (in_array($pMale->error, ['Fundicion', 'Fundición']))
+                                                array_push($piecesBadData, $this->getBadPiecesData($pMale, null, '- - - ', $usersCache));
                                         } else {
                                             array_push($piecesArray['good'], $pFemale, $pMale);
                                         }
                                     } else {
                                         array_push($piecesArray['bad'], $pFemale, $pMale);
-                                        if ($pFemale->error !== 'Ninguno') array_push($piecesBadData, $this->getBadPiecesData($pFemale, null, '- - - ', $usersCache));
-                                        if ($pMale->error !== 'Ninguno')   array_push($piecesBadData, $this->getBadPiecesData($pMale, null, '- - - ', $usersCache));
+                                        if ($pFemale->error !== 'Ninguno')
+                                            array_push($piecesBadData, $this->getBadPiecesData($pFemale, null, '- - - ', $usersCache));
+                                        if ($pMale->error !== 'Ninguno')
+                                            array_push($piecesBadData, $this->getBadPiecesData($pMale, null, '- - - ', $usersCache));
                                     }
                                 }
                             } elseif ($pFemale->liberacion == 1) {
@@ -946,7 +1184,7 @@ class WOController extends Controller
                             } else {
                                 array_push($piecesArray['bad'], $pFemale, $pMale);
                                 $piecesBadData[] = $this->getBadPiecesData($pFemale, $pFemale->error !== 'Ninguno' ? null : 'Rechazada', '- - - ', $usersCache);
-                                $piecesBadData[] = $this->getBadPiecesData($pMale,   $pMale->error !== 'Ninguno'   ? null : 'Rechazada', '- - - ', $usersCache);
+                                $piecesBadData[] = $this->getBadPiecesData($pMale, $pMale->error !== 'Ninguno' ? null : 'Rechazada', '- - - ', $usersCache);
                             }
                         } else {
                             $incompletePiece = $pFemale ?? $pMale;
@@ -993,38 +1231,38 @@ class WOController extends Controller
             foreach ($piecesArray['bad'] as $p) {
                 $badCount += (substr($p->n_pieza, -1) === 'J') ? 1 : 0.5;
             }
-            $piecesArray['good']  = $goodCount;
-            $piecesArray['bad']   = $badCount;
+            $piecesArray['good'] = $goodCount;
+            $piecesArray['bad'] = $badCount;
             $piecesArray['total'] = $goodCount + $badCount;
         } else {
-            $piecesArray['good']  = 0;
-            $piecesArray['bad']   = 0;
+            $piecesArray['good'] = 0;
+            $piecesArray['bad'] = 0;
             $piecesArray['total'] = 0;
         }
         return $piecesArray;
     }
 
     /**
-     * @param \App\Models\Pieza $piece
+     * @param Pieza $piece
      * @param mixed $rechazada
      * @param string $operation
      * @param mixed $usersCache
      */
     function getBadPiecesData($piece, $rechazada = null, $operation = '- - - ', $usersCache = null)
     {
-        $array    = array();
+        $array = array();
         // ── Usa cache si está disponible; si no, hace la query ──
         $operador = $usersCache
             ? $usersCache->get($piece->id_operador)
             : User::query()->where('matricula', $piece->id_operador)->first();
 
-        $array['piece']     = $piece->n_pieza;
+        $array['piece'] = $piece->n_pieza;
         preg_match('/^\d+/', $piece->n_pieza, $n_juego);
         $array['setNumber'] = $n_juego[0] . 'J';
-        $array['operator']  = $operador ? "{$operador->nombre} {$operador->a_paterno} {$operador->a_materno}" : '(desconocido)';
-        $array['process']   = $piece->proceso;
+        $array['operator'] = $operador ? "{$operador->nombre} {$operador->a_paterno} {$operador->a_materno}" : '(desconocido)';
+        $array['process'] = $piece->proceso;
         $array['operation'] = $operation;
-        $array['error']     = $rechazada ?? $piece->error;
+        $array['error'] = $rechazada ?? $piece->error;
         return $array;
     }
 }

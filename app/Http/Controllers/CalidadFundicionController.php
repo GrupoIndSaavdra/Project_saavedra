@@ -62,7 +62,7 @@ class CalidadFundicionController extends Controller
      * Muestra la tabla con todos los registros históricos de Almacén/Calidad,
      * incluyendo su estado Activa/Inactiva.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      */
     public function index(Request $request)
     {
@@ -117,7 +117,7 @@ class CalidadFundicionController extends Controller
      * La lista proviene del snapshot en BD (almacen_archivos) y se verifica
      * físicamente para filtrar archivos que puedan haberse eliminado.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      */
     public function getFiles(Request $request)
     {
@@ -131,7 +131,7 @@ class CalidadFundicionController extends Controller
 
         $folderName = $this->sanitizePath($this->normalizeOTName($ot));
 
-        /** @var \App\Models\FundicionHistory|null $history */
+        /** @var FundicionHistory|null $history */
         $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
         if (!$history) {
             $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
@@ -491,7 +491,7 @@ class CalidadFundicionController extends Controller
     /**
      * Sirve un PDF desde el directorio aislado.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      */
     public function serveFile(Request $request): BinaryFileResponse
     {
@@ -695,7 +695,7 @@ class CalidadFundicionController extends Controller
     /**
      * Elimina un archivo PDF de Otros documentos o preordenes.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      */
     public function deleteFile(Request $request)
     {
@@ -2139,53 +2139,78 @@ class CalidadFundicionController extends Controller
         $libAprobada = null;
         $libRechazada = null;
 
+        $allDecisions = [];
+
         foreach ($liberacionesOT as $libRow) {
             // Si el tipo de modelo o decision es null en BD (ej: registro inicial), los inicializamos con los valores de la alerta
             if (is_null($libRow->tipo_modelo) && !empty($tipos)) {
                 $libRow->tipo_modelo = $tipos[0];
             }
-            if (is_null($libRow->decision)) {
-                if ($decision === 'mixto') {
-                    $tiposApro = array_filter(array_map('trim', explode(',', $request->input('tipos_aprobados', ''))));
-                    if (in_array($libRow->tipo_modelo, $tiposApro)) {
-                        $libRow->decision = 'aprobar';
+
+            // Procesar solo las clases que se están enviando en esta alerta
+            if (in_array($libRow->tipo_modelo, $tipos)) {
+                if (is_null($libRow->decision)) {
+                    if ($decision === 'mixto') {
+                        $tiposApro = array_filter(array_map('trim', explode(',', $request->input('tipos_aprobados', ''))));
+                        if (in_array($libRow->tipo_modelo, $tiposApro)) {
+                            $libRow->decision = 'aprobar';
+                        } else {
+                            $libRow->decision = 'rechazar';
+                        }
                     } else {
-                        $libRow->decision = 'rechazar';
+                        $libRow->decision = $decision;
                     }
-                } else {
-                    $libRow->decision = $decision;
+                }
+
+                $libNuevoEst = $libRow->decision === 'aprobar' ? 'aprobado' : 'rechazado';
+                
+                $libRow->update([
+                    'tipo_modelo'    => $libRow->tipo_modelo,
+                    'decision'       => $libRow->decision,
+                    'estado'         => $libNuevoEst,
+                    'fecha_revision' => $fecha,
+                    'pdf_filename'   => $libRow->pdf_filename,
+                    'destinatario'   => $request->input('destinatario')
+                ]);
+
+                if ($libRow->decision === 'aprobar') {
+                    $clasesAprobadas[] = strtolower($libRow->tipo_modelo);
+                    if (!$libAprobada) $libAprobada = clone $libRow;
+                } elseif ($libRow->decision === 'rechazar') {
+                    $clasesRechazadas[] = strtolower($libRow->tipo_modelo);
+                    if (!$libRechazada) $libRechazada = clone $libRow;
                 }
             }
 
-            $libNuevoEst = $libRow->decision === 'aprobar' ? 'aprobado' : 'rechazado';
-            
-            $libRow->update([
-                'tipo_modelo'    => $libRow->tipo_modelo,
-                'decision'       => $libRow->decision,
-                'estado'         => $libNuevoEst,
-                'fecha_revision' => $fecha,
-                'pdf_filename'   => $libRow->pdf_filename,
-                'destinatario'   => $request->input('destinatario')
-            ]);
-
-            if ($libRow->decision === 'aprobar') {
-                $clasesAprobadas[] = strtolower($libRow->tipo_modelo);
-                if (!$libAprobada) $libAprobada = clone $libRow;
-            } elseif ($libRow->decision === 'rechazar') {
-                $clasesRechazadas[] = strtolower($libRow->tipo_modelo);
-                if (!$libRechazada) $libRechazada = clone $libRow;
+            // Registrar todas las decisiones de la OT para el estado global
+            if ($libRow->decision) {
+                $allDecisions[] = $libRow->decision;
             }
         }
 
+        // Calcular estado global de la OT combinando TODAS sus liberaciones
+        $allDecisions = array_unique($allDecisions);
+        if (count($allDecisions) > 1) {
+            $nuevoEstado = 'calidad_mixto';
+        } elseif (count($allDecisions) == 1) {
+            $nuevoEstado = $allDecisions[0] === 'aprobar' ? 'calidad_aprobado' : 'calidad_rechazado';
+        } else {
+            $decisionNorm = ($decision === 'aprobar') ? 'aprobado' : (($decision === 'rechazar') ? 'rechazado' : 'mixto');
+            $nuevoEstado = 'calidad_' . $decisionNorm;
+        }
+
         $scarModelos = ScarModelo::where('ot', '=', $ot, 'and')->get();
-        // Si hay rechazos, marcar también en el SCAR que ha sido alertado y actualizar fecha de compromiso
-        if (($decision === 'rechazar' || $decision === 'mixto') && $scarModelos->isNotEmpty()) {
+        // Si hay rechazos en ESTE lote procesado, marcar también en el SCAR que ha sido alertado
+        if (count($clasesRechazadas) > 0 && $scarModelos->isNotEmpty()) {
             foreach ($scarModelos as $scarMod) {
-                $scarMod->update([
-                    'estatus'          => 'alertado',
-                    'fecha_compromiso' => $fecha
-                ]);
-                $this->updateScarPdf($scarMod);
+                // Solo si el SCAR pertenece a las clases rechazadas o si no tiene tipo
+                if (empty($scarMod->tipo_modelo) || in_array(strtolower($scarMod->tipo_modelo), $clasesRechazadas)) {
+                    $scarMod->update([
+                        'estatus'          => 'alertado',
+                        'fecha_compromiso' => $fecha
+                    ]);
+                    $this->updateScarPdf($scarMod);
+                }
             }
         }
 

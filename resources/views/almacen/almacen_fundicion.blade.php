@@ -39,210 +39,123 @@
 
             <aside class="alm-sidebar">
 
-                <div class="alm-filters-card"
-                    style="margin-bottom: 2em; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); position: relative; padding: 1.8em;">
-                    <div
-                        style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
-                        <img src="{{ asset('images/Quality.png') }}" alt="Leyenda"
-                            style="width: 32px; height: 32px; object-fit: contain;">
-                        <h2 style="margin: 0; font-size: 1.35rem; color: #0f172a; font-weight: 700;">Guía de Estados</h2>
+                
+                <div class="alm-filters-card" style="margin-bottom: 2em; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); position: relative; padding: 1.6em;">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
+                        <img src="{{ asset('images/Quality.png') }}" alt="Leyenda" style="width: 30px; height: 30px; object-fit: contain;">
+                        <h2 style="margin: 0; font-size: 1.30rem; color: #0f172a; font-weight: 700;">Guía de Estados de Modelo</h2>
                     </div>
-                    <p style="font-size: 0.88rem; color: #64748b; margin-top: 0; margin-bottom: 16px;">
-                        Haz clic en cada icono para ver detalles del estado:
-                    </p>
 
-                    <div class="legend-grid-compact"
-                        style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;">
-
-                        <div class="legend-compact-item"
-                            onclick="showLegendDetail(this, 'Nuevo', '{{ Auth::user()->perfil == 4 ? 'Pre-orden recibida, espera Calidad.' : 'Alerta recibida. Pendiente Almacén.' }}')"
-                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
-                            <span
-                                style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #f1f5f9; border: 2px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Recibido.png') }}"
-                                    style="width: 32px; height: 32px; object-fit: contain;">
+                    <h3 style="font-size: 0.92rem; color: #475569; font-weight: 700; margin: 0 0 10px 0; border-left: 4px solid #94a3b8; padding-left: 8px;">Estados de Transición</h3>
+                    <div class="legend-grid-compact" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px;">
+                        
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #f1f5f9; border: 2px solid #cbd5e1; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Recibido.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
                             </span>
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: #475569; margin-top: 10px; text-align: center; line-height: 1.1;">Nuevo</span>
+                            <span style="font-size: 0.80rem; color: #475569; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Nuevo</span>
                         </div>
 
-                        <div class="legend-compact-item"
-                            onclick="showLegendDetail(this, 'Pre-Orden', 'Pre-orden generada, pendiente enviar.')"
-                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
-                            <span
-                                style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #eff6ff; border: 2px solid #60a5fa; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/pdf-view.png') }}"
-                                    style="width: 32px; height: 32px; object-fit: contain;">
-                            </span>
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: #2563eb; margin-top: 10px; text-align: center; line-height: 1.1;">Pre-Orden</span>
-                        </div>
-
-                        {{-- Correo Enviado --}}
                         @if (Auth::user()->perfil != 4)
-                            <div class="legend-compact-item"
-                                onclick="showLegendDetail(this, 'Correo Enviado', 'Enviada por correo. Esperando Calidad.')"
-                                style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
-                                <span
-                                    style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #e0e7ff; border: 2px solid #818cf8; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                    <img src="{{ asset('images/enviando.png') }}"
-                                        style="width: 32px; height: 32px; object-fit: contain;">
-                                </span>
-                                <span
-                                    style="font-size: 0.82rem; font-weight: 700; color: #4f46e5; margin-top: 10px; text-align: center; line-height: 1.1;">Correo
-                                    Enviado</span>
-                            </div>
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #e0e7ff; border: 2px solid #818cf8; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/enviando.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.80rem; color: #4f46e5; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Correo Enviado</span>
+                        </div>
                         @endif
 
-                        {{-- Tengo Modelo --}}
-                        <div class="legend-compact-item"
-                            onclick="showLegendDetail(this, 'Tengo Modelo', 'Modelo en Almacén. Esperando Calidad.')"
-                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
-                            <span
-                                style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #f0f9ff; border: 2px solid #0ea5e9; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Espera.png') }}"
-                                    style="width: 32px; height: 32px; object-fit: contain;">
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #fffbeb; border: 2px solid #f59e0b; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Revisando.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
                             </span>
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: #0369a1; margin-top: 10px; text-align: center; line-height: 1.1;">Tengo
-                                Modelo</span>
-                        </div>
-
-                        {{-- En Revisión --}}
-                        <div class="legend-compact-item"
-                            onclick="showLegendDetail(this, 'En Revisión', 'Calidad capturando veredicto.')"
-                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
-                            <span
-                                style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #fffbeb; border: 2px solid #f59e0b; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Revisando.png') }}"
-                                    style="width: 32px; height: 32px; object-fit: contain;">
-                            </span>
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: #b45309; margin-top: 10px; text-align: center; line-height: 1.1;">En
-                                Revisión</span>
-                        </div>
-
-                        {{-- Aprobado --}}
-                        <div class="legend-compact-item"
-                            onclick="showLegendDetail(this, 'Aprobado (Calidad)', 'Aprobado y liberado por Calidad.')"
-                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
-                            <span
-                                style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #ecfdf5; border: 2px solid #10b981; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Quality.png') }}"
-                                    style="width: 32px; height: 32px; object-fit: contain;">
-                            </span>
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: #047857; margin-top: 10px; text-align: center; line-height: 1.1;">Aprobado
-                                (Calidad)</span>
-                        </div>
-
-                        {{-- Rechazado --}}
-                        <div class="legend-compact-item"
-                            onclick="showLegendDetail(this, 'Rechazado (Calidad)', 'Rechazado por Calidad (desviaciones).')"
-                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
-                            <span
-                                style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #fef2f2; border: 2px solid #ef4444; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Quality.png') }}"
-                                    style="width: 32px; height: 32px; object-fit: contain;">
-                            </span>
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: #b91c1c; margin-top: 10px; text-align: center; line-height: 1.1;">Rechazado
-                                (Calidad)</span>
-                        </div>
-
-                        {{-- Mixto --}}
-                        <div class="legend-compact-item"
-                            onclick="showLegendDetail(this, 'Mixto (Calidad)', 'Liberación mixta (aprobado/rechazado).')"
-                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
-                            <span
-                                style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #fef9c3; border: 2px solid #eab308; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Quality.png') }}"
-                                    style="width: 32px; height: 32px; object-fit: contain;">
-                            </span>
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: #854d0e; margin-top: 10px; text-align: center; line-height: 1.1;">Mixto
-                                (Calidad)</span>
-                        </div>
-
-                        {{-- Casting --}}
-                        <div class="legend-compact-item"
-                            onclick="showLegendDetail(this, 'Casting', 'Pre-orden de casting generada.')"
-                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
-                            <span
-                                style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #f0fdf4; border: 2px solid #059669; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/pdf-view.png') }}"
-                                    style="width: 32px; height: 32px; object-fit: contain;">
-                            </span>
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: #15803d; margin-top: 10px; text-align: center; line-height: 1.1;">Casting</span>
-                        </div>
-
-                        {{-- Reproceso --}}
-                        <div class="legend-compact-item"
-                            onclick="showLegendDetail(this, 'Reproceso', 'Retornado para fabricar nuevo modelo.')"
-                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
-                            <span
-                                style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #fdf2f8; border: 2px solid #ec4899; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Reproceso.png') }}"
-                                    style="width: 32px; height: 32px; object-fit: contain;">
-                            </span>
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: #be185d; margin-top: 10px; text-align: center; line-height: 1.1;">Reproceso</span>
-                        </div>
-
-                        {{-- Enviado a Proveedor --}}
-                        <div class="legend-compact-item"
-                            onclick="showLegendDetail(this, 'Enviado a Proveedor', 'Pre-orden de casting enviada al proveedor, proceso finalizado.')"
-                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
-                            <span
-                                style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #f3e8ff; border: 2px solid #9333ea; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Proveedor.png') }}"
-                                    style="width: 32px; height: 32px; object-fit: contain;">
-                            </span>
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: #9333ea; margin-top: 10px; text-align: center; line-height: 1.1;">Enviado a
-                                Proveedor</span>
-                        </div>
-
-                        {{-- Rechazado (Final) --}}
-                        <div class="legend-compact-item"
-                            onclick="showLegendDetail(this, 'Rechazado Final', 'Modelo rechazado y reproceso iniciado.')"
-                            style="display: flex; flex-direction: column; align-items: center; padding: 12px 8px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; min-height: 115px; justify-content: center;">
-                            <span
-                                style="display: flex; align-items: center; justify-content: center; width: 60px; height: 60px; border-radius: 50%; background: #fef2f2; border: 2px solid #dc2626; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Rechazado.png') }}"
-                                    style="width: 32px; height: 32px; object-fit: contain;">
-                            </span>
-                            <span
-                                style="font-size: 0.82rem; font-weight: 700; color: #b91c1c; margin-top: 10px; text-align: center; line-height: 1.1;">Rechazado
-                                (Final)</span>
+                            <span style="font-size: 0.80rem; color: #b45309; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">En Revisión</span>
                         </div>
                     </div>
 
-                    {{-- Mini panel de detalles --}}
-                    <div id="legend-detail-card"
-                        style="display: none; margin-top: 14px; padding: 12px 16px; background: #f0f9ff; border: 1.5px solid #0ea5e9; border-radius: 10px; animation: almFadeIn 0.25s ease;">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span id="legend-detail-title"
-                                style="font-size: 0.95rem; font-weight: 800; color: #0369a1; text-transform: uppercase; letter-spacing: 0.5px;"></span>
-                            <span onclick="closeLegendDetail()"
-                                style="cursor: pointer; font-size: 1.4rem; font-weight: 700; color: #0ea5e9; line-height: 1; padding: 2px 6px;">&times;</span>
+                    <h3 style="font-size: 0.92rem; color: #0f172a; font-weight: 700; margin: 0 0 10px 0; border-left: 4px solid #3b82f6; padding-left: 8px;">Estados Prioritarios</h3>
+                    <div class="legend-grid-compact" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
+                        
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #eff6ff; border: 2px solid #60a5fa; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/pdf-view.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.80rem; color: #2563eb; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Pre-Orden</span>
                         </div>
-                        <p id="legend-detail-desc"
-                            style="margin: 0; font-size: 0.9rem; color: #0369a1; line-height: 1.4; font-weight: 600;"></p>
+
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #f0f9ff; border: 2px solid #0ea5e9; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Espera.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.80rem; color: #0369a1; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Tengo Modelo</span>
+                        </div>
+
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #ecfdf5; border: 2px solid #10b981; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Quality.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.80rem; color: #047857; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Aprobado</span>
+                        </div>
+
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #fef2f2; border: 2px solid #ef4444; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Quality.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.80rem; color: #b91c1c; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Rechazado</span>
+                        </div>
+
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #fef9c3; border: 2px solid #eab308; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Quality.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.80rem; color: #854d0e; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Mixto</span>
+                        </div>
+
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #f0fdf4; border: 2px solid #059669; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/pdf-view.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.80rem; color: #15803d; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Casting</span>
+                        </div>
+
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #fdf2f8; border: 2px solid #ec4899; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Reproceso.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.80rem; color: #be185d; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Reproceso</span>
+                        </div>
+
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #f3e8ff; border: 2px solid #9333ea; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Proveedor.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.80rem; color: #9333ea; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Enviado a Proveedor</span>
+                        </div>
+
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #ecfdf5; border: 2px solid #10b981; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Aprobado.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.80rem; color: #047857; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Aprobado Final</span>
+                        </div>
+
+                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
+                            <span style="display: flex; background: #fef2f2; border: 2px solid #dc2626; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
+                                <img src="{{ asset('images/Rechazado.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                            </span>
+                            <span style="font-size: 0.80rem; color: #b91c1c; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Rechazado Final</span>
+                        </div>
                     </div>
                 </div>
-
                 <style>
                     .legend-compact-item {
                         transition: all 0.2s ease-in-out !important;
+                        cursor: help;
                     }
 
                     .legend-compact-item:hover {
                         transform: translateY(-2px);
                         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-                        border-color: #cbd5e1 !important;
                     }
 
                     @keyframes almFadeIn {
@@ -258,50 +171,98 @@
                     }
                 </style>
 
+                <!-- Zoom Tooltip Flotante (Mercado Libre / Amazon Style) -->
+                <div id="legend-zoom-tooltip" style="position: fixed; display: none; pointer-events: none; z-index: 99999; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); border: 3px solid #cbd5e1; padding: 16px; width: 170px; height: 180px; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.25), opacity 0.15s ease; opacity: 0; transform: scale(0.9); font-family: 'Poppins', sans-serif;">
+                    <span id="legend-zoom-circle" style="display: flex; align-items: center; justify-content: center; width: 90px; height: 90px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.06); flex-shrink: 0; border: 3px solid transparent;">
+                        <img id="legend-zoom-img" src="" style="width: 55px; height: 55px; object-fit: contain;">
+                    </span>
+                    <span id="legend-zoom-label" style="font-size: 1.08rem; font-weight: 800; margin-top: 10px; text-align: center; line-height: 1.2;"></span>
+                </div>
+
                 <script>
-                    function showLegendDetail(element, title, desc) {
+                    function initLegendZoom() {
+                        const tooltip = document.getElementById('legend-zoom-tooltip');
+                        const zoomCircle = document.getElementById('legend-zoom-circle');
+                        const zoomImg = document.getElementById('legend-zoom-img');
+                        const zoomLabel = document.getElementById('legend-zoom-label');
+
+                        if (!tooltip) return;
+
                         document.querySelectorAll('.legend-compact-item').forEach(item => {
-                            item.style.borderColor = '#e2e8f0';
-                            item.style.background = '#f8fafc';
+                            item.addEventListener('mouseenter', (e) => {
+                                const circle = item.querySelector('span');
+                                const img = circle ? circle.querySelector('img') : null;
+                                const label = item.querySelectorAll('span')[1];
+
+                                if (!circle || !img || !label) return;
+
+                                // Extract styles
+                                const bgColor = circle.style.backgroundColor || window.getComputedStyle(circle).backgroundColor;
+                                const borderColor = circle.style.borderColor || window.getComputedStyle(circle).borderColor;
+                                const textColor = label.style.color || window.getComputedStyle(label).color;
+                                const imgSrc = img.src;
+                                const textContent = label.textContent;
+
+                                // Apply to tooltip
+                                tooltip.style.borderColor = borderColor;
+                                
+                                zoomCircle.style.backgroundColor = bgColor;
+                                zoomCircle.style.borderColor = borderColor;
+                                zoomCircle.style.borderStyle = 'solid';
+                                zoomCircle.style.borderWidth = '3px';
+                                
+                                zoomImg.src = imgSrc;
+                                
+                                zoomLabel.textContent = textContent;
+                                zoomLabel.style.color = textColor;
+
+                                tooltip.style.display = 'flex';
+                                // Trigger animation frame for fade-in transition
+                                requestAnimationFrame(() => {
+                                    tooltip.style.opacity = '1';
+                                    tooltip.style.transform = 'scale(1.05)';
+                                });
+                            });
+
+                            item.addEventListener('mousemove', (e) => {
+                                const offsetX = 20;
+                                const offsetY = 20;
+                                
+                                let posX = e.clientX + offsetX;
+                                let posY = e.clientY + offsetY;
+
+                                // Boundary checks
+                                const tooltipWidth = 170;
+                                const tooltipHeight = 180;
+
+                                if (posX + tooltipWidth > window.innerWidth - 10) {
+                                    posX = e.clientX - tooltipWidth - offsetX;
+                                }
+                                if (posY + tooltipHeight > window.innerHeight - 10) {
+                                    posY = e.clientY - tooltipHeight - offsetY;
+                                }
+
+                                tooltip.style.left = `${posX}px`;
+                                tooltip.style.top = `${posY}px`;
+                            });
+
+                            item.addEventListener('mouseleave', () => {
+                                tooltip.style.opacity = '0';
+                                tooltip.style.transform = 'scale(0.95)';
+                                // Hide after transition
+                                setTimeout(() => {
+                                    if (tooltip.style.opacity === '0') {
+                                        tooltip.style.display = 'none';
+                                    }
+                                }, 100);
+                            });
                         });
-
-                        // Extract style tokens from inner circle and label text
-                        const circleSpan = element.querySelector('span');
-                        const labelSpan = element.querySelectorAll('span')[1];
-
-                        const bgColor = circleSpan.style.background || window.getComputedStyle(circleSpan).backgroundColor;
-                        const borderColor = circleSpan.style.borderColor || window.getComputedStyle(circleSpan).borderColor;
-                        const textColor = labelSpan.style.color || window.getComputedStyle(labelSpan).color;
-
-                        element.style.borderColor = borderColor;
-                        element.style.background = bgColor;
-
-                        const card = document.getElementById('legend-detail-card');
-                        const titleSpan = document.getElementById('legend-detail-title');
-                        const descP = document.getElementById('legend-detail-desc');
-                        const closeBtn = card.querySelector('span[onclick="closeLegendDetail()"]');
-
-                        titleSpan.textContent = title;
-                        descP.textContent = desc;
-
-                        // Dynamic adaptation of the detail card's colors
-                        card.style.background = bgColor;
-                        card.style.borderColor = borderColor;
-                        titleSpan.style.color = textColor;
-                        descP.style.color = textColor;
-                        if (closeBtn) {
-                            closeBtn.style.color = textColor;
-                        }
-
-                        card.style.display = 'block';
                     }
 
-                    function closeLegendDetail() {
-                        document.querySelectorAll('.legend-compact-item').forEach(item => {
-                            item.style.borderColor = '#e2e8f0';
-                            item.style.background = '#f8fafc';
-                        });
-                        document.getElementById('legend-detail-card').style.display = 'none';
+                    if (document.readyState !== 'loading') {
+                        initLegendZoom();
+                    } else {
+                        document.addEventListener('DOMContentLoaded', initLegendZoom);
                     }
                 </script>
             </aside>
@@ -445,7 +406,9 @@
                                                         ->orderBy('id', 'desc')
                                                         ->first();
                                                 }
-                                                $targetReg = ($reg->rechazos_procesados && $latestReproceso) ? $latestReproceso : $reg;
+                                                // Corregimos la asignación para que la fila original NO actúe como si fuera el reproceso.
+                                                // Así mantenemos las clases independientes (Ej: original para Bombillo, R1 para Fondo).
+                                                $targetReg = $reg;
 
                                                 // ── RESOLVER TODOS LOS REGISTROS RELACIONADOS ──
                                                 $baseOtName = preg_replace('/_R\d+$/', '', $reg->ot);
