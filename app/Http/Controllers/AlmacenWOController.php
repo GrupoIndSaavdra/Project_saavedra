@@ -112,6 +112,12 @@ class AlmacenWOController extends Controller
         $otReal = \App\Models\Orden_trabajo::find($request->id_ot);
         $molding = $otReal ? \App\Models\Moldura::find($otReal->id_moldura) : null;
         $claseReal = \App\Models\Clase::find($request->id_clase);
+        if ($claseReal) {
+            $currentSum = ParcialidadOt::where('id_clase', $request->id_clase)->sum('cantidad');
+            if ($currentSum + $request->cantidad > $claseReal->piezas) {
+                return back()->with('error', "No se pueden recibir más piezas de las que hay en Consignación ({$claseReal->piezas}). Actualmente recibidas: {$currentSum}.");
+            }
+        }
 
         $otFolderName = 'OT ' . $request->id_ot;
         if ($molding && $molding->nombre) {
@@ -195,6 +201,19 @@ class AlmacenWOController extends Controller
         ]);
 
         $parcialidad = ParcialidadOt::findOrFail($id);
+        
+        $claseReal = \App\Models\Clase::find($parcialidad->id_clase);
+        if ($claseReal) {
+            $currentSum = ParcialidadOt::where('id_clase', $parcialidad->id_clase)
+                ->where('id', '!=', $id)
+                ->sum('cantidad');
+            if ($currentSum + $request->cantidad > $claseReal->piezas) {
+                return response()->json([
+                    'message' => "No se pueden recibir más piezas de las que hay en Consignación ({$claseReal->piezas}). Las otras parcialidades suman {$currentSum}."
+                ], 422);
+            }
+        }
+
         $id_remision = $parcialidad->id_remision;
 
         if ($request->hasFile('archivo')) {

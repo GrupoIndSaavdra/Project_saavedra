@@ -1163,7 +1163,7 @@ class Dashboard {
             [
                 `<span class="header-label" style="display: block; font-size: 0.85em; color: #94a3b8; margin-bottom: 5px; letter-spacing: 0.5px;">Pedido:</span> <span class="header-value highlight-value" style="display: block; font-size: 1.4em; font-weight: bold; text-align: center;">${classArray["order"]}</span>`,
                 `<span class="header-label" style="display: block; font-size: 0.85em; color: #94a3b8; margin-bottom: 5px; letter-spacing: 0.5px;">Pedido + consignación:</span> <span class="header-value highlight-value" style="display: block; font-size: 1.4em; font-weight: bold; text-align: center;">${classArray["pieces"]}</span>`,
-                `<span class="header-label" style="display: block; font-size: 0.85em; color: #94a3b8; margin-bottom: 5px; letter-spacing: 0.5px;">Piezas entregadas:</span> <span class="header-value highlight-value" style="display: block; font-size: 1.4em; font-weight: bold; color: #10b981; text-align: center;">0</span>`,
+                `<span class="header-label" style="display: block; font-size: 0.85em; color: #94a3b8; margin-bottom: 5px; letter-spacing: 0.5px;">Piezas entregadas:</span> <span class="header-value highlight-value" style="display: block; font-size: 1.4em; font-weight: bold; color: #10b981; text-align: center;">${classArray["entregadas"] || 0}</span>`,
                 `<span class="header-label" style="display: block; font-size: 0.85em; color: #94a3b8; margin-bottom: 5px; letter-spacing: 0.5px;">Piezas completadas:</span> <span class="header-value completed-value" style="display: block; font-size: 1.4em; font-weight: bold; text-align: center;">${this.getCompletedPieces(classArray)}</span>`,
             ],
         ];

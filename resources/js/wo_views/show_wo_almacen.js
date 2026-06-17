@@ -204,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             const row = btn.closest('.fila-parcialidad-item');
             const id = row.dataset.id;
-            const cantidad = row.querySelector('.edit-cantidad').value;
+            const cantidad = parseInt(row.querySelector('.edit-cantidad').value) || 0;
             const descripcion = row.querySelector('.edit-descripcion').value;
             const fecha = row.querySelector('.edit-fecha').value;
             
@@ -215,6 +215,28 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!fecha) {
                 alert('Debes seleccionar una fecha.');
                 return;
+            }
+            
+            // Validar límite
+            const activeRow = document.querySelector('.fila-clase.selected');
+            if (activeRow) {
+                const limit = parseInt(activeRow.dataset.piezas) || 0;
+                let currentTotal = 0;
+                const idClase = activeRow.dataset.idClase;
+                document.querySelectorAll('.grupo-parcialidad').forEach(g => {
+                    if (g.dataset.idClase === idClase) {
+                        g.querySelectorAll('.fila-parcialidad-item').forEach(item => {
+                            if (item.dataset.id !== id) {
+                                currentTotal += parseInt(item.dataset.cantidad) || 0;
+                            }
+                        });
+                    }
+                });
+
+                if (currentTotal + cantidad > limit) {
+                    alert(`No puedes recibir más piezas de las que tiene en Consignación (${limit}). Las otras entregas suman ${currentTotal}, intentando cambiar esta a: ${cantidad}.`);
+                    return;
+                }
             }
             
             const formData = new FormData();
@@ -241,7 +263,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (res.ok) {
                     window.location.reload();
                 } else {
-                    alert('Error al guardar los cambios.');
+                    res.json().then(data => {
+                        alert(data.message || 'Error al guardar los cambios.');
+                    }).catch(() => {
+                        alert('Error al guardar los cambios.');
+                    });
                 }
             })
             .catch(err => {
@@ -287,6 +313,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputFecha) {
         inputFecha.addEventListener('input', checkRegistrarButton);
         inputFecha.addEventListener('change', checkRegistrarButton);
+    }
+
+    // Validar límite al enviar el formulario de nueva parcialidad
+    const formParcialidadEl = document.getElementById('form-parcialidad');
+    if (formParcialidadEl) {
+        formParcialidadEl.addEventListener('submit', (e) => {
+            const activeRow = document.querySelector('.fila-clase.selected');
+            if (!activeRow) return;
+
+            const limit = parseInt(activeRow.dataset.piezas) || 0;
+            const newQty = parseInt(document.getElementById('parcialidad-cantidad').value) || 0;
+            
+            let currentTotal = 0;
+            const idClase = activeRow.dataset.idClase;
+            document.querySelectorAll('.grupo-parcialidad').forEach(g => {
+                if (g.dataset.idClase === idClase) {
+                    g.querySelectorAll('.badge-cantidad').forEach(badge => {
+                        currentTotal += parseInt(badge.textContent.trim()) || 0;
+                    });
+                }
+            });
+
+            if (currentTotal + newQty > limit) {
+                e.preventDefault();
+                alert(`No puedes recibir más piezas de las que tiene en Consignación (${limit}). Actualmente recibidas: ${currentTotal}, ingresando: ${newQty}.`);
+            }
+        });
     }
 
     // Restaurar la última clase seleccionada tras recargas de página

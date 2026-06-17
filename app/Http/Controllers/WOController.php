@@ -225,6 +225,7 @@ class WOController extends Controller
         $array[$class->nombre]["order"] = $class->pedido;
         $array[$class->nombre]["startDate"] = $this->getStringDate($class->fecha_inicio, $class->hora_inicio);
         $array[$class->nombre]["endDate"] = $class->fecha_termino ? $this->getStringDate($class->fecha_termino, $class->hora_termino) : "-";
+        $array[$class->nombre]["entregadas"] = \App\Models\ParcialidadOt::where('id_clase', $class->id)->sum('cantidad');
         $array[$class->nombre]["processes"] = $this->insertProcessesData($class);
     }
     /**
