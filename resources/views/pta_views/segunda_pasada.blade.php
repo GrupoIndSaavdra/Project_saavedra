@@ -86,12 +86,23 @@
 
         {{-- ── DATOS DE LA PIEZA SELECCIONADA ── --}}
         @if ($piezasGroup && $piezasGroup->isNotEmpty())
-            @php
+             @php
                 $picRow = $piezasGroup['D_Conexion_pico'] ?? null;
                 $obtRow = $piezasGroup['D_Conexion_obt'] ?? null;
                 $perRow = $piezasGroup['Perfilado'] ?? null;
                 $p2Row = $piezasGroup['Segunda_Pasada'] ?? null;
                 $p2Act = $p2Row?->p2_activa ?? false;
+
+                $claseNorm = strtolower(trim($claseSeleccionada->nombre ?? ''));
+                if ($claseNorm === 'molde') {
+                    $optsPreparacion = ['C1', 'C2', 'RC1', 'RC2', 'L1', 'L2', 'B1', 'B2', 'F1', 'F2'];
+                } elseif ($claseNorm === 'bombillo') {
+                    $optsPreparacion = ['CO1', 'CO2', 'PB1', 'PB2', 'RM1', 'RM2'];
+                } elseif ($claseNorm === 'fondo') {
+                    $optsPreparacion = ['FO1', 'FO2'];
+                } else {
+                    $optsPreparacion = [1, 2, 3];
+                }
             @endphp
 
             {{-- ────────────────────────────────────────────────────────────────
@@ -125,13 +136,13 @@
                     <div class="pta-table-wrapper">
                         <table class="pta-table">
                             <thead>
-                                {{-- FILA 1: Cabeceras principales --}}
                                 <tr>
                                     <th rowspan="2">Número<br>(M/H)</th>
                                     <th colspan="2" style="background:#055a9e;">Concepto</th>
                                     <th rowspan="2">VL</th>
                                     <th rowspan="2">T. de P.</th>
                                     <th rowspan="2">Precal.<br>(°C)</th>
+                                    <th rowspan="2">Soldadura</th>
                                     <th colspan="3" style="background:#055a9e;">Soldadura</th>
                                     <th colspan="3" style="background:#055a9e;">Corriente</th>
                                     <th rowspan="2">Gas<br>Argón</th>
@@ -152,7 +163,6 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {{-- FILAS 1RA PASADA (SOLO LECTURA) --}}
                                 @php
                                     $tiposOrden = ['D_Conexion_pico', 'D_Conexion_obt', 'Perfilado'];
                                     $labelMedida = [
@@ -189,6 +199,7 @@
                                         <td>{{ $fila?->tipo_preparacion ?? '—' }}</td>
                                         @if ($esPrimera)
                                             <td rowspan="3" class="td-precal">{{ $filaPrecal?->precalentamiento ?? '—' }}</td>
+                                            <td rowspan="3">{{ $filaPrecal?->material_soldadura ?? '—' }}</td>
                                         @endif
                                         <td>{{ $fila?->sold_inicial ?? '—' }}</td>
                                         <td>{{ $fila?->sold_aplicada ?? '—' }}</td>
@@ -217,7 +228,6 @@
                                     </tr>
                                 @endforeach
 
-                                {{-- FILA 2DA PASADA (EDITABLE) --}}
                                 @php
                                     $tipoP2Guardado = null;
                                     if ($p2Row?->p2_d_conexion_pico !== null)
@@ -229,7 +239,7 @@
                                 @endphp
 
                                 <tr class="pta-captura-header">
-                                    <td colspan="17">
+                                    <td colspan="18">
                                         EDICIÓN DE SEGUNDA PASADA {{ $p2Act ? '(ACTUALIZAR)' : '(NUEVA)' }}
                                     </td>
                                 </tr>
@@ -256,13 +266,62 @@
                                             class="pta-input" placeholder="0.000" required></td>
                                     <td style="padding:0;"><input type="number" step="0.001" name="p2_vl"
                                             value="{{ $p2Row?->p2_vl ?? '' }}" class="pta-input" placeholder="0.000"></td>
-                                    <td style="padding:0;"><input type="number" step="1" name="p2_tipo_preparacion"
-                                            value="{{ $p2Row?->p2_tipo_preparacion ?? '' }}" class="pta-input" placeholder="1">
-                                    </td>
-                                    <td style="padding:0;" class="td-precal"><input type="number" step="0.01"
-                                            name="p2_precalentamiento" value="{{ $p2Row?->p2_precalentamiento ?? '' }}"
-                                            class="pta-input" style="background:transparent; font-weight:bold;"
-                                            placeholder="0.00"></td>
+                                     <td style="padding:0;">
+                                         <select name="p2_tipo_preparacion" class="pta-select">
+                                             <option value="">—</option>
+                                             @foreach ($optsPreparacion as $optP2)
+                                                 <option value="{{ $optP2 }}" {{ ($p2Row?->p2_tipo_preparacion ?? '') == $optP2 ? 'selected' : '' }}>{{ $optP2 }}</option>
+                                             @endforeach
+                                         </select>
+                                     </td>
+                                     <td style="padding:0;" class="td-precal"><input type="number" step="0.01"
+                                             name="p2_precalentamiento" value="{{ $p2Row?->p2_precalentamiento ?? '' }}"
+                                             class="pta-input" style="background:transparent; font-weight:bold;"
+                                             placeholder="0.00"></td>
+                                     <td style="padding:0;">
+                                         @php
+                                             $idWidgetP2S = 'mat_sold_p2_diferida';
+                                             $nameFieldP2S = 'p2_material_soldadura';
+                                             $currentValP2S = $p2Row?->material_soldadura ?? '';
+                                             $optionsP2S = [
+                                                 "COMMERSAL 23PSP",
+                                                 "LSN 250-PL2",
+                                                 "UNIMETAL 200",
+                                                 "COLMONOY 42SA"
+                                             ];
+                                             $isOtroP2S = !empty($currentValP2S) && !in_array($currentValP2S, $optionsP2S);
+                                         @endphp
+                                         <div class="mat-sold-wrap">
+                                             <select id="select_{{ $idWidgetP2S }}" 
+                                                     class="pta-select mat-sold-select" 
+                                                     style="display: {{ $isOtroP2S ? 'none' : 'block' }};"
+                                                     onchange="handlePTAMaterialSelectChange('{{ $idWidgetP2S }}')"
+                                                     @if(!$isOtroP2S) name="{{ $nameFieldP2S }}" @endif>
+                                                 <option value="">— Seleccionar —</option>
+                                                 @foreach ($optionsP2S as $opt)
+                                                     <option value="{{ $opt }}" {{ $currentValP2S === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                                 @endforeach
+                                                 <option value="__otro__" {{ $isOtroP2S ? 'selected' : '' }}>Otro...</option>
+                                             </select>
+                                             <div id="otro_wrap_{{ $idWidgetP2S }}" 
+                                                  class="mat-sold-otro-wrap {{ $isOtroP2S ? 'visible' : '' }}" 
+                                                  style="display: {{ $isOtroP2S ? 'flex' : 'none' }}; gap: 4px; width: 100%;">
+                                                 <button type="button" 
+                                                         class="mat-sold-btn-back" 
+                                                         style="cursor: pointer;"
+                                                         onclick="handlePTAMaterialBackClick('{{ $idWidgetP2S }}', '{{ $nameFieldP2S }}')">
+                                                     ←
+                                                 </button>
+                                                 <input type="text" 
+                                                        id="input_{{ $idWidgetP2S }}" 
+                                                        class="pta-input mat-sold-input" 
+                                                        placeholder="Escribir material..." 
+                                                        maxlength="80" 
+                                                        @if($isOtroP2S) name="{{ $nameFieldP2S }}" @else disabled @endif
+                                                        value="{{ $isOtroP2S ? $currentValP2S : '' }}">
+                                             </div>
+                                         </div>
+                                     </td>
                                     <td style="padding:0;"><input type="number" step="0.001" name="p2_sold_inicial"
                                             value="{{ $p2Row?->p2_sold_inicial ?? '' }}" class="pta-input" placeholder="0.000">
                                     </td>
@@ -471,5 +530,39 @@
             const tipo = document.getElementById('p2TipoMedida');
             if (tipo && tipo.value) onTipoMedidaChange();
         });
+
+        window.handlePTAMaterialSelectChange = function(idWidget) {
+            const selectEl = document.getElementById('select_' + idWidget);
+            const otroWrap = document.getElementById('otro_wrap_' + idWidget);
+            const inputEl = document.getElementById('input_' + idWidget);
+
+            if (selectEl.value === '__otro__') {
+                const name = selectEl.name;
+                selectEl.name = '';
+                selectEl.style.display = 'none';
+                
+                otroWrap.style.display = 'flex';
+                otroWrap.classList.add('visible');
+                inputEl.name = name;
+                inputEl.disabled = false;
+                inputEl.focus();
+            }
+        };
+
+        window.handlePTAMaterialBackClick = function(idWidget, originalName) {
+            const selectEl = document.getElementById('select_' + idWidget);
+            const otroWrap = document.getElementById('otro_wrap_' + idWidget);
+            const inputEl = document.getElementById('input_' + idWidget);
+
+            inputEl.name = '';
+            inputEl.value = '';
+            inputEl.disabled = true;
+            otroWrap.style.display = 'none';
+            otroWrap.classList.remove('visible');
+
+            selectEl.name = originalName;
+            selectEl.value = '';
+            selectEl.style.display = 'block';
+        };
     </script>
 @endsection

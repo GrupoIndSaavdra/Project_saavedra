@@ -93,6 +93,44 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                 if (!isset($modo)) {
                     $modo = 'captura';
                 }
+
+                // Obtener nombre de la clase para cargar dinámicamente opciones de preparación
+                $claseNombreVal = $claseNombre ?? null;
+                if (!$claseNombreVal) {
+                    if (isset($claseSeleccionada)) {
+                        $claseNombreVal = is_string($claseSeleccionada) ? $claseSeleccionada : ($claseSeleccionada->nombre ?? null);
+                    } elseif (isset($clase)) {
+                        $claseNombreVal = is_string($clase) ? explode(' ', $clase)[0] : ($clase->nombre ?? null);
+                    }
+                }
+                if (!$claseNombreVal) {
+                    $anyFila = null;
+                    if (isset($piezasGroupActivas) && $piezasGroupActivas->isNotEmpty()) {
+                        $anyFila = $piezasGroupActivas->first()->first();
+                    } elseif (isset($piezasGroup) && $piezasGroup->isNotEmpty()) {
+                        $anyFila = $piezasGroup->first()->first();
+                    }
+                    if ($anyFila && isset($anyFila->id_meta)) {
+                        $metaTmp = \App\Models\Metas::find($anyFila->id_meta);
+                        if ($metaTmp && $metaTmp->id_clase) {
+                            $claseTmp = \App\Models\Clase::find($metaTmp->id_clase);
+                            if ($claseTmp) {
+                                $claseNombreVal = $claseTmp->nombre;
+                            }
+                        }
+                    }
+                }
+
+                $claseNorm = strtolower(trim($claseNombreVal ?? ''));
+                if ($claseNorm === 'molde') {
+                    $optsPreparacion = ['C1', 'C2', 'RC1', 'RC2', 'L1', 'L2', 'B1', 'B2', 'F1', 'F2'];
+                } elseif ($claseNorm === 'bombillo') {
+                    $optsPreparacion = ['CO1', 'CO2', 'PB1', 'PB2', 'RM1', 'RM2'];
+                } elseif ($claseNorm === 'fondo') {
+                    $optsPreparacion = ['FO1', 'FO2'];
+                } else {
+                    $optsPreparacion = [1, 2, 3];
+                }
             @endphp
 
             @forelse ($piezasGroup as $nPieza => $subFilas)
@@ -190,13 +228,13 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             @endif
                         </td>
 
-                        {{-- ── Tipo de preparación (select: 1,2,3) ── --}}
+                        {{-- ── Tipo de preparación (select: dinámico) ── --}}
                         <td>
                             @if ($modo === 'captura')
                                 <select name="tipo_preparacion[{{ $fila?->id ?? 'new_' . $nPieza . '_' . $tipo }}]"
                                     class="pta-select" required>
                                     <option value="">—</option>
-                                    @foreach ([1, 2, 3] as $opt)
+                                    @foreach ($optsPreparacion as $opt)
                                         <option value="{{ $opt }}" {{ ($fila?->tipo_preparacion ?? '') == $opt ? 'selected' : '' }}>
                                             {{ $opt }}
                                         </option>
@@ -501,7 +539,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             @if ($modo === 'captura')
                                 <select name="p2_tipo_preparacion[{{ $keyP2H }}]" class="pta-select">
                                     <option value="">—</option>
-                                    @foreach ([1, 2, 3] as $optP2)
+                                    @foreach ($optsPreparacion as $optP2)
                                         <option value="{{ $optP2 }}" {{ ($filaP2H?->p2_tipo_preparacion ?? '') == $optP2 ? 'selected' : '' }}>{{ $optP2 }}</option>
                                     @endforeach
                                 </select>
@@ -518,7 +556,54 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                     style="color:#888;">°C</small>
                             @endif
                         </td>
-                        <td class="td-precal">—</td>
+                        <td class="td-precal">
+                            @if ($modo === 'captura')
+                                @php
+                                    $idWidgetP2H = 'mat_sold_p2_' . $keyP2H;
+                                    $nameFieldP2H = 'p2_material_soldadura[' . $keyP2H . ']';
+                                    $currentValP2H = $filaP2H?->material_soldadura ?? '';
+                                    $optionsP2 = [
+                                        "COMMERSAL 23PSP",
+                                        "LSN 250-PL2",
+                                        "UNIMETAL 200",
+                                        "COLMONOY 42SA"
+                                    ];
+                                    $isOtroP2H = !empty($currentValP2H) && !in_array($currentValP2H, $optionsP2);
+                                @endphp
+                                <div class="mat-sold-wrap">
+                                    <select id="select_{{ $idWidgetP2H }}" 
+                                            class="pta-select mat-sold-select" 
+                                            style="display: {{ $isOtroP2H ? 'none' : 'block' }};"
+                                            onchange="handlePTAMaterialSelectChange('{{ $idWidgetP2H }}')"
+                                            @if(!$isOtroP2H) name="{{ $nameFieldP2H }}" @endif>
+                                        <option value="">— Seleccionar —</option>
+                                        @foreach ($optionsP2 as $opt)
+                                            <option value="{{ $opt }}" {{ $currentValP2H === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                        @endforeach
+                                        <option value="__otro__" {{ $isOtroP2H ? 'selected' : '' }}>Otro...</option>
+                                    </select>
+                                    <div id="otro_wrap_{{ $idWidgetP2H }}" 
+                                         class="mat-sold-otro-wrap {{ $isOtroP2H ? 'visible' : '' }}" 
+                                         style="display: {{ $isOtroP2H ? 'flex' : 'none' }}; gap: 4px; width: 100%;">
+                                        <button type="button" 
+                                                class="mat-sold-btn-back" 
+                                                style="cursor: pointer;"
+                                                onclick="handlePTAMaterialBackClick('{{ $idWidgetP2H }}', '{{ $nameFieldP2H }}')">
+                                            ←
+                                        </button>
+                                        <input type="text" 
+                                               id="input_{{ $idWidgetP2H }}" 
+                                               class="pta-input mat-sold-input" 
+                                               placeholder="Escribir material..." 
+                                               maxlength="80" 
+                                               @if($isOtroP2H) name="{{ $nameFieldP2H }}" @else disabled @endif
+                                               value="{{ $isOtroP2H ? $currentValP2H : '' }}">
+                                    </div>
+                                </div>
+                            @else
+                                {{ $filaP2H?->material_soldadura ?? '—' }}
+                            @endif
+                        </td>
                         <td>
                             @if ($modo === 'captura')
                                 <input type="number" step="0.001" name="p2_sold_inicial[{{ $keyP2H }}]"
@@ -690,7 +775,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             <td>
                                 <select name="tipo_preparacion[{{ $keyA }}]" class="pta-select input-pieceUsed" required>
                                     <option value="">—</option>
-                                    @foreach ([1, 2, 3] as $opt)
+                                    @foreach ($optsPreparacion as $opt)
                                         <option value="{{ $opt }}" {{ ($filaA?->tipo_preparacion ?? '') == $opt ? 'selected' : '' }}>
                                             {{ $opt }}
                                         </option>
@@ -927,7 +1012,50 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             <input type="number" step="0.01" name="p2_precalentamiento[{{ $keyP2 }}]"
                                 value="{{ $filaP2?->p2_precalentamiento ?? '' }}" class="pta-input input-pieceUsed" placeholder="°C">
                         </td>
-                        <td class="td-precal">—</td>
+                        <td class="td-precal">
+                            @php
+                                $idWidgetP2A = 'mat_sold_p2_' . $keyP2;
+                                $nameFieldP2A = 'p2_material_soldadura[' . $keyP2 . ']';
+                                $currentValP2A = $filaP2?->material_soldadura ?? '';
+                                $optionsP2A = [
+                                    "COMMERSAL 23PSP",
+                                    "LSN 250-PL2",
+                                    "UNIMETAL 200",
+                                    "COLMONOY 42SA"
+                                ];
+                                $isOtroP2A = !empty($currentValP2A) && !in_array($currentValP2A, $optionsP2A);
+                            @endphp
+                            <div class="mat-sold-wrap">
+                                <select id="select_{{ $idWidgetP2A }}" 
+                                        class="pta-select mat-sold-select input-pieceUsed" 
+                                        style="display: {{ $isOtroP2A ? 'none' : 'block' }};"
+                                        onchange="handlePTAMaterialSelectChange('{{ $idWidgetP2A }}')"
+                                        @if(!$isOtroP2A) name="{{ $nameFieldP2A }}" @endif>
+                                    <option value="">— Seleccionar —</option>
+                                    @foreach ($optionsP2A as $opt)
+                                        <option value="{{ $opt }}" {{ $currentValP2A === $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                    @endforeach
+                                    <option value="__otro__" {{ $isOtroP2A ? 'selected' : '' }}>Otro...</option>
+                                </select>
+                                <div id="otro_wrap_{{ $idWidgetP2A }}" 
+                                     class="mat-sold-otro-wrap {{ $isOtroP2A ? 'visible' : '' }}" 
+                                     style="display: {{ $isOtroP2A ? 'flex' : 'none' }}; gap: 4px; width: 100%;">
+                                    <button type="button" 
+                                            class="mat-sold-btn-back" 
+                                            style="cursor: pointer;"
+                                            onclick="handlePTAMaterialBackClick('{{ $idWidgetP2A }}', '{{ $nameFieldP2A }}')">
+                                        ←
+                                    </button>
+                                    <input type="text" 
+                                           id="input_{{ $idWidgetP2A }}" 
+                                           class="pta-input mat-sold-input input-pieceUsed" 
+                                           placeholder="Escribir material..." 
+                                           maxlength="80" 
+                                           @if($isOtroP2A) name="{{ $nameFieldP2A }}" @else disabled @endif
+                                           value="{{ $isOtroP2A ? $currentValP2A : '' }}">
+                                </div>
+                            </div>
+                        </td>
 
                         {{-- Soldadura --}}
                         <td><input type="number" step="0.001" name="p2_sold_inicial[{{ $keyP2 }}]"

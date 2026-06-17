@@ -234,6 +234,7 @@ class SoldaduraPTAController extends Controller
                 // ── Llenar las columnas p2_* ──
                 $p2Row->p2_vl = $request->input("p2_vl.{$nPiezaRef}");
                 $p2Row->p2_tipo_preparacion = $request->input("p2_tipo_preparacion.{$nPiezaRef}");
+                $p2Row->material_soldadura = $request->input("p2_material_soldadura.{$nPiezaRef}");
                 $p2Row->p2_precalentamiento = $request->input("p2_precalentamiento.{$nPiezaRef}");
                 $p2Row->p2_sold_inicial = $request->input("p2_sold_inicial.{$nPiezaRef}");
                 $p2Row->p2_sold_aplicada = $request->input("p2_sold_aplicada.{$nPiezaRef}");

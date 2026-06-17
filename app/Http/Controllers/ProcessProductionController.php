@@ -254,6 +254,7 @@ class ProcessProductionController extends Controller
                 'modo' => ($edit == 2) ? 'captura' : 'reporte',
                 'ptaLiberacion' => $ptaLiberacion,
                 'esJuegoCompleto' => in_array(strtoupper($class->nombre), ['OBTURADOR', 'FONDO']),
+                'claseNombre' => $class->nombre,
             ])->render();
         }
 

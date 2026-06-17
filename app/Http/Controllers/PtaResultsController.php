@@ -689,7 +689,8 @@ class PtaResultsController extends Controller
             'p2_tipo_medida' => 'required|in:D_Conexion_pico,D_Conexion_obt,Perfilado',
             'p2_valor_principal' => 'required|numeric',
             'p2_vl' => 'nullable|numeric',
-            'p2_tipo_preparacion' => 'nullable|integer|in:1,2,3',
+            'p2_tipo_preparacion' => 'nullable|string|max:50',
+            'p2_material_soldadura' => 'nullable|string|max:80',
             'p2_precalentamiento' => 'nullable|numeric',
             'p2_sold_inicial' => 'nullable|numeric',
             'p2_sold_aplicada' => 'nullable|numeric',
@@ -761,6 +762,7 @@ class PtaResultsController extends Controller
             // Asignar los valores p2_*
             $p2Row->p2_vl = $request->input('p2_vl');
             $p2Row->p2_tipo_preparacion = $request->input('p2_tipo_preparacion');
+            $p2Row->material_soldadura = $request->input('p2_material_soldadura');
             $p2Row->p2_precalentamiento = $request->input('p2_precalentamiento');
             $p2Row->p2_sold_inicial = $request->input('p2_sold_inicial');
             $p2Row->p2_sold_aplicada = $request->input('p2_sold_aplicada');
