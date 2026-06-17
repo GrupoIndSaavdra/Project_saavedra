@@ -238,7 +238,7 @@ function getRoutes(profile) {
                     title: "Orden de Trabajo",
                     routes: [
                         ["manageWO", "Crear o Modificar O.T"],
-                        ["piecesInProgress", "Piezas en progreso"],
+                        ["piecesInProgress", "Orden de Trabajo en Progreso"],
                         ["showPiecesReport_view", "Reporte de piezas"],
                         ["showReleasePieces_view", "Liberacion de piezas"],
                     ],
@@ -333,7 +333,7 @@ function getRoutes(profile) {
                             title: "Orden de Trabajo",
                             routes: [
                                 ["manageWO", "Crear o Modificar O.T"],
-                                ["piecesInProgress", "Piezas en progreso"],
+                                ["piecesInProgress", "Orden de Trabajo en Progreso"],
                                 ["showPiecesReport_view", "Reporte de piezas"],
                                 ["showReleasePieces_view", "Liberación de piezas"],
                             ],
@@ -399,7 +399,7 @@ function getRoutes(profile) {
                         {
                             title: "Producción",
                             routes: [
-                                ["piecesInProgress", "Piezas en progreso"],
+                                ["piecesInProgress", "Orden de Trabajo en Progreso"],
                                 ["cNominals", "Editar C.Nominales y Tolerancias"],
                             ],
                         },
@@ -419,7 +419,7 @@ function getRoutes(profile) {
                             title: "Orden de Trabajo",
                             routes: [
                                 ["manageWO", "Modificar O.T"],
-                                ["piecesInProgress", "Piezas en progreso"],
+                                ["piecesInProgress", "Orden de Trabajo en Progreso"],
                             ],
                         },
                         {
@@ -461,7 +461,7 @@ function getRoutes(profile) {
                 {
                     title: "Producción",
                     routes: [
-                        ["piecesInProgress", "Piezas en progreso"],
+                        ["piecesInProgress", "Orden de Trabajo en Progreso"],
                         ["cNominals", "Editar C.Nominales y Tolerancias"],
                         // ["showTimes", "Modificar tiempos de producción"],
                     ],
@@ -485,7 +485,7 @@ function getRoutes(profile) {
                     title: "Orden de Trabajo",
                     routes: [
                         ["manageWO", "Modificar O.T"],
-                        ["piecesInProgress", "Piezas en progreso"],
+                        ["piecesInProgress", "Orden de Trabajo en Progreso"],
                     ],
                 },
                 {
