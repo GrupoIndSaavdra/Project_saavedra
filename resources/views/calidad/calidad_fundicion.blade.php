@@ -1171,7 +1171,7 @@
                                                                     <div class="dibujos-file-card"
                                                                         style="animation-delay: {{ $loop->index * 0.05 }}s;">
                                                                         <div class="file-icon-wrapper"
-                                                                            onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')"
+                                                                            onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')"
                                                                             style="cursor: pointer;" title="Abrir PDF">
                                                                             <img src="{{ asset('images/pdf-view-shadow.png') }}"
                                                                                 class="file-icon icon-default">
@@ -1179,12 +1179,12 @@
                                                                                 class="file-icon icon-hover">
                                                                         </div>
                                                                         <div class="file-name" style="cursor: pointer;" title="Abrir PDF"
-                                                                            onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
+                                                                            onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
                                                                             {{ basename($archivoInfo['nombre']) }}
                                                                         </div>
                                                                         <div class="file-actions">
                                                                             <button class="btn-dibujos btn-dibujos-sm btn-ver"
-                                                                                onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">Ver</button>
+                                                                                onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">Ver</button>
                                                                         </div>
                                                                     </div>
                                                                 @endforeach
@@ -1207,7 +1207,7 @@
                                                                     <div class="dibujos-file-card card-ayuda"
                                                                         style="animation-delay: {{ $loop->index * 0.05 }}s;">
                                                                         <div class="file-icon-wrapper"
-                                                                            onclick="almacenVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')"
+                                                                            onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')"
                                                                             style="cursor: pointer;" title="Abrir PDF">
                                                                             <img src="{{ asset('images/pdf-view-shadow.png') }}"
                                                                                 class="file-icon icon-default">
@@ -1215,12 +1215,12 @@
                                                                                 class="file-icon icon-hover">
                                                                         </div>
                                                                         <div class="file-name" style="cursor: pointer;" title="Abrir PDF"
-                                                                            onclick="almacenVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
+                                                                            onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
                                                                             {{ basename($ayudaArchivo['nombre']) }}
                                                                         </div>
                                                                         <div class="file-actions">
                                                                             <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color"
-                                                                                onclick="almacenVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">Ver</button>
+                                                                                onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">Ver</button>
                                                                         </div>
                                                                     </div>
                                                                 @endforeach
@@ -1270,20 +1270,20 @@
                                                                         <div class="dibujos-file-card card-otro card-imagen"
                                                                             style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0369a1;">
                                                                             <div class="file-icon-wrapper"
-                                                                                onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')"
+                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')"
                                                                                 style="cursor: pointer;" title="Ver imagen">
                                                                                 <img src="{{ $otroArchivo['url'] }}" class="file-icon-img-thumb"
                                                                                     alt="{{ basename($otroArchivo['nombre']) }}"
                                                                                     style="width:100%; height:80px; object-fit:cover; border-radius:6px; border:1px solid #bae6fd;">
                                                                             </div>
                                                                             <div class="file-name" style="cursor: pointer;" title="Ver imagen"
-                                                                                onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
+                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
                                                                             <div class="file-actions" style="display: flex; gap: 5px;">
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                                     style="background-color: #0369a1; color: white;"
-                                                                                    onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
+                                                                                    onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
                                                                                 @if ($canDelete)
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
                                                                                     style="background-color: #dc3545; color: white;"
@@ -1296,7 +1296,7 @@
                                                                         <div class="dibujos-file-card card-otro"
                                                                             style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
                                                                             <div class="file-icon-wrapper"
-                                                                                onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
+                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
                                                                                 style="cursor: pointer;" title="Abrir PDF">
                                                                                 <img src="{{ asset('images/pdf-view-shadow.png') }}"
                                                                                     class="file-icon icon-default">
@@ -1304,13 +1304,13 @@
                                                                                     class="file-icon icon-hover">
                                                                             </div>
                                                                             <div class="file-name" style="cursor: pointer;" title="Abrir PDF"
-                                                                                onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
                                                                             <div class="file-actions" style="display: flex; gap: 5px;">
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                                     style="background-color: #155724; color: white;"
-                                                                                    onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                    onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
                                                                                 @if ($canDelete)
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
                                                                                     style="background-color: #dc3545; color: white;"
@@ -1357,20 +1357,20 @@
                                                                         <div class="dibujos-file-card card-otro card-imagen"
                                                                             style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0369a1;">
                                                                             <div class="file-icon-wrapper"
-                                                                                onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')"
+                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')"
                                                                                 style="cursor: pointer;" title="Ver imagen">
                                                                                 <img src="{{ $otroArchivo['url'] }}" class="file-icon-img-thumb"
                                                                                     alt="{{ basename($otroArchivo['nombre']) }}"
                                                                                     style="width:100%; height:80px; object-fit:cover; border-radius:6px; border:1px solid #bae6fd;">
                                                                             </div>
                                                                             <div class="file-name" style="cursor: pointer;" title="Ver imagen"
-                                                                                onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
+                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
                                                                             <div class="file-actions" style="display: flex; gap: 5px;">
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                                     style="background-color: #0369a1; color: white;"
-                                                                                    onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
+                                                                                    onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
                                                                                 @if ($canDelete)
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
                                                                                     style="background-color: #dc3545; color: white;"
@@ -1383,7 +1383,7 @@
                                                                         <div class="dibujos-file-card card-otro"
                                                                             style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
                                                                             <div class="file-icon-wrapper"
-                                                                                onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
+                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
                                                                                 style="cursor: pointer;" title="Abrir PDF">
                                                                                 <img src="{{ asset('images/pdf-view-shadow.png') }}"
                                                                                     class="file-icon icon-default">
@@ -1391,13 +1391,13 @@
                                                                                     class="file-icon icon-hover">
                                                                             </div>
                                                                             <div class="file-name" style="cursor: pointer;" title="Abrir PDF"
-                                                                                onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
                                                                             <div class="file-actions" style="display: flex; gap: 5px;">
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-ver"
                                                                                     style="background-color: #9c0300; color: white;"
-                                                                                    onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                    onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
                                                                                 @if ($canDelete)
                                                                                 <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
                                                                                     style="background-color: #dc3545; color: white;"

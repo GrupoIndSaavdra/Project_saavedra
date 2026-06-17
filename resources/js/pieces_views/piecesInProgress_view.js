@@ -494,13 +494,10 @@ class FundicionChecklistCard {
         let colorHex = this._getBorderColor(data);
         card.classList.remove('card-state-completado', 'card-state-incompleto', 'card-state-rechazado');
         if (colorHex === '#9D0402') { // Red
-            card.style.borderColor = '';
             card.classList.add('card-state-rechazado');
         } else if (colorHex === '#0C8201') { // Green
-            card.style.borderColor = '';
             card.classList.add('card-state-completado');
         } else {
-            card.style.borderColor = '';
             card.classList.add('card-state-incompleto');
         }
 
@@ -1094,8 +1091,8 @@ class Dashboard {
                     // Card 2: Tratamiento Térmico (Referencia)
                     const termicoCard = document.createElement('div');
                     termicoCard.className = 'fundicion-checklist-card card-state-incompleto';
-                    termicoCard.style.flex = '1 1 0%';
-                    termicoCard.style.minWidth = '300px';
+                    termicoCard.style.flex = '0.7 1 0%';
+                    termicoCard.style.minWidth = '250px';
                     const baseUrl = window.baseUrl || (window.location.origin + '/');
                     const slash = baseUrl.endsWith('/') ? '' : '/';
                     const iconUrl = `${baseUrl}${slash}images/Espera.png`;

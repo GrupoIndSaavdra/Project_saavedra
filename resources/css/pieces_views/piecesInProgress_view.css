@@ -517,23 +517,31 @@ header {
 }
 
 .checklist-item {
+    position: relative;
     display: flex;
     flex-direction: row;
     align-items: stretch;
     justify-content: flex-start;
     padding: 0;
-    margin: 0;
-    background: transparent;
-    border: none;
+    margin: 0 0 0.4rem 0;
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100%;
     z-index: 2;
     cursor: default;
 }
 
+.checklist-item:hover {
+    background: rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
 .checklist-item:hover .checklist-content-col,
 .checklist-item:hover .checklist-action-col {
-    background: rgba(255, 255, 255, 0.05);
+    /* bg shift handled by item hover */
 }
 
 .checklist-icon-col {
@@ -570,11 +578,15 @@ header {
 }
 
 .checklist-connector-line {
+    position: absolute;
+    top: 55px;
+    bottom: -0.4rem;
+    left: 50%;
+    transform: translateX(-50%);
     width: 3px;
-    flex-grow: 1;
     background: rgba(255, 255, 255, 0.1);
-    min-height: 20px;
     transition: all 0.3s ease;
+    z-index: 1;
 }
 
 .checklist-content-col {
@@ -583,28 +595,14 @@ header {
     align-items: flex-start;
     justify-content: center;
     flex-grow: 1;
-    padding: 1rem 0.8rem;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.checklist-item:first-child .checklist-content-col,
-.checklist-item:first-child .checklist-action-col {
-    border-top: none;
-}
-
-.checklist-item:last-child .checklist-content-col,
-.checklist-item:last-child .checklist-action-col {
-    border-bottom: none;
+    padding: 0.3rem 0.6rem;
 }
 
 .checklist-action-col {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    padding: 1rem 0.8rem;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 0.3rem 0.6rem;
 }
 
 .checklist-label {
@@ -641,6 +639,18 @@ header {
 }
 
 /* COMPLETADO / APROBADO */
+.checklist-item--completado,
+.checklist-item--aprobado,
+.checklist-item--aprobado_final {
+    border-color: rgba(74, 222, 128, 0.4);
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.1);
+}
+.checklist-item--completado:hover,
+.checklist-item--aprobado:hover,
+.checklist-item--aprobado_final:hover {
+    box-shadow: 0 0 15px rgba(74, 222, 128, 0.25);
+    border-color: rgba(74, 222, 128, 0.6);
+}
 .checklist-item--completado .checklist-icon,
 .checklist-item--aprobado .checklist-icon,
 .checklist-item--aprobado_final .checklist-icon {
@@ -661,6 +671,16 @@ header {
 }
 
 /* TIENE_MODELO / PENDIENTE */
+.checklist-item--tiene_modelo,
+.checklist-item--pendiente {
+    border-color: rgba(245, 158, 11, 0.4);
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.1);
+}
+.checklist-item--tiene_modelo:hover,
+.checklist-item--pendiente:hover {
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+    border-color: rgba(245, 158, 11, 0.6);
+}
 .checklist-item--tiene_modelo .checklist-icon,
 .checklist-item--pendiente .checklist-icon {
     border-color: rgba(245, 158, 11, 0.8);
@@ -678,6 +698,16 @@ header {
 }
 
 /* PREORDEN / PROVEEDOR */
+.checklist-item--preorden,
+.checklist-item--proveedor {
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.1);
+}
+.checklist-item--preorden:hover,
+.checklist-item--proveedor:hover {
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+    border-color: rgba(56, 189, 248, 0.6);
+}
 .checklist-item--preorden .checklist-icon,
 .checklist-item--proveedor .checklist-icon {
     border-color: rgba(56, 189, 248, 0.8);
@@ -695,6 +725,14 @@ header {
 }
 
 /* RECHAZADO */
+.checklist-item--rechazado {
+    border-color: rgba(248, 113, 113, 0.4);
+    box-shadow: 0 0 10px rgba(248, 113, 113, 0.1);
+}
+.checklist-item--rechazado:hover {
+    box-shadow: 0 0 15px rgba(248, 113, 113, 0.25);
+    border-color: rgba(248, 113, 113, 0.6);
+}
 .checklist-item--rechazado .checklist-icon {
     border-color: rgba(248, 113, 113, 0.8);
     box-shadow: 0 0 10px rgba(248, 113, 113, 0.3);
@@ -710,6 +748,9 @@ header {
 }
 
 /* INACTIVO */
+.checklist-item--inactivo {
+    border-color: rgba(255, 255, 255, 0.05);
+}
 .checklist-item--inactivo .checklist-icon {
     border-color: rgba(148, 163, 184, 0.3);
     opacity: 0.6;
@@ -1166,7 +1207,7 @@ header {
     display: flex;
     flex-direction: row;
     align-items: center;
-    padding: 0.6rem 0;
+    padding: 0.3rem 0;
     border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
 }
 .checklist-subpaso-item:last-child {

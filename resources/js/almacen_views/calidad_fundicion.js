@@ -874,15 +874,15 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
                                     <input type="checkbox" name="${inputName}" value="${f.nombre}" checked style="width: 20px; height: 20px; cursor: pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card', this.checked);">
                                 </div>
 
-                                <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}', '${f.nombre}', '${f.tipo}')" style="cursor: pointer; margin-top: 10px;" title="Abrir Archivo">
+                                <div class="file-icon-wrapper" onclick="calidadVerPdf('${ot}', '${f.nombre}', '${f.tipo}')" style="cursor: pointer; margin-top: 10px;" title="Abrir Archivo">
                                     <img src="${baseUrl}images/${defaultIcon}" class="file-icon icon-default" style="width: 48px; height: auto;">
                                     <img src="${baseUrl}images/${hoverIcon}" class="file-icon icon-hover" style="width: 48px; height: auto;">
                                 </div>
-                                <div class="file-name" style="cursor: pointer; font-size: 0.82em; margin: 8px 0; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-weight: 600; color: #334155; line-height: 1.3;" title="Abrir Archivo" onclick="almacenVerPdf('${ot}', '${f.nombre}', '${f.tipo}')">
+                                <div class="file-name" style="cursor: pointer; font-size: 0.82em; margin: 8px 0; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-weight: 600; color: #334155; line-height: 1.3;" title="Abrir Archivo" onclick="calidadVerPdf('${ot}', '${f.nombre}', '${f.tipo}')">
                                     ${cleanName}
                                 </div>
                                 <div class="file-actions" style="width: 100%; margin-top: auto;">
-                                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="font-size:0.8em;padding:5px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex-shrink:0;width:100%;" onclick="almacenVerPdf('${ot}', '${f.nombre}', '${f.tipo}')">Ver</button>
+                                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="font-size:0.8em;padding:5px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex-shrink:0;width:100%;" onclick="calidadVerPdf('${ot}', '${f.nombre}', '${f.tipo}')">Ver</button>
                                 </div>
                             </div>
                         `;
@@ -3010,13 +3010,13 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
 
                             return `
                                 <div class="dibujos-file-card" style="animation-delay: ${index * 0.05}s;">
-                                    <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}', '${file.nombre}', 'otro')" style="cursor: pointer;" title="Abrir Archivo">
+                                    <div class="file-icon-wrapper" onclick="calidadVerPdf('${ot}', '${file.nombre}', 'otro')" style="cursor: pointer;" title="Abrir Archivo">
                                         <img src="${iconDefault}" class="file-icon icon-default">
                                         <img src="${iconHover}" class="file-icon icon-hover">
                                     </div>
-                                    <div class="file-name" style="cursor: pointer;" title="Abrir Archivo" onclick="almacenVerPdf('${ot}', '${file.nombre}', 'otro')">${dispName}</div>
+                                    <div class="file-name" style="cursor: pointer;" title="Abrir Archivo" onclick="calidadVerPdf('${ot}', '${file.nombre}', 'otro')">${dispName}</div>
                                     <div class="file-actions">
-                                        <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" onclick="almacenVerPdf('${ot}', '${file.nombre}', 'otro')">Ver</button>
+                                        <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" onclick="calidadVerPdf('${ot}', '${file.nombre}', 'otro')">Ver</button>
                                     </div>
                                 </div>
                             `;
@@ -3852,11 +3852,11 @@ function _renderServerFileCard(file, ot, baseUrl, tipo) {
 
     return `<div class="dibujos-file-card card-ayuda select-file-card checked-card" style="position:relative;width:100%;max-width:230px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.08);box-sizing:border-box;font-size:0.95em;padding:12px;background:#fff;border:1.5px solid #e2e8f0;margin:4px;">
         <div style="position:absolute;top:10px;left:10px;z-index:10;"><input type="checkbox" name="${inputName}" value="${file.nombre}" checked style="width:18px;height:18px;cursor:pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card',this.checked);"></div>
-        <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}','${file.nombre}','${file.tipo}')" style="cursor:pointer;margin-top:12px;" title="Ver">
+        <div class="file-icon-wrapper" onclick="calidadVerPdf('${ot}','${file.nombre}','${file.tipo}')" style="cursor:pointer;margin-top:12px;" title="Ver">
             <img src="${baseUrl}images/${defaultIcon}" class="file-icon icon-default" style="width:48px;height:48px;object-fit:contain;"><img src="${baseUrl}images/${hoverIcon}" class="file-icon icon-hover" style="width:48px;height:48px;object-fit:contain;">
         </div>
-        <div class="file-name" style="cursor:pointer;font-size:0.88em;margin:8px 0;max-height:42px;overflow:hidden;font-weight:600;color:#334155;line-height:1.3;font-family:'Poppins',sans-serif;" onclick="almacenVerPdf('${ot}','${file.nombre}','${file.tipo}')">${dispName}</div>
-        <div class="file-actions" style="width:100%;margin-top:auto;"><button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="font-size:0.85em;padding:6px 14px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;width:100%;" onclick="almacenVerPdf('${ot}','${file.nombre}','${file.tipo}')">Ver</button></div>
+        <div class="file-name" style="cursor:pointer;font-size:0.88em;margin:8px 0;max-height:42px;overflow:hidden;font-weight:600;color:#334155;line-height:1.3;font-family:'Poppins',sans-serif;" onclick="calidadVerPdf('${ot}','${file.nombre}','${file.tipo}')">${dispName}</div>
+        <div class="file-actions" style="width:100%;margin-top:auto;"><button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="font-size:0.85em;padding:6px 14px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;width:100%;" onclick="calidadVerPdf('${ot}','${file.nombre}','${file.tipo}')">Ver</button></div>
     </div>`;
 }
 
@@ -5701,13 +5701,13 @@ function generarHtmlCategorizadoCastingAprobados(archivos, otClean, isRechazados
             const tipoParam = f.tipo || 'otro';
 
             html += `<div class="dibujos-file-card ${sec.claseCard} select-file-card" style="position:relative;width:100%;max-width:220px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.05);background:#fff;padding:10px;border:1.5px solid #e2e8f0;">
-                <div class="file-icon-wrapper" onclick="almacenVerPdf('${otClean}','${nombre}','${tipoParam}')" style="cursor:pointer;margin-top:10px;">
+                <div class="file-icon-wrapper" onclick="calidadVerPdf('${otClean}','${nombre}','${tipoParam}')" style="cursor:pointer;margin-top:10px;">
                     <img src="${iconDefault}" class="file-icon icon-default" style="width:48px;height:auto;">
                     <img src="${iconHover}" class="file-icon icon-hover" style="width:48px;height:auto;">
                 </div>
-                <div class="file-name" onclick="almacenVerPdf('${otClean}','${nombre}','${tipoParam}')" style="cursor:pointer;font-size:0.82em;margin:8px 0;max-height:40px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:600;color:#334155;line-height:1.3;">${baseName}</div>
+                <div class="file-name" onclick="calidadVerPdf('${otClean}','${nombre}','${tipoParam}')" style="cursor:pointer;font-size:0.82em;margin:8px 0;max-height:40px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:600;color:#334155;line-height:1.3;">${baseName}</div>
                 <div class="file-actions" style="width:100%;margin-top:auto;">
-                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:5px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;width:100%;background:#15803d;color:white;border-color:#15803d;" onclick="almacenVerPdf('${otClean}','${nombre}','${tipoParam}')">Ver</button>
+                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:5px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;width:100%;background:#15803d;color:white;border-color:#15803d;" onclick="calidadVerPdf('${otClean}','${nombre}','${tipoParam}')">Ver</button>
                 </div>
             </div>`;
         });
@@ -5757,7 +5757,7 @@ window.cargarInputsCasting = function (ot, files) {
                             <span style="font-weight:600;color:#15803d;font-size:0.9em;font-family:'Poppins',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${cleanName}">${cleanName}</span>
                         </div>
                         <div style="display:flex;gap:8px;flex-shrink:0;">
-                            <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#15803d;border-color:#15803d;color:white;" onclick="almacenVerPdf('${ot}','${existingFile.nombre}','aprobado')">Ver</button>
+                            <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#15803d;border-color:#15803d;color:white;" onclick="calidadVerPdf('${ot}','${existingFile.nombre}','aprobado')">Ver</button>
                             <button type="button" class="btn-dibujos btn-dibujos-sm" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#ef4444;border-color:#ef4444;color:white;" onclick="quitarArchivoAprobado('${ot}','${existingFile.nombre}',this)">Quitar</button>
                         </div>
                     </div>`;
@@ -5922,7 +5922,7 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                                 <span style="font-weight:600;color:#15803d;font-size:0.9em;font-family:'Poppins',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${cleanName}">${cleanName}</span>
                             </div>
                             <div style="display:flex;gap:8px;flex-shrink:0;">
-                                <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#15803d;border-color:#15803d;color:white;" onclick="almacenVerPdf('${ot}','${existingRechazo.nombre}','otro')">Ver</button>
+                                <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#15803d;border-color:#15803d;color:white;" onclick="calidadVerPdf('${ot}','${existingRechazo.nombre}','otro')">Ver</button>
                                 <button type="button" class="btn-dibujos btn-dibujos-sm" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#ef4444;border-color:#ef4444;color:white;" onclick="quitarArchivoRechazo('${ot}','${existingRechazo.nombre}',this)">Quitar</button>
                             </div>
                         </div>
@@ -5960,7 +5960,7 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                                 <span style="font-weight:600;color:#15803d;font-size:0.9em;font-family:'Poppins',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${cleanName}">${cleanName}</span>
                             </div>
                             <div style="display:flex;gap:8px;flex-shrink:0;">
-                                <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#15803d;border-color:#15803d;color:white;" onclick="almacenVerPdf('${ot}','${existingScar.nombre}','otro')">Ver</button>
+                                <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#15803d;border-color:#15803d;color:white;" onclick="calidadVerPdf('${ot}','${existingScar.nombre}','otro')">Ver</button>
                                 <button type="button" class="btn-dibujos btn-dibujos-sm" style="font-size:0.8em;padding:6px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;background:#ef4444;border-color:#ef4444;color:white;" onclick="quitarArchivoRechazo('${ot}','${existingScar.nombre}',this)">Quitar</button>
                             </div>
                         </div>
