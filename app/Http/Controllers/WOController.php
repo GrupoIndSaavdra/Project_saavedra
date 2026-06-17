@@ -20,6 +20,8 @@ use App\Models\FundicionHistory;
 use App\Models\LiberacionModeloFundicion;
 use App\Models\ScarModelo;
 use App\Models\PreOrdenFundicion;
+use App\Models\RemisionOt;
+use App\Models\ParcialidadOt;
 
 /**
  * @noinspection PhpUndefinedFieldInspection
@@ -110,6 +112,16 @@ class WOController extends Controller
         //Se obtienen las clases de la Orden de trabajo
         $classes = $this->classController->getClasses($workOrder);
         $classes = $classes->count() == 0 ? null : $classes;
+
+        // Vista especial para Almacén (perfil 5)
+        if (auth()->user()->perfil == 5) {
+            // Cargar remisiones y parcialidades agrupadas por id_clase
+            $claseIds = $classes ? $classes->pluck('id')->toArray() : [];
+            $remisiones   = RemisionOt::with('usuario')->whereIn('id_clase', $claseIds)->where('visible', 1)->orderByDesc('created_at')->get()->groupBy('id_clase');
+            $parcialidades = ParcialidadOt::with(['usuario', 'remision'])->whereIn('id_clase', $claseIds)->orderByDesc('fecha_recepcion')->get()->groupBy('id_clase');
+
+            return view('wo_views.show_wo_almacen', compact('workOrder', 'molding', 'classes', 'remisiones', 'parcialidades'));
+        }
 
         //Se obtienen las maquinas de los procesos guardados
         $processes = $this->classController->getClassProcesses($classes);

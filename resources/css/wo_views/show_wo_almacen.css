@@ -1,0 +1,675 @@
+* { box-sizing: border-box; }
+
+/* ── Layout principal ── */
+.almacen-layout {
+    display: flex;
+    gap: 1.5rem;
+    width: 96vw;
+    max-width: 1650px;
+    margin: 0 auto;
+    padding: 5.5rem 0 5rem;
+    min-height: 100vh;
+    align-items: flex-start;
+}
+
+/* ── Panel izquierdo (info OT) ── */
+.panel-ot {
+    flex: 0 0 540px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 24px rgba(3,57,102,.13);
+    padding: 1.8rem 2rem;
+    position: sticky;
+    top: 5.5rem;
+}
+
+.panel-ot h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #033966;
+    text-align: center;
+    margin-bottom: 1.4rem;
+    border-bottom: 2px solid #e8f0f8;
+    padding-bottom: 0.8rem;
+}
+
+.field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-bottom: 1.2rem;
+}
+.field-group.full { grid-template-columns: 1fr; }
+
+.field label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #033966;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.field input, .field select {
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid #d0dff0;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: #1a1a2e;
+    background: #f5f8fc;
+    transition: border .2s, box-shadow .2s;
+}
+
+.field input:disabled, .field select:disabled {
+    background: #eef2f8;
+    color: #555;
+    cursor: default;
+}
+
+.field input:focus, .field select:focus {
+    outline: none;
+    border-color: #033966;
+    box-shadow: 0 0 0 3px rgba(3,57,102,.1);
+}
+
+/* Tabla de clases */
+.tabla-clases-wrap {
+    margin: 1rem 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #d0dff0;
+}
+
+.tabla-clases {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.tabla-clases thead th {
+    background: #033966;
+    color: #fff;
+    padding: 0.55rem 0.5rem;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.tabla-clases tbody tr {
+    cursor: pointer;
+    transition: background .15s;
+}
+
+.tabla-clases tbody tr:hover {
+    background: #e8f0fb;
+}
+
+.tabla-clases tbody tr.selected {
+    background: #033966;
+    color: #fff;
+}
+
+.tabla-clases tbody td {
+    padding: 0.5rem 0.6rem;
+    text-align: center;
+    border-top: 1px solid #e8eef6;
+    font-weight: 500;
+}
+
+.tabla-clases tbody tr.selected td { color: #fff; }
+
+.btn-pdf {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: #033966;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.55rem 1.2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    margin: 0.8rem auto 0;
+    transition: background .2s, transform .15s;
+}
+
+.btn-pdf:hover {
+    background: #0a5a9c;
+    transform: translateY(-1px);
+    color: #fff;
+}
+
+/* Sección editable de la clase seleccionada */
+.clase-detail {
+    margin-top: 1.2rem;
+    padding-top: 1rem;
+    border-top: 2px solid #e8f0f8;
+    display: none;
+}
+
+.clase-detail.visible { display: block; }
+
+.clase-detail h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #033966;
+    margin-bottom: 0.8rem;
+}
+
+.btn-guardar {
+    width: 100%;
+    padding: 0.65rem;
+    background: linear-gradient(135deg, #0a8504, #06a500);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: transform .15s, box-shadow .15s;
+}
+
+.btn-guardar:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10,133,4,.35);
+}
+
+/* ── Panel derecho (remisiones + parcialidades) ── */
+.panel-actividad {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    min-width: 0;
+}
+
+.card-actividad {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 24px rgba(3,57,102,.10);
+    padding: 1.5rem 1.8rem;
+}
+
+.card-actividad h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #033966;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 2px solid #e8f0f8;
+    padding-bottom: 0.7rem;
+}
+
+.card-actividad h3 .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.icon-blue { background: #e8f0fb; color: #033966; }
+.icon-green { background: #e6f9e6; color: #0a8504; }
+
+/* Placeholder cuando no hay clase seleccionada */
+.placeholder-msg {
+    text-align: center;
+    color: #8a9ab8;
+    font-size: 1.05rem;
+    padding: 2rem;
+    background: #f8fafd;
+    border-radius: 10px;
+    border: 2px dashed #d0dff0;
+}
+
+/* Form de subir remisión */
+.form-remision {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.8rem;
+    align-items: end;
+    margin-bottom: 1.2rem;
+}
+
+.form-remision .field { margin: 0; }
+
+.btn-subir {
+    padding: 0.58rem 1.2rem;
+    background: #033966;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.98rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s, transform .15s;
+    height: fit-content;
+}
+
+.btn-subir:hover {
+    background: #0a5a9c;
+    transform: translateY(-1px);
+}
+
+.btn-subir:disabled {
+    background: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Lista de remisiones */
+.lista-remisiones {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.item-remision {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.65rem 1rem;
+    background: #f5f8fc;
+    border-radius: 9px;
+    border: 1px solid #e0ebf8;
+    transition: background .15s;
+}
+
+.item-remision:hover { background: #eaf0fb; }
+
+.item-remision .file-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.item-remision .file-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-remision .file-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1a1a2e;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-remision .file-meta {
+    font-size: 0.85rem;
+    color: #6b7a99;
+}
+
+.btn-download {
+    font-size: 0.88rem;
+    padding: 0.35rem 0.75rem;
+    background: #e8f0fb;
+    color: #033966;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background .15s;
+    flex-shrink: 0;
+}
+
+.btn-download:hover { background: #d0e2f8; color: #033966; }
+
+.btn-eliminar-remision {
+    font-size: 0.88rem;
+    padding: 0.35rem 0.75rem;
+    background: #fde8e8;
+    color: #9c0303;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    flex-shrink: 0;
+    transition: background .15s;
+}
+
+.btn-eliminar-remision:hover { background: #f8c8c8; }
+
+.empty-state {
+    text-align: center;
+    color: #a0a8c0;
+    font-size: 0.85rem;
+    padding: 1.5rem;
+    background: #f8fafd;
+    border-radius: 8px;
+}
+
+/* Form de parcialidades */
+.form-parcialidad {
+    display: grid;
+    grid-template-columns: 100px 280px 1fr 140px auto;
+    gap: 0.8rem;
+    align-items: end;
+    margin-bottom: 1.2rem;
+}
+
+.form-parcialidad .field { margin: 0; }
+
+/* Log label encima de la tabla de parcialidades */
+.log-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #033966;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 0.4rem 0;
+    padding: 0;
+}
+
+/* Tabla de parcialidades */
+.tabla-parcialidades-wrap {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #e0ebf8;
+}
+
+.tabla-parcialidades {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.tabla-parcialidades thead th {
+    background: #f0f4fa;
+    color: #033966;
+    font-weight: 700;
+    padding: 0.55rem 0.8rem;
+    text-align: left;
+    border-bottom: 2px solid #d0dff0;
+}
+
+.tabla-parcialidades tbody td {
+    padding: 0.55rem 0.8rem;
+    border-bottom: 1px solid #eef2f8;
+    color: #2d3748;
+}
+
+.tabla-parcialidades tbody tr:last-child td { border-bottom: none; }
+
+.tabla-parcialidades tbody tr:hover { background: #f5f8fd; }
+
+.badge-cantidad {
+    display: inline-block;
+    background: #e6f9e6;
+    color: #0a8504;
+    font-weight: 700;
+    font-size: 0.92rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+}
+
+.resumen-parcialidades {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.resumen-item {
+    background: #f0f4fa;
+    border-radius: 10px;
+    padding: 0.6rem 1.1rem;
+    text-align: center;
+    min-width: 110px;
+}
+
+.resumen-item .resumen-valor {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #033966;
+}
+
+.resumen-item .resumen-label {
+    font-size: 0.8rem;
+    color: #6b7a99;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Mensajes flash */
+.flash-success, .flash-error {
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.flash-success { background: #e6f9e6; color: #0a5e04; border: 1px solid #a3d9a3; }
+.flash-error   { background: #fde8e8; color: #7a0404; border: 1px solid #f5a3a3; }
+
+/* Botón Regresar y botón editar */
+.btn-regresar {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #033966;
+    background: #e8f0fb;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background .2s, transform .15s;
+}
+
+.btn-regresar:hover {
+    background: #d0e2f8;
+    color: #033966;
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+.btn-editar-clase-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease-in-out;
+}
+
+.btn-editar-clase-icon:hover {
+    transform: scale(1.15);
+}
+
+/* Estilos para los campos de edición en la tabla de parcialidades (solo cuando se edita la fila) */
+.fila-parcialidad-item .edit-fecha,
+.fila-parcialidad-item .edit-cantidad,
+.fila-parcialidad-item .edit-descripcion,
+.fila-parcialidad-item .edit-archivo,
+.fila-parcialidad-item .edit-eliminar-file-lbl,
+.fila-parcialidad-item .btn-guardar-parcialidad,
+.fila-parcialidad-item .btn-cancelar-parcialidad {
+    display: none !important;
+}
+
+/* Cuando la fila está en modo edición (clase .editando) */
+.fila-parcialidad-item.editando .view-fecha,
+.fila-parcialidad-item.editando .view-cantidad,
+.fila-parcialidad-item.editando .view-descripcion,
+.fila-parcialidad-item.editando .view-remision,
+.fila-parcialidad-item.editando .btn-editar-parcialidad,
+.fila-parcialidad-item.editando .form-eliminar-parcialidad {
+    display: none !important;
+}
+
+.fila-parcialidad-item.editando .edit-fecha,
+.fila-parcialidad-item.editando .edit-descripcion {
+    display: inline-block !important;
+}
+
+.fila-parcialidad-item.editando .edit-cantidad {
+    display: inline-block !important;
+}
+
+.fila-parcialidad-item.editando .edit-archivo {
+    display: block !important;
+}
+
+.fila-parcialidad-item.editando .edit-eliminar-file-lbl {
+    display: inline-flex !important;
+}
+
+.fila-parcialidad-item.editando .btn-guardar-parcialidad,
+.fila-parcialidad-item.editando .btn-cancelar-parcialidad {
+    display: inline-block !important;
+}
+
+/* Inputs de edición */
+.tabla-parcialidades tr.editando input.form-control {
+    width: 100% !important;
+    padding: 0.4rem 0.6rem !important;
+    font-size: 0.85rem !important;
+    border: 1px solid #ccd9e8 !important;
+    border-radius: 6px !important;
+    background: #fff !important;
+    color: #1a1a2e !important;
+    box-shadow: none !important;
+    transition: border-color .2s, box-shadow .2s !important;
+    height: auto !important;
+}
+
+.tabla-parcialidades tr.editando input.form-control:focus {
+    outline: none !important;
+    border-color: #033966 !important;
+    box-shadow: 0 0 0 3px rgba(3,57,102,.12) !important;
+}
+
+.tabla-parcialidades tr.editando .edit-fecha {
+    max-width: 150px !important;
+}
+
+.tabla-parcialidades tr.editando .edit-cantidad {
+    max-width: 90px !important;
+}
+
+.tabla-parcialidades tr.editando .edit-descripcion {
+    max-width: 100% !important;
+}
+
+/* Input file en modo edición */
+.tabla-parcialidades tr.editando .edit-archivo {
+    font-size: 0.78rem !important;
+    padding: 0.3rem !important;
+    margin-bottom: 5px !important;
+}
+
+/* Badge de Quitar Archivo */
+.edit-eliminar-file-lbl {
+    align-items: center;
+    gap: 6px;
+    background: #fdf2f2;
+    color: #9c0303;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #f8d7d7;
+    transition: all 0.2s;
+    user-select: none;
+    margin-top: 4px;
+}
+
+.edit-eliminar-file-lbl:hover {
+    background: #fde8e8;
+    border-color: #f5c2c2;
+    color: #b30000;
+}
+
+.edit-eliminar-file-chk {
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Botones de acción en edición */
+.btn-guardar-parcialidad {
+    background: #e6f9e6 !important;
+    color: #0a8504 !important;
+    border: 1px solid #c2f0c2 !important;
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+}
+
+.btn-guardar-parcialidad:hover {
+    background: #0a8504 !important;
+    color: #fff !important;
+    border-color: #0a8504 !important;
+}
+
+.btn-cancelar-parcialidad {
+    background: #fde8e8 !important;
+    color: #9c0303 !important;
+    border: 1px solid #f8c8c8 !important;
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    margin-left: 5px !important;
+}
+
+.btn-cancelar-parcialidad:hover {
+    background: #9c0303 !important;
+    color: #fff !important;
+    border-color: #9c0303 !important;
+}
+
+/* Alerta de aviso sin remisión más pequeña */
+#aviso-sin-remision {
+    padding: 0.6rem 1rem !important;
+    font-size: 0.88rem !important;
+    border-style: solid !important;
+    border-width: 1px !important;
+    border-radius: 8px !important;
+    margin-bottom: 1.2rem !important;
+    text-align: left !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .almacen-layout {
+        flex-direction: column;
+        width: 96vw;
+        padding: 4.5rem 0 3rem;
+    }
+
+    .panel-ot {
+        flex: none;
+        width: 100%;
+        position: static;
+    }
+
+    .form-remision {
+        grid-template-columns: 1fr;
+    }
+
+    .form-parcialidad {
+        grid-template-columns: 1fr 1fr;
+    }
+}

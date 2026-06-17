@@ -1,0 +1,381 @@
+@extends('layouts.appMenu')
+
+@section('head')
+<title>Orden de Trabajo – Almacén</title>
+<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+@vite(['resources/css/wo_views/show_wo_almacen.css', 'resources/js/wo_views/show_wo_almacen.js'])
+@endsection
+
+@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+
+@section('content')
+
+<div class="almacen-layout" id="almacen-layout-main" data-user-perfil="{{ auth()->user()->perfil }}">
+
+    {{-- ═══════════════════════════════════════════════════
+         PANEL IZQUIERDO — Información de la OT
+    ═══════════════════════════════════════════════════ --}}
+    <div class="panel-ot">
+        <div class="navigation-header" style="margin-bottom: 1rem; display: flex; justify-content: flex-start;">
+            <a href="{{ route('manageWO') }}" class="btn-regresar">
+                ← Regresar a OTs
+            </a>
+        </div>
+
+        <h3>Información de la Orden de Trabajo</h3>
+
+        @include('layouts.partials.messages')
+
+        {{-- Campos de OT y Moldura (solo lectura) --}}
+        <div class="field-group">
+            <div class="field">
+                <label>Orden de Trabajo</label>
+                <input type="text" value="{{ $workOrder->id }}" disabled>
+            </div>
+            <div class="field">
+                <label>Moldura</label>
+                <input type="text" value="{{ $molding->nombre ?? '—' }}" disabled>
+            </div>
+        </div>
+
+        {{-- Tabla de clases --}}
+        @if($classes && $classes->count() > 0)
+        <div class="tabla-clases-wrap">
+            <table class="tabla-clases">
+                <thead>
+                    <tr>
+                        <th>Clase</th>
+                        <th>Tamaño</th>
+                        <th>Consignación</th>
+                        <th>Pedido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($classes as $clase)
+                    <tr class="fila-clase"
+                        data-id-clase="{{ $clase->id }}"
+                        data-id-ot="{{ $workOrder->id }}"
+                        data-nombre="{{ $clase->nombre }}"
+                        data-tamanio="{{ $clase->tamanio }}"
+                        data-pedido="{{ $clase->pedido }}"
+                        data-piezas="{{ $clase->piezas }}">
+                        <td>{{ $clase->nombre }}</td>
+                        <td>{{ $clase->tamanio }}</td>
+                        <td>{{ $clase->piezas }}</td>
+                        <td>{{ $clase->pedido }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        @else
+        <div class="empty-state">No hay clases registradas en esta OT.</div>
+        @endif
+
+        {{-- Botón PDF --}}
+        <a href="{{ route('generatePDFWO', $workOrder->id) }}" class="btn-pdf" target="_blank">
+            Generar PDF
+        </a>
+
+        {{-- Detalle editable de la clase seleccionada (se muestra al hacer clic en la tabla) --}}
+        <div class="clase-detail" id="clase-detail">
+            <h4 style="margin-bottom: 0.8rem;">Editar clase seleccionada</h4>
+
+            <div class="field full">
+                <label>Clase / Tamaño</label>
+                <input type="text" id="clase-nombre" disabled>
+            </div>
+
+            <form action="{{ route('saveClass') }}" method="POST" id="form-editar-clase">
+                @csrf
+                <input type="hidden" name="workOrder" value="{{ $workOrder->id }}">
+                <input type="hidden" name="molding"   value="{{ $molding->id ?? '' }}">
+                <input type="hidden" name="idClass"   id="hidden-idClase">
+                <input type="hidden" name="class"     id="hidden-clase-nombre">
+                <input type="hidden" name="size"      id="hidden-clase-tamanio">
+                {{-- Fechas vacías: almacén no las edita --}}
+                <input type="hidden" name="start_date" value="">
+                <input type="hidden" name="start_time" value="">
+
+                <div class="field-group">
+                    <div class="field">
+                        <label>Pedido Total</label>
+                        <input type="number" name="order" id="input-pedido" min="1" required disabled>
+                    </div>
+                    <div class="field">
+                        <label>Piezas con Consignación</label>
+                        <input type="number" name="pieces" id="input-piezas" min="0" required disabled>
+                    </div>
+                </div>
+
+                <button type="button" id="btn-habilitar-edicion" class="btn-editar-clase-icon" title="Habilitar edición" style="background: none; border: none; cursor: pointer; padding: 0; display: block; margin: 1rem auto 0; text-align: center;">
+                    <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar" style="width: 48px; height: 48px; object-fit: contain;">
+                </button>
+
+                <button type="submit" class="btn-guardar" id="btn-guardar-clase" style="display: none;">Guardar cambios</button>
+            </form>
+        </div>
+    </div>
+
+
+    {{-- ═══════════════════════════════════════════════════
+         PANEL DERECHO — Remisiones + Parcialidades
+    ═══════════════════════════════════════════════════ --}}
+    <div class="panel-actividad">
+
+        {{-- ── CARD REMISIONES (Ocultado ya que ahora se sube junto con la parcialidad) ── --}}
+        <div class="card-actividad" id="remisiones-panel" style="display: none;">
+            <h3>
+                Remisiones
+            </h3>
+
+            {{-- Placeholder cuando no hay clase seleccionada --}}
+            <div class="placeholder-msg" id="placeholder-remision">
+                Selecciona una clase en la tabla para ver y agregar remisiones.
+            </div>
+
+            {{-- Formulario de subida (único, rellenado por JS) --}}
+            <form action="{{ route('wo.remision.store') }}" method="POST" enctype="multipart/form-data"
+                  class="form-remision" id="form-remision" style="display:none">
+                @csrf
+                <input type="hidden" name="id_ot"    id="hidden-idOtRemision"    value="">
+                <input type="hidden" name="id_clase" id="hidden-idClaseRemision"  value="">
+
+                <div class="field">
+                    <label>Remisión (PDF / Imagen)</label>
+                    <input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png" required
+                           class="form-control" style="font-size:.8rem;padding:.35rem">
+                </div>
+                <div class="field">
+                    <label>Descripción (opcional)</label>
+                    <input type="text" name="descripcion" placeholder="Ej: Remisión #1042"
+                           maxlength="255" class="form-control">
+                </div>
+                <button type="submit" class="btn-subir">Subir</button>
+            </form>
+
+            {{-- Contenedor donde JS muestra las remisiones de la clase seleccionada --}}
+            <div id="lista-remisiones-container">
+                @foreach($classes ?? [] as $clase)
+                <div class="grupo-remision" data-id-clase="{{ $clase->id }}" style="display:none">
+                    @if(isset($remisiones[$clase->id]) && $remisiones[$clase->id]->count() > 0)
+                    <div class="lista-remisiones">
+                        @foreach($remisiones[$clase->id] as $rem)
+                        <div class="item-remision" data-id="{{ $rem->id }}">
+                            <span class="file-icon" style="font-size: 0.85rem; font-weight: bold; color: #033966; background: #e8f0fb; padding: 3px 6px; border-radius: 4px;">
+                                {{ Str::endsWith(strtolower($rem->filename), '.pdf') ? 'PDF' : 'IMG' }}
+                            </span>
+                            <div class="file-info">
+                                <div class="file-name">{{ $rem->filename }}</div>
+                                <div class="file-meta">
+                                    {{ $rem->descripcion ?? 'Sin descripción' }} &nbsp;·&nbsp;
+                                    {{ $rem->usuario ? ($rem->usuario->nombre . ' ' . $rem->usuario->a_paterno) : ($rem->uploaded_by ?? '—') }} &nbsp;·&nbsp;
+                                    {{ $rem->created_at->format('d/m/Y H:i') }}
+                                </div>
+                            </div>
+                            <a href="{{ route('wo.remision.serve', $rem->id) }}"
+                               class="btn-download" target="_blank">Descargar</a>
+                            <form action="{{ route('wo.remision.destroy', $rem->id) }}" method="POST"
+                                  class="form-eliminar-remision" style="display:inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn-eliminar-remision" title="Eliminar">Eliminar</button>
+                            </form>
+                        </div>
+                        @endforeach
+                    </div>
+                    @else
+                    <div class="empty-state">No hay remisiones para esta clase. Sube la primera arriba.</div>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+
+        {{-- ── CARD PARCIALIDADES ── --}}
+        <div class="card-actividad" id="parcialidades-panel">
+            <h3>
+                Parcialidades Recibidas
+            </h3>
+
+            {{-- Placeholder --}}
+            <div class="placeholder-msg" id="placeholder-parcialidad">
+                Selecciona una clase para ver el historial de entregas parciales.
+            </div>
+
+            {{-- Aviso de bloqueo: se muestra hasta que exista al menos una remisión --}}
+            <div class="placeholder-msg" id="aviso-sin-remision" style="display:none; background:#fff8e1; border-color:#f0c040; color:#7a5c00;">
+                Debes subir al menos una remisión antes de poder registrar parcialidades.
+            </div>
+
+            {{-- Resumen (se actualiza por JS) --}}
+            <div class="resumen-parcialidades" id="resumen-parcialidades" style="display:none">
+                <div class="resumen-item">
+                    <div class="resumen-valor val-recibido">0</div>
+                    <div class="resumen-label">Pzas recibidas</div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-valor val-pedido">0</div>
+                    <div class="resumen-label">Pedido total</div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-valor val-consignacion">0</div>
+                    <div class="resumen-label">Consignación</div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-valor val-pct">0%</div>
+                    <div class="resumen-label">Avance</div>
+                </div>
+                <div style="flex:1;align-self:center;padding:0 0.5rem">
+                    <div style="background:#e8eef6;border-radius:10px;height:10px;overflow:hidden">
+                        <div class="progress-bar-fill"
+                             style="height:100%;width:0%;background:#033966;border-radius:10px;transition:width .4s">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Formulario nueva parcialidad (único, rellenado por JS) --}}
+            <form action="{{ route('wo.parcialidad.store') }}" method="POST" enctype="multipart/form-data"
+                  class="form-parcialidad" id="form-parcialidad" style="display:none">
+                @csrf
+                <input type="hidden" name="id_ot"    id="hidden-idOtParcialidad"    value="">
+                <input type="hidden" name="id_clase" id="hidden-idClaseParcialidad"  value="">
+
+                <div class="field">
+                    <label>Cantidad</label>
+                    <input type="number" name="cantidad" id="parcialidad-cantidad" min="1" placeholder="Pzas" required class="form-control">
+                </div>
+                <div class="field">
+                    <label>Archivo (PDF / Imagen)</label>
+                    <input type="file" name="archivo" id="parcialidad-archivo" accept=".pdf,.jpg,.jpeg,.png" required class="form-control" style="font-size:.8rem;padding:.35rem">
+                </div>
+                <div class="field">
+                    <label>Descripción</label>
+                    <input type="text" name="descripcion" placeholder="Ej: 1ra entrega..."
+                           maxlength="255" class="form-control">
+                </div>
+                <div class="field">
+                    <label>Fecha recepción</label>
+                    <input type="date" name="fecha_recepcion" id="parcialidad-fecha" required class="form-control"
+                           value="{{ date('Y-m-d') }}">
+                </div>
+                <button type="submit" class="btn-subir" id="btn-registrar-parcialidad" disabled>Registrar</button>
+            </form>
+
+            {{-- Historial agrupado por clase --}}
+            <div id="historial-parcialidades-container">
+                @foreach($classes ?? [] as $clase)
+                {{-- data-tiene-remision: 1 si ya hay remisiones, 0 si no --}}
+                <div class="grupo-parcialidad" data-id-clase="{{ $clase->id }}"
+                     data-pedido="{{ $clase->pedido }}"
+                     data-tiene-remision="{{ (isset($remisiones[$clase->id]) && $remisiones[$clase->id]->count() > 0) ? '1' : '0' }}"
+                     style="display:none">
+                    @if(isset($parcialidades[$clase->id]) && $parcialidades[$clase->id]->count() > 0)
+                    <div class="tabla-parcialidades-wrap">
+                        <p class="log-label">Log de Parcialidades</p>
+                        <table class="tabla-parcialidades">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Fecha</th>
+                                    <th>Cantidad</th>
+                                    <th>Descripción</th>
+                                    <th>Remisiones</th>
+                                    <th>Registrado por</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($parcialidades[$clase->id] as $i => $p)
+                                <tr class="fila-parcialidad-item"
+                                    data-id="{{ $p->id }}"
+                                    data-cantidad="{{ $p->cantidad }}"
+                                    data-descripcion="{{ $p->descripcion }}"
+                                    data-fecha="{{ $p->fecha_recepcion->format('Y-m-d') }}"
+                                    data-id-remision="{{ $p->id_remision }}">
+                                    <td>{{ $i + 1 }}</td>
+                                    <td>
+                                        <span class="view-fecha">{{ $p->fecha_recepcion->format('d/m/Y') }}</span>
+                                        <input type="date" class="edit-fecha form-control" value="{{ $p->fecha_recepcion->format('Y-m-d') }}">
+                                    </td>
+                                    <td>
+                                        <span class="view-cantidad badge-cantidad">{{ $p->cantidad }}</span>
+                                        <input type="number" class="edit-cantidad form-control" min="1" value="{{ $p->cantidad }}">
+                                    </td>
+                                    <td>
+                                        <span class="view-descripcion">{{ $p->descripcion ?? '—' }}</span>
+                                        <input type="text" class="edit-descripcion form-control" value="{{ $p->descripcion }}">
+                                    </td>
+                                    <td>
+                                        <div class="view-remision">
+                                            @if($p->remision)
+                                                <a href="{{ route('wo.remision.serve', $p->remision->id) }}" target="_blank" style="font-size: 0.82rem; color: #033966; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="{{ $p->remision->descripcion }}">
+                                                    <img src="{{ asset('images/pdf.png') }}" alt="PDF" style="width: 16px; height: 16px; object-fit: contain;">
+                                                    <span style="max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $p->remision->filename }}</span>
+                                                </a>
+                                            @else
+                                                <span style="font-size: 0.85rem; color: #a0a8c0;">—</span>
+                                            @endif
+                                        </div>
+                                        <input type="file" class="edit-archivo form-control" accept=".pdf,.jpg,.jpeg,.png">
+                                    </td>
+                                    <td>{{ $p->usuario ? ($p->usuario->nombre . ' ' . $p->usuario->a_paterno) : ($p->registrado_por ?? '—') }}</td>
+                                    <td style="white-space: nowrap;">
+                                        <!-- Botones estándar -->
+                                        <button type="button" class="btn-editar-parcialidad btn-download">Editar</button>
+
+                                        <form action="{{ route('wo.parcialidad.destroy', $p->id) }}"
+                                              method="POST" class="form-eliminar-parcialidad" style="display:inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <input type="hidden" name="password" class="input-confirm-password" value="">
+                                            <button type="submit" class="btn-eliminar-remision"
+                                                    title="Eliminar">Eliminar</button>
+                                        </form>
+
+                                        <!-- Botones de guardar / cancelar (ocultos inicialmente) -->
+                                        <button type="button" class="btn-guardar-parcialidad">Guardar</button>
+                                        <button type="button" class="btn-cancelar-parcialidad">Cancelar</button>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @else
+                    <div class="empty-state">No hay parcialidades registradas para esta clase.</div>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+
+    </div>{{-- /panel-actividad --}}
+</div>{{-- /almacen-layout --}}
+
+{{-- Formulario oculto global para actualizar parcialidades --}}
+<form id="form-update-parcialidad" method="POST" style="display:none">
+    @csrf
+    @method('PUT')
+    <input type="hidden" name="cantidad" id="update-cantidad">
+    <input type="hidden" name="descripcion" id="update-descripcion">
+    <input type="hidden" name="fecha_recepcion" id="update-fecha">
+    <input type="hidden" name="id_remision" id="update-id-remision">
+</form>
+
+{{-- Modal de Confirmación con Contraseña Encriptada --}}
+<div id="modal-confirm-delete" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:1.8rem; border-radius:12px; max-width:400px; width:90%; box-shadow:0 10px 30px rgba(0,0,0,0.25); text-align:center;">
+        <h4 style="margin-top:0; color:#033966; font-size:1.15rem; font-weight:700;">Autorizar Eliminación</h4>
+        <p style="font-size:0.9rem; color:#555; margin-bottom:1rem;">Ingresa la contraseña de un Administrador o Master para eliminar esta parcialidad:</p>
+        <input type="password" id="modal-delete-password" class="form-control" style="width:100%; padding:0.6rem; border:1px solid #ccc; border-radius:6px; margin-bottom:1.2rem; text-align:center; font-size:1rem;" placeholder="Contraseña">
+        <div style="display:flex; gap:0.8rem; justify-content:center;">
+            <button type="button" id="btn-modal-delete-confirm" style="background:#9c0303; color:#fff; border:none; padding:0.5rem 1.2rem; border-radius:6px; font-weight:600; cursor:pointer;">Confirmar</button>
+            <button type="button" id="btn-modal-delete-cancel" style="background:#e8f0fb; color:#033966; border:none; padding:0.5rem 1.2rem; border-radius:6px; font-weight:600; cursor:pointer;">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+@endsection

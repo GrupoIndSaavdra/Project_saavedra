@@ -16,6 +16,7 @@ use App\Http\Controllers\ProcessesController;
 use App\Http\Controllers\ProcessProductionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WOController;
+use App\Http\Controllers\AlmacenWOController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TrackingSoldaduraController;
 use App\Http\Controllers\GenerarQRLoteController;
@@ -88,6 +89,12 @@ Route::controller(WOController::class)->group(function () {
     Route::get('/piecesInProgress/fundicionChecklist/{otId}/{className?}', 'getFundicionChecklist')->name('fundicionChecklistData'); // AJAX endpoint para checklist de fundición
     Route::get('/piecesInProgress/planeacionChecklist/{otId}', 'getPlaneacionChecklist')->name('planeacionChecklistData'); // AJAX endpoint para checklist de planeación
     Route::post('/fundicion/updateFlag', 'markFundicionFlag')->name('fundicionUpdateFlag');
+    Route::get('/wo/remision/{id}/serve', [AlmacenWOController::class, 'serveRemision'])->name('wo.remision.serve');
+    Route::post('/wo/remision', [AlmacenWOController::class, 'storeRemision'])->name('wo.remision.store');
+    Route::delete('/wo/remision/{id}', [AlmacenWOController::class, 'destroyRemision'])->name('wo.remision.destroy');
+    Route::post('/wo/parcialidad', [AlmacenWOController::class, 'storeParcialidad'])->name('wo.parcialidad.store');
+    Route::delete('/wo/parcialidad/{id}', [AlmacenWOController::class, 'destroyParcialidad'])->name('wo.parcialidad.destroy');
+    Route::put('/wo/parcialidad/{id}', [AlmacenWOController::class, 'updateParcialidad'])->name('wo.parcialidad.update');
 });
 
 Route::controller(ClassController::class)->group(function () {
