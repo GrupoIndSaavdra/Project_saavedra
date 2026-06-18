@@ -1020,7 +1020,7 @@ class Dashboard {
                     let previousProcess = classArray["processes"][Object.keys(classArray["processes"])[indexProcess - 1]];
                     let limitPieces = previousProcess ? previousProcess["pieces"]["good"] : classArray["pieces"];
 
-                    processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces, classArray["pieces"]));
+                    processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces, classArray["pieces"], indexProcess + 1));
                 });
 
                 // ── Card PTA: instanciar SIEMPRE si la OT tiene Soldadura PTA ─
@@ -1369,9 +1369,15 @@ class Dashboard {
         }
         return completedPieces;
     }
-    generateProcessSection(processesArray, processName, limitPieces, pedido) {
+    generateProcessSection(processesArray, processName, limitPieces, pedido, processNumber) {
         let processSection = document.createElement("div");
         processSection.className = "process-section";
+
+        // Badge con número de proceso en la esquina superior izquierda
+        let numberBadge = document.createElement("span");
+        numberBadge.className = "process-number-badge";
+        numberBadge.textContent = String(processNumber).padStart(2, '0');
+        processSection.appendChild(numberBadge);
 
         let processTitle = document.createElement("h3");
         processTitle.className = "process-title";
