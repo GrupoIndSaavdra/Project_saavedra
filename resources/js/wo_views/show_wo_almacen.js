@@ -78,7 +78,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Devuelve { idClase, pedido, piezas } de la clase activa (fila seleccionada).
+     */
+    function getActiveClaseInfo() {
+        const activeRow = document.querySelector('.fila-clase.selected');
+        if (!activeRow) return null;
+        return {
+            idClase : activeRow.dataset.idClase,
+            pedido  : activeRow.dataset.pedido,
+            piezas  : activeRow.dataset.piezas,
+        };
+    }
+
+    /**
      * Suma las cantidades de las parcialidades de la clase y actualiza el resumen.
+     * Si una fila está en modo edición (.editando), usa el input en lugar del badge.
      */
     function updateResumen(idClase, pedido, piezas) {
         if (!resumenEl) return;
@@ -87,23 +101,32 @@ document.addEventListener('DOMContentLoaded', () => {
         let total = 0;
         document.querySelectorAll('.grupo-parcialidad').forEach(g => {
             if (g.dataset.idClase === idClase) {
-                g.querySelectorAll('.badge-cantidad').forEach(badge => {
-                    total += parseInt(badge.textContent.trim()) || 0;
+                g.querySelectorAll('.fila-parcialidad-item').forEach(item => {
+                    if (item.classList.contains('editando')) {
+                        // En modo edición: leer el input directamente
+                        const editInput = item.querySelector('.edit-cantidad');
+                        total += parseInt(editInput ? editInput.value : 0) || 0;
+                    } else {
+                        // Modo vista: leer el badge
+                        const badge = item.querySelector('.badge-cantidad');
+                        total += parseInt(badge ? badge.textContent.trim() : 0) || 0;
+                    }
                 });
             }
         });
 
-        const pedidoNum = parseInt(pedido) || 0;
-        const pct = pedidoNum > 0 ? Math.min(100, Math.round((total / pedidoNum) * 100)) : 0;
+        const pedidoNum     = parseInt(pedido) || 0;
+        const piezasNum     = parseInt(piezas)  || 0;
+        const pct = piezasNum > 0 ? Math.min(100, Math.round((total / piezasNum) * 100)) : 0;
 
         resumenEl.querySelector('.val-recibido').textContent = total;
         resumenEl.querySelector('.val-pedido').textContent   = pedidoNum;
 
         const valConsignacion = resumenEl.querySelector('.val-consignacion');
         if (valConsignacion) {
-            valConsignacion.textContent = piezas || '0';
+            valConsignacion.textContent = piezasNum || '0';
         }
-        resumenEl.querySelector('.val-pct').textContent      = pct + '%';
+        resumenEl.querySelector('.val-pct').textContent = pct + '%';
 
         const bar = resumenEl.querySelector('.progress-bar-fill');
         if (bar) {
@@ -180,6 +203,19 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             const row = btn.closest('.fila-parcialidad-item');
             row.classList.add('editando');
+
+            // Al entrar en modo edición, el input ya tiene el valor actual;
+            // forzar un recálculo del resumen para que refleje el estado correcto.
+            const info = getActiveClaseInfo();
+            if (info) updateResumen(info.idClase, info.pedido, info.piezas);
+        });
+    });
+
+    // Actualizar resumen en tiempo real mientras el usuario escribe en edit-cantidad
+    document.querySelectorAll('.edit-cantidad').forEach(input => {
+        input.addEventListener('input', () => {
+            const info = getActiveClaseInfo();
+            if (info) updateResumen(info.idClase, info.pedido, info.piezas);
         });
     });
 
@@ -197,6 +233,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 fileInput.value = '';
             }
             row.classList.remove('editando');
+
+            // Recalcular resumen al cancelar (volver a valores originales)
+            const info = getActiveClaseInfo();
+            if (info) updateResumen(info.idClase, info.pedido, info.piezas);
         });
     });
 
@@ -252,7 +292,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             // Submit via Fetch API
-            fetch(`/wo/parcialidad/${id}`, {
+            fetch(row.dataset.updateUrl, {
                 method: 'POST',
                 body: formData,
                 headers: {

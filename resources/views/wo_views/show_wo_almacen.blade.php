@@ -294,7 +294,8 @@
                                     data-cantidad="{{ $p->cantidad }}"
                                     data-descripcion="{{ $p->descripcion }}"
                                     data-fecha="{{ $p->fecha_recepcion->format('Y-m-d') }}"
-                                    data-id-remision="{{ $p->id_remision }}">
+                                    data-id-remision="{{ $p->id_remision }}"
+                                    data-update-url="{{ route('wo.parcialidad.update', $p->id) }}">
                                     <td>{{ $i + 1 }}</td>
                                     <td>
                                         <span class="view-fecha">{{ $p->fecha_recepcion->format('d/m/Y') }}</span>
