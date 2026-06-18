@@ -115,7 +115,7 @@ class AlmacenFundicionController extends Controller
      * La lista proviene del snapshot en BD (almacen_archivos) y se verifica
      * físicamente para filtrar archivos que puedan haberse eliminado.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getFiles(Request $request)
@@ -130,7 +130,7 @@ class AlmacenFundicionController extends Controller
 
         $folderName = $this->sanitizePath($this->normalizeOTName($ot));
 
-        /** @var \App\Models\FundicionHistory|null $history */
+        /** @var FundicionHistory|null $history */
         $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
         if (!$history) {
             $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
@@ -557,7 +557,7 @@ class AlmacenFundicionController extends Controller
     /**
      * Sirve un PDF desde el directorio aislado FUNDICION_ALMACEN/.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      */
     public function serveFile(Request $request): BinaryFileResponse
     {
@@ -784,7 +784,7 @@ class AlmacenFundicionController extends Controller
     /**
      * Elimina un archivo PDF de Otros documentos o preordenes.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      */
     public function deleteFile(Request $request)
     {
@@ -1389,7 +1389,7 @@ class AlmacenFundicionController extends Controller
         }
 
         if (!empty($destCalidad)) {
-            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($destCalidad, $asunto, $cuerpo, $calidadAttachments) {
+            Mail::send([], [], function ($message) use ($destCalidad, $asunto, $cuerpo, $calidadAttachments) {
                 $message->to($destCalidad)->subject($asunto)->html($cuerpo);
                 foreach ($calidadAttachments as $att) {
                     $message->attach($att['path'], ['as' => $att['name'], 'mime' => $att['mime']]);
@@ -1398,7 +1398,7 @@ class AlmacenFundicionController extends Controller
         }
 
         if (!empty($destProveedor)) {
-            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($destProveedor, $asunto, $cuerpo, $attachments) {
+            Mail::send([], [], function ($message) use ($destProveedor, $asunto, $cuerpo, $attachments) {
                 $message->to($destProveedor)->subject($asunto)->html($cuerpo);
                 foreach ($attachments as $att) {
                     $message->attach($att['path'], ['as' => $att['name'], 'mime' => $att['mime']]);
@@ -1763,7 +1763,7 @@ class AlmacenFundicionController extends Controller
 
         // VALIDACIÓN ESTRICTA: Para generar una pre-orden de modelo de reproceso, el SCAR debe estar emitido.
         if ($esReprocesoRegistro) {
-            $scarExists = \App\Models\ScarModelo::where('ot', '=', $baseOt, 'and')
+            $scarExists = ScarModelo::where('ot', '=', $baseOt, 'and')
                 ->orWhere('ot', '=', $otRaw, 'or')
                 ->exists();
             if (!$scarExists) {

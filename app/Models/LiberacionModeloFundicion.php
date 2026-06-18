@@ -5,6 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int              $id
+ * @property string           $ot
+ * @property string|null      $estado
+ * @property string|null      $decision
+ * @property string|null      $tipo_origen
+ * @property string|null      $tipo_modelo
+ * @property array|null       $medidas_modelo
+ * @property array|null       $medidas_plantilla
+ * @property array|null       $medidas_fondo
+ * @property array|null       $medidas_obturador
+ * @property string|null      $observaciones_modelo
+ * @property string|null      $observaciones_plantilla
+ * @property string|null      $observaciones_fondo
+ * @property string|null      $observaciones_obturador
+ * @property string|null      $motivo_rechazo
+ * @property int|null         $user_id_calidad
+ * @property string|null      $user_nombre_calidad
+ * @property \Carbon\Carbon|null $fecha_revision
+ * @property string|null      $pdf_filename
+ * @property \Carbon\Carbon   $created_at
+ * @property \Carbon\Carbon   $updated_at
+ */
 class LiberacionModeloFundicion extends Model
 {
     use HasFactory;

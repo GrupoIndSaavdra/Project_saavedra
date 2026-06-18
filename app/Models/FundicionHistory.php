@@ -5,6 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int         $id
+ * @property string      $ot
+ * @property array|null  $ayudas_config
+ * @property string|null $status
+ * @property \Carbon\Carbon|null $alert_sent_at
+ * @property array|null  $almacen_archivos
+ * @property bool        $tiene_modelo
+ * @property bool        $pre_orden_sent
+ * @property bool        $pre_orden_email_sent
+ * @property string|null $calidad_revision_status
+ * @property bool        $casting_pdf_generated
+ * @property bool        $rechazos_procesados
+ * @property bool        $dibujos_vistos_almacen
+ * @property bool        $pre_orden_autorizada
+ * @property bool        $alerta_calidad_sent
+ * @property bool        $documentos_revisados_calidad
+ * @property bool        $alerta_almacen_2_sent
+ * @property bool        $documentos_vistos_almacen_2
+ * @property bool        $documentos_firmados_cargados
+ * @property \Carbon\Carbon $created_at
+ * @property \Carbon\Carbon $updated_at
+ */
 class FundicionHistory extends Model
 {
     use HasFactory;

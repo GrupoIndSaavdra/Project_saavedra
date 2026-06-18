@@ -1029,7 +1029,8 @@ class Dashboard {
                 const processKeys = Object.keys(classArray["processes"]);
                 if (processKeys.some(k => k.includes("Soldadura PTA"))) {
                     let userProfile = document.getElementById("profile");
-                    if (userProfile && (userProfile.value == "1" || userProfile.value == "2")) {
+                    // Perfiles permitidos: 1=Master, 2=Admin, 4=Calidad, 5=Almacén
+                    if (userProfile && (userProfile.value == "1" || userProfile.value == "2" || userProfile.value == "4" || userProfile.value == "5")) {
                         const classId = classArray["id"];
                         const ptaData = (window.ptaCardsData && window.ptaCardsData[wOrderName] && window.ptaCardsData[wOrderName][classId])
                             ? window.ptaCardsData[wOrderName][classId]
@@ -1041,12 +1042,13 @@ class Dashboard {
                 section.appendChild(headerSection);
 
                 // ── Checklist de Fundición (entre header y procesos) ──────────
-                // Guard de perfil: solo perfiles 1 (Master) y 2 (Admin), igual que PTA.
-                // La card solo se instancia si la OT tiene flujo activo en fundicion_history.
+                // Guard de perfil: 1=Master, 2=Admin, 4=Calidad, 5=Almacén.
                 let userProfileChecklist = document.getElementById("profile");
+                // Perfiles permitidos: 1=Master, 2=Admin, 4=Calidad, 5=Almacén
                 if (
                     userProfileChecklist &&
-                    (userProfileChecklist.value === "1" || userProfileChecklist.value === "2")
+                    (userProfileChecklist.value === "1" || userProfileChecklist.value === "2" ||
+                     userProfileChecklist.value === "4" || userProfileChecklist.value === "5")
                 ) {
                     section.classList.add('section--has-checklist');
                     const checklistWrapper = document.createElement('div');

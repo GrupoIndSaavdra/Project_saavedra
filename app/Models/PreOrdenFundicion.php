@@ -5,6 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int              $id
+ * @property string           $ot
+ * @property string|null      $folio
+ * @property string|null      $proveedor
+ * @property \Carbon\Carbon|null $fecha_creacion
+ * @property \Carbon\Carbon|null $fecha_entrega
+ * @property string|null      $moldura
+ * @property string|null      $observaciones
+ * @property array|null       $filas
+ * @property string|null      $pdf_filename
+ * @property int|null         $version
+ * @property int|null         $user_id
+ * @property string|null      $user_nombre
+ * @property \Carbon\Carbon   $created_at
+ * @property \Carbon\Carbon   $updated_at
+ */
 class PreOrdenFundicion extends Model
 {
     use HasFactory;

@@ -274,6 +274,7 @@ header {
     border: 1px solid rgba(255, 255, 255, 0.12);
     font-family: "Inter", "Segoe UI", sans-serif;
     letter-spacing: 0.05em;
+    -webkit-user-select: none;
     user-select: none;
     z-index: 5;
 }
@@ -557,10 +558,7 @@ header {
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
-.checklist-item:hover .checklist-content-col,
-.checklist-item:hover .checklist-action-col {
-    /* bg shift handled by item hover */
-}
+/* bg shift for checklist columns is handled by the parent .checklist-item:hover rule above */
 
 .checklist-icon-col {
     position: relative;
