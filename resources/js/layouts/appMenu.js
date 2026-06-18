@@ -239,6 +239,7 @@ function getRoutes(profile) {
                     routes: [
                         ["manageWO", "Crear o Modificar O.T"],
                         ["piecesInProgress", "Orden de Trabajo en Progreso"],
+                        ["priorityManager", "Prioridad de Órdenes de Trabajo"],
                         ["showPiecesReport_view", "Reporte de piezas"],
                         ["showReleasePieces_view", "Liberacion de piezas"],
                     ],
@@ -334,6 +335,7 @@ function getRoutes(profile) {
                             routes: [
                                 ["manageWO", "Crear o Modificar O.T"],
                                 ["piecesInProgress", "Orden de Trabajo en Progreso"],
+                                ["priorityManager", "Prioridad de Órdenes de Trabajo"],
                                 ["showPiecesReport_view", "Reporte de piezas"],
                                 ["showReleasePieces_view", "Liberación de piezas"],
                             ],

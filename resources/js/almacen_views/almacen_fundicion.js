@@ -4926,10 +4926,10 @@ function loadPocPage(pageNum) {
                 <input type="text" name="codigo" class="form-control poc-input-codigo" value="${codigoVal}" placeholder="Ej: F2102" required>
             </td>
             <td style="padding:8px;min-width:90px;">
-                <input type="number" step="0.01" name="peso_juego" class="form-control poc-input-peso-juego" min="0" value="${fila.peso_juego > 0 ? fila.peso_juego : ''}" placeholder="KG p/juego" required oninput="recalcPocRowWeight(${pageNum},${idx})">
+                <input type="number" step="0.01" name="peso_juego" class="form-control poc-input-peso-juego" min="0" value="${fila.peso_juego > 0 ? fila.peso_juego : ''}" placeholder="KG p/juego" oninput="recalcPocRowWeight(${pageNum},${idx})">
             </td>
             <td style="padding:8px;min-width:90px;">
-                <input type="number" step="0.01" name="peso_total" class="form-control poc-input-peso-total" min="0" value="${fila.peso_total > 0 ? fila.peso_total : ''}" placeholder="KG total" required>
+                <input type="number" step="0.01" name="peso_total" class="form-control poc-input-peso-total" min="0" value="${fila.peso_total > 0 ? fila.peso_total : ''}" placeholder="KG total">
             </td>
             <td style="padding:8px;min-width:120px;">
                 <input type="date" name="fecha_entrega" class="form-control poc-input-fecha-entrega" value="${fila.fecha_entrega || pData.fecha_entrega || ''}" required style="font-size:0.9em; padding: 6px 10px;">
@@ -5223,8 +5223,6 @@ document.getElementById('formPreOrdenCasting')?.addEventListener('submit', async
         if (!f.id_clase || !f.tipo_modelo || !f.material || !f.codigo ||
             (f.cant_fabricar === '' || f.cant_fabricar === null || f.cant_fabricar === undefined || f.cant_fabricar <= 0) ||
             (!f.cant_consignacion && f.cant_consignacion !== 0) ||
-            (!f.peso_juego || f.peso_juego <= 0) ||
-            (!f.peso_total || f.peso_total <= 0) ||
             !f.fecha_entrega) {
             p1Valid = false;
         }
@@ -5255,8 +5253,6 @@ document.getElementById('formPreOrdenCasting')?.addEventListener('submit', async
             if (!f.id_clase || !f.tipo_modelo || !f.material || !f.codigo ||
                 (f.cant_fabricar === '' || f.cant_fabricar === null || f.cant_fabricar === undefined || f.cant_fabricar <= 0) ||
                 (!f.cant_consignacion && f.cant_consignacion !== 0) ||
-                (!f.peso_juego || f.peso_juego <= 0) ||
-                (!f.peso_total || f.peso_total <= 0) ||
                 !f.fecha_entrega) {
                 p2Valid = false;
             }
@@ -5334,7 +5330,12 @@ document.getElementById('formPreOrdenCasting')?.addEventListener('submit', async
     btn.innerHTML = 'Guardando y Generando PDF...';
 
     try {
-        const resp = await fetch('/almacen/fundicion/store-preorden', {
+        let fetchUrl = '/almacen/fundicion/store-preorden';
+        if (window.baseUrl) {
+            fetchUrl = window.baseUrl.replace(/\/+$/, '') + '/almacen/fundicion/store-preorden';
+        }
+
+        const resp = await fetch(fetchUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

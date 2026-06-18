@@ -1005,8 +1005,14 @@ class Dashboard {
     }
     createSections() {
         let body = document.querySelector("body");
-        Object.values(this.wOrderArray).forEach((workOrder, indexWo) => {
-            let wOrderName = Object.keys(this.wOrderArray)[indexWo];
+        let otIds = window.orderedOtIds && window.orderedOtIds.length > 0 
+            ? window.orderedOtIds 
+            : Object.keys(this.wOrderArray);
+
+        otIds.forEach((wOrderName) => {
+            let workOrder = this.wOrderArray[wOrderName];
+            if (!workOrder) return;
+
             Object.values(workOrder["classes"]).forEach((classArray, indexClass) => {
                 let section = document.createElement("section");
                 section.className = "section";
@@ -1277,6 +1283,60 @@ class Dashboard {
                 div.style.justifyContent = "center";
                 div.style.setProperty('padding', '1.2rem 2rem', 'important');
                 div.style.gap = "0.8rem";
+                div.style.position = "relative"; // Permite posicionamiento absoluto del icono de prioridad
+
+                // Inyectar icono de prioridad según orden de OTs
+                let rawOtIdForPriority = parseInt(wOrderName, 10);
+                let otPriority = -1;
+                if (window.orderedOtIds) {
+                    otPriority = window.orderedOtIds.map(x => parseInt(x, 10)).indexOf(rawOtIdForPriority) + 1;
+                }
+                if (otPriority > 0) {
+                    let pBadge = document.createElement("div");
+                    pBadge.style.position = "absolute";
+                    pBadge.style.top = "6px";
+                    pBadge.style.left = "8px";
+                    pBadge.style.display = "flex";
+                    pBadge.style.alignItems = "center";
+                    pBadge.style.gap = "8px";
+                    pBadge.style.zIndex = "5";
+
+                    // Gradual visual decay: starts after priority 5
+                    let badgeOpacity = 1.0;
+                    let badgeScale = 1.0;
+                    if (otPriority > 5) {
+                        badgeOpacity = Math.max(0.45, 1.0 - (otPriority - 5) * 0.05);
+                        badgeScale = Math.max(0.75, 1.0 - (otPriority - 5) * 0.025);
+                    }
+                    pBadge.style.opacity = badgeOpacity;
+                    pBadge.style.transform = `scale(${badgeScale})`;
+                    pBadge.style.transformOrigin = "left center";
+
+                    let priorityImgPath = "";
+                    let isPlataPriority = false;
+                    if (otPriority === 1) priorityImgPath = `${window.baseUrl}/images/uno.png`;
+                    else if (otPriority === 2) priorityImgPath = `${window.baseUrl}/images/dos.png`;
+                    else if (otPriority === 3) priorityImgPath = `${window.baseUrl}/images/tres.png`;
+                    else if (otPriority === 4) priorityImgPath = `${window.baseUrl}/images/cuatro.png`;
+                    else if (otPriority === 5) priorityImgPath = `${window.baseUrl}/images/cinco.png`;
+                    else {
+                        priorityImgPath = `${window.baseUrl}/images/plata.png`;
+                        isPlataPriority = true;
+                    }
+
+                    // Neon glow effect (gold for 1-5, silver for 6+)
+                    let glowFilter = isPlataPriority
+                        ? "drop-shadow(0 0 10px rgba(203, 213, 225, 0.85)) drop-shadow(0 1px 3px rgba(0,0,0,0.35))"
+                        : "drop-shadow(0 0 10px rgba(251, 191, 36, 0.85)) drop-shadow(0 1px 3px rgba(0,0,0,0.35))";
+
+                    pBadge.innerHTML = `
+                        <span style="color: #ffffff; font-weight: 900; font-size: 1.7rem; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);">${otPriority}</span>
+                        <div style="position: relative; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;">
+                            <img src="${priorityImgPath}" alt="${otPriority}" style="width: 100%; height: 100%; object-fit: contain; filter: ${glowFilter};">
+                        </div>
+                    `;
+                    div.appendChild(pBadge);
+                }
 
                 // Cabecera principal: Información de la OT
                 let titleDiv = document.createElement("div");

@@ -68,6 +68,7 @@
         recoverPassword: @json(route('recoverPassword')),
         cNominals: @json(route('cNominals')),
         piecesInProgress: @json(route('showPiecesInProgress')),
+        priorityManager: @json(route('showPriorityManager')),
         showPiecesReport_view: @json(route('showPiecesReport_view')),
         showReleasePieces_view: @json(route('showReleasePieces_view')),
         showTimes: @json(route('showTimes')),

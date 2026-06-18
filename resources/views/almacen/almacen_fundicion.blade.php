@@ -2226,9 +2226,9 @@
                                         <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">
                                             Código de Modelo <span style="color:#dc2626;">*</span></th>
                                         <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso
-                                            Juego (KG) <span style="color:#dc2626;">*</span></th>
+                                            Juego (KG) </th>
                                         <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso
-                                            Total (KG) <span style="color:#dc2626;">*</span></th>
+                                            Total (KG) </th>
                                         <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Fecha
                                             Entrega <span style="color:#dc2626;">*</span></th>
                                         <th
@@ -2330,9 +2330,9 @@
                                         <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">
                                             Código de Modelo <span style="color:#dc2626;">*</span></th>
                                         <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso
-                                            Juego (KG) <span style="color:#dc2626;">*</span></th>
+                                            Juego (KG) </th>
                                         <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso
-                                            Total (KG) <span style="color:#dc2626;">*</span></th>
+                                            Total (KG) </th>
                                         <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Fecha
                                             Entrega <span style="color:#dc2626;">*</span></th>
                                         <th

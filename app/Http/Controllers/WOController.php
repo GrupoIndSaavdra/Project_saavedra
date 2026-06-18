@@ -225,7 +225,7 @@ class WOController extends Controller
         $array[$class->nombre]["order"] = $class->pedido;
         $array[$class->nombre]["startDate"] = $this->getStringDate($class->fecha_inicio, $class->hora_inicio);
         $array[$class->nombre]["endDate"] = $class->fecha_termino ? $this->getStringDate($class->fecha_termino, $class->hora_termino) : "-";
-        $array[$class->nombre]["entregadas"] = \App\Models\ParcialidadOt::where('id_clase', $class->id)->sum('cantidad');
+        $array[$class->nombre]["entregadas"] = ParcialidadOt::query()->where('id_clase', $class->id)->sum('cantidad');
         $array[$class->nombre]["processes"] = $this->insertProcessesData($class);
     }
     /**
@@ -752,6 +752,11 @@ class WOController extends Controller
                 'clases.piezas',
                 'moldura'
             ])
+            // Ordenar por prioridad ascendente; las OTs sin prioridad (NULL)
+            // se ubican al final gracias al NULLS LAST implícito en MySQL.
+            ->orderByRaw('prioridad IS NULL ASC')
+            ->orderBy('prioridad')
+            ->orderBy('id')
             ->get();
 
         foreach ($workOrders as $workOrder) {
@@ -806,13 +811,107 @@ class WOController extends Controller
         }
 
         [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
+        $orderedOtIds = array_keys($wOInProgress);
+
         return view('pieces_views.piecesInProgress_view', compact(
             'wOInProgress',
+            'orderedOtIds',
             'pieces_Released',
             'info_Pieces',
             'ptaCardsData',
             'fundicionChecklist'
         ));
+    }
+
+    // ──────────────────────────────────────────────────────────────────────
+    // ENDPOINTS PARA GESTIÓN DE PRIORIDADES DE OTs
+    // ──────────────────────────────────────────────────────────────────────
+
+    /**
+     * Muestra el panel de gestión de prioridades de las OTs en progreso.
+     * Solo accesible para perfiles 1 (Master) y 3 (Admin/Gerencia).
+     * GET /piecesInProgress/priorityManager
+     */
+    public function showPriorityManager()
+    {
+        // Guard de perfil: solo Master (1) y Admin/Gerencia (3)
+        $userProfile = auth()->user()->perfil ?? null;
+        if (!in_array($userProfile, ['1', '3'])) {
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+
+        // Traer todas las OTs activas (con al menos una clase no finalizada)
+        // ordenadas por prioridad actual para mostrarlas en el panel.
+        $workOrders = Orden_trabajo::query()
+            ->whereHas('clases', function ($q) {
+                $q->where('finalizada', 0);
+            })
+            ->with([
+                'clases' => function ($q) {
+                    $q->where('finalizada', 0)->select('id', 'id_ot', 'nombre');
+                },
+                'moldura' => function ($q) {
+                    $q->select('id', 'nombre');
+                }
+            ])
+            ->orderByRaw('prioridad IS NULL ASC')
+            ->orderBy('prioridad')
+            ->orderBy('id')
+            ->get(['id', 'id_moldura', 'prioridad']);
+
+        // Transformar a array plano para el frontend
+        $otPriorities = $workOrders->map(function ($ot, $index) {
+            return [
+                'ot_id'    => $ot->id,
+                'moldura'  => $ot->moldura ? $ot->moldura->nombre : '—',
+                'clases'   => $ot->clases->pluck('nombre')->toArray(),
+                'prioridad' => $ot->prioridad ?? ($index + 1),
+            ];
+        })->values()->toArray();
+
+        return view('pieces_views.priorityManager_view', compact('otPriorities'));
+    }
+
+    /**
+     * Guarda el nuevo orden de prioridades de las OTs.
+     * Solo accesible para perfiles 1 (Master) y 3 (Admin/Gerencia).
+     * POST /piecesInProgress/priorities
+     *
+     * Payload esperado: { "priorities": [{"ot_id": "6748", "prioridad": 1}, ...] }
+     */
+    public function savePriorities(Request $request)
+    {
+        // Guard de perfil: solo Master (1) y Admin/Gerencia (3)
+        $userProfile = auth()->user()->perfil ?? null;
+        if (!in_array($userProfile, ['1', '3'])) {
+            return response()->json(['success' => false, 'message' => 'Sin permiso.'], 403);
+        }
+
+        $priorities = $request->input('priorities');
+        if (!is_array($priorities) || count($priorities) === 0) {
+            return response()->json(['success' => false, 'message' => 'Payload inválido.'], 422);
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($priorities) {
+                foreach ($priorities as $item) {
+                    // Validar que los campos necesarios existen
+                    if (!isset($item['ot_id']) || !isset($item['prioridad'])) {
+                        continue;
+                    }
+                    Orden_trabajo::query()->where('id', $item['ot_id'])
+                        ->update(['prioridad' => (int) $item['prioridad']]);
+                }
+            });
+
+            return response()->json(['success' => true, 'message' => 'Prioridades guardadas correctamente.']);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error al guardar prioridades OT', [
+                'error'   => $e->getMessage(),
+                'payload' => $priorities,
+            ]);
+            return response()->json(['success' => false, 'message' => 'Error al guardar prioridades.'], 500);
+        }
     }
 
     /**

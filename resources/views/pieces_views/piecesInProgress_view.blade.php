@@ -35,7 +35,9 @@
     </div>
 
     <script>
+        {{-- Inyectar OTs en progreso (JSON) y IDs en orden de prioridad --}}
         window.wOInProgress = @json($wOInProgress);
+        window.orderedOtIds = @json($orderedOtIds ?? []);
 
         {{-- Checklist de fundición: solo OTs con flujo activo (perfiles 1 y 2 lo usan en JS) --}}
         window.fundicionChecklist    = @json($fundicionChecklist ?? []);

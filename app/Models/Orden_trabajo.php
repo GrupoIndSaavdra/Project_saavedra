@@ -8,6 +8,13 @@ use App\Models\PtaResultado;
 use App\Models\SoldaduraPTA;
 use App\Models\Moldura;
 
+/**
+ * @property string          $id
+ * @property int              $id_moldura
+ * @property int|null         $prioridad   Orden de prioridad en la vista de progreso (1 = mayor urgencia, NULL = sin asignar)
+ * @property \Carbon\Carbon   $created_at
+ * @property \Carbon\Carbon   $updated_at
+ */
 class Orden_trabajo extends Model
 {
     use HasFactory;
@@ -20,6 +27,7 @@ class Orden_trabajo extends Model
         'fecha',
         'hora_inicio',
         'hora_termino',
+        'prioridad',
     ];
 
     /**

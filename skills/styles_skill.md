@@ -14,28 +14,27 @@ El proyecto asume que todo elemento tiene caja por bordes y no tiene márgenes b
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
 }
 
-/* Colores institucionales definidos en root */
 :root {
     --color-primary-green: #0a8504;
-    --color-primary-blue: #030041;
-    --color-danger-red: #b30404;
-    --color-bg-light: #f4f7f6;
-    --color-text-dark: #1a1a1a;
-    --color-text-muted: #666666;
+    --color-primary-blue: #033966;
+    --color-danger-red: #9c0303;
+    --color-bg-light: #ffffff;
+    --color-text-dark: #000000;
+    --color-text-muted: #404040;
     --color-border: rgba(0, 0, 0, 0.1);
     --transition-speed: 0.25s;
 }
 ```
 
 ## 2. Paleta Oficial Estricta
-Los colores no son sugerencias. Son la identidad del corporativo.
+Los colores no son sugerencias. Son la identidad del corporativo según la Paleta de Colores GIS:
 
-- **Verde Principal (Éxito/Acción):** `#0C8201` (o `--color-primary-green`)
-- **Rojo Peligro (Cerrar/Scrap/Paro):** `#9D0402` (o `--color-danger-red`)
-- **Azul Marino Saavedra (Paneles/Headers):** `#033861` (o `--color-primary-blue`)
-- **Gris Oscuro (Acentos):** `#424141` (o `--color-dark-gray`)
-- **Fondo General/Gris Neutro:** `#f4f7f6`
-- **Textos Oscuros (Lectura):** `#151114` o `#070707`
+- **Verde Principal (Éxito/Acción):** `#0A8504`
+- **Rojo Peligro (Cerrar/Scrap/Paro):** `#9C0303`
+- **Azul Marino Saavedra (Paneles/Headers):** `#033966`
+- **Gris Oscuro (Acentos):** `#404040`
+- **Blanco Puro:** `#FFFFFF`
+- **Negro Puro:** `#000000`
 
 ## 3. Arquitectura del "Glassmorphism" (Paneles Premium)
 Cuando crees menús superpuestos (como el menú hamburguesa o paneles de detalles), usa esta arquitectura de cristal esmerilado que deja ver el fondo desenfocado.

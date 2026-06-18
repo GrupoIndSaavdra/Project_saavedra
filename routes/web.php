@@ -89,6 +89,9 @@ Route::controller(WOController::class)->group(function () {
     Route::get('/piecesInProgress/fundicionChecklist/{otId}/{className?}', 'getFundicionChecklist')->name('fundicionChecklistData'); // AJAX endpoint para checklist de fundición
     Route::get('/piecesInProgress/planeacionChecklist/{otId}', 'getPlaneacionChecklist')->name('planeacionChecklistData'); // AJAX endpoint para checklist de planeación
     Route::post('/fundicion/updateFlag', 'markFundicionFlag')->name('fundicionUpdateFlag');
+    Route::get('/piecesInProgress/priorityManager', 'showPriorityManager')->name('showPriorityManager'); // Vista panel de prioridades (perfiles 1 y 3)
+    Route::post('/piecesInProgress/priorities', 'savePriorities')->name('savePriorities');               // AJAX: guardar nuevo orden de prioridades
+
     Route::get('/wo/remision/{id}/serve', [AlmacenWOController::class, 'serveRemision'])->name('wo.remision.serve');
     Route::post('/wo/remision', [AlmacenWOController::class, 'storeRemision'])->name('wo.remision.store');
     Route::delete('/wo/remision/{id}', [AlmacenWOController::class, 'destroyRemision'])->name('wo.remision.destroy');

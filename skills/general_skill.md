@@ -6,6 +6,9 @@ Cualquier agente, LLM o desarrollador que trabaje en `Project_saavedra` **DEBE**
 
 No asumas patrones comunes si no están definidos aquí. Sigue el flujo de trabajo orquestado para evitar romper la integridad del sistema.
 
+**🚨 REGLA CRÍTICA PARA EL USO DE SKILLS:**
+Para poner a "chambear" (trabajar) una skill específica, el agente **DEBE** utilizar su herramienta de lectura de archivos (`view_file` o equivalente) para leer el contenido completo del archivo `.md` correspondiente (ej: `skills/controllers_skill.md`) **ANTES** de comenzar a escribir o modificar código relacionado con ese tema. Alternativamente, el usuario puede invocar la skill directamente incluyéndola en su mensaje mediante la sintaxis `@[ruta_al_archivo]`. ¡No programes de memoria! Consulta la skill correspondiente siempre.
+
 ---
 
 ## 🗂️ Índice de Habilidades (Skills) Obligatorias
