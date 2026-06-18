@@ -1748,17 +1748,6 @@
                     <p style="margin-bottom:28px; font-family:'Poppins', sans-serif; font-weight:500; line-height:1.6; color:#334155; font-size: 1.3em;"
                         id="al-prompt-text"></p>
 
-                    {{-- Destinatario(s) --}}
-                    <div class="form-group" style="margin-bottom: 24px;">
-                        <label for="al-destinatario"
-                            style="font-size: 1.2em; font-weight: 700; color: #334155; display: block; margin-bottom: 10px; font-family:'Poppins', sans-serif;">Destinatario(s):</label>
-                        <input type="text" id="al-destinatario" name="destinatario" class="form-control" required
-                            value="almacentex@grupoindsaavedra.com"
-                            style="font-size: 1.15em; padding: 14px 20px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
-                        <span style="font-size: 0.9em; color: #64748b; margin-top: 8px; display: block;">Separa múltiples
-                            correos usando comas (,).</span>
-                    </div>
-
                     {{-- FECHA --}}
                     <div class="form-group" style="margin-bottom: 28px;">
                         <label id="al-fecha-label" for="al-fecha"
@@ -1906,7 +1895,9 @@
             </div>
             <div class="alm-modal-body"
                 style="padding: 2.2em 2.5em; background: #fafafa; font-family: 'Poppins', sans-serif;">
-                <form id="formFinalizarCalidad" enctype="multipart/form-data" novalidate>
+                <form id="formFinalizarCalidad" enctype="multipart/form-data" novalidate
+                      data-email-almacen="{{ env('EMAIL_ALMACEN', 'almacentec@grupoindsaavedra.com') }}"
+                      data-email-calidad="{{ env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com') }}">
                     @csrf
                     <input type="hidden" id="fc-ot" name="ot">
                     <input type="hidden" id="fc-decision" name="decision">
@@ -1916,16 +1907,28 @@
 
                     <div id="fc-prompt-text" style="margin-bottom: 24px;"></div>
 
-                    {{-- Destinatario(s) --}}
-                    <div class="form-group" style="margin-bottom: 20px;">
+
+
+                    {{-- DESTINATARIO ALMACEN --}}
+                    <div class="form-group" style="margin-bottom: 24px;">
                         <label for="fc-destinatario"
-                            style="font-size: 1.1em; font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif;">Destinatario(s)
-                            <span style="color:#dc2626;">*</span></label>
+                            style="font-weight:700; color:#334155; display:block; margin-bottom:8px; font-family:'Poppins', sans-serif; font-size:1.1em;">
+                            Notificar a Almacén (correo electrónico):
+                        </label>
                         <input type="text" id="fc-destinatario" name="destinatario" class="form-control" required
-                            value="almacentex@grupoindsaavedra.com"
-                            style="font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px; font-family:'Poppins', sans-serif;">
-                        <span style="font-size: 0.85em; color: #64748b; margin-top: 6px; display: block;">Separa múltiples
-                            correos usando comas (,).</span>
+                            style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
+                        <span style="font-size: 0.85em; color: #64748b; margin-top: 4px; display: block;">Separa múltiples correos con comas.</span>
+                    </div>
+
+                    {{-- DESTINATARIO CALIDAD --}}
+                    <div class="form-group" style="margin-bottom: 24px;">
+                        <label for="fc-destinatario-calidad"
+                            style="font-weight:700; color:#334155; display:block; margin-bottom:8px; font-family:'Poppins', sans-serif; font-size:1.1em;">
+                            Notificar a Calidad (correo electrónico):
+                        </label>
+                        <input type="text" id="fc-destinatario-calidad" name="destinatario_calidad" class="form-control"
+                            style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
+                        <span style="font-size: 0.85em; color: #64748b; margin-top: 4px; display: block;">Copia para Calidad (Modelos).</span>
                     </div>
 
                     {{-- FECHA (OBLIGATORIA) --}}
@@ -1984,15 +1987,7 @@
                 <form id="formEnviarScar" enctype="multipart/form-data" autocomplete="off">
                     <input type="hidden" id="env-scar-ot" name="ot">
 
-                    {{-- Destinatario --}}
-                    <div class="form-group" style="margin-bottom: 16px;">
-                        <label for="env-scar-destinatario"
-                            style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">
-                            Destinatario(s) (separados por coma):
-                        </label>
-                        <input type="text" id="env-scar-destinatario" name="destinatario" class="form-control" required
-                            value="produccion@ssmetalf.mx, laboratorio@ssmetalf.mx, alejandross@grupoindsaavedra.com, analilia@grupoindsaavedra.com, blanca@grupoindsaavedra.com, juanss@grupoindsaavedra.com, abraham@grupoindsaavedra.com, inspecciontec@grupoindsaavedra.com, requisicionestec@grupoindsaavedra.com, auxadmtec@grupoindsaavedra.com, producciontec@grupoindsaavedra.com">
-                    </div>
+                    {{-- Destinatario Removido para uso de .env --}}
 
                     {{-- Fecha Compromiso --}}
                     <div class="form-group" style="margin-bottom: 16px;">

@@ -15,7 +15,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('soldaduraPTA_pza', function (Blueprint $table) {
-            $table->string('n_pieza')->nullable()->after('n_juego');
+            if (!Schema::hasColumn('soldaduraPTA_pza', 'n_pieza')) {
+                $table->string('n_pieza')->nullable()->after('n_juego');
+            }
         });
     }
 

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('path');
             $table->string('descripcion')->nullable();
             $table->string('uploaded_by')->nullable(); // matrícula del usuario que subió
+            $table->boolean('visible')->default(true);
             $table->timestamps();
 
             $table->foreign('id_clase')->references('id')->on('clases')->onDelete('cascade');

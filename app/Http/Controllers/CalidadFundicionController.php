@@ -1737,12 +1737,9 @@ class CalidadFundicionController extends Controller
         }
 
         // 3. Destinatarios
-        $destinatarios = array_filter(
-            array_map('trim', explode(',', $request->input('destinatario', 'jaxer020406@gmail.com')))
-        );
-        if (empty($destinatarios)) {
-            $destinatarios = ['jaxer020406@gmail.com'];
-        }
+        $destinosStr = env('EMAIL_PRODUCCION_SS', 'produccion@ssmetalf.mx,laboratorio@ssmetalf.mx') . ',' . 
+                       env('EMAIL_CC_GENERAL', 'alejandross@grupoindsaavedra.com,analilia@grupoindsaavedra.com,blanca@grupoindsaavedra.com,juanss@grupoindsaavedra.com,abraham@grupoindsaavedra.com,inspecciontec@grupoindsaavedra.com,requisicionestec@grupoindsaavedra.com,auxadmtec@grupoindsaavedra.com,producciontec@grupoindsaavedra.com');
+        $destinatarios = array_filter(array_map('trim', explode(',', $destinosStr)));
 
         // 4. Compilar adjuntos
         $attachments = [];
@@ -2043,6 +2040,7 @@ class CalidadFundicionController extends Controller
         $decision    = $request->input('decision', ''); // 'aprobar' | 'rechazar'
         $tipoModelo  = $request->input('tipo_modelo', '');
         $fecha       = $request->input('fecha', '');
+        $destinatario = $request->input('destinatario', '');
         $nameScar    = null;
 
         if (empty($ot) || empty($decision) || empty($tipoModelo) || empty($fecha)) {
@@ -2545,25 +2543,33 @@ class CalidadFundicionController extends Controller
         }
 
         // Enviar correos
-        $destinatarios = array_filter(
-            array_map('trim', explode(',', $request->input('destinatario', 'jaxer020406@gmail.com')))
-        );
-        if (empty($destinatarios)) {
-            $destinatarios = ['jaxer020406@gmail.com'];
-        }
+        $destinosStr = !empty($destinatario) ? $destinatario : env('EMAIL_ALMACEN', 'almacentec@grupoindsaavedra.com');
+        $destinatarios = array_filter(array_map('trim', explode(',', $destinosStr)));
+
+        $destCalidadStr = $request->input('destinatario_calidad', '');
+        $destCalidadStr = !empty($destCalidadStr) ? $destCalidadStr : env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com');
+        $destCalidad = array_filter(array_map('trim', explode(',', $destCalidadStr)));
 
         try {
             if ($decision === 'mixto') {
                 if ($libAprobada) {
-                    Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, 'aprobado', $libAprobada, $attachmentsAprobados));
+                    $mail = Mail::to($destinatarios);
+                    if (!empty($destCalidad)) $mail->cc($destCalidad);
+                    $mail->send(new LiberacionModeloMailable($ot, 'aprobado', $libAprobada, $attachmentsAprobados));
                 }
                 if ($libRechazada) {
-                    Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, 'rechazado', $libRechazada, $attachmentsRechazados));
+                    $mail = Mail::to($destinatarios);
+                    if (!empty($destCalidad)) $mail->cc($destCalidad);
+                    $mail->send(new LiberacionModeloMailable($ot, 'rechazado', $libRechazada, $attachmentsRechazados));
                 }
             } elseif ($decision === 'aprobar') {
-                Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, 'aprobado', $libAprobada ?: $liberacion, $attachmentsAprobados));
+                $mail = Mail::to($destinatarios);
+                if (!empty($destCalidad)) $mail->cc($destCalidad);
+                $mail->send(new LiberacionModeloMailable($ot, 'aprobado', $libAprobada ?: $liberacion, $attachmentsAprobados));
             } else {
-                Mail::to($destinatarios)->send(new LiberacionModeloMailable($ot, 'rechazado', $libRechazada ?: $liberacion, $attachmentsRechazados));
+                $mail = Mail::to($destinatarios);
+                if (!empty($destCalidad)) $mail->cc($destCalidad);
+                $mail->send(new LiberacionModeloMailable($ot, 'rechazado', $libRechazada ?: $liberacion, $attachmentsRechazados));
             }
 
             // Sincronizar carpeta completa de Calidad → Almacén:

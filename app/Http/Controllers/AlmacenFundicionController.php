@@ -60,7 +60,7 @@ class AlmacenFundicionController extends Controller
      * Muestra la tabla con todos los registros históricos de Almacén,
      * incluyendo su estado Activa/Inactiva.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      */
     public function index(Request $request)
     {
@@ -193,16 +193,16 @@ class AlmacenFundicionController extends Controller
             $isReproceso = preg_match('/_R\d+$/i', $ot);
             if ($isReproceso) {
                 // Para un reproceso, solo mostramos las clases que fueron RECHAZADAS en el ciclo anterior
-                $prevOt = preg_replace_callback('/_R(\d+)$/i', function($m) {
+                $prevOt = preg_replace_callback('/_R(\d+)$/i', function ($m) {
                     $num = intval($m[1]) - 1;
                     return $num > 0 ? '_R' . $num : '';
                 }, $ot);
-                
+
                 $rechazados = LiberacionModeloFundicion::where('ot', '=', $prevOt, 'and')
                     ->where('decision', '=', 'rechazar', 'and')
                     ->pluck('tipo_modelo')
                     ->toArray();
-                    
+
                 $validClasses = [];
                 foreach ($rechazados as $r) {
                     $clases = array_map('trim', explode(',', strtolower($r)));
@@ -221,7 +221,7 @@ class AlmacenFundicionController extends Controller
                         ->where('decision', '=', 'aprobar', 'and')
                         ->pluck('tipo_modelo')
                         ->toArray();
-                        
+
                     $validClasses = [];
                     foreach ($aprobados as $a) {
                         $clases = array_map('trim', explode(',', strtolower($a)));
@@ -643,12 +643,14 @@ class AlmacenFundicionController extends Controller
                 // Archivos en Documentos_Aprobados / Documentos_Rechazados viven en el root de la OT
                 if ($origin === 'aprobado' || $origin === 'rechazado') {
                     $baseDir = self::ALMACEN_DIR . '/' . $folderName;
-                } elseif (str_contains(strtolower($archivo), 'ayudas_visuales') && (
-                    str_starts_with(strtolower($archivo), 'bombillo/') ||
-                    str_starts_with(strtolower($archivo), 'fondo/') ||
-                    str_starts_with(strtolower($archivo), 'obturador/') ||
-                    str_starts_with(strtolower($archivo), 'molde/')
-                )) {
+                } elseif (
+                    str_contains(strtolower($archivo), 'ayudas_visuales') && (
+                        str_starts_with(strtolower($archivo), 'bombillo/') ||
+                        str_starts_with(strtolower($archivo), 'fondo/') ||
+                        str_starts_with(strtolower($archivo), 'obturador/') ||
+                        str_starts_with(strtolower($archivo), 'molde/')
+                    )
+                ) {
                     // Nueva estructura: ayudas_visuales vive en el root de la OT bajo la carpeta de la clase
                     $baseDir = ($origin === 'calidad' || ($user->perfil == 4 && empty($origin)))
                         ? self::CALIDAD_DIR . '/' . $folderName
@@ -1196,12 +1198,15 @@ class AlmacenFundicionController extends Controller
         $this->verificarAcceso();
 
         $ot = $request->input('ot');
+        $destinatario = $request->input('destinatario');
+        $destinatarioCalidad = $request->input('destinatario_calidad');
         $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
 
         if (!$history) {
             return response()->json(['success' => false, 'message' => 'Registro no encontrado.'], 404);
         }
 
+        $attachments = [];
         // ── Guardar archivos de recepción adjuntos (Bloque 2) ──────────────────
         if ($request->hasFile('archivos')) {
             $folderName = $this->sanitizePath($this->normalizeOTName($ot));
@@ -1217,6 +1222,12 @@ class AlmacenFundicionController extends Controller
                 $stamp = date('d_m_Y_H_i_s');
                 $fileName = "ConfirmacionModelo_{$safeName}_{$stamp}.{$ext}";
                 Storage::disk('local')->put($destDir . '/' . $fileName, file_get_contents($file->getRealPath()));
+                
+                $attachments[] = [
+                    'path' => storage_path('app/' . $destDir . '/' . $fileName),
+                    'name' => $fileName,
+                    'mime' => strtolower($ext) === 'pdf' ? 'application/pdf' : 'image/' . strtolower($ext)
+                ];
             }
         }
 
@@ -1237,6 +1248,163 @@ class AlmacenFundicionController extends Controller
         // Sincronizar confirmación de modelo a Calidad
         $folderName = $this->sanitizePath($this->normalizeOTName($ot));
         $this->syncAlmacenToCalidad($folderName);
+
+        // ── ENVIAR CORREOS ───────────────────────────────────────────────────────
+        $otCleaned = preg_replace('/^OT\s*/i', '', $ot);
+        $asunto = "Disponibilidad de Modelo Confirmada - OT {$otCleaned}";
+        $cuerpo = "
+        <div style='font-family: \"Segoe UI\", Helvetica, Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 650px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);'>
+            <!-- Header con gradiente premium -->
+            <div style='background: linear-gradient(135deg, #0a8504, #064e03); color: white; padding: 30px 20px; text-align: center; border-bottom: 4px solid #043d02;'>
+                <div style='background: rgba(255,255,255,0.15); display: inline-block; padding: 10px 20px; border-radius: 30px; margin-bottom: 15px;'>
+                    <span style='font-size: 0.9em; font-weight: 600; letter-spacing: 1px;'>ALERTA DE ALMACÉN</span>
+                </div>
+                <h2 style='margin: 0; font-size: 1.8em; font-weight: 800; letter-spacing: -0.5px;'>Confirmación de Modelo Físico</h2>
+                <p style='margin: 8px 0 0 0; font-size: 1.1em; opacity: 0.95; font-weight: 500;'>Orden de Trabajo: <strong>{$otCleaned}</strong></p>
+            </div>
+            
+            <!-- Cuerpo Principal -->
+            <div style='padding: 35px 30px; background-color: #ffffff;'>
+                <p style='font-size: 1.1em; margin-top: 0;'>Estimado Equipo,</p>
+                
+                <p style='font-size: 1.05em;'>El departamento de Almacén ha confirmado que actualmente se <strong>cuenta con el modelo físico requerido</strong> en las instalaciones para dar seguimiento a la Orden de Trabajo <strong>{$otCleaned}</strong>.</p>
+                
+                <div style='background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 5px solid #22c55e; padding: 18px 20px; margin: 25px 0; border-radius: 6px;'>
+                    <h3 style='margin: 0 0 10px 0; color: #166534; font-size: 1.15em; display: flex; align-items: center;'>
+                        📄 Documentación de Respaldo
+                    </h3>
+                    <p style='margin: 0; color: #15803d; font-size: 0.95em;'>Se ha anexado a este correo la documentación correspondiente (como hojas de entrega, remisiones o fotografías) que avalan la recepción y disponibilidad de los herramentales.</p>
+                </div>
+
+                <div style='background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; margin: 25px 0; border-radius: 8px;'>
+                    <h3 style='margin: 0 0 15px 0; color: #0f172a; font-size: 1.1em; text-transform: uppercase; letter-spacing: 0.5px;'>Siguientes Pasos Requeridos</h3>
+                    <ul style='margin: 0; padding-left: 20px; color: #475569; line-height: 1.7;'>
+                        <li style='margin-bottom: 8px;'><strong>Para el Departamento de Calidad:</strong> Favor de proceder a realizar la liberación dimensional del modelo ahora que está disponible en planta.</li>
+                        <li><strong>Para Proveedores/Producción:</strong> Favor de mantenerse a la espera de la liberación de Calidad para continuar con el flujo correspondiente.</li>
+                    </ul>
+                </div>
+                
+                <p style='margin-bottom: 0; font-size: 0.95em; color: #64748b;'>Agradecemos su pronta atención al seguimiento de esta OT.</p>
+            </div>
+            
+            <!-- Footer -->
+            <div style='background-color: #f1f5f9; padding: 20px; text-align: center; font-size: 0.85em; color: #94a3b8; border-top: 1px solid #e2e8f0;'>
+                <p style='margin: 0; font-weight: 600; color: #64748b;'>Sistema Automatizado GIS Saavedra</p>
+                <p style='margin: 5px 0 0 0;'>Este es un mensaje generado automáticamente. Por favor, no responda a esta dirección de correo.</p>
+            </div>
+        </div>";
+
+        $destCalidadStr = !empty($destinatarioCalidad) ? $destinatarioCalidad : env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com');
+        $destCalidad = array_filter(array_map('trim', explode(',', $destCalidadStr)));
+
+        $destProveedorStr = !empty($destinatario) ? $destinatario : env('EMAIL_PROVEEDOR_MODELOS', 'produccion@ssmetalf.mx,asistenteprod@ssmetalf.mx');
+        $destProveedor = array_filter(array_map('trim', explode(',', $destProveedorStr)));
+
+        // Buscar dibujos y ayudas visuales para adjuntar a Calidad
+        $calidadAttachments = $attachments;
+        // Archivos del servidor seleccionados
+        $archivosSeleccionados = $request->input('archivos_seleccionados', []);
+        if (is_array($archivosSeleccionados)) {
+            $baseOt = preg_replace('/_R\d+$/i', '', $ot);
+            $allOtNames = FundicionHistory::where('ot', '=', $baseOt, 'or')
+                ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
+                ->pluck('ot')
+                ->toArray();
+            if (!in_array($ot, $allOtNames)) {
+                $allOtNames[] = $ot;
+            }
+
+            foreach ($archivosSeleccionados as $archivo) {
+                // Sanitizar para evitar path traversal
+                $archivoSanitized = $this->sanitizeFileNameWithFolder($archivo);
+
+                foreach ($allOtNames as $relatedOt) {
+                    $relFolder = $this->sanitizePath($this->normalizeOTName($relatedOt));
+
+                    // Buscar en todas las combinaciones posibles de Almacén y Calidad
+                    $posPaths = [];
+                    if (str_starts_with($archivoSanitized, 'Documentos_Aprobados/')) {
+                        $subPath = str_replace('Documentos_Aprobados/', '', $archivoSanitized);
+                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Aprobados/' . $subPath;
+                        $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Aprobados/' . $subPath;
+                    }
+                    if (str_starts_with($archivoSanitized, 'Documentos_Rechazados/')) {
+                        $subPath = str_replace('Documentos_Rechazados/', '', $archivoSanitized);
+                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Rechazados/' . $subPath;
+                        $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Rechazados/' . $subPath;
+                    }
+                    if (str_starts_with($archivoSanitized, 'preordenes/documentos_aprobados/')) {
+                        $subPath = str_replace('preordenes/documentos_aprobados/', '', $archivoSanitized);
+                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_aprobados/' . $subPath;
+                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_aprobados/' . $subPath;
+                        $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_aprobados/' . $subPath;
+                    }
+                    if (str_starts_with($archivoSanitized, 'preordenes/documentos_rechazados/')) {
+                        $subPath = str_replace('preordenes/documentos_rechazados/', '', $archivoSanitized);
+                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_rechazados/' . $subPath;
+                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_rechazados/' . $subPath;
+                        $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_rechazados/' . $subPath;
+                    }
+                    if (str_starts_with($archivoSanitized, 'preordenes/')) {
+                        $subPath = str_replace('preordenes/', '', $archivoSanitized);
+                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/' . $subPath;
+                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/' . $subPath;
+                        $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/' . $subPath;
+                    }
+
+                    // Fallbacks generales
+                    $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/' . $archivoSanitized;
+                    $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $archivoSanitized;
+                    $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/' . $archivoSanitized;
+                    $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $archivoSanitized;
+
+                    $found = false;
+                    foreach ($posPaths as $path) {
+                        if (Storage::disk('local')->exists($path)) {
+                            // Evitar duplicados
+                            $yaExiste = false;
+                            foreach ($calidadAttachments as $extAtt) {
+                                if ($extAtt['name'] === basename($path)) {
+                                    $yaExiste = true;
+                                    break;
+                                }
+                            }
+                            if (!$yaExiste) {
+                                $calidadAttachments[] = [
+                                    'path' => storage_path('app/' . $path),
+                                    'name' => basename($archivoSanitized),
+                                    'mime' => 'application/pdf',
+                                    'tipo' => 'dibujo_ayuda'
+                                ];
+                            }
+                            $found = true;
+                            break;
+                        }
+                    }
+                    if ($found) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!empty($destCalidad)) {
+            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($destCalidad, $asunto, $cuerpo, $calidadAttachments) {
+                $message->to($destCalidad)->subject($asunto)->html($cuerpo);
+                foreach ($calidadAttachments as $att) {
+                    $message->attach($att['path'], ['as' => $att['name'], 'mime' => $att['mime']]);
+                }
+            });
+        }
+
+        if (!empty($destProveedor)) {
+            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($destProveedor, $asunto, $cuerpo, $attachments) {
+                $message->to($destProveedor)->subject($asunto)->html($cuerpo);
+                foreach ($attachments as $att) {
+                    $message->attach($att['path'], ['as' => $att['name'], 'mime' => $att['mime']]);
+                }
+            });
+        }
 
         return response()->json([
             'success' => true,
@@ -1535,7 +1703,7 @@ class AlmacenFundicionController extends Controller
             $history = FundicionHistory::where('ot', '=', $otRaw, 'and')->first();
             if (!$history || !$history->casting_pdf_generated) {
                 return response()->json([
-                    'success' => false, 
+                    'success' => false,
                     'message' => 'No se puede generar la Pre-orden de Casting. Debe subir los Formatos LDM firmados obligatoriamente.'
                 ], 422);
             }
@@ -1596,8 +1764,8 @@ class AlmacenFundicionController extends Controller
         // VALIDACIÓN ESTRICTA: Para generar una pre-orden de modelo de reproceso, el SCAR debe estar emitido.
         if ($esReprocesoRegistro) {
             $scarExists = \App\Models\ScarModelo::where('ot', '=', $baseOt, 'and')
-                              ->orWhere('ot', '=', $otRaw, 'or')
-                              ->exists();
+                ->orWhere('ot', '=', $otRaw, 'or')
+                ->exists();
             if (!$scarExists) {
                 return response()->json([
                     'success' => false,
@@ -1745,11 +1913,11 @@ class AlmacenFundicionController extends Controller
         // 9. Registrar auditoría de generación de Pre-Orden
         try {
             PreOrdenLog::create([
-                'ot'          => $otRaw,
-                'proveedor'   => $data['proveedor'] ?? null,
-                'accion'      => $existeEnBD ? 'generar' : 'generar',
+                'ot' => $otRaw,
+                'proveedor' => $data['proveedor'] ?? null,
+                'accion' => $existeEnBD ? 'generar' : 'generar',
                 'pdf_filename' => $fileName,
-                'user_id'     => $user ? $user->id : null,
+                'user_id' => $user ? $user->id : null,
                 'user_nombre' => $user ? $user->name : null,
             ]);
         } catch (\Exception $e) {
@@ -1922,6 +2090,7 @@ class AlmacenFundicionController extends Controller
 
         $ot = $request->input('ot');
         $destinatario = $request->input('destinatario');
+        $destinatarioCalidad = $request->input('destinatario_calidad', '');
 
         if (empty($ot) || empty($destinatario) || empty($request->input('fecha_entrega'))) {
             return response()->json([
@@ -2164,13 +2333,14 @@ class AlmacenFundicionController extends Controller
             $attachments[] = [
                 'path' => storage_path('app/' . $foundPreOrdenPath),
                 'name' => basename($preOrden->pdf_filename),
-                'mime' => 'application/pdf'
+                'mime' => 'application/pdf',
+                'tipo' => 'preorden'
             ];
         }
 
-        // 1. Archivos del servidor seleccionados (Omitir si es pre-orden de casting)
+        // 1. Archivos del servidor seleccionados
         $archivosSeleccionados = $request->input('archivos_seleccionados', []);
-        if (!$isCastingPo && is_array($archivosSeleccionados)) {
+        if (is_array($archivosSeleccionados)) {
             foreach ($archivosSeleccionados as $archivo) {
                 // Si es el mismo PDF de la pre-orden, omitirlo para no duplicarlo
                 $isPoPdf = $preOrdenes->contains(function ($po) use ($archivo) {
@@ -2239,7 +2409,8 @@ class AlmacenFundicionController extends Controller
                             $attachments[] = [
                                 'path' => storage_path('app/' . $path),
                                 'name' => basename($archivoSanitized),
-                                'mime' => 'application/pdf'
+                                'mime' => 'application/pdf',
+                                'tipo' => 'dibujo_ayuda' // Se considera Dibujo/Ayuda por venir del panel superior
                             ];
                             $found = true;
                             break;
@@ -2252,8 +2423,8 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        // 2. Archivos adicionales cargados desde la computadora (Omitir si es pre-orden de casting)
-        if (!$isCastingPo && $request->hasFile('archivos_adicionales')) {
+        // 2. Archivos adicionales cargados desde la computadora
+        if ($request->hasFile('archivos_adicionales')) {
             $uploadedFiles = $request->file('archivos_adicionales');
             $filesArray = is_array($uploadedFiles) ? $uploadedFiles : [$uploadedFiles];
 
@@ -2272,22 +2443,14 @@ class AlmacenFundicionController extends Controller
                 $attachments[] = [
                     'path' => storage_path('app/' . $savedPath),
                     'name' => $name,
-                    'mime' => $file->getClientMimeType()
+                    'mime' => $file->getClientMimeType(),
+                    'tipo' => 'escaneado'
                 ];
             }
         }
 
         // Enviar Email
         try {
-            // Destinatarios de prueba (Temporalmente modificado a petición del usuario)
-            $destinatarios = array_map('trim', explode(',', $destinatario));
-            if (empty($destinatarios) || (count($destinatarios) === 1 && $destinatarios[0] === '')) {
-                $destinatarios = ['jaxer020406@gmail.com'];
-            }
-
-            // Si es un re-proceso de rechazados, los destinatarios ya vienen del formulario
-            // (se eliminó el lookup automático de usuarios calidad por columna 'email' inexistente)
-
             // ── AUTO-ADJUNTOS: Si es re-proceso (_R1, _R2...), adjuntar docs de toda la historia (Omitir si es pre-orden de casting)
             if (!$isCastingPo && preg_match('/^(.+?)(_[rR](\d+))$/', $ot, $match)) {
                 $otBase = $match[1];
@@ -2337,28 +2500,82 @@ class AlmacenFundicionController extends Controller
                                 continue;
 
                             $iterationLabel = $i === 0 ? 'OT_Base' : 'R' . $i;
+                            $tipoCat = ($etiqueta === 'Dibujo' || $etiqueta === 'AyudaVisual') ? 'dibujo_ayuda' : 'otro';
+
                             $attachments[] = [
                                 'path' => $absPath,
                                 'name' => '[' . $etiqueta . ' ' . $iterationLabel . '] ' . basename($archivoPath),
                                 'mime' => $ext === 'pdf' ? 'application/pdf' : 'image/' . $ext,
+                                'tipo' => $tipoCat
                             ];
                         }
                     }
                 }
             }
 
-            Mail::send([], [], function ($message) use ($destinatarios, $asunto, $cuerpo, $attachments) {
-                $message->to($destinatarios)
-                    ->subject($asunto)
-                    ->html($cuerpo);
+            if ($isCastingPo) {
+                // Para Casting: enviar a Proveedores de Casting y CC General
+                $destinosStr = !empty($destinatario) ? $destinatario : env('EMAIL_PRODUCCION_SS', 'produccion@ssmetalf.mx,laboratorio@ssmetalf.mx') . ',' .
+                    env('EMAIL_CC_GENERAL', 'alejandross@grupoindsaavedra.com,analilia@grupoindsaavedra.com,blanca@grupoindsaavedra.com,juanss@grupoindsaavedra.com,abraham@grupoindsaavedra.com,inspecciontec@grupoindsaavedra.com,requisicionestec@grupoindsaavedra.com,auxadmtec@grupoindsaavedra.com,producciontec@grupoindsaavedra.com');
+                $destinatarios = array_filter(array_map('trim', explode(',', $destinosStr)));
 
-                foreach ($attachments as $att) {
-                    $message->attach($att['path'], [
-                        'as' => $att['name'],
-                        'mime' => $att['mime']
-                    ]);
+                Mail::send([], [], function ($message) use ($destinatarios, $asunto, $cuerpo, $attachments) {
+                    $message->to($destinatarios)
+                        ->subject($asunto)
+                        ->html($cuerpo);
+
+                    foreach ($attachments as $att) {
+                        $message->attach($att['path'], [
+                            'as' => $att['name'],
+                            'mime' => $att['mime']
+                        ]);
+                    }
+                });
+            } else {
+                // Para Modelo: Enviar correo completo a Calidad, y correo filtrado a Proveedores
+                $destCalidadStr = !empty($destinatarioCalidad) ? $destinatarioCalidad : env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com');
+                $destCalidad = array_filter(array_map('trim', explode(',', $destCalidadStr)));
+
+                $destProveedorStr = !empty($destinatario) ? $destinatario : env('EMAIL_PROVEEDOR_MODELOS', 'produccion@ssmetalf.mx,asistenteprod@ssmetalf.mx');
+                $destProveedor = array_filter(array_map('trim', explode(',', $destProveedorStr)));
+
+                // Enviar a Calidad con TODOS los adjuntos
+                if (!empty($destCalidad)) {
+                    Mail::send([], [], function ($message) use ($destCalidad, $asunto, $cuerpo, $attachments) {
+                        $message->to($destCalidad)
+                            ->subject($asunto)
+                            ->html($cuerpo);
+
+                        foreach ($attachments as $att) {
+                            $message->attach($att['path'], [
+                                'as' => $att['name'],
+                                'mime' => $att['mime']
+                            ]);
+                        }
+                    });
                 }
-            });
+
+                // Filtrar adjuntos para Proveedor: Omitir 'dibujo_ayuda'
+                $attachmentsFiltrados = array_filter($attachments, function ($att) {
+                    return $att['tipo'] !== 'dibujo_ayuda';
+                });
+
+                // Enviar a Proveedor
+                if (!empty($destProveedor)) {
+                    Mail::send([], [], function ($message) use ($destProveedor, $asunto, $cuerpo, $attachmentsFiltrados) {
+                        $message->to($destProveedor)
+                            ->subject($asunto)
+                            ->html($cuerpo);
+
+                        foreach ($attachmentsFiltrados as $att) {
+                            $message->attach($att['path'], [
+                                'as' => $att['name'],
+                                'mime' => $att['mime']
+                            ]);
+                        }
+                    });
+                }
+            }
 
             // Sincronizar carpeta completa de Almacén a Calidad
             $this->syncAlmacenToCalidad($folderName);
@@ -2377,11 +2594,11 @@ class AlmacenFundicionController extends Controller
             try {
                 $sendUser = Auth::user();
                 PreOrdenLog::create([
-                    'ot'          => $ot,
-                    'proveedor'   => $preOrdenes->pluck('proveedor')->unique()->implode(', '),
-                    'accion'      => 'enviar_alerta',
+                    'ot' => $ot,
+                    'proveedor' => $preOrdenes->pluck('proveedor')->unique()->implode(', '),
+                    'accion' => 'enviar_alerta',
                     'pdf_filename' => $firstPo->pdf_filename ?? null,
-                    'user_id'     => $sendUser ? $sendUser->id : null,
+                    'user_id' => $sendUser ? $sendUser->id : null,
                     'user_nombre' => $sendUser ? $sendUser->name : null,
                 ]);
             } catch (\Exception $logEx) {
@@ -2437,13 +2654,13 @@ class AlmacenFundicionController extends Controller
             $rechazoUser = Auth::user();
             foreach ($liberacionesRechazadas as $libRechazada) {
                 RechazoLog::create([
-                    'ot'             => $ot,
-                    'tipo_modelo'    => $libRechazada->tipo_modelo,
-                    'accion'         => 'confirmar_recepcion',
-                    'pdf_filename'   => $libRechazada->pdf_filename,
+                    'ot' => $ot,
+                    'tipo_modelo' => $libRechazada->tipo_modelo,
+                    'accion' => 'confirmar_recepcion',
+                    'pdf_filename' => $libRechazada->pdf_filename,
                     'motivo_rechazo' => $libRechazada->motivo_rechazo,
-                    'user_id'        => $rechazoUser ? $rechazoUser->id : null,
-                    'user_nombre'    => $rechazoUser ? $rechazoUser->name : null,
+                    'user_id' => $rechazoUser ? $rechazoUser->id : null,
+                    'user_nombre' => $rechazoUser ? $rechazoUser->name : null,
                 ]);
             }
         } catch (\Exception $logEx) {
@@ -2504,7 +2721,7 @@ class AlmacenFundicionController extends Controller
             $relPath = ltrim(substr($srcNorm, strlen($almacenDirNorm)), '/');
 
             $targetPath = $calidadDir . '/' . $relPath;
-            $targetDir  = dirname($targetPath);
+            $targetDir = dirname($targetPath);
 
             if (!Storage::disk('local')->exists($targetDir)) {
                 Storage::disk('local')->makeDirectory($targetDir);
@@ -2769,14 +2986,14 @@ class AlmacenFundicionController extends Controller
                             $belongsToRejectedClass = false;
                             foreach ($clases as $clase) {
                                 $claseLower = strtolower($clase);
-                                
+
                                 // Check if the class is a folder segment in the path
                                 $segments = explode('/', $pathLower);
                                 if (in_array($claseLower, $segments)) {
                                     $belongsToRejectedClass = true;
                                     break;
                                 }
-                                
+
                                 // Check if class name is a segment in the filename (e.g. "Rechazo_BOMBILLO_...")
                                 $normFilename = preg_replace('/[^a-z0-9]/', '_', $filename);
                                 $fnSegments = explode('_', $normFilename);

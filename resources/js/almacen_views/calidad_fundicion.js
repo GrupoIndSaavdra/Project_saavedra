@@ -975,22 +975,7 @@ window.abrirModalEnviarPreOrden = function (ot, tipo) {
                 inputFecha.value = data.fecha_entrega || '';
             }
 
-            // Prefill destinatarios based on type (modelo vs casting) and provider
-            const destInput = document.getElementById('env-destinatario');
-            if (destInput) {
-                if (tipo === 'casting') {
-                    const alwaysCc = 'alejandross@grupoindsaavedra.com, analilia@grupoindsaavedra.com, blanca@grupoindsaavedra.com, juanss@grupoindsaavedra.com, abraham@grupoindsaavedra.com, inspecciontec@grupoindsaavedra.com, requisicionestec@grupoindsaavedra.com, auxadmtec@grupoindsaavedra.com, producciontec@grupoindsaavedra.com';
-                    const prov = (data.proveedor || '').toLowerCase();
-                    if (prov.includes('ss metal') || prov.includes('ssmetal')) {
-                        destInput.value = 'produccion@ssmetalf.mx, laboratorio@ssmetalf.mx, ' + alwaysCc;
-                    } else {
-                        destInput.value = alwaysCc;
-                    }
-                } else {
-                    // Pre-orden de Modelo (Almacén a Calidad)
-                    destInput.value = 'inspecciontec@grupoindsaavedra.com';
-                }
-            }
+
 
             if (data.existe && data.archivos && data.archivos.length > 0) {
                 let baseUrl = window.baseUrl || (window.location.origin + '/');
@@ -4158,6 +4143,12 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
     document.getElementById('fc-tipos-aprobados').value = JSON.stringify(arrAprobados);
     document.getElementById('fc-tipos-rechazados').value = JSON.stringify(arrRechazados);
 
+    // Initialize email destination from dataset
+    const inputDestinatario = document.getElementById('fc-destinatario');
+    if (inputDestinatario && form) {
+        inputDestinatario.value = form.getAttribute('data-email-almacen');
+    }
+
     // Initialize date empty to force selection
     const fDate = document.getElementById('fc-fecha');
     if (fDate) fDate.value = '';
@@ -4296,15 +4287,24 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
 
     // Prefill recipient email
     const primerTipo = arrAprobados[0] || arrRechazados[0] || '';
+    const formElement = document.getElementById('formFinalizarCalidad');
+    const defaultEmail = formElement ? formElement.getAttribute('data-email-almacen') : '';
+    const defaultCalidadEmail = formElement ? formElement.getAttribute('data-email-calidad') : '';
     fetch(`${window.almacenRoutes.getLiberacion}?ot=${encodeURIComponent(ot)}`)
         .then(r => r.json())
         .then(data => {
-            let dest = data.registros_por_tipo?.[primerTipo]?.destinatario || data.liberacion?.destinatario || 'almacentex@grupoindsaavedra.com';
+            let dest = data.registros_por_tipo?.[primerTipo]?.destinatario || data.liberacion?.destinatario || defaultEmail;
             const d = document.getElementById('fc-destinatario');
             if (d) d.value = dest;
+
+            const dc = document.getElementById('fc-destinatario-calidad');
+            if (dc) dc.value = defaultCalidadEmail;
         }).catch(() => {
             const d = document.getElementById('fc-destinatario');
-            if (d) d.value = 'almacentex@grupoindsaavedra.com';
+            if (d) d.value = defaultEmail;
+
+            const dc = document.getElementById('fc-destinatario-calidad');
+            if (dc) dc.value = defaultCalidadEmail;
         });
 
     modal.classList.add('open');

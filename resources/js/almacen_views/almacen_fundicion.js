@@ -951,6 +951,26 @@ window.abrirModalEnviarPreOrden = function (ot, tipo) {
         subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, '')}`;
     }
 
+    const inputDestinatario = document.getElementById('env-destinatario');
+    const inputDestinatarioCalidad = document.getElementById('env-destinatario-calidad');
+    const divDestinatarioCalidad = document.getElementById('div-env-destinatario-calidad');
+    const form = document.getElementById('formEnviarPreOrden');
+
+    if (inputDestinatario && form) {
+        inputDestinatario.value = (tipo === 'casting') 
+            ? form.getAttribute('data-email-casting') 
+            : form.getAttribute('data-email-modelo');
+    }
+
+    if (inputDestinatarioCalidad && divDestinatarioCalidad && form) {
+        if (tipo === 'casting') {
+            divDestinatarioCalidad.style.display = 'none';
+        } else {
+            divDestinatarioCalidad.style.display = 'block';
+            inputDestinatarioCalidad.value = form.getAttribute('data-email-calidad');
+        }
+    }
+
     // Reset file inputs and badges
     adicionalesSelectedFiles = [];
     renderSelectedFilesBadges();
@@ -976,22 +996,7 @@ window.abrirModalEnviarPreOrden = function (ot, tipo) {
                 inputFecha.value = data.fecha_entrega || '';
             }
 
-            // Prefill destinatarios based on type (modelo vs casting) and provider
-            const destInput = document.getElementById('env-destinatario');
-            if (destInput) {
-                if (tipo === 'casting') {
-                    const alwaysCc = 'alejandross@grupoindsaavedra.com, analilia@grupoindsaavedra.com, blanca@grupoindsaavedra.com, juanss@grupoindsaavedra.com, abraham@grupoindsaavedra.com, inspecciontec@grupoindsaavedra.com, requisicionestec@grupoindsaavedra.com, auxadmtec@grupoindsaavedra.com, producciontec@grupoindsaavedra.com';
-                    const prov = (data.proveedor || '').toLowerCase();
-                    if (prov.includes('ss metal') || prov.includes('ssmetal')) {
-                        destInput.value = 'produccion@ssmetalf.mx, laboratorio@ssmetalf.mx, ' + alwaysCc;
-                    } else {
-                        destInput.value = alwaysCc;
-                    }
-                } else {
-                    // Pre-orden de Modelo (Almacén a Calidad)
-                    destInput.value = 'inspecciontec@grupoindsaavedra.com';
-                }
-            }
+
 
             if (data.existe && data.archivos && data.archivos.length > 0) {
                 let baseUrl = window.baseUrl || (window.location.origin + '/');
@@ -3320,6 +3325,16 @@ window.abrirModalConfirmarModelo = function (ot, idHash) {
     const hashInput = document.getElementById('cm-id-hash');
     if (hashInput) hashInput.value = idHash || '';
 
+    // Poblado de correos electrónicos
+    const inputDestinatario = document.getElementById('cm-destinatario');
+    const inputDestinatarioCalidad = document.getElementById('cm-destinatario-calidad');
+    if (inputDestinatario && form) {
+        inputDestinatario.value = form.getAttribute('data-email-modelo');
+    }
+    if (inputDestinatarioCalidad && form) {
+        inputDestinatarioCalidad.value = form.getAttribute('data-email-calidad');
+    }
+
     // Asignar subtítulo con la OT
     const subtitle = document.getElementById('confirmar-modelo-subtitle');
     if (subtitle) subtitle.textContent = `OT: ${ot}`;
@@ -3334,6 +3349,46 @@ window.abrirModalConfirmarModelo = function (ot, idHash) {
     // Abrir modal y bloquear scroll de la página
     modal.classList.add('open');
     document.body.classList.add('modal-open');
+
+    // Obtener y renderizar los archivos de la OT desde el backend
+    const filesContainer = document.getElementById('cm-server-files-container');
+    if (filesContainer) {
+        filesContainer.innerHTML = `
+            <div style="text-align: center; padding: 10px;">
+                <div class="alm-spinner" style="border-top-color: #033966; display: inline-block;"></div>
+                <span style="color: #64748b; margin-left: 10px;">Obteniendo archivos del servidor...</span>
+            </div>
+        `;
+        fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.existe && data.archivos && data.archivos.length > 0) {
+                    let baseUrl = window.baseUrl || (window.location.origin + '/');
+                    if (!baseUrl.endsWith('/')) baseUrl += '/';
+
+                    const sectionsHtml = generarHtmlCategorizadoArchivos(data.archivos, ot, baseUrl, 'preorden'); // Use preorden to show Dibujos and Ayudas
+                    filesContainer.innerHTML = sectionsHtml || `
+                        <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
+                            No se encontraron archivos en el servidor para esta OT.
+                        </div>
+                    `;
+                } else {
+                    filesContainer.innerHTML = `
+                        <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
+                            No se encontraron archivos en el servidor para esta OT.
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                filesContainer.innerHTML = `
+                    <div style="text-align: center; color: #ef4444; padding: 15px; font-weight: 600;">
+                        Ocurrió un error al cargar los archivos.
+                    </div>
+                `;
+            });
+    }
 };
 
 window.cerrarModalConfirmarModelo = function () {

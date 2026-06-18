@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('id_ot', 50);
             $table->unsignedBigInteger('id_clase');
+            $table->unsignedBigInteger('id_remision')->nullable();
             $table->integer('cantidad');
             $table->string('descripcion')->nullable();
             $table->date('fecha_recepcion');
@@ -19,6 +20,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('id_clase')->references('id')->on('clases')->onDelete('cascade');
+            $table->foreign('id_remision')->references('id')->on('remisiones_ot')->onDelete('set null');
         });
     }
 

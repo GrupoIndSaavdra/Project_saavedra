@@ -402,16 +402,7 @@
                     placeholder="Ej: La medida B (Altura total) presenta desviacion de +0.025 pulg. sobre el limite de tolerancia..."></textarea>
         </div>
 
-        {{-- DESTINATARIO --}}
-        <div class="lib-section-block" style="margin-top:1.5em;">
-          <label for="lib-destinatario" style="font-weight:700;color:#334155;font-size:1.05em;">
-            Notificar a (correo electronico):
-          </label>
-          <input type="text" id="lib-destinatario" name="destinatario"
-                 class="form-control" style="margin-top:6px;"
-                 value="inspecciontec@grupoindsaavedra.com"
-                 placeholder="inspecciontec@grupoindsaavedra.com">
-        </div>
+        {{-- DESTINATARIO REMOVIDO PARA USO DE .ENV --}}
 
         {{-- BOTONES DE ACCION --}}
         <div class="lib-actions" id="lib-actions"></div>

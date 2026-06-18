@@ -1925,7 +1925,9 @@
             </div>
             <div class="alm-modal-body"
                 style="padding: 2.2em 2.5em; background: #fafafa; font-family: 'Poppins', sans-serif;">
-                <form id="formConfirmarModelo" enctype="multipart/form-data">
+                <form id="formConfirmarModelo" enctype="multipart/form-data"
+                      data-email-modelo="{{ env('EMAIL_PROVEEDOR_MODELOS', 'produccion@ssmetalf.mx,asistenteprod@ssmetalf.mx') }}"
+                      data-email-calidad="{{ env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com') }}">
                     <input type="hidden" id="cm-ot" name="ot">
                     <input type="hidden" id="cm-id-hash" name="id_hash">
 
@@ -1939,7 +1941,23 @@
                         </p>
                     </div>
 
-                    {{-- FECHA DE CONFIRMACIí“N / ENVíO --}}
+                    <div class="form-group" style="margin-bottom: 20px;" id="div-cm-destinatario">
+                        <label for="cm-destinatario" style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.15em;">
+                            Notificar a Proveedor (correo electrónico):
+                        </label>
+                        <input type="text" id="cm-destinatario" name="destinatario" class="form-control" required style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
+                        <span style="font-size: 0.85em; color: #64748b; margin-top: 4px; display: block;">Separa múltiples correos con comas.</span>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;" id="div-cm-destinatario-calidad">
+                        <label for="cm-destinatario-calidad" style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.15em;">
+                            Notificar a Calidad (correo electrónico):
+                        </label>
+                        <input type="text" id="cm-destinatario-calidad" name="destinatario_calidad" class="form-control" style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
+                        <span style="font-size: 0.85em; color: #64748b; margin-top: 4px; display: block;">Copia para Calidad (Modelos).</span>
+                    </div>
+
+                    {{-- FECHA DE CONFIRMACIÓN / ENVÍO --}}
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label for="cm-fecha"
                             style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.15em;">
@@ -1947,6 +1965,18 @@
                         </label>
                         <input type="date" id="cm-fecha" name="fecha" class="form-control" required
                             style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 22px;">
+                        <label
+                            style="font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif; font-size:1.15em;">Archivos
+                            de la OT disponibles para adjuntar:</label>
+                        <div id="cm-server-files-container"
+                            style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;">
+                            <div class="alm-spinner" id="cm-server-spinner"
+                                style="border-top-color: #0284c7; display: block; margin: 10px auto; grid-column:1/-1;">
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 22px;">
@@ -2356,16 +2386,23 @@
                     style="color: #bae6fd; font-size: 0.9em; margin-top: 4px; margin-bottom: 0;"></p>
             </div>
             <div class="alm-modal-body">
-                <form id="formEnviarPreOrden" enctype="multipart/form-data">
+                <form id="formEnviarPreOrden" enctype="multipart/form-data"
+                      data-email-modelo="{{ env('EMAIL_PROVEEDOR_MODELOS', 'produccion@ssmetalf.mx,asistenteprod@ssmetalf.mx') }}"
+                      data-email-casting="{{ env('EMAIL_PRODUCCION_SS', 'produccion@ssmetalf.mx,laboratorio@ssmetalf.mx') }}"
+                      data-email-calidad="{{ env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com') }}">
                     <input type="hidden" id="env-ot" name="ot">
                     <input type="hidden" id="env-tipo" name="tipo" value="modelo">
 
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label for="env-destinatario">Destinatario(s):</label>
-                        <input type="text" id="env-destinatario" name="destinatario" class="form-control" required
-                            value="inspecciontec@grupoindsaavedra.com">
-                        <span style="font-size: 0.8em; color: #64748b; margin-top: 4px;">Separa múltiples correos usando
-                            comas (,).</span>
+                    <div class="form-group" style="margin-bottom: 20px;" id="div-env-destinatario">
+                        <label for="env-destinatario">Notificar a Proveedor (correo electrónico):</label>
+                        <input type="text" id="env-destinatario" name="destinatario" class="form-control" required>
+                        <span style="font-size: 0.8em; color: #64748b; margin-top: 4px;">Separa múltiples correos con comas.</span>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;" id="div-env-destinatario-calidad">
+                        <label for="env-destinatario-calidad">Notificar a Calidad (correo electrónico):</label>
+                        <input type="text" id="env-destinatario-calidad" name="destinatario_calidad" class="form-control">
+                        <span style="font-size: 0.8em; color: #64748b; margin-top: 4px;">Copia para Calidad (Modelos).</span>
                     </div>
 
                     <div class="form-group" style="margin-bottom: 20px;">
