@@ -1054,7 +1054,7 @@ class Dashboard {
                 // Perfiles permitidos: 1=Master, 2=Admin, 4=Calidad, 5=Almacén
                 if (
                     userProfileChecklist &&
-                    (userProfileChecklist.value === "1" || userProfileChecklist.value === "2" ||
+                    (userProfileChecklist.value === "1" || userProfileChecklist.value === "2" || userProfileChecklist.value === "3" ||
                      userProfileChecklist.value === "4" || userProfileChecklist.value === "5")
                 ) {
                     section.classList.add('section--has-checklist');
