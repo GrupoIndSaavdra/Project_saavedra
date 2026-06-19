@@ -53,12 +53,14 @@ class WOController extends Controller
         $workOrdersAll = Orden_trabajo::query()->with(['clases', 'moldura'])->get();
         $workOrders = null;
 
+        $isAlmacen = auth()->user()->perfil == 5 || request('almacen_only') == 1;
+
         if ($workOrdersAll->isNotEmpty()) {
             $workOrders = [];
             $counter = 0;
             foreach ($workOrdersAll as $workOrder) {
                 $clases = $workOrder->clases;
-                if (auth()->user()->perfil == 5) {
+                if ($isAlmacen) {
                     if ($clases->count() == 0)
                         continue;
                 } else {
@@ -98,7 +100,12 @@ class WOController extends Controller
         //Busqueda de la orden de trabajo ingresada o creada
         $workOrder = Orden_trabajo::query()->find(isset($request->workOrderAdded) ? $request->input('workOrderAdded') : $request->input('workOrderSelected'), ['*']);
 
-        return redirect()->route('showWO', ['workOrder' => $workOrder]);
+        $redirectParams = ['workOrder' => $workOrder];
+        if ($request->input('profile') == 5 || $request->input('almacen_only') == 1 || request('almacen_only') == 1) {
+            $redirectParams['almacen_only'] = 1;
+        }
+
+        return redirect()->route('showWO', $redirectParams);
     }
 
     /**
@@ -113,8 +120,8 @@ class WOController extends Controller
         $classes = $this->classController->getClasses($workOrder);
         $classes = $classes->count() == 0 ? null : $classes;
 
-        // Vista especial para Almacén (perfil 5)
-        if (auth()->user()->perfil == 5) {
+        // Vista especial para Almacén (perfil 5) o cuando se solicita modo Almacén (almacen_only)
+        if (auth()->user()->perfil == 5 || request('almacen_only') == 1) {
             // Cargar remisiones y parcialidades agrupadas por id_clase
             $claseIds = $classes ? $classes->pluck('id')->toArray() : [];
             $remisiones   = RemisionOt::with('usuario')->whereIn('id_clase', $claseIds)->where('visible', 1)->orderByDesc('created_at')->get()->groupBy('id_clase');
@@ -227,6 +234,14 @@ class WOController extends Controller
         $array[$class->nombre]["endDate"] = $class->fecha_termino ? $this->getStringDate($class->fecha_termino, $class->hora_termino) : "-";
         $array[$class->nombre]["entregadas"] = ParcialidadOt::query()->where('id_clase', $class->id)->sum('cantidad');
         $array[$class->nombre]["processes"] = $this->insertProcessesData($class);
+
+        // Flag para indicar si la clase lleva el proceso Soldadura PTA activo.
+        // Se usa en el frontend para decidir si montar la PTACardComponent.
+        $hasPTA = false;
+        if ($class->procesos && $class->procesos->soldaduraPTA != 0) {
+            $hasPTA = true;
+        }
+        $array[$class->nombre]["hasPTA"] = $hasPTA;
     }
     /**
      * @param mixed $class

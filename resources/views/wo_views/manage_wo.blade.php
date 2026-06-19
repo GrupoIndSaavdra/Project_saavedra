@@ -13,10 +13,10 @@
 <div class="wrapper">
     <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
     <h2>Agregar o seleccionar orden de trabajo</h2>
-    <form action="{{ route('storeWO') }}" method="POST" class="form pt-3">
+    <form action="{{ route('storeWO', request('almacen_only') == 1 ? ['almacen_only' => 1] : []) }}" method="POST" class="form pt-3">
         @csrf
         @include('layouts.partials.messages') <!--Mensajes de error o exito en la creacion o seleccion de una orden de trabajo-->
-        <input type="hidden" value="{{ auth()->user()->perfil }}" name="profile" />
+        <input type="hidden" value="{{ request('almacen_only') == 1 ? 5 : auth()->user()->perfil }}" id="wo-profile" name="profile" />
         <div class="div-bttns"></div>
     </form>
 </div>

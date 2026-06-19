@@ -278,7 +278,7 @@ class PTACardComponent {
         if (this._busy) return;
 
         // Guard extra: si el contenedor original ya no está en el DOM, destruir el timer.
-        if (this.targetContainer && !this.targetContainer.isConnected) {
+        if (this.container && !this.container.isConnected) {
             this._destroy();
             return;
         }
@@ -1029,14 +1029,15 @@ class Dashboard {
                     processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces, classArray["pieces"], indexProcess + 1));
                 });
 
-                // ── Card PTA: instanciar SIEMPRE si la OT tiene Soldadura PTA ─
+                // ── Card PTA: instanciar SIEMPRE si la clase tiene soldaduraPTA activo ─
+                // Se usa el flag `hasPTA` enviado por el servidor (campo soldaduraPTA != 0
+                // en la tabla de procesos), que es la fuente de verdad más confiable.
                 // Si aún no hay piezas (ptaData=null), el componente arrancará en modo
                 // dormido y se montará solo en cuanto el polling detecte la primera pieza.
-                const processKeys = Object.keys(classArray["processes"]);
-                if (processKeys.some(k => k.includes("Soldadura PTA"))) {
+                if (classArray["hasPTA"] === true) {
                     let userProfile = document.getElementById("profile");
-                    // Perfiles permitidos: 1=Master, 2=Admin, 4=Calidad, 5=Almacén
-                    if (userProfile && (userProfile.value == "1" || userProfile.value == "2" || userProfile.value == "4" || userProfile.value == "5")) {
+                    // Perfiles permitidos: 1=Master, 2=Operador, 3=Admin, 4=Calidad, 5=Almacén
+                    if (userProfile && (userProfile.value == "1" || userProfile.value == "2" || userProfile.value == "3" || userProfile.value == "4" || userProfile.value == "5")) {
                         const classId = classArray["id"];
                         const ptaData = (window.ptaCardsData && window.ptaCardsData[wOrderName] && window.ptaCardsData[wOrderName][classId])
                             ? window.ptaCardsData[wOrderName][classId]

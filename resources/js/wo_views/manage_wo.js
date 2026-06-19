@@ -1,4 +1,5 @@
-const profile = document.getElementById("profile").value;
+const urlParams = new URLSearchParams(window.location.search);
+const profile = urlParams.get('almacen_only') === '1' ? 5 : document.getElementById("wo-profile").value;
 createButtonsAdd_Select();
 
 //Funcion para crear los botones de "Crear OT" y "Seleccionar OT"

@@ -81,6 +81,13 @@ function createList(sections, isNested = false) {
                     const a = document.createElement("a");
                     a.classList.add("nav-link");
                     a.href = window.routes[route[0]];
+                    if (route[2]) {
+                        if (a.href.includes('?')) {
+                            a.href += '&' + route[2];
+                        } else {
+                            a.href += '?' + route[2];
+                        }
+                    }
                     a.textContent = route[1];
 
                     a.addEventListener("click", (e) => {
@@ -108,9 +115,12 @@ function createList(sections, isNested = false) {
                     const linkSearch = linkUrl.search;
 
                     const pathMatch   = currentPath === linkPath;
-                    const searchMatch = linkSearch
-                        ? window.location.search === linkSearch
-                        : window.location.search === '' || !window.location.search.includes('admin_only=1');
+                    let searchMatch = false;
+                    if (linkSearch) {
+                        searchMatch = window.location.search.includes(linkSearch.substring(1));
+                    } else {
+                        searchMatch = window.location.search === '' || (!window.location.search.includes('admin_only=1') && !window.location.search.includes('almacen_only=1'));
+                    }
 
                     if (pathMatch && searchMatch) {
                         a.classList.add("active");
@@ -172,6 +182,13 @@ function createList(sections, isNested = false) {
                 const a = document.createElement("a");
                 a.classList.add("nav-link");
                 a.href = window.routes[route[0]];
+                if (route[2]) {
+                    if (a.href.includes('?')) {
+                        a.href += '&' + route[2];
+                    } else {
+                        a.href += '?' + route[2];
+                    }
+                }
                 a.textContent = route[1];
 
                 a.addEventListener("click", (e) => {
@@ -199,9 +216,12 @@ function createList(sections, isNested = false) {
                 const linkSearch2 = linkUrl2.search;
 
                 const pathMatch2   = currentPath === linkPath2;
-                const searchMatch2 = linkSearch2
-                    ? window.location.search === linkSearch2
-                    : window.location.search === '' || !window.location.search.includes('admin_only=1');
+                let searchMatch2 = false;
+                if (linkSearch2) {
+                    searchMatch2 = window.location.search.includes(linkSearch2.substring(1));
+                } else {
+                    searchMatch2 = window.location.search === '' || (!window.location.search.includes('admin_only=1') && !window.location.search.includes('almacen_only=1'));
+                }
 
                 if (pathMatch2 && searchMatch2) {
                     a.classList.add("active");
@@ -228,70 +248,131 @@ function getRoutes(profile) {
                     routes: [routeHome],
                 },
                 {
-                    title: "Molduras",
+                    title: "Administración",
                     routes: [
-                        ["createMolding", "Crear nueva moldura"],
-                        ["editMolding", "Editar moldura"],
+                        {
+                            title: "Molduras",
+                            routes: [
+                                ["createMolding", "Crear nueva moldura"],
+                                ["editMolding", "Editar moldura"],
+                            ],
+                        },
+                        {
+                            title: "Orden de Trabajo",
+                            routes: [
+                                ["manageWO", "Crear o Modificar O.T"],
+                                ["piecesInProgress", "Orden de Trabajo en Progreso"],
+                                ["priorityManager", "Prioridad de Órdenes de Trabajo"],
+                                ["showPiecesReport_view", "Reporte de piezas"],
+                                ["showReleasePieces_view", "Liberación de piezas"],
+                            ],
+                        },
+                        {
+                            title: "Documentación Técnica",
+                            routes: [
+                                ["ayudas_fundicion.manage", "Ayudas Visuales de Fundición"],
+                                ["ayudas.manage", "Ayudas Visuales de Maquinados"],
+                                ["fundicion.manage", "Dibujos de Fundición"],
+                                ["dibujos.manage", "Dibujos de Maquinados"],
+                                ["manuales.manage", "Manuales de Procesos"],
+                            ],
+                        },
+                        {
+                            title: "Usuarios",
+                            routes: [
+                                ['users', 'Ver usuarios'],
+                                ["createUser", "Registrar usuario"],
+                                ["recoverPassword", "Recuperar contraseña"],
+                            ],
+                        },
+                        {
+                            title: "Producción",
+                            routes: [
+                                ["productionData", "Datos de productividad"],
+                                ["cNominals", "Editar C.Nominales y Tolerancias"],
+                                ["machinesOccupied", "Máquinas ocupadas"],
+                                ["show_panelWO", "Panel de progreso de O.T"],
+                                ["systemLogsReport", "Auditoría de Producción"],
+                                ["adminLogsReport", "Logs de Administradores"],
+                            ],
+                        },
+                        {
+                            title: "Soldadura PTA",
+                            routes: [
+                                ["pta.analysis", "Análisis de Resultados PTA"],
+                                ["pta.segunda_pasada", "Segunda Pasada PTA"],
+                            ],
+                        },
+                        {
+                            title: "Reportes",
+                            routes: [
+                                ["reportes.reenvio", "Reenviar Reporte Diario"],
+                                ["reportes.pta", "Envío de Reportes PTA"],
+                            ],
+                        },
+                        {
+                            title: "Herramientas",
+                            routes: [
+                                ["herramientas.tecamac.index", "Herramientas Tecamac"],
+                            ],
+                        },
                     ],
                 },
                 {
-                    title: "Orden de Trabajo",
+                    title: "Calidad",
                     routes: [
-                        ["manageWO", "Crear o Modificar O.T"],
-                        ["piecesInProgress", "Orden de Trabajo en Progreso"],
-                        ["priorityManager", "Prioridad de Órdenes de Trabajo"],
-                        ["showPiecesReport_view", "Reporte de piezas"],
-                        ["showReleasePieces_view", "Liberacion de piezas"],
+                        {
+                            title: "Liberación de Piezas",
+                            routes: [["showReleasePieces_view", "Liberación de piezas"]],
+                        },
+                        {
+                            title: "Producción",
+                            routes: [
+                                ["piecesInProgress", "Orden de Trabajo en Progreso"],
+                                ["cNominals", "Editar C.Nominales y Tolerancias"],
+                            ],
+                        },
+                        {
+                            title: "Documentación Técnica",
+                            routes: [
+                                ["calidad.fundicion.index", "Dibujos y Ayudas de Fundición"],
+                                ["calidad.maquinados.index", "Dibujos y Ayudas de Maquinados"],
+                            ],
+                        },
                     ],
                 },
                 {
-                    title: "Documentación Técnica",
+                    title: "Almacén",
                     routes: [
-                        ["ayudas_fundicion.manage", "Ayudas Visuales de Fundición"],
-                        ["ayudas.manage", "Ayudas Visuales de Maquinados"],
-                        ["fundicion.manage", "Dibujos de Fundición"],
-                        ["dibujos.manage", "Dibujos de Maquinados"],
-                        ["manuales.manage", "Manuales de Procesos"],
-                    ],
-                },
-                {
-                    title: "Usuarios",
-                    routes: [
-                        ['users', 'Ver usuarios'],
-                        ["createUser", "Registrar usuario"],
-                        ["recoverPassword", "Recuperar contraseña"],
-                    ],
-                },
-                {
-                    title: "Producción",
-                    routes: [
-                        ["productionData", "Datos de productividad"],
-                        ["cNominals", "Editar C.Nominales y Tolerancias"],
-                        ["machinesOccupied", "Maquinas ocupadas"],
-                        // ["showTimes", "Modificar tiempos de producción"],
-                        ["show_panelWO", "Panel de progreso de O.T"],
-                        ["systemLogsReport", "Auditoría de Producción"],
-                        ["adminLogsReport", "Logs de Administradores"],
-                    ],
-                },
-                {
-                    title: "Soldadura PTA",
-                    routes: [
-                        ["pta.analysis", "Análisis de Resultados Sold. PTA"],
-                        ["pta.segunda_pasada", "Segunda Pasada PTA"],
-                    ],
-                },
-                {
-                    title: "Reportes",
-                    routes: [
-                        ["reportes.reenvio", "Reenviar Reporte Diario"],
-                        ["reportes.pta", "Envío de Reportes PTA"],
-                    ],
-                },
-                {
-                    title: "Herramientas",
-                    routes: [
-                        ["herramientas.tecamac.index", "Herramientas Tecamac"],
+                        {
+                            title: "Orden de Trabajo",
+                            routes: [
+                                ["manageWO", "Modificar O.T", "almacen_only=1"],
+                                ["piecesInProgress", "Orden de Trabajo en Progreso"],
+                            ],
+                        },
+                        {
+                            title: "Soldadura",
+                            routes: [
+                                ["soldadura.generarQRLote", "Generar QR por Lote"],
+                                ["soldadura.generarQRIndividual", "Generar QRs Botes"],
+                                ["soldadura.recepcionPlanta", "Registrar entrada de Soldadura"],
+                                ["soldadura.liberarQRPlanta", "Entrega de Soldadura a Planta"],
+                                ["soldadura.regenerarQR", "Regenerar QRs"],
+                            ],
+                        },
+                        {
+                            title: "Documentación Técnica",
+                            routes: [
+                                ["almacen.fundicion.index", "Dibujos y Ayudas de Fundición"],
+                            ],
+                        },
+                        {
+                            title: "Herramientas",
+                            routes: [
+                                ["herramientas.tecamac.index", "Herramientas Tecamac"],
+                            ],
+                        },
                     ],
                 },
             ];
@@ -420,7 +501,7 @@ function getRoutes(profile) {
                         {
                             title: "Orden de Trabajo",
                             routes: [
-                                ["manageWO", "Modificar O.T"],
+                                ["manageWO", "Modificar O.T", "almacen_only=1"],
                                 ["piecesInProgress", "Orden de Trabajo en Progreso"],
                             ],
                         },

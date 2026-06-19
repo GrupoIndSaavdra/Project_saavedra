@@ -101,8 +101,8 @@
 </script>
 @isset($pieces_Released)
     <script>
-        window.pieces_Released = @json(auth()->user()->perfil) == 4 ? @json($pieces_Released) : [];
-        window.info_Pieces = @json(auth()->user()->perfil) == 4 ? @json($info_Pieces) : [];
+        window.pieces_Released = [1, 3, 4].includes({{ auth()->user()->perfil }}) ? @json($pieces_Released) : [];
+        window.info_Pieces = [1, 3, 4].includes({{ auth()->user()->perfil }}) ? @json($info_Pieces) : [];
     </script>
 @endisset
 

@@ -1,7 +1,7 @@
 @extends('layouts.appMenu')
 
 @section('head')
-    <title>Progreso de piezas</title>
+    <title>Progreso de OT</title>
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     <script>
         window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";

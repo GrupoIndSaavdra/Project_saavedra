@@ -17,7 +17,7 @@
     ═══════════════════════════════════════════════════ --}}
     <div class="panel-ot">
         <div class="navigation-header" style="margin-bottom: 1rem; display: flex; justify-content: flex-start;">
-            <a href="{{ route('manageWO') }}" class="btn-regresar">
+            <a href="{{ route('manageWO', request('almacen_only') == 1 ? ['almacen_only' => 1] : []) }}" class="btn-regresar">
                 ← Regresar a OTs
             </a>
         </div>
