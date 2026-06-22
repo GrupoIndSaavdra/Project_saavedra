@@ -1576,12 +1576,14 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        // Obtener TODAS las clases para esta OT y filtrarlas por aprobados en liberación
-        $clases = $ot->clases->map(fn($c) => [
+        $clasesOrig = $ot->clases->map(fn($c) => [
             'id' => $c->id,
             'nombre' => $c->nombre,
             'pedido' => $c->pedido
-        ])->filter(function ($c) use ($otFull, $baseOt, $type) {
+        ])->values();
+
+        // Obtener TODAS las clases para esta OT y filtrarlas por aprobados en liberación
+        $clases = collect($clasesOrig)->filter(function ($c) use ($otFull, $baseOt, $type) {
 
             $clLow = strtolower($c['nombre']);
             $tipo = null;
@@ -1608,9 +1610,7 @@ class AlmacenFundicionController extends Controller
                     // en ninguna iteración de esta OT.
                     $isAprobado = LiberacionModeloFundicion::query()
                         ->where(function ($q) use ($otFull, $baseOt) {
-                            $q->where('ot', '=', $otFull)
-                                ->orWhere('ot', '=', $baseOt)
-                                ->orWhere('ot', 'LIKE', $baseOt . '_R%');
+                            $q->where('ot', 'LIKE', $baseOt . '%');
                         })
                         ->where('tipo_modelo', '=', $tipo)
                         ->where('estado', '=', 'aprobado')
@@ -1639,10 +1639,8 @@ class AlmacenFundicionController extends Controller
 
             if ($tipo) {
                 $isAprobado = LiberacionModeloFundicion::query()
-                    ->where(function ($q) use ($otFull, $baseOt) {
-                        $q->where('ot', '=', $otFull)
-                            ->orWhere('ot', '=', $baseOt)
-                            ->orWhere('ot', 'LIKE', $baseOt . '_R%');
+                    ->where(function ($q) use ($baseOt) {
+                        $q->where('ot', 'LIKE', $baseOt . '%');
                     })
                     ->where('tipo_modelo', '=', $tipo)
                     ->where('estado', '=', 'aprobado')
@@ -1724,6 +1722,12 @@ class AlmacenFundicionController extends Controller
             if (!empty($preOrdenDB->filas)) {
                 foreach ($preOrdenDB->filas as $fila) {
                     $claseNombre = $fila['clase_nombre'] ?? $fila['clase'] ?? '';
+                    if (is_numeric($claseNombre)) {
+                        $cObj = collect($clasesOrig)->firstWhere('id', (int)$claseNombre);
+                        if ($cObj) {
+                            $claseNombre = $cObj['nombre'];
+                        }
+                    }
                     $clLow = strtolower($claseNombre);
                     $tipo = null;
                     if (strpos($clLow, 'fondo') !== false)
@@ -1737,10 +1741,8 @@ class AlmacenFundicionController extends Controller
 
                     if ($tipo) {
                         $isAprobado = LiberacionModeloFundicion::query()
-                            ->where(function ($q) use ($otFull, $baseOt) {
-                                $q->where('ot', '=', $otFull)
-                                    ->orWhere('ot', '=', $baseOt)
-                                    ->orWhere('ot', 'LIKE', $baseOt . '_R%');
+                            ->where(function ($q) use ($baseOt) {
+                                $q->where('ot', 'LIKE', $baseOt . '%');
                             })
                             ->where('tipo_modelo', '=', $tipo)
                             ->where('estado', '=', 'aprobado')
