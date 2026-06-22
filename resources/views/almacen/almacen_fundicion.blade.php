@@ -1238,8 +1238,8 @@
                                                     <td colspan="6">
 
                                                         @php
-                                                            $dibujosTop = array_merge($dibujosPendientes, $dibujosAprobados);
-                                                            $ayudasTop = array_merge($ayudasPendientes, $ayudasAprobados);
+                                                            $dibujosTop = array_merge($dibujosPendientes, $dibujosAprobados, $dibujosRechazados);
+                                                            $ayudasTop = array_merge($ayudasPendientes, $ayudasAprobados, $ayudasRechazados);
                                                         @endphp
 
                                                         @if (count($dibujosTop) > 0 && $reg->alert_sent_at)
@@ -1355,48 +1355,7 @@
                                                             </div>
                                                         @endif
 
-                                                        {{-- BLOQUE 5: Archivos de clases rechazadas (dibujos y ayudas) + docs en Documentos_Rechazados --}}
-                                                        @if (count($dibujosRechazados) > 0 && $reg->alert_sent_at)
-                                                            <h3 style="margin-top: 25px; margin-bottom: 10px; color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 5px;">
-                                                                Dibujos Rechazados</h3>
-                                                            <div class="alm-pdf-grid">
-                                                                @foreach ($dibujosRechazados as $archivoInfo)
-                                                                    <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
-                                                                        <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')" style="cursor: pointer;" title="Abrir PDF">
-                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
-                                                                        </div>
-                                                                        <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
-                                                                            {{ basename($archivoInfo['nombre']) }}
-                                                                        </div>
-                                                                        <div class="file-actions">
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #dc2626; color: white;" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">Ver</button>
-                                                                        </div>
-                                                                    </div>
-                                                                @endforeach
-                                                            </div>
-                                                        @endif
-
-                                                        @if (count($ayudasRechazados) > 0)
-                                                            <h3 style="margin-top: 25px; margin-bottom: 10px; color: #dc2626; border-bottom: 2px solid #dc2626; padding-bottom: 5px;">
-                                                                Ayudas Visuales Rechazadas</h3>
-                                                            <div class="alm-pdf-grid">
-                                                                @foreach ($ayudasRechazados as $ayudaArchivo)
-                                                                    <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
-                                                                        <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')" style="cursor: pointer;" title="Abrir PDF">
-                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
-                                                                        </div>
-                                                                        <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
-                                                                            {{ basename($ayudaArchivo['nombre']) }}
-                                                                        </div>
-                                                                        <div class="file-actions">
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #dc2626; color: white;" onclick="almacenVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">Ver</button>
-                                                                        </div>
-                                                                    </div>
-                                                                @endforeach
-                                                            </div>
-                                                        @endif
+                                                        {{-- BLOQUE 5: docs en Documentos_Rechazados --}}
 
                                                         @if ($countRechazados > 0)
                                                             <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
