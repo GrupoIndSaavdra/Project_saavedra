@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int|null         $version
  * @property int|null         $user_id
  * @property string|null      $user_nombre
+ * @property bool             $is_sent
  * @property \Carbon\Carbon   $created_at
  * @property \Carbon\Carbon   $updated_at
  */
@@ -38,6 +39,7 @@ class PreOrdenFundicion extends Model
         'observaciones',
         'filas',
         'pdf_filename',
+        'is_sent',
         'version',
         'user_id',
         'user_nombre',

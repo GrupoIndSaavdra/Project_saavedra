@@ -162,8 +162,16 @@ function updateAdminUI() {
         if (uploadNotReadyContent) uploadNotReadyContent.style.display = 'none';
         if (uploadReadyContent) uploadReadyContent.style.display = 'block';
         if (alertUploadNoFolder) alertUploadNoFolder.style.display = existe ? 'none' : 'block';
+        
+        const fileFormGroup = uploadReadyContent ? uploadReadyContent.querySelector('.dibujos-form-group') : null;
+        if (fileFormGroup) fileFormGroup.style.display = existe ? 'block' : 'none';
+        
+        const fileInput = document.getElementById('d-upload-file');
+        if (fileInput) fileInput.disabled = !existe;
+
         if (btnSubir) {
             btnSubir.disabled = !existe;
+            btnSubir.style.display = existe ? 'inline-block' : 'none';
             if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
             else if (module === 'manuales') { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; }
             else if (module === 'ayudas') { btnSubir.dataset.proceso = p1; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }

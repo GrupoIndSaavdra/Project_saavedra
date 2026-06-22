@@ -196,7 +196,7 @@
                         $otLabel = "OT " . $otActiva->id . ($otActiva->moldura ? " - " . $otActiva->moldura->nombre : "");
                         // Normalización básica para coincidir con el controlador
                         $normalizedOt = trim(preg_replace('/\s+/', ' ', mb_strtoupper(str_replace(['—', '–', "\xc2\xa0"], '-', $otLabel))));
-                        
+
                         $param1Name = $normalizedOt;
                         $param2Name = $claseActiva ? $claseActiva->nombre : $claseSeleccionadaId;
                         $folderPathLabel = "<span class='lvl-1'>" . $otLabel . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . $param2Name . "</span>";
@@ -206,25 +206,26 @@
                 @endphp
 
                 <div id="admin-status-container">
-                    <div id="alert-ready-exists" class="d-alert d-alert-success d-mt-2" style="display: {{ $isReady && $carpetaExiste ? 'block' : 'none' }};">
-                        La carpeta <strong class="folder-label">{{ $folderPathLabel ?? '...' }}</strong> ya existe en el servidor.
+                    <div id="alert-ready-exists" class="d-alert d-alert-success d-mt-2"
+                        style="display: {{ $isReady && $carpetaExiste ? 'block' : 'none' }};">
+                        La carpeta <strong class="folder-label">{{ $folderPathLabel ?? '...' }}</strong> ya existe en el
+                        servidor.
                     </div>
-                    <div id="alert-ready-not-exists" class="d-alert d-alert-warning d-mt-2" style="display: {{ $isReady && !$carpetaExiste ? 'block' : 'none' }};">
-                        La carpeta <strong class="folder-label">{{ $folderPathLabel ?? '...' }}</strong> aun <strong>no existe</strong>. Creala antes de
+                    <div id="alert-ready-not-exists" class="d-alert d-alert-warning d-mt-2"
+                        style="display: {{ $isReady && !$carpetaExiste ? 'block' : 'none' }};">
+                        La carpeta <strong class="folder-label">{{ $folderPathLabel ?? '...' }}</strong> aun <strong>no
+                            existe</strong>. Creala antes de
                         subir PDFs.
                     </div>
-                    <button class="btn-dibujos d-mt-2" id="btn-crear-carpeta" 
-                        style="display: {{ $isReady && !$carpetaExiste ? 'block' : 'none' }};"
-                        @if(isset($folderProps))
-                            @foreach($folderProps as $k => $v) {{ $k }}="{{ $v }}" @endforeach
-                        @else
-                            data-ot="" data-clase="" data-proceso=""
-                        @endif
-                        data-folder-param1="{{ $param1Name ?? '' }}" 
+                    <button class="btn-dibujos d-mt-2" id="btn-crear-carpeta"
+                        style="display: {{ $isReady && !$carpetaExiste ? 'block' : 'none' }};" @if(isset($folderProps))
+                        @foreach($folderProps as $k => $v) {{ $k }}="{{ $v }}" @endforeach @else data-ot="" data-clase=""
+                        data-proceso="" @endif data-folder-param1="{{ $param1Name ?? '' }}"
                         data-folder-param2="{{ $param2Name ?? '' }}">
                         Crear Carpeta
                     </button>
-                    <div id="alert-not-ready" class="d-alert d-alert-info d-mt-2" style="display: {{ $isReady ? 'none' : 'block' }};">
+                    <div id="alert-not-ready" class="d-alert d-alert-info d-mt-2"
+                        style="display: {{ $isReady ? 'none' : 'block' }};">
                         {{ $alertContext }}
                     </div>
                 </div>
@@ -240,8 +241,11 @@
                             Carpeta destino: <strong class="folder-label d-text-bold" style="color:#033966;">...</strong>
                         </p>
 
-                        <div id="alert-upload-no-folder" class="d-text-xs d-text-danger d-mb-2" style="display:none;">
-                            La carpeta no existe. Primero creala en el panel de la izquierda.
+                        <div id="alert-upload-no-folder" class="d-alert d-alert-warning d-mb-3"
+                            style="display:none; font-size: 0.95em; border-left: 4px solid #f59e0b; background-color: #fffbeb; color: #b45309; padding: 12px 15px; border-radius: 6px;">
+                            <strong style="color:red;">ACCIÓN REQUERIDA:</strong> La carpeta de destino aun no existe.<br>
+                            Para habilitar la subida de archivos, primero <strong style="color:red;">Crea la Carpeta</strong> utilizando el
+                            botón correspondiente en el panel izquierdo.
                         </div>
 
                         <div class="dibujos-form-group">
@@ -327,7 +331,8 @@
                                         <tr data-ot="{{ $otName }}" data-clase="">
                                             <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
                                             <td class="d-text-center"><em class="d-text-danger d-text-bold">Sin clases</em></td>
-                                            <td class="d-text-center"><span class="badge-count" id="badge-{{ Str::slug($otName) }}-raiz">...</span></td>
+                                            <td class="d-text-center"><span class="badge-count"
+                                                    id="badge-{{ Str::slug($otName) }}-raiz">...</span></td>
                                             <td class="d-text-center">
                                                 <div class="td-actions">
                                                     <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar OT completa"
@@ -433,7 +438,8 @@
                                                     // Filtrar por existencia física real en el servidor
                                                     $ayudasFiltradas = collect($ayudasLinked)->filter(function ($a) use ($clasesFisicas) {
                                                         $val = trim(strtolower((string) $a));
-                                                        if (empty($val) || $val === 'null' || $val === 'undefined') return false;
+                                                        if (empty($val) || $val === 'null' || $val === 'undefined')
+                                                            return false;
                                                         return in_array($a, $clasesFisicas);
                                                     });
                                                 @endphp
@@ -598,7 +604,8 @@
 
                                     $ayudasFiltradas = collect($ayudasLinked)->filter(function ($a) use ($clasesFisicas) {
                                         $val = trim(strtolower((string) $a));
-                                        if (empty($val) || $val === 'null' || $val === 'undefined') return false;
+                                        if (empty($val) || $val === 'null' || $val === 'undefined')
+                                            return false;
                                         // Solo mostrar si existe la carpeta física actualmente en la OT
                                         return in_array($a, $clasesFisicas);
                                     });
@@ -717,10 +724,10 @@
             'doc.deleteFolder': "{{ route($modulePrefix . '.deleteFolder') }}",
             'doc.deleteParent': "{{ route($modulePrefix . '.deleteParent') }}",
             @if($moduleType === 'fundicion')
-                'fundicion.send_alert': "{{ route('fundicion.send_alert') }}",
+                                'fundicion.send_alert': "{{ route('fundicion.send_alert') }}",
                 'doc.total_archivos': "{{ route('fundicion.total_archivos') }}",
             @endif
-                        };
+                                };
         window.csrfToken = "{{ csrf_token() }}";
         window.estructura = @json($estructura);
 

@@ -159,34 +159,33 @@ class CalidadFundicionController extends Controller
             $allOtNames[] = $ot;
         }
 
-        $modelPreOrden = PreOrdenFundicion::where('ot', '=', $ot, 'and')->where('pdf_filename', 'NOT LIKE', '%Casting%', 'and')->first();
         $activeClasses = [];
-        if ($modelPreOrden) {
-            $filas = $modelPreOrden->filas;
-            if (is_string($filas)) {
-                $filas = json_decode($filas, true);
-            }
-            if (is_array($filas)) {
-                foreach ($filas as $f) {
-                    $val = null;
-                    if (isset($f['clase'])) {
-                        $val = strtolower($f['clase']);
-                    } elseif (isset($f['clase_nombre'])) {
-                        $val = strtolower($f['clase_nombre']);
-                    }
-                    if ($val) {
-                        foreach (['fondo', 'obturador', 'bombillo', 'molde'] as $kc) {
-                            if (strpos($val, $kc) !== false) {
-                                $activeClasses[] = $kc;
-                            }
+        if ($history && !empty($history->ayudas_config)) {
+            $config = is_string($history->ayudas_config) ? json_decode($history->ayudas_config, true) : $history->ayudas_config;
+            if (is_array($config)) {
+                foreach ($config as $c) {
+                    $clLow = strtolower($c);
+                    foreach (['fondo', 'obturador', 'bombillo', 'molde'] as $kc) {
+                        if (strpos($clLow, $kc) !== false) {
+                            $activeClasses[] = $kc;
                         }
                     }
                 }
             }
         }
+        
+        // Fallback a buscar en las liberaciones registradas si ayudas_config falla
+        if (empty($activeClasses)) {
+            $libs = LiberacionModeloFundicion::where('ot', $ot)->pluck('tipo_modelo')->filter()->toArray();
+            foreach ($libs as $l) {
+                $activeClasses[] = strtolower($l);
+            }
+        }
+
         if (empty($activeClasses)) {
             $activeClasses = ['fondo', 'bombillo', 'molde', 'obturador'];
         }
+        $activeClasses = array_unique($activeClasses);
 
         $user = Auth::user();
         $isQuality = ($user->perfil == 4);
@@ -410,7 +409,8 @@ class CalidadFundicionController extends Controller
                             if ($hasKnownClass) {
                                 $matchesActive = false;
                                 foreach ($activeClasses as $ac) {
-                                    if (strpos($fileLower, $ac) !== false) {
+                                    $acTrimmed = trim($ac);
+                                    if (!empty($acTrimmed) && strpos($fileLower, $acTrimmed) !== false) {
                                         $matchesActive = true;
                                         break;
                                     }
@@ -1079,18 +1079,22 @@ class CalidadFundicionController extends Controller
         ];
 
         // Requerimiento 2: Actualizar SOLO los campos del tipo activo.
-        // Si existe un registro inicial (tipo_modelo = null), lo actualizamos.
-        $liberacionInicial = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->whereNull('tipo_modelo')->first();
-        if ($liberacionInicial) {
-            $liberacionInicial->update(['tipo_modelo' => $tipo]);
-            $liberacion = $liberacionInicial;
-        } else {
-            $liberacion = LiberacionModeloFundicion::firstOrCreate([
-                'ot'          => $ot,
-                'tipo_modelo' => $tipo,
-            ], [
-                'estado'      => 'pendiente',
-            ]);
+        // Intentar obtener el registro existente para este tipo y OT
+        $liberacion = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->where('tipo_modelo', '=', $tipo, 'and')->first();
+
+        if (!$liberacion) {
+            // Si existe un registro inicial (tipo_modelo = null), lo actualizamos.
+            $liberacionInicial = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->whereNull('tipo_modelo')->first();
+            if ($liberacionInicial) {
+                $liberacionInicial->update(['tipo_modelo' => $tipo]);
+                $liberacion = $liberacionInicial;
+            } else {
+                $liberacion = LiberacionModeloFundicion::create([
+                    'ot'          => $ot,
+                    'tipo_modelo' => $tipo,
+                    'estado'      => 'pendiente',
+                ]);
+            }
         }
 
         // Construir el arreglo de actualizacion con solo los campos pertinentes al tipo
@@ -2142,7 +2146,13 @@ class CalidadFundicionController extends Controller
         foreach ($liberacionesOT as $libRow) {
             // Si el tipo de modelo o decision es null en BD (ej: registro inicial), los inicializamos con los valores de la alerta
             if (is_null($libRow->tipo_modelo) && !empty($tipos)) {
-                $libRow->tipo_modelo = $tipos[0];
+                $exists = LiberacionModeloFundicion::where('ot', $ot)->where('tipo_modelo', $tipos[0])->exists();
+                if (!$exists) {
+                    $libRow->tipo_modelo = $tipos[0];
+                } else {
+                    $libRow->delete();
+                    continue;
+                }
             }
 
             // Procesar solo las clases que se están enviando en esta alerta
