@@ -257,7 +257,10 @@ const normalizeStr = (str) => {
 
 // ── Apertura / Cierre del modal ──
 
-window.abrirModalPreOrden = function (ot) {
+// Lista de clases ya procesadas (enviadas) en esta sesión del modal
+window._clasesYaProcesadasEnModelo = [];
+
+window.abrirModalPreOrden = function (ot, clasesYaProcesadas = []) {
     const modal = document.getElementById('modalPreOrden');
     const inputOt = document.getElementById('po-ot');
     const inputMoldura = document.getElementById('po-moldura');
@@ -271,6 +274,9 @@ window.abrirModalPreOrden = function (ot) {
         prefixDiv.style.display = 'none';
         prefixDiv.textContent = '';
     }
+
+    // Guardar clases ya procesadas para filtrar en el modal
+    window._clasesYaProcesadasEnModelo = Array.isArray(clasesYaProcesadas) ? clasesYaProcesadas.map(c => c.toLowerCase()) : [];
 
     // Mostrar/ocultar badge de ciclo de re-fabricación
     const cycleMatch = ot.match(/_R(\d+)$/i);
@@ -332,8 +338,8 @@ window.abrirModalPreOrden = function (ot) {
                     });
                 }
 
-                optionsHtmlCache = '<option value="">Selecciona clase</option>' +
-                    availableClasses.map(c => `<option value="${c.id}" data-nombre="${c.nombre}">${c.nombre}</option>`).join('');
+                // Construir opciones de select, excluyendo las clases ya procesadas (reactivo)
+                optionsHtmlCache = buildClaseOptionsForSelect(availableClasses, null, null);
 
                 if (data.folio) document.getElementById('po-folio').value = data.folio;
 
@@ -409,11 +415,21 @@ window.abrirModalPreOrden = function (ot) {
                     }
 
                     if (data.clases_vinculadas && data.clases_vinculadas.length > 0) {
-                        const fragment = document.createDocumentFragment();
-                        data.clases_vinculadas.forEach(claseNombre => {
-                            fragment.appendChild(createRowElement(claseNombre));
+                        const yaUsadas = (window._clasesYaProcesadasEnModelo || []).filter(yp => yp && yp.trim() !== '');
+                        const clasesPendientes = data.clases_vinculadas.filter(claseNombre => {
+                            const nombreNorm = claseNombre.toLowerCase();
+                            return !yaUsadas.some(yp => nombreNorm.includes(yp) || yp.includes(nombreNorm));
                         });
-                        tbody.appendChild(fragment);
+
+                        if (clasesPendientes.length > 0) {
+                            const fragment = document.createDocumentFragment();
+                            clasesPendientes.forEach(claseNombre => {
+                                fragment.appendChild(createRowElement(claseNombre));
+                            });
+                            tbody.appendChild(fragment);
+                        } else {
+                            tbody.appendChild(createRowElement());
+                        }
                         syncClassOptions('alm-tbody-preorden');
                     } else {
                         tbody.appendChild(createRowElement());
@@ -539,7 +555,13 @@ function createRowElement(claseNombrePredefinida = '', isSecondOrder = false, ro
 
 
 window.agregarFilaPreOrden = function () {
-    document.getElementById('alm-tbody-preorden').appendChild(createRowElement());
+    const newRow = createRowElement();
+    document.getElementById('alm-tbody-preorden').appendChild(newRow);
+    // Aplicar filtro de clases ya procesadas al nuevo select
+    const newSelect = newRow.querySelector('select.po-clase-select');
+    if (newSelect) {
+        newSelect.innerHTML = buildClaseOptionsForSelect(availableClasses, null, null);
+    }
     syncClassOptions('alm-tbody-preorden');
 };
 
@@ -605,14 +627,41 @@ window.generarCodigoFila = function (select) {
 };
 
 /**
- * Sincroniza las opciones de todos los selects de un tbody.
- * En esta versión NO se filtran/ocultan clases: todas las opciones
- * permanecen disponibles para que el usuario pueda elegirlas libremente.
- * @param {string} tbodyId - ID del tbody (mantenido para compatibilidad)
+ * Construye el HTML de opciones para un select específico,
+ * asegurando que su valor actual no desaparezca.
  */
+function buildClaseOptionsForSelect(classes, currentVal, currentText) {
+    const yaUsadas = (window._clasesYaProcesadasEnModelo || []).filter(yp => yp && yp.trim() !== '');
+    
+    return '<option value="">Selecciona clase</option>' +
+        classes.map(c => {
+            const nombreNorm = c.nombre.toLowerCase();
+            const yaUsada = yaUsadas.some(yp => nombreNorm.includes(yp) || yp.includes(nombreNorm));
+            
+            const isSelected = (currentVal && (currentVal == c.id || currentText === c.nombre));
+            
+            // Si la clase ya fue usada PERO es la que está seleccionada actualmente en este select, la mostramos.
+            if (yaUsada && !isSelected) return '';
+            
+            const selectedAttr = isSelected ? 'selected' : '';
+            return `<option value="${c.id}" data-nombre="${c.nombre}" ${selectedAttr}>${c.nombre}</option>`;
+        }).filter(Boolean).join('');
+}
+
 function syncClassOptions(tbodyId) {
-    // Lógica de exclusión desactivada por requerimiento.
-    // Todas las opciones quedan visibles en cada select.
+    // Reaplica las opciones filtradas a todos los selects del tbody
+    // para que las clases ya procesadas aparezcan tachadas/deshabilitadas
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    const yaUsadas = window._clasesYaProcesadasEnModelo || [];
+    if (yaUsadas.length === 0) return; // Sin restricciones: no hacer nada
+
+    Array.from(tbody.querySelectorAll('select.po-clase-select')).forEach(select => {
+        const currentVal = select.value;
+        const currentText = select.selectedIndex > 0 ? select.options[select.selectedIndex].text : '';
+        select.innerHTML = buildClaseOptionsForSelect(availableClasses, currentVal, currentText);
+        if (currentVal) select.value = currentVal;
+    });
 }
 
 // ── Modales de confirmación (ELIMINADOS) ──
@@ -869,11 +918,15 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
             const esImg = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes(ext);
             const defaultIcon = esImg ? 'galeria-shadow.png' : 'pdf-view-shadow.png';
             const hoverIcon = esImg ? 'galeria.png' : 'pdf-view.png';
+            const isConfirmacion = cleanName.toLowerCase().includes('confirmacionmodelo');
+            const shouldCheck = !(inputNameMode === 'preorden' && isConfirmacion);
+            const checkedAttr = shouldCheck ? 'checked' : '';
+            const checkedClass = shouldCheck ? 'checked-card' : '';
 
             return `
-                            <div class="dibujos-file-card ${colorClass} select-file-card checked-card" style="position: relative; width: 100%; max-width: 220px; display: inline-flex; flex-direction: column; align-items: center; text-align: center; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; background: #fff; padding: 10px; border: 1.5px solid #e2e8f0;">
+                            <div class="dibujos-file-card ${colorClass} select-file-card ${checkedClass}" style="position: relative; width: 100%; max-width: 220px; display: inline-flex; flex-direction: column; align-items: center; text-align: center; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; background: #fff; padding: 10px; border: 1.5px solid #e2e8f0;">
                                 <div style="position: absolute; top: 10px; left: 10px; z-index: 10;">
-                                    <input type="checkbox" name="${inputName}" value="${f.nombre}" checked style="width: 20px; height: 20px; cursor: pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card', this.checked);">
+                                    <input type="checkbox" name="${inputName}" value="${f.nombre}" ${checkedAttr} style="width: 20px; height: 20px; cursor: pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card', this.checked);">
                                 </div>
 
                                 <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}', '${f.nombre}', '${f.tipo}')" style="cursor: pointer; margin-top: 10px;" title="Abrir Archivo">
@@ -933,7 +986,7 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
     return sectionsHtml;
 }
 
-window.abrirModalEnviarPreOrden = function (ot, tipo) {
+window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
     const modal = document.getElementById('modalEnviarPreOrden');
     const inputOt = document.getElementById('env-ot');
     const filesContainer = document.getElementById('env-server-files-container');
@@ -996,8 +1049,6 @@ window.abrirModalEnviarPreOrden = function (ot, tipo) {
                 inputFecha.value = data.fecha_entrega || '';
             }
 
-
-
             if (data.existe && data.archivos && data.archivos.length > 0) {
                 let baseUrl = window.baseUrl || (window.location.origin + '/');
                 if (!baseUrl.endsWith('/')) baseUrl += '/';
@@ -1008,6 +1059,17 @@ window.abrirModalEnviarPreOrden = function (ot, tipo) {
                         const n = (f.nombre || '').toLowerCase();
                         return n.includes('pre-orden_casting') || (n.includes('pre-orden') && n.includes('casting'));
                     });
+                } else {
+                    if (clasesFaltantes && Array.isArray(clasesFaltantes)) {
+                        archivosAMostrar = archivosAMostrar.filter(f => {
+                            const n = (f.nombre || '').toLowerCase();
+                            // Siempre mantener archivos que no estén divididos por carpetas de clase
+                            if (n.includes('documentos_aprobados') || n.includes('documentos_rechazados') || n.includes('pre-orden')) return true;
+                            
+                            // Para Ayudas Visuales y Dibujos (que están dentro de carpetas de clase), validar si la clase es faltante
+                            return clasesFaltantes.some(clase => n.includes(clase.toLowerCase()));
+                        });
+                    }
                 }
 
                 const sectionsHtml = generarHtmlCategorizadoArchivos(archivosAMostrar, ot, baseUrl, 'preorden');
@@ -1032,6 +1094,50 @@ window.abrirModalEnviarPreOrden = function (ot, tipo) {
                 </div>
             `;
         });
+
+    // Obtener las pre-órdenes pendientes de envío (checkboxes)
+    const pendingContainer = document.getElementById('env-pending-preordenes-container');
+    if (pendingContainer) {
+        pendingContainer.innerHTML = `
+            <div style="text-align: center; padding: 10px;">
+                <div class="alm-spinner" style="border-top-color: #033966; display: inline-block;"></div>
+                <span style="color: #64748b; margin-left: 10px;">Obteniendo pre-órdenes pendientes...</span>
+            </div>
+        `;
+        fetch(`${window.almacenRoutes.pendingPreOrdenes}?ot=${encodeURIComponent(ot)}&tipo=${encodeURIComponent(tipo || 'modelo')}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.pending && data.pending.length > 0) {
+                    let html = '';
+                    data.pending.forEach(po => {
+                        html += `
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                <input type="checkbox" name="pre_orden_ids[]" value="${po.id}" checked>
+                                <div>
+                                    <strong style="color: #0f172a;">${po.clases_str || 'Sin clases'}</strong>
+                                    <div style="font-size: 0.8em; color: #64748b;">PDF: ${po.pdf_filename} | Creada: ${po.fecha_creacion}</div>
+                                </div>
+                            </label>
+                        `;
+                    });
+                    pendingContainer.innerHTML = html;
+                } else {
+                    pendingContainer.innerHTML = `
+                        <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
+                            No hay pre-órdenes pendientes de enviar. Puede que ya se hayan enviado todas.
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                pendingContainer.innerHTML = `
+                    <div style="text-align: center; color: #ef4444; padding: 15px; font-weight: 600;">
+                        Error al cargar las pre-órdenes pendientes.
+                    </div>
+                `;
+            });
+    }
 };
 
 window.cerrarModalEnviarPreOrden = function () {
@@ -3302,11 +3408,33 @@ window.cerrarModalEnviarScar = function () {
     });
 })();
 
+window.onCmClaseToggle = function(checkbox) {
+    // Actualizar estilos del contenedor
+    checkbox.parentElement.style.borderColor = checkbox.checked ? '#0a8504' : '#cbd5e1';
+    checkbox.parentElement.style.backgroundColor = checkbox.checked ? '#f0fdf4' : '#fff';
+
+    // Auto-seleccionar los archivos del servidor que correspondan a esta clase
+    const claseNombre = checkbox.value.toLowerCase();
+    const fileCards = document.querySelectorAll('#cm-server-files-container .select-file-card');
+    
+    fileCards.forEach(card => {
+        const fileInput = card.querySelector('input[type="checkbox"]');
+        if (!fileInput) return;
+        const fileName = fileInput.value.toLowerCase();
+        
+        // Si el archivo menciona la clase, lo activamos/desactivamos igual que la clase
+        if (fileName.includes(claseNombre)) {
+            fileInput.checked = checkbox.checked;
+            card.classList.toggle('checked-card', checkbox.checked);
+        }
+    });
+};
+
 // =============================================================================
 // BLOQUE 2 — MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS
 // =============================================================================
 
-window.abrirModalConfirmarModelo = function (ot, idHash) {
+window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null, todasClases = null) {
     const modal = document.getElementById('modalConfirmarModelo');
     if (!modal) return;
 
@@ -3350,6 +3478,50 @@ window.abrirModalConfirmarModelo = function (ot, idHash) {
     modal.classList.add('open');
     document.body.classList.add('modal-open');
 
+    // Obtener las clases de la OT para que el usuario seleccione cuáles tiene físicamente
+    const clasesContainer = document.getElementById('cm-clases-container');
+    if (clasesContainer) {
+        clasesContainer.innerHTML = '<div class="alm-spinner" id="cm-clases-spinner" style="border-top-color: #0284c7; display: block; margin: 5px auto;"></div>';
+        
+        if (todasClases && Array.isArray(todasClases) && todasClases.length > 0) {
+            let html = '';
+            todasClases.forEach((nombreClase, index) => {
+                const nombreNorm = nombreClase.toLowerCase();
+                let yaProcesada = false;
+
+                if (clasesFaltantes !== null && Array.isArray(clasesFaltantes)) {
+                    // Validar si la clase actual NO está en clasesFaltantes
+                    const esFaltante = clasesFaltantes.some(f => f.toLowerCase().includes(nombreNorm) || nombreNorm.includes(f.toLowerCase()));
+                    yaProcesada = !esFaltante;
+                }
+
+                if (yaProcesada) {
+                    return; // Omitir completamente de la interfaz
+                } else {
+                    const nombreDisplay = nombreClase.charAt(0).toUpperCase() + nombreClase.slice(1);
+                    html += `
+                        <label style="display: flex; align-items: center; gap: 8px; background: #fff; border: 1.5px solid #cbd5e1; padding: 10px 15px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;"
+                               onmouseover="this.style.borderColor='#0a8504'; this.style.backgroundColor='#f0fdf4';"
+                               onmouseout="if(!this.querySelector('input').checked){ this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#fff'; }">
+                            <input type="checkbox" name="clases_seleccionadas[]" value="${nombreDisplay}" class="cm-clase-checkbox"
+                                   style="width: 18px; height: 18px; cursor: pointer;"
+                                   onchange="window.onCmClaseToggle(this);">
+                            <span style="font-family:'Poppins', sans-serif; font-weight: 500; color: #334155;">${index + 1}. ${nombreDisplay}</span>
+                        </label>
+                    `;
+                }
+            });
+            
+            if (html === '') {
+                html = '<div style="text-align: center; color: #64748b; padding: 10px; font-style: italic;">Todas las clases ya fueron procesadas.</div>';
+            }
+            
+            clasesContainer.innerHTML = html;
+        } else {
+            clasesContainer.innerHTML = '<span style="color:#ef4444; font-size:0.9em; font-weight:500;">No hay clases configuradas para confirmar.</span>';
+        }
+    }
+
     // Obtener y renderizar los archivos de la OT desde el backend
     const filesContainer = document.getElementById('cm-server-files-container');
     if (filesContainer) {
@@ -3366,12 +3538,29 @@ window.abrirModalConfirmarModelo = function (ot, idHash) {
                     let baseUrl = window.baseUrl || (window.location.origin + '/');
                     if (!baseUrl.endsWith('/')) baseUrl += '/';
 
-                    const sectionsHtml = generarHtmlCategorizadoArchivos(data.archivos, ot, baseUrl, 'preorden'); // Use preorden to show Dibujos and Ayudas
-                    filesContainer.innerHTML = sectionsHtml || `
-                        <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
-                            No se encontraron archivos en el servidor para esta OT.
-                        </div>
-                    `;
+                let archivosAMostrar = data.archivos;
+                if (clasesFaltantes && Array.isArray(clasesFaltantes)) {
+                    archivosAMostrar = archivosAMostrar.filter(f => {
+                        const n = (f.nombre || '').toLowerCase();
+                        if (n.includes('documentos_aprobados') || n.includes('documentos_rechazados') || n.includes('pre-orden')) return true;
+                        return clasesFaltantes.some(clase => n.includes(clase.toLowerCase()));
+                    });
+                }
+
+                const sectionsHtml = generarHtmlCategorizadoArchivos(archivosAMostrar, ot, baseUrl, 'preorden'); // Use preorden to show Dibujos and Ayudas
+                filesContainer.innerHTML = sectionsHtml || `
+                    <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
+                        No se encontraron archivos pendientes para esta OT.
+                    </div>
+                `;
+
+                    // Para el modal Confirmar Modelo, iniciar con todos los dibujos desmarcados
+                    const fileCards = filesContainer.querySelectorAll('.select-file-card');
+                    fileCards.forEach(card => {
+                        const fileInput = card.querySelector('input[type="checkbox"]');
+                        if (fileInput) fileInput.checked = false;
+                        card.classList.remove('checked-card');
+                    });
                 } else {
                     filesContainer.innerHTML = `
                         <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
@@ -3409,10 +3598,21 @@ window.cerrarModalConfirmarModelo = function () {
             const idHash = document.getElementById('cm-id-hash')?.value;
 
             if (!ot) return;
+            
+            const selectedClasses = document.querySelectorAll('.cm-clase-checkbox:checked');
+            if (selectedClasses.length === 0) {
+                almacenToast('Debes seleccionar al menos una clase para confirmar su modelo físico.', 'error');
+                return;
+            }
+
             if (cmConfirmarSelectedFiles.length === 0) {
                 almacenToast('Debes adjuntar al menos un documento de recepción.', 'error');
                 return;
             }
+
+            const totalPending = document.querySelectorAll('.cm-clase-checkbox').length;
+            const selectedPending = document.querySelectorAll('.cm-clase-checkbox:checked').length;
+            const allConfirmed = (totalPending === selectedPending);
 
             const btn = document.getElementById('btn-submit-confirmar-modelo');
             const origText = btn ? btn.innerHTML : '';
@@ -3420,9 +3620,40 @@ window.cerrarModalConfirmarModelo = function () {
 
             const fd = new FormData(this);
             fd.delete('archivos[]');
+            
+            // Filtrar del array window.otCurrentClasses las clases ya usadas
+            if (window.otCurrentClasses) {
+                const yaUsadas = Array.from(document.querySelectorAll('.po-clase-select'))
+                    .map(s => s.options[s.selectedIndex]?.text?.toLowerCase() || '')
+                    .filter(t => t !== '');
+                
+                const availableClasses = window.otCurrentClasses.filter(c => {
+                    const nombreNorm = c.nombre.toLowerCase();
+                    return !yaUsadas.some(yp => nombreNorm.includes(yp) || yp.includes(nombreNorm));
+                });
+
+                // Regenerar el HTML solo con las disponibles
+                const newHtml = '<option value="">Selecciona clase</option>' + availableClasses.map(c => 
+                    `<option value="${c.id}" data-nombre="${c.nombre}">${c.nombre}</option>`
+                ).join('');
+
+                const tbody = document.getElementById('alm-tbody-preorden');
+                if (tbody) {
+                    const selects = tbody.querySelectorAll('.po-clase-select');
+                    selects.forEach(select => {
+                        const currentVal = select.value;
+                        select.innerHTML = newHtml;
+                        if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
+                            select.value = currentVal;
+                        }
+                    });
+                }
+            }
+
             cmConfirmarSelectedFiles.forEach(file => {
                 fd.append('archivos[]', file);
             });
+            fd.append('all_confirmed', allConfirmed ? '1' : '0');
 
             try {
                 const resp = await fetch(window.almacenRoutes.confirmarModelo, {
@@ -3438,11 +3669,18 @@ window.cerrarModalConfirmarModelo = function () {
                 if (data.success) {
                     almacenToast(data.message, 'success');
                     cerrarModalConfirmarModelo();
-                    // Actualizar FSM y bloquear card visualmente
-                    if (window.ModeloStateMachine) window.ModeloStateMachine.onConfirmarModelo(ot);
-                    if (idHash) {
-                        const container = document.getElementById('control-modelo-' + idHash);
-                        if (container) { container.style.opacity = '0.5'; container.style.pointerEvents = 'none'; }
+                    
+                    // Solo bloqueamos la tarjeta si TODAS las clases pendientes fueron confirmadas
+                    if (allConfirmed) {
+                        if (window.ModeloStateMachine) window.ModeloStateMachine.onConfirmarModelo(ot);
+                        if (idHash) {
+                            const container = document.getElementById('control-modelo-' + idHash);
+                            if (container) { container.style.opacity = '0.5'; container.style.pointerEvents = 'none'; }
+                        }
+                    } else {
+                        // Si quedan clases pendientes, la recarga de la página actualizará el UI
+                        // sin bloquear prematuramente toda la OT.
+                        console.log('Confirmación parcial, recargando para reflejar cambios...');
                     }
                     setTimeout(() => location.reload(), 1600);
                 } else {
@@ -3616,16 +3854,26 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
 
     // Mostrar/ocultar opciones según tiposActivos
     select.querySelectorAll('option').forEach(opt => {
-        if (!opt.value) { opt.hidden = false; return; } // Mantener placeholder
+        if (!opt.value) { 
+            opt.hidden = false; 
+            opt.disabled = false;
+            opt.style.display = '';
+            return; 
+        } // Mantener placeholder
         
+        let shouldHide = false;
         // Si no hay clases activas, mostramos todo
         if (tiposActivos.size === 0) {
-            opt.hidden = false;
+            shouldHide = false;
         } else {
-            opt.hidden = !tiposActivos.has(opt.value);
+            shouldHide = !tiposActivos.has(opt.value);
         }
         
-        if (!opt.hidden) {
+        opt.hidden = shouldHide;
+        opt.disabled = shouldHide;
+        opt.style.display = shouldHide ? 'none' : '';
+        
+        if (!shouldHide) {
             if (!firstAvailable) firstAvailable = opt.value;
             
             // Preferimos auto-seleccionar uno que esté activo (pendiente de procesar)
@@ -4308,15 +4556,23 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
                     const pl = f.nombre.toLowerCase();
                     const isRechazadoFile = pl.includes('documentos_rechazados') || pl.includes('rechazado') || pl.includes('scar');
                     const isDibujoOrAyuda = f.tipo === 'dibujo' || f.tipo === 'ayuda';
+                    const isPreordenFile = pl.includes('pre-orden') || pl.includes('preorden') || (pl.includes('confirmacionmodelo') && !pl.includes('casting'));
+
+                    if (isPreordenFile) return true;
 
                     if (decision === 'aprobar') {
+                        if (isRechazadoFile) return false;
                         return true;
                     }
+                    
                     if (decision === 'rechazar') {
-                        const isPreordenFile = pl.includes('pre-orden') || pl.includes('preorden');
-                        return isRechazadoFile || isDibujoOrAyuda || isPreordenFile;
+                        if (isDibujoOrAyuda) return false;
+                        if (!isRechazadoFile) return false;
+                        return true;
                     }
-                    return true; // mixed shows both
+
+                    // mixto
+                    return true;
                 });
                 const sectionsHtml = generarHtmlCategorizadoArchivos(filteredFiles, ot, baseUrl, 'calidad');
                 if (filesContainer) {
@@ -4529,120 +4785,27 @@ window.abrirModalPreOrdenCasting = async function (ot) {
             pocState.page1.fecha = todayStr;
             pocState.page2.fecha = todayStr;
 
-            // Cargar datos preexistentes si existen
-            const castingOrders = (res.pre_ordenes || []).filter(po => {
-                if (po.filas && po.filas.length > 0) {
-                    const firstFila = po.filas[0];
-                    return firstFila.cant_fabricar !== undefined;
-                }
-                return false;
-            });
-
-            if (castingOrders.length > 0) {
-                // Sí hay órdenes de casting guardadas, usarlas
-                const po1 = castingOrders[0];
-                pocState.page1.proveedor = po1.proveedor;
-                pocState.page1.fecha = po1.fecha_creacion ? po1.fecha_creacion.substring(0, 10) : todayStr;
-                pocState.page1.folio = po1.folio;
-                pocState.page1.observaciones = po1.observaciones || '';
-                pocState.page1.fecha_entrega = po1.fecha_entrega ? po1.fecha_entrega.substring(0, 10) : (po1.filas[0]?.fecha_entrega || res.fecha_entrega || '');
-                pocState.page1.filas = po1.filas.map(f => ({
-                    id_clase: f.id_clase || f.clase_id,
-                    tipo_modelo: f.tipo_modelo || getTipoModeloFromClase(f.clase || f.descripcion),
-                    impresiones: f.impresiones || 1,
-                    cant_fabricar: f.cant_fabricar !== undefined ? f.cant_fabricar : 0,
-                    cant_consignacion: f.cant_consignacion || 0,
-                    descripcion: f.clase || f.descripcion || '',
-                    material: f.material || 'Hierro Gris',
-                    codigo: f.codigo || f.codigo_modelo || '',
-                    peso_juego: f.peso_juego || 0,
-                    peso_total: f.peso_total || 0,
-                    fecha_entrega: f.fecha_entrega || po1.fecha_entrega || res.fecha_entrega || ''
-                }));
-
-                if (castingOrders.length > 1) {
-                    const po2 = castingOrders[1];
-                    pocState.page2.proveedor = po2.proveedor;
-                    pocState.page2.fecha = po2.fecha_creacion ? po2.fecha_creacion.substring(0, 10) : todayStr;
-                    pocState.page2.folio = po2.folio;
-                    pocState.page2.observaciones = po2.observaciones || '';
-                    pocState.page2.fecha_entrega = po2.fecha_entrega ? po2.fecha_entrega.substring(0, 10) : (po2.filas[0]?.fecha_entrega || res.fecha_entrega || '');
-                    pocState.page2.filas = po2.filas.map(f => ({
-                        id_clase: f.id_clase || f.clase_id,
-                        tipo_modelo: f.tipo_modelo || getTipoModeloFromClase(f.clase || f.descripcion),
-                        impresiones: f.impresiones || 1,
-                        cant_fabricar: f.cant_fabricar !== undefined ? f.cant_fabricar : 0,
-                        cant_consignacion: f.cant_consignacion || 0,
-                        descripcion: f.clase || f.descripcion || '',
-                        material: f.material || 'Hierro Gris',
-                        codigo: f.codigo || f.codigo_modelo || '',
-                        peso_juego: f.peso_juego || 0,
-                        peso_total: f.peso_total || 0,
-                        fecha_entrega: f.fecha_entrega || po2.fecha_entrega || res.fecha_entrega || ''
-                    }));
-
-                    document.getElementById('poc-has-page2').value = '1';
-                    document.getElementById('tab-poc-page-2').style.display = 'block';
-                    document.getElementById('btn-add-poc-page-2').style.display = 'none';
-                    document.getElementById('btn-remove-poc-page-2').style.display = 'flex';
-                } else {
-                    pocState.page2.filas = [];
-                    pocState.page2.fecha_entrega = res.fecha_entrega || '';
-                }
-            } else {
-                // No hay órdenes de casting guardadas. Revisar si hay una orden standard para prellenar los datos
-                const standardPo = (res.pre_ordenes || []).find(po => {
-                    if (po.filas && po.filas.length > 0) {
-                        const firstFila = po.filas[0];
-                        return firstFila.cant_fabricar === undefined;
-                    }
-                    return false;
-                });
-
-                if (standardPo) {
-                    pocState.page1.proveedor = standardPo.proveedor || '';
-                    pocState.page1.observaciones = ''; // No heredar observaciones del modelo para la de casting
-                    pocState.page1.fecha_entrega = standardPo.filas[0]?.fecha_entrega || res.fecha_entrega || '';
-
-                    // Mapear las filas del standard a formato casting
-                    pocState.page1.filas = pocState.allClases.map(c => {
-                        const matchingFila = (standardPo.filas || []).find(f => (f.id_clase || f.clase_id) == c.id);
-                        return {
-                            id_clase: c.id,
-                            tipo_modelo: getTipoModeloFromClase(c.nombre),
-                            impresiones: matchingFila ? (matchingFila.impresiones || 1) : 1,
-                            cant_fabricar: '',
-                            cant_consignacion: 0,
-                            descripcion: c.nombre,
-                            material: '',
-                            codigo: '',
-                            peso_juego: 0,
-                            peso_total: 0,
-                            fecha_entrega: res.fecha_entrega || ''
-                        };
-                    });
-                } else {
-                    // No hay pre-órdenes previas en absoluto. Usar valores por defecto y clases de la OT
-                    pocState.page1.proveedor = '';
-                    pocState.page1.observaciones = '';
-                    pocState.page1.fecha_entrega = res.fecha_entrega || '';
-                    pocState.page1.filas = pocState.allClases.map(c => ({
-                        id_clase: c.id,
-                        tipo_modelo: getTipoModeloFromClase(c.nombre),
-                        impresiones: 1,
-                        cant_fabricar: '',
-                        cant_consignacion: 0,
-                        descripcion: c.nombre,
-                        material: '',
-                        codigo: '',
-                        peso_juego: 0,
-                        peso_total: 0,
-                        fecha_entrega: res.fecha_entrega || ''
-                    }));
-                }
-                pocState.page2.filas = [];
-                pocState.page2.fecha_entrega = res.fecha_entrega || '';
-            }
+            // Ignorar las pre-órdenes anteriores para el llenado de filas, 
+            // ya que queremos generar un NUEVO envío parcial con las clases restantes.
+            pocState.page1.proveedor = '';
+            pocState.page1.observaciones = '';
+            pocState.page1.fecha_entrega = res.fecha_entrega || '';
+            pocState.page1.filas = pocState.allClases.map(c => ({
+                id_clase: c.id,
+                tipo_modelo: getTipoModeloFromClase(c.nombre),
+                impresiones: 1,
+                cant_fabricar: '',
+                cant_consignacion: 0,
+                descripcion: c.nombre,
+                material: '',
+                codigo: '',
+                peso_juego: 0,
+                peso_total: 0,
+                fecha_entrega: res.fecha_entrega || ''
+            }));
+            
+            pocState.page2.filas = [];
+            pocState.page2.fecha_entrega = res.fecha_entrega || '';
 
             recopilarMaterialesPersonalizados();
             loadPocPage(1);
@@ -5612,7 +5775,7 @@ document.getElementById('formConfirmarRechazoAlmacen')?.addEventListener('submit
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
     try {
-        const response = await fetch('/almacen/fundicion/confirmar-recepcion-rechazo', {
+        const response = await fetch(window.almacenRoutes.confirmarRecepcionRechazo, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -6351,7 +6514,7 @@ document.getElementById('formMgvRechazados')?.addEventListener('submit', async f
     }
 
     try {
-        const response = await fetch('/almacen/fundicion/procesar-rechazos', {
+        const response = await fetch(window.almacenRoutes.procesarRechazos, {
             method: 'POST',
             body: formData,
             headers: {

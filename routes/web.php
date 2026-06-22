@@ -438,6 +438,9 @@ Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicio
     Route::get('/ot-data', [\App\Http\Controllers\AlmacenFundicionController::class, 'getOtData'])
         ->name('getOtData');
 
+    Route::get('/pending-preordenes', [\App\Http\Controllers\AlmacenFundicionController::class, 'getPendingPreOrdenes'])
+        ->name('getPendingPreOrdenes');
+
     Route::post('/store-preorden', [\App\Http\Controllers\AlmacenFundicionController::class, 'storePreOrden'])
         ->name('storePreOrden');
 

@@ -868,11 +868,15 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
             const esImg = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'].includes(ext);
             const defaultIcon = esImg ? 'galeria-shadow.png' : 'pdf-view-shadow.png';
             const hoverIcon = esImg ? 'galeria.png' : 'pdf-view.png';
+            const isConfirmacion = cleanName.toLowerCase().includes('confirmacionmodelo');
+            const shouldCheck = !(inputNameMode === 'preorden' && isConfirmacion);
+            const checkedAttr = shouldCheck ? 'checked' : '';
+            const checkedClass = shouldCheck ? 'checked-card' : '';
 
             return `
-                            <div class="dibujos-file-card ${colorClass} select-file-card checked-card" style="position: relative; width: 100%; max-width: 220px; display: inline-flex; flex-direction: column; align-items: center; text-align: center; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; background: #fff; padding: 10px; border: 1.5px solid #e2e8f0;">
+                            <div class="dibujos-file-card ${colorClass} select-file-card ${checkedClass}" style="position: relative; width: 100%; max-width: 220px; display: inline-flex; flex-direction: column; align-items: center; text-align: center; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; background: #fff; padding: 10px; border: 1.5px solid #e2e8f0;">
                                 <div style="position: absolute; top: 10px; left: 10px; z-index: 10;">
-                                    <input type="checkbox" name="${inputName}" value="${f.nombre}" checked style="width: 20px; height: 20px; cursor: pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card', this.checked);">
+                                    <input type="checkbox" name="${inputName}" value="${f.nombre}" ${checkedAttr} style="width: 20px; height: 20px; cursor: pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card', this.checked);">
                                 </div>
 
                                 <div class="file-icon-wrapper" onclick="calidadVerPdf('${ot}', '${f.nombre}', '${f.tipo}')" style="cursor: pointer; margin-top: 10px;" title="Abrir Archivo">
@@ -932,7 +936,7 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
     return sectionsHtml;
 }
 
-window.abrirModalEnviarPreOrden = function (ot, tipo) {
+window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
     const modal = document.getElementById('modalEnviarPreOrden');
     const inputOt = document.getElementById('env-ot');
     const filesContainer = document.getElementById('env-server-files-container');
@@ -987,6 +991,17 @@ window.abrirModalEnviarPreOrden = function (ot, tipo) {
                         const n = (f.nombre || '').toLowerCase();
                         return n.includes('pre-orden_casting') || (n.includes('pre-orden') && n.includes('casting'));
                     });
+                } else {
+                    if (clasesFaltantes && Array.isArray(clasesFaltantes)) {
+                        archivosAMostrar = archivosAMostrar.filter(f => {
+                            const n = (f.nombre || '').toLowerCase();
+                            // Siempre mantener archivos que no estén divididos por carpetas de clase
+                            if (n.includes('documentos_aprobados') || n.includes('documentos_rechazados') || n.includes('pre-orden')) return true;
+                            
+                            // Para Ayudas Visuales y Dibujos (que están dentro de carpetas de clase), validar si la clase es faltante
+                            return clasesFaltantes.some(clase => n.includes(clase.toLowerCase()));
+                        });
+                    }
                 }
 
                 const sectionsHtml = generarHtmlCategorizadoArchivos(archivosAMostrar, ot, baseUrl, 'preorden');
@@ -3285,7 +3300,7 @@ window.cerrarModalEnviarScar = function () {
 // BLOQUE 2 — MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS
 // =============================================================================
 
-window.abrirModalConfirmarModelo = function (ot, idHash) {
+window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null, todasClases = null) {
     const modal = document.getElementById('modalConfirmarModelo');
     if (!modal) return;
 
@@ -3318,6 +3333,107 @@ window.abrirModalConfirmarModelo = function (ot, idHash) {
     // Abrir modal y bloquear scroll de la página
     modal.classList.add('open');
     document.body.classList.add('modal-open');
+
+    // Obtener las clases de la OT para que el usuario seleccione cuáles tiene físicamente
+    const clasesContainer = document.getElementById('cm-clases-container');
+    if (clasesContainer) {
+        clasesContainer.innerHTML = '<div class="alm-spinner" id="cm-clases-spinner" style="border-top-color: #0284c7; display: block; margin: 5px auto;"></div>';
+        
+        if (todasClases && Array.isArray(todasClases) && todasClases.length > 0) {
+            let html = '';
+            todasClases.forEach((nombreClase, index) => {
+                const nombreNorm = nombreClase.toLowerCase();
+                let yaProcesada = false;
+
+                if (clasesFaltantes !== null && Array.isArray(clasesFaltantes)) {
+                    // Validar si la clase actual NO está en clasesFaltantes
+                    const esFaltante = clasesFaltantes.some(f => f.toLowerCase().includes(nombreNorm) || nombreNorm.includes(f.toLowerCase()));
+                    yaProcesada = !esFaltante;
+                }
+
+                if (yaProcesada) {
+                    return; // Omitir completamente de la interfaz
+                } else {
+                    const nombreDisplay = nombreClase.charAt(0).toUpperCase() + nombreClase.slice(1);
+                    html += `
+                        <label style="display: flex; align-items: center; gap: 8px; background: #fff; border: 1.5px solid #cbd5e1; padding: 10px 15px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;"
+                               onmouseover="this.style.borderColor='#0a8504'; this.style.backgroundColor='#f0fdf4';"
+                               onmouseout="if(!this.querySelector('input').checked){ this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#fff'; }">
+                            <input type="checkbox" name="clases_seleccionadas[]" value="${nombreDisplay}" class="cm-clase-checkbox"
+                                   style="width: 18px; height: 18px; cursor: pointer;"
+                                   onchange="window.onCmClaseToggle(this);">
+                            <span style="font-family:'Poppins', sans-serif; font-weight: 500; color: #334155;">${index + 1}. ${nombreDisplay}</span>
+                        </label>
+                    `;
+                }
+            });
+            
+            if (html === '') {
+                html = '<div style="text-align: center; color: #64748b; padding: 10px; font-style: italic;">Todas las clases ya fueron procesadas.</div>';
+            }
+            
+            clasesContainer.innerHTML = html;
+        } else {
+            clasesContainer.innerHTML = '<span style="color:#ef4444; font-size:0.9em; font-weight:500;">No hay clases configuradas para confirmar.</span>';
+        }
+    }
+
+    // Obtener y renderizar los archivos de la OT desde el backend
+    const filesContainer = document.getElementById('cm-server-files-container');
+    if (filesContainer) {
+        filesContainer.innerHTML = `
+            <div style="text-align: center; padding: 10px;">
+                <div class="alm-spinner" style="border-top-color: #033966; display: inline-block;"></div>
+                <span style="color: #64748b; margin-left: 10px;">Obteniendo archivos del servidor...</span>
+            </div>
+        `;
+        fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.existe && data.archivos && data.archivos.length > 0) {
+                    let baseUrl = window.baseUrl || (window.location.origin + '/');
+                    if (!baseUrl.endsWith('/')) baseUrl += '/';
+
+                let archivosAMostrar = data.archivos;
+                if (clasesFaltantes && Array.isArray(clasesFaltantes)) {
+                    archivosAMostrar = archivosAMostrar.filter(f => {
+                        const n = (f.nombre || '').toLowerCase();
+                        if (n.includes('documentos_aprobados') || n.includes('documentos_rechazados') || n.includes('pre-orden')) return true;
+                        return clasesFaltantes.some(clase => n.includes(clase.toLowerCase()));
+                    });
+                }
+
+                const sectionsHtml = generarHtmlCategorizadoArchivos(archivosAMostrar, ot, baseUrl, 'preorden'); // Use preorden to show Dibujos and Ayudas
+                filesContainer.innerHTML = sectionsHtml || `
+                    <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
+                        No se encontraron archivos pendientes para esta OT.
+                    </div>
+                `;
+
+                    // Para el modal Confirmar Modelo, iniciar con todos los dibujos desmarcados
+                    const fileCards = filesContainer.querySelectorAll('.select-file-card');
+                    fileCards.forEach(card => {
+                        const fileInput = card.querySelector('input[type="checkbox"]');
+                        if (fileInput) fileInput.checked = false;
+                        card.classList.remove('checked-card');
+                    });
+                } else {
+                    filesContainer.innerHTML = `
+                        <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
+                            No se encontraron archivos en el servidor para esta OT.
+                        </div>
+                    `;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                filesContainer.innerHTML = `
+                    <div style="text-align: center; color: #ef4444; padding: 15px; font-weight: 500;">
+                        Error al cargar los archivos del servidor.
+                    </div>
+                `;
+            });
+    }
 };
 
 window.cerrarModalConfirmarModelo = function () {
@@ -3545,16 +3661,26 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
 
     // Mostrar/ocultar opciones según tiposActivos
     select.querySelectorAll('option').forEach(opt => {
-        if (!opt.value) { opt.hidden = false; return; } // Mantener placeholder
+        if (!opt.value) { 
+            opt.hidden = false; 
+            opt.disabled = false;
+            opt.style.display = '';
+            return; 
+        } // Mantener placeholder
         
+        let shouldHide = false;
         // Si no hay clases activas, mostramos todo
         if (tiposActivos.size === 0) {
-            opt.hidden = false;
+            shouldHide = false;
         } else {
-            opt.hidden = !tiposActivos.has(opt.value);
+            shouldHide = !tiposActivos.has(opt.value);
         }
         
-        if (!opt.hidden) {
+        opt.hidden = shouldHide;
+        opt.disabled = shouldHide;
+        opt.style.display = shouldHide ? 'none' : '';
+        
+        if (!shouldHide) {
             if (!firstAvailable) firstAvailable = opt.value;
             
             // Preferimos auto-seleccionar uno que esté activo (pendiente de procesar)
@@ -4247,28 +4373,19 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
 
                     if (isPreordenFile) return true;
 
-                    const belongsToClasses = (classesArray) => {
-                        return classesArray.some(c => pl.includes(c.toLowerCase().trim()));
-                    };
-
-                    const inAprobados = belongsToClasses(arrAprobados);
-                    const inRechazados = belongsToClasses(arrRechazados);
-
                     if (decision === 'aprobar') {
                         if (isRechazadoFile) return false;
-                        return inAprobados;
+                        return true;
                     }
                     
                     if (decision === 'rechazar') {
                         if (isDibujoOrAyuda) return false;
                         if (!isRechazadoFile) return false;
-                        return inRechazados;
+                        return true;
                     }
 
                     // mixto
-                    if (inAprobados || inRechazados) return true;
-                    
-                    return false;
+                    return true;
                 });
                 const sectionsHtml = generarHtmlCategorizadoArchivos(filteredFiles, ot, baseUrl, 'calidad');
                 if (filesContainer) {
@@ -5577,7 +5694,7 @@ document.getElementById('formConfirmarRechazoAlmacen')?.addEventListener('submit
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
     try {
-        const response = await fetch('/almacen/fundicion/confirmar-recepcion-rechazo', {
+        const response = await fetch(window.almacenRoutes.confirmarRecepcionRechazo, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -6316,7 +6433,7 @@ document.getElementById('formMgvRechazados')?.addEventListener('submit', async f
     }
 
     try {
-        const response = await fetch('/almacen/fundicion/procesar-rechazos', {
+        const response = await fetch(window.almacenRoutes.procesarRechazos, {
             method: 'POST',
             body: formData,
             headers: {

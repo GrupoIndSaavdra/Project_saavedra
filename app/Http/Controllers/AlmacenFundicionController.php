@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\FundicionHistory;
 use App\Models\LiberacionModeloFundicion;
 use App\Models\Orden_trabajo;
+use App\Models\Clase;
 use App\Models\PreOrdenFundicion;
 use App\Models\PreOrdenLog;
 use App\Models\RechazoLog;
@@ -1071,6 +1072,14 @@ class AlmacenFundicionController extends Controller
 
         $this->eliminarCarpetasVacias($folderName);
 
+        // Si es una pre-orden, eliminar también el registro de la base de datos
+        if (str_contains(strtolower($fileNameOnly), 'pre-orden')) {
+            $preOrdenDb = PreOrdenFundicion::query()->where('ot', $ot)->where('pdf_filename', $fileNameOnly)->first();
+            if ($preOrdenDb) {
+                $preOrdenDb->delete();
+            }
+        }
+
         return response()->json(['success' => true, 'message' => 'Archivo eliminado correctamente y sincronizado en todos los directorios.']);
     }
 
@@ -1206,6 +1215,41 @@ class AlmacenFundicionController extends Controller
             return response()->json(['success' => false, 'message' => 'Registro no encontrado.'], 404);
         }
 
+        $clasesSeleccionadas = $request->input('clases_seleccionadas', []);
+        
+        // Determinar si se seleccionaron todas las clases activas de la OT para el nombre del archivo
+        $clasesSuffix = "";
+        if (is_array($clasesSeleccionadas) && count($clasesSeleccionadas) > 0) {
+            $baseOt = preg_replace('/_R\d+$/i', '', $ot);
+            preg_match('/OT\s*(\d+)/', $baseOt, $matches);
+            $otId = isset($matches[1]) ? (int) $matches[1] : 0;
+            $otFullRaw = Orden_trabajo::query()->find($otId);
+            
+            $allActiveClassesCount = 4; // default
+            if ($otFullRaw) {
+                $clasesActivasCount = Clase::query()
+                    ->where('id_ot', '=', $otFullRaw->id)
+                    ->count();
+                if ($clasesActivasCount > 0) {
+                    $allActiveClassesCount = $clasesActivasCount;
+                }
+            }
+
+            if (count($clasesSeleccionadas) < $allActiveClassesCount) {
+                $nombres = [];
+                foreach ($clasesSeleccionadas as $c) {
+                    $l = strtolower($c);
+                    if (strpos($l, 'fondo') !== false) $nombres[] = 'Fondo';
+                    elseif (strpos($l, 'obturador') !== false) $nombres[] = 'Obturador';
+                    elseif (strpos($l, 'molde') !== false) $nombres[] = 'Molde';
+                    elseif (strpos($l, 'bombillo') !== false) $nombres[] = 'Bombillo';
+                }
+                if (count($nombres) > 0) {
+                    $clasesSuffix = "_" . implode("_", $nombres);
+                }
+            }
+        }
+
         $attachments = [];
         // ── Guardar archivos de recepción adjuntos (Bloque 2) ──────────────────
         if ($request->hasFile('archivos')) {
@@ -1220,7 +1264,7 @@ class AlmacenFundicionController extends Controller
                 $ext = $file->getClientOriginalExtension();
                 $safeName = preg_replace('/[^A-Za-z0-9_\-.]/', '_', pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
                 $stamp = date('d_m_Y_H_i_s');
-                $fileName = "ConfirmacionModelo_{$safeName}_{$stamp}.{$ext}";
+                $fileName = "ConfirmacionModelo{$clasesSuffix}_{$safeName}_{$stamp}.{$ext}";
                 Storage::disk('local')->put($destDir . '/' . $fileName, file_get_contents($file->getRealPath()));
                 
                 $attachments[] = [
@@ -1231,26 +1275,96 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        $history->tiene_modelo = true;
-        $history->save();
-
         // Crear o actualizar el registro de liberacion indicando el origen
         $fecha = $request->input('fecha');
-        LiberacionModeloFundicion::updateOrCreate(
-            ['ot' => $ot],
-            [
-                'estado' => 'pendiente',
-                'tipo_origen' => 'con_modelo',
-                'fecha_revision' => $fecha ? date('Y-m-d H:i:s', strtotime($fecha)) : now()
-            ]
-        );
+        
+        if (is_array($clasesSeleccionadas) && count($clasesSeleccionadas) > 0) {
+            foreach ($clasesSeleccionadas as $claseNombre) {
+                $tipo = null;
+                $clLow = strtolower($claseNombre);
+                if (strpos($clLow, 'fondo') !== false) {
+                    $tipo = 'Fondo';
+                } elseif (strpos($clLow, 'obturador') !== false) {
+                    $tipo = 'Obturador';
+                } elseif (strpos($clLow, 'molde') !== false) {
+                    $tipo = 'Molde';
+                } elseif (strpos($clLow, 'bombillo') !== false) {
+                    $tipo = 'Bombillo';
+                }
+
+                if ($tipo) {
+                    LiberacionModeloFundicion::updateOrCreate(
+                        [
+                            'ot' => $ot,
+                            'tipo_modelo' => $tipo
+                        ],
+                        [
+                            'estado' => 'pendiente',
+                            'tipo_origen' => 'con_modelo',
+                            'fecha_revision' => $fecha ? date('Y-m-d H:i:s', strtotime($fecha)) : now()
+                        ]
+                    );
+                }
+            }
+        } else {
+            // Fallback en caso de que no se manden clases (comportamiento legacy)
+            LiberacionModeloFundicion::updateOrCreate(
+                ['ot' => $ot],
+                [
+                    'estado' => 'pendiente',
+                    'tipo_origen' => 'con_modelo',
+                    'fecha_revision' => $fecha ? date('Y-m-d H:i:s', strtotime($fecha)) : now()
+                ]
+            );
+        }
+
+        // Revisar si ya están todas las clases procesadas para marcar tiene_modelo = true
+        // Primero obtenemos todas las clases activas de esta OT
+        $baseOt = preg_replace('/_R\d+$/i', '', $ot);
+        preg_match('/OT\s*(\d+)/', $baseOt, $matches);
+        $otId = isset($matches[1]) ? (int) $matches[1] : 0;
+        
+        $otFullRaw = Orden_trabajo::query()->find($otId);
+        $clasesFaltantes = 0; // Inicializar antes del bloque condicional para evitar undefined variable
+        if ($otFullRaw) {
+            $clasesActivas = Clase::query()->where('id_ot', '=', $otFullRaw->id)
+                ->pluck('nombre')
+                ->toArray();
+            
+            $clasesFaltantes = 0;
+            foreach ($clasesActivas as $clName) {
+                $tipo = null;
+                $clLow = strtolower($clName);
+                if (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+                elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+                elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+                elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
+
+                if ($tipo) {
+                    $hasData = LiberacionModeloFundicion::query()->where('ot', '=', $ot)->where('tipo_modelo', '=', $tipo)->exists();
+                    if (!$hasData) {
+                        $clasesFaltantes++;
+                    }
+                }
+            }
+
+            if ($clasesFaltantes === 0 && count($clasesActivas) > 0) {
+                $history->tiene_modelo = true;
+                $history->save();
+            }
+        } else {
+            // Legacy behaviour
+            $history->tiene_modelo = true;
+            $history->save();
+        }
 
         // Sincronizar confirmación de modelo a Calidad
         $folderName = $this->sanitizePath($this->normalizeOTName($ot));
         $this->syncAlmacenToCalidad($folderName);
 
         // ── ENVIAR CORREOS ───────────────────────────────────────────────────────
-        $otCleaned = preg_replace('/^OT\s*/i', '', $ot);
+        if ($clasesFaltantes === 0) {
+            $otCleaned = preg_replace('/^OT\s*/i', '', $ot);
         $asunto = "Disponibilidad de Modelo Confirmada - OT {$otCleaned}";
         $cuerpo = "
         <div style='font-family: \"Segoe UI\", Helvetica, Arial, sans-serif; line-height: 1.6; color: #334155; max-width: 650px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);'>
@@ -1405,6 +1519,7 @@ class AlmacenFundicionController extends Controller
                 }
             });
         }
+        }
 
         return response()->json([
             'success' => true,
@@ -1466,10 +1581,7 @@ class AlmacenFundicionController extends Controller
             'id' => $c->id,
             'nombre' => $c->nombre,
             'pedido' => $c->pedido
-        ])->filter(function ($c) use ($otFull, $baseOt, $type, $activeClasses) {
-            if (!empty($activeClasses) && !in_array(strtolower($c['nombre']), $activeClasses)) {
-                return false;
-            }
+        ])->filter(function ($c) use ($otFull, $baseOt, $type) {
 
             $clLow = strtolower($c['nombre']);
             $tipo = null;
@@ -1483,19 +1595,27 @@ class AlmacenFundicionController extends Controller
                 $tipo = 'Bombillo';
 
             if ($tipo) {
-                $isAprobado = LiberacionModeloFundicion::query()
-                    ->whereNested(function ($q) use ($otFull, $baseOt) {
-                        $q->where('ot', '=', $otFull, 'and')
-                            ->orWhere('ot', '=', $baseOt, 'and')
-                            ->orWhere('ot', 'LIKE', $baseOt . '_R%', 'and');
-                    }, 'and')
-                    ->where('tipo_modelo', '=', $tipo, 'and')
-                    ->where('estado', '=', 'aprobado', 'and')
-                    ->exists();
                 if ($type === 'casting') {
-                    return $isAprobado; // Para casting, solo queremos los APROBADOS
+                    // Para casting, solo queremos los APROBADOS en ESTA iteración específica ($otFull)
+                    // Así evitamos incluir clases que ya fueron aprobadas en la OT base o iteraciones previas.
+                    return LiberacionModeloFundicion::query()
+                        ->where('ot', '=', $otFull)
+                        ->where('tipo_modelo', '=', $tipo)
+                        ->where('estado', '=', 'aprobado')
+                        ->exists();
                 } else {
-                    return !$isAprobado; // Para pre-orden normal, queremos los NO aprobados/pendientes
+                    // Para pre-orden de modelo normal, queremos los que NUNCA han sido aprobados
+                    // en ninguna iteración de esta OT.
+                    $isAprobado = LiberacionModeloFundicion::query()
+                        ->where(function ($q) use ($otFull, $baseOt) {
+                            $q->where('ot', '=', $otFull)
+                                ->orWhere('ot', '=', $baseOt)
+                                ->orWhere('ot', 'LIKE', $baseOt . '_R%');
+                        })
+                        ->where('tipo_modelo', '=', $tipo)
+                        ->where('estado', '=', 'aprobado')
+                        ->exists();
+                    return !$isAprobado;
                 }
             }
             return $type !== 'casting'; // Si no es casting, dejamos los otros. Si es casting, los quitamos
@@ -1504,10 +1624,7 @@ class AlmacenFundicionController extends Controller
         // Obtener clases vinculadas desde FundicionHistory (Ayudas Visuales asignadas)
         $history = FundicionHistory::where('ot', '=', $otFull, 'and')->first();
         $clasesVinculadas = $history ? ($history->ayudas_config ?? []) : [];
-        $clasesVinculadas = collect($clasesVinculadas)->filter(function ($claseNombre) use ($otFull, $baseOt, $type, $activeClasses) {
-            if (!empty($activeClasses) && !in_array(strtolower($claseNombre), $activeClasses)) {
-                return false;
-            }
+        $clasesVinculadas = collect($clasesVinculadas)->filter(function ($claseNombre) use ($otFull, $baseOt, $type) {
 
             $clLow = strtolower($claseNombre);
             $tipo = null;
@@ -1522,13 +1639,13 @@ class AlmacenFundicionController extends Controller
 
             if ($tipo) {
                 $isAprobado = LiberacionModeloFundicion::query()
-                    ->whereNested(function ($q) use ($otFull, $baseOt) {
-                        $q->where('ot', '=', $otFull, 'and')
-                            ->orWhere('ot', '=', $baseOt, 'and')
-                            ->orWhere('ot', 'LIKE', $baseOt . '_R%', 'and');
-                    }, 'and')
-                    ->where('tipo_modelo', '=', $tipo, 'and')
-                    ->where('estado', '=', 'aprobado', 'and')
+                    ->where(function ($q) use ($otFull, $baseOt) {
+                        $q->where('ot', '=', $otFull)
+                            ->orWhere('ot', '=', $baseOt)
+                            ->orWhere('ot', 'LIKE', $baseOt . '_R%');
+                    })
+                    ->where('tipo_modelo', '=', $tipo)
+                    ->where('estado', '=', 'aprobado')
                     ->exists();
                 if ($type === 'casting') {
                     return $isAprobado;
@@ -1620,13 +1737,13 @@ class AlmacenFundicionController extends Controller
 
                     if ($tipo) {
                         $isAprobado = LiberacionModeloFundicion::query()
-                            ->whereNested(function ($q) use ($otFull, $baseOt) {
-                                $q->where('ot', '=', $otFull, 'and')
-                                    ->orWhere('ot', '=', $baseOt, 'and')
-                                    ->orWhere('ot', 'LIKE', $baseOt . '_R%', 'and');
-                            }, 'and')
-                            ->where('tipo_modelo', '=', $tipo, 'and')
-                            ->where('estado', '=', 'aprobado', 'and')
+                            ->where(function ($q) use ($otFull, $baseOt) {
+                                $q->where('ot', '=', $otFull)
+                                    ->orWhere('ot', '=', $baseOt)
+                                    ->orWhere('ot', 'LIKE', $baseOt . '_R%');
+                            })
+                            ->where('tipo_modelo', '=', $tipo)
+                            ->where('estado', '=', 'aprobado')
                             ->exists();
                         if ($isAprobado) {
                             continue;
@@ -1724,6 +1841,12 @@ class AlmacenFundicionController extends Controller
 
             // Process Page 1 and Page 2 (combined PDF generation)
             $saved = $this->saveCastingPreOrdenes($p1Data, ($hasPage2 && isset($p2Data)) ? $p2Data : null, $user);
+
+            // Si la OT tenía calidad_revision_status = casting_aprobado (correo ya enviado antes),
+            // revertirlo a calidad_aprobado para que el usuario pueda enviar el nuevo correo.
+            FundicionHistory::where('ot', '=', $otRaw)
+                ->where('calidad_revision_status', 'casting_aprobado')
+                ->update(['calidad_revision_status' => 'calidad_aprobado']);
 
             $pdfs = [];
             if ($saved) {
@@ -1889,12 +2012,6 @@ class AlmacenFundicionController extends Controller
             'pre_orden_sent' => true,
         ]);
 
-        // Crear o actualizar registro de liberacion con origen pre_orden
-        LiberacionModeloFundicion::updateOrCreate(
-            ['ot' => $otRaw],
-            ['estado' => 'pendiente', 'tipo_origen' => 'pre_orden']
-        );
-
         // 8. Incrementar Folio global SOLO si es una pre-orden completamente nueva
         if (!$existeEnBD) {
             try {
@@ -2017,6 +2134,7 @@ class AlmacenFundicionController extends Controller
                 'filas' => $p1Data['filas'],
                 'pdf_filename' => $fileName,
                 'version' => DB::raw('version + 1'),
+                'is_sent' => false, // Reset al regenerar para desbloquear la tarjeta
                 'user_id' => $user ? $user->id : null,
                 'user_nombre' => $user ? $user->name : null,
             ]
@@ -2044,6 +2162,7 @@ class AlmacenFundicionController extends Controller
                     'filas' => $p2Data['filas'],
                     'pdf_filename' => $fileName,
                     'version' => DB::raw('version + 1'),
+                    'is_sent' => false, // Reset al regenerar para desbloquear la tarjeta
                     'user_id' => $user ? $user->id : null,
                     'user_nombre' => $user ? $user->name : null,
                 ]
@@ -2120,35 +2239,25 @@ class AlmacenFundicionController extends Controller
         $ayudasDirPath = $dirPath . '/ayudas_visuales';
 
         // Obtener datos guardados de la pre-orden desde la base de datos (filtrados por tipo de envío)
-        $tipoEnvio = $request->input('tipo');
-        if (empty($tipoEnvio)) {
-            $hasCasting = PreOrdenFundicion::where('ot', '=', $ot, 'and')
-                ->where('pdf_filename', 'LIKE', '%Casting%')
-                ->exists();
-            $hasModelo = PreOrdenFundicion::where('ot', '=', $ot, 'and')
-                ->where('pdf_filename', 'NOT LIKE', '%Casting%')
-                ->exists();
-            if ($hasCasting && !$hasModelo) {
-                $tipoEnvio = 'casting';
-            } elseif ($hasModelo && !$hasCasting) {
-                $tipoEnvio = 'modelo';
-            } else {
-                $tipoEnvio = 'modelo';
-            }
+        $query = PreOrdenFundicion::query()->where('ot', $ot);
+
+        if ($request->input('tipo') === 'casting') {
+            $query->where('pdf_filename', 'LIKE', '%Casting%');
+        } else {
+            $query->where('pdf_filename', 'NOT LIKE', '%Casting%');
         }
 
-        if ($tipoEnvio === 'casting') {
-            $preOrdenes = PreOrdenFundicion::where('ot', '=', $ot, 'and')
-                ->where('pdf_filename', 'LIKE', '%Casting%')
-                ->get();
-        } else {
-            $preOrdenes = PreOrdenFundicion::where('ot', '=', $ot, 'and')
-                ->where('pdf_filename', 'NOT LIKE', '%Casting%')
-                ->get();
+        $preOrdenIds = $request->input('pre_orden_ids');
+        if (empty($preOrdenIds) || !is_array($preOrdenIds)) {
+            return response()->json(['success' => false, 'message' => 'Debe seleccionar al menos una pre-orden para enviar.'], 422);
         }
+        
+        $query->whereIn('id', $preOrdenIds);
+
+        $preOrdenes = $query->get();
 
         if ($preOrdenes->isEmpty()) {
-            return response()->json(['success' => false, 'message' => 'No se encontró la pre-orden en la base de datos.'], 404);
+            return response()->json(['success' => false, 'message' => 'No se encontraron pre-órdenes válidas para enviar.'], 404);
         }
 
         // Si se envió una fecha de entrega en Fase 2, guardarla en BD y regenerar el PDF
@@ -2431,6 +2540,23 @@ class AlmacenFundicionController extends Controller
             $subfolder = $isCastingPo ? 'Preorden_Casting' : 'Preorden_Modelo';
             $destDir = self::ALMACEN_DIR . '/' . $folderName . '/Documentos_Aprobados/' . $subfolder;
 
+            $clasesNombres = [];
+            foreach ($preOrdenes as $po) {
+                $filas = is_array($po->filas) ? $po->filas : json_decode($po->filas, true);
+                if (is_array($filas)) {
+                    foreach ($filas as $fila) {
+                        $claseNombre = $fila['clase_nombre'] ?? $fila['clase'] ?? $fila['descripcion'] ?? '';
+                        $clLow = strtolower($claseNombre);
+                        if (strpos($clLow, 'fondo') !== false) $clasesNombres[] = 'Fondo';
+                        elseif (strpos($clLow, 'obturador') !== false) $clasesNombres[] = 'Obturador';
+                        elseif (strpos($clLow, 'molde') !== false) $clasesNombres[] = 'Molde';
+                        elseif (strpos($clLow, 'bombillo') !== false) $clasesNombres[] = 'Bombillo';
+                    }
+                }
+            }
+            $clasesNombres = array_unique($clasesNombres);
+            $clasesSuffixStr = count($clasesNombres) > 0 ? '_' . implode('_', $clasesNombres) : '';
+
             if (!Storage::disk('local')->exists($destDir)) {
                 Storage::disk('local')->makeDirectory($destDir);
             }
@@ -2438,7 +2564,7 @@ class AlmacenFundicionController extends Controller
             foreach ($filesArray as $file) {
                 $ext = $file->getClientOriginalExtension();
                 $safeName = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
-                $name = 'Escaneado_Fundicion-' . trim($safeName, '_.') . ($ext ? '.' . $ext : '');
+                $name = 'Escaneado_Fundicion' . $clasesSuffixStr . '-' . trim($safeName, '_.') . ($ext ? '.' . $ext : '');
                 $savedPath = $file->storeAs($destDir, $name, 'local');
                 $attachments[] = [
                     'path' => storage_path('app/' . $savedPath),
@@ -2603,6 +2729,43 @@ class AlmacenFundicionController extends Controller
                 ]);
             } catch (\Exception $logEx) {
                 Log::warning('Error al registrar log de envío pre-orden: ' . $logEx->getMessage());
+            }
+
+            foreach ($preOrdenes as $po) {
+                $po->is_sent = true;
+                $po->save();
+                
+                // Crear o actualizar registro de liberacion con origen pre_orden para cada clase confirmada enviada
+                if (!empty($po->filas)) {
+                    foreach ($po->filas as $fila) {
+                        $claseNombre = $fila['clase'] ?? $fila['clase_nombre'] ?? '';
+                        $clLow = strtolower($claseNombre);
+                        $tipo = null;
+                        if (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+                        elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+                        elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+                        elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
+
+                        if ($tipo) {
+                            LiberacionModeloFundicion::updateOrCreate(
+                                [
+                                    'ot' => $ot,
+                                    'tipo_modelo' => $tipo
+                                ],
+                                [
+                                    'estado' => 'pendiente',
+                                    'tipo_origen' => 'pre_orden',
+                                    'fecha_revision' => now()
+                                ]
+                            );
+                        }
+                    }
+                } else {
+                    LiberacionModeloFundicion::updateOrCreate(
+                        ['ot' => $ot],
+                        ['estado' => 'pendiente', 'tipo_origen' => 'pre_orden', 'fecha_revision' => now()]
+                    );
+                }
             }
 
             return response()->json([
@@ -3029,5 +3192,48 @@ class AlmacenFundicionController extends Controller
             'pdf_url' => $generatedPdfUrl,
             'new_ot' => $newOt
         ]);
+    }
+
+    public function getPendingPreOrdenes(Request $request)
+    {
+        try {
+            $ot = $request->input('ot');
+            $tipo = $request->input('tipo', 'modelo');
+
+            if (!$ot) {
+                return response()->json(['success' => false, 'message' => 'Falta OT']);
+            }
+
+            // Buscar las pre-órdenes que NO han sido enviadas (is_sent = 0)
+            $pending = PreOrdenFundicion::where('ot', $ot)
+                ->where('is_sent', 0)
+                ->get();
+
+            $pendingData = $pending->map(function($po) {
+                $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
+                $clasesStr = 'Sin clases';
+                if (is_array($filas)) {
+                    $clasesNombres = array_map(function($f) {
+                        return $f['clase_nombre'] ?? $f['clase'] ?? 'Desconocida';
+                    }, $filas);
+                    $clasesStr = implode(', ', $clasesNombres);
+                }
+
+                return [
+                    'id' => $po->id,
+                    'clases_str' => $clasesStr,
+                    'pdf_filename' => $po->pdf_filename,
+                    'fecha_creacion' => \Carbon\Carbon::parse($po->created_at)->format('d/m/Y H:i'),
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'pending' => $pendingData
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Error en getPendingPreOrdenes: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error interno: ' . $e->getMessage()]);
+        }
     }
 }

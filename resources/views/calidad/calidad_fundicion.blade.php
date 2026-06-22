@@ -1323,89 +1323,161 @@
                                                             </div>
                                                         @endif
 
-                                                        {{-- BLOQUE 5: Sección de "Documentos Rechazados" --}}
-                                                        @if ($countRechazados > 0)
-                                                            <h3
-                                                                style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
-                                                                Documentos Rechazados</h3>
+                                                        @php
+                                                            $rechazadosAyudas = [];
+                                                            $rechazadosDibujos = [];
+                                                            $rechazadosOtros = [];
+                                                            foreach ($archivosRechazados as $rArchivo) {
+                                                                $nameLow = strtolower($rArchivo['nombre']);
+                                                                $ext = pathinfo($nameLow, PATHINFO_EXTENSION);
+                                                                $isImg = in_array($ext, ['jpg','jpeg','png','gif','webp']);
+                                                                
+                                                                if (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
+                                                                    $rechazadosAyudas[] = $rArchivo;
+                                                                } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
+                                                                    $rechazadosDibujos[] = $rArchivo;
+                                                                } else {
+                                                                    $rechazadosOtros[] = $rArchivo;
+                                                                }
+                                                            }
+                                                        @endphp
+
+                                                        {{-- BLOQUE 5.1: Dibujos Rechazados --}}
+                                                        @if (count($rechazadosDibujos) > 0)
+                                                            <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
+                                                                Dibujos Rechazados</h3>
                                                             <div class="alm-pdf-grid">
-                                                                @foreach ($archivosRechazados as $otroArchivo)
+                                                                @foreach ($rechazadosDibujos as $otroArchivo)
                                                                     @php
                                                                         $canDelete = false;
                                                                         $fileOwner = $otroArchivo['owner'] ?? '';
                                                                         $userPerfil = Auth::user()->perfil;
-                                                                        
                                                                         $alertSent = false;
                                                                         if ($fileOwner === 'almacen') {
                                                                             $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
                                                                         } elseif ($fileOwner === 'calidad') {
                                                                             $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
                                                                         }
-
                                                                         if (!$alertSent) {
-                                                                            if ($userPerfil == 1 || $userPerfil == 2) {
-                                                                                $canDelete = true;
-                                                                            } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
-                                                                                $canDelete = true;
-                                                                            } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
-                                                                                $canDelete = true;
-                                                                            }
+                                                                            if ($userPerfil == 1 || $userPerfil == 2) $canDelete = true;
+                                                                            elseif ($userPerfil == 5 && $fileOwner === 'almacen') $canDelete = true;
+                                                                            elseif ($userPerfil == 4 && $fileOwner === 'calidad') $canDelete = true;
+                                                                        }
+                                                                    @endphp
+                                                                    <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                        <div class="file-icon-wrapper" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')" style="cursor: pointer;" title="Abrir Archivo">
+                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                        </div>
+                                                                        <div class="file-name" style="cursor: pointer;" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                            {{ basename($otroArchivo['nombre']) }}
+                                                                        </div>
+                                                                        <div class="file-actions" style="display: flex; gap: 5px;">
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                            @if ($canDelete)
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                            @endif
+                                                                        </div>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+
+                                                        {{-- BLOQUE 5.2: Ayudas Visuales Rechazadas --}}
+                                                        @if (count($rechazadosAyudas) > 0)
+                                                            <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
+                                                                Ayudas Visuales Rechazadas</h3>
+                                                            <div class="alm-pdf-grid">
+                                                                @foreach ($rechazadosAyudas as $otroArchivo)
+                                                                    @php
+                                                                        $canDelete = false;
+                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
+                                                                        $userPerfil = Auth::user()->perfil;
+                                                                        $alertSent = false;
+                                                                        if ($fileOwner === 'almacen') {
+                                                                            $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
+                                                                        } elseif ($fileOwner === 'calidad') {
+                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                                        }
+                                                                        if (!$alertSent) {
+                                                                            if ($userPerfil == 1 || $userPerfil == 2) $canDelete = true;
+                                                                            elseif ($userPerfil == 5 && $fileOwner === 'almacen') $canDelete = true;
+                                                                            elseif ($userPerfil == 4 && $fileOwner === 'calidad') $canDelete = true;
                                                                         }
                                                                     @endphp
                                                                     @if ($otroArchivo['tipo'] === 'imagen')
-                                                                        {{-- Tarjeta para imágenes (fotos de evidencia) --}}
-                                                                        <div class="dibujos-file-card card-otro card-imagen"
-                                                                            style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0369a1;">
-                                                                            <div class="file-icon-wrapper"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')"
-                                                                                style="cursor: pointer;" title="Ver imagen">
-                                                                                <img src="{{ $otroArchivo['url'] }}" class="file-icon-img-thumb"
-                                                                                    alt="{{ basename($otroArchivo['nombre']) }}"
-                                                                                    style="width:100%; height:80px; object-fit:cover; border-radius:6px; border:1px solid #bae6fd;">
+                                                                        <div class="dibujos-file-card card-otro card-imagen" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                            <div class="file-icon-wrapper" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')" style="cursor: pointer;">
+                                                                                <img src="{{ $otroArchivo['url'] }}" class="file-icon-img-thumb" style="width:100%; height:80px; object-fit:cover; border-radius:6px; border:1px solid #fecaca;">
                                                                             </div>
-                                                                            <div class="file-name" style="cursor: pointer;" title="Ver imagen"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
+                                                                            <div class="file-name" style="cursor: pointer;" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
                                                                             <div class="file-actions" style="display: flex; gap: 5px;">
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver"
-                                                                                    style="background-color: #0369a1; color: white;"
-                                                                                    onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
                                                                                 @if ($canDelete)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
-                                                                                    style="background-color: #dc3545; color: white;"
-                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
                                                                                 @endif
                                                                             </div>
                                                                         </div>
                                                                     @else
-                                                                        {{-- Tarjeta para PDFs y otros documentos --}}
-                                                                        <div class="dibujos-file-card card-otro"
-                                                                            style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
-                                                                            <div class="file-icon-wrapper"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
-                                                                                style="cursor: pointer;" title="Abrir PDF">
-                                                                                <img src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                                    class="file-icon icon-default">
-                                                                                <img src="{{ asset('images/pdf-view.png') }}"
-                                                                                    class="file-icon icon-hover">
+                                                                        <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                            <div class="file-icon-wrapper" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')" style="cursor: pointer;">
+                                                                                <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
                                                                             </div>
-                                                                            <div class="file-name" style="cursor: pointer;" title="Abrir PDF"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                            <div class="file-name" style="cursor: pointer;" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
                                                                             <div class="file-actions" style="display: flex; gap: 5px;">
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver"
-                                                                                    style="background-color: #9c0300; color: white;"
-                                                                                    onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
                                                                                 @if ($canDelete)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar"
-                                                                                    style="background-color: #dc3545; color: white;"
-                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
                                                                                 @endif
                                                                             </div>
                                                                         </div>
                                                                     @endif
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+
+                                                        {{-- BLOQUE 5.3: Otros Documentos Rechazados --}}
+                                                        @if (count($rechazadosOtros) > 0)
+                                                            <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
+                                                                Documentos Rechazados</h3>
+                                                            <div class="alm-pdf-grid">
+                                                                @foreach ($rechazadosOtros as $otroArchivo)
+                                                                    @php
+                                                                        $canDelete = false;
+                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
+                                                                        $userPerfil = Auth::user()->perfil;
+                                                                        $alertSent = false;
+                                                                        if ($fileOwner === 'almacen') {
+                                                                            $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
+                                                                        } elseif ($fileOwner === 'calidad') {
+                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                                        }
+                                                                        if (!$alertSent) {
+                                                                            if ($userPerfil == 1 || $userPerfil == 2) $canDelete = true;
+                                                                            elseif ($userPerfil == 5 && $fileOwner === 'almacen') $canDelete = true;
+                                                                            elseif ($userPerfil == 4 && $fileOwner === 'calidad') $canDelete = true;
+                                                                        }
+                                                                    @endphp
+                                                                    <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                        <div class="file-icon-wrapper" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')" style="cursor: pointer;">
+                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                        </div>
+                                                                        <div class="file-name" style="cursor: pointer;" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                            {{ basename($otroArchivo['nombre']) }}
+                                                                        </div>
+                                                                        <div class="file-actions" style="display: flex; gap: 5px;">
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                            @if ($canDelete)
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                            @endif
+                                                                        </div>
+                                                                    </div>
                                                                 @endforeach
                                                             </div>
                                                         @endif
@@ -1434,11 +1506,10 @@
                                                                                 emitir
                                                                                 un veredicto.</span>
                                                                         </div>
-                                                                    @elseif (is_null($targetReg->calidad_revision_status) && !$targetReg->pre_orden_sent && !$targetReg->tiene_modelo)
+                                                                    @elseif (is_null($targetReg->calidad_revision_status))
                                                                         <div class="lib-estado-badge lib-estado-info"
                                                                             style="width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px;">
-                                                                            En espera de que Almacén envíe la información necesaria para realizar la
-                                                                            liberación.
+                                                                            Modelo disponible para iniciar el proceso de liberación.
                                                                         </div>
                                                                     @elseif (in_array($targetReg->calidad_revision_status, ['pendiente', 'calidad_pendiente']))
                                                                         <div class="lib-estado-badge lib-estado-guardado"
@@ -1477,9 +1548,19 @@
                                                                                         ->where('tipo_modelo', '=', $tipo)
                                                                                         ->where('estado', '=', 'aprobado')
                                                                                         ->exists();
-                                                                                    return !$isAprobado;
+                                                                                    if ($isAprobado) return false;
+
+                                                                                    $fueEnviadoPorAlmacen = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
+                                                                                        ->where('tipo_modelo', '=', $tipo)
+                                                                                        ->where(function($q) {
+                                                                                            $q->whereIn('tipo_origen', ['con_modelo', 'pre_orden'])
+                                                                                              ->orWhereNull('tipo_origen');
+                                                                                        })
+                                                                                        ->exists();
+                                                                                    
+                                                                                    return $fueEnviadoPorAlmacen;
                                                                                 }
-                                                                                return true;
+                                                                                return false;
                                                                             })
                                                                             ->values()
                                                                             ->toArray();
@@ -1502,6 +1583,7 @@
                                                                             if ($tipo) {
                                                                                 $hasData = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                                                                                     ->where('tipo_modelo', '=', $tipo)
+                                                                                    ->whereNotNull('user_id_calidad')
                                                                                     ->exists();
                                                                                 if (!$hasData) {
                                                                                     $todosGuardados = false;
@@ -1570,9 +1652,9 @@
                                                                                 </button>
                                                                             @else
                                                                                 @php
-                                                                                    $btnDisabled = (!$targetReg->pre_orden_email_sent && !$targetReg->tiene_modelo);
+                                                                                    $btnDisabled = empty($clasesActivas);
                                                                                     $btnTitle    = $btnDisabled
-                                                                                        ? 'En espera de que Almacén envíe la información necesaria para realizar la liberación'
+                                                                                        ? 'No hay clases enviadas por Almacén para revisar'
                                                                                         : ($contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Iniciar el proceso de liberación');
                                                                                 @endphp
                                                                                 <button class="btn-calidad-action btn-calidad-iniciar"
@@ -2098,6 +2180,8 @@
             enviarAlertaLiberacion: "{{ route('calidad.fundicion.enviarAlertaLiberacion') }}",
             deleteFile: "{{ route('calidad.fundicion.deleteFile') }}",
             iniciarCasting: "{{ route('almacen.fundicion.iniciarCasting') }}",
+            procesarRechazos: "{{ route('almacen.fundicion.procesarRechazos') }}",
+            confirmarRecepcionRechazo: "{{ route('almacen.fundicion.confirmarRecepcionRechazo') }}",
         };
 
         window.almacenAppAssets = {
