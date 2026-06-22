@@ -1723,7 +1723,7 @@ class AlmacenFundicionController extends Controller
             $filasFiltradas = [];
             if (!empty($preOrdenDB->filas)) {
                 foreach ($preOrdenDB->filas as $fila) {
-                    $claseNombre = $fila['clase'] ?? '';
+                    $claseNombre = $fila['clase_nombre'] ?? $fila['clase'] ?? '';
                     $clLow = strtolower($claseNombre);
                     $tipo = null;
                     if (strpos($clLow, 'fondo') !== false)
@@ -1844,8 +1844,8 @@ class AlmacenFundicionController extends Controller
 
             // Si la OT tenía calidad_revision_status = casting_aprobado (correo ya enviado antes),
             // revertirlo a calidad_aprobado para que el usuario pueda enviar el nuevo correo.
-            FundicionHistory::where('ot', '=', $otRaw)
-                ->where('calidad_revision_status', 'casting_aprobado')
+            FundicionHistory::where('ot', '=', $otRaw, 'and')
+                ->where('calidad_revision_status', '=', 'casting_aprobado', 'and')
                 ->update(['calidad_revision_status' => 'calidad_aprobado']);
 
             $pdfs = [];
@@ -1900,7 +1900,7 @@ class AlmacenFundicionController extends Controller
         $filasFiltradas = [];
         if (!empty($data['filas'])) {
             foreach ($data['filas'] as $fila) {
-                $claseNombre = $fila['clase'] ?? '';
+                $claseNombre = $fila['clase_nombre'] ?? $fila['clase'] ?? '';
                 $clLow = strtolower($claseNombre);
                 $tipo = null;
                 if (strpos($clLow, 'fondo') !== false)
@@ -1914,13 +1914,13 @@ class AlmacenFundicionController extends Controller
 
                 if ($tipo) {
                     $isAprobado = LiberacionModeloFundicion::query()
-                        ->whereNested(function ($q) use ($otRaw, $baseOt) {
-                            $q->where('ot', '=', $otRaw, 'and')
-                                ->orWhere('ot', '=', $baseOt, 'and')
-                                ->orWhere('ot', 'LIKE', $baseOt . '_R%', 'and');
-                        }, 'and')
-                        ->where('tipo_modelo', '=', $tipo, 'and')
-                        ->where('estado', '=', 'aprobado', 'and')
+                        ->where(function ($q) use ($otRaw, $baseOt) {
+                            $q->where('ot', '=', $otRaw)
+                                ->orWhere('ot', '=', $baseOt)
+                                ->orWhere('ot', 'LIKE', $baseOt . '_R%');
+                        })
+                        ->where('tipo_modelo', '=', $tipo)
+                        ->where('estado', '=', 'aprobado')
                         ->exists();
                     if ($isAprobado) {
                         continue;
@@ -3205,8 +3205,8 @@ class AlmacenFundicionController extends Controller
             }
 
             // Buscar las pre-órdenes que NO han sido enviadas (is_sent = 0)
-            $pending = PreOrdenFundicion::where('ot', $ot)
-                ->where('is_sent', 0)
+            $pending = PreOrdenFundicion::where('ot', '=', $ot, 'and')
+                ->where('is_sent', '=', 0, 'and')
                 ->get();
 
             $pendingData = $pending->map(function($po) {
