@@ -1639,13 +1639,13 @@ class AlmacenFundicionController extends Controller
 
             if ($tipo) {
                 $isAprobado = LiberacionModeloFundicion::query()
-                    ->whereNested(function ($q) use ($otFull, $baseOt) {
-                        $q->where('ot', '=', $otFull, 'and')
-                            ->orWhere('ot', '=', $baseOt, 'and')
-                            ->orWhere('ot', 'LIKE', $baseOt . '_R%', 'and');
-                    }, 'and')
-                    ->where('tipo_modelo', '=', $tipo, 'and')
-                    ->where('estado', '=', 'aprobado', 'and')
+                    ->where(function ($q) use ($otFull, $baseOt) {
+                        $q->where('ot', '=', $otFull)
+                            ->orWhere('ot', '=', $baseOt)
+                            ->orWhere('ot', 'LIKE', $baseOt . '_R%');
+                    })
+                    ->where('tipo_modelo', '=', $tipo)
+                    ->where('estado', '=', 'aprobado')
                     ->exists();
                 if ($type === 'casting') {
                     return $isAprobado;
@@ -1737,13 +1737,13 @@ class AlmacenFundicionController extends Controller
 
                     if ($tipo) {
                         $isAprobado = LiberacionModeloFundicion::query()
-                            ->whereNested(function ($q) use ($otFull, $baseOt) {
-                                $q->where('ot', '=', $otFull, 'and')
-                                    ->orWhere('ot', '=', $baseOt, 'and')
-                                    ->orWhere('ot', 'LIKE', $baseOt . '_R%', 'and');
-                            }, 'and')
-                            ->where('tipo_modelo', '=', $tipo, 'and')
-                            ->where('estado', '=', 'aprobado', 'and')
+                            ->where(function ($q) use ($otFull, $baseOt) {
+                                $q->where('ot', '=', $otFull)
+                                    ->orWhere('ot', '=', $baseOt)
+                                    ->orWhere('ot', 'LIKE', $baseOt . '_R%');
+                            })
+                            ->where('tipo_modelo', '=', $tipo)
+                            ->where('estado', '=', 'aprobado')
                             ->exists();
                         if ($isAprobado) {
                             continue;
