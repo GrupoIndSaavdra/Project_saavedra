@@ -1,3 +1,7 @@
+* {
+    box-sizing: border-box;
+}
+
 .main-layout {
     position: absolute;
     top: 50%;
@@ -44,8 +48,18 @@ h3 {
     padding: 0.7em;
     transition: 0.2s;
     background: #03396610;
+    width: 100%;
+    box-sizing: border-box;
 }
-.form-control:hover {
+.form-control:disabled {
+    background-color: #0339660c !important;
+    color: #333333 !important;
+    font-weight: 500;
+    border: 1px solid #0339662b !important;
+    cursor: not-allowed;
+    opacity: 1;
+}
+.form-control:hover:not(:disabled) {
     border: 1px solid #0a8504;
     transition: 0.2s;
 }
@@ -106,14 +120,26 @@ label {
     display: flex;
     justify-content: center;
     align-items: center;
+    gap: 20px;
+    margin: 25px 0 10px 0;
 }
 
 .btn-deleteWO {
-    background-color: #9c0303;
+    background-color: #a80f0f;
+    box-shadow: 0 2px 4px rgba(168, 15, 15, 0.25);
+}
+.btn-deleteWO:hover {
+    background-color: #8c0c0c;
+    box-shadow: 0 4px 10px rgba(168, 15, 15, 0.35);
 }
 
 .btn-pdfWO {
     background-color: #033966;
+    box-shadow: 0 2px 4px rgba(3, 57, 102, 0.25);
+}
+.btn-pdfWO:hover {
+    background-color: #022b4d;
+    box-shadow: 0 4px 10px rgba(3, 57, 102, 0.35);
 }
 
 /*Estilos para el checbox de agregar una clase*/
@@ -214,44 +240,68 @@ label {
     bottom: 2em;
     left: 50%;
     transform: translate(-50%);
-    z-index: -1;
+    z-index: 10;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
 }
 .btn {
     display: none;
     background-color: #0a8504;
     color: white;
-    font-size: 1.2em;
-    padding: 10px;
-    border-radius: 5px;
+    font-size: 0.95em;
+    font-weight: bold;
+    padding: 10px 24px;
+    border-radius: 6px;
     border: none;
-    transition: 0.2s;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(10, 133, 4, 0.25);
 }
 .btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 10px rgba(0, 0, 0, 2.2);
-    transition: 0.2s;
+    background-color: #086e03;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(10, 133, 4, 0.35);
+}
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(10, 133, 4, 0.25);
 }
 .btn-deleteClass {
-    background-color: #9c0303;
+    background-color: #a80f0f;
+    box-shadow: 0 2px 4px rgba(168, 15, 15, 0.25);
+}
+.btn-deleteClass:hover {
+    background-color: #8c0c0c;
+    box-shadow: 0 4px 10px rgba(168, 15, 15, 0.35);
 }
 .btn-editClass {
     background-color: #033966;
+    box-shadow: 0 2px 4px rgba(3, 57, 102, 0.25);
+}
+.btn-editClass:hover {
+    background-color: #022b4d;
+    box-shadow: 0 4px 10px rgba(3, 57, 102, 0.35);
 }
 .action-btns {
     color: white;
     text-decoration: none;
-    border-radius: 5px;
-    transition: 0.2s;
-    text-align: center;
-    margin: 0 10px;
-    padding: 5px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.95em;
+    padding: 10px 24px;
     border: none;
-    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-block;
+    vertical-align: middle;
 }
 .action-btns:hover {
-    transform: scale(1.1);
-    box-shadow: 0 0 10px rgba(0, 0, 0, 2.2);
-    transition: 0.2s;
+    transform: translateY(-2px);
+}
+.action-btns:active {
+    transform: translateY(0);
 }
 
 /*Estilos para los componentes al eliminar una OT o una clase*/
@@ -307,6 +357,55 @@ label {
     font-size: 20px;
     color: rgb(0, 0, 0);
     margin-bottom: 30px;
+}
+
+.chemical-composition-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+    width: 100%;
+}
+
+.full-width-column {
+    width: 100% !important;
+}
+
+.composition-option {
+    display: block;
+    margin: 0;
+    cursor: pointer;
+}
+
+.chemical-composition-input {
+    display: none;
+}
+
+.chemical-composition-chip {
+    display: block;
+    text-align: center;
+    background-color: #03396610;
+    border: 1px solid #03396633;
+    border-radius: 8px;
+    padding: 8px 4px;
+    font-size: 0.85em;
+    font-weight: bold;
+    color: #033966;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.composition-option:hover .chemical-composition-chip {
+    border-color: #0a8504;
+    background-color: #0a850410;
+    color: #0a8504;
+}
+
+.chemical-composition-input:checked + .chemical-composition-chip {
+    background-color: #033966;
+    color: #ffffff;
+    border-color: #033966;
+    box-shadow: 0 2px 4px rgba(3, 57, 102, 0.3);
 }
 
 @media (max-width: 991.98px) {
@@ -631,4 +730,32 @@ label {
         all: unset;
         cursor: default;
     }
+    .chemical-composition-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.chemical-composition-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 6px;
+    width: 100%;
+}
+
+.chemical-composition-tag {
+    background-color: #0339660c;
+    color: #033966;
+    border: 1px solid #0339662b;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.9em;
+    font-weight: bold;
+    display: inline-block;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+.chemical-composition-tag:hover {
+    background-color: #03396615;
+    border-color: #03396644;
 }

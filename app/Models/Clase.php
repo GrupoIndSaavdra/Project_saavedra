@@ -12,6 +12,7 @@ class Clase extends Model
         'id_ot',
         'nombre',
         'tamanio',
+        'composicion_quimica',
         'seccion',
         'piezas',
         'pedido',

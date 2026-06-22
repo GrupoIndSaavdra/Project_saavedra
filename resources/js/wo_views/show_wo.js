@@ -1,6 +1,24 @@
 //Ejecución de la función para la creación del formulario de la clase
 createForm(); //Creación del formulario de la clase
 
+// Validación al enviar el formulario (Composición Química es obligatoria)
+document.getElementById("form").addEventListener("submit", function (event) {
+    let checkboxAddClass = document.querySelector(".checkbox-add-class");
+    let isAdding = checkboxAddClass && checkboxAddClass.checked;
+    let isEditing = document.getElementById("btn-saveClass") !== null;
+
+    if (isAdding || isEditing) {
+        let checkedChips = document.querySelectorAll(".chemical-composition-input:checked");
+        let otroInput = document.querySelector('input[name="composicion_quimica_otro"]');
+        let hasOtro = otroInput && otroInput.value.trim() !== "";
+        if (checkedChips.length === 0 && !hasOtro) {
+            event.preventDefault();
+            alert("Por favor, seleccione al menos una Composición Química o especifique otra.");
+            return false;
+        }
+    }
+});
+
 function createForm() {
     let div_rows = document.querySelector(".div-rows"); //Obtención del div en donde se insertará el formulario
     div_rows.appendChild(createRowsForm(get_inputAttributes(window.workOrder.id, window.molding.nombre)[0])); //Creación del formulario de la clase
@@ -63,6 +81,13 @@ function get_inputAttributes(workOrder, molding, value = null) {
             },
             options: tamanios,
         },
+        composicionQuimica: {
+            label: "Composición Química",
+            fullWidth: true,
+            required: true,
+            options: ["HGSS10", "HGSS50V", "HG", "MINOX", "HG/MINOX", "DAMERON", "HG CR - NI", "VERMICULAR", "ACERO", "HG/METZ"],
+            currentValue: value == null ? null : value.composicion_quimica,
+        },
         order: {
             label: "Pedido Total",
             input: {
@@ -120,10 +145,16 @@ function get_inputAttributes(workOrder, molding, value = null) {
     };
     //Eliminacion de valor del id de la clase en el input de tipo hidden
     let inputClassId = document.getElementById("idClass");
-    inputClassId.removeAttribute("value");
+    if (inputClassId) {
+        inputClassId.value = "";
+        inputClassId.removeAttribute("value");
+    }
     if (value != null) {
         //Modificacion de valor del id de la clase en el input de tipo hidden
-        inputClassId.setAttribute("value", value.id);
+        if (inputClassId) {
+            inputClassId.setAttribute("value", value.id);
+            inputClassId.value = value.id;
+        }
 
         // //Modificación de las opciones del select de tamaño si la clase es obturador
         // if (value.nombre == "Obturador") {
@@ -158,49 +189,100 @@ function get_inputAttributes(workOrder, molding, value = null) {
 function createRowsForm(formInputs) {
     let fragment = document.createDocumentFragment(); //Creación de un fragmento para insertar los elementos del formulario
 
-    //Obtención del número de filas que se deben de crear
-    const numberRows = Number.isInteger(Object.keys(formInputs).length / 2)
-        ? Object.keys(formInputs).length / 2
-        : Math.ceil(Object.keys(formInputs).length / 2);
-
+    const keys = Object.keys(formInputs);
     let inputsCounter = 0; //Contador para los inputs que se van insertando en el formulario
-    for (let i = 0; i < numberRows; i++) {
-        //For para la creacion del div "row" para cada par de inputs
-        let nameInput = Object.keys(formInputs)[inputsCounter]; //Obtención del nombre del input
-        if (nameInput != "table") {
-            let row = document.createElement("div");
-            row.className = "row";
-            for (let j = 0; j < 2; j++) {
-                //For para la creacion de los div "col" para cada input
-                nameInput = Object.keys(formInputs)[inputsCounter]; //Obtención del nombre del input
-                let col = document.createElement("div");
-                col.className = "column";
 
-                //Creación del label correspondiente
-                if (formInputs[nameInput].label != undefined) {
-                    let label = document.createElement("label");
-                    label.textContent = formInputs[nameInput].label;
-                    label.className = "label-form";
-                    col.appendChild(label);
-                }
+    while (inputsCounter < keys.length) {
+        let nameInput = keys[inputsCounter]; //Obtención del nombre del input
 
-                //Creación del input correspondiente
-                let element = formInputs[nameInput].hasOwnProperty("select") ? "select" : "input";
-                let attributesArray = formInputs[nameInput]; //Obtención de los atributos del input correspondiente
-                let htmlTag = createSelectOrInput(element, attributesArray, nameInput);
-
-                //Inserción de elementos
-                col.appendChild(htmlTag);
-                row.appendChild(col);
-
-                inputsCounter++; //Incremento del contador de inputs
-            }
-            fragment.appendChild(row); //Inserción del div "row" en el fragmento
-        } else {
+        if (nameInput === "table") {
             fragment.appendChild(createScrollableTable(window.classes));
             //Inserción de los elementos correspondientes al checkbox de agregar más clases
             insertWOButtons(fragment);
+            inputsCounter++;
+            continue;
         }
+
+        let inputConfig = formInputs[nameInput];
+
+        // Si este campo es fullWidth, crear una fila dedicada de ancho completo
+        if (inputConfig.fullWidth) {
+            let row = document.createElement("div");
+            row.className = "row";
+
+            let col = document.createElement("div");
+            col.className = "column full-width-column";
+            col.style.width = "100%";
+
+            if (inputConfig.label != undefined) {
+                let label = document.createElement("label");
+                label.className = "label-form";
+                let isRequired = inputConfig.required || (inputConfig.input && inputConfig.input.required);
+                if (isRequired) {
+                    label.innerHTML = inputConfig.label + ' <span style="color: #dc3545;">*</span>';
+                } else {
+                    label.textContent = inputConfig.label;
+                }
+                col.appendChild(label);
+            }
+
+            let htmlTag;
+            if (nameInput === "composicionQuimica" && inputConfig.hasOwnProperty("options")) {
+                htmlTag = createChemicalCompositionChips(inputConfig);
+            } else if (nameInput === "composicionQuimica" && inputConfig.isTags) {
+                htmlTag = createChemicalCompositionTags(inputConfig.value);
+            } else {
+                let element = inputConfig.hasOwnProperty("select") ? "select" : "input";
+                htmlTag = createSelectOrInput(element, inputConfig, nameInput);
+            }
+
+            col.appendChild(htmlTag);
+            row.appendChild(col);
+            fragment.appendChild(row);
+
+            inputsCounter++;
+            continue;
+        }
+
+        let row = document.createElement("div");
+        row.className = "row";
+
+        // Crear hasta 2 columnas por fila
+        for (let j = 0; j < 2; j++) {
+            nameInput = keys[inputsCounter];
+            // Guard: salir si no hay más campos o si es tabla
+            if (nameInput === undefined || formInputs[nameInput] === undefined) break;
+            if (nameInput === "table") break;
+            if (formInputs[nameInput].fullWidth) break; // Terminar fila actual si el siguiente es fullWidth
+
+            let col = document.createElement("div");
+            col.className = "column";
+
+            //Creación del label correspondiente
+            if (formInputs[nameInput].label != undefined) {
+                let label = document.createElement("label");
+                label.className = "label-form";
+                let isRequired = formInputs[nameInput].required || (formInputs[nameInput].input && formInputs[nameInput].input.required);
+                if (isRequired) {
+                    label.innerHTML = formInputs[nameInput].label + ' <span style="color: #dc3545;">*</span>';
+                } else {
+                    label.textContent = formInputs[nameInput].label;
+                }
+                col.appendChild(label);
+            }
+
+            //Creación del input correspondiente
+            let element = formInputs[nameInput].hasOwnProperty("select") ? "select" : "input";
+            let attributesArray = formInputs[nameInput]; //Obtención de los atributos del input correspondiente
+            let htmlTag = createSelectOrInput(element, attributesArray, nameInput);
+
+            //Inserción de elementos
+            col.appendChild(htmlTag);
+            row.appendChild(col);
+
+            inputsCounter++; //Incremento del contador de inputs
+        }
+        fragment.appendChild(row); //Inserción del div "row" en el fragmento
     }
     return fragment;
 }
@@ -251,10 +333,14 @@ function createSelectOrInput(element, attributesArray, nameInput) {
     //Si el elemento es un select, se añaden las opciones correspondientes
     if (element == "select") {
         let options = attributesArray["options"];
+        let currentValue = attributesArray["currentValue"] ?? null;
         for (let i = 0; i < options.length; i++) {
             let option = document.createElement("option");
             option.value = options[i];
             option.text = options[i];
+            if (currentValue && options[i] === currentValue) {
+                option.selected = true;
+            }
             htmlTag.add(option);
         }
         if (nameInput == "classType") {
@@ -406,6 +492,7 @@ function createTableClasses(classes) {
 
 function setOrDelete_ClassButtons(idClass, action) {
     let btn_addClass = document.querySelector(".btn-addClass"); //Obtener el boton de agregar clase
+    let containerCheckbox = document.querySelector(".container-checkbox");
 
     //Eliminar el boton de eliminar clase si ya existe uno
     if (document.querySelector(".btn-deleteClass") != null) {
@@ -418,6 +505,9 @@ function setOrDelete_ClassButtons(idClass, action) {
 
     //Crear el boton de eliminar clase dirigiendolo a la ruta correspondiente con el id de la clase que se desea eliminar
     if (!action) {
+        if (containerCheckbox) {
+            containerCheckbox.style.display = "block";
+        }
         if (idClass !== null) {
             let div_btns = document.querySelector(".div-btns"); //Obtener el div en donde se insertaran los botones de accion de la clase
             //Ocultar el boton de agregar clase
@@ -436,6 +526,9 @@ function setOrDelete_ClassButtons(idClass, action) {
             btn_addClass.style.display = "none";
         }
     } else if (action == "edit") {
+        if (containerCheckbox) {
+            containerCheckbox.style.display = "none";
+        }
         //Ocultar el boton de agregar clase
         btn_addClass.style.display = "none";
 
@@ -448,6 +541,9 @@ function setOrDelete_ClassButtons(idClass, action) {
         let div_btns = document.querySelector(".div-btns"); //Obtener el div en donde se insertaran los botones de accion de la clase
         div_btns.appendChild(btn_saveClassEdition);
     } else {
+        if (containerCheckbox) {
+            containerCheckbox.style.display = "block";
+        }
         //Mostrar el boton de agregar clase
         btn_addClass.style.display = "block";
     }
@@ -497,6 +593,13 @@ function enableEditClass(idClass) {
 }
 
 function setClassInfo(classesObject = null, classSelected) {
+    // Asegurar que el id de clase del formulario oculto está limpio en vista de solo lectura
+    let inputClassId = document.getElementById("idClass");
+    if (inputClassId) {
+        inputClassId.value = "";
+        inputClassId.removeAttribute("value");
+    }
+
     //Obtener el div en donde se insertaran los inputs con el valor de la clase seleccionada y eliminar los inputs anteriores
     let parentDiv = document.querySelector(".div-rows-hidden");
     parentDiv.innerHTML = "";
@@ -519,6 +622,12 @@ function setClassInfo(classesObject = null, classSelected) {
                         value: classesObject[classObject].tamanio,
                         disabled: true,
                     },
+                },
+                composicionQuimica: {
+                    label: "Composición Química",
+                    fullWidth: true,
+                    isTags: true,
+                    value: classesObject[classObject].composicion_quimica ?? "-",
                 },
                 order: {
                     label: "Pedido Total",
@@ -596,13 +705,27 @@ function createCheckboxAddClass() {
 
     //Añadir evento al checkbox
     checkbox.addEventListener("change", function () {
-        //Estilos de los botones de la tabla
-        let buttons = document.querySelectorAll(".btnClass");
-        buttons.forEach((button) => {
-            button.style.backgroundColor = "white";
-        });
-
         if (checkbox.checked) {
+            // Guardar la clase que se estaba visualizando para restaurarla si se desmarca el checkbox
+            let activeBtn = null;
+            let buttons = document.querySelectorAll(".btnClass");
+            buttons.forEach((btn) => {
+                if (btn.style.backgroundColor === "rgb(3, 57, 102)" || btn.style.backgroundColor === "#033966") {
+                    activeBtn = btn;
+                }
+            });
+            if (activeBtn) {
+                window.selectedClassId = activeBtn.value;
+            } else {
+                window.selectedClassId = null;
+            }
+
+            //Estilos de los botones de la tabla
+            buttons.forEach((button) => {
+                button.style.backgroundColor = "white";
+                button.style.color = "#000000";
+            });
+
             setOrDelete_ClassButtons(null, true);
 
             let div_rowsHidden = document.querySelector(".div-rows-hidden");
@@ -614,6 +737,14 @@ function createCheckboxAddClass() {
             let className = document.querySelector(".classes").value;
             createOperationsCheckBox(className, null, true); //Creación de las casillas de los procesos
         } else {
+            // Si desmarca, restaurar la clase seleccionada si existía
+            if (window.selectedClassId) {
+                let targetButton = document.querySelector(`.btnClass[value="${window.selectedClassId}"]`);
+                if (targetButton) {
+                    targetButton.click(); // Vuelve a cargar y mostrar la clase seleccionada
+                    return;
+                }
+            }
             setOrDelete_ClassButtons(null, false);
         }
         showformHidden(checkbox.checked);
@@ -1004,4 +1135,112 @@ function modificarSelect() {
     let secciones = document.getElementById("secciones"); //Obtener el div de las casillas
     secciones.innerHTML = ""; //Eliminar las casillas
     crearCheckbox(clase.value, 0, 0, false); //Crear los checkbox de acuerdo a la clase
+}
+
+function createChemicalCompositionChips(attributesArray) {
+    let wrapper = document.createElement("div");
+    wrapper.className = "chemical-composition-wrapper";
+
+    let grid = document.createElement("div");
+    grid.className = "chemical-composition-grid";
+
+    let options = attributesArray.options;
+    let currentValue = attributesArray.currentValue ?? null;
+
+    let activeCompositions = [];
+    if (currentValue) {
+        if (Array.isArray(currentValue)) {
+            activeCompositions = currentValue;
+        } else {
+            activeCompositions = currentValue.split(/\s*\/\s*/).map(s => s.trim());
+        }
+    }
+
+    options.forEach((optionValue) => {
+        let label = document.createElement("label");
+        label.className = "composition-option";
+
+        let checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.name = "composicion_quimica[]";
+        checkbox.value = optionValue;
+        checkbox.className = "chemical-composition-input";
+
+        if (window.profile == 5) {
+            checkbox.disabled = true;
+        }
+
+        let isChecked = activeCompositions.includes(optionValue);
+        if (isChecked) {
+            checkbox.checked = true;
+        }
+
+        let chip = document.createElement("span");
+        chip.className = "chemical-composition-chip";
+        chip.textContent = optionValue;
+
+        label.appendChild(checkbox);
+        label.appendChild(chip);
+        grid.appendChild(label);
+    });
+
+    wrapper.appendChild(grid);
+
+    // Identificar composiciones personalizadas que no estén en las opciones predefinidas
+    let customCompositions = activeCompositions.filter(comp => comp && !options.includes(comp));
+    let customValue = customCompositions.join(", ");
+
+    // Crear el campo "otro" para escribir soldaduras/composiciones no listadas
+    let otroContainer = document.createElement("div");
+    otroContainer.className = "otro-composition-container";
+    otroContainer.style.marginTop = "12px";
+
+    let otroLabel = document.createElement("label");
+    otroLabel.textContent = "Otro (Especificar composición):";
+    otroLabel.style.fontSize = "1em";
+    otroLabel.style.color = "#033966";
+    otroLabel.style.display = "block";
+    otroLabel.style.marginBottom = "5px";
+    otroLabel.style.fontWeight = "bold";
+
+    let otroInput = document.createElement("input");
+    otroInput.type = "text";
+    otroInput.name = "composicion_quimica_otro";
+    otroInput.className = "form-control";
+    otroInput.placeholder = "Separar por comas (ej: COBRE, BRONCE, ZINC)";
+    otroInput.value = customValue;
+
+    if (window.profile == 5) {
+        otroInput.disabled = true;
+    }
+
+    otroContainer.appendChild(otroLabel);
+    otroContainer.appendChild(otroInput);
+    wrapper.appendChild(otroContainer);
+
+    return wrapper;
+}
+
+function createChemicalCompositionTags(valueString) {
+    let container = document.createElement("div");
+    container.className = "chemical-composition-tags-container";
+
+    if (!valueString || valueString === "-") {
+        let noData = document.createElement("span");
+        noData.textContent = "-";
+        noData.style.color = "#777777";
+        container.appendChild(noData);
+        return container;
+    }
+
+    let activeCompositions = valueString.split(/\s*\/\s*/);
+    activeCompositions.forEach((tagText) => {
+        if (!tagText.trim()) return;
+        let tag = document.createElement("span");
+        tag.className = "chemical-composition-tag";
+        tag.textContent = tagText.trim();
+        container.appendChild(tag);
+    });
+
+    return container;
 }

@@ -73,44 +73,70 @@ class ClassController extends Controller
      */
     public function store($request)
     {
-        $with = ["error", "¡La clase ingresada ya existe en la orden de trabajo!"];
-        //Verificar si la clase ya existe
-        $foundClass = Clase::query()->where('id_ot', '=', $request->input('workOrder'), 'and')->where('nombre', '=', $request->input('class'), 'and')->first();
-        if (!$foundClass) {
-            //Almacenar los datos ingresados de la clase.
-            $class = new Clase();
-            $class->id_ot = $request->input('workOrder');
-            $class->nombre = $request->input('class');
-            $class->pedido = $request->input('order');
-            $class->piezas = $request->input('pieces');
-            $class->fecha_inicio = $request->input('start_date');
-            $class->hora_inicio = $request->input('start_time');
-            $class->tamanio = $request->input('size');
-            $class->seccion = null;
-            $class->save();
-
-            //Establecer los tiempos de producción
-            $controllerProductionTime = new tiemposProduccionController();
-            $controllerProductionTime->setProductionTimes($class);
-
-            //Asignar los procesos a la clase
-            if ($request->input('operations') != null) { //Si se seleccionaron procesos
-                $process = new Procesos();
-                $this->storeProcess($class, $request->input('operations'), $request->input('machines'), $process); //Verifico las casillas.
-            }
-            
-            SystemLog::create([
-                'user_matricula' => auth()->user()->matricula,
-                'action' => 'Cargo de Clase de OT',
-                'details' => "Se registró la clase {$request->input('class')} en la OT {$request->input('workOrder')} con {$request->input('pieces')} piezas.",
-                'ot' => $request->input('workOrder'),
-                'clase' => $request->input('class'),
-                'id_ot' => $request->input('workOrder'),
-            ]);
-
-            $with = ["success", "¡La clase se ha registrado con éxito!"];
+        $composiciones = $request->input('composicion_quimica');
+        if (!is_array($composiciones)) {
+            $composiciones = $composiciones ? [$composiciones] : [];
         }
-        return redirect()->route('showWO', ['workOrder' => $request->input('workOrder')])->with($with[0], $with[1]);
+        $otro = $request->input('composicion_quimica_otro');
+        if (!empty($otro)) {
+            $otros_array = array_filter(array_map('trim', explode(',', $otro)));
+            $composiciones = array_merge($composiciones, $otros_array);
+        }
+
+        if (empty($composiciones)) {
+            return redirect()->back()->with('error', '¡Debe seleccionar al menos una Composición Química o escribir otra!');
+        }
+
+        $composicion = implode('/', $composiciones);
+
+        // Verificar si la clase ya existe en esta OT
+        $foundClass = Clase::query()
+            ->where('id_ot', '=', $request->input('workOrder'))
+            ->where('nombre', '=', $request->input('class'))
+            ->first();
+
+        if ($foundClass) {
+            return redirect()->back()->with('error', '¡La clase ingresada ya existe en la orden de trabajo!');
+        }
+
+        // Almacenar los datos ingresados de la clase.
+        $class = new Clase();
+        $class->id_ot = $request->input('workOrder');
+        $class->nombre = $request->input('class');
+        $class->pedido = $request->input('order');
+        $class->piezas = $request->input('pieces');
+        $class->fecha_inicio = $request->input('start_date');
+        $class->hora_inicio = $request->input('start_time');
+        $class->tamanio = $request->input('size');
+        $class->composicion_quimica = $composicion;
+        $class->seccion = null;
+
+        if ($class->nombre === null) {
+            return redirect()->back()->with('error', '¡El nombre de la clase no puede estar vacío!');
+        }
+
+        $class->save();
+
+        // Establecer los tiempos de producción
+        $controllerProductionTime = new tiemposProduccionController();
+        $controllerProductionTime->setProductionTimes($class);
+
+        // Asignar los procesos a la clase
+        if ($request->input('operations') != null) {
+            $process = new Procesos();
+            $this->storeProcess($class, $request->input('operations'), $request->input('machines'), $process);
+        }
+
+        SystemLog::create([
+            'user_matricula' => auth()->user()->matricula,
+            'action' => 'Cargo de Clase de OT',
+            'details' => "Se registró la clase {$class->nombre} (Composición: {$composicion}) en la OT {$request->input('workOrder')} con {$class->piezas} piezas.",
+            'ot' => $request->input('workOrder'),
+            'clase' => $class->nombre,
+            'id_ot' => $request->input('workOrder'),
+        ]);
+
+        return redirect()->route('showWO', ['workOrder' => $request->input('workOrder')])->with('success', "¡La clase se ha registrado con éxito!");
     }
 
         /**
@@ -128,6 +154,21 @@ class ClassController extends Controller
             $class->fecha_inicio = $request->input('start_date');
             $class->hora_inicio = $request->input('start_time');
             $class->tamanio = $request->input('size');
+            $comp = $request->input('composicion_quimica');
+            if (!is_array($comp)) {
+                $comp = $comp ? [$comp] : [];
+            }
+            $otro = $request->input('composicion_quimica_otro');
+            if (!empty($otro)) {
+                $otros_array = array_filter(array_map('trim', explode(',', $otro)));
+                $comp = array_merge($comp, $otros_array);
+            }
+
+            if (empty($comp)) {
+                return redirect()->back()->with('error', '¡Debe seleccionar al menos una Composición Química o escribir otra!');
+            }
+
+            $class->composicion_quimica = implode('/', $comp);
             $class->seccion = null;
         } else {
             $class->piezas = $request->input('pieces');
@@ -217,8 +258,8 @@ class ClassController extends Controller
      */
     public function storeProcess($class, $dataProcess, $machines, $process)
     {
-        //Obtener la clase que sera registrada
-        $class = Clase::query()->where('id_ot', '=', $class->id_ot, 'and')->where('nombre', '=', $class->nombre, 'and')->first();
+        //Obtener la clase que sera registrada por su id único
+        $class = Clase::query()->find($class->id);
 
         $processNames = [];
         //Asignar los procesos por los que pasara la clase
@@ -660,7 +701,13 @@ class ClassController extends Controller
      */
     public function AsignMetaData($goal, $hrsWorked, $workOrder, $className, $process) //Función para asignar los datos de la meta.
     {
-        $class = Clase::query()->where('id_ot', '=', $workOrder->id, 'and')->where('nombre', '=', $className, 'and')->first(); //Busco la clase.
+        $class = null;
+        if ($goal->id_clase) {
+            $class = Clase::query()->find($goal->id_clase);
+        }
+        if (!$class) {
+            $class = Clase::query()->where('id_ot', '=', $workOrder->id, 'and')->where('nombre', '=', $className, 'and')->first(); //Busco la clase.
+        }
         $goal->id_clase = $class->id;
 
         $time = tiempoproduccion::query()->where('id_clase', '=', $class->id, 'and')->where('proceso', '=', $process, 'and')->first();
