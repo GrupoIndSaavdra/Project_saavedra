@@ -5694,7 +5694,7 @@ document.getElementById('formConfirmarRechazoAlmacen')?.addEventListener('submit
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
     try {
-        const response = await fetch('/almacen/fundicion/confirmar-recepcion-rechazo', {
+        const response = await fetch(window.almacenRoutes.confirmarRecepcionRechazo, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -6433,7 +6433,7 @@ document.getElementById('formMgvRechazados')?.addEventListener('submit', async f
     }
 
     try {
-        const response = await fetch('/almacen/fundicion/procesar-rechazos', {
+        const response = await fetch(window.almacenRoutes.procesarRechazos, {
             method: 'POST',
             body: formData,
             headers: {

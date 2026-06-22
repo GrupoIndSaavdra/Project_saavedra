@@ -2180,6 +2180,8 @@
             enviarAlertaLiberacion: "{{ route('calidad.fundicion.enviarAlertaLiberacion') }}",
             deleteFile: "{{ route('calidad.fundicion.deleteFile') }}",
             iniciarCasting: "{{ route('almacen.fundicion.iniciarCasting') }}",
+            procesarRechazos: "{{ route('almacen.fundicion.procesarRechazos') }}",
+            confirmarRecepcionRechazo: "{{ route('almacen.fundicion.confirmarRecepcionRechazo') }}",
         };
 
         window.almacenAppAssets = {
