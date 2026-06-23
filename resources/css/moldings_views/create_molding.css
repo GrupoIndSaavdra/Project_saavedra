@@ -1,397 +1,162 @@
- * {
+* {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
 }
-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
+
+body {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
 }
+
 .wrapper {
     position: absolute;
+    width: 90%;
+    max-width: 650px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-sizing: border-box;
-    padding: 20px 50px;
+    padding: 2.5em 3.5em 3.5em;
     background: #fff;
     border-radius: 10px;
     box-shadow: 5px 10px 80px #000000b0;
 }
+
 .lg-saavedra {
-    width: 200px;
-    padding: 2em 0;
+    width: 240px;
+    padding: 1.5em 0;
 }
+
 h2 {
     font-size: 1.5em;
-    margin: 1em;
+    margin: 0.5em 0 1em;
     color: #404040;
-    font-weight: 100;
+    font-weight: 400;
+    text-align: center;
 }
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 0;
+}
+
 .input-field {
-    width: 80%;
-    border-radius: 5px;
-    padding: .7em;
-    margin: 1em;
+    width: 100%;
+    border-radius: 6px;
+    padding: 0.8em 1.2em;
+    margin: 0.5em 0 1em;
     border: 1px solid #00000033;
     text-align: center;
-    font-size: 1em;
+    font-size: 1.2em;
+    font-family: 'Poppins', sans-serif;
     background: #03396610;
+    transition: border 0.2s;
+}
+
+.input-field:focus {
+    outline: none;
+    border: 1px solid #033966;
+    background: #fff;
 }
 
 .input-field:hover {
     border: 1px solid #033966;
 }
 
+.btn {
+    display: inline-block;
+    color: #fff;
+    font-size: 1em;
+    border: none;
+    padding: 0.5em 1em;
+    margin: 0.2em;
+    border-radius: 5px;
+    letter-spacing: 0.5px;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.btn:hover {
+    transform: scale(1.1);
+    transition: 0.2s;
+}
+
 .btn.btn-block {
-    margin: 1em auto 0 auto;
+    margin: 0.5em auto 0 auto;
     border-radius: 20px;
     background-color: #033966;
     color: #fff;
     border: none;
-    width: 50%;
-    font-size: 1em;
-    padding: 10px;
+    width: 60%;
+    font-size: 1.1em;
+    padding: 0.7em;
     letter-spacing: 1px;
-    transition: 0.2s all;
+    transition: 0.2s;
 }
 
 .btn.btn-block:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
+    background-color: #0a8504;
+    transition: 0.2s;
 }
 
+/* ── Alertas ────────────────────────────────────────── */
+.alert {
+    width: 100%;
+    font-size: 0.9em;
+    border-radius: 6px;
+    padding: 0.6em 1em;
+    margin-bottom: 0.8em;
+    text-align: center;
+}
+
+/* ── Responsive ─────────────────────────────────────── */
 @media (max-width: 991.98px) {
-    /* PARA TODOS LOS ESTILOS */
     body {
-        overflow-y: hidden;
+        overflow-y: auto;
+        background-size: auto;
+    }
+
+    .wrapper {
+        width: 90vw;
+        padding: 1.2em 1em 1.5em;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        position: absolute;
+    }
+
+    .lg-saavedra {
+        width: 55%;
+        padding: 1em 0;
     }
 
     h2 {
         font-size: 1.2em;
-        margin: 0.5em;
-        text-align: center;
+        margin: 0.3em 0 0.8em;
     }
 
-    /* PARA EL FORMULARIO DE REGISTRO */
-    .main-layout {
-        flex-direction: column;
-        position: absolute;
-        top: auto;
-        left: auto;
-        transform: none;
+    .input-field {
         width: 100%;
-        height: auto;
-        align-items: center;
-        justify-content: center;
+        font-size: 0.9em;
     }
 
-    .wrapper {
-        width: 95%;
-        padding: 1em;
-        height: auto;
-        margin-top: 350px;
-        border-radius: 10px;
-        box-sizing: border-box;
-        overflow-y: auto;
-        overflow-x: hidden;
-        position: relative;
-        display: flex;
-        z-index: 1;
-        flex-direction: column;
-        align-items: center;
-        background-color: white;
-    }
-
-    .lg-saavedra {
-        width: 50%;
-        display: flex;
-        justify-content: center;
-        margin: 0em 0;
+    .btn.btn-block {
+        width: 70%;
+        font-size: 0.95em;
+        padding: 0.6em;
     }
 
     .alert {
-        font-size: 0.7em;
-    }
-
-    h3 {
-        font-size: 1em;
-        text-align: center;
-        padding: 0.5em 0;
-    }
-
-    .row {
-        flex-direction: column;
-        width: 100%;
-        align-items: center;
-    }
-
-    .column {
-        width: 100%;
-        padding: 0.5em 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .form-control {
-        width: 90%;
-        font-size: 0.9em;
-        padding: 0.5em;
-    }
-
-    label {
-        font-size: 0.9em;
-        text-align: center;
-    }
-
-    /* TABLA */
-    .scrollabe-table {
-        width: 100%;
-        overflow-x: auto;
-        padding: 0.5rem;
-        text-align: center;
-    }
-
-    .table {
         font-size: 0.8em;
-        min-width: 100%;
-        text-align: center;
-    }
-
-    .t-title {
-        font-size: 0.9em;
-    }
-
-    .div-td {
-        font-size: 1em;
-        padding: 0.5em 0;
-        width: 100%;
-        text-align: center;
-    }
-
-    .btnClass {
-        gap: 0.5em;
-        font-size: 0.9em;
-    }
-
-    .container-WOButtons {
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5em;
-        width: 100%;
-        font-size: 0.9em;
-    }
-
-    .btn-deleteWO,
-    .btn-pdfWO {
-        width: 80%;
-        text-align: center;
-        font-size: 0.7em;
-    }
-    .input-field {
-        width: 90%;
-        font-size: 0.9em;
-        
-    }
-    .btn.btn-block{
-        width: 50%;
-        font-size: 1em;
-    }
-
-    .container-checkbox {
-        text-align: center;
-        margin: 1em 0;
-    }
-
-    .checkbox-add-class {
-        transform: scale(1.3);
-        margin: 0.5em;
-    }
-
-    .label-add-class {
-        font-size: 0.9em;
-        text-align: center;
-    }
-
-    .div-boxes {
-        width: 96%;
-        display: flex;
-        padding: 1em;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        right: auto;
-        margin: 0;
-    }
-
-    .div-boxes h3 {
-        font-size: 1.1em;
-        text-align: center;
-    }
-
-    .checkbox-label {
-        font-size: 0.7em;
-        width: 100%;
-        text-align: center;
-        padding: 0.7em 0.5em;
-    }
-
-    .section1,
-    .section2 {
-        padding: 0.5em 0;
-        width: 50%;
-        align-items: center;
-    }
-
-    .sections {
-        align-items: flex-start;
-        gap: 1rem;
-        padding: 0.6em 0;
-        flex-wrap: wrap;
-    }
-
-    .section1 {
-        margin-top: 15px;
-        padding: 0.5em 0;
-        width: 55%;
-        align-items: flex-start;
-        text-align: left;
-        background-color: #ffffff;
-    }
-
-    .section2 {
-        margin-top: 10px;
-        padding: 0.5em 0;
-        width: 55%;
-        margin-right: -5rem;
-        align-items: center;
-        background-color: #ffffff;
-    }
-
-    .checkbox-container {
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        padding: 0.5em 0;
-    }
-
-    .checkbox,
-    .checkbox-soldaduras,
-    .checkboxAll {
-        transform: scale(1.3);
-        margin: 0.5em 0;
-    }
-
-    .div-checkboxAll {
-        margin: 0.5em 0;
-        position: relative;
-        justify-content: center;
-        width: 30%;
-    }
-
-    .input-machine,
-    .input-machine-soldaduras {
-        width: 2.5em;
-        height: 1.6em;
-        font-size: 1em;
-    }
-
-    .div-btns {
-        position: relative;
-        bottom: auto;
-        left: auto;
-        transform: none;
-        margin-top: 113em;
-        display: flex;
-        left: 50%;
-        transform: translate(-50%);
-        width: 80%;
-        z-index: 999;
-        gap: 2em;
-        justify-content: center;
-    }
-
-    .btn {
-        display: block;
-        width: 80%;
-        text-align: center;
-        font-size: 0.9em;
-    }
-
-    .btn-deleteClass,
-    .btn-editClass {
-        position: static;
-        margin-top: -125px;
-        margin: 0 0.5em;
-        text-align: center;
-    }
-
-    .action-btns {
-        font-size: 0.9em;
-        margin: 0.5em auto;
-        width: 90%;
-    }
-
-    .div-opacity {
-        width: 100vw;
-        height: 100vh;
-        padding: 1em;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .div-delete {
-        width: 90%;
-        padding: 1em;
-        border-radius: 10px;
-        text-align: center;
-    }
-
-    .div-cerrar {
-        width: 2em;
-        margin: 0 auto;
-    }
-
-    .btn-cerrar {
-        display: block;
-        margin: 0 auto;
-    }
-
-    .img-cerrar {
-        width: 100%;
-    }
-
-    .img-delete {
-        width: 5em;
-        margin: auto;
-    }
-
-    .label-delete {
-        font-size: 0.9em;
-        text-align: center;
-    }
-
-    .btn-addClass {
-        width: 50%;
-        position: static;
-        top: 60px;
-        right: 96px;
-        margin-top: 50px;
-        z-index: 9999;
-        background-color: #0a8504;
-        color: white;
-        font-size: 1em;
-        padding: 10px;
-        border-radius: 5px;
-        margin-bottom: 2rem;
-        border: none;
-        transition: 0.2s;
     }
 }

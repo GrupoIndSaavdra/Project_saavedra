@@ -11,6 +11,12 @@ document.getElementById("form").addEventListener("submit", function (event) {
         let checkedChips = document.querySelectorAll(".chemical-composition-input:checked");
         let otroInput = document.querySelector('input[name="composicion_quimica_otro"]');
         let hasOtro = otroInput && otroInput.value.trim() !== "";
+
+        // Normalizar el campo "otro" al enviar (solo admin=1 y master=3)
+        if (otroInput && (window.profile == 1 || window.profile == 3)) {
+            otroInput.value = normalizeChemicalInput(otroInput.value);
+        }
+
         if (checkedChips.length === 0 && !hasOtro) {
             event.preventDefault();
             alert("Por favor, seleccione al menos una Composición Química o especifique otra.");
@@ -1147,12 +1153,31 @@ function createChemicalCompositionChips(attributesArray) {
     let options = attributesArray.options;
     let currentValue = attributesArray.currentValue ?? null;
 
-    let activeCompositions = [];
+    // Parsear currentValue respetando grupos con '/':
+    // Si un grupo A/B tiene algún elemento que NO es opción predefinida,
+    // el grupo completo se trata como composición personalizada (ej: BRONCE/ZINC).
+    // Si todos los elementos del grupo son opciones predefinidas, se marcan como chips individuales.
+    let activeCompositions = [];  // elementos predefinidos (chips a marcar)
+    let customGroups = [];        // grupos personalizados (campo "otro")
+
     if (currentValue) {
         if (Array.isArray(currentValue)) {
             activeCompositions = currentValue;
         } else {
-            activeCompositions = currentValue.split(/\s*\/\s*/).map(s => s.trim());
+            // Separar primero por coma (distintas composiciones)
+            let commaGroups = currentValue.split(/\s*,\s*/).map(s => s.trim()).filter(Boolean);
+            commaGroups.forEach((group) => {
+                // Cada grupo puede tener '/' (mezcla)
+                let parts = group.split(/\s*\/\s*/).map(s => s.trim()).filter(Boolean);
+                let allPredefined = parts.every(p => options.includes(p));
+                if (allPredefined) {
+                    // Todos son chips predefinidos → marcarlos individualmente
+                    parts.forEach(p => activeCompositions.push(p));
+                } else {
+                    // Hay al menos un elemento no predefinido → mantener el grupo unido
+                    customGroups.push(group);
+                }
+            });
         }
     }
 
@@ -1186,9 +1211,8 @@ function createChemicalCompositionChips(attributesArray) {
 
     wrapper.appendChild(grid);
 
-    // Identificar composiciones personalizadas que no estén en las opciones predefinidas
-    let customCompositions = activeCompositions.filter(comp => comp && !options.includes(comp));
-    let customValue = customCompositions.join(", ");
+    // Construir el valor del campo "otro" con los grupos personalizados
+    let customValue = customGroups.join(", ");
 
     // Crear el campo "otro" para escribir soldaduras/composiciones no listadas
     let otroContainer = document.createElement("div");
@@ -1207,11 +1231,26 @@ function createChemicalCompositionChips(attributesArray) {
     otroInput.type = "text";
     otroInput.name = "composicion_quimica_otro";
     otroInput.className = "form-control";
-    otroInput.placeholder = "Separar por comas (ej: COBRE, BRONCE, ZINC)";
-    otroInput.value = customValue;
+    otroInput.placeholder = "Separar por comas (ej: COBRE, BRONCE) o con / para mezclas (ej: HG/MINOX)";
+    otroInput.value = customValue ? normalizeChemicalInput(customValue) : customValue;
 
     if (window.profile == 5) {
         otroInput.disabled = true;
+    }
+
+    // Normalización en tiempo real: mayúsculas + reglas de / y , (solo admin=1 y master=3)
+    if (window.profile == 1 || window.profile == 3) {
+        otroInput.addEventListener("input", function () {
+            let cursorPos = this.selectionStart;
+            let original = this.value;
+            let normalized = normalizeChemicalInput(original);
+            if (normalized !== original) {
+                this.value = normalized;
+                // Restaurar posición del cursor ajustada
+                let diff = normalized.length - original.length;
+                this.setSelectionRange(cursorPos + diff, cursorPos + diff);
+            }
+        });
     }
 
     otroContainer.appendChild(otroLabel);
@@ -1243,4 +1282,21 @@ function createChemicalCompositionTags(valueString) {
     });
 
     return container;
+}
+
+/**
+ * Normaliza el texto de composición química:
+ * - Convierte todo a mayúsculas
+ * - Si hay '/', elimina espacios alrededor (juntar): "HG / MINOX" → "HG/MINOX"
+ * - Si hay ',', separa con ", " (separar): "hg,minox" → "HG, MINOX"
+ */
+function normalizeChemicalInput(value) {
+    if (!value) return value;
+    // Convertir a mayúsculas
+    let result = value.toUpperCase();
+    // Normalizar '/': quitar espacios alrededor (juntar elementos)
+    result = result.replace(/\s*\/\s*/g, "/");
+    // Normalizar ',': asegurar un espacio después de la coma (separar)
+    result = result.replace(/\s*,\s*/g, ", ");
+    return result;
 }

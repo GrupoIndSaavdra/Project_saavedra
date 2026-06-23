@@ -2,32 +2,60 @@
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
 }
 
 .wrapper {
     position: absolute;
+    width: 90%;
+    max-width: 650px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 40vw;
-    background: #fff;
-    border-radius: 10px;
-    padding: 3.5em;
-    box-shadow: 5px 10px 80px #000000b0;
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding: 2.5em 3.5em 3.5em;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 5px 10px 80px #000000b0;
 }
 
 .lg-saavedra {
-    width: 40%;
+    width: 240px;
+    padding: 1.5em 0;
 }
 
 h2 {
-    margin-top: 2em;
-    color: #404040;
-    font-weight: 100;
     font-size: 1.5em;
+    margin: 0.5em 0 1em;
+    color: #404040;
+    font-weight: 400;
+    text-align: center;
+}
+
+h3 {
+    font-size: 1.2em;
+    margin: 0.5em 0 1em;
+    color: #404040;
+    font-weight: 400;
+    text-align: center;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 0;
 }
 
 .div-bttns {
@@ -40,152 +68,169 @@ h2 {
 }
 
 .bttns-add-select {
-    padding: 10px;
-    font-size: 1em;
-    font-weight: 900;
+    padding: 0.8em 1.5em;
+    font-size: 1.1em;
+    font-weight: 500;
     color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: 20px;
     transition: 0.2s;
-    background-color: #0a8504;
+    background-color: #033966;
     cursor: pointer;
+    letter-spacing: 0.5px;
 }
 
 .bttns-add-select:hover {
-    background-color: #033966;
-    transform: scale(1.1);
+    background-color: #0a8504;
+    transform: scale(1.05);
     transition: 0.2s;
 }
+
 .container-form {
     width: 100%;
     margin-top: 2em;
     text-align: center;
 }
-h3 {
-    font-size: 1.2em;
-    margin-top: 2em;
-    color: #404040;
-    font-weight: 100;
+
+.form-outline {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    width: 100%;
 }
 
 .form-control {
     width: 100%;
-    border-radius: 5px;
-    padding: 0.7em;
+    border-radius: 6px;
+    padding: 0.8em 1.2em;
     background: #03396610;
     border: 1px solid #00000033;
     text-align: center;
-    font-size: 1em;
-    margin: .5em 0;
+    font-size: 1.2em;
+    margin: 0.5em 0 1em;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s ease-in-out;
 }
+
+.form-control:focus {
+    outline: none;
+    border: 1px solid #033966;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.1);
+}
+
 .form-control:hover {
     border: 1px solid #033966;
 }
 
+.form-label {
+    display: block;
+    font-size: 0.95em;
+    color: #033966;
+    font-weight: 600;
+    margin-bottom: 0.2em;
+    text-align: left;
+    width: 100%;
+}
+
 .btn.btn-block {
-    margin-top: 1.5em;
+    margin: 0.5em auto 0 auto;
     border-radius: 20px;
     background-color: #033966;
     color: #fff;
     border: none;
-    font-size: 1em;
+    width: 60%;
+    font-size: 1.1em;
     padding: 0.7em;
     letter-spacing: 1px;
     transition: 0.2s;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
 }
 
 .btn.btn-block:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
     background-color: #0a8504;
     transition: 0.2s;
 }
 
-.form-label {
-    font-size: 1em;
-    color: #033966;
-    font-weight: 800;
+/* Alertas */
+.alert {
+    width: 100%;
+    font-size: 0.9em;
+    border-radius: 6px;
+    padding: 0.8em 1.2em;
+    margin-bottom: 1em;
+    text-align: center;
 }
 
-/* Estilos de alertas */
 .fas.fa-check {
     background-color: #fcebea;
     border: 1px solid #f5c6cb;
-    color: #cc1f1a; /* color de texto tipo warning */
+    color: #cc1f1a;
     padding: 1rem 1.5rem;
     border-radius: 0.5rem;
     font-size: 1.2rem;
     text-align: center;
     font-style: normal;
     font-weight: 700;
+    display: block;
+    width: 100%;
 }
-/*
 
 /* Media Queries for Responsiveness */
-
 @media (max-width: 991.98px) {
-    /* PARA EL FORMULARIO DE REGISTRO */
-    /* CUANDO LE DAMOS CLIC AL BOTON CREAR OT */
-    .wrapper {
-        width: 90%;
-        padding: 10px 20px;
+    body {
+        overflow-y: auto;
+        background-size: auto;
     }
+
+    .wrapper {
+        width: 90vw;
+        padding: 1.2em 1em 1.5em;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        position: absolute;
+    }
+
     .lg-saavedra {
-        width: 50%;
+        width: 55%;
         padding: 1em 0;
     }
+
     h2 {
         font-size: 1.2em;
-        margin-top: 0.4em;
-        text-align: center;
+        margin: 0.3em 0 0.8em;
     }
-    .container-form {
+
+    h3 {
+        font-size: 1.1em;
+        margin: 0.3em 0 0.8em;
+    }
+
+    .form-control {
         width: 100%;
-        margin-top: 1em;
+        font-size: 0.95em;
+        padding: 0.6em;
     }
+
     .btn.btn-block {
-        margin-top: 1.5em;
-        border-radius: 20px;
-        background-color: #033966;
-        color: #fff;
-        border: none;
-        width: 35%;
-        font-size: 1em;
-        padding: 0.7em;
-        letter-spacing: 1px;
-        transition: 0.2s;
+        width: 70%;
+        font-size: 0.95em;
+        padding: 0.6em;
     }
-    .btn.btn-block:hover {
-        transform: scale(1.1);
-        background-color: #0a8504;
-        transition: 0.2s;
+
+    .alert {
+        font-size: 0.8em;
     }
+
     .div-bttns {
         gap: 1em;
         margin-top: 1em;
     }
+
     .bttns-add-select {
-        font-size: 1em;
-        padding: 0.5em 1em;
-        margin: 0;
-    }
-    .form-label {
-        font-size: 1em;
-        margin: 0.5em 0;
-    }
-    .form-control {
-        width: 100%;
-        height: 200%;
-        font-size: 1em;
-        padding: 0.5em;
-        margin: 0.5em 0;
-    }
-    .close-alert {
-        font-size: 0.7em;
-        padding: 0;
-    }
-    .alert {
-        font-size: 0.8em;
-        padding: 0.5em 1em;
-        text-align: left 50px;
+        font-size: 0.95em;
+        padding: 0.6em 1.2em;
     }
 }
