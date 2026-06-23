@@ -48,8 +48,14 @@ class WOController extends Controller
     //Mostrar la vista para seleccionar o crear una Orden de Trabajo
     public function manage()
     {
-        // ── OPTIMIZACIÓN: eager loading evita N+1 queries de moldura y clases ──
-        $moldings = Moldura::all();
+        // Obtener solo las molduras que tienen clases asociadas activas (finalizada != 2)
+        $moldings = Moldura::whereExists(function ($query) {
+            $query->select(\Illuminate\Support\Facades\DB::raw(1))
+                  ->from('clases')
+                  ->join('orden_trabajo', 'clases.id_ot', '=', 'orden_trabajo.id')
+                  ->whereColumn('orden_trabajo.id_moldura', 'molduras.id')
+                  ->where('clases.finalizada', '!=', 2);
+        })->get();
         $workOrdersAll = Orden_trabajo::query()->with(['clases', 'moldura'])->get();
         $workOrders = null;
 
@@ -61,6 +67,7 @@ class WOController extends Controller
             foreach ($workOrdersAll as $workOrder) {
                 $clases = $workOrder->clases;
                 if ($isAlmacen) {
+                    $clases = $clases->where('finalizada', '!=', 2);
                     if ($clases->count() == 0)
                         continue;
                 } else {
@@ -122,6 +129,12 @@ class WOController extends Controller
 
         // Vista especial para Almacén (perfil 5) o cuando se solicita modo Almacén (almacen_only)
         if (auth()->user()->perfil == 5 || request('almacen_only') == 1) {
+            if ($classes) {
+                $classes = $classes->where('finalizada', '!=', 2);
+                if ($classes->isEmpty()) {
+                    $classes = null;
+                }
+            }
             // Cargar remisiones y parcialidades agrupadas por id_clase
             $claseIds = $classes ? $classes->pluck('id')->toArray() : [];
             $remisiones   = RemisionOt::with('usuario')->whereIn('id_clase', $claseIds)->where('visible', 1)->orderByDesc('created_at')->get()->groupBy('id_clase');
