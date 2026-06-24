@@ -49,16 +49,26 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('hidden-clase-tamanio').value  = tamanio;
             claseDetail.classList.add('visible');
 
-            // ── Formulario parcialidad: mostrar directamente ──
+            // ── Formulario parcialidad y tratamiento: mostrar directamente ──
             document.getElementById('hidden-idOtParcialidad').value    = idOt;
             document.getElementById('hidden-idClaseParcialidad').value = idClase;
             placeholderParcialidad.style.display = 'none';
             formParcialidad.style.display = '';
             if (avisoSinRemision) avisoSinRemision.style.display = 'none';
 
-            // ── Filtrar listas de remisiones y parcialidades por clase ──
+            const placeholderTratamiento = document.getElementById('placeholder-tratamiento');
+            const formTratamiento        = document.getElementById('form-tratamiento');
+            if (placeholderTratamiento) placeholderTratamiento.style.display = 'none';
+            if (formTratamiento) {
+                document.getElementById('hidden-idOtTratamiento').value    = idOt;
+                document.getElementById('hidden-idClaseTratamiento').value = idClase;
+                formTratamiento.style.display = '';
+            }
+
+            // ── Filtrar listas de remisiones, parcialidades y tratamientos por clase ──
             filterGroups('.grupo-remision', idClase);
             filterGroups('.grupo-parcialidad', idClase);
+            filterGroups('.grupo-tratamiento', idClase);
 
             // ── Actualizar resumen de parcialidades ──
             updateResumen(idClase, pedido, piezas);
@@ -146,24 +156,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let pendingDeleteForm = null;
 
-    document.querySelectorAll('.form-eliminar-parcialidad').forEach(form => {
+    document.querySelectorAll('.form-eliminar-parcialidad, .form-eliminar-tratamiento').forEach(form => {
         form.addEventListener('submit', e => {
             e.preventDefault();
             
             const layoutMain = document.getElementById('almacen-layout-main');
             const userPerfil = layoutMain ? layoutMain.dataset.userPerfil : '';
             
+            const isTratamiento = form.classList.contains('form-eliminar-tratamiento');
+            const msgConfirm = isTratamiento ? '¿Eliminar este tratamiento?' : '¿Eliminar esta parcialidad?';
+            const msgModal = isTratamiento 
+                ? 'Ingresa la contraseña de un Administrador o Master para eliminar este tratamiento:' 
+                : 'Ingresa la contraseña de un Administrador o Master para eliminar esta parcialidad:';
+            
             if (userPerfil != '1' && userPerfil != '3') {
                 pendingDeleteForm = form;
                 const modal = document.getElementById('modal-confirm-delete');
                 const passwordInput = document.getElementById('modal-delete-password');
+                const modalMsg = modal ? modal.querySelector('p') : null;
+                if (modalMsg) {
+                    modalMsg.textContent = msgModal;
+                }
                 if (modal && passwordInput) {
                     passwordInput.value = '';
                     modal.style.display = 'flex';
                     passwordInput.focus();
                 }
             } else {
-                if (confirm('¿Eliminar esta parcialidad?')) {
+                if (confirm(msgConfirm)) {
                     form.submit();
                 }
             }
@@ -381,6 +401,76 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // ── Lógica de edición de tratamientos en línea ──
+    document.querySelectorAll('.btn-editar-tratamiento').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const row = btn.closest('.fila-tratamiento-item');
+            row.classList.add('editando');
+        });
+    });
+
+    document.querySelectorAll('.btn-cancelar-tratamiento').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const row = btn.closest('.fila-tratamiento-item');
+            
+            // Restaurar valores iniciales
+            row.querySelector('.edit-descripcion').value = row.dataset.descripcion;
+            
+            const fileInput = row.querySelector('.edit-archivo');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+            row.classList.remove('editando');
+        });
+    });
+
+    document.querySelectorAll('.btn-guardar-tratamiento').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const row = btn.closest('.fila-tratamiento-item');
+            const id = row.dataset.id;
+            const descripcion = row.querySelector('.edit-descripcion').value;
+            
+            if (!descripcion || descripcion.trim() === '') {
+                alert('La descripción es requerida.');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('_token', document.querySelector('input[name="_token"]').value);
+            formData.append('_method', 'PUT');
+            formData.append('descripcion', descripcion);
+            
+            const fileInput = row.querySelector('.edit-archivo');
+            if (fileInput && fileInput.files.length > 0) {
+                formData.append('archivo', fileInput.files[0]);
+            }
+            
+            // Submit via Fetch API
+            fetch(row.dataset.updateUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => {
+                if (res.ok) {
+                    window.location.reload();
+                } else {
+                    res.json().then(data => {
+                        alert(data.message || 'Error al guardar los cambios.');
+                    }).catch(() => {
+                        alert('Error al guardar los cambios.');
+                    });
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Error al procesar la solicitud.');
+            });
+        });
+    });
 
     // Restaurar la última clase seleccionada tras recargas de página
     if (rows.length > 0) {

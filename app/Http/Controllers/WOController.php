@@ -132,8 +132,9 @@ class WOController extends Controller
             $claseIds = $classes ? $classes->pluck('id')->toArray() : [];
             $remisiones   = RemisionOt::with('usuario')->whereIn('id_clase', $claseIds)->where('visible', 1)->orderByDesc('created_at')->get()->groupBy('id_clase');
             $parcialidades = ParcialidadOt::with(['usuario', 'remision'])->whereIn('id_clase', $claseIds)->orderByDesc('fecha_recepcion')->get()->groupBy('id_clase');
+            $tratamientos = \App\Models\TratamientoTermico::whereIn('id_clase', $claseIds)->orderByDesc('created_at')->get()->groupBy('id_clase');
 
-            return view('wo_views.show_wo_almacen', compact('workOrder', 'molding', 'classes', 'remisiones', 'parcialidades'));
+            return view('wo_views.show_wo_almacen', compact('workOrder', 'molding', 'classes', 'remisiones', 'parcialidades', 'tratamientos'));
         }
 
         //Se obtienen las maquinas de los procesos guardados

@@ -98,6 +98,12 @@ Route::controller(WOController::class)->group(function () {
     Route::post('/wo/parcialidad', [AlmacenWOController::class, 'storeParcialidad'])->name('wo.parcialidad.store');
     Route::delete('/wo/parcialidad/{id}', [AlmacenWOController::class, 'destroyParcialidad'])->name('wo.parcialidad.destroy');
     Route::put('/wo/parcialidad/{id}', [AlmacenWOController::class, 'updateParcialidad'])->name('wo.parcialidad.update');
+
+    // Rutas para Tratamiento Térmico
+    Route::post('/wo/tratamiento', [\App\Http\Controllers\TratamientoTermicoController::class, 'store'])->name('wo.tratamiento.store');
+    Route::get('/wo/tratamiento/{id}/download', [\App\Http\Controllers\TratamientoTermicoController::class, 'download'])->name('wo.tratamiento.download');
+    Route::delete('/wo/tratamiento/{id}', [\App\Http\Controllers\TratamientoTermicoController::class, 'destroy'])->name('wo.tratamiento.destroy');
+    Route::put('/wo/tratamiento/{id}', [\App\Http\Controllers\TratamientoTermicoController::class, 'update'])->name('wo.tratamiento.update');
 });
 
 Route::controller(ClassController::class)->group(function () {

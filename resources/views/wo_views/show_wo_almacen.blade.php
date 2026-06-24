@@ -353,6 +353,97 @@
             </div>
         </div>
 
+        {{-- ── CARD TRATAMIENTO TÉRMICO ── --}}
+        <div class="card-actividad" id="tratamiento-termico-panel">
+            <h3>
+                Tratamiento térmico
+            </h3>
+            <div class="placeholder-msg" id="placeholder-tratamiento">
+                Selecciona una clase para ver el tratamiento térmico.
+            </div>
+
+            {{-- Formulario nueva --}}
+            <form action="{{ route('wo.tratamiento.store') }}" method="POST" enctype="multipart/form-data" class="form-tratamiento" id="form-tratamiento" style="display:none">
+                @csrf
+                <input type="hidden" name="id_ot" id="hidden-idOtTratamiento" value="">
+                <input type="hidden" name="id_clase" id="hidden-idClaseTratamiento" value="">
+
+                <div class="field">
+                    <label>Archivo (PDF)</label>
+                    <input type="file" name="archivo" id="tratamiento-archivo" accept=".pdf" required class="form-control" style="font-size:.8rem;padding:.35rem">
+                </div>
+                <div class="field">
+                    <label>Descripción</label>
+                    <input type="text" name="descripcion" placeholder="Ej: Reporte de tratamiento..." maxlength="255" class="form-control" required>
+                </div>
+                <button type="submit" class="btn-subir" id="btn-registrar-tratamiento">Registrar</button>
+            </form>
+
+            {{-- Historial --}}
+            <div id="historial-tratamiento-container">
+                @foreach($classes ?? [] as $clase)
+                <div class="grupo-tratamiento" data-id-clase="{{ $clase->id }}" style="display:none">
+                    @if(isset($tratamientos[$clase->id]) && $tratamientos[$clase->id]->count() > 0)
+                    <div class="lista-tratamientos">
+                        <table class="tabla-parcialidades">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Descripción</th>
+                                    <th>Documento</th>
+                                    <th>Registrado por</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($tratamientos[$clase->id] as $tratamiento)
+                                <tr class="fila-tratamiento-item"
+                                    data-id="{{ $tratamiento->id }}"
+                                    data-descripcion="{{ $tratamiento->descripcion }}"
+                                    data-update-url="{{ route('wo.tratamiento.update', $tratamiento->id) }}">
+                                    <td>{{ $tratamiento->created_at->format('d/m/Y') }}</td>
+                                    <td>
+                                        <span class="view-descripcion">{{ $tratamiento->descripcion }}</span>
+                                        <input type="text" class="edit-descripcion form-control" value="{{ $tratamiento->descripcion }}">
+                                    </td>
+                                    <td>
+                                        <div class="view-remision">
+                                            <a href="{{ route('wo.tratamiento.download', $tratamiento->id) }}" target="_blank" style="font-size: 0.82rem; color: #033966; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                                                <img src="{{ asset('images/pdf.png') }}" alt="PDF" style="width: 16px; height: 16px; object-fit: contain;">
+                                                <span>Ver PDF</span>
+                                            </a>
+                                        </div>
+                                        <input type="file" class="edit-archivo form-control" accept=".pdf">
+                                    </td>
+                                    <td>{{ $tratamiento->registrado_por }}</td>
+                                    <td style="white-space: nowrap;">
+                                        <!-- Botones estándar -->
+                                        <button type="button" class="btn-editar-tratamiento btn-download">Editar</button>
+
+                                        <form action="{{ route('wo.tratamiento.destroy', $tratamiento->id) }}" method="POST" class="form-eliminar-tratamiento" style="display:inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <input type="hidden" name="password" class="input-confirm-password" value="">
+                                            <button type="submit" class="btn-eliminar-remision" title="Eliminar">Eliminar</button>
+                                        </form>
+
+                                        <!-- Botones de guardar / cancelar (ocultos inicialmente) -->
+                                        <button type="button" class="btn-guardar-tratamiento btn-guardar-parcialidad">Guardar</button>
+                                        <button type="button" class="btn-cancelar-tratamiento btn-cancelar-parcialidad">Cancelar</button>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    @else
+                    <div class="empty-state">No hay tratamientos registrados para esta clase.</div>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+        </div>
+
     </div>{{-- /panel-actividad --}}
 </div>{{-- /almacen-layout --}}
 
