@@ -69,14 +69,22 @@ class DesbasteExteriorController extends Controller
     }
 
 
-        /**
-     * @param mixed $pieza
-     * @param mixed $cNominal
-     * @param mixed $tolerancia
-     */
+    private function outOfTolerance($value, $nominal, $tolerancePlus, $toleranceMinus)
+    {
+        return round($value, 4) > round($nominal + $tolerancePlus, 4) || round($value, 4) < round($nominal - $toleranceMinus, 4);
+    }
+
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
-        if ($pieza->diametro_mordaza > ($cNominal->diametro_mordaza + $tolerancia->diametro_mordaza1) || $pieza->diametro_mordaza < ($cNominal->diametro_mordaza - $tolerancia->diametro_mordaza2) || $pieza->diametro_ceja > ($cNominal->diametro_ceja + $tolerancia->diametro_ceja1) || $pieza->diametro_ceja < ($cNominal->diametro_ceja - $tolerancia->diametro_ceja2) || $pieza->diametro_sufrideraExtra > ($cNominal->diametro_sufrideraExtra + $tolerancia->diametro_sufrideraExtra1) || $pieza->diametro_sufrideraExtra < ($cNominal->diametro_sufrideraExtra - $tolerancia->diametro_sufrideraExtra2) || $pieza->simetria_ceja > ($cNominal->simetria_ceja + $tolerancia->simetria_ceja1) || $pieza->simetria_ceja < ($cNominal->simetria_ceja - $tolerancia->simetria_ceja2) || $pieza->simetria_mordaza > ($cNominal->simetria_mordaza + $tolerancia->simetria_mordaza1) || $pieza->simetria_mordaza < ($cNominal->simetria_mordaza - $tolerancia->simetria_mordaza2) || $pieza->altura_ceja > ($cNominal->altura_ceja + $tolerancia->altura_ceja1) || $pieza->altura_ceja < ($cNominal->altura_ceja - $tolerancia->altura_ceja2) || $pieza->altura_sufridera > ($cNominal->altura_sufridera + $tolerancia->altura_sufridera1) || $pieza->altura_sufridera < ($cNominal->altura_sufridera - $tolerancia->altura_sufridera2)) {
+        if (
+            $this->outOfTolerance($pieza->diametro_mordaza, $cNominal->diametro_mordaza, $tolerancia->diametro_mordaza1, $tolerancia->diametro_mordaza2) ||
+            $this->outOfTolerance($pieza->diametro_ceja, $cNominal->diametro_ceja, $tolerancia->diametro_ceja1, $tolerancia->diametro_ceja2) ||
+            $this->outOfTolerance($pieza->diametro_sufrideraExtra, $cNominal->diametro_sufrideraExtra, $tolerancia->diametro_sufrideraExtra1, $tolerancia->diametro_sufrideraExtra2) ||
+            $this->outOfTolerance($pieza->simetria_ceja, $cNominal->simetria_ceja, $tolerancia->simetria_ceja1, $tolerancia->simetria_ceja2) ||
+            $this->outOfTolerance($pieza->simetria_mordaza, $cNominal->simetria_mordaza, $tolerancia->simetria_mordaza1, $tolerancia->simetria_mordaza2) ||
+            $this->outOfTolerance($pieza->altura_ceja, $cNominal->altura_ceja, $tolerancia->altura_ceja1, $tolerancia->altura_ceja2) ||
+            $this->outOfTolerance($pieza->altura_sufridera, $cNominal->altura_sufridera, $tolerancia->altura_sufridera1, $tolerancia->altura_sufridera2)
+        ) {
             return 0; //Si los datos de la pieza son diferentes a los nominales y de tolerancia, se retorna 0.
         } else {
             return 1; //Si los datos de la pieza son iguales a los nominales y de tolerancia, se retorna 1.
