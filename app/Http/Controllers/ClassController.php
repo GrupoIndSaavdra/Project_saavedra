@@ -109,6 +109,7 @@ class ClassController extends Controller
         $class->hora_inicio = $request->input('start_time');
         $class->tamanio = $request->input('size');
         $class->composicion_quimica = $composicion;
+        $class->tipo_soldadura = $request->input('tipo_soldadura');
         $class->seccion = null;
 
         if ($class->nombre === null) {
@@ -169,6 +170,7 @@ class ClassController extends Controller
             }
 
             $class->composicion_quimica = implode('/', $comp);
+            $class->tipo_soldadura = $request->input('tipo_soldadura');
             $class->seccion = null;
         } else {
             $class->piezas = $request->input('pieces');

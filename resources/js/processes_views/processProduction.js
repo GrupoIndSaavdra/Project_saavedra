@@ -302,6 +302,7 @@ function createInputsWithValue(values, valuesEnabled = []) {
             key != "availableAssemblies" &&
             key != "history" &&
             key != "ptaTableHtml" &&
+            key != "tipo_soldadura" &&
             value != null &&
             value !== ""
         ) {
@@ -367,10 +368,66 @@ function createBtnSubmit_editMeta() {
     let submit = document.createElement("button");
     submit.type = "submit";
     submit.className = "btn-submit";
-    submit.style.opacity = "1"; // Mostrar el botón de submit
-    submit.style.pointerEvents = "auto"; // Habilitar clics
+    submit.style.opacity = "1";
+    submit.style.pointerEvents = "auto";
     submit.textContent = "Editar";
     return submit;
+}
+
+/**
+ * Muestra un cuadro informativo de tipo de soldadura en el form-grid.
+ * Solo se muestra en los procesos que aplican y solo si hay arrayData.
+ */
+function insertWeldingTypeBox() {
+    const procesosAplicables = [
+        "Primera Operacion", "Segunda Operacion", "Operacion Equipo",
+        "Cepillado", "Soldadura", "Soldadura PTA"
+    ];
+
+    if (!window.arrayData) return;
+
+    const proceso = window.arrayData["process"];
+    if (!procesosAplicables.includes(proceso)) return;
+
+    const tipoSoldadura = window.arrayData["tipo_soldadura"];
+    const formGrid = document.querySelector(".form-grid");
+    if (!formGrid) return;
+
+    // Evitar duplicados
+    if (document.getElementById("weld-type-box")) return;
+
+    let box = document.createElement("div");
+    box.id = "weld-type-box";
+    box.className = "form-group";
+    box.style.cssText = [
+        "display: flex",
+        "flex-direction: column",
+        "align-items: center",
+        "justify-content: center",
+        "background: #033966",
+        "border: 2px solid #022a4d",
+        "border-radius: 8px",
+        "padding: 8px 14px",
+        "gap: 4px",
+        "min-width: 110px",
+    ].join(";");
+
+    let labelTitle = document.createElement("span");
+    labelTitle.textContent = "tipo de soldadura";
+    labelTitle.style.cssText = "color: #a8c4e0; font-size: 0.72em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;";
+
+    let valueSpan = document.createElement("span");
+    if (tipoSoldadura) {
+        valueSpan.textContent = tipoSoldadura;
+        valueSpan.style.cssText = "color: #ffffff; font-size: 2em; font-weight: 800; line-height: 1;";
+    } else {
+        valueSpan.textContent = "-";
+        valueSpan.style.cssText = "color: #7a9dc0; font-size: 1.4em; font-weight: 700; line-height: 1;";
+    }
+
+    box.appendChild(labelTitle);
+    box.appendChild(valueSpan);
+    formGrid.appendChild(box);
 }
 function insertSelects() {
     let form_grid = document.querySelector(".form-grid");
@@ -1707,6 +1764,7 @@ if (window.arrayData) {
             }
         } else {
             createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
+            insertWeldingTypeBox(); // Cuadro informativo de tipo de soldadura
             enableTable(); // Habilitar la tabla de piezas
             // Cambiar la ruta del formulario a la de editar piezas
             changeFormRoute(
@@ -1720,6 +1778,7 @@ if (window.arrayData) {
         }
     } else {
         createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
+        insertWeldingTypeBox(); // Cuadro informativo de tipo de soldadura
         document.querySelector(".div-table-meta").prepend(createBtnMetaEdit()); // Insertar botón de editar meta arriba
 
         let containerCode = document.querySelector(".div-table-code");

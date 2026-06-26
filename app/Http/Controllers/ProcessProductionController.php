@@ -278,6 +278,7 @@ class ProcessProductionController extends Controller
             'cNominals' => $this->saveCNominals($class, $process, $subprocess),
             'history' => $this->getProcessHistory($class),
             'ptaTableHtml' => $ptaTableHtml,
+            'tipo_soldadura' => $class->tipo_soldadura,
         ];
     }
 

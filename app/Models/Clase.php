@@ -13,6 +13,7 @@ class Clase extends Model
         'nombre',
         'tamanio',
         'composicion_quimica',
+        'tipo_soldadura',
         'seccion',
         'piezas',
         'pedido',

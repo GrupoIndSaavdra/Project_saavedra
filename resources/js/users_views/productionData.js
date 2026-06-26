@@ -238,47 +238,121 @@ let habilitar,
 box = document.querySelector(".ot");
 selects["ot"] = insertarSelect("ot", datos);
 box.appendChild(selects["ot"]);
-//prettier-ignore
-//Aplicar acciones cuando se seleccione una OT
-selects["ot"].addEventListener("change", () => {
-    //Habilitar o deshabilitar campos dependiendo del valor del select OT
-    habilitar = (selects["ot"].value != 0) ? datos[selects["ot"].value]["operadores"] : null;
-    aplicarAccionesToEvents(habilitar, ["operadores", "clases", "pedido", "procesos", "boton"]);
+// Aplicar acciones cuando cambie cualquier selector en el dashboard usando delegación de eventos
+document.querySelector(".dashboard").addEventListener("change", (e) => {
+    let target = e.target;
+    if (target.id === "ot-select") {
+        let otValue = target.value;
+        if (otValue != 0) {
+            // Habilitar el campo de operadores si hay OT seleccionada
+            let habilitarOperadores = datos[otValue]["operadores"];
+            let boxOperadores = document.querySelector(".operadores");
+            let operadoresSelect = des_habilitarCampo(boxOperadores, "operadores", habilitarOperadores);
+            boxOperadores.appendChild(operadoresSelect);
+            selects["operadores"] = operadoresSelect;
 
-    //Crear el campo de moldura
-    box = document.querySelector(".ot");
-    let moldura = (habilitar != null) ? datos[selects["ot"].value]["moldura"] : selects["ot"].value;
-    crearInputConValor(box, moldura, "moldura");
+            // Poblar el select de CLASES con TODAS las clases de la OT (no solo las del operador)
+            if (datos[otValue]["clases_ot"]) {
+                let boxClases = document.querySelector(".clases");
+                let prevClasesSelect = document.getElementById("clases-select");
+                let prevClasesInput  = document.getElementById("clases-input");
+                if (prevClasesSelect) prevClasesSelect.remove();
+                if (prevClasesInput)  prevClasesInput.remove();
 
-    //Aplicar acciones cuando se seleccione un operador
-    selects["operadores"].addEventListener("change", () => {
-        // console.log(datos[selects["ot"]]["operadores"]);
-        habilitar = (selects["operadores"].value != 0) ? datos[selects["ot"].value]["operadores"][selects["operadores"].value]["clases"] : null;
-        aplicarAccionesToEvents(habilitar, ["clases", "pedido", "procesos", "boton"]);
+                let clasesSelect = insertarSelect("clases", datos[otValue]["clases_ot"]);
+                selects["clases"] = clasesSelect;
+                boxClases.classList.remove("box--disabled");
+                boxClases.classList.add("box--enabled");
+                boxClases.appendChild(clasesSelect);
+            }
 
-        //Aplicar acciones cuando se seleccione una clase
-        selects["clases"].addEventListener("change", () => {
-            // console.log(datos[selects["ot"]]["operadores"]);
-            habilitar = (selects["clases"].value != 0) ? datos[selects["ot"].value]["operadores"][selects["operadores"].value]["clases"][selects["clases"].value]["procesos"] : null;
-            aplicarAccionesToEvents(habilitar, ["procesos", "boton"]);
+            // Mostrar la moldura de la OT seleccionada
+            let boxOt = document.querySelector(".ot");
+            let moldura = datos[otValue]["moldura"];
+            crearInputConValor(boxOt, moldura, "moldura");
+        } else {
+            // Deshabilitar operadores y clases si no hay OT seleccionada
+            let boxOperadores = document.querySelector(".operadores");
+            let inputOperadores = des_habilitarCampo(boxOperadores, "operadores", null);
+            boxOperadores.appendChild(inputOperadores);
 
-            //Crear el campo de pedido
-            box = document.querySelector(".pedido");
-            let pedido = (habilitar != null) ? datos[selects["ot"].value]["operadores"][selects["operadores"].value]["clases"][selects["clases"].value]["pedido"] : null;
-            crearInputConValor(box, pedido, "pedido");
+            let boxClases = document.querySelector(".clases");
+            let inputClases = des_habilitarCampo(boxClases, "clases", null);
+            boxClases.appendChild(inputClases);
 
-            selects["procesos"].addEventListener("change", () => {
-                habilitar = selects["procesos"].value != 0 ? true : false;
-                let boton = document.getElementById("button");
-                if (habilitar) {
-                    boton.style.display = "block";
-                } else {
-                    boton.style.display = "none";
-                }
-            });
-        });
-    });
+            let boxOt = document.querySelector(".ot");
+            crearInputConValor(boxOt, null, "moldura");
+        }
+
+        // Limpiar procesos, pedido y botón
+        let boxProcesos = document.querySelector(".procesos");
+        let inputProcesos = des_habilitarCampo(boxProcesos, "procesos", null);
+        boxProcesos.appendChild(inputProcesos);
+
+        let boxPedido = document.querySelector(".pedido");
+        crearInputConValor(boxPedido, null, "pedido");
+
+        let boton = document.getElementById("button");
+        if (boton) boton.style.display = "none";
+    }
+
+    else if (target.id === "operadores-select") {
+        updateProcesos();
+    }
+
+    else if (target.id === "clases-select") {
+        let claseValue = target.value;
+        let otSelect = document.getElementById("ot-select");
+        let otValue = otSelect ? otSelect.value : 0;
+
+        // Mostrar el pedido de la clase seleccionada
+        let boxPedido = document.querySelector(".pedido");
+        let pedido = (claseValue != 0 && otValue != 0 && datos[otValue]["clases_ot"] && datos[otValue]["clases_ot"][claseValue])
+            ? datos[otValue]["clases_ot"][claseValue]["pedido"]
+            : null;
+        crearInputConValor(boxPedido, pedido, "pedido");
+
+        updateProcesos();
+    }
+
+    else if (target.id === "procesos-select") {
+        let boton = document.getElementById("button");
+        if (boton) {
+            boton.style.display = target.value != 0 ? "block" : "none";
+        }
+    }
 });
+
+function updateProcesos() {
+    let otSelect = document.getElementById("ot-select");
+    let operadorSelect = document.getElementById("operadores-select");
+    let clasesSelect = document.getElementById("clases-select");
+
+    let otValue = otSelect ? otSelect.value : 0;
+    let operadorValue = operadorSelect ? operadorSelect.value : 0;
+    let claseValue = clasesSelect ? clasesSelect.value : 0;
+
+    let procesosClase = null;
+    if (otValue != 0 && operadorValue != 0 && claseValue != 0) {
+        let operadorData = datos[otValue]["operadores"][operadorValue];
+        if (operadorData && operadorData["clases"] && operadorData["clases"][claseValue]) {
+            procesosClase = operadorData["clases"][claseValue]["procesos"];
+        }
+    }
+
+    let boxProcesos = document.querySelector(".procesos");
+    if (procesosClase && procesosClase.length > 0) {
+        let selectProcesos = des_habilitarCampo(boxProcesos, "procesos", procesosClase);
+        boxProcesos.appendChild(selectProcesos);
+        selects["procesos"] = selectProcesos;
+    } else {
+        let inputProcesos = des_habilitarCampo(boxProcesos, "procesos", null);
+        boxProcesos.appendChild(inputProcesos);
+    }
+
+    let boton = document.getElementById("button");
+    if (boton) boton.style.display = "none";
+}
 
 const crearLeyendaProductividad = () => {
     let leyenda = document.createElement("div");

@@ -136,6 +136,15 @@ class DatosProduccionController extends Controller
             $datos[$ot->id]['moldura'] = $ot->moldura ? $ot->moldura->nombre : '?';
             $datos[$ot->id]['nombre']  = $ot->id . ' - ' . $datos[$ot->id]['moldura'];
 
+            // Todas las clases de la OT (independiente del operador)
+            $clasesDeOT = $clasesCache->where('id_ot', $ot->id);
+            $datos[$ot->id]['clases_ot'] = [];
+            foreach ($clasesDeOT as $claseOT) {
+                $datos[$ot->id]['clases_ot'][$claseOT->nombre] = [
+                    'pedido' => $claseOT->pedido,
+                ];
+            }
+
             $datos[$ot->id]['operadores'] = [];
             $piezasDeOT = $todasPiezas->get($ot->id, collect());
 

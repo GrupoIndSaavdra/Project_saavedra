@@ -93,6 +93,7 @@ function get_inputAttributes(workOrder, molding, value = null) {
             required: true,
             options: ["HGSS10", "HGSS50V", "HG", "MINOX", "HG/MINOX", "DAMERON", "HG CR - NI", "VERMICULAR", "ACERO", "HG/METZ"],
             currentValue: value == null ? null : value.composicion_quimica,
+            tipoSoldadura: value == null ? null : value.tipo_soldadura,
         },
         order: {
             label: "Pedido Total",
@@ -236,7 +237,7 @@ function createRowsForm(formInputs) {
             if (nameInput === "composicionQuimica" && inputConfig.hasOwnProperty("options")) {
                 htmlTag = createChemicalCompositionChips(inputConfig);
             } else if (nameInput === "composicionQuimica" && inputConfig.isTags) {
-                htmlTag = createChemicalCompositionTags(inputConfig.value);
+                htmlTag = createChemicalCompositionTags(inputConfig.value, inputConfig.tipoSoldadura ?? null);
             } else {
                 let element = inputConfig.hasOwnProperty("select") ? "select" : "input";
                 htmlTag = createSelectOrInput(element, inputConfig, nameInput);
@@ -354,6 +355,7 @@ function createSelectOrInput(element, attributesArray, nameInput) {
             htmlTag.addEventListener("change", () => {
                 modifySelect(htmlTag.value);
                 createOperationsCheckBox(htmlTag.value, null, true);
+                toggleWeldingTypeVisibility(htmlTag.value);
             });
         }
     }
@@ -596,6 +598,7 @@ function enableEditClass(idClass) {
 
     let className = document.querySelector(".classes").value;
     createOperationsCheckBox(className, window.processes[idClass], true); //Creación de las casillas de los procesos
+    toggleWeldingTypeVisibility(className);
 }
 
 function setClassInfo(classesObject = null, classSelected) {
@@ -634,6 +637,7 @@ function setClassInfo(classesObject = null, classSelected) {
                     fullWidth: true,
                     isTags: true,
                     value: classesObject[classObject].composicion_quimica ?? "-",
+                    tipoSoldadura: classesObject[classObject].tipo_soldadura ?? null,
                 },
                 order: {
                     label: "Pedido Total",
@@ -742,6 +746,7 @@ function createCheckboxAddClass() {
 
             let className = document.querySelector(".classes").value;
             createOperationsCheckBox(className, null, true); //Creación de las casillas de los procesos
+            toggleWeldingTypeVisibility(className);
         } else {
             // Si desmarca, restaurar la clase seleccionada si existía
             if (window.selectedClassId) {
@@ -1214,7 +1219,7 @@ function createChemicalCompositionChips(attributesArray) {
     // Construir el valor del campo "otro" con los grupos personalizados
     let customValue = customGroups.join(", ");
 
-    // Crear el campo "otro" para escribir soldaduras/composiciones no listadas
+    // Crear el campo "otro" + selector de Tipo de Soldadura en la misma fila
     let otroContainer = document.createElement("div");
     otroContainer.className = "otro-composition-container";
     otroContainer.style.marginTop = "12px";
@@ -1227,10 +1232,19 @@ function createChemicalCompositionChips(attributesArray) {
     otroLabel.style.marginBottom = "5px";
     otroLabel.style.fontWeight = "bold";
 
+    // Fila que contiene el input "otro" y el selector de tipo de soldadura lado a lado
+    let otroInputRow = document.createElement("div");
+    otroInputRow.style.display = "flex";
+    otroInputRow.style.alignItems = "center";
+    otroInputRow.style.gap = "12px";
+    otroInputRow.style.flexWrap = "wrap";
+
     let otroInput = document.createElement("input");
     otroInput.type = "text";
     otroInput.name = "composicion_quimica_otro";
     otroInput.className = "form-control";
+    otroInput.style.flex = "1";
+    otroInput.style.minWidth = "200px";
     otroInput.placeholder = "Separar por comas (ej: COBRE, BRONCE) o con / para mezclas (ej: HG/MINOX)";
     otroInput.value = customValue ? normalizeChemicalInput(customValue) : customValue;
 
@@ -1246,21 +1260,67 @@ function createChemicalCompositionChips(attributesArray) {
             let normalized = normalizeChemicalInput(original);
             if (normalized !== original) {
                 this.value = normalized;
-                // Restaurar posición del cursor ajustada
                 let diff = normalized.length - original.length;
                 this.setSelectionRange(cursorPos + diff, cursorPos + diff);
             }
         });
     }
 
+    // Selector de Tipo de Soldadura (al lado del input "otro")
+    let soldaduraWrapper = document.createElement("div");
+    soldaduraWrapper.id = "welding-type-wrapper";
+    soldaduraWrapper.style.display = "flex";
+    soldaduraWrapper.style.alignItems = "center";
+    soldaduraWrapper.style.gap = "8px";
+    soldaduraWrapper.style.flexShrink = "0";
+
+    let soldaduraLabel = document.createElement("label");
+    soldaduraLabel.textContent = "Tipo de Soldadura:";
+    soldaduraLabel.style.fontWeight = "bold";
+    soldaduraLabel.style.color = "#033966";
+    soldaduraLabel.style.fontSize = "1em";
+    soldaduraLabel.style.whiteSpace = "nowrap";
+    soldaduraLabel.style.margin = "0";
+
+    let soldaduraSelect = document.createElement("select");
+    soldaduraSelect.name = "tipo_soldadura";
+    soldaduraSelect.className = "form-control";
+    soldaduraSelect.style.width = "auto";
+    soldaduraSelect.style.minWidth = "130px";
+
+    let defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.text = "-- Seleccionar --";
+    soldaduraSelect.add(defaultOption);
+
+    ["1", "2", "3", "4"].forEach((tipo) => {
+        let opt = document.createElement("option");
+        opt.value = tipo;
+        opt.text = "Tipo " + tipo;
+        if (attributesArray.tipoSoldadura && String(attributesArray.tipoSoldadura) === tipo) {
+            opt.selected = true;
+        }
+        soldaduraSelect.add(opt);
+    });
+
+    if (window.profile == 5) {
+        soldaduraSelect.disabled = true;
+    }
+
+    soldaduraWrapper.appendChild(soldaduraLabel);
+    soldaduraWrapper.appendChild(soldaduraSelect);
+
+    otroInputRow.appendChild(otroInput);
+    otroInputRow.appendChild(soldaduraWrapper);
+
     otroContainer.appendChild(otroLabel);
-    otroContainer.appendChild(otroInput);
+    otroContainer.appendChild(otroInputRow);
     wrapper.appendChild(otroContainer);
 
     return wrapper;
 }
 
-function createChemicalCompositionTags(valueString) {
+function createChemicalCompositionTags(valueString, tipoSoldadura) {
     let container = document.createElement("div");
     container.className = "chemical-composition-tags-container";
 
@@ -1269,17 +1329,53 @@ function createChemicalCompositionTags(valueString) {
         noData.textContent = "-";
         noData.style.color = "#777777";
         container.appendChild(noData);
-        return container;
+    } else {
+        let activeCompositions = valueString.split(/\s*\/\s*/);
+        activeCompositions.forEach((tagText) => {
+            if (!tagText.trim()) return;
+            let tag = document.createElement("span");
+            tag.className = "chemical-composition-tag";
+            tag.textContent = tagText.trim();
+            container.appendChild(tag);
+        });
     }
 
-    let activeCompositions = valueString.split(/\s*\/\s*/);
-    activeCompositions.forEach((tagText) => {
-        if (!tagText.trim()) return;
-        let tag = document.createElement("span");
-        tag.className = "chemical-composition-tag";
-        tag.textContent = tagText.trim();
-        container.appendChild(tag);
-    });
+    // Separador siempre visible
+    let sep = document.createElement("span");
+    sep.style.margin = "0 8px";
+    sep.style.color = "#aaa";
+    sep.textContent = "│";
+    container.appendChild(sep);
+
+    let soldaduraWrapper = document.createElement("span");
+    soldaduraWrapper.style.display = "inline-flex";
+    soldaduraWrapper.style.alignItems = "center";
+    soldaduraWrapper.style.gap = "6px";
+
+    let soldaduraLabelText = document.createElement("span");
+    soldaduraLabelText.style.fontWeight = "bold";
+    soldaduraLabelText.style.color = "#033966";
+    soldaduraLabelText.style.fontSize = "0.95em";
+    soldaduraLabelText.textContent = "Tipo de Soldadura:";
+
+    let soldaduraBadge = document.createElement("span");
+    soldaduraBadge.className = "chemical-composition-tag";
+
+    if (tipoSoldadura) {
+        // Badge azul oscuro con el tipo registrado
+        soldaduraBadge.style.background = "#033966";
+        soldaduraBadge.style.color = "#fff";
+        soldaduraBadge.textContent = "Tipo " + tipoSoldadura;
+    } else {
+        // Badge gris indicando que no hay información
+        soldaduraBadge.style.background = "#c0c0c0";
+        soldaduraBadge.style.color = "#555";
+        soldaduraBadge.textContent = "Sin información";
+    }
+
+    soldaduraWrapper.appendChild(soldaduraLabelText);
+    soldaduraWrapper.appendChild(soldaduraBadge);
+    container.appendChild(soldaduraWrapper);
 
     return container;
 }
@@ -1299,4 +1395,26 @@ function normalizeChemicalInput(value) {
     // Normalizar ',': asegurar un espacio después de la coma (separar)
     result = result.replace(/\s*,\s*/g, ", ");
     return result;
+}
+
+/**
+ * Muestra u oculta el selector de tipo de soldadura según la clase seleccionada.
+ * Las clases que aplican son: Molde, Fondo, Bombillo, Obturador.
+ */
+function toggleWeldingTypeVisibility(className) {
+    const weldingClasses = ["Molde", "Fondo", "Bombillo", "Obturador"];
+    let wrapper = document.getElementById("welding-type-wrapper");
+    if (!wrapper) return;
+
+    let shouldShow = weldingClasses.includes(className);
+    if (shouldShow) {
+        wrapper.style.display = "flex";
+    } else {
+        wrapper.style.display = "none";
+        // Limpiar el selector para no enviar datos residuales
+        let select = wrapper.querySelector('select[name="tipo_soldadura"]');
+        if (select) {
+            select.value = "";
+        }
+    }
 }
