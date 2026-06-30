@@ -93,16 +93,7 @@
                 $p2Row = $piezasGroup['Segunda_Pasada'] ?? null;
                 $p2Act = $p2Row?->p2_activa ?? false;
 
-                $claseNorm = strtolower(trim($claseSeleccionada->nombre ?? ''));
-                if ($claseNorm === 'molde') {
-                    $optsPreparacion = ['C1', 'C2', 'RC1', 'RC2', 'L1', 'L2', 'B1', 'B2', 'F1', 'F2'];
-                } elseif ($claseNorm === 'bombillo') {
-                    $optsPreparacion = ['CO1', 'CO2', 'PB1', 'PB2', 'RM1', 'RM2'];
-                } elseif ($claseNorm === 'fondo') {
-                    $optsPreparacion = ['FO1', 'FO2'];
-                } else {
-                    $optsPreparacion = [1, 2, 3];
-                }
+                $optsPreparacion = ['P1', 'P2', 'P3'];
             @endphp
 
             {{-- ────────────────────────────────────────────────────────────────
@@ -145,21 +136,21 @@
                                     <th rowspan="2">Soldadura</th>
                                     <th colspan="3" style="background:#055a9e;">Soldadura</th>
                                     <th colspan="3" style="background:#055a9e;">Corriente</th>
-                                    <th rowspan="2">Gas<br>Argón</th>
+                                    <th rowspan="2">Gas<br>Argón<br><small>(75-80 PSI)</small></th>
                                     <th rowspan="2">Vel.<br>Calc.</th>
                                     <th rowspan="2">Resultado</th>
                                     <th rowspan="2">Defecto</th>
                                     <th rowspan="2">Observaciones</th>
                                 </tr>
                                 <tr>
-                                    <th>Medida</th>
-                                    <th>Valor</th>
-                                    <th>Inicial</th>
-                                    <th>Aplicada</th>
-                                    <th>Final</th>
-                                    <th>Inicial</th>
-                                    <th>Aplicada</th>
-                                    <th>Final</th>
+                                    <th style="width: 60px;">Medida</th>
+                                    <th style="width: 25px;">Valor</th>
+                                    <th>Inicial (POLI)</th>
+                                    <th>Aplicada (POLS)</th>
+                                    <th>Final (POLF)</th>
+                                    <th>Inicial (CORI)</th>
+                                    <th>Aplicada (CORS)</th>
+                                    <th>Final (CORF)</th>
                                 </tr>
                             </thead>
                             <tbody>

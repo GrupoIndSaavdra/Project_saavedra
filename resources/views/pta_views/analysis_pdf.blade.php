@@ -129,7 +129,7 @@
                                 <th rowspan="2" style="width: 55px;">Soldadura</th>
                                 <th colspan="3" class="th-section">Soldadura</th>
                                 <th colspan="3" class="th-section">Corriente</th>
-                                <th rowspan="2" style="width: 22px;">Gas<br>Argón</th>
+                                <th rowspan="2" style="width: 22px;">Gas<br>Argón<br><small>(75-80 PSI)</small></th>
                                 <th rowspan="2" style="width: 22px;">Vel.<br>Calc.</th>
                                 <th rowspan="2" style="width: 35px;">Resultado</th>
                                 <th rowspan="2" style="width: 35px;">Defecto</th>
@@ -138,12 +138,12 @@
                             <tr>
                                 <th style="width: 60px;">Medida</th>
                                 <th style="width: 25px;">Valor</th>
-                                <th>Inicial</th>
-                                <th>Aplicada</th>
-                                <th>Final</th>
-                                <th>Inicial</th>
-                                <th>Aplicada</th>
-                                <th>Final</th>
+                                <th>Inicial (POLI)</th>
+                                <th>Aplicada (POLS)</th>
+                                <th>Final (POLF)</th>
+                                <th>Inicial (CORI)</th>
+                                <th>Aplicada (CORS)</th>
+                                <th>Final (CORF)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -237,13 +237,13 @@
                     }
                 }
             @endphp
-            
+
             @if(!$anyImagesInJuego)
                 <p style="text-align: center; color: #888; font-style: italic; font-size: 10px;">Sin imágenes subidas para este juego.</p>
             @else
                 @foreach ($piezasDelJuegoObj as $pieza)
-                    @php 
-                        $res = $resultados->get($pieza->id); 
+                    @php
+                        $res = $resultados->get($pieza->id);
                         $hasImages = $res && ($res->imagen_pico_soldadura || $res->imagen_conexion_soldadura || $res->imagen_perfilado_soldadura);
                     @endphp
                     @if($hasImages)
