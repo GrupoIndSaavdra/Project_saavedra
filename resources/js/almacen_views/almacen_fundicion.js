@@ -881,10 +881,12 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
                     ayudasPdfs.push(f);
                 } else {
                     const lower = f.nombre.toLowerCase();
-                    if (lower.includes('escaneado_fundicion')) {
-                        aprobadosPdfs.push(f);
-                    } else if (lower.includes('documentos_rechazados') || lower.includes('rechazado') || lower.includes('scar')) {
+                    // Usar el campo 'origin' del backend (aprobado/rechazado) como fuente principal
+                    const originField = (f.origin || '').toLowerCase();
+                    if (originField === 'rechazado' || lower.includes('documentos_rechazados') || lower.includes('rechazado') || lower.includes('scar')) {
                         rechazadosPdfs.push(f);
+                    } else if (originField === 'aprobado' || lower.includes('escaneado_fundicion') || lower.includes('documentos_aprobados')) {
+                        aprobadosPdfs.push(f);
                     } else {
                         aprobadosPdfs.push(f);
                     }
@@ -1040,7 +1042,7 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
     document.body.classList.add('modal-open');
 
     // Obtener los archivos de la OT desde el backend (pre-órdenes, dibujos y ayudas visuales)
-    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}&tipo=${encodeURIComponent(tipo || 'modelo')}`)
         .then(res => res.json())
         .then(data => {
             // Prellenar la fecha de entrega si ya existe en la pre-orden
@@ -4552,6 +4554,25 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
         .then(r => r.json())
         .then(data => {
             if (data.existe && data.archivos?.length > 0) {
+                // Función para comprobar si el archivo pertenece a un listado de modelos activos
+                const archivoPerteneceAModelos = (nombre, modelosActivos) => {
+                    const pl = nombre.toLowerCase();
+                    const todosModelosPosibles = ['bombillo', 'fondo', 'obturador', 'molde'];
+
+                    // comprobar si el path contiene el modelo como carpeta o prefijo
+                    const modelosEncontrados = todosModelosPosibles.filter(m => {
+                        return pl.includes('/' + m + '/') || pl.startsWith(m + '/') || pl.includes('_' + m + '_') || pl.includes('-' + m + ' -') || pl.includes(' ' + m + ' ') || pl.split('/').pop().startsWith(m);
+                    });
+
+                    if (modelosEncontrados.length === 0) {
+                        // Es un archivo general (no pertenece a ningún modelo específico, ej. preordenes)
+                        return true;
+                    }
+
+                    const modelosActivosLower = modelosActivos.map(m => m.toLowerCase());
+                    return modelosEncontrados.some(m => modelosActivosLower.includes(m));
+                };
+
                 const filteredFiles = data.archivos.filter(f => {
                     const pl = f.nombre.toLowerCase();
                     const isRechazadoFile = pl.includes('documentos_rechazados') || pl.includes('rechazado') || pl.includes('scar');
@@ -4562,17 +4583,20 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
 
                     if (decision === 'aprobar') {
                         if (isRechazadoFile) return false;
-                        return true;
+                        return archivoPerteneceAModelos(f.nombre, arrAprobados);
                     }
                     
                     if (decision === 'rechazar') {
                         if (isDibujoOrAyuda) return false;
                         if (!isRechazadoFile) return false;
-                        return true;
+                        return archivoPerteneceAModelos(f.nombre, arrRechazados);
                     }
 
                     // mixto
-                    return true;
+                    if (isRechazadoFile) return archivoPerteneceAModelos(f.nombre, arrRechazados);
+                    if (isDibujoOrAyuda) return archivoPerteneceAModelos(f.nombre, arrAprobados);
+                    
+                    return archivoPerteneceAModelos(f.nombre, [...arrAprobados, ...arrRechazados]);
                 });
                 const sectionsHtml = generarHtmlCategorizadoArchivos(filteredFiles, ot, baseUrl, 'calidad');
                 if (filesContainer) {

@@ -1,0 +1,1 @@
+Auth::loginUsingId(1); $c = new \App\Http\Controllers\AlmacenFundicionController(); $req = Illuminate\Http\Request::create("/?ot=OT 1091 - PRUEBADDF&tipo=modelo", "GET"); echo json_encode(json_decode($c->getFiles($req)->getContent()), JSON_PRETTY_PRINT);

@@ -913,7 +913,7 @@
                                                         $fileHistory = $relatedRecords->firstWhere('ot', $archivo['ot']);
                                                         $status = $fileHistory ? $fileHistory->calidad_revision_status : null;
                                                         $calidadAlertaEnviada = (
-                                                            in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']) ||
+                                                            in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']) ||
                                                             \App\Models\ScarModelo::where('ot', '=', $archivo['ot'])->where('estatus', '=', 'alertado')->exists()
                                                         );
                                                         if (!$calidadAlertaEnviada) {
@@ -971,7 +971,7 @@
                                                 $countOtros = count($otrosArchivos);
                                                 $count = $countDibujos + $countAyudas + $countOtros;
 
-                                                $isFinalized = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                $isFinalized = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
                                                 $showControlCard = (Auth::user()->perfil != 4 && $estado === 'activa' && !$isFinalized);
                                                 $hasFilesOrControl = ($count > 0 || $showControlCard);
 
@@ -1109,7 +1109,7 @@
                                                                 $borderColor = '#059669';
                                                                 $bgColor = '#f0fdf4';
                                                                 $textColor = '#15803d';
-                                                            } elseif ($libStatus === 'calidad_aprobado') {
+                                                            } elseif (in_array($libStatus, ['calidad_aprobado', 'calidad_parcial'])) {
                                                                 $icon = 'Quality.png';
                                                                 $label = 'Aprobado';
                                                                 $tooltip = 'Modelo aprobado y liberado por Calidad';
@@ -1306,7 +1306,7 @@
                                                                         if ($fileOwner === 'almacen') {
                                                                             $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
                                                                         } elseif ($fileOwner === 'calidad') {
-                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
                                                                         }
 
                                                                         if (!$alertSent) {
@@ -1370,7 +1370,7 @@
                                                                         if ($fileOwner === 'almacen') {
                                                                             $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
                                                                         } elseif ($fileOwner === 'calidad') {
-                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
                                                                         }
                                                                         if (!$alertSent) {
                                                                             if ($userPerfil == 1 || $userPerfil == 2) $canDelete = true;
@@ -1599,7 +1599,7 @@
                                                                     // En ese caso la card de Rechazados asume el rol de la card de Aprobados
                                                                     // para evitar mostrar dos cards en un caso que NO es mixto.
                                                                     $reprocesoAprobadoPorCalidad = $latestReproceso
-                                                                        && in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado']);
+                                                                        && in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'calidad_parcial']);
                                                                 @endphp
 
                                                                 @if ($castingEmailSent && count($aprobados) === 0)
@@ -1779,7 +1779,7 @@
                                                                                 && in_array($latestReproceso->calidad_revision_status, ['rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto'])
                                                                                 && !$latestReproceso->rechazos_procesados;
                                                                             $reprocesoAprobadoPorCalidad = $latestReproceso
-                                                                                && in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado']);
+                                                                                && in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'calidad_parcial']);
                                                                             if ($castingEmailSentReproceso) {
                                                                                 $rechCardDisabled = 'opacity: 0.5; pointer-events: none;';
                                                                             } elseif ($ultimoRechazadoPorCalidad || $reprocesoAprobadoPorCalidad) {

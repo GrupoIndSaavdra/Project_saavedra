@@ -176,7 +176,7 @@ class CalidadFundicionController extends Controller
         
         // Fallback a buscar en las liberaciones registradas si ayudas_config falla
         if (empty($activeClasses)) {
-            $libs = LiberacionModeloFundicion::where('ot', $ot)->pluck('tipo_modelo')->filter()->toArray();
+            $libs = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->pluck('tipo_modelo')->filter()->toArray();
             foreach ($libs as $l) {
                 $activeClasses[] = strtolower($l);
             }
@@ -882,12 +882,8 @@ class CalidadFundicionController extends Controller
         }
 
         if ($history && $user->perfil != 1 && $user->perfil != 2) {
-            if ($fileOwner === 'calidad') {
-                $alertSent = in_array($history->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
-                if ($alertSent) {
-                    return response()->json(['success' => false, 'error' => 'No se puede eliminar. La alerta de Calidad ya ha sido enviada.'], 403);
-                }
-            }
+            // Se elimina la restricción de 'alerta_enviada' para Calidad
+            // a petición expresa de que siempre puedan eliminar sus F-CCL-LDM y SCAR.
         }
 
         Storage::disk('local')->delete($foundFile);
@@ -2143,10 +2139,18 @@ class CalidadFundicionController extends Controller
 
         $allDecisions = [];
 
+        // Normalizar $tipos con trim+lowercase para comparaciones case-insensitive
+        $tiposNorm = array_map(fn($t) => strtolower(trim($t)), $tipos);
+
+        // Parsear tipos_aprobados desde JSON (viene como JSON.stringify del frontend)
+        $tiposAproRaw = $request->input('tipos_aprobados', '[]');
+        $tiposApro = is_array($tiposAproRaw) ? $tiposAproRaw : json_decode($tiposAproRaw, true) ?? [];
+        $tiposAproNorm = array_map(fn($t) => strtolower(trim($t)), $tiposApro);
+
         foreach ($liberacionesOT as $libRow) {
             // Si el tipo de modelo o decision es null en BD (ej: registro inicial), los inicializamos con los valores de la alerta
             if (is_null($libRow->tipo_modelo) && !empty($tipos)) {
-                $exists = LiberacionModeloFundicion::where('ot', $ot)->where('tipo_modelo', $tipos[0])->exists();
+                $exists = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->where('tipo_modelo', '=', $tipos[0], 'and')->exists();
                 if (!$exists) {
                     $libRow->tipo_modelo = $tipos[0];
                 } else {
@@ -2155,12 +2159,12 @@ class CalidadFundicionController extends Controller
                 }
             }
 
-            // Procesar solo las clases que se están enviando en esta alerta
-            if (in_array($libRow->tipo_modelo, $tipos)) {
+            // Procesar solo las clases que se están enviando en esta alerta (comparación case-insensitive)
+            $tipoNorm = strtolower(trim($libRow->tipo_modelo ?? ''));
+            if (in_array($tipoNorm, $tiposNorm)) {
                 if (is_null($libRow->decision)) {
                     if ($decision === 'mixto') {
-                        $tiposApro = array_filter(array_map('trim', explode(',', $request->input('tipos_aprobados', ''))));
-                        if (in_array($libRow->tipo_modelo, $tiposApro)) {
+                        if (in_array($tipoNorm, $tiposAproNorm)) {
                             $libRow->decision = 'aprobar';
                         } else {
                             $libRow->decision = 'rechazar';
@@ -2178,7 +2182,7 @@ class CalidadFundicionController extends Controller
                     'estado'         => $libNuevoEst,
                     'fecha_revision' => $fecha,
                     'pdf_filename'   => $libRow->pdf_filename,
-                    'destinatario'   => $request->input('destinatario')
+                    'alerta_enviada' => true
                 ]);
 
                 if ($libRow->decision === 'aprobar') {
@@ -2205,6 +2209,35 @@ class CalidadFundicionController extends Controller
         } else {
             $decisionNorm = ($decision === 'aprobar') ? 'aprobado' : (($decision === 'rechazar') ? 'rechazado' : 'mixto');
             $nuevoEstado = 'calidad_' . $decisionNorm;
+        }
+
+        // Verificar si hay clases activas pendientes para asignar un estado parcial
+        $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
+        if ($history && $history->ayudas_config) {
+            $clasesActivas = [];
+            foreach ($history->ayudas_config as $c) {
+                if (!str_contains(strtolower($c), 'opcional')) {
+                    $clLow = strtolower($c);
+                    if (strpos($clLow, 'fondo') !== false) $clasesActivas[] = 'fondo';
+                    elseif (strpos($clLow, 'obturador') !== false) $clasesActivas[] = 'obturador';
+                    elseif (strpos($clLow, 'molde') !== false) $clasesActivas[] = 'molde';
+                    elseif (strpos($clLow, 'bombillo') !== false) $clasesActivas[] = 'bombillo';
+                }
+            }
+            
+            $clasesConDecision = array_map('strtolower', $liberacionesOT->whereNotNull('decision')->pluck('tipo_modelo')->toArray());
+            
+            $todasActivasConDecision = true;
+            foreach ($clasesActivas as $ca) {
+                if (!in_array($ca, $clasesConDecision)) {
+                    $todasActivasConDecision = false;
+                    break;
+                }
+            }
+            
+            if (!$todasActivasConDecision && count($clasesActivas) > 0) {
+                $nuevoEstado = 'calidad_parcial';
+            }
         }
 
         $scarModelos = ScarModelo::where('ot', '=', $ot, 'and')->get();
@@ -2331,22 +2364,13 @@ class CalidadFundicionController extends Controller
                     $fileNorm = strtolower(str_replace('\\', '/', $filePath));
                     $claseNorm = strtolower(trim($clase));
                     
-                    // Separar ruta en segmentos
-                    $segments = explode('/', $fileNorm);
-                    foreach ($segments as $seg) {
-                        if ($seg === $claseNorm) {
-                            return true;
-                        }
-                    }
-                    
-                    // Verificar si el nombre del archivo contiene la clase
-                    $filename = pathinfo($fileNorm, PATHINFO_FILENAME);
-                    if (str_contains($filename, $claseNorm)) {
+                    if (str_contains($fileNorm, $claseNorm)) {
                         return true;
                     }
                     
                     return false;
                 };
+
 
                 if ($decision === 'aprobar') {
                     // Si es aprobado, solo mandar archivos que pertenezcan a la clase que estamos aprobando

@@ -866,7 +866,7 @@
                                                                 $fileHistory = $relatedRecords->firstWhere('ot', $archivo['ot']);
                                                                 $status = $fileHistory ? $fileHistory->calidad_revision_status : null;
                                                                 $calidadAlertaEnviada = (
-                                                                    in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']) ||
+                                                                    in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']) ||
                                                                     \App\Models\ScarModelo::where('ot', '=', $archivo['ot'])->where('estatus', '=', 'alertado')->exists()
                                                                 );
                                                                 if ($calidadAlertaEnviada) {
@@ -1048,7 +1048,7 @@
                                                                 $borderColor = '#059669';
                                                                 $bgColor = '#f0fdf4';
                                                                 $textColor = '#15803d';
-                                                            } elseif (in_array($libStatus, ['aprobado', 'calidad_aprobado'])) {
+                                                            } elseif (in_array($libStatus, ['aprobado', 'calidad_aprobado', 'calidad_parcial'])) {
                                                                 $icon = 'Quality.png';
                                                                 $label = 'Aprobado';
                                                                 $tooltip = 'Modelo aprobado y liberado por Calidad';
@@ -1246,24 +1246,22 @@
                                                                     @php
                                                                         $canDelete = false;
                                                                         $fileOwner = $otroArchivo['owner'] ?? '';
+                                                                        $fileNameLower = strtolower($otroArchivo['nombre']);
+                                                                        if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
+                                                                            $fileOwner = 'calidad';
+                                                                        }
                                                                         $userPerfil = Auth::user()->perfil;
                                                                         
-                                                                        $alertSent = false;
-                                                                        if ($fileOwner === 'almacen') {
-                                                                            $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
-                                                                        } elseif ($fileOwner === 'calidad') {
-                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
-                                                                        }
-
-                                                                        if (!$alertSent) {
-                                                                            if ($userPerfil == 1 || $userPerfil == 2) {
-                                                                                $canDelete = true;
-                                                                            } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
-                                                                                $canDelete = true;
-                                                                            } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                        if ($userPerfil == 1 || $userPerfil == 2) {
+                                                                            $canDelete = true;
+                                                                        } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
+                                                                            if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
                                                                                 $canDelete = true;
                                                                             }
+                                                                        } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                            $canDelete = true;
                                                                         }
+
                                                                     @endphp
                                                                     @if ($otroArchivo['tipo'] === 'imagen')
                                                                         {{-- Tarjeta para imágenes (fotos de evidencia) --}}
@@ -1351,17 +1349,19 @@
                                                                     @php
                                                                         $canDelete = false;
                                                                         $fileOwner = $otroArchivo['owner'] ?? '';
-                                                                        $userPerfil = Auth::user()->perfil;
-                                                                        $alertSent = false;
-                                                                        if ($fileOwner === 'almacen') {
-                                                                            $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
-                                                                        } elseif ($fileOwner === 'calidad') {
-                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                                        $fileNameLower = strtolower($otroArchivo['nombre']);
+                                                                        if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
+                                                                            $fileOwner = 'calidad';
                                                                         }
-                                                                        if (!$alertSent) {
-                                                                            if ($userPerfil == 1 || $userPerfil == 2) $canDelete = true;
-                                                                            elseif ($userPerfil == 5 && $fileOwner === 'almacen') $canDelete = true;
-                                                                            elseif ($userPerfil == 4 && $fileOwner === 'calidad') $canDelete = true;
+                                                                        $userPerfil = Auth::user()->perfil;
+                                                                        if ($userPerfil == 1 || $userPerfil == 2) {
+                                                                            $canDelete = true;
+                                                                        } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
+                                                                            if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
+                                                                                $canDelete = true;
+                                                                            }
+                                                                        } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                            $canDelete = true;
                                                                         }
                                                                     @endphp
                                                                     <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
@@ -1392,17 +1392,19 @@
                                                                     @php
                                                                         $canDelete = false;
                                                                         $fileOwner = $otroArchivo['owner'] ?? '';
-                                                                        $userPerfil = Auth::user()->perfil;
-                                                                        $alertSent = false;
-                                                                        if ($fileOwner === 'almacen') {
-                                                                            $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
-                                                                        } elseif ($fileOwner === 'calidad') {
-                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                                        $fileNameLower = strtolower($otroArchivo['nombre']);
+                                                                        if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
+                                                                            $fileOwner = 'calidad';
                                                                         }
-                                                                        if (!$alertSent) {
-                                                                            if ($userPerfil == 1 || $userPerfil == 2) $canDelete = true;
-                                                                            elseif ($userPerfil == 5 && $fileOwner === 'almacen') $canDelete = true;
-                                                                            elseif ($userPerfil == 4 && $fileOwner === 'calidad') $canDelete = true;
+                                                                        $userPerfil = Auth::user()->perfil;
+                                                                        if ($userPerfil == 1 || $userPerfil == 2) {
+                                                                            $canDelete = true;
+                                                                        } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
+                                                                            if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
+                                                                                $canDelete = true;
+                                                                            }
+                                                                        } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                            $canDelete = true;
                                                                         }
                                                                     @endphp
                                                                     @if ($otroArchivo['tipo'] === 'imagen')
@@ -1450,17 +1452,19 @@
                                                                     @php
                                                                         $canDelete = false;
                                                                         $fileOwner = $otroArchivo['owner'] ?? '';
-                                                                        $userPerfil = Auth::user()->perfil;
-                                                                        $alertSent = false;
-                                                                        if ($fileOwner === 'almacen') {
-                                                                            $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
-                                                                        } elseif ($fileOwner === 'calidad') {
-                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                                                                        $fileNameLower = strtolower($otroArchivo['nombre']);
+                                                                        if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
+                                                                            $fileOwner = 'calidad';
                                                                         }
-                                                                        if (!$alertSent) {
-                                                                            if ($userPerfil == 1 || $userPerfil == 2) $canDelete = true;
-                                                                            elseif ($userPerfil == 5 && $fileOwner === 'almacen') $canDelete = true;
-                                                                            elseif ($userPerfil == 4 && $fileOwner === 'calidad') $canDelete = true;
+                                                                        $userPerfil = Auth::user()->perfil;
+                                                                        if ($userPerfil == 1 || $userPerfil == 2) {
+                                                                            $canDelete = true;
+                                                                        } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
+                                                                            if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
+                                                                                $canDelete = true;
+                                                                            }
+                                                                        } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                            $canDelete = true;
                                                                         }
                                                                     @endphp
                                                                     <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
@@ -1596,13 +1600,15 @@
                                                                             $todosGuardados = false;
                                                                         }
 
-                                                                        // Determinar si hay al menos una clase con decisión de rechazo
+                                                                        // Determinar si hay al menos una clase con decisión de rechazo pendiente de enviar
                                                                         $hasRechazoBorrador = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                                                                             ->where('decision', '=', 'rechazar')
+                                                                            ->where('alerta_enviada', '=', 0)
                                                                             ->exists();
 
                                                                         $hasAprobadoBorrador = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                                                                             ->where('decision', '=', 'aprobar')
+                                                                            ->where('alerta_enviada', '=', 0)
                                                                             ->exists();
 
                                                                         $decisionGlobal = 'aprobar';
@@ -1614,9 +1620,11 @@
 
                                                                         $borradorRechazado = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                                                                             ->where('decision', '=', 'rechazar')
+                                                                            ->where('alerta_enviada', '=', 0)
                                                                             ->first();
 
                                                                         $tiposGuardados = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
+                                                                            ->where('alerta_enviada', '=', 0)
                                                                             ->get(['tipo_modelo', 'decision']);
                                                                         $tiposLabel = implode(', ', $tiposGuardados->pluck('tipo_modelo')->toArray());
                                                                         $tiposAprobadosArr = $tiposGuardados->where('decision', 'aprobar')->pluck('tipo_modelo')->values()->toArray();
@@ -1703,14 +1711,28 @@
                                                                 @php
                                                                     $libStatusClean = str_replace('calidad_', '', $targetReg->calidad_revision_status);
                                                                 @endphp
-                                                                @if (in_array($targetReg->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto']))
+                                                                @if (in_array($targetReg->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'calidad_parcial', 'rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto']))
                                                                     @php
-                                                                        $liberaciones = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)->get();
-                                                                        $aprobados = $liberaciones->where('decision', 'aprobar')->pluck('tipo_modelo')->toArray();
-                                                                        $rechazados = $liberaciones->where('decision', 'rechazar')->pluck('tipo_modelo')->toArray();
-                                                                        $decisionFinal = ($libStatusClean === 'aprobado') ? 'aprobar' : (($libStatusClean === 'rechazado') ? 'rechazar' : 'mixto');
-                                                                        $tiposAprobadosJson = json_encode(array_values($aprobados));
-                                                                        $tiposRechazadosJson = json_encode(array_values($rechazados));
+                                                                        $liberacionesAll = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)->get();
+                                                                        $aprobadosAll = $liberacionesAll->where('decision', 'aprobar')->pluck('tipo_modelo')->toArray();
+                                                                        $rechazadosAll = $liberacionesAll->where('decision', 'rechazar')->pluck('tipo_modelo')->toArray();
+
+                                                                        $liberacionesPend = $liberacionesAll->where('alerta_enviada', false);
+                                                                        $aprobadosPend = $liberacionesPend->where('decision', 'aprobar')->pluck('tipo_modelo')->toArray();
+                                                                        $rechazadosPend = $liberacionesPend->where('decision', 'rechazar')->pluck('tipo_modelo')->toArray();
+                                                                        
+                                                                        if (count($aprobadosPend) > 0 && count($rechazadosPend) > 0) {
+                                                                            $decisionFinal = 'mixto';
+                                                                        } elseif (count($aprobadosPend) > 0) {
+                                                                            $decisionFinal = 'aprobar';
+                                                                        } elseif (count($rechazadosPend) > 0) {
+                                                                            $decisionFinal = 'rechazar';
+                                                                        } else {
+                                                                            $decisionFinal = 'ninguno';
+                                                                        }
+
+                                                                        $tiposAprobadosJson = json_encode(array_values($aprobadosPend));
+                                                                        $tiposRechazadosJson = json_encode(array_values($rechazadosPend));
                                                                     @endphp
                                                                     <div class="lib-calidad-card"
                                                                         id="control-calidad-finalizado-{{ md5($targetReg->ot) }}"
@@ -1731,25 +1753,25 @@
                                                                             <div class="lib-calidad-action-row">
                                                                                 <h4 class="lib-calidad-card-prompt">
                                                                                     @php
-                                                                                        $isDraft = in_array($targetReg->calidad_revision_status, ['aprobado', 'rechazado', 'mixto']);
+                                                                                        $isDraft = (count($aprobadosPend) > 0 || count($rechazadosPend) > 0);
                                                                                     @endphp
                                                                                     @if ($isDraft)
-                                                                                        @if ($libStatusClean === 'aprobado')
-                                                                                            Borrador de Liberación (Aprobado) guardado. Se aprobarán: <strong style="color: #16a34a;">{{ implode(', ', $aprobados) }}</strong>. Por favor, procede a enviar la alerta oficial para iniciar el casting.
-                                                                                        @elseif ($libStatusClean === 'rechazado')
-                                                                                            Borrador de Liberación (Rechazado) guardado. Se rechazarán: <strong style="color: #dc2626;">{{ implode(', ', $rechazados) }}</strong>. Por favor, procede a enviar la alerta oficial y el SCAR correspondiente.
-                                                                                        @elseif ($libStatusClean === 'mixto')
-                                                                                            Borrador de Liberación (Mixto) guardado. Se aprobarán: <strong style="color: #16a34a;">{{ implode(', ', $aprobados) }}</strong> y se rechazarán: <strong style="color: #dc2626;">{{ implode(', ', $rechazados) }}</strong>. Por favor, procede a enviar las alertas oficiales.
+                                                                                        @if ($decisionFinal === 'aprobar')
+                                                                                            Borrador de Liberación (Aprobado) guardado. Se aprobarán: <strong style="color: #16a34a;">{{ implode(', ', $aprobadosPend) }}</strong>. Por favor, procede a enviar la alerta oficial para iniciar el casting.
+                                                                                        @elseif ($decisionFinal === 'rechazar')
+                                                                                            Borrador de Liberación (Rechazado) guardado. Se rechazarán: <strong style="color: #dc2626;">{{ implode(', ', $rechazadosPend) }}</strong>. Por favor, procede a enviar la alerta oficial y el SCAR correspondiente.
+                                                                                        @elseif ($decisionFinal === 'mixto')
+                                                                                            Borrador de Liberación (Mixto) guardado. Se aprobarán: <strong style="color: #16a34a;">{{ implode(', ', $aprobadosPend) }}</strong> y se rechazarán: <strong style="color: #dc2626;">{{ implode(', ', $rechazadosPend) }}</strong>. Por favor, procede a enviar las alertas oficiales.
                                                                                         @endif
                                                                                     @else
                                                                                         @if ($targetReg->calidad_revision_status === 'casting_aprobado')
                                                                                             Proceso Finalizado: La pre-orden de casting ha sido enviada al proveedor.
                                                                                         @elseif ($libStatusClean === 'aprobado')
-                                                                                            Proceso Finalizado (Aprobado): La alerta ya fue enviada. Se aprobaron: <strong style="color: #16a34a;">{{ implode(', ', $aprobados) }}</strong>.
+                                                                                            Proceso Finalizado (Aprobado): La alerta ya fue enviada. Se aprobaron: <strong style="color: #16a34a;">{{ implode(', ', $aprobadosAll) }}</strong>.
                                                                                         @elseif ($libStatusClean === 'rechazado')
-                                                                                            Proceso Finalizado (Rechazado): La alerta ya fue enviada. Se rechazaron: <strong style="color: #dc2626;">{{ implode(', ', $rechazados) }}</strong>.
+                                                                                            Proceso Finalizado (Rechazado): La alerta ya fue enviada. Se rechazaron: <strong style="color: #dc2626;">{{ implode(', ', $rechazadosAll) }}</strong>.
                                                                                         @elseif ($libStatusClean === 'mixto')
-                                                                                            Proceso Finalizado (Mixto): La alerta ya fue enviada. Se aprobaron: <strong style="color: #16a34a;">{{ implode(', ', $aprobados) }}</strong> | Se rechazaron: <strong style="color: #dc2626;">{{ implode(', ', $rechazados) }}</strong>.
+                                                                                            Proceso Finalizado (Mixto): La alerta ya fue enviada. Se aprobaron: <strong style="color: #16a34a;">{{ implode(', ', $aprobadosAll) }}</strong> | Se rechazaron: <strong style="color: #dc2626;">{{ implode(', ', $rechazadosAll) }}</strong>.
                                                                                         @endif
                                                                                     @endif
                                                                                 </h4>

@@ -4109,14 +4109,10 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
                     const pl = nombre.toLowerCase();
                     const todosModelosPosibles = ['bombillo', 'fondo', 'obturador', 'molde'];
 
-                    // comprobar si el path contiene el modelo como carpeta o prefijo
-                    const modelosEncontrados = todosModelosPosibles.filter(m => {
-                        return pl.includes('/' + m + '/') || pl.startsWith(m + '/') || pl.includes('_' + m + '_') || pl.includes('-' + m + ' -') || pl.includes(' ' + m + ' ') || pl.split('/').pop().startsWith(m);
-                    });
+                    const modelosEncontrados = todosModelosPosibles.filter(m => pl.includes(m));
 
                     if (modelosEncontrados.length === 0) {
-                        // Es un archivo general (no pertenece a ningún modelo específico, ej. preordenes/Escaneado_Fundicion)
-                        return true;
+                        return false;
                     }
 
                     const modelosActivosLower = modelosActivos.map(m => m.toLowerCase());
@@ -4262,9 +4258,22 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
     const arrAprobados = Array.isArray(tiposAprobados) ? tiposAprobados : [];
     const arrRechazados = Array.isArray(tiposRechazados) ? tiposRechazados : [];
 
+    // Recalcular la decisión real desde los arrays, ignorando el parámetro recibido
+    // para evitar falsos-positivos de "mixto" cuando solo hay un tipo pendiente.
+    const hasAprobados = arrAprobados.length > 0;
+    const hasRechazados = arrRechazados.length > 0;
+    let effectiveDecision;
+    if (hasAprobados && hasRechazados) {
+        effectiveDecision = 'mixto';
+    } else if (hasRechazados) {
+        effectiveDecision = 'rechazar';
+    } else {
+        effectiveDecision = 'aprobar';
+    }
+
     // Set hidden inputs
     document.getElementById('fc-ot').value = ot;
-    document.getElementById('fc-decision').value = decision;
+    document.getElementById('fc-decision').value = effectiveDecision;
     document.getElementById('fc-tipo-modelo').value = [...arrAprobados, ...arrRechazados].join(', ');
     document.getElementById('fc-tipos-aprobados').value = JSON.stringify(arrAprobados);
     document.getElementById('fc-tipos-rechazados').value = JSON.stringify(arrRechazados);
@@ -4284,9 +4293,9 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
     let baseUrl = window.baseUrl || (window.location.origin + '/');
     if (!baseUrl.endsWith('/')) baseUrl += '/';
 
-    // Adapt colors and text dynamically based on the decision
+    // Adapt colors and text dynamically based on the EFFECTIVE decision
     let bg, border, btnBg, titleText, promptHtml, btnText;
-    if (decision === 'aprobar') {
+    if (effectiveDecision === 'aprobar') {
         bg = 'linear-gradient(135deg, #10b981, #059669)';
         border = '#10b981';
         btnBg = '#10b981';
@@ -4300,7 +4309,7 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
                 </div>
             </div>
         `;
-    } else if (decision === 'rechazar') {
+    } else if (effectiveDecision === 'rechazar') {
         bg = 'linear-gradient(135deg, #ef4444, #dc2626)';
         border = '#ef4444';
         btnBg = '#ef4444';
@@ -4365,27 +4374,49 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
         .then(r => r.json())
         .then(data => {
             if (data.existe && data.archivos?.length > 0) {
+                const archivoPerteneceAModelos = (nombre, modelosActivos) => {
+                    const pl = nombre.toLowerCase();
+                    const todosModelosPosibles = ['bombillo', 'fondo', 'obturador', 'molde'];
+
+                    const modelosEncontrados = todosModelosPosibles.filter(m => pl.includes(m));
+
+                    if (modelosEncontrados.length === 0) {
+                        return false;
+                    }
+
+                    const modelosActivosLower = modelosActivos.map(m => m.toLowerCase());
+                    return modelosEncontrados.some(m => modelosActivosLower.includes(m));
+                };
+
+                const allRelevantModels = [...arrAprobados, ...arrRechazados];
+
                 const filteredFiles = data.archivos.filter(f => {
                     const pl = f.nombre.toLowerCase();
                     const isRechazadoFile = pl.includes('documentos_rechazados') || pl.includes('rechazado') || pl.includes('scar');
                     const isDibujoOrAyuda = f.tipo === 'dibujo' || f.tipo === 'ayuda';
                     const isPreordenFile = pl.includes('pre-orden') || pl.includes('preorden') || (pl.includes('confirmacionmodelo') && !pl.includes('casting'));
 
-                    if (isPreordenFile) return true;
-
-                    if (decision === 'aprobar') {
+                    if (effectiveDecision === 'aprobar') {
                         if (isRechazadoFile) return false;
-                        return true;
-                    }
-                    
-                    if (decision === 'rechazar') {
-                        if (isDibujoOrAyuda) return false;
-                        if (!isRechazadoFile) return false;
-                        return true;
+                        // Dibujos/ayudas y preordenes solo de las clases aprobadas
+                        return archivoPerteneceAModelos(f.nombre, arrAprobados);
                     }
 
-                    // mixto
-                    return true;
+                    if (effectiveDecision === 'rechazar') {
+                        if (isRechazadoFile) return archivoPerteneceAModelos(f.nombre, arrRechazados);
+                        // Incluir dibujos/ayudas de las clases rechazadas (contexto útil para el correo)
+                        if (isDibujoOrAyuda) return archivoPerteneceAModelos(f.nombre, arrRechazados);
+                        // Preordenes solo si pertenecen a clases rechazadas
+                        if (isPreordenFile) return archivoPerteneceAModelos(f.nombre, arrRechazados);
+                        return false;
+                    }
+
+                    // mixto: rechazados van con rechazados, dibujos/ayudas con aprobados
+                    if (isRechazadoFile) return archivoPerteneceAModelos(f.nombre, arrRechazados);
+                    if (isDibujoOrAyuda) return archivoPerteneceAModelos(f.nombre, allRelevantModels);
+                    if (isPreordenFile) return archivoPerteneceAModelos(f.nombre, allRelevantModels);
+
+                    return archivoPerteneceAModelos(f.nombre, allRelevantModels);
                 });
                 const sectionsHtml = generarHtmlCategorizadoArchivos(filteredFiles, ot, baseUrl, 'calidad');
                 if (filesContainer) {

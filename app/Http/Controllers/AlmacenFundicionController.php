@@ -186,8 +186,9 @@ class AlmacenFundicionController extends Controller
         }
 
         $todo = $request->query('todo', '0') === '1';
+        $tipoPeticion = $request->query('tipo', '');
 
-        if ($todo) {
+        if ($todo || $tipoPeticion === 'modelo') {
             $activeClasses = ['fondo', 'bombillo', 'molde', 'obturador'];
         } else {
             // Filtrar clases activas basándose en las decisiones de Calidad
@@ -626,7 +627,7 @@ class AlmacenFundicionController extends Controller
                 if ($isCalidadDoc && !$isPreordenFlowDoc) {
                     $status = $history->calidad_revision_status;
                     $calidadAlertaEnviada = (
-                        in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']) ||
+                        in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']) ||
                         ScarModelo::where('ot', '=', $ot, 'and')->where('estatus', '=', 'alertado', 'and')->exists() ||
                         ScarModelo::where('ot', '=', $folderName, 'and')->where('estatus', '=', 'alertado', 'and')->exists()
                     );
@@ -853,7 +854,7 @@ class AlmacenFundicionController extends Controller
                 if ($isCalidadDoc && !$isPreordenFlowDoc) {
                     $status = $history->calidad_revision_status;
                     $calidadAlertaEnviada = (
-                        in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']) ||
+                        in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']) ||
                         ScarModelo::where('ot', '=', $ot, 'and')->where('estatus', '=', 'alertado', 'and')->exists() ||
                         ScarModelo::where('ot', '=', $folderName, 'and')->where('estatus', '=', 'alertado', 'and')->exists()
                     );
@@ -999,7 +1000,7 @@ class AlmacenFundicionController extends Controller
                     return response()->json(['success' => false, 'error' => 'No se puede eliminar. La alerta de Almacén ya ha sido enviada.'], 403);
                 }
             } elseif ($fileOwner === 'calidad') {
-                $alertSent = in_array($history->calidad_revision_status, ['aprobado', 'rechazado', 'mixto', 'calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
+                $alertSent = in_array($history->calidad_revision_status, ['aprobado', 'rechazado', 'mixto', 'calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
                 if ($alertSent) {
                     return response()->json(['success' => false, 'error' => 'No se puede eliminar. La alerta de Calidad ya ha sido enviada.'], 403);
                 }
@@ -1074,10 +1075,10 @@ class AlmacenFundicionController extends Controller
 
         // Si es una pre-orden, eliminar también el registro de la base de datos
         if (str_contains(strtolower($fileNameOnly), 'pre-orden')) {
-            $preOrdenDb = PreOrdenFundicion::query()->where('ot', $ot)->where('pdf_filename', $fileNameOnly)->first();
-            if ($preOrdenDb) {
-                $preOrdenDb->delete();
-            }
+            PreOrdenFundicion::query()
+                ->where('ot', '=', $ot, 'and')
+                ->where('pdf_filename', '=', $fileNameOnly, 'and')
+                ->delete();
         }
 
         return response()->json(['success' => true, 'message' => 'Archivo eliminado correctamente y sincronizado en todos los directorios.']);
