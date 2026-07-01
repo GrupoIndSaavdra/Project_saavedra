@@ -1293,11 +1293,17 @@ function createChemicalCompositionChips(attributesArray) {
     defaultOption.text = "-- Seleccionar --";
     soldaduraSelect.add(defaultOption);
 
-    ["1", "2", "3", "4"].forEach((tipo) => {
+    const tiposSoldadura = [
+        { value: "1", label: "P1 - 3" },
+        { value: "2", label: "P2 - 2.5" },
+        { value: "3", label: "P3 - 2" },
+        { value: "4", label: "P4 - 1.5" },
+    ];
+    tiposSoldadura.forEach(({ value, label }) => {
         let opt = document.createElement("option");
-        opt.value = tipo;
-        opt.text = "Tipo " + tipo;
-        if (attributesArray.tipoSoldadura && String(attributesArray.tipoSoldadura) === tipo) {
+        opt.value = value;
+        opt.text = label;
+        if (attributesArray.tipoSoldadura && String(attributesArray.tipoSoldadura) === value) {
             opt.selected = true;
         }
         soldaduraSelect.add(opt);
@@ -1361,11 +1367,12 @@ function createChemicalCompositionTags(valueString, tipoSoldadura) {
     let soldaduraBadge = document.createElement("span");
     soldaduraBadge.className = "chemical-composition-tag";
 
+    const tiposSoldaduraMap = { "1": "P1 - 3", "2": "P2 - 2.5", "3": "P3 - 2", "4": "P4 - 1.5" };
     if (tipoSoldadura) {
         // Badge azul oscuro con el tipo registrado
         soldaduraBadge.style.background = "#033966";
         soldaduraBadge.style.color = "#fff";
-        soldaduraBadge.textContent = "Tipo " + tipoSoldadura;
+        soldaduraBadge.textContent = tiposSoldaduraMap[String(tipoSoldadura)] ?? ("Tipo " + tipoSoldadura);
     } else {
         // Badge gris indicando que no hay información
         soldaduraBadge.style.background = "#c0c0c0";

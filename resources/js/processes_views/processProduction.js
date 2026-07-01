@@ -389,7 +389,17 @@ function insertWeldingTypeBox() {
     const proceso = window.arrayData["process"];
     if (!procesosAplicables.includes(proceso)) return;
 
-    const tipoSoldadura = window.arrayData["tipo_soldadura"];
+    const tipoSoldaduraRaw = window.arrayData["tipo_soldadura"];
+    const tipoSoldaduraLabels = {
+        "1": "P1 - 3",
+        "2": "P2 - 2.5",
+        "3": "P3 - 2",
+        "4": "P4 - 1.5",
+    };
+    const tipoSoldadura = tipoSoldaduraRaw
+        ? (tipoSoldaduraLabels[String(tipoSoldaduraRaw)] ?? ("Tipo " + tipoSoldaduraRaw))
+        : null;
+
     const formGrid = document.querySelector(".form-grid");
     if (!formGrid) return;
 
@@ -419,7 +429,7 @@ function insertWeldingTypeBox() {
     let valueSpan = document.createElement("span");
     if (tipoSoldadura) {
         valueSpan.textContent = tipoSoldadura;
-        valueSpan.style.cssText = "color: #ffffff; font-size: 2em; font-weight: 800; line-height: 1;";
+        valueSpan.style.cssText = "color: #ffffff; font-size: 1.4em; font-weight: 800; line-height: 1; text-align: center;";
     } else {
         valueSpan.textContent = "-";
         valueSpan.style.cssText = "color: #7a9dc0; font-size: 1.4em; font-weight: 700; line-height: 1;";
