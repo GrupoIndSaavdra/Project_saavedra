@@ -121,7 +121,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                     }
                 }
 
-                $optsPreparacion = ['P1', 'P2', 'P3'];
+                $optsPreparacion = ['P1 - 3', 'P2 - 2.5', 'P3 - 2', 'P4 - 1.5', 'N/A'];
             @endphp
 
             @forelse ($piezasGroup as $nPieza => $subFilas)

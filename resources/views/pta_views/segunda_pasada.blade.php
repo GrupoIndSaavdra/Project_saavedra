@@ -93,7 +93,7 @@
                 $p2Row = $piezasGroup['Segunda_Pasada'] ?? null;
                 $p2Act = $p2Row?->p2_activa ?? false;
 
-                $optsPreparacion = ['P1', 'P2', 'P3'];
+                $optsPreparacion = ['P1 - 3', 'P2 - 2.5', 'P3 - 2', 'P4 - 1.5', 'N/A'];
             @endphp
 
             {{-- ────────────────────────────────────────────────────────────────
