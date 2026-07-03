@@ -16,7 +16,6 @@
             <h2>Edición 2da Pasada — Soldadura PTA</h2>
             <p>Selecciona OT, Clase y Pieza para editar los datos de segunda pasada</p>
         </div>
-
         {{-- Alertas --}}
         @if (session('success'))
             <div class="pta-alert pta-alert-success">&#10003; {{ session('success') }}</div>
@@ -283,8 +282,8 @@
                                              $isOtroP2S = !empty($currentValP2S) && !in_array($currentValP2S, $optionsP2S);
                                          @endphp
                                          <div class="mat-sold-wrap">
-                                             <select id="select_{{ $idWidgetP2S }}" 
-                                                     class="pta-select mat-sold-select" 
+                                             <select id="select_{{ $idWidgetP2S }}"
+                                                     class="pta-select mat-sold-select"
                                                      style="display: {{ $isOtroP2S ? 'none' : 'block' }};"
                                                      onchange="handlePTAMaterialSelectChange('{{ $idWidgetP2S }}')"
                                                      @if(!$isOtroP2S) name="{{ $nameFieldP2S }}" @endif>
@@ -294,20 +293,20 @@
                                                  @endforeach
                                                  <option value="__otro__" {{ $isOtroP2S ? 'selected' : '' }}>Otro...</option>
                                              </select>
-                                             <div id="otro_wrap_{{ $idWidgetP2S }}" 
-                                                  class="mat-sold-otro-wrap {{ $isOtroP2S ? 'visible' : '' }}" 
+                                             <div id="otro_wrap_{{ $idWidgetP2S }}"
+                                                  class="mat-sold-otro-wrap {{ $isOtroP2S ? 'visible' : '' }}"
                                                   style="display: {{ $isOtroP2S ? 'flex' : 'none' }}; gap: 4px; width: 100%;">
-                                                 <button type="button" 
-                                                         class="mat-sold-btn-back" 
+                                                 <button type="button"
+                                                         class="mat-sold-btn-back"
                                                          style="cursor: pointer;"
                                                          onclick="handlePTAMaterialBackClick('{{ $idWidgetP2S }}', '{{ $nameFieldP2S }}')">
                                                      ←
                                                  </button>
-                                                 <input type="text" 
-                                                        id="input_{{ $idWidgetP2S }}" 
-                                                        class="pta-input mat-sold-input" 
-                                                        placeholder="Escribir material..." 
-                                                        maxlength="80" 
+                                                 <input type="text"
+                                                        id="input_{{ $idWidgetP2S }}"
+                                                        class="pta-input mat-sold-input"
+                                                        placeholder="Escribir material..."
+                                                        maxlength="80"
                                                         @if($isOtroP2S) name="{{ $nameFieldP2S }}" @else disabled @endif
                                                         value="{{ $isOtroP2S ? $currentValP2S : '' }}">
                                              </div>
@@ -531,7 +530,7 @@
                 const name = selectEl.name;
                 selectEl.name = '';
                 selectEl.style.display = 'none';
-                
+
                 otroWrap.style.display = 'flex';
                 otroWrap.classList.add('visible');
                 inputEl.name = name;

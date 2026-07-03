@@ -122,6 +122,45 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                 }
 
                 $optsPreparacion = ['P1 - 3', 'P2 - 2.5', 'P3 - 2', 'P4 - 1.5', 'N/A'];
+
+                // ── Pre-valores por defecto para Soldadura PTA (Hembra y Macho) ──────────────
+                $def = [
+                    'D_Conexion_pico' => [
+                        'vl'            => 2.000,
+                        'sold_inicial'  => 3.000,
+                        'sold_aplicada' => 8.000,
+                        'sold_final'    => 6.000,
+                        'corr_inicial'  => 45.000,
+                        'corr_aplicada' => 60.000,
+                        'corr_final'    => 60.000,
+                        'gas_argon'     => 2.200,
+                        'precalentamiento' => 415,
+                        'd_conexion_pico' => 0,
+                    ],
+                    'D_Conexion_obt' => [
+                        'vl'            => 2.000,
+                        'sold_inicial'  => 3.000,
+                        'sold_aplicada' => 8.000,
+                        'sold_final'    => 6.000,
+                        'corr_inicial'  => 45.000,
+                        'corr_aplicada' => 60.000,
+                        'corr_final'    => 70.000,
+                        'gas_argon'     => 2.200,
+                        'd_conexion_obt' => 0,
+                    ],
+                    'Perfilado' => [
+                        'vl'            => "0.000",
+                        'sold_inicial'  => "0.000",
+                        'sold_aplicada' => "0.000",
+                        'sold_final'    => "0.000",
+                        'corr_inicial'  => "0.000",
+                        'corr_aplicada' => "0.000",
+                        'corr_final'    => "0.000",
+                        'gas_argon'     => "0.000",
+                        'velocidad_calculada' => "0.000",
+                        'perfilado'     => "0.000",
+                    ],
+                ];
             @endphp
 
             @forelse ($piezasGroup as $nPieza => $subFilas)
@@ -731,6 +770,32 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                             $filaA = $filasActivasPorTipo[$tipoA] ?? null;
                             $esPrimeraA = ($loopIdxA === 0);
                             $keyA = $filaA?->id ?? ('new_' . $nPiezaA . '_' . $tipoA);
+                            // Pre-llenado inteligente:
+                            // Los registros pueden tener vl='0.000' (guardados sin datos reales).
+                            // Consideramos que tiene datos reales SOLO si vl > 0 (para Pico/Obt)
+                            // o si sold_inicial > 0 (para Perfilado que legítimamente tiene vl=0).
+                            $defTipo = $def[$tipoA] ?? [];
+                            if ($filaA) {
+                                $vlNum = (float)($filaA->vl ?? 0);
+                                $soldIniNum = (float)($filaA->sold_inicial ?? 0);
+                                $tieneDataReal = ($vlNum > 0 || $soldIniNum > 0);
+                            } else {
+                                $tieneDataReal = false;
+                            }
+                            $dv_vl             = $tieneDataReal ? $filaA->vl             : ($defTipo['vl']            ?? '0.000');
+                            $dv_sold_inicial   = $tieneDataReal ? $filaA->sold_inicial   : ($defTipo['sold_inicial']  ?? '0.000');
+                            $dv_sold_aplicada  = $tieneDataReal ? $filaA->sold_aplicada  : ($defTipo['sold_aplicada'] ?? '0.000');
+                            $dv_sold_final     = $tieneDataReal ? $filaA->sold_final     : ($defTipo['sold_final']    ?? '0.000');
+                            $dv_corr_inicial   = $tieneDataReal ? $filaA->corr_inicial   : ($defTipo['corr_inicial']  ?? '0.000');
+                            $dv_corr_aplicada  = $tieneDataReal ? $filaA->corr_aplicada  : ($defTipo['corr_aplicada'] ?? '0.000');
+                            $dv_corr_final     = $tieneDataReal ? $filaA->corr_final     : ($defTipo['corr_final']    ?? '0.000');
+                            $dv_gas_argon      = $tieneDataReal ? $filaA->gas_argon      : ($defTipo['gas_argon']     ?? '0.000');
+                            $dv_vel_calc       = $tieneDataReal ? $filaA->velocidad_calculada : ($defTipo['velocidad_calculada'] ?? '0.000');
+                            // Precalentamiento: 0 en BD → usar default
+                            $precalVal = $filaPrecalA?->precalentamiento;
+                            $dv_precal = ($precalVal !== null && (float)$precalVal > 0)
+                                ? $precalVal
+                                : ($def['D_Conexion_pico']['precalentamiento'] ?? '');
                         @endphp
 
                         <tr style="background:#ffffff; border-top: {{ $esPrimeraA ? '2px solid #e6a800' : '1px solid #ccc' }};">
@@ -750,16 +815,17 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                 @php
                                     $campoA = $tipoA === 'D_Conexion_pico' ? 'd_conexion_pico'
                                         : ($tipoA === 'D_Conexion_obt' ? 'd_conexion_obt' : 'perfilado');
+                                    $dv_valor_principal = $tieneDataReal ? $filaA->$campoA : ($defTipo[$campoA] ?? '0.000');
                                 @endphp
                                 <input type="number" step="0.001" name="{{ $campoA }}[{{ $keyA }}]"
-                                    value="{{ $filaA?->$campoA ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required>
+                                    value="{{ $dv_valor_principal }}" class="pta-input input-pieceUsed" placeholder="0.000" required>
                                 <input type="hidden" name="piece_id[{{ $keyA }}]" value="{{ $filaA?->id ?? '' }}">
                                 <input type="hidden" name="tipo_medida[{{ $keyA }}]" value="{{ $tipoA }}">
                                 <input type="hidden" name="n_pieza_ref[{{ $keyA }}]" value="{{ $nPiezaA }}">
                             </td>
 
                             {{-- VL --}}
-                            <td><input type="number" step="0.001" name="vl[{{ $keyA }}]" value="{{ $filaA?->vl ?? '' }}"
+                            <td><input type="number" step="0.001" name="vl[{{ $keyA }}]" value="{{ $dv_vl }}"
                                     class="pta-input input-pieceUsed" placeholder="0.000" required></td>
 
                             {{-- Tipo preparación --}}
@@ -779,7 +845,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                 <td class="td-precal" rowspan="3">
                                     <input type="number" step="0.01"
                                         name="precalentamiento[{{ $filaPrecalA?->id ?? 'new_' . $nPiezaA . '_precal' }}]"
-                                        value="{{ $filaPrecalA?->precalentamiento ?? '' }}" class="pta-input input-pieceUsed" placeholder="°C" required>
+                                        value="{{ $dv_precal }}" class="pta-input input-pieceUsed" placeholder="°C" required>
                                 </td>
                                 <td class="td-precal" rowspan="3" style="min-width: 140px;">
                                     @php
@@ -829,27 +895,27 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                             {{-- Soldadura --}}
                             <td><input type="number" step="0.001" name="sold_inicial[{{ $keyA }}]"
-                                    value="{{ $filaA?->sold_inicial ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
+                                    value="{{ $dv_sold_inicial }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
                             <td><input type="number" step="0.001" name="sold_aplicada[{{ $keyA }}]"
-                                    value="{{ $filaA?->sold_aplicada ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
+                                    value="{{ $dv_sold_aplicada }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
                             <td><input type="number" step="0.001" name="sold_final[{{ $keyA }}]"
-                                    value="{{ $filaA?->sold_final ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
+                                    value="{{ $dv_sold_final }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
 
                             {{-- Corriente --}}
                             <td><input type="number" step="0.001" name="corr_inicial[{{ $keyA }}]"
-                                    value="{{ $filaA?->corr_inicial ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
+                                    value="{{ $dv_corr_inicial }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
                             <td><input type="number" step="0.001" name="corr_aplicada[{{ $keyA }}]"
-                                    value="{{ $filaA?->corr_aplicada ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
+                                    value="{{ $dv_corr_aplicada }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
                             <td><input type="number" step="0.001" name="corr_final[{{ $keyA }}]"
-                                    value="{{ $filaA?->corr_final ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
+                                    value="{{ $dv_corr_final }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
 
                             {{-- Gas argón --}}
                             <td><input type="number" step="0.001" name="gas_argon[{{ $keyA }}]"
-                                    value="{{ $filaA?->gas_argon ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
+                                    value="{{ $dv_gas_argon }}" class="pta-input input-pieceUsed" placeholder="0.000" required></td>
 
                             {{-- Velocidad calculada --}}
                             <td><input type="number" step="0.001" name="velocidad_calculada[{{ $keyA }}]"
-                                    value="{{ $filaA?->velocidad_calculada ?? '' }}" class="pta-input input-pieceUsed" placeholder="0.000" required>
+                                    value="{{ $dv_vel_calc }}" class="pta-input input-pieceUsed" placeholder="0.000" required>
                             </td>
 
                             {{-- Resultado --}}

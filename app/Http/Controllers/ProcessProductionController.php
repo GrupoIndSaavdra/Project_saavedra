@@ -893,6 +893,29 @@ class ProcessProductionController extends Controller
                         }
                         // ── Creación de piezas ──
                         if ($processString === 'Soldadura PTA') {
+                            // Defaults de pre-llenado para Soldadura PTA (Molde y Bombillo)
+                            $claseNormPTA = strtolower(trim($class->nombre ?? ''));
+                            $ptaDefaults = in_array($claseNormPTA, ['molde', 'bombillo']) ? [
+                                'D_Conexion_pico' => [
+                                    'vl' => 2.000, 'sold_inicial' => 3.000, 'sold_aplicada' => 8.000,
+                                    'sold_final' => 6.000, 'corr_inicial' => 45.000, 'corr_aplicada' => 60.000,
+                                    'corr_final' => 60.000, 'gas_argon' => 2.200, 'precalentamiento' => 415,
+                                    'd_conexion_pico' => 0,
+                                ],
+                                'D_Conexion_obt' => [
+                                    'vl' => 2.000, 'sold_inicial' => 3.000, 'sold_aplicada' => 8.000,
+                                    'sold_final' => 6.000, 'corr_inicial' => 45.000, 'corr_aplicada' => 60.000,
+                                    'corr_final' => 70.000, 'gas_argon' => 2.200,
+                                    'd_conexion_obt' => 0,
+                                ],
+                                'Perfilado' => [
+                                    'vl' => "0.000", 'sold_inicial' => "0.000", 'sold_aplicada' => "0.000",
+                                    'sold_final' => "0.000", 'corr_inicial' => "0.000", 'corr_aplicada' => "0.000",
+                                    'corr_final' => "0.000", 'gas_argon' => "0.000", 'velocidad_calculada' => "0.000",
+                                    'perfilado' => "0.000",
+                                ],
+                            ] : [];
+
                             // PTA: 3 sub-filas por mitad (D_Conexion_pico, D_Conexion_obt, Perfilado)
                             foreach (\App\Http\Controllers\SoldaduraPTAController::TIPOS_MEDIDA as $tidx => $tipo) {
                                 $newPiece = new $modelPieces();
@@ -903,6 +926,14 @@ class ProcessProductionController extends Controller
                                 $newPiece->n_pieza = $noAssembly . $pieceLetter;
                                 $newPiece->n_juego = $request->input('selectedAssembly');
                                 $newPiece->tipo_medida = $tipo;
+
+                                // Aplicar defaults de pre-llenado
+                                if (!empty($ptaDefaults[$tipo])) {
+                                    foreach ($ptaDefaults[$tipo] as $campo => $valor) {
+                                        $newPiece->$campo = $valor;
+                                    }
+                                }
+
                                 try {
                                     $newPiece->save();
                                 } catch (\Illuminate\Database\QueryException $ex) {
