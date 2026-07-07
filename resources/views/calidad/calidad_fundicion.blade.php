@@ -3,7 +3,7 @@
 @section('head')
     @php
         $perfil = Auth::user()->perfil;
-        $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
+        $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 3 ? 'Master' : ($perfil == 4 ? 'Calidad' : 'Almacén'));
     @endphp
     <title>Calidad — Dibujos de Fundición | GIS</title>
     <meta name="description"
@@ -20,8 +20,8 @@
         {{-- ── HEADER ─────────────────────────────────────────────── --}}
         @php
             $perfil = Auth::user()->perfil;
-            $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
-            $deptIcon = $perfil == 4 ? 'Quality.png' : 'almacen.png';
+            $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 3 ? 'Master' : ($perfil == 4 ? 'Calidad' : 'Almacén'));
+            $deptIcon = ($perfil == 4 || $perfil == 3) ? 'Quality.png' : 'almacen.png';
         @endphp
 
         <div class="alm-header">
@@ -835,7 +835,7 @@
 
                                                 // Aplicar filtros de visibilidad según perfil de usuario
                                                 $userPerfil = Auth::user()->perfil;
-                                                if ($userPerfil != 1 && $userPerfil != 2) {
+                                                if ($userPerfil != 1 && $userPerfil != 2 && $userPerfil != 3) {
                                                     $filteredOtros = [];
                                                     foreach ($otrosArchivos as $archivo) {
                                                         $nameLow = strtolower($archivo['nombre']);
@@ -969,7 +969,7 @@
 
                                                 $hasFinalStatus = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'casting_aprobado']);
                                                 $isQualityFinalized = $hasFinalStatus && $todosGuardados;
-                                                $showQualityCard = (Auth::user()->perfil == 4 && $estado === 'activa' && !$isQualityFinalized);
+                                                $showQualityCard = (in_array(Auth::user()->perfil, ['3', '4', 3, 4]) && $estado === 'activa' && !$isQualityFinalized);
                                                 $hasFilesOrControl = ($count > 0 || $showQualityCard);
 
                                                 // ── CALCULAR APROBADOS Y RECHAZADOS DEL ÚLTIMO VEREDICTO DE CADA CLASE ──
@@ -1252,7 +1252,7 @@
                                                                         }
                                                                         $userPerfil = Auth::user()->perfil;
                                                                         
-                                                                        if ($userPerfil == 1 || $userPerfil == 2) {
+                                                                        if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
                                                                             $canDelete = true;
                                                                         } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
                                                                             if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
@@ -1354,7 +1354,7 @@
                                                                             $fileOwner = 'calidad';
                                                                         }
                                                                         $userPerfil = Auth::user()->perfil;
-                                                                        if ($userPerfil == 1 || $userPerfil == 2) {
+                                                                        if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
                                                                             $canDelete = true;
                                                                         } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
                                                                             if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
@@ -1397,7 +1397,7 @@
                                                                             $fileOwner = 'calidad';
                                                                         }
                                                                         $userPerfil = Auth::user()->perfil;
-                                                                        if ($userPerfil == 1 || $userPerfil == 2) {
+                                                                        if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
                                                                             $canDelete = true;
                                                                         } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
                                                                             if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
@@ -1457,7 +1457,7 @@
                                                                             $fileOwner = 'calidad';
                                                                         }
                                                                         $userPerfil = Auth::user()->perfil;
-                                                                        if ($userPerfil == 1 || $userPerfil == 2) {
+                                                                        if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
                                                                             $canDelete = true;
                                                                         } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
                                                                             if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
@@ -1488,7 +1488,7 @@
 
 
                                                         {{-- ── ACCIONES DE CALIDAD / ESTADOS DE LIBERACION ── --}}
-                                                        @if (Auth::user()->perfil == 4 && $estado === 'activa' && !$isQualityFinalized)
+                                                        @if (in_array(Auth::user()->perfil, [3, 4, '3', '4']) && $estado === 'activa' && !$isQualityFinalized)
                                                             <div class="lib-calidad-card">
                                                                 <div class="lib-calidad-card-header">
                                                                     <img src="{{ asset('images/Quality.png') }}" alt="Calidad"
@@ -1707,7 +1707,7 @@
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        @elseif (Auth::user()->perfil == 4 && $isQualityFinalized)
+                                                        @elseif (in_array(Auth::user()->perfil, [3, 4, '3', '4']) && $isQualityFinalized)
                                                                 @php
                                                                     $libStatusClean = str_replace('calidad_', '', $targetReg->calidad_revision_status);
                                                                 @endphp
