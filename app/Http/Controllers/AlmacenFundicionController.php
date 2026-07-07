@@ -617,8 +617,8 @@ class AlmacenFundicionController extends Controller
                 if ($isPreorden && !$isAllowedBeforeAlert && !$history->pre_orden_email_sent) {
                     abort(403, 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.');
                 }
-            } elseif ($user->perfil == 5) { // Almacén
-                // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
+            } elseif ($user->perfil == 5 || $user->perfil == 3) { // Almacén o Master
+                // Almacén y Master solo ven PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
                 $isCalidadDoc = ($tipo === 'liberacion' ||
                     str_contains($archivo, 'F-CCL-LDM') ||
                     str_contains($archivo, 'F-CCL-SCAR') ||
@@ -844,8 +844,8 @@ class AlmacenFundicionController extends Controller
                 if ($isPreorden && !$isAllowedBeforeAlert && !$history->pre_orden_email_sent) {
                     return response()->json(['success' => false, 'error' => 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.'], 403);
                 }
-            } elseif ($user->perfil == 5) { // Almacén
-                // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
+            } elseif ($user->perfil == 5 || $user->perfil == 3) { // Almacén o Master
+                // Almacén y Master solo ven PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
                 $isCalidadDoc = ($tipo === 'liberacion' ||
                     str_contains($archivo, 'F-CCL-LDM') ||
                     str_contains($archivo, 'F-CCL-SCAR') ||
@@ -979,7 +979,7 @@ class AlmacenFundicionController extends Controller
 
         // Validar que el rol del usuario que realiza la petición coincida con el dueño del documento (o sea Admin)
         if ($user->perfil != 1 && $user->perfil != 2) {
-            if ($fileOwner === 'almacen' && $user->perfil != 5) {
+            if ($fileOwner === 'almacen' && $user->perfil != 5 && $user->perfil != 3) {
                 return response()->json(['success' => false, 'error' => 'Acceso denegado. Solo Almacén puede eliminar este documento.'], 403);
             }
             if ($fileOwner === 'calidad' && $user->perfil != 4) {

@@ -931,8 +931,8 @@
                                                                     continue;
                                                                 }
                                                             }
-                                                        } elseif ($userPerfil == 5) { // Almacén
-                                                            // Almacén ve preordenes y confirmaciones (calidad ya se filtro arriba)
+                                                        } elseif ($userPerfil == 5 || $userPerfil == 3) { // Almacén o Master
+                                                            // Almacén y Master ven preordenes y confirmaciones (calidad ya se filtro arriba)
                                                         }
                                                     }
                                                     $filteredOtros[] = $archivo;
@@ -1312,7 +1312,7 @@
                                                                         if (!$alertSent) {
                                                                             if ($userPerfil == 1 || $userPerfil == 2) {
                                                                                 $canDelete = true;
-                                                                            } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
+                                                                            } elseif (($userPerfil == 5 || $userPerfil == 3) && $fileOwner === 'almacen') {
                                                                                 $canDelete = true;
                                                                             } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
                                                                                 $canDelete = true;
@@ -1374,7 +1374,7 @@
                                                                         }
                                                                         if (!$alertSent) {
                                                                             if ($userPerfil == 1 || $userPerfil == 2) $canDelete = true;
-                                                                            elseif ($userPerfil == 5 && $fileOwner === 'almacen') $canDelete = true;
+                                                                            elseif (($userPerfil == 5 || $userPerfil == 3) && $fileOwner === 'almacen') $canDelete = true;
                                                                             elseif ($userPerfil == 4 && $fileOwner === 'calidad') $canDelete = true;
                                                                         }
                                                                     @endphp
