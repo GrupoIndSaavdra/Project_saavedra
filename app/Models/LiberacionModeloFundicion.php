@@ -56,6 +56,7 @@ class LiberacionModeloFundicion extends Model
         'user_nombre_calidad',
         'fecha_revision',
         'pdf_filename',
+        'alerta_enviada',
     ];
 
     protected $casts = [
@@ -64,6 +65,7 @@ class LiberacionModeloFundicion extends Model
         'medidas_plantilla' => 'array',
         'medidas_fondo'     => 'array',
         'medidas_obturador' => 'array',
+        'alerta_enviada'    => 'boolean',
     ];
 
     /**

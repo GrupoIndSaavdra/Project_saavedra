@@ -4507,7 +4507,32 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (decision === 'aprobar') window.ModeloStateMachine.onAprobado(ot);
                         else if (decision === 'rechazar') window.ModeloStateMachine.onRechazado(ot);
                     }
-                    setTimeout(() => { cerrarModalFinalizarCalidad(); window.location.reload(); }, 1800);
+                    
+                    cerrarModalFinalizarCalidad();
+                    
+                    let baseUrlLocal = window.baseUrl || (window.location.origin + '/');
+                    if (!baseUrlLocal.endsWith('/')) baseUrlLocal += '/';
+                    
+                    const otSafe = ot.replace(/'/g, "\\\\'");
+                    const buttons = document.querySelectorAll(`button[onclick*="abrirModalFinalizarCalidad('${otSafe}'"]`);
+                    buttons.forEach(b => {
+                        const card = b.closest('.lib-calidad-card') || b.closest('td') || b.closest('div');
+                        if (card) {
+                            const btnsContainer = card.querySelector('.lib-calidad-card-btns');
+                            if (btnsContainer) {
+                                btnsContainer.innerHTML = `
+                                    <span style="color: #475569; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; animation: fadeIn 0.3s ease;">
+                                        <img src="${baseUrlLocal}images/ready.png" style="width: 18px; height: 18px;" alt="">
+                                        La alerta ha sido enviada exitosamente.
+                                    </span>
+                                `;
+                            }
+                            const prompt = card.querySelector('.lib-calidad-card-prompt');
+                            if (prompt) prompt.style.display = 'none';
+                        }
+                    });
+
+                    setTimeout(() => { window.location.reload(); }, 1800);
                 } else {
                     almacenToast(data.message || 'Error al enviar la alerta.', 'error');
                     btn.disabled = false; btn.innerHTML = orig;

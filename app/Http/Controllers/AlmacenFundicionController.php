@@ -2250,9 +2250,19 @@ class AlmacenFundicionController extends Controller
             $query->where('pdf_filename', 'NOT LIKE', '%Casting%');
         }
 
-        $preOrdenIds = $request->input('pre_orden_ids');
-        if (empty($preOrdenIds) || !is_array($preOrdenIds)) {
+        $preOrdenIdsRaw = $request->input('pre_orden_ids');
+        if (empty($preOrdenIdsRaw) || !is_array($preOrdenIdsRaw)) {
             return response()->json(['success' => false, 'message' => 'Debe seleccionar al menos una pre-orden para enviar.'], 422);
+        }
+        
+        $preOrdenIds = [];
+        foreach ($preOrdenIdsRaw as $idGroup) {
+            $parts = explode(',', $idGroup);
+            foreach ($parts as $p) {
+                if (trim($p) !== '') {
+                    $preOrdenIds[] = trim($p);
+                }
+            }
         }
         
         $query->whereIn('id', $preOrdenIds);
@@ -3053,7 +3063,7 @@ class AlmacenFundicionController extends Controller
         $newHistory->calidad_revision_status = null;
         $newHistory->alert_sent_at = now();
         if ($historyOriginal) {
-            $newHistory->ayudas_config = $historyOriginal->ayudas_config;
+            $newHistory->ayudas_config = $clases; // Sólo incluir las clases explícitamente rechazadas para esta iteración
             $newHistory->almacen_archivos = $historyOriginal->almacen_archivos;
         }
         $newHistory->save();
@@ -3212,23 +3222,31 @@ class AlmacenFundicionController extends Controller
                 ->where('is_sent', '=', 0, 'and')
                 ->get();
 
-            $pendingData = $pending->map(function($po) {
-                $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
-                $clasesStr = 'Sin clases';
-                if (is_array($filas)) {
-                    $clasesNombres = array_map(function($f) {
-                        return $f['clase_nombre'] ?? $f['clase'] ?? 'Desconocida';
-                    }, $filas);
-                    $clasesStr = implode(', ', $clasesNombres);
+            $pendingData = [];
+            $grouped = $pending->groupBy('pdf_filename');
+            foreach ($grouped as $pdf => $group) {
+                $first = $group->first();
+                $allClases = [];
+                $ids = [];
+                foreach ($group as $po) {
+                    $ids[] = $po->id;
+                    $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
+                    if (is_array($filas)) {
+                        foreach ($filas as $f) {
+                            $c = $f['clase_nombre'] ?? $f['clase'] ?? 'Desconocida';
+                            $allClases[] = trim($c);
+                        }
+                    }
                 }
+                $clasesStr = empty($allClases) ? 'Sin clases' : implode(', ', array_unique(array_filter($allClases)));
 
-                return [
-                    'id' => $po->id,
+                $pendingData[] = [
+                    'id' => implode(',', $ids),
                     'clases_str' => $clasesStr,
-                    'pdf_filename' => $po->pdf_filename,
-                    'fecha_creacion' => \Carbon\Carbon::parse($po->created_at)->format('d/m/Y H:i'),
+                    'pdf_filename' => $first->pdf_filename,
+                    'fecha_creacion' => \Carbon\Carbon::parse($first->created_at)->format('d/m/Y H:i'),
                 ];
-            });
+            }
 
             return response()->json([
                 'success' => true,

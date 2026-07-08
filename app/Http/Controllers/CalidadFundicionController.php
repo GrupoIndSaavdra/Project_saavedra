@@ -2147,6 +2147,7 @@ class CalidadFundicionController extends Controller
         $tiposApro = is_array($tiposAproRaw) ? $tiposAproRaw : json_decode($tiposAproRaw, true) ?? [];
         $tiposAproNorm = array_map(fn($t) => strtolower(trim($t)), $tiposApro);
 
+        /** @var LiberacionModeloFundicion $libRow */
         foreach ($liberacionesOT as $libRow) {
             // Si el tipo de modelo o decision es null en BD (ej: registro inicial), los inicializamos con los valores de la alerta
             if (is_null($libRow->tipo_modelo) && !empty($tipos)) {
@@ -2154,7 +2155,7 @@ class CalidadFundicionController extends Controller
                 if (!$exists) {
                     $libRow->tipo_modelo = $tipos[0];
                 } else {
-                    $libRow->delete();
+                    LiberacionModeloFundicion::destroy($libRow->id);
                     continue;
                 }
             }
@@ -2225,7 +2226,7 @@ class CalidadFundicionController extends Controller
                 }
             }
             
-            $clasesConDecision = array_map('strtolower', $liberacionesOT->whereNotNull('decision')->pluck('tipo_modelo')->toArray());
+            $clasesConDecision = array_map('strtolower', $liberacionesOT->where('alerta_enviada', true)->whereNotNull('decision')->pluck('tipo_modelo')->toArray());
             
             $todasActivasConDecision = true;
             foreach ($clasesActivas as $ca) {

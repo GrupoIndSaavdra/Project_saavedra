@@ -2,7 +2,6 @@
  * almacen_fundicion.js
   * Lógica de la vista de Almacén/Calidad para Dibujos de Fundición.
   */
-console.log('ALMACEN_FUNDICION_JS_V2_LOADED');
 
 function getBaseUrl() {
     let base = window.baseUrl || (window.location.origin + '/');
@@ -632,17 +631,17 @@ window.generarCodigoFila = function (select) {
  */
 function buildClaseOptionsForSelect(classes, currentVal, currentText) {
     const yaUsadas = (window._clasesYaProcesadasEnModelo || []).filter(yp => yp && yp.trim() !== '');
-    
+
     return '<option value="">Selecciona clase</option>' +
         classes.map(c => {
             const nombreNorm = c.nombre.toLowerCase();
             const yaUsada = yaUsadas.some(yp => nombreNorm.includes(yp) || yp.includes(nombreNorm));
-            
+
             const isSelected = (currentVal && (currentVal == c.id || currentText === c.nombre));
-            
+
             // Si la clase ya fue usada PERO es la que está seleccionada actualmente en este select, la mostramos.
             if (yaUsada && !isSelected) return '';
-            
+
             const selectedAttr = isSelected ? 'selected' : '';
             return `<option value="${c.id}" data-nombre="${c.nombre}" ${selectedAttr}>${c.nombre}</option>`;
         }).filter(Boolean).join('');
@@ -1012,8 +1011,8 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
     const form = document.getElementById('formEnviarPreOrden');
 
     if (inputDestinatario && form) {
-        inputDestinatario.value = (tipo === 'casting') 
-            ? form.getAttribute('data-email-casting') 
+        inputDestinatario.value = (tipo === 'casting')
+            ? form.getAttribute('data-email-casting')
             : form.getAttribute('data-email-modelo');
     }
 
@@ -1067,9 +1066,12 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                             const n = (f.nombre || '').toLowerCase();
                             // Siempre mantener archivos que no estén divididos por carpetas de clase
                             if (n.includes('documentos_aprobados') || n.includes('documentos_rechazados') || n.includes('pre-orden')) return true;
-                            
+
                             // Para Ayudas Visuales y Dibujos (que están dentro de carpetas de clase), validar si la clase es faltante
-                            return clasesFaltantes.some(clase => n.includes(clase.toLowerCase()));
+                            return clasesFaltantes.some(clase => {
+                                let c = clase.toLowerCase().trim().replace(/^modelo\s+/i, '').replace(/^casting\s+/i, '').trim();
+                                return n.includes(c);
+                            });
                         });
                     }
                 }
@@ -1080,6 +1082,39 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                         No se encontraron archivos en el servidor para esta OT.
                     </div>
                 `;
+                
+                // AUTO CHECK THE FILES
+                if ((clasesFaltantes && Array.isArray(clasesFaltantes) && clasesFaltantes.length > 0) || tipo === 'casting') {
+                    const fileCards = filesContainer.querySelectorAll('.select-file-card');
+                    fileCards.forEach(card => {
+                        const fileInput = card.querySelector('input[type="checkbox"]');
+                        if (!fileInput) return;
+                        const fileName = fileInput.value.toLowerCase();
+                        let shouldCheck = false;
+
+                        if (tipo === 'casting') {
+                            if ((fileName.includes('pre-orden') || fileName.includes('preorden')) && fileName.includes('casting')) {
+                                shouldCheck = true;
+                            }
+                        } else {
+                            if (fileName.includes('pre-orden') || fileName.includes('preorden')) {
+                                shouldCheck = true;
+                            } else if (clasesFaltantes && Array.isArray(clasesFaltantes)) {
+                                clasesFaltantes.forEach(clase => {
+                                    let c = clase.toLowerCase().trim().replace(/^modelo\s+/i, '').replace(/^casting\s+/i, '').trim();
+                                    if (fileName.includes(c)) shouldCheck = true;
+                                });
+                            }
+                        }
+                        
+                        if (shouldCheck) {
+                            fileInput.checked = true;
+                            card.classList.add('checked-card');
+                        }
+                    });
+                }
+
+                setTimeout(() => { if (window.syncArchivosSeleccionadosPreOrden) window.syncArchivosSeleccionadosPreOrden(); }, 50);
             } else {
                 filesContainer.innerHTML = `
                     <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
@@ -1114,7 +1149,7 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                     data.pending.forEach(po => {
                         html += `
                             <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px;">
-                                <input type="checkbox" name="pre_orden_ids[]" value="${po.id}" checked>
+                                <input type="checkbox" name="pre_orden_ids[]" value="${po.id}" checked data-clases="${po.clases_str || ''}" onchange="if(window.syncArchivosSeleccionadosPreOrden) window.syncArchivosSeleccionadosPreOrden()">
                                 <div>
                                     <strong style="color: #0f172a;">${po.clases_str || 'Sin clases'}</strong>
                                     <div style="font-size: 0.8em; color: #64748b;">PDF: ${po.pdf_filename} | Creada: ${po.fecha_creacion}</div>
@@ -1123,6 +1158,7 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                         `;
                     });
                     pendingContainer.innerHTML = html;
+                    setTimeout(() => { if (window.syncArchivosSeleccionadosPreOrden) window.syncArchivosSeleccionadosPreOrden(); }, 50);
                 } else {
                     pendingContainer.innerHTML = `
                         <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
@@ -1149,6 +1185,64 @@ window.cerrarModalEnviarPreOrden = function () {
     document.getElementById('formEnviarPreOrden').reset();
     adicionalesSelectedFiles = [];
     renderSelectedFilesBadges();
+};
+
+window.syncArchivosSeleccionadosPreOrden = function () {
+    const pendingContainer = document.getElementById('env-pending-preordenes-container');
+    const filesContainer = document.getElementById('env-server-files-container');
+
+    if (!pendingContainer || !filesContainer) return;
+    if (pendingContainer.querySelector('.alm-spinner') || filesContainer.querySelector('.alm-spinner')) return;
+
+    const preOrdenesChecked = Array.from(pendingContainer.querySelectorAll('input[name="pre_orden_ids[]"]:checked'));
+
+    let clasesActivas = [];
+    preOrdenesChecked.forEach(chk => {
+        const clasesStr = chk.getAttribute('data-clases') || '';
+        if (clasesStr) {
+            clasesStr.split(',').forEach(c => {
+                let claseLimpia = c.trim().toLowerCase();
+                claseLimpia = claseLimpia.replace(/^modelo\s+/i, '').replace(/^casting\s+/i, '');
+
+                if (claseLimpia && !clasesActivas.includes(claseLimpia)) {
+                    clasesActivas.push(claseLimpia);
+                }
+            });
+        }
+    });
+
+    const archivoChecks = filesContainer.querySelectorAll('input[name="archivos_seleccionados[]"]');
+    archivoChecks.forEach(chk => {
+        const val = chk.value.toLowerCase();
+        let shouldBeChecked = true;
+
+        const isCasting = document.getElementById('env-tipo') && document.getElementById('env-tipo').value === 'casting';
+
+        if (preOrdenesChecked.length > 0) {
+            const partes = val.split('/');
+            const primeraCarpeta = partes[0] || '';
+
+            if (isCasting) {
+                shouldBeChecked = (val.includes('pre-orden') || val.includes('preorden')) && val.includes('casting');
+            } else {
+                // Si el archivo esta organizado en una carpeta que no es generica, validamos la clase
+                if (primeraCarpeta && !primeraCarpeta.includes('documentos_') && !primeraCarpeta.includes('pre-orden') && !primeraCarpeta.includes('scar')) {
+                    shouldBeChecked = clasesActivas.some(c => val.includes(c));
+                }
+            }
+        } else {
+            shouldBeChecked = false;
+        }
+
+        if (chk.checked !== shouldBeChecked) {
+            chk.checked = shouldBeChecked;
+            const card = chk.closest('.select-file-card');
+            if (card) {
+                if (shouldBeChecked) card.classList.add('checked-card');
+                else card.classList.remove('checked-card');
+            }
+        }
+    });
 };
 
 document.getElementById('formEnviarPreOrden').addEventListener('submit', function (e) {
@@ -2376,7 +2470,7 @@ async function _libSubmit(accion) {
 
         if (data.success) {
             almacenToast(data.message, 'success');
-            
+
             // LIMPIAR BORRADOR TRAS ÉXITO
             window.clearLiberacionDraft();
 
@@ -2683,46 +2777,19 @@ const ModeloStateMachine = (() => {
 
     // ── Sincronización desde DOM ──────────────────────────────────────────────
     function init() {
-        document.querySelectorAll('[id^="status-modelo-"]').forEach(el => {
-            const ot = el.id.replace('status-modelo-', '');
-            const labelEl = el.querySelector('.status-modelo-label');
-            if (labelEl && !_cache[ot]) {
-                const txt = labelEl.textContent.trim().toUpperCase();
-                const imgEl = el.querySelector('img');
-                const imgSrc = imgEl ? imgEl.src.toUpperCase() : '';
-                let estado = 'recibido';
-                if (txt === 'RECIBIDO' || txt === 'NUEVO') estado = 'recibido';
-                else if (txt === 'PRE-ORDEN') estado = 'pre_orden';
-                else if (txt === 'CORREO ENVIADO') estado = 'correo_enviado';
-                else if (txt === 'TENGO MODELO') estado = 'tiene_modelo';
-                else if (txt === 'EN REVISIÓN') estado = 'revisando';
-                else if (txt === 'APROBADO') {
-                    if (imgSrc.includes('APROBADO.PNG')) {
-                        estado = 'aprobado_final';
-                    } else {
-                        estado = 'aprobado';
-                    }
+        document.querySelectorAll('tr[data-ot]').forEach(tr => {
+            const ot = tr.getAttribute('data-ot');
+            if (ot && !_cache[ot]) {
+                const fsmState = tr.getAttribute('data-estado-real') || 'recibido';
+                let estado = _CANONICAL[fsmState] ?? fsmState;
+                if (!ESTADOS[estado]) {
+                    estado = 'recibido';
                 }
-                else if (txt === 'ENVIADO A PROVEEDOR') {
-                    estado = 'casting_aprobado';
-                }
-                else if (txt === 'RECHAZADO') {
-                    if (imgSrc.includes('RECHAZADO.PNG')) {
-                        estado = 'rechazado_final';
-                    } else {
-                        estado = 'rechazado';
-                    }
-                }
-                else if (txt === 'MIXTO') estado = 'mixto';
-                else if (txt === 'CASTING') estado = 'casting';
-                else if (txt === 'REPROCESO') estado = 'reproceso';
-
                 _cache[ot] = estado;
-                console.info(`[FSM] init: "${ot}" → ${estado}`);
+                console.info(`[FSM] init: "${ot}" -> ${estado} (from backend)`);
             }
         });
     }
-
     function getEstado(ot) { return _cache[ot] ?? null; }
     function getNivel(ot) { return ESTADOS[_cache[ot]]?.nivel ?? 0; }
 
@@ -3008,7 +3075,7 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
                     const tLow = (tipoModelo || '').toLowerCase();
                     const cLow = (data.clase_nombre || '').toLowerCase();
                     const esTempladera = data.es_templadera || tLow.includes('templadera') || cLow.includes('templadera');
-                    
+
                     if (esTempladera) {
                         if (tLow.includes('obturador') || cLow.includes('obturador')) prefix = 'TO';
                         else if (tLow.includes('molde') || cLow.includes('molde')) prefix = 'TM';
@@ -3410,7 +3477,7 @@ window.cerrarModalEnviarScar = function () {
     });
 })();
 
-window.onCmClaseToggle = function(checkbox) {
+window.onCmClaseToggle = function (checkbox) {
     // Actualizar estilos del contenedor
     checkbox.parentElement.style.borderColor = checkbox.checked ? '#0a8504' : '#cbd5e1';
     checkbox.parentElement.style.backgroundColor = checkbox.checked ? '#f0fdf4' : '#fff';
@@ -3418,12 +3485,12 @@ window.onCmClaseToggle = function(checkbox) {
     // Auto-seleccionar los archivos del servidor que correspondan a esta clase
     const claseNombre = checkbox.value.toLowerCase();
     const fileCards = document.querySelectorAll('#cm-server-files-container .select-file-card');
-    
+
     fileCards.forEach(card => {
         const fileInput = card.querySelector('input[type="checkbox"]');
         if (!fileInput) return;
         const fileName = fileInput.value.toLowerCase();
-        
+
         // Si el archivo menciona la clase, lo activamos/desactivamos igual que la clase
         if (fileName.includes(claseNombre)) {
             fileInput.checked = checkbox.checked;
@@ -3484,7 +3551,7 @@ window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null,
     const clasesContainer = document.getElementById('cm-clases-container');
     if (clasesContainer) {
         clasesContainer.innerHTML = '<div class="alm-spinner" id="cm-clases-spinner" style="border-top-color: #0284c7; display: block; margin: 5px auto;"></div>';
-        
+
         if (todasClases && Array.isArray(todasClases) && todasClases.length > 0) {
             let html = '';
             todasClases.forEach((nombreClase, index) => {
@@ -3513,11 +3580,11 @@ window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null,
                     `;
                 }
             });
-            
+
             if (html === '') {
                 html = '<div style="text-align: center; color: #64748b; padding: 10px; font-style: italic;">Todas las clases ya fueron procesadas.</div>';
             }
-            
+
             clasesContainer.innerHTML = html;
         } else {
             clasesContainer.innerHTML = '<span style="color:#ef4444; font-size:0.9em; font-weight:500;">No hay clases configuradas para confirmar.</span>';
@@ -3533,24 +3600,27 @@ window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null,
                 <span style="color: #64748b; margin-left: 10px;">Obteniendo archivos del servidor...</span>
             </div>
         `;
-        fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+        fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}&tipo=modelo`)
             .then(res => res.json())
             .then(data => {
                 if (data.existe && data.archivos && data.archivos.length > 0) {
                     let baseUrl = window.baseUrl || (window.location.origin + '/');
                     if (!baseUrl.endsWith('/')) baseUrl += '/';
 
-                let archivosAMostrar = data.archivos;
-                if (clasesFaltantes && Array.isArray(clasesFaltantes)) {
-                    archivosAMostrar = archivosAMostrar.filter(f => {
-                        const n = (f.nombre || '').toLowerCase();
-                        if (n.includes('documentos_aprobados') || n.includes('documentos_rechazados') || n.includes('pre-orden')) return true;
-                        return clasesFaltantes.some(clase => n.includes(clase.toLowerCase()));
-                    });
-                }
+                    let archivosAMostrar = data.archivos;
+                    if (clasesFaltantes && Array.isArray(clasesFaltantes)) {
+                        archivosAMostrar = archivosAMostrar.filter(f => {
+                            const n = (f.nombre || '').toLowerCase();
+                            if (n.includes('documentos_aprobados') || n.includes('documentos_rechazados') || n.includes('pre-orden')) return true;
+                            return clasesFaltantes.some(clase => {
+                                let c = clase.toLowerCase().trim().replace(/^modelo\s+/i, '').replace(/^casting\s+/i, '').trim();
+                                return n.includes(c);
+                            });
+                        });
+                    }
 
-                const sectionsHtml = generarHtmlCategorizadoArchivos(archivosAMostrar, ot, baseUrl, 'preorden'); // Use preorden to show Dibujos and Ayudas
-                filesContainer.innerHTML = sectionsHtml || `
+                    const sectionsHtml = generarHtmlCategorizadoArchivos(archivosAMostrar, ot, baseUrl, 'preorden'); // Use preorden to show Dibujos and Ayudas
+                    filesContainer.innerHTML = sectionsHtml || `
                     <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">
                         No se encontraron archivos pendientes para esta OT.
                     </div>
@@ -3600,7 +3670,7 @@ window.cerrarModalConfirmarModelo = function () {
             const idHash = document.getElementById('cm-id-hash')?.value;
 
             if (!ot) return;
-            
+
             const selectedClasses = document.querySelectorAll('.cm-clase-checkbox:checked');
             if (selectedClasses.length === 0) {
                 almacenToast('Debes seleccionar al menos una clase para confirmar su modelo físico.', 'error');
@@ -3622,20 +3692,20 @@ window.cerrarModalConfirmarModelo = function () {
 
             const fd = new FormData(this);
             fd.delete('archivos[]');
-            
+
             // Filtrar del array window.otCurrentClasses las clases ya usadas
             if (window.otCurrentClasses) {
                 const yaUsadas = Array.from(document.querySelectorAll('.po-clase-select'))
                     .map(s => s.options[s.selectedIndex]?.text?.toLowerCase() || '')
                     .filter(t => t !== '');
-                
+
                 const availableClasses = window.otCurrentClasses.filter(c => {
                     const nombreNorm = c.nombre.toLowerCase();
                     return !yaUsadas.some(yp => nombreNorm.includes(yp) || yp.includes(nombreNorm));
                 });
 
                 // Regenerar el HTML solo con las disponibles
-                const newHtml = '<option value="">Selecciona clase</option>' + availableClasses.map(c => 
+                const newHtml = '<option value="">Selecciona clase</option>' + availableClasses.map(c =>
                     `<option value="${c.id}" data-nombre="${c.nombre}">${c.nombre}</option>`
                 ).join('');
 
@@ -3671,7 +3741,7 @@ window.cerrarModalConfirmarModelo = function () {
                 if (data.success) {
                     almacenToast(data.message, 'success');
                     cerrarModalConfirmarModelo();
-                    
+
                     // Solo bloqueamos la tarjeta si TODAS las clases pendientes fueron confirmadas
                     if (allConfirmed) {
                         if (window.ModeloStateMachine) window.ModeloStateMachine.onConfirmarModelo(ot);
@@ -3801,7 +3871,7 @@ window.abrirModalLiberacionUnificado = function (ot, clasesActivas, todasClases)
 
     // Filtrar el <select id="lib-tipo"> según las clases registradas y obtener el mejor a seleccionar
     const autoSelectValue = _libFiltrarTiposModelo(clasesActivas, todasClases);
-    
+
     if (autoSelectValue) {
         const select = document.getElementById('lib-tipo');
         if (select) {
@@ -3833,7 +3903,7 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
     // Calcular qué tipos están configurados en la OT (usando todasClases o clasesActivas como fallback)
     const tiposConfigurados = new Set();
     const clasesAUsar = (todasClases && todasClases.length > 0) ? todasClases : clasesActivas;
-    
+
     if (clasesAUsar && clasesAUsar.length > 0) {
         clasesAUsar.forEach(clase => {
             const clLow = clase.toLowerCase();
@@ -3856,13 +3926,13 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
 
     // Mostrar/ocultar opciones según tiposActivos
     select.querySelectorAll('option').forEach(opt => {
-        if (!opt.value) { 
-            opt.hidden = false; 
+        if (!opt.value) {
+            opt.hidden = false;
             opt.disabled = false;
             opt.style.display = '';
-            return; 
+            return;
         } // Mantener placeholder
-        
+
         let shouldHide = false;
         // Si no hay clases activas, mostramos todo
         if (tiposActivos.size === 0) {
@@ -3870,14 +3940,14 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
         } else {
             shouldHide = !tiposActivos.has(opt.value);
         }
-        
+
         opt.hidden = shouldHide;
         opt.disabled = shouldHide;
         opt.style.display = shouldHide ? 'none' : '';
-        
+
         if (!shouldHide) {
             if (!firstAvailable) firstAvailable = opt.value;
-            
+
             // Preferimos auto-seleccionar uno que esté activo (pendiente de procesar)
             if (tiposActivos.has(opt.value) || tiposActivos.size === 0) {
                 const cached = window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[opt.value];
@@ -3887,7 +3957,7 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
             }
         }
     });
-    
+
     return firstUnprocessed || firstAvailable;
 }
 
@@ -4585,7 +4655,7 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
                         if (isRechazadoFile) return false;
                         return archivoPerteneceAModelos(f.nombre, arrAprobados);
                     }
-                    
+
                     if (decision === 'rechazar') {
                         if (isDibujoOrAyuda) return false;
                         if (!isRechazadoFile) return false;
@@ -4595,7 +4665,7 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
                     // mixto
                     if (isRechazadoFile) return archivoPerteneceAModelos(f.nombre, arrRechazados);
                     if (isDibujoOrAyuda) return archivoPerteneceAModelos(f.nombre, arrAprobados);
-                    
+
                     return archivoPerteneceAModelos(f.nombre, [...arrAprobados, ...arrRechazados]);
                 });
                 const sectionsHtml = generarHtmlCategorizadoArchivos(filteredFiles, ot, baseUrl, 'calidad');
@@ -4678,7 +4748,32 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (decision === 'aprobar') window.ModeloStateMachine.onAprobado(ot);
                         else if (decision === 'rechazar') window.ModeloStateMachine.onRechazado(ot);
                     }
-                    setTimeout(() => { cerrarModalFinalizarCalidad(); window.location.reload(); }, 1800);
+
+                    cerrarModalFinalizarCalidad();
+
+                    let baseUrlLocal = window.baseUrl || (window.location.origin + '/');
+                    if (!baseUrlLocal.endsWith('/')) baseUrlLocal += '/';
+
+                    const otSafe = ot.replace(/'/g, "\\\\'");
+                    const buttons = document.querySelectorAll(`button[onclick*="abrirModalFinalizarCalidad('${otSafe}'"]`);
+                    buttons.forEach(b => {
+                        const card = b.closest('.lib-calidad-card') || b.closest('td') || b.closest('div');
+                        if (card) {
+                            const btnsContainer = card.querySelector('.lib-calidad-card-btns');
+                            if (btnsContainer) {
+                                btnsContainer.innerHTML = `
+                                    <span style="color: #475569; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; animation: fadeIn 0.3s ease;">
+                                        <img src="${baseUrlLocal}images/ready.png" style="width: 18px; height: 18px;" alt="">
+                                        La alerta ha sido enviada exitosamente.
+                                    </span>
+                                `;
+                            }
+                            const prompt = card.querySelector('.lib-calidad-card-prompt');
+                            if (prompt) prompt.style.display = 'none';
+                        }
+                    });
+
+                    setTimeout(() => { window.location.reload(); }, 1800);
                 } else {
                     almacenToast(data.message || 'Error al enviar la alerta.', 'error');
                     btn.disabled = false; btn.innerHTML = orig;
@@ -4809,27 +4904,88 @@ window.abrirModalPreOrdenCasting = async function (ot) {
             pocState.page1.fecha = todayStr;
             pocState.page2.fecha = todayStr;
 
-            // Ignorar las pre-órdenes anteriores para el llenado de filas, 
-            // ya que queremos generar un NUEVO envío parcial con las clases restantes.
-            pocState.page1.proveedor = '';
-            pocState.page1.observaciones = '';
-            pocState.page1.fecha_entrega = res.fecha_entrega || '';
-            pocState.page1.filas = pocState.allClases.map(c => ({
-                id_clase: c.id,
-                tipo_modelo: getTipoModeloFromClase(c.nombre),
-                impresiones: 1,
-                cant_fabricar: '',
-                cant_consignacion: 0,
-                descripcion: c.nombre,
-                material: '',
-                codigo: '',
-                peso_juego: 0,
-                peso_total: 0,
-                fecha_entrega: res.fecha_entrega || ''
-            }));
-            
-            pocState.page2.filas = [];
-            pocState.page2.fecha_entrega = res.fecha_entrega || '';
+            // Check for existing casting pre-orders
+            let castingPos = [];
+            if (res.pre_ordenes && Array.isArray(res.pre_ordenes)) {
+                castingPos = res.pre_ordenes.filter(po => po.pdf_filename && po.pdf_filename.toLowerCase().includes('casting'));
+            }
+
+            if (castingPos.length > 0) {
+                // Hay pre-orden de casting existente. Llenar los datos de page 1 (y page 2 si existe)
+                const fillPageData = (pageObj, poRecord) => {
+                    let parsedFilas = [];
+                    try {
+                        parsedFilas = typeof poRecord.filas === 'string' ? JSON.parse(poRecord.filas) : poRecord.filas;
+                    } catch(e) {}
+                    
+                    pageObj.proveedor = poRecord.proveedor || '';
+                    pageObj.observaciones = poRecord.observaciones || '';
+                    pageObj.fecha_entrega = poRecord.fecha_entrega ? poRecord.fecha_entrega.substring(0, 10) : (res.fecha_entrega || '');
+                    pageObj.fecha = poRecord.fecha ? poRecord.fecha.substring(0, 10) : pageObj.fecha;
+                    pageObj.folio = poRecord.folio || res.folio;
+                    
+                    if (Array.isArray(parsedFilas) && parsedFilas.length > 0) {
+                        pageObj.filas = parsedFilas.map(f => {
+                            let claseId = f.clase_id || f.id_clase || '';
+                            if (!claseId) {
+                                let cFound = pocState.allClases.find(c => c.nombre.toLowerCase() === (f.clase || f.clase_nombre || '').toLowerCase());
+                                if (cFound) claseId = cFound.id;
+                            }
+                            return {
+                                id_clase: claseId,
+                                tipo_modelo: f.tipo_modelo || getTipoModeloFromClase(f.clase || f.clase_nombre || ''),
+                                impresiones: f.impresiones || 1,
+                                cant_fabricar: f.cant_fabricar || '',
+                                cant_consignacion: f.cant_consignacion || 0,
+                                descripcion: f.clase_nombre || f.clase || f.descripcion || '',
+                                material: f.material || '',
+                                codigo: f.codigo || '',
+                                peso_juego: f.peso_juego || 0,
+                                peso_total: f.peso_total || 0,
+                                fecha_entrega: f.fecha_entrega || pageObj.fecha_entrega
+                            };
+                        });
+                    } else {
+                        pageObj.filas = [];
+                    }
+                };
+
+                fillPageData(pocState.page1, castingPos[0]);
+
+                if (castingPos.length > 1) {
+                    document.getElementById('poc-has-page2').value = '1';
+                    document.getElementById('tab-poc-page-2').style.display = 'inline-block';
+                    document.getElementById('btn-remove-poc-page-2').style.display = 'flex';
+                    document.getElementById('btn-add-poc-page-2').style.display = 'none';
+                    setPocPage2Required(true);
+                    fillPageData(pocState.page2, castingPos[1]);
+                } else {
+                    pocState.page2.filas = [];
+                    pocState.page2.fecha_entrega = res.fecha_entrega || '';
+                }
+            } else {
+                // Ignorar las pre-órdenes anteriores para el llenado de filas,
+                // ya que queremos generar un NUEVO envío parcial con las clases restantes.
+                pocState.page1.proveedor = '';
+                pocState.page1.observaciones = '';
+                pocState.page1.fecha_entrega = res.fecha_entrega || '';
+                pocState.page1.filas = pocState.allClases.map(c => ({
+                    id_clase: c.id,
+                    tipo_modelo: getTipoModeloFromClase(c.nombre),
+                    impresiones: 1,
+                    cant_fabricar: '',
+                    cant_consignacion: 0,
+                    descripcion: c.nombre,
+                    material: '',
+                    codigo: '',
+                    peso_juego: 0,
+                    peso_total: 0,
+                    fecha_entrega: res.fecha_entrega || ''
+                }));
+
+                pocState.page2.filas = [];
+                pocState.page2.fecha_entrega = res.fecha_entrega || '';
+            }
 
             recopilarMaterialesPersonalizados();
             loadPocPage(1);
@@ -5095,7 +5251,7 @@ function loadPocPage(pageNum) {
                             ${matOpts}
                         </select>
                         ${(materialFila && !MATERIALES_CASTING_FIJOS.includes(materialFila) && materialFila !== 'Otro')
-                ? `<button type="button" class="btn-eliminar-material-opcion" onclick="eliminarMaterialGlobal(${pageNum}, '${materialFila.replace(/'/g, "\\'")}')" 
+                ? `<button type="button" class="btn-eliminar-material-opcion" onclick="eliminarMaterialGlobal(${pageNum}, '${materialFila.replace(/'/g, "\\'")}')"
                                 style="background:#fff;border:none;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0;" title="Quitar de la lista de materiales">
                                 <img src="${getBaseUrl()}images/quitar.png" style="width:16px;height:16px;">
                                </button>`
@@ -5967,7 +6123,7 @@ window.cargarInputsCasting = function (ot, files) {
 
                 existingFile = files.find(f => {
                     const nameUpper = (f.nombre || '').toUpperCase();
-                    return f.origin === 'aprobado' 
+                    return f.origin === 'aprobado'
                         && nameUpper.includes('DOCUMENTOS_APROBADOS/FDLDM/')
                         && nameUpper.includes('F-CCL-LDM_' + c.toUpperCase() + '_' + sanitizedOt + '_APROBADO');
                 });
@@ -6123,13 +6279,13 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                 existingRechazo = files.find(f => {
                     const nameLower = (f.nombre || '').toLowerCase();
                     const filename = nameLower.split('/').pop();
-                    return nameLower.includes('documentos_rechazados/fdrdm/') 
+                    return nameLower.includes('documentos_rechazados/fdrdm/')
                         && filename.startsWith('rechazo_' + c.toLowerCase() + '_' + sanitizedOt + '.');
                 });
                 existingScar = files.find(f => {
                     const nameLower = (f.nombre || '').toLowerCase();
                     const filename = nameLower.split('/').pop();
-                    return nameLower.includes('documentos_rechazados/scar/') 
+                    return nameLower.includes('documentos_rechazados/scar/')
                         && filename.startsWith('scar_' + c.toLowerCase() + '_' + sanitizedOt + '.');
                 });
             }
@@ -6401,39 +6557,47 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
             }
 
             if (data.existe && data.archivos && data.archivos.length > 0) {
-                // Función helper para filtrar archivos por clases activas en la pestaña
-                const filtrarPorClasesActivas = (archivosList, clasesActivas, esAprobados) => {
+                // Helper: devuelve true si el archivo pertenece a alguna de las clases activas
+                // Un archivo es "de una clase" cuando su nombre incluye el nombre de esa clase.
+                // Si menciona varias clases, solo se incluye si al menos UNA de las clases activas aparece.
+                const filtrarPorClasesActivas = (archivosList, clasesActivas) => {
                     const clasesMonitoreadas = ['fondo', 'bombillo', 'molde', 'obturador'];
+                    const clasesActivasLower = clasesActivas.map(c => c.toLowerCase());
                     return archivosList.filter(f => {
                         const nombre = (f.nombre || '').toLowerCase();
-                        const perteneceAClase = clasesMonitoreadas.some(c => nombre.includes(c));
-                        if (perteneceAClase) {
-                            return clasesActivas.some(c => nombre.includes(c.toLowerCase()));
+                        // ¿El archivo menciona alguna clase monitoreada?
+                        const clasesEnNombre = clasesMonitoreadas.filter(c => nombre.includes(c));
+                        if (clasesEnNombre.length === 0) {
+                            // Archivo genérico (no menciona ninguna clase): mostrar en todas las pestañas
+                            return true;
                         }
-                        return true; // Los archivos genéricos (sin clase) se muestran en ambas pestañas
+                        // Archivo de una clase específica: solo incluir si alguna clase activa está en su nombre
+                        return clasesActivasLower.some(c => nombre.includes(c));
                     });
                 };
 
-                // Filtro base para aprobados (excluyendo rechazados de calidad y SCAR)
+                // Filtro base para aprobados (excluye documentos_rechazados y SCAR)
                 const baseAprob = (data.archivos || []).filter(f => {
                     const nombre = (f.nombre || '').toLowerCase();
-                    const tipo = (f.tipo || '').toLowerCase();
-                    if (nombre.includes('rechazado') || nombre.includes('scar') || nombre.includes('documentos_rechazados')) return false;
-                    return tipo === 'ayuda' || tipo === 'dibujo' || tipo === 'aprobado' || tipo === 'preorden' || nombre.includes('ayudas_visuales') || nombre.includes('dibujo') || nombre.includes('documentos_aprobados') || nombre.includes('preordenes/');
+                    if (nombre.includes('documentos_rechazados') || nombre.includes('scar')) return false;
+                    return true;
                 });
-                const archivosAprob = filtrarPorClasesActivas(baseAprob, filteredAprobados, true);
+                const archivosAprob = filteredAprobados.length > 0 ? filtrarPorClasesActivas(baseAprob, filteredAprobados) : [];
 
                 if (filesContainerA) {
                     filesContainerA.innerHTML = generarHtmlCategorizadoCastingAprobados(archivosAprob, otClean, false) || `<div style="text-align:center;color:#64748b;padding:15px;font-style:italic;">No hay archivos disponibles para esta clase.</div>`;
                 }
 
-                // Filtro base para rechazados (excluyendo aprobados y preordenes de casting)
+                // Filtro base para rechazados (excluye preordenes de casting; incluye SCAR y rechazados)
                 const baseRech = (data.archivos || []).filter(f => {
                     const nombre = (f.nombre || '').toLowerCase();
-                    if (nombre.includes('aprobado') || (nombre.includes('pre-orden') && nombre.includes('fundicion') && !nombre.includes('modelo'))) return false;
+                    // Excluir preordenes de casting (no de modelo)
+                    if (nombre.includes('pre-orden') && nombre.includes('fundicion') && !nombre.includes('modelo')) return false;
+                    // Excluir documentos aprobados que NO sean LDM rechazados
+                    if (nombre.includes('documentos_aprobados') && !nombre.includes('rechazado')) return false;
                     return true;
                 });
-                const archivosRech = filtrarPorClasesActivas(baseRech, filteredRechazados, false);
+                const archivosRech = filteredRechazados.length > 0 ? filtrarPorClasesActivas(baseRech, filteredRechazados) : [];
 
                 if (filesContainerR) {
                     filesContainerR.innerHTML = generarHtmlCategorizadoCastingAprobados(archivosRech, otClean, true) || `<div style="text-align:center;color:#64748b;padding:15px;font-style:italic;">No hay archivos disponibles para esta clase.</div>`;
@@ -6582,10 +6746,10 @@ document.getElementById('formMgvRechazados')?.addEventListener('submit', async f
 
 window._libAutoSaveTimeout = null;
 
-window.saveLiberacionDraft = function() {
+window.saveLiberacionDraft = function () {
     const form = document.getElementById('formLiberacion');
     if (!form) return;
-    
+
     const ot = document.getElementById('lib-ot')?.value;
     const tipo = document.getElementById('lib-tipo')?.value;
     if (!ot || !tipo) return;
@@ -6593,7 +6757,7 @@ window.saveLiberacionDraft = function() {
     // Solo guardar inputs numéricos y textareas para evitar pisar campos ocultos
     const inputs = form.querySelectorAll('.lib-num-input, .lib-num-input-sm, .lib-textarea, #lib-motivo-rechazo');
     const draftData = {};
-    
+
     inputs.forEach(inp => {
         if (inp.name) {
             draftData[inp.name] = inp.value;
@@ -6604,7 +6768,7 @@ window.saveLiberacionDraft = function() {
     localStorage.setItem(key, JSON.stringify(draftData));
 };
 
-window.loadLiberacionDraft = function() {
+window.loadLiberacionDraft = function () {
     const form = document.getElementById('formLiberacion');
     if (!form) return;
 
@@ -6614,12 +6778,12 @@ window.loadLiberacionDraft = function() {
 
     const key = `liberacion_draft_${ot}_${tipo}`;
     const draftDataStr = localStorage.getItem(key);
-    
+
     if (draftDataStr) {
         try {
             const draftData = JSON.parse(draftDataStr);
             const inputs = form.querySelectorAll('.lib-num-input, .lib-num-input-sm, .lib-textarea, #lib-motivo-rechazo');
-            
+
             inputs.forEach(inp => {
                 if (inp.name && draftData[inp.name] !== undefined) {
                     inp.value = draftData[inp.name];
@@ -6632,7 +6796,7 @@ window.loadLiberacionDraft = function() {
     }
 };
 
-window.clearLiberacionDraft = function() {
+window.clearLiberacionDraft = function () {
     const ot = document.getElementById('lib-ot')?.value;
     const tipo = document.getElementById('lib-tipo')?.value;
     if (ot && tipo) {
@@ -6716,7 +6880,7 @@ class FundicionChecklistCard {
         itemsContainer.id = `checklist-items-${this.otId}`;
         itemsContainer.style.display = 'none';
         card.appendChild(itemsContainer);
-        
+
         card.classList.add('is-closed');
 
         // Toggle logic: make whole card clickable
@@ -6824,7 +6988,7 @@ class FundicionChecklistCard {
                 this._data = data;
                 this._updateCard(this.root, data);
             }
-        } catch (_) {}
+        } catch (_) { }
     }
 
     _destroy() {
@@ -6839,12 +7003,12 @@ class FundicionChecklistCard {
 function initFundicionChecklists() {
     document.querySelectorAll('.fundicion-checklist-card, .fundicion-checklist-container').forEach(el => {
         if (el.hasAttribute('data-checklist-init')) return;
-        
+
         let otId = el.getAttribute('data-ot');
         if (!otId && el.id && el.id.startsWith('fundicion-checklist-')) {
             otId = el.id.replace('fundicion-checklist-', '');
         }
-        
+
         if (otId) {
             el.setAttribute('data-checklist-init', 'true');
             new FundicionChecklistCard(otId, el);

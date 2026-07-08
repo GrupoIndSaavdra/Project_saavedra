@@ -1758,34 +1758,29 @@
                                                                     </div>
                                                                 @endif
 
-                                                                {{-- Card 2: Rejected models --}}
-                                                                @if (count($rechazados) > 0 && !$reg->rechazos_procesados)
+                                                                {{-- Card 2: Rechazados / Re-Proceso --}}
+                                                                @if (count($rechazados) > 0)
                                                                     @php
                                                                         $latestReproceso = null;
                                                                         /** @var \App\Models\FundicionHistory $reg */
-                                                                        if ($reg->rechazos_procesados) {
-                                                                            $latestReproceso = \App\Models\FundicionHistory::where('ot', 'LIKE', $reg->ot . '_R%')
-                                                                                ->orderBy('id', 'desc')
-                                                                                ->first();
-                                                                        }
+                                                                        $latestReproceso = \App\Models\FundicionHistory::where('ot', 'LIKE', $reg->ot . '_R%')
+                                                                            ->orderBy('id', 'desc')
+                                                                            ->first();
 
                                                                         $rechCardDisabled = '';
                                                                         $ultimoRechazadoPorCalidad = false;
                                                                         $reprocesoAprobadoPorCalidad = false;
                                                                         $castingEmailSentReproceso = false;
-                                                                        if ($reg->rechazos_procesados) {
-                                                                            $castingEmailSentReproceso = $latestReproceso && ($latestReproceso->calidad_revision_status === 'casting_aprobado');
-                                                                            $ultimoRechazadoPorCalidad = $latestReproceso
-                                                                                && in_array($latestReproceso->calidad_revision_status, ['rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto'])
+                                                                        if ($reg->rechazos_procesados && $latestReproceso) {
+                                                                            $castingEmailSentReproceso = ($latestReproceso->calidad_revision_status === 'casting_aprobado');
+                                                                            $ultimoRechazadoPorCalidad = in_array($latestReproceso->calidad_revision_status, ['rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto'])
                                                                                 && !$latestReproceso->rechazos_procesados;
-                                                                            $reprocesoAprobadoPorCalidad = $latestReproceso
-                                                                                && in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'calidad_parcial']);
+                                                                            $reprocesoAprobadoPorCalidad = in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'calidad_parcial']);
                                                                             if ($castingEmailSentReproceso) {
                                                                                 $rechCardDisabled = 'opacity: 0.5; pointer-events: none;';
                                                                             } elseif ($ultimoRechazadoPorCalidad || $reprocesoAprobadoPorCalidad) {
-
                                                                                 $rechCardDisabled = '';
-                                                                            } elseif (!$latestReproceso || $latestReproceso->pre_orden_email_sent || $latestReproceso->tiene_modelo) {
+                                                                            } elseif ($latestReproceso->pre_orden_email_sent || $latestReproceso->tiene_modelo) {
                                                                                 $rechCardDisabled = 'opacity: 0.65; pointer-events: none;';
                                                                             }
                                                                         }

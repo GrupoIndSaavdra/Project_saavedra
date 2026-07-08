@@ -72,4 +72,78 @@ class FundicionHistory extends Model
         'documentos_vistos_almacen_2'    => 'boolean',
         'documentos_firmados_cargados'   => 'boolean',
     ];
+
+    public function isAlmacenFullyProcessed(): bool
+    {
+        $esReproceso = (bool) preg_match('/_R\d+$/i', $this->ot);
+        $previousOtForRechazo = $this->ot;
+        if ($esReproceso) {
+            $baseOt = preg_replace('/_R\d+$/i', '', $this->ot);
+            $latestRechazo = \App\Models\LiberacionModeloFundicion::where('ot', 'LIKE', $baseOt . '%', 'and')
+                ->where('ot', '!=', $this->ot, 'and')
+                ->where('decision', '=', 'rechazar', 'and')
+                ->orderBy('id', 'desc')
+                ->first();
+                
+            if ($latestRechazo) {
+                $previousOtForRechazo = $latestRechazo->ot;
+            } else {
+                $previousOtForRechazo = $baseOt;
+            }
+        }
+        $rechazadosClases = \App\Models\LiberacionModeloFundicion::where('ot', '=', $previousOtForRechazo, 'and')
+            ->where('decision', '=', 'rechazar', 'and')
+            ->pluck('tipo_modelo')
+            ->unique()
+            ->filter(fn($v) => !empty($v))
+            ->values()
+            ->toArray();
+
+        $otClasesActivas = $esReproceso
+            ? array_map('strtolower', $rechazadosClases)
+            : (is_array($this->ayudas_config) ? array_map('strtolower', $this->ayudas_config) : []);
+        $clasesProcesadas = [];
+
+        $preOrdenesEnviadas = \App\Models\PreOrdenFundicion::where('ot', '=', $this->ot, 'and')->where('is_sent', '=', 1, 'and')->get();
+        foreach ($preOrdenesEnviadas as $po) {
+            $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
+            if (is_array($filas)) {
+                foreach ($filas as $f) {
+                    if (!empty($f['clase'] ?? $f['clase_nombre'])) {
+                        $clasesProcesadas[] = strtolower($f['clase'] ?? $f['clase_nombre']);
+                    }
+                }
+            }
+        }
+
+        $liberacionesFisicas = \App\Models\LiberacionModeloFundicion::where('ot', '=', $this->ot, 'and')
+            ->where('tipo_origen', '=', 'con_modelo', 'and')
+            ->whereNotNull('tipo_modelo')
+            ->where('tipo_modelo', '!=', '', 'and')
+            ->pluck('tipo_modelo')->toArray();
+        foreach ($liberacionesFisicas as $lf) {
+            if (!empty($lf)) {
+                $clasesProcesadas[] = strtolower($lf);
+            }
+        }
+        $clasesProcesadas = array_filter(array_unique($clasesProcesadas), fn($v) => $v !== '');
+        $clasesProcesadas = array_values($clasesProcesadas);
+
+        $clasesActivasFaltantes = [];
+        foreach ($otClasesActivas as $clActiva) {
+            $cubierta = false;
+            foreach ($clasesProcesadas as $cp) {
+                if ($cp === '' || $clActiva === '') continue;
+                if (strpos($cp, strtolower($clActiva)) !== false || strpos(strtolower($clActiva), $cp) !== false) {
+                    $cubierta = true;
+                    break;
+                }
+            }
+            if (!$cubierta) {
+                $clasesActivasFaltantes[] = $clActiva;
+            }
+        }
+
+        return count($otClasesActivas) > 0 && count($clasesActivasFaltantes) === 0;
+    }
 }
