@@ -25,12 +25,12 @@
         <!-- Jumbotron -->
         <div class="container py-4">
             <div class="row g-0 align-items-center">
-                <div class="col-lg-6 mb-6 mb-lg-0 d-none d-lg-block">
-                    <img src="{{ asset('images/img-login.png') }}" class="w-100 rounded-4" alt="" />
+                <div class="col-lg-6 mb-lg-0 login-img-col">
+                    <img src="{{ asset('images/img-login.png') }}" class="login-img" alt="Industrial Saavedra" />
                 </div>
 
                 <div class="col-lg-6 mb-5 mb-lg-0">
-                    <div class="card cascading-right" style="background: hsla(0, 0%, 100%, 0.55); backdrop-filter: blur(30px); margin-top: 106px;">
+                    <div class="card cascading-right">
                         <div class="card-body p-5 shadow-5 text-center">
                             <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
                             <h2 class="fw-bold mb-5">INICIAR SESIÓN</h2>
@@ -44,10 +44,17 @@
                                         <label class="form-label" for="form3Example3">Matricula</label>
                                     </div>
                                     <!-- Password input -->
-                                    <div class="col-md-12 form-outline mb-4">
-                                        <input type="password" id="form3Example4" class="form-control" maxlength="12" minlength="8" name="contrasena" required />
-                                        <label class="form-label" for="form3Example4">Contraseña</label>
-                                    </div>
+                                     <div class="col-md-12 form-outline mb-4 password-field-group">
+                                         <div class="input-eye-wrapper">
+                                             <input type="password" id="form3Example4" class="form-control" maxlength="12" minlength="8" name="contrasena" required />
+                                             <button type="button" class="eye-toggle" id="togglePassword" title="Mostrar contraseña">
+                                                 <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                                                 </svg>
+                                             </button>
+                                         </div>
+                                         <label class="form-label" for="form3Example4">Contraseña</label>
+                                     </div>
                                 </div>
                                 <!-- Submit button -->
                                 <button type="submit" class="custom-btn">
@@ -63,6 +70,27 @@
         <!-- Jumbotron -->
     </section>
     <!-- Section: Design Block -->
+
+    <!-- Eye toggle script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var btn = document.getElementById('togglePassword');
+            if (!btn) return;
+            btn.addEventListener('click', function () {
+                var input = document.getElementById('form3Example4');
+                var icon = document.getElementById('eye-icon');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+                    btn.classList.add('active');
+                } else {
+                    input.type = 'password';
+                    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+                    btn.classList.remove('active');
+                }
+            });
+        });
+    </script>
 
     <!-- Bootstrap JavaScript Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous">

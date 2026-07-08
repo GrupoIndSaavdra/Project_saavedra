@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     @php
@@ -17,7 +17,6 @@
 
     <div class="alm-wrapper">
 
-        {{-- â”€â”€ HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
         @php
             $perfil = Auth::user()->perfil;
             $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 3 ? 'Master' : ($perfil == 4 ? 'Calidad' : 'Almacén'));
@@ -29,7 +28,7 @@
                 <img src="{{ asset('images/' . $deptIcon) }}" alt="{{ $deptName }}" style="width: 90px;">
             </div>
             <div class="alm-header-text">
-                <h1>Calidad â€” Dibujos y Ayudas Visuales de Fundición</h1>
+                <h1>Calidad Dibujos y Ayudas Visuales de Fundición</h1>
                 <p>Consulta histórica de todos los dibujos y ayudas visuales enviados a Calidad. Registro
                     permanente e inmutable.</p>
             </div>
@@ -40,7 +39,7 @@
             {{-- â”€â”€ COLUMNA IZQUIERDA (SIDEBAR) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
             <aside class="alm-sidebar">
                 {{-- â”€â”€ LEYENDA DE ESTADOS DE MODELO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
-                
+
                 <div class="alm-filters-card" style="margin-bottom: 2em; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); position: relative; padding: 1.6em;">
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
                         <img src="{{ asset('images/Quality.png') }}" alt="Leyenda" style="width: 30px; height: 30px; object-fit: contain;">
@@ -49,7 +48,7 @@
 
                     <h3 style="font-size: 0.92rem; color: #475569; font-weight: 700; margin: 0 0 10px 0; border-left: 4px solid #94a3b8; padding-left: 8px;">Estados de Transición</h3>
                     <div class="legend-grid-compact" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px;">
-                        
+
                         <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
                             <span style="display: flex; background: #f1f5f9; border: 2px solid #cbd5e1; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
                                 <img src="{{ asset('images/Recibido.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
@@ -67,7 +66,7 @@
 
                     <h3 style="font-size: 0.92rem; color: #0f172a; font-weight: 700; margin: 0 0 10px 0; border-left: 4px solid #3b82f6; padding-left: 8px;">Estados Prioritarios</h3>
                     <div class="legend-grid-compact" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
-                        
+
                         <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
                             <span style="display: flex; background: #eff6ff; border: 2px solid #60a5fa; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
                                 <img src="{{ asset('images/pdf-view.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
@@ -197,14 +196,14 @@
 
                                 // Apply to tooltip
                                 tooltip.style.borderColor = borderColor;
-                                
+
                                 zoomCircle.style.backgroundColor = bgColor;
                                 zoomCircle.style.borderColor = borderColor;
                                 zoomCircle.style.borderStyle = 'solid';
                                 zoomCircle.style.borderWidth = '3px';
-                                
+
                                 zoomImg.src = imgSrc;
-                                
+
                                 zoomLabel.textContent = textContent;
                                 zoomLabel.style.color = textColor;
 
@@ -219,7 +218,7 @@
                             item.addEventListener('mousemove', (e) => {
                                 const offsetX = 20;
                                 const offsetY = 20;
-                                
+
                                 let posX = e.clientX + offsetX;
                                 let posY = e.clientY + offsetY;
 
@@ -903,7 +902,7 @@
                                                         $archivosAprobados[] = $archivo;
                                                     }
                                                 }
-                                                
+
                                                 $clasesActivas = collect($targetReg->ayudas_config ?? [])
                                                     ->filter(fn($c) => !str_contains(strtolower($c), 'opcional'))
                                                     ->filter(function ($claseNombre) use ($targetReg) {
@@ -1251,7 +1250,7 @@
                                                                             $fileOwner = 'calidad';
                                                                         }
                                                                         $userPerfil = Auth::user()->perfil;
-                                                                        
+
                                                                         if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
                                                                             $canDelete = true;
                                                                         } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
@@ -1329,7 +1328,7 @@
                                                                 $nameLow = strtolower($rArchivo['nombre']);
                                                                 $ext = pathinfo($nameLow, PATHINFO_EXTENSION);
                                                                 $isImg = in_array($ext, ['jpg','jpeg','png','gif','webp']);
-                                                                
+
                                                                 if (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
                                                                     $rechazadosAyudas[] = $rArchivo;
                                                                 } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
@@ -1529,7 +1528,7 @@
                                                                             ->first();
                                                                         $scarModelo = \App\Models\ScarModelo::where('ot', $targetReg->ot)->first();
                                                                         $reqFotos = $scarModelo && ($scarModelo->evidencia_fotos || $scarModelo->evidencia_otro);
- 
+
                                                                         $clasesActivas = collect($targetReg->ayudas_config ?? [])
                                                                             ->filter(fn($c) => !str_contains(strtolower($c), 'opcional'))
                                                                             ->filter(function ($claseNombre) use ($targetReg) {
@@ -1543,7 +1542,7 @@
                                                                                     $tipo = 'Molde';
                                                                                 elseif (strpos($clLow, 'bombillo') !== false)
                                                                                     $tipo = 'Bombillo';
- 
+
                                                                                 if ($tipo) {
                                                                                     $baseOt = preg_replace('/_R\d+$/i', '', $targetReg->ot);
                                                                                     $isAprobado = \App\Models\LiberacionModeloFundicion::where(fn($q) => $q->where('ot', '=', $baseOt)
@@ -1561,7 +1560,7 @@
                                                                                               ->orWhereNull('tipo_origen');
                                                                                         })
                                                                                         ->exists();
-                                                                                    
+
                                                                                     return $fueEnviadoPorAlmacen;
                                                                                 }
                                                                                 return false;
@@ -1720,7 +1719,7 @@
                                                                         $liberacionesPend = $liberacionesAll->where('alerta_enviada', false);
                                                                         $aprobadosPend = $liberacionesPend->where('decision', 'aprobar')->pluck('tipo_modelo')->toArray();
                                                                         $rechazadosPend = $liberacionesPend->where('decision', 'rechazar')->pluck('tipo_modelo')->toArray();
-                                                                        
+
                                                                         if (count($aprobadosPend) > 0 && count($rechazadosPend) > 0) {
                                                                             $decisionFinal = 'mixto';
                                                                         } elseif (count($aprobadosPend) > 0) {
