@@ -1004,7 +1004,7 @@ class CalidadFundicionController extends Controller
     {
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
-        if (!$user || !in_array($user->perfil, ['1', '2', '4'], true)) {
+        if (!$user || !in_array($user->perfil, ['1', '2', '3', '4'], true)) {
             return response()->json(['success' => false, 'message' => 'Acceso restringido a Calidad.'], 403);
         }
 
@@ -1388,7 +1388,7 @@ class CalidadFundicionController extends Controller
     {
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
-        if (!$user || !in_array($user->perfil, ['1', '2', '4'], true)) {
+        if (!$user || !in_array($user->perfil, ['1', '2', '3', '4'], true)) {
             return response()->json(['success' => false, 'message' => 'Acceso restringido a Calidad.'], 403);
         }
 
@@ -1643,7 +1643,7 @@ class CalidadFundicionController extends Controller
     {
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
-        if (!$user || !in_array($user->perfil, ['1', '2', '4'], true)) {
+        if (!$user || !in_array($user->perfil, ['1', '2', '3', '4'], true)) {
             return response()->json(['success' => false, 'message' => 'Acceso restringido a Calidad.'], 403);
         }
 
@@ -2032,7 +2032,7 @@ class CalidadFundicionController extends Controller
     {
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
-        if (!$user || !in_array($user->perfil, ['1', '2', '4', '5'], true)) {
+        if (!$user || !in_array($user->perfil, ['1', '2', '3', '4', '5'], true)) {
             return response()->json(['success' => false, 'message' => 'Acceso restringido.'], 403);
         }
 
