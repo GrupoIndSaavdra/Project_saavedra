@@ -1,13 +1,13 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     @php
         $perfil = Auth::user()->perfil;
-        $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 3 ? 'Master' : ($perfil == 4 ? 'Calidad' : 'Almacén'));
+        $deptName = ($perfil == 1 || $perfil == 2) ? 'AdministraciÃ³n' : ($perfil == 3 ? 'Master' : ($perfil == 4 ? 'Calidad' : 'AlmacÃ©n'));
     @endphp
-    <title>Calidad — Dibujos de Fundición | GIS</title>
+    <title>Calidad â€” Dibujos de FundiciÃ³n | GIS</title>
     <meta name="description"
-        content="Consulta histórica de dibujos de fundición enviados a Almacén y Calidad. Vista de solo lectura.">
+        content="Consulta histÃ³rica de dibujos de fundiciÃ³n enviados a AlmacÃ©n y Calidad. Vista de solo lectura.">
     @vite(['resources/css/almacen_views/calidad_fundicion.css', 'resources/js/almacen_views/calidad_fundicion.js'])
 @endsection
 
@@ -17,10 +17,10 @@
 
     <div class="alm-wrapper">
 
-        {{-- ── HEADER ─────────────────────────────────────────────── --}}
+        {{-- â”€â”€ HEADER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
         @php
             $perfil = Auth::user()->perfil;
-            $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 3 ? 'Master' : ($perfil == 4 ? 'Calidad' : 'Almacén'));
+            $deptName = ($perfil == 1 || $perfil == 2) ? 'AdministraciÃ³n' : ($perfil == 3 ? 'Master' : ($perfil == 4 ? 'Calidad' : 'AlmacÃ©n'));
             $deptIcon = ($perfil == 4 || $perfil == 3) ? 'Quality.png' : 'almacen.png';
         @endphp
 
@@ -29,25 +29,25 @@
                 <img src="{{ asset('images/' . $deptIcon) }}" alt="{{ $deptName }}" style="width: 90px;">
             </div>
             <div class="alm-header-text">
-                <h1>Calidad — Dibujos y Ayudas Visuales de Fundición</h1>
-                <p>Consulta histórica de todos los dibujos y ayudas visuales enviados a Calidad. Registro
+                <h1>Calidad â€” Dibujos y Ayudas Visuales de FundiciÃ³n</h1>
+                <p>Consulta histÃ³rica de todos los dibujos y ayudas visuales enviados a Calidad. Registro
                     permanente e inmutable.</p>
             </div>
             <span class="alm-readonly-badge">Solo lectura</span>
         </div>
 
         <div class="alm-main-layout">
-            {{-- ── COLUMNA IZQUIERDA (SIDEBAR) ───────────────────────── --}}
+            {{-- â”€â”€ COLUMNA IZQUIERDA (SIDEBAR) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
             <aside class="alm-sidebar">
-                {{-- ── LEYENDA DE ESTADOS DE MODELO ───────────────────────── --}}
+                {{-- â”€â”€ LEYENDA DE ESTADOS DE MODELO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
                 
                 <div class="alm-filters-card" style="margin-bottom: 2em; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); position: relative; padding: 1.6em;">
                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
                         <img src="{{ asset('images/Quality.png') }}" alt="Leyenda" style="width: 30px; height: 30px; object-fit: contain;">
-                        <h2 style="margin: 0; font-size: 1.30rem; color: #0f172a; font-weight: 700;">Guía de Estados de Modelo</h2>
+                        <h2 style="margin: 0; font-size: 1.30rem; color: #0f172a; font-weight: 700;">GuÃ­a de Estados de Modelo</h2>
                     </div>
 
-                    <h3 style="font-size: 0.92rem; color: #475569; font-weight: 700; margin: 0 0 10px 0; border-left: 4px solid #94a3b8; padding-left: 8px;">Estados de Transición</h3>
+                    <h3 style="font-size: 0.92rem; color: #475569; font-weight: 700; margin: 0 0 10px 0; border-left: 4px solid #94a3b8; padding-left: 8px;">Estados de TransiciÃ³n</h3>
                     <div class="legend-grid-compact" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px;">
                         
                         <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
@@ -61,7 +61,7 @@
                             <span style="display: flex; background: #fffbeb; border: 2px solid #f59e0b; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
                                 <img src="{{ asset('images/Revisando.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
                             </span>
-                            <span style="font-size: 0.80rem; color: #b45309; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">En Revisión</span>
+                            <span style="font-size: 0.80rem; color: #b45309; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">En RevisiÃ³n</span>
                         </div>
                     </div>
 
@@ -259,9 +259,9 @@
                 </script>
             </aside>
 
-            {{-- ── COLUMNA DERECHA (CONTENIDO PRINCIPAL) ────────────────── --}}
+            {{-- â”€â”€ COLUMNA DERECHA (CONTENIDO PRINCIPAL) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
             <main class="alm-content">
-                {{-- ── STATS ───────────────────────────────────────────────── --}}
+                {{-- â”€â”€ STATS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
                 @php
                     $total = $registros->count();
                     $activas = $registros->where('status', 'activa')->count();
@@ -298,9 +298,9 @@
                     </div>
                 </div>
 
-                {{-- ── FILTROS ─────────────────────────────────────────────── --}}
+                {{-- â”€â”€ FILTROS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
                 <div class="alm-filters-card">
-                    <h2>Búsqueda y Filtros</h2>
+                    <h2>BÃºsqueda y Filtros</h2>
                     <form method="GET" action="{{ route('almacen.fundicion.index') }}" id="alm-filter-form">
                         <div class="filters">
                             <div class="filter">
@@ -337,7 +337,7 @@
                     </form>
                 </div>
 
-                @foreach (['activa' => 'Dibujos Activos', 'inactiva' => 'Dibujos Inactivos (Histórico)'] as $estado => $titulo)
+                @foreach (['activa' => 'Dibujos Activos', 'inactiva' => 'Dibujos Inactivos (HistÃ³rico)'] as $estado => $titulo)
                     @php
                         $registrosEstado = $registros->where('status', $estado);
                     @endphp
@@ -360,7 +360,7 @@
                                     @if ($busquedaOt || $desde || $hasta)
                                         No se encontraron registros de {{ strtolower($titulo) }} con los filtros aplicados.
                                     @else
-                                        Aún no hay registros en la bandeja de {{ strtolower($titulo) }}.
+                                        AÃºn no hay registros en la bandeja de {{ strtolower($titulo) }}.
                                     @endif
                                 </p>
                             </div>
@@ -377,7 +377,7 @@
                                             <th style="width:12%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                                 class="d-text-center">Modelo</th>
                                             <th style="width:18%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
-                                                class="d-text-center">Último envío</th>
+                                                class="d-text-center">Ãšltimo envÃ­o</th>
                                             <th style="width:10%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                                 class="d-text-center">Archivos</th>
                                             <th style="width:16%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
@@ -396,11 +396,11 @@
                                                         ->orderBy('id', 'desc')
                                                         ->first();
                                                 }
-                                                // Corregimos la asignación para que la fila original NO actúe como si fuera el reproceso.
-                                                // Así mantenemos las clases independientes (Ej: original para Bombillo, R1 para Fondo).
+                                                // Corregimos la asignaciÃ³n para que la fila original NO actÃºe como si fuera el reproceso.
+                                                // AsÃ­ mantenemos las clases independientes (Ej: original para Bombillo, R1 para Fondo).
                                                 $targetReg = $reg;
 
-                                                // ── RESOLVER TODOS LOS REGISTROS RELACIONADOS ──
+                                                // â”€â”€ RESOLVER TODOS LOS REGISTROS RELACIONADOS â”€â”€
                                                 $baseOtName = preg_replace('/_R\d+$/', '', $reg->ot);
                                                 $relatedRecords = \App\Models\FundicionHistory::where('ot', '=', $baseOtName)
                                                     ->orWhere('ot', 'LIKE', $baseOtName . '_R%')
@@ -833,7 +833,7 @@
                                                     }
                                                 }
 
-                                                // Aplicar filtros de visibilidad según perfil de usuario
+                                                // Aplicar filtros de visibilidad segÃºn perfil de usuario
                                                 $userPerfil = Auth::user()->perfil;
                                                 if ($userPerfil != 1 && $userPerfil != 2 && $userPerfil != 3) {
                                                     $filteredOtros = [];
@@ -848,7 +848,7 @@
                                                             strpos($nameLow, 'escaneado') !== false
                                                         );
 
-                                                        if ($userPerfil == 4) { // Calidad
+                                                        if ($userPerfil == 4 || $userPerfil == 3) { // Calidad o Master
                                                             // Calidad solo ve preordenes si pre_orden_email_sent es true
                                                             if (!$isPreorden) {
                                                                 $filteredOtros[] = $archivo;
@@ -858,8 +858,8 @@
                                                                     $filteredOtros[] = $archivo;
                                                                 }
                                                             }
-                                                        } elseif ($userPerfil == 5) { // Almacén
-                                                            // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
+                                                        } elseif ($userPerfil == 5) { // AlmacÃ©n
+                                                            // AlmacÃ©n solo ve PDFs de Calidad si se enviÃ³ la alerta (aprobado o scar alertado)
                                                             if ($isPreorden || strpos($nameLow, 'confirmacion') !== false) {
                                                                 $filteredOtros[] = $archivo;
                                                             } else {
@@ -972,7 +972,7 @@
                                                 $showQualityCard = (in_array(Auth::user()->perfil, ['3', '4', 3, 4]) && $estado === 'activa' && !$isQualityFinalized);
                                                 $hasFilesOrControl = ($count > 0 || $showQualityCard);
 
-                                                // ── CALCULAR APROBADOS Y RECHAZADOS DEL ÚLTIMO VEREDICTO DE CADA CLASE ──
+                                                // â”€â”€ CALCULAR APROBADOS Y RECHAZADOS DEL ÃšLTIMO VEREDICTO DE CADA CLASE â”€â”€
                                                 $liberacionesAll = \App\Models\LiberacionModeloFundicion::whereIn('ot', $allRelatedOtNames)->get();
                                                 $latestLiberacionesByClass = [];
                                                 foreach ($liberacionesAll as $lib) {
@@ -1001,7 +1001,7 @@
                                                     }
                                                 }
 
-                                                // Filtrar por clases activas en esta versión de la OT (desde la pre-orden de modelo)
+                                                // Filtrar por clases activas en esta versiÃ³n de la OT (desde la pre-orden de modelo)
                                                 // (Ya calculado al inicio en activeClassesForOt)
 
                                                 $aprobados = array_filter($aprobadosRaw, function ($clase) use ($activeClassesForOt) {
@@ -1044,7 +1044,7 @@
                                                             } elseif ($targetReg->casting_pdf_generated) {
                                                                 $icon = 'pdf-view.png';
                                                                 $label = 'Casting';
-                                                                $tooltip = 'Pre-orden de casting generada, esperando envío';
+                                                                $tooltip = 'Pre-orden de casting generada, esperando envÃ­o';
                                                                 $borderColor = '#059669';
                                                                 $bgColor = '#f0fdf4';
                                                                 $textColor = '#15803d';
@@ -1065,29 +1065,29 @@
                                                             } elseif (in_array($libStatus, ['mixto', 'calidad_mixto'])) {
                                                                 $icon = 'Quality.png';
                                                                 $label = 'Mixto';
-                                                                $tooltip = 'Liberación mixta por Calidad (clases aprobadas y rechazadas)';
+                                                                $tooltip = 'LiberaciÃ³n mixta por Calidad (clases aprobadas y rechazadas)';
                                                                 $borderColor = '#eab308';
                                                                 $bgColor = '#fef9c3';
                                                                 $textColor = '#854d0e';
                                                             } elseif ($libStatus === 'pendiente') {
                                                                 $icon = 'Revisando.png';
-                                                                $label = 'En Revisión';
-                                                                $tooltip = 'Calidad está realizando la revisión del modelo';
+                                                                $label = 'En RevisiÃ³n';
+                                                                $tooltip = 'Calidad estÃ¡ realizando la revisiÃ³n del modelo';
                                                                 $borderColor = '#f59e0b';
                                                                 $bgColor = '#fffbeb';
                                                                 $textColor = '#b45309';
                                                             } elseif ($targetReg->pre_orden_email_sent) {
-                                                                if (Auth::user()->perfil == 4) {
+                                                                if (Auth::user()->perfil == 4 || Auth::user()->perfil == 3) {
                                                                     $icon = 'Recibido.png';
                                                                     $label = 'Nuevo';
-                                                                    $tooltip = 'Pre-orden de fabricación de modelo recibida, esperando revisión de Calidad';
+                                                                    $tooltip = 'Pre-orden de fabricaciÃ³n de modelo recibida, esperando revisiÃ³n de Calidad';
                                                                     $borderColor = '#cbd5e1';
                                                                     $bgColor = '#f1f5f9';
                                                                     $textColor = '#64748b';
                                                                 } else {
                                                                     $icon = 'enviando.png';
                                                                     $label = 'Correo Enviado';
-                                                                    $tooltip = 'Pre-orden enviada por correo electrónico, esperando revisión de Calidad';
+                                                                    $tooltip = 'Pre-orden enviada por correo electrÃ³nico, esperando revisiÃ³n de Calidad';
                                                                     $borderColor = '#818cf8';
                                                                     $bgColor = '#e0e7ff';
                                                                     $textColor = '#4f46e5';
@@ -1102,7 +1102,7 @@
                                                             } elseif ($targetReg->tiene_modelo) {
                                                                 $icon = 'Espera.png';
                                                                 $label = 'Tengo Modelo';
-                                                                $tooltip = 'Modelo físico disponible en Almacén, en espera de revisión por Calidad';
+                                                                $tooltip = 'Modelo fÃ­sico disponible en AlmacÃ©n, en espera de revisiÃ³n por Calidad';
                                                                 $borderColor = '#0ea5e9';
                                                                 $bgColor = '#f0f9ff';
                                                                 $textColor = '#0369a1';
@@ -1116,7 +1116,7 @@
                                                             } else {
                                                                 $icon = 'Recibido.png';
                                                                 $label = 'Nuevo';
-                                                                $tooltip = 'Alerta inicial recibida, pendiente de procesar modelo por Almacén';
+                                                                $tooltip = 'Alerta inicial recibida, pendiente de procesar modelo por AlmacÃ©n';
                                                                 $borderColor = '#cbd5e1';
                                                                 $bgColor = '#f1f5f9';
                                                                 $textColor = '#64748b';
@@ -1137,7 +1137,7 @@
                                                     </div>
                                                 </td>
                                                 <td class="alm-date d-text-center">
-                                                    {{ $reg->alert_sent_at ? $reg->alert_sent_at->format('d/m/Y H:i') : '—' }}
+                                                    {{ $reg->alert_sent_at ? $reg->alert_sent_at->format('d/m/Y H:i') : 'â€”' }}
                                                 </td>
                                                 <td class="d-text-center">
                                                     <span class="badge-pdf-count">{{ $count }}</span>
@@ -1165,7 +1165,7 @@
                                                         @if ($countDibujos > 0 && $reg->alert_sent_at)
                                                             <h3
                                                                 style="margin-top: 15px; margin-bottom: 10px; color: #005194; border-bottom: 2px solid #005194; padding-bottom: 5px;">
-                                                                Dibujos de Fundición</h3>
+                                                                Dibujos de FundiciÃ³n</h3>
                                                             <div class="alm-pdf-grid">
                                                                 @foreach ($archivos as $archivoInfo)
                                                                     <div class="dibujos-file-card"
@@ -1190,18 +1190,18 @@
                                                                 @endforeach
                                                             </div>
                                                         @elseif ($countDibujos > 0 && !$reg->alert_sent_at)
-                                                            {{-- Dibujos existentes pero alerta aún no enviada desde Ingeniería --}}
+                                                            {{-- Dibujos existentes pero alerta aÃºn no enviada desde IngenierÃ­a --}}
                                                             <div
                                                                 style="margin-top: 15px; padding: 14px 18px; background: rgba(0,81,148,0.06); border: 1.5px dashed #005194; border-radius: 10px; color: #005194; font-size: 0.93em;">
-                                                                <strong>Dibujos pendientes:</strong> Los dibujos estarán disponibles una vez que
-                                                                Ingeniería envíe la alerta oficial desde el sistema de gestión documental.
+                                                                <strong>Dibujos pendientes:</strong> Los dibujos estarÃ¡n disponibles una vez que
+                                                                IngenierÃ­a envÃ­e la alerta oficial desde el sistema de gestiÃ³n documental.
                                                             </div>
                                                         @endif
 
                                                         @if ($countAyudas > 0)
                                                             <h3
                                                                 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
-                                                                Ayudas Visuales de Fundición</h3>
+                                                                Ayudas Visuales de FundiciÃ³n</h3>
                                                             <div class="alm-pdf-grid">
                                                                 @foreach ($ayudasArchivos as $ayudaArchivo)
                                                                     <div class="dibujos-file-card card-ayuda"
@@ -1230,13 +1230,13 @@
                                                                 style="margin-top: 20px; padding: 15px; background: #fff5f5; border: 1px solid #feb2b2; border-radius: 8px; color: #9c0300;">
                                                                 <strong>Aviso:</strong> Se han vinculado
                                                                 {{ count($reg->ayudas_config) }} clases de ayudas visuales, pero
-                                                                los archivos aún no se han sincronizado con {{ $deptName }}. Por favor,
+                                                                los archivos aÃºn no se han sincronizado con {{ $deptName }}. Por favor,
                                                                 <strong>Vuelve a Vincular</strong> las ayudas desde la vista de
-                                                                administración.
+                                                                administraciÃ³n.
                                                             </div>
                                                         @endif
 
-                                                        {{-- BLOQUE 4: Renombrar sección a "Documentos Aprobados" --}}
+                                                        {{-- BLOQUE 4: Renombrar secciÃ³n a "Documentos Aprobados" --}}
                                                         @if ($countAprobados > 0)
                                                             <h3
                                                                 style="margin-top: 25px; margin-bottom: 10px; color: #155724; border-bottom: 2px solid #155724; padding-bottom: 5px;">
@@ -1258,13 +1258,13 @@
                                                                             if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
                                                                                 $canDelete = true;
                                                                             }
-                                                                        } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                        } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
                                                                             $canDelete = true;
                                                                         }
 
                                                                     @endphp
                                                                     @if ($otroArchivo['tipo'] === 'imagen')
-                                                                        {{-- Tarjeta para imágenes (fotos de evidencia) --}}
+                                                                        {{-- Tarjeta para imÃ¡genes (fotos de evidencia) --}}
                                                                         <div class="dibujos-file-card card-otro card-imagen"
                                                                             style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0369a1;">
                                                                             <div class="file-icon-wrapper"
@@ -1360,7 +1360,7 @@
                                                                             if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
                                                                                 $canDelete = true;
                                                                             }
-                                                                        } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                        } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
                                                                             $canDelete = true;
                                                                         }
                                                                     @endphp
@@ -1403,7 +1403,7 @@
                                                                             if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
                                                                                 $canDelete = true;
                                                                             }
-                                                                        } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                        } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
                                                                             $canDelete = true;
                                                                         }
                                                                     @endphp
@@ -1463,7 +1463,7 @@
                                                                             if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
                                                                                 $canDelete = true;
                                                                             }
-                                                                        } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                        } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
                                                                             $canDelete = true;
                                                                         }
                                                                     @endphp
@@ -1487,7 +1487,7 @@
                                                         @endif
 
 
-                                                        {{-- ── ACCIONES DE CALIDAD / ESTADOS DE LIBERACION ── --}}
+                                                        {{-- â”€â”€ ACCIONES DE CALIDAD / ESTADOS DE LIBERACION â”€â”€ --}}
                                                         @if (in_array(Auth::user()->perfil, [3, 4, '3', '4']) && $estado === 'activa' && !$isQualityFinalized)
                                                             <div class="lib-calidad-card">
                                                                 <div class="lib-calidad-card-header">
@@ -1513,7 +1513,7 @@
                                                                     @elseif (is_null($targetReg->calidad_revision_status))
                                                                         <div class="lib-estado-badge lib-estado-info"
                                                                             style="width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 8px;">
-                                                                            Modelo disponible para iniciar el proceso de liberación.
+                                                                            Modelo disponible para iniciar el proceso de liberaciÃ³n.
                                                                         </div>
                                                                     @elseif (in_array($targetReg->calidad_revision_status, ['pendiente', 'calidad_pendiente']))
                                                                         <div class="lib-estado-badge lib-estado-guardado"
@@ -1600,7 +1600,7 @@
                                                                             $todosGuardados = false;
                                                                         }
 
-                                                                        // Determinar si hay al menos una clase con decisión de rechazo pendiente de enviar
+                                                                        // Determinar si hay al menos una clase con decisiÃ³n de rechazo pendiente de enviar
                                                                         $hasRechazoBorrador = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                                                                             ->where('decision', '=', 'rechazar')
                                                                             ->where('alerta_enviada', '=', 0)
@@ -1636,34 +1636,34 @@
                                                                         <h4 class="lib-calidad-card-prompt">
                                                                             @if ($todosGuardados)
                                                                                 @if ($hasRechazoBorrador)
-                                                                                    Borrador de rechazo guardado para esta OT. ¿Qué deseas hacer?
+                                                                                    Borrador de rechazo guardado para esta OT. Â¿QuÃ© deseas hacer?
                                                                                 @else
-                                                                                    Borrador de aprobación guardado para esta OT. ¿Qué deseas hacer?
+                                                                                    Borrador de aprobaciÃ³n guardado para esta OT. Â¿QuÃ© deseas hacer?
                                                                                 @endif
                                                                             @elseif ($contClasesConDatos > 0)
-                                                                                Proceso de liberación en curso (capturados:
+                                                                                Proceso de liberaciÃ³n en curso (capturados:
                                                                                 {{ $contClasesConDatos }} de
                                                                                 {{ count($clasesActivas) }}).
                                                                             @elseif (in_array($targetReg->calidad_revision_status, ['rechazado', 'calidad_rechazado']))
-                                                                                El modelo fue rechazado antes. ¿Quieres revisarlo de nuevo?
+                                                                                El modelo fue rechazado antes. Â¿Quieres revisarlo de nuevo?
                                                                             @else
-                                                                                ¿Qué deseas hacer con este modelo? ¿Lo apruebas o lo rechazas?
+                                                                                Â¿QuÃ© deseas hacer con este modelo? Â¿Lo apruebas o lo rechazas?
                                                                             @endif
                                                                         </h4>
                                                                         <div class="lib-calidad-card-btns">
                                                                             @if ($todosGuardados)
                                                                                 <button class="btn-calidad-action btn-calidad-iniciar"
                                                                                     onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})"
-                                                                                    title="Editar borrador del formato de liberación F-CCL-LDM">
+                                                                                    title="Editar borrador del formato de liberaciÃ³n F-CCL-LDM">
                                                                                     <img src="{{ asset('images/editar-informacion.png') }}" alt="">
-                                                                                    <span>Editar Información</span>
+                                                                                    <span>Editar InformaciÃ³n</span>
                                                                                 </button>
                                                                             @else
                                                                                 @php
                                                                                     $btnDisabled = empty($clasesActivas);
                                                                                     $btnTitle    = $btnDisabled
-                                                                                        ? 'No hay clases enviadas por Almacén para revisar'
-                                                                                        : ($contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Iniciar el proceso de liberación');
+                                                                                        ? 'No hay clases enviadas por AlmacÃ©n para revisar'
+                                                                                        : ($contClasesConDatos > 0 ? 'Continuar con el proceso de liberaciÃ³n' : 'Iniciar el proceso de liberaciÃ³n');
                                                                                 @endphp
                                                                                 <button class="btn-calidad-action btn-calidad-iniciar"
                                                                                     @disabled($btnDisabled)
@@ -1671,7 +1671,7 @@
                                                                                     title="{{ $btnTitle }}"
                                                                                     onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})">
                                                                                     <img src="{{ asset('images/Liberar.png') }}" alt="">
-                                                                                    <span>{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Empezar con el proceso de liberación' }}</span>
+                                                                                    <span>{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberaciÃ³n' : 'Empezar con el proceso de liberaciÃ³n' }}</span>
                                                                                 </button>
                                                                             @endif
 
@@ -1680,7 +1680,7 @@
                                                                                     @if (!$scarModelo)
                                                                                         <button class="btn-calidad-action btn-calidad-borrador"
                                                                                             onclick="abrirModalScar('{{ $targetReg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
-                                                                                            title="Generar el formato de acción correctiva SCAR">
+                                                                                            title="Generar el formato de acciÃ³n correctiva SCAR">
                                                                                             <img src="{{ asset('images/pdf.png') }}" alt="">
                                                                                             <span>Generar Formato SCAR</span>
                                                                                         </button>
@@ -1757,11 +1757,11 @@
                                                                                     @endphp
                                                                                     @if ($isDraft)
                                                                                         @if ($decisionFinal === 'aprobar')
-                                                                                            Borrador de Liberación (Aprobado) guardado. Se aprobarán: <strong style="color: #16a34a;">{{ implode(', ', $aprobadosPend) }}</strong>. Por favor, procede a enviar la alerta oficial para iniciar el casting.
+                                                                                            Borrador de LiberaciÃ³n (Aprobado) guardado. Se aprobarÃ¡n: <strong style="color: #16a34a;">{{ implode(', ', $aprobadosPend) }}</strong>. Por favor, procede a enviar la alerta oficial para iniciar el casting.
                                                                                         @elseif ($decisionFinal === 'rechazar')
-                                                                                            Borrador de Liberación (Rechazado) guardado. Se rechazarán: <strong style="color: #dc2626;">{{ implode(', ', $rechazadosPend) }}</strong>. Por favor, procede a enviar la alerta oficial y el SCAR correspondiente.
+                                                                                            Borrador de LiberaciÃ³n (Rechazado) guardado. Se rechazarÃ¡n: <strong style="color: #dc2626;">{{ implode(', ', $rechazadosPend) }}</strong>. Por favor, procede a enviar la alerta oficial y el SCAR correspondiente.
                                                                                         @elseif ($decisionFinal === 'mixto')
-                                                                                            Borrador de Liberación (Mixto) guardado. Se aprobarán: <strong style="color: #16a34a;">{{ implode(', ', $aprobadosPend) }}</strong> y se rechazarán: <strong style="color: #dc2626;">{{ implode(', ', $rechazadosPend) }}</strong>. Por favor, procede a enviar las alertas oficiales.
+                                                                                            Borrador de LiberaciÃ³n (Mixto) guardado. Se aprobarÃ¡n: <strong style="color: #16a34a;">{{ implode(', ', $aprobadosPend) }}</strong> y se rechazarÃ¡n: <strong style="color: #dc2626;">{{ implode(', ', $rechazadosPend) }}</strong>. Por favor, procede a enviar las alertas oficiales.
                                                                                         @endif
                                                                                     @else
                                                                                         @if ($targetReg->calidad_revision_status === 'casting_aprobado')
@@ -1785,10 +1785,10 @@
                                                                                         @endphp
                                                                                         <button class="btn-calidad-action btn-calidad-iniciar"
                                                                                             onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesConfig) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})"
-                                                                                            title="Editar datos de liberación del modelo"
+                                                                                            title="Editar datos de liberaciÃ³n del modelo"
                                                                                             style="background-color: #4f46e5; color: white;">
                                                                                             <img src="{{ asset('images/editar-informacion.png') }}" alt="">
-                                                                                            <span>Editar Información</span>
+                                                                                            <span>Editar InformaciÃ³n</span>
                                                                                         </button>
 
                                                                                         <button class="btn-calidad-action btn-calidad-email"
@@ -1824,9 +1824,9 @@
         </div>
     </div>{{-- /.alm-wrapper --}}
 
-    {{-- ── MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS ── --}}
+    {{-- â”€â”€ MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS â”€â”€ --}}
 
-    {{-- ── MODAL: ENVIAR ALERTA DE LIBERACION (APROBADO/RECHAZADO) ── --}}
+    {{-- â”€â”€ MODAL: ENVIAR ALERTA DE LIBERACION (APROBADO/RECHAZADO) â”€â”€ --}}
     <div id="modalEnviarAlertaLiberacion" class="alm-modal" role="dialog" aria-modal="true">
         <div class="alm-modal-content" id="alerta-lib-modal-content"
             style="max-width: 1500px; width: 96vw; border-radius: 20px;">
@@ -1837,7 +1837,7 @@
                 </div>
                 <h3 id="alerta-lib-title"
                     style="font-size: 2.2em; margin: 0; font-family:'Poppins', sans-serif; font-weight: 700; color: #fff;">
-                    Enviar Alerta de Liberación</h3>
+                    Enviar Alerta de LiberaciÃ³n</h3>
                 <p id="alerta-lib-subtitle" class="lib-modal-subtitle"
                     style="color: #bae6fd; font-size: 1.15em; margin-top: 8px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500;">
                 </p>
@@ -1856,16 +1856,16 @@
                     <div class="form-group" style="margin-bottom: 28px;">
                         <label id="al-fecha-label" for="al-fecha"
                             style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.2em;">
-                            Fecha de Emisión / Entrega <span style="color:#9c0300;">*</span>
+                            Fecha de EmisiÃ³n / Entrega <span style="color:#9c0300;">*</span>
                         </label>
                         <input type="date" id="al-fecha" name="fecha" class="form-control" required
                             style="font-family:'Poppins', sans-serif; font-size: 1.15em; padding: 14px 20px; height: auto; border-radius: 10px;">
                     </div>
 
-                    {{-- ═══ LAYOUT DUAL: Aprobados (izq) + Rechazados (der) si hay ambos, o uno solo al 100% ═══ --}}
+                    {{-- â•â•â• LAYOUT DUAL: Aprobados (izq) + Rechazados (der) si hay ambos, o uno solo al 100% â•â•â• --}}
                     <div id="al-dual-layout" style="display: flex; gap: 32px; align-items: stretch; margin-top: 32px;">
 
-                        {{-- ── COLUMNA APROBADOS ── --}}
+                        {{-- â”€â”€ COLUMNA APROBADOS â”€â”€ --}}
                         <div id="al-col-aprobados" style="flex: 1; width: 100%; display: none;">
                             <div
                                 style="border: 2.5px solid #059669; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 25px rgba(5,150,105,0.12);">
@@ -1879,12 +1879,12 @@
                                             style="font-weight:800; font-size:1.35em; color:#fff; font-family:'Poppins',sans-serif;">
                                             Documentos Aprobados</div>
                                         <div id="al-aprobados-tipos-label"
-                                            style="font-size:0.95em; color:#a7f3d0; font-family:'Poppins',sans-serif;">—
+                                            style="font-size:0.95em; color:#a7f3d0; font-family:'Poppins',sans-serif;">â€”
                                         </div>
                                     </div>
                                 </div>
                                 <div style="padding: 24px;">
-                                    {{-- Archivos del servidor — Aprobados --}}
+                                    {{-- Archivos del servidor â€” Aprobados --}}
                                     <label
                                         style="font-weight:700; color:#059669; font-size:1.15em; margin-bottom:12px; display:block; font-family:'Poppins',sans-serif;">Archivos
                                         en servidor (selecciona los que deseas adjuntar):</label>
@@ -1895,7 +1895,7 @@
                                             Cargando archivos...</div>
                                     </div>
 
-                                    {{-- Upload Firmados — por Modelo (Aprobados) --}}
+                                    {{-- Upload Firmados â€” por Modelo (Aprobados) --}}
                                     <div style="margin-top:24px;">
                                         <label
                                             style="font-weight:700; color:#059669; font-size:1.15em; display:block; margin-bottom:10px; font-family:'Poppins',sans-serif;">
@@ -1903,7 +1903,7 @@
                                         </label>
                                         <p
                                             style="font-size:0.9em; color:#64748b; margin-bottom:14px; font-family:'Poppins',sans-serif; line-height: 1.5;">
-                                            Selecciona el tipo de modelo y luego sube el formato de liberación
+                                            Selecciona el tipo de modelo y luego sube el formato de liberaciÃ³n
                                             <strong>aprobado y firmado</strong> correspondiente.
                                         </p>
                                         <div id="al-upload-aprobados-rows"
@@ -1913,7 +1913,7 @@
                             </div>
                         </div>
 
-                        {{-- ── COLUMNA RECHAZADOS ── --}}
+                        {{-- â”€â”€ COLUMNA RECHAZADOS â”€â”€ --}}
                         <div id="al-col-rechazados" style="flex: 1; width: 100%; display: none;">
                             <div
                                 style="border: 2.5px solid #dc2626; border-radius: 18px; overflow: hidden; box-shadow: 0 8px 25px rgba(220,38,38,0.12);">
@@ -1927,12 +1927,12 @@
                                             style="font-weight:800; font-size:1.35em; color:#fff; font-family:'Poppins',sans-serif;">
                                             Documentos Rechazados</div>
                                         <div id="al-rechazados-tipos-label"
-                                            style="font-size:0.95em; color:#fecaca; font-family:'Poppins',sans-serif;">—
+                                            style="font-size:0.95em; color:#fecaca; font-family:'Poppins',sans-serif;">â€”
                                         </div>
                                     </div>
                                 </div>
                                 <div style="padding: 24px;">
-                                    {{-- Archivos del servidor — Rechazados --}}
+                                    {{-- Archivos del servidor â€” Rechazados --}}
                                     <label
                                         style="font-weight:700; color:#dc2626; font-size:1.15em; margin-bottom:12px; display:block; font-family:'Poppins',sans-serif;">Archivos
                                         en servidor (selecciona los que deseas adjuntar):</label>
@@ -1943,7 +1943,7 @@
                                             Cargando archivos...</div>
                                     </div>
 
-                                    {{-- Upload Firmados — por Modelo (Rechazados) --}}
+                                    {{-- Upload Firmados â€” por Modelo (Rechazados) --}}
                                     <div style="margin-top:24px;">
                                         <label
                                             style="font-weight:700; color:#dc2626; font-size:1.15em; display:block; margin-bottom:10px; font-family:'Poppins',sans-serif;">
@@ -1951,7 +1951,7 @@
                                         </label>
                                         <p
                                             style="font-size:0.9em; color:#64748b; margin-bottom:14px; font-family:'Poppins',sans-serif; line-height: 1.5;">
-                                            Selecciona el tipo de modelo y luego sube el <strong>formato de liberación
+                                            Selecciona el tipo de modelo y luego sube el <strong>formato de liberaciÃ³n
                                                 rechazado</strong> y el <strong>SCAR firmado</strong> correspondiente.</p>
                                         <div id="al-upload-rechazados-rows"
                                             style="display:flex; flex-direction:column; gap:14px;"></div>
@@ -1965,7 +1965,7 @@
                     <div class="form-actions" style="text-align: center; margin-top: 40px; margin-bottom: 12px;">
                         <button type="submit" class="btn-save-preorden" id="btn-submit-alerta-liberacion"
                             style="font-size:1.2em; padding:15px 32px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight: 700; height: auto;">
-                            Enviar Alerta de Liberación
+                            Enviar Alerta de LiberaciÃ³n
                         </button>
                     </div>
                 </form>
@@ -1973,11 +1973,11 @@
         </div>
     </div>
 
-    {{-- ── MODAL: PRE-ORDEN PARA FABRICAR MODELOS ──────────────────── --}}
+    {{-- â”€â”€ MODAL: PRE-ORDEN PARA FABRICAR MODELOS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
 
-    {{-- ── MODAL: PRE-ORDEN PARA FABRICAR CASTING (DOUBLE MODAL TABS) ── --}}
+    {{-- â”€â”€ MODAL: PRE-ORDEN PARA FABRICAR CASTING (DOUBLE MODAL TABS) â”€â”€ --}}
 
-    {{-- ── MODAL: FINALIZAR PROCESO DE CALIDAD (CORREO Y FECHA) ── --}}
+    {{-- â”€â”€ MODAL: FINALIZAR PROCESO DE CALIDAD (CORREO Y FECHA) â”€â”€ --}}
     <div id="modalFinalizarCalidad" class="alm-modal" role="dialog" aria-modal="true">
         <div class="alm-modal-content" id="finalizar-calidad-modal-content"
             style="max-width: 1500px; width: 95vw; border-radius: 20px; overflow: hidden;">
@@ -2017,18 +2017,18 @@
                     <div class="form-group" style="margin-bottom: 24px;">
                         <label for="fc-destinatario"
                             style="font-weight:700; color:#334155; display:block; margin-bottom:8px; font-family:'Poppins', sans-serif; font-size:1.1em;">
-                            Notificar a Almacén (correo electrónico):
+                            Notificar a AlmacÃ©n (correo electrÃ³nico):
                         </label>
                         <input type="text" id="fc-destinatario" name="destinatario" class="form-control" required
                             style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
-                        <span style="font-size: 0.85em; color: #64748b; margin-top: 4px; display: block;">Separa múltiples correos con comas.</span>
+                        <span style="font-size: 0.85em; color: #64748b; margin-top: 4px; display: block;">Separa mÃºltiples correos con comas.</span>
                     </div>
 
                     {{-- DESTINATARIO CALIDAD --}}
                     <div class="form-group" style="margin-bottom: 24px;">
                         <label for="fc-destinatario-calidad"
                             style="font-weight:700; color:#334155; display:block; margin-bottom:8px; font-family:'Poppins', sans-serif; font-size:1.1em;">
-                            Notificar a Calidad (correo electrónico):
+                            Notificar a Calidad (correo electrÃ³nico):
                         </label>
                         <input type="text" id="fc-destinatario-calidad" name="destinatario_calidad" class="form-control"
                             style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
@@ -2039,7 +2039,7 @@
                     <div class="form-group" style="margin-bottom: 24px;">
                         <label id="fc-fecha-label" for="fc-fecha"
                             style="font-weight:700; color:#334155; display:block; margin-bottom:8px; font-family:'Poppins', sans-serif; font-size:1.1em;">
-                            Fecha de Finalización <span style="color:#dc2626;">*</span>
+                            Fecha de FinalizaciÃ³n <span style="color:#dc2626;">*</span>
                         </label>
                         <input type="date" id="fc-fecha" name="fecha" class="form-control" required
                             style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
@@ -2049,7 +2049,7 @@
                     <div class="form-group" style="margin-bottom: 24px;">
                         <label
                             style="font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif;">Archivos
-                            de liberación en servidor a adjuntar:</label>
+                            de liberaciÃ³n en servidor a adjuntar:</label>
                         <div id="fc-server-files-container"
                             style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;">
                             <div class="alm-spinner" id="fc-server-spinner"
@@ -2071,10 +2071,10 @@
         </div>
     </div>
 
-    {{-- ── MODAL: ENVIAR PRE-ORDEN POR CORREO CON ADJUNTOS (FASE 2) ── --}}
+    {{-- â”€â”€ MODAL: ENVIAR PRE-ORDEN POR CORREO CON ADJUNTOS (FASE 2) â”€â”€ --}}
 
 
-    {{-- ── MODAL: ENVIAR ALERTA SCAR (Paso 2) ── --}}
+    {{-- â”€â”€ MODAL: ENVIAR ALERTA SCAR (Paso 2) â”€â”€ --}}
     <div id="modalEnviarScar" class="alm-modal" role="dialog" aria-modal="true">
         <div class="alm-modal-content lib-modal-content" style="max-width: 1100px;">
             <div class="alm-modal-header lib-modal-header lib-modal-header-rechazo" id="env-scar-header">
@@ -2097,7 +2097,7 @@
                     <div class="form-group" style="margin-bottom: 16px;">
                         <label for="env-scar-fecha-compromiso"
                             style="font-weight: 700; color: #334155; display: block; margin-bottom: 4px;">
-                            Fecha Compromiso de Devolución (Obligatoria):
+                            Fecha Compromiso de DevoluciÃ³n (Obligatoria):
                         </label>
                         <input type="date" id="env-scar-fecha-compromiso" name="fecha_compromiso" class="form-control"
                             required>
@@ -2107,7 +2107,7 @@
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label for="env-scar-pdf-firmado"
                             style="font-weight: 700; color: #9c0300; display: block; margin-bottom: 8px;">Subir SCAR Firmado
-                            Físicamente (PDF Obligatorio): <span style="color:#9c0300;">*</span></label>
+                            FÃ­sicamente (PDF Obligatorio): <span style="color:#9c0300;">*</span></label>
                         <div class="custom-file-dropzone"
                             style="border: 2px dashed #dc2626; background: #fef2f2; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
                             <input type="file" id="env-scar-pdf-firmado" name="pdf_firmado" class="custom-file-input"
@@ -2145,7 +2145,7 @@
                     <div class="form-group" style="margin-bottom: 30px;">
                         <label class="custom-file-upload-label"
                             style="font-weight: 700; color: #9c0300; display: block; margin-bottom: 8px;">Subir Evidencia
-                            Adicional al Envío (Imágenes o PDFs adicionales):</label>
+                            Adicional al EnvÃ­o (ImÃ¡genes o PDFs adicionales):</label>
                         <div class="custom-file-dropzone"
                             style="border: 2px dashed #9c0300; background: #fff8f8; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
                             <input type="file" id="env-scar-archivos-adicionales" name="archivos_adicionales[]"
@@ -2156,9 +2156,9 @@
                                     style="width: 24px; height: 24px; margin-bottom: 4px; object-fit: contain;">
                                 <span class="dropzone-text"
                                     style="font-weight: 700; color: #9c0300; font-size: 0.85em; text-align: center; font-family:'Poppins', sans-serif;">Arrastra
-                                    archivos aquí o haz clic para buscar</span>
+                                    archivos aquÃ­ o haz clic para buscar</span>
                                 <span class="dropzone-subtext"
-                                    style="font-size: 0.7em; color: #64748b; margin-top: 2px; font-family:'Poppins', sans-serif;">Imágenes,
+                                    style="font-size: 0.7em; color: #64748b; margin-top: 2px; font-family:'Poppins', sans-serif;">ImÃ¡genes,
                                     PDF, ZIP</span>
                             </div>
                         </div>
@@ -2178,13 +2178,13 @@
         </div>
     </div>
 
-    {{-- ── MODAL: LIBERACIÓN DE MODELOS (Calidad) ──────────────────── --}}
+    {{-- â”€â”€ MODAL: LIBERACIÃ“N DE MODELOS (Calidad) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
     @include('almacen.partials._modal_liberacion_modelos')
 
-    {{-- ── MODAL: SCAR (Solicitud de Acción Correctiva de Rechazo) ─── --}}
+    {{-- â”€â”€ MODAL: SCAR (Solicitud de AcciÃ³n Correctiva de Rechazo) â”€â”€â”€ --}}
     @include('almacen.partials._modal_scar')
 
-    {{-- ── MODAL: INICIAR CASTING / GESTION VEREDICTO (Almacén) ────── --}}
+    {{-- â”€â”€ MODAL: INICIAR CASTING / GESTION VEREDICTO (AlmacÃ©n) â”€â”€â”€â”€â”€â”€ --}}
 
     <script>
         window.almacenRoutes = {
@@ -2219,3 +2219,4 @@
     </script>
 
 @endsection
+

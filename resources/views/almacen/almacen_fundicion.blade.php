@@ -922,8 +922,8 @@
                                                     }
 
                                                     if ($userPerfil != 1 && $userPerfil != 2) {
-                                                        if ($userPerfil == 4) { // Calidad
-                                                            // Calidad solo ve preordenes si pre_orden_email_sent es true
+                                                        if ($userPerfil == 4 || $userPerfil == 3) { // Calidad o Master
+                                                            // Calidad/Master solo ve preordenes si pre_orden_email_sent es true
                                                             if ($isPreorden) {
                                                                 /** @var \App\Models\FundicionHistory|null $fileHistory */
                                                                 $fileHistory = $relatedRecords->firstWhere('ot', $archivo['ot']);
@@ -931,8 +931,8 @@
                                                                     continue;
                                                                 }
                                                             }
-                                                        } elseif ($userPerfil == 5 || $userPerfil == 3) { // Almacén o Master
-                                                            // Almacén y Master ven preordenes y confirmaciones (calidad ya se filtro arriba)
+                                                        } elseif ($userPerfil == 5) { // Almacén
+                                                            // Almacén ve preordenes y confirmaciones (calidad ya se filtró arriba)
                                                         }
                                                     }
                                                     $filteredOtros[] = $archivo;
@@ -1314,7 +1314,7 @@
                                                                                 $canDelete = true;
                                                                             } elseif (($userPerfil == 5 || $userPerfil == 3) && $fileOwner === 'almacen') {
                                                                                 $canDelete = true;
-                                                                            } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                            } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
                                                                                 $canDelete = true;
                                                                             }
                                                                         }
@@ -1375,7 +1375,7 @@
                                                                         if (!$alertSent) {
                                                                             if ($userPerfil == 1 || $userPerfil == 2) $canDelete = true;
                                                                             elseif (($userPerfil == 5 || $userPerfil == 3) && $fileOwner === 'almacen') $canDelete = true;
-                                                                            elseif ($userPerfil == 4 && $fileOwner === 'calidad') $canDelete = true;
+                                                                            elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') $canDelete = true;
                                                                         }
                                                                     @endphp
                                                                     @if ($otroArchivo['tipo'] === 'imagen')

@@ -188,7 +188,7 @@ class CalidadFundicionController extends Controller
         $activeClasses = array_unique($activeClasses);
 
         $user = Auth::user();
-        $isQuality = ($user->perfil == 4);
+        $isQuality = ($user->perfil == 4 || $user->perfil == 3); // 4 = Calidad, 3 = Master
         $isAdmin = ($user->perfil == 1 || $user->perfil == 2);
         $soloPreorden = $request->query('solo_preorden', '0') === '1';
 
@@ -542,8 +542,8 @@ class CalidadFundicionController extends Controller
                 abort(404, 'Historial de OT no encontrado.');
             }
 
-            if ($user->perfil == 4) { // Calidad
-                // Calidad solo ve preordenes si pre_orden_email_sent es true
+            if ($user->perfil == 4 || $user->perfil == 3) { // 4 = Calidad, 3 = Master
+                // Calidad/Master solo ve preordenes si pre_orden_email_sent es true
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isAllowedBeforeAlert = str_contains(strtolower($archivo), 'documentos_aprobados') || str_contains(strtolower($archivo), 'documentos_rechazados') || str_contains(strtolower($archivo), 'confirmacion') || str_contains($archivo, 'F-CCL-LDM') || str_contains($archivo, 'SCAR');
                 if ($isPreorden && !$isAllowedBeforeAlert && !$history->pre_orden_email_sent) {
@@ -566,10 +566,10 @@ class CalidadFundicionController extends Controller
                     str_starts_with(strtolower($archivo), 'molde/')
                 )) {
                     // Nueva estructura: ayudas_visuales vive en el root de la OT bajo la carpeta de la clase
-                    $baseDir = ($origin === 'calidad' || ($user->perfil == 4 && empty($origin)))
+                    $baseDir = ($origin === 'calidad' || (($user->perfil == 4 || $user->perfil == 3) && empty($origin)))
                         ? self::CALIDAD_DIR . '/' . $folderName
                         : self::ALMACEN_DIR . '/' . $folderName;
-                } elseif ($origin === 'calidad' || ($user->perfil == 4 && empty($origin))) {
+                } elseif ($origin === 'calidad' || (($user->perfil == 4 || $user->perfil == 3) && empty($origin))) {
                     $baseDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales';
                 } else {
                     $baseDir = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales';
@@ -746,8 +746,8 @@ class CalidadFundicionController extends Controller
                 return response()->json(['success' => false, 'error' => 'Historial de OT no encontrado.'], 404);
             }
 
-            if ($user->perfil == 4) { // Calidad
-                // Calidad solo ve preordenes si pre_orden_email_sent es true
+            if ($user->perfil == 4 || $user->perfil == 3) { // 4 = Calidad, 3 = Master
+                // Calidad/Master solo ve preordenes si pre_orden_email_sent es true
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isLdmOrScar = str_contains(strtolower($archivo), 'documentos_aprobados') || str_contains(strtolower($archivo), 'documentos_rechazados') || str_contains($archivo, 'F-CCL-LDM') || str_contains($archivo, 'SCAR');
                 if ($isPreorden && !$isLdmOrScar && !$history->pre_orden_email_sent) {
@@ -763,7 +763,7 @@ class CalidadFundicionController extends Controller
                 // Archivos en Documentos_Aprobados / Documentos_Rechazados viven en el root de la OT
                 if ($origin === 'aprobado' || $origin === 'rechazado') {
                     $baseDir = self::ALMACEN_DIR . '/' . $folderName;
-                } elseif ($origin === 'calidad' || ($user->perfil == 4 && empty($origin))) {
+                } elseif ($origin === 'calidad' || (($user->perfil == 4 || $user->perfil == 3) && empty($origin))) {
                     $baseDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales';
                 } else {
                     $baseDir = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales';
@@ -866,7 +866,7 @@ class CalidadFundicionController extends Controller
         }
 
         // Validar que el rol del usuario que realiza la petición coincida con el dueño del documento (o sea Admin)
-        if ($user->perfil != 1 && $user->perfil != 2) {
+        if ($user->perfil != 1 && $user->perfil != 2 && $user->perfil != 3) { // Admin y Master pueden eliminar cualquier doc
             if ($fileOwner === 'calidad' && $user->perfil != 4) {
                 return response()->json(['success' => false, 'error' => 'Acceso denegado. Solo Calidad puede eliminar este documento.'], 403);
             }

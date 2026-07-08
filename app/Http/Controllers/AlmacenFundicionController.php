@@ -610,15 +610,15 @@ class AlmacenFundicionController extends Controller
                 abort(404, 'Historial de OT no encontrado.');
             }
 
-            if ($user->perfil == 4) { // Calidad
-                // Calidad solo ve preordenes si pre_orden_email_sent es true
+            if ($user->perfil == 4 || $user->perfil == 3) { // 4 = Calidad, 3 = Master
+                // Calidad/Master solo ve preordenes si pre_orden_email_sent es true
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isAllowedBeforeAlert = str_contains(strtolower($archivo), 'documentos_aprobados') || str_contains(strtolower($archivo), 'documentos_rechazados') || str_contains(strtolower($archivo), 'confirmacion') || str_contains($archivo, 'F-CCL-LDM') || str_contains($archivo, 'SCAR');
                 if ($isPreorden && !$isAllowedBeforeAlert && !$history->pre_orden_email_sent) {
                     abort(403, 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.');
                 }
-            } elseif ($user->perfil == 5 || $user->perfil == 3) { // Almacén o Master
-                // Almacén y Master solo ven PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
+            } elseif ($user->perfil == 5) { // Almacén
+                // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
                 $isCalidadDoc = ($tipo === 'liberacion' ||
                     str_contains($archivo, 'F-CCL-LDM') ||
                     str_contains($archivo, 'F-CCL-SCAR') ||
@@ -654,10 +654,10 @@ class AlmacenFundicionController extends Controller
                     )
                 ) {
                     // Nueva estructura: ayudas_visuales vive en el root de la OT bajo la carpeta de la clase
-                    $baseDir = ($origin === 'calidad' || ($user->perfil == 4 && empty($origin)))
+                    $baseDir = ($origin === 'calidad' || (($user->perfil == 4 || $user->perfil == 3) && empty($origin)))
                         ? self::CALIDAD_DIR . '/' . $folderName
                         : self::ALMACEN_DIR . '/' . $folderName;
-                } elseif ($origin === 'calidad' || ($user->perfil == 4 && empty($origin))) {
+                } elseif ($origin === 'calidad' || (($user->perfil == 4 || $user->perfil == 3) && empty($origin))) {
                     $baseDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales';
                 } else {
                     $baseDir = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales';
@@ -837,15 +837,15 @@ class AlmacenFundicionController extends Controller
                 return response()->json(['success' => false, 'error' => 'Historial de OT no encontrado.'], 404);
             }
 
-            if ($user->perfil == 4) { // Calidad
-                // Calidad solo ve preordenes si pre_orden_email_sent es true
+            if ($user->perfil == 4 || $user->perfil == 3) { // 4 = Calidad, 3 = Master
+                // Calidad/Master solo ve preordenes si pre_orden_email_sent es true
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isAllowedBeforeAlert = str_contains(strtolower($archivo), 'documentos_aprobados') || str_contains(strtolower($archivo), 'documentos_rechazados') || str_contains(strtolower($archivo), 'confirmacion') || str_contains($archivo, 'F-CCL-LDM') || str_contains($archivo, 'SCAR');
                 if ($isPreorden && !$isAllowedBeforeAlert && !$history->pre_orden_email_sent) {
                     return response()->json(['success' => false, 'error' => 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.'], 403);
                 }
-            } elseif ($user->perfil == 5 || $user->perfil == 3) { // Almacén o Master
-                // Almacén y Master solo ven PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
+            } elseif ($user->perfil == 5) { // Almacén
+                // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
                 $isCalidadDoc = ($tipo === 'liberacion' ||
                     str_contains($archivo, 'F-CCL-LDM') ||
                     str_contains($archivo, 'F-CCL-SCAR') ||
@@ -872,7 +872,7 @@ class AlmacenFundicionController extends Controller
                 // Archivos en Documentos_Aprobados / Documentos_Rechazados viven en el root de la OT
                 if ($origin === 'aprobado' || $origin === 'rechazado') {
                     $baseDir = self::ALMACEN_DIR . '/' . $folderName;
-                } elseif ($origin === 'calidad' || ($user->perfil == 4 && empty($origin))) {
+                } elseif ($origin === 'calidad' || (($user->perfil == 4 || $user->perfil == 3) && empty($origin))) {
                     $baseDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales';
                 } else {
                     $baseDir = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales';
