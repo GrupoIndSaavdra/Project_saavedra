@@ -575,6 +575,22 @@
                                                     })
                                                     ->toArray();
 
+
+                                                                // Cuando esta OT ES un reproceso (_R1, _R2...) y tiene
+                                                                // pre-orden generada, los dibujos/ayudas de las clases
+                                                                // rechazadas ya estan siendo trabajadas nuevamente:
+                                                                // mostrarlas como aprobadas (limpiar clasesRechazadas).
+                                                                $reprocesoTienePreOrden = false;
+                                                                if (preg_match('/_R\d+$/i', $reg->ot) && !empty($clasesRechazadas)) {
+                                                                    $reprocesoTienePreOrden = (
+                                                                        $reg->pre_orden_sent
+                                                                        || $reg->pre_orden_email_sent
+                                                                        || \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->exists()
+                                                                    );
+                                                                    if ($reprocesoTienePreOrden) {
+                                                                        $clasesRechazadas = [];
+                                                                    }
+                                                                }
                                                 $rechazadosDibujos = [];
                                                 $rechazadosAyudas = [];
                                                 $rechazadosOtros = [];
@@ -1961,7 +1977,13 @@
                                                                 @endif
 
                                                                 @php                                                                    /** @var \App\Models\FundicionHistory $reg */
-                                                                    $liberaciones = \App\Models\LiberacionModeloFundicion::where('ot', $reg->ot)->where('estado', '!=', 'pendiente')->get();
+                                                                    // Incluir todas las liberaciones donde Calidad ya emitió un veredicto (decisión != null),
+                                                                    // sin importar el estado interno. Así Almacén puede ver y procesar los aprobados/rechazados
+                                                                    // aunque su estado aún sea 'pendiente' de procesamiento por parte de Almacén.
+                                                                    $liberaciones = \App\Models\LiberacionModeloFundicion::where('ot', $reg->ot)
+                                                                        ->whereNotNull('decision')
+                                                                        ->where('decision', '!=', '')
+                                                                        ->get();
                                                                     /** @var \Illuminate\Database\Eloquent\Collection<\App\Models\LiberacionModeloFundicion> $liberaciones */
                                                                     $aprobados = $liberaciones->where('decision', 'aprobar')->pluck('tipo_modelo')->unique()->values()->toArray();
                                                                     $rechazados = $liberaciones->where('decision', 'rechazar')->pluck('tipo_modelo')->unique()->values()->toArray();
