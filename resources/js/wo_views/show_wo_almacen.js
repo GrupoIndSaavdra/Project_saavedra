@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const placeholderParcialidad = document.getElementById('placeholder-parcialidad');
     const avisoSinRemision       = document.getElementById('aviso-sin-remision');
     const resumenEl              = document.getElementById('resumen-parcialidades');
+    const resumenTratamientoEl   = document.getElementById('resumen-tratamientos');
 
     rows.forEach(row => {
         row.addEventListener('click', () => {
@@ -72,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // ── Actualizar resumen de parcialidades ──
             updateResumen(idClase, pedido, piezas);
+            updateResumenTratamiento(idClase, pedido, piezas);
 
             // Guardar clase activa en localStorage
             localStorage.setItem('selected_class_id_' + idOt, idClase);
@@ -139,6 +141,73 @@ document.addEventListener('DOMContentLoaded', () => {
         resumenEl.querySelector('.val-pct').textContent = pct + '%';
 
         const bar = resumenEl.querySelector('.progress-bar-fill');
+        if (bar) {
+            bar.style.width = pct + '%';
+            bar.style.background = pct >= 100
+                ? '#0a8504'
+                : pct >= 50 ? '#f39c12' : '#033966';
+        }
+    }
+
+    /**
+     * Suma las cantidades de tratamientos de la clase y actualiza el resumen.
+     */
+    function updateResumenTratamiento(idClase, pedido, piezas) {
+        if (!resumenTratamientoEl) return;
+        resumenTratamientoEl.style.display = 'flex';
+
+        let total = 0;
+        document.querySelectorAll('.grupo-tratamiento').forEach(g => {
+            if (g.dataset.idClase === idClase) {
+                g.querySelectorAll('.fila-tratamiento-item').forEach(item => {
+                    if (item.classList.contains('editando')) {
+                        const editInput = item.querySelector('.edit-cantidad');
+                        total += parseInt(editInput ? editInput.value : 0) || 0;
+                    } else {
+                        const badge = item.querySelector('.badge-cantidad');
+                        total += parseInt(badge ? badge.textContent.trim() : 0) || 0;
+                    }
+                });
+            }
+        });
+
+        let totalParcialidades = 0;
+        document.querySelectorAll(`.grupo-parcialidad[data-id-clase="${idClase}"] .fila-parcialidad-item`).forEach(fila => {
+            const num = parseInt(fila.getAttribute('data-cantidad')) || 0;
+            totalParcialidades += num;
+        });
+
+        const pedidoNum = parseInt(pedido) || 0;
+        const piezasNum = parseInt(piezas) || 0;
+        const pct = piezasNum > 0 ? Math.min(100, Math.round((total / piezasNum) * 100)) : 0;
+
+        resumenTratamientoEl.querySelector('.val-tratadas').textContent = total;
+        
+        const valPedido = resumenTratamientoEl.querySelector('.val-pedido-tratamiento');
+        if (valPedido) {
+            valPedido.textContent = totalParcialidades;
+        }
+
+        const formTratamiento = document.getElementById('form-tratamiento');
+        if (formTratamiento) {
+            if (totalParcialidades === 0) {
+                formTratamiento.style.opacity = '0.4';
+                formTratamiento.style.pointerEvents = 'none';
+                formTratamiento.setAttribute('title', 'Se requiere recibir piezas en parcialidades primero');
+            } else {
+                formTratamiento.style.opacity = '1';
+                formTratamiento.style.pointerEvents = 'auto';
+                formTratamiento.removeAttribute('title');
+            }
+        }
+
+        const valConsignacion = resumenTratamientoEl.querySelector('.val-consignacion-tratamiento');
+        if (valConsignacion) {
+            valConsignacion.textContent = piezasNum || '0';
+        }
+        resumenTratamientoEl.querySelector('.val-pct-tratamiento').textContent = pct + '%';
+
+        const bar = resumenTratamientoEl.querySelector('.progress-bar-fill-tratamiento');
         if (bar) {
             bar.style.width = pct + '%';
             bar.style.background = pct >= 100
@@ -402,11 +471,79 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Validar límite al enviar el formulario de nuevo tratamiento
+    const formTratamientoEl = document.getElementById('form-tratamiento');
+    if (formTratamientoEl) {
+        formTratamientoEl.addEventListener('submit', (e) => {
+            const activeRow = document.querySelector('.fila-clase.selected');
+            if (!activeRow) return;
+
+            const idClase = activeRow.dataset.idClase;
+            let limit = 0;
+            document.querySelectorAll(`.grupo-parcialidad[data-id-clase="${idClase}"] .fila-parcialidad-item`).forEach(fila => {
+                limit += parseInt(fila.getAttribute('data-cantidad')) || 0;
+            });
+
+            const newQty = parseInt(document.getElementById('tratamiento-cantidad').value) || 0;
+            
+            let currentTotal = 0;
+            document.querySelectorAll('.grupo-tratamiento').forEach(g => {
+                if (g.dataset.idClase === idClase) {
+                    g.querySelectorAll('.badge-cantidad').forEach(badge => {
+                        currentTotal += parseInt(badge.textContent.trim()) || 0;
+                    });
+                }
+            });
+
+            if (currentTotal + newQty > limit) {
+                e.preventDefault();
+                alert(`No puedes tratar más piezas de las que se han recibido en almacén (${limit}). Actualmente tratadas: ${currentTotal}, ingresando: ${newQty}.`);
+            }
+        });
+    }
+
+    // ── Lógica para deshabilitar botón de Tratamiento Térmico hasta que cantidad y archivo estén llenos ──
+    const btnRegistrarTratamiento = document.getElementById('btn-registrar-tratamiento');
+    const inputCantidadTratamiento = document.getElementById('tratamiento-cantidad');
+    const inputArchivoTratamiento = document.getElementById('tratamiento-archivo');
+
+    function checkTratamientoForm() {
+        if (!btnRegistrarTratamiento || !inputCantidadTratamiento || !inputArchivoTratamiento) return;
+        const cantidadValue = inputCantidadTratamiento.value.trim();
+        const fileHasValue = inputArchivoTratamiento.files.length > 0;
+
+        if (cantidadValue !== '' && parseInt(cantidadValue) > 0 && fileHasValue) {
+            btnRegistrarTratamiento.disabled = false;
+            btnRegistrarTratamiento.style.opacity = '1';
+            btnRegistrarTratamiento.style.cursor = 'pointer';
+        } else {
+            btnRegistrarTratamiento.disabled = true;
+            btnRegistrarTratamiento.style.opacity = '0.5';
+            btnRegistrarTratamiento.style.cursor = 'not-allowed';
+        }
+    }
+
+    if (inputCantidadTratamiento && inputArchivoTratamiento) {
+        // Inicialmente deshabilitado si está vacío
+        checkTratamientoForm();
+        inputCantidadTratamiento.addEventListener('input', checkTratamientoForm);
+        inputArchivoTratamiento.addEventListener('change', checkTratamientoForm);
+    }
+
     // ── Lógica de edición de tratamientos en línea ──
     document.querySelectorAll('.btn-editar-tratamiento').forEach(btn => {
         btn.addEventListener('click', () => {
             const row = btn.closest('.fila-tratamiento-item');
             row.classList.add('editando');
+            const info = getActiveClaseInfo();
+            if (info) updateResumenTratamiento(info.idClase, info.pedido, info.piezas);
+        });
+    });
+
+    document.querySelectorAll('.fila-tratamiento-item .edit-cantidad').forEach(input => {
+        input.addEventListener('input', () => {
+            const info = getActiveClaseInfo();
+            if (info) updateResumenTratamiento(info.idClase, info.pedido, info.piezas);
         });
     });
 
@@ -415,6 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = btn.closest('.fila-tratamiento-item');
             
             // Restaurar valores iniciales
+            row.querySelector('.edit-cantidad').value = row.dataset.cantidad;
             row.querySelector('.edit-descripcion').value = row.dataset.descripcion;
             
             const fileInput = row.querySelector('.edit-archivo');
@@ -422,6 +560,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 fileInput.value = '';
             }
             row.classList.remove('editando');
+
+            const info = getActiveClaseInfo();
+            if (info) updateResumenTratamiento(info.idClase, info.pedido, info.piezas);
         });
     });
 
@@ -429,16 +570,44 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             const row = btn.closest('.fila-tratamiento-item');
             const id = row.dataset.id;
+            const cantidad = parseInt(row.querySelector('.edit-cantidad').value) || 0;
             const descripcion = row.querySelector('.edit-descripcion').value;
             
-            if (!descripcion || descripcion.trim() === '') {
-                alert('La descripción es requerida.');
+            if (!cantidad || cantidad < 1) {
+                alert('La cantidad debe ser al menos 1.');
                 return;
+            }
+            
+            // Validar límite
+            const activeRow = document.querySelector('.fila-clase.selected');
+            if (activeRow) {
+                const idClase = activeRow.dataset.idClase;
+                let limit = 0;
+                document.querySelectorAll(`.grupo-parcialidad[data-id-clase="${idClase}"] .fila-parcialidad-item`).forEach(fila => {
+                    limit += parseInt(fila.getAttribute('data-cantidad')) || 0;
+                });
+                
+                let currentTotal = 0;
+                document.querySelectorAll('.grupo-tratamiento').forEach(g => {
+                    if (g.dataset.idClase === idClase) {
+                        g.querySelectorAll('.fila-tratamiento-item').forEach(item => {
+                            if (item.dataset.id !== id) {
+                                currentTotal += parseInt(item.dataset.cantidad) || 0;
+                            }
+                        });
+                    }
+                });
+
+                if (currentTotal + cantidad > limit) {
+                    alert(`No puedes tratar más piezas de las que se han recibido en almacén (${limit}). Los otros tratamientos suman ${currentTotal}, intentando cambiar esta a: ${cantidad}.`);
+                    return;
+                }
             }
             
             const formData = new FormData();
             formData.append('_token', document.querySelector('input[name="_token"]').value);
             formData.append('_method', 'PUT');
+            formData.append('cantidad', cantidad);
             formData.append('descripcion', descripcion);
             
             const fileInput = row.querySelector('.edit-archivo');

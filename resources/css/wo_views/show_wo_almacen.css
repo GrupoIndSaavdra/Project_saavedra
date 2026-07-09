@@ -235,10 +235,19 @@
     border: 2px dashed #d0dff0;
 }
 
-/* Form de subir remisión / tratamiento */
-.form-remision, .form-tratamiento {
+/* Form de subir remisión */
+.form-remision {
     display: grid;
     grid-template-columns: 1fr 1fr auto;
+    gap: 0.8rem;
+    align-items: end;
+    margin-bottom: 0.8rem;
+}
+
+/* Form de subir tratamiento térmico (4 elementos) */
+.form-tratamiento {
+    display: grid;
+    grid-template-columns: 80px 230px 1fr auto;
     gap: 0.8rem;
     align-items: end;
     margin-bottom: 0.8rem;
@@ -360,7 +369,7 @@
 /* Form de parcialidades */
 .form-parcialidad {
     display: grid;
-    grid-template-columns: 100px 280px 1fr 140px auto;
+    grid-template-columns: 80px 230px 1fr 140px auto;
     gap: 0.8rem;
     align-items: end;
     margin-bottom: 0.8rem;
@@ -426,7 +435,7 @@
     border-radius: 20px;
 }
 
-.resumen-parcialidades {
+.resumen-parcialidades, .resumen-tratamientos {
     display: flex;
     gap: 0.8rem;
     margin-bottom: 0.8rem;
@@ -508,6 +517,7 @@
 .fila-parcialidad-item .edit-eliminar-file-lbl,
 .fila-parcialidad-item .btn-guardar-parcialidad,
 .fila-parcialidad-item .btn-cancelar-parcialidad,
+.fila-tratamiento-item .edit-cantidad,
 .fila-tratamiento-item .edit-descripcion,
 .fila-tratamiento-item .edit-archivo,
 .fila-tratamiento-item .btn-guardar-parcialidad,
@@ -522,6 +532,7 @@
 .fila-parcialidad-item.editando .view-remision,
 .fila-parcialidad-item.editando .btn-editar-parcialidad,
 .fila-parcialidad-item.editando .form-eliminar-parcialidad,
+.fila-tratamiento-item.editando .view-cantidad,
 .fila-tratamiento-item.editando .view-descripcion,
 .fila-tratamiento-item.editando .view-remision,
 .fila-tratamiento-item.editando .btn-editar-parcialidad,
@@ -535,7 +546,8 @@
     display: inline-block !important;
 }
 
-.fila-parcialidad-item.editando .edit-cantidad {
+.fila-parcialidad-item.editando .edit-cantidad,
+.fila-tratamiento-item.editando .edit-cantidad {
     display: inline-block !important;
 }
 
@@ -580,7 +592,7 @@
 }
 
 .tabla-parcialidades tr.editando .edit-cantidad {
-    max-width: 90px !important;
+    max-width: 80px !important;
 }
 
 .tabla-parcialidades tr.editando .edit-descripcion {

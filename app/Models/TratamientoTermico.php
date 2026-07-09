@@ -9,6 +9,7 @@ class TratamientoTermico extends Model
 {
     protected $fillable = [
         'id_clase',
+        'cantidad',
         'archivo',
         'descripcion',
         'registrado_por'

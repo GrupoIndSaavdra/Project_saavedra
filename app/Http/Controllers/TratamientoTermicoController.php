@@ -15,7 +15,8 @@ class TratamientoTermicoController extends Controller
         $request->validate([
             'id_clase' => 'required|exists:clases,id',
             'archivo' => 'required|mimes:pdf|max:10240',
-            'descripcion' => 'required|string|max:255',
+            'descripcion' => 'nullable|string|max:255',
+            'cantidad' => 'required|integer|min:1',
             'id_ot' => 'required'
         ]);
 
@@ -25,6 +26,7 @@ class TratamientoTermicoController extends Controller
             'id_clase' => $request->id_clase,
             'archivo' => $path,
             'descripcion' => $request->descripcion,
+            'cantidad' => $request->cantidad,
             'registrado_por' => auth()->user() ? auth()->user()->nombre . ' ' . auth()->user()->a_paterno : 'Sistema'
         ]);
 
@@ -82,7 +84,8 @@ class TratamientoTermicoController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'descripcion' => 'required|string|max:255',
+            'descripcion' => 'nullable|string|max:255',
+            'cantidad'    => 'required|integer|min:1',
             'archivo'     => 'nullable|file|mimes:pdf|max:10240',
         ]);
 
@@ -100,6 +103,7 @@ class TratamientoTermicoController extends Controller
 
         $tratamiento->update([
             'descripcion' => $request->descripcion,
+            'cantidad'    => $request->cantidad,
             'archivo'     => $archivoPath,
         ]);
 

@@ -245,7 +245,7 @@
 
                 <div class="field">
                     <label>Cantidad</label>
-                    <input type="number" name="cantidad" id="parcialidad-cantidad" min="1" placeholder="Pzas" required class="form-control">
+                    <input type="number" name="cantidad" id="parcialidad-cantidad" min="1" placeholder="Pzas" required class="form-control" style="padding: 0.55rem 0.4rem; text-align: center;">
                 </div>
                 <div class="field">
                     <label>Archivo (PDF / Imagen)</label>
@@ -362,6 +362,33 @@
                 Selecciona una clase para ver el tratamiento térmico.
             </div>
 
+            {{-- Resumen Tratamientos --}}
+            <div class="resumen-tratamientos" id="resumen-tratamientos" style="display:none">
+                <div class="resumen-item">
+                    <div class="resumen-valor val-tratadas">0</div>
+                    <div class="resumen-label">PZAS EN TT</div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-valor val-pedido-tratamiento">0</div>
+                    <div class="resumen-label">PZAS RECIBIDAS</div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-valor val-consignacion-tratamiento">0</div>
+                    <div class="resumen-label">Consignación</div>
+                </div>
+                <div class="resumen-item">
+                    <div class="resumen-valor val-pct-tratamiento">0%</div>
+                    <div class="resumen-label">Avance</div>
+                </div>
+                <div style="flex:1;align-self:center;padding:0 0.5rem">
+                    <div style="background:#e8eef6;border-radius:10px;height:10px;overflow:hidden">
+                        <div class="progress-bar-fill-tratamiento"
+                             style="height:100%;width:0%;background:#033966;border-radius:10px;transition:width .4s">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {{-- Formulario nueva --}}
             <form action="{{ route('wo.tratamiento.store') }}" method="POST" enctype="multipart/form-data" class="form-tratamiento" id="form-tratamiento" style="display:none">
                 @csrf
@@ -369,12 +396,16 @@
                 <input type="hidden" name="id_clase" id="hidden-idClaseTratamiento" value="">
 
                 <div class="field">
+                    <label>Cantidad</label>
+                    <input type="number" name="cantidad" id="tratamiento-cantidad" min="1" placeholder="Pzas" required class="form-control" style="padding: 0.55rem 0.4rem; text-align: center;">
+                </div>
+                <div class="field">
                     <label>Archivo (PDF)</label>
                     <input type="file" name="archivo" id="tratamiento-archivo" accept=".pdf" required class="form-control" style="font-size:.8rem;padding:.35rem">
                 </div>
                 <div class="field">
                     <label>Descripción</label>
-                    <input type="text" name="descripcion" placeholder="Ej: Reporte de tratamiento..." maxlength="255" class="form-control" required>
+                    <input type="text" name="descripcion" placeholder="Ej: Reporte de tratamiento..." maxlength="255" class="form-control">
                 </div>
                 <button type="submit" class="btn-subir" id="btn-registrar-tratamiento">Registrar</button>
             </form>
@@ -389,6 +420,7 @@
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
+                                    <th>Cantidad</th>
                                     <th>Descripción</th>
                                     <th>Documento</th>
                                     <th>Registrado por</th>
@@ -399,12 +431,17 @@
                                 @foreach($tratamientos[$clase->id] as $tratamiento)
                                 <tr class="fila-tratamiento-item"
                                     data-id="{{ $tratamiento->id }}"
+                                    data-cantidad="{{ $tratamiento->cantidad }}"
                                     data-descripcion="{{ $tratamiento->descripcion }}"
                                     data-update-url="{{ route('wo.tratamiento.update', $tratamiento->id) }}">
                                     <td>{{ $tratamiento->created_at->format('d/m/Y') }}</td>
                                     <td>
+                                        <span class="view-cantidad badge-cantidad">{{ $tratamiento->cantidad }}</span>
+                                        <input type="number" class="edit-cantidad form-control" min="1" value="{{ $tratamiento->cantidad }}">
+                                    </td>
+                                    <td>
                                         <span class="view-descripcion">{{ $tratamiento->descripcion }}</span>
-                                        <input type="text" class="edit-descripcion form-control" value="{{ $tratamiento->descripcion }}">
+                                        <input type="text" class="edit-descripcion form-control" name="descripcion" value="{{ $tratamiento->descripcion }}">
                                     </td>
                                     <td>
                                         <div class="view-remision">
@@ -455,6 +492,15 @@
     <input type="hidden" name="descripcion" id="update-descripcion">
     <input type="hidden" name="fecha_recepcion" id="update-fecha">
     <input type="hidden" name="id_remision" id="update-id-remision">
+</form>
+
+{{-- Formulario oculto global para actualizar tratamientos --}}
+<form id="form-update-tratamiento" method="POST" style="display:none" enctype="multipart/form-data">
+    @csrf
+    @method('PUT')
+    <input type="hidden" name="cantidad" id="update-tratamiento-cantidad">
+    <input type="hidden" name="descripcion" id="update-tratamiento-descripcion">
+    <input type="file" name="archivo" id="update-tratamiento-archivo">
 </form>
 
 {{-- Modal de Confirmación con Contraseña Encriptada --}}
