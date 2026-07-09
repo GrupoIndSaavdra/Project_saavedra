@@ -2086,26 +2086,23 @@
 
 
                                                 $countAprobados = count($archivosAprobados);
-
                                                 $countRechazados = count($archivosRechazados);
 
-
-
                                                 $countAyudas = count($ayudasArchivos);
-
                                                 $countOtros = count($otrosArchivos);
-
-
 
                                                 $isReprocesoBadge = (bool) preg_match('/_R\d+$/i', $reg->ot);
 
-                                                $count = $countDibujos + $countAyudas + $countOtros;
+                                                // Sum all arrays that are actually rendered in the UI
+                                                // Note: $archivosRechazados holds the docs that will be later mapped into the rechazados arrays.
+                                                $count = count($archivos) + 
+                                                         count($ayudasArchivos) + 
+                                                         count($archivosAprobados) + 
+                                                         count($rechazadosDibujos) + 
+                                                         count($rechazadosAyudas) + 
+                                                         count($rechazadosOtros) + 
+                                                         count($archivosRechazados);
 
-                                                if (!$isReprocesoBadge) {
-
-                                                    $count -= $countRechazados;
-
-                                                }
 
 
 
@@ -2817,7 +2814,7 @@
 
                                                         {{-- BLOQUE 5.1: Dibujos Rechazados --}}
 
-                                                        @if (count($rechazadosDibujos) > 0 && $isReprocesoBadge)
+                                                        @if (count($rechazadosDibujos) > 0)
 
                                                             <h3
                                                                 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
@@ -2917,7 +2914,7 @@
 
                                                         {{-- BLOQUE 5.2: Ayudas Visuales Rechazadas --}}
 
-                                                        @if (count($rechazadosAyudas) > 0 && $isReprocesoBadge)
+                                                        @if (count($rechazadosAyudas) > 0)
 
                                                             <h3
                                                                 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
@@ -3058,7 +3055,7 @@
 
                                                         {{-- BLOQUE 5.3: Otros Documentos Rechazados --}}
 
-                                                        @if (count($rechazadosOtros) > 0 && $isReprocesoBadge)
+                                                        @if (count($rechazadosOtros) > 0)
 
                                                             <h3
                                                                 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
@@ -3166,18 +3163,57 @@
 
                                                                     <img src="{{ asset('images/Quality.png') }}" alt="Calidad"
                                                                         style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
-
-                                                                    <div style="overflow:hidden;">
-
+                                                                    <div style="overflow:hidden; flex:1;">
                                                                         <span class="lib-calidad-card-title">Acciones de Liberacion &mdash;
-
                                                                             Calidad</span>
-
                                                                         <span
                                                                             class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $targetReg->ot) }}</span>
-
                                                                     </div>
-
+                                                                    @php
+                                                                        $hdClasesActivas = collect($targetReg->ayudas_config ?? [])
+                                                                            ->filter(fn($c) => !str_contains(strtolower($c), 'opcional'))
+                                                                            ->filter(function ($claseNombre) use ($targetReg) {
+                                                                                $clLow = strtolower($claseNombre);
+                                                                                $tipo = null;
+                                                                                if (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+                                                                                elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+                                                                                elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+                                                                                elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
+                                                                                if ($tipo) {
+                                                                                    $baseOt = preg_replace('/_R\d+$/i', '', $targetReg->ot);
+                                                                                    $isAprob = \App\Models\LiberacionModeloFundicion::where(fn($q) => $q->where('ot', '=', $baseOt)->orWhere('ot', 'LIKE', $baseOt . '_R%'))
+                                                                                        ->where('ot', '!=', $targetReg->ot)->where('tipo_modelo', '=', $tipo)->where('estado', '=', 'aprobado')->exists();
+                                                                                    if ($isAprob) return false;
+                                                                                    return \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)->where('tipo_modelo', '=', $tipo)
+                                                                                        ->where(function ($q) { $q->whereIn('tipo_origen', ['con_modelo', 'pre_orden'])->orWhereNull('tipo_origen'); })->exists();
+                                                                                }
+                                                                                return false;
+                                                                            })->values()->toArray();
+                                                                        
+                                                                        $hdCont = 0;
+                                                                        foreach ($hdClasesActivas as $clName) {
+                                                                            $clLow = strtolower($clName);
+                                                                            $tipo = null;
+                                                                            if (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+                                                                            elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+                                                                            elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+                                                                            elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
+                                                                            if ($tipo) {
+                                                                                if (\App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)->where('tipo_modelo', '=', $tipo)->whereNotNull('user_id_calidad')->exists()) {
+                                                                                    $hdCont++;
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    @endphp
+                                                                    <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:2px; padding-left: 10px; border-left: 1px solid #e2e8f0; margin-left: auto;">
+                                                                        <span style="font-size:1.1em; font-weight:800; color: {{ $hdCont == count($hdClasesActivas) && count($hdClasesActivas) > 0 ? '#15803d' : '#033966' }};">
+                                                                            {{ $hdCont }}/{{ count($hdClasesActivas) }}
+                                                                        </span>
+                                                                        <span style="font-size:0.65em; font-weight:700; color: #64748b; letter-spacing:0.5px; text-transform:uppercase;">Clases</span>
+                                                                        @if($hdCont == count($hdClasesActivas) && count($hdClasesActivas) > 0)
+                                                                            <img src="{{ asset('images/ready.png') }}" style="width:14px;height:14px;margin-top:2px;" alt="Listo">
+                                                                        @endif
+                                                                    </div>
                                                                 </div>
 
                                                                 <div class="lib-calidad-card-body">
