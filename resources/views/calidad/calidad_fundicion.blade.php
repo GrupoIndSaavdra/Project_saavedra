@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 
 
@@ -33,13 +33,7 @@
 
     <div class="alm-wrapper">
 
-<<<<<<< HEAD
-=======
-
-
         {{-- ── HEADER ─────────────────────────────────────────────── --}}
-
->>>>>>> 26d5ece (TEST/JAER: THIS VERSION OF CHANGES ITS PARTIAL FUNCTIONAL, DO NOT UPLOAD IN THE SERVER)
         @php
 
             $perfil = Auth::user()->perfil;
@@ -61,13 +55,9 @@
             </div>
 
             <div class="alm-header-text">
-<<<<<<< HEAD
-                <h1>Calidad Dibujos y Ayudas Visuales de Fundición</h1>
-=======
 
                 <h1>Calidad — Dibujos y Ayudas Visuales de Fundición</h1>
 
->>>>>>> 26d5ece (TEST/JAER: THIS VERSION OF CHANGES ITS PARTIAL FUNCTIONAL, DO NOT UPLOAD IN THE SERVER)
                 <p>Consulta histórica de todos los dibujos y ayudas visuales enviados a Calidad. Registro
 
                     permanente e inmutable.</p>
@@ -85,23 +75,6 @@
             {{-- ── COLUMNA IZQUIERDA (SIDEBAR) ───────────────────────── --}}
 
             <aside class="alm-sidebar">
-<<<<<<< HEAD
-                {{-- â”€â”€ LEYENDA DE ESTADOS DE MODELO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ --}}
-
-                <div class="alm-filters-card" style="margin-bottom: 2em; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); position: relative; padding: 1.6em;">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
-                        <img src="{{ asset('images/Quality.png') }}" alt="Leyenda" style="width: 30px; height: 30px; object-fit: contain;">
-                        <h2 style="margin: 0; font-size: 1.30rem; color: #0f172a; font-weight: 700;">Guía de Estados de Modelo</h2>
-                    </div>
-
-                    <h3 style="font-size: 0.92rem; color: #475569; font-weight: 700; margin: 0 0 10px 0; border-left: 4px solid #94a3b8; padding-left: 8px;">Estados de Transición</h3>
-                    <div class="legend-grid-compact" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px;">
-
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #f1f5f9; border: 2px solid #cbd5e1; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Recibido.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
-=======
-
                 {{-- ── LEYENDA DE ESTADOS DE MODELO ───────────────────────── --}}
 
 
@@ -140,7 +113,6 @@
                                 <img src="{{ asset('images/Recibido.png') }}"
                                     style="width: 28px; height: 28px; object-fit: contain;">
 
->>>>>>> 26d5ece (TEST/JAER: THIS VERSION OF CHANGES ITS PARTIAL FUNCTIONAL, DO NOT UPLOAD IN THE SERVER)
                             </span>
 
                             <span
@@ -169,16 +141,6 @@
 
                     </div>
 
-<<<<<<< HEAD
-                    <h3 style="font-size: 0.92rem; color: #0f172a; font-weight: 700; margin: 0 0 10px 0; border-left: 4px solid #3b82f6; padding-left: 8px;">Estados Prioritarios</h3>
-                    <div class="legend-grid-compact" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
-
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #eff6ff; border: 2px solid #60a5fa; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/pdf-view.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
-=======
-
-
                     <h3
                         style="font-size: 0.92rem; color: #0f172a; font-weight: 700; margin: 0 0 10px 0; border-left: 4px solid #3b82f6; padding-left: 8px;">
                         Estados Prioritarios</h3>
@@ -196,8 +158,6 @@
 
                                 <img src="{{ asset('images/pdf-view.png') }}"
                                     style="width: 28px; height: 28px; object-fit: contain;">
-
->>>>>>> 26d5ece (TEST/JAER: THIS VERSION OF CHANGES ITS PARTIAL FUNCTIONAL, DO NOT UPLOAD IN THE SERVER)
                             </span>
 
                             <span
@@ -492,11 +452,6 @@
 
                                 tooltip.style.borderColor = borderColor;
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 26d5ece (TEST/JAER: THIS VERSION OF CHANGES ITS PARTIAL FUNCTIONAL, DO NOT UPLOAD IN THE SERVER)
                                 zoomCircle.style.backgroundColor = bgColor;
 
                                 zoomCircle.style.borderColor = borderColor;
@@ -505,17 +460,11 @@
 
                                 zoomCircle.style.borderWidth = '3px';
 
-<<<<<<< HEAD
                                 zoomImg.src = imgSrc;
-
-=======
 
 
                                 zoomImg.src = imgSrc;
 
-
-
->>>>>>> 26d5ece (TEST/JAER: THIS VERSION OF CHANGES ITS PARTIAL FUNCTIONAL, DO NOT UPLOAD IN THE SERVER)
                                 zoomLabel.textContent = textContent;
 
                                 zoomLabel.style.color = textColor;
@@ -544,11 +493,6 @@
 
                                 const offsetY = 20;
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 26d5ece (TEST/JAER: THIS VERSION OF CHANGES ITS PARTIAL FUNCTIONAL, DO NOT UPLOAD IN THE SERVER)
                                 let posX = e.clientX + offsetX;
 
                                 let posY = e.clientY + offsetY;
@@ -780,7 +724,7 @@
 
 
 
-                @foreach (['activa' => 'Dibujos Activos', 'inactiva' => 'Dibujos Inactivos (Histórico)'] as $estado => $titulo)
+                @foreach (['activa' => 'Documentos Activos (Dibujos y Ayudas)', 'inactiva' => 'Documentos Inactivos (Histórico)'] as $estado => $titulo)
 
                     @php
 
@@ -2706,18 +2650,8 @@
                                                                         if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
 
                                                                             $fileOwner = 'calidad';
+
                                                                         }
-                                                                        $userPerfil = Auth::user()->perfil;
-
-                                                                        if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
-                                                                            $canDelete = true;
-                                                                        } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
-                                                                            if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
-                                                                                $canDelete = true;
-                                                                            }
-                                                                        } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
-                                                                            $canDelete = true;
-
 
                                                                         $userPerfil = Auth::user()->perfil;
 
@@ -2965,64 +2899,6 @@
                                                                                     style="background-color: #dc3545; color: white;"
                                                                                     onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
 
-<<<<<<< HEAD
-                                                        @php
-                                                            $rechazadosAyudas = [];
-                                                            $rechazadosDibujos = [];
-                                                            $rechazadosOtros = [];
-                                                            foreach ($archivosRechazados as $rArchivo) {
-                                                                $nameLow = strtolower($rArchivo['nombre']);
-                                                                $ext = pathinfo($nameLow, PATHINFO_EXTENSION);
-                                                                $isImg = in_array($ext, ['jpg','jpeg','png','gif','webp']);
-
-                                                                if (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
-                                                                    $rechazadosAyudas[] = $rArchivo;
-                                                                } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
-                                                                    $rechazadosDibujos[] = $rArchivo;
-                                                                } else {
-                                                                    $rechazadosOtros[] = $rArchivo;
-                                                                }
-                                                            }
-                                                        @endphp
-
-                                                        {{-- BLOQUE 5.1: Dibujos Rechazados --}}
-                                                        @if (count($rechazadosDibujos) > 0)
-                                                            <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
-                                                                Dibujos Rechazados</h3>
-                                                            <div class="alm-pdf-grid">
-                                                                @foreach ($rechazadosDibujos as $otroArchivo)
-                                                                    @php
-                                                                        $canDelete = false;
-                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
-                                                                        $fileNameLower = strtolower($otroArchivo['nombre']);
-                                                                        if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
-                                                                            $fileOwner = 'calidad';
-                                                                        }
-                                                                        $userPerfil = Auth::user()->perfil;
-                                                                        if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
-                                                                            $canDelete = true;
-                                                                        } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
-                                                                            if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
-                                                                                $canDelete = true;
-                                                                            }
-                                                                        } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
-                                                                            $canDelete = true;
-                                                                        }
-                                                                    @endphp
-                                                                    <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
-                                                                        <div class="file-icon-wrapper" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')" style="cursor: pointer;" title="Abrir Archivo">
-                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
-                                                                        </div>
-                                                                        <div class="file-name" style="cursor: pointer;" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                            {{ basename($otroArchivo['nombre']) }}
-                                                                        </div>
-                                                                        <div class="file-actions" style="display: flex; gap: 5px;">
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
-                                                                            @if ($canDelete)
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
-=======
->>>>>>> 26d5ece (TEST/JAER: THIS VERSION OF CHANGES ITS PARTIAL FUNCTIONAL, DO NOT UPLOAD IN THE SERVER)
                                                                             @endif
 
                                                                         </div>
@@ -3034,6 +2910,8 @@
                                                             </div>
 
                                                         @endif
+
+
 
 
 
@@ -3740,21 +3618,7 @@
 
                                                                 @endphp
 
-<<<<<<< HEAD
-                                                                        $liberacionesPend = $liberacionesAll->where('alerta_enviada', false);
-                                                                        $aprobadosPend = $liberacionesPend->where('decision', 'aprobar')->pluck('tipo_modelo')->toArray();
-                                                                        $rechazadosPend = $liberacionesPend->where('decision', 'rechazar')->pluck('tipo_modelo')->toArray();
 
-                                                                        if (count($aprobadosPend) > 0 && count($rechazadosPend) > 0) {
-                                                                            $decisionFinal = 'mixto';
-                                                                        } elseif (count($aprobadosPend) > 0) {
-                                                                            $decisionFinal = 'aprobar';
-                                                                        } elseif (count($rechazadosPend) > 0) {
-                                                                            $decisionFinal = 'rechazar';
-                                                                        } else {
-                                                                            $decisionFinal = 'ninguno';
-                                                                        }
-=======
                                                                 <div class="lib-calidad-card"
                                                                     id="control-calidad-finalizado-{{ md5($targetReg->ot) }}"
                                                                     style="margin-top: 20px;">
@@ -3775,7 +3639,6 @@
 
                                                                             <span class="lib-calidad-card-ot"
                                                                                 style="color: #cbd5e1;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $targetReg->ot) }}</span>
->>>>>>> 26d5ece (TEST/JAER: THIS VERSION OF CHANGES ITS PARTIAL FUNCTIONAL, DO NOT UPLOAD IN THE SERVER)
 
                                                                         </div>
 

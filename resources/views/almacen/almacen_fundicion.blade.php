@@ -491,7 +491,7 @@
                                                         ->where('decision', '!=', 'pendiente')
                                                         ->pluck('tipo_modelo')
                                                         ->toArray();
-                                                    
+
                                                     $parsedCurrent = [];
                                                     foreach ($classesInCurrentOtRaw as $dc) {
                                                         $parts = explode(',', strtolower($dc));
@@ -515,7 +515,7 @@
                                                             ->where('decision', '=', 'rechazar')
                                                             ->pluck('tipo_modelo')
                                                             ->toArray();
-                                                        
+
                                                         $parsedPrev = [];
                                                         foreach ($rejectedPrevRaw as $dc) {
                                                             $parts = explode(',', strtolower($dc));
@@ -536,7 +536,7 @@
                                                             ->where('decision', '!=', 'pendiente')
                                                             ->pluck('tipo_modelo')
                                                             ->toArray();
-                                                        
+
                                                         $parsedDecided = [];
                                                         foreach ($decidedClassesRaw as $dc) {
                                                             $parts = explode(',', strtolower($dc));
@@ -1268,8 +1268,12 @@
                                                 if ($hasVerdictosPendientes) {
                                                     $isFinalized = false;
                                                 }
-                                                $showControlCard = (Auth::user()->perfil != 4 && $estado === 'activa' && !$isFinalized);
+                                                $showControlCard = ($estado === 'activa' && !$isFinalized);
                                                 $hasFilesOrControl = ($count > 0 || $showControlCard);
+
+                                                // DEBUG MARKER
+                                                echo "<!-- DEBUG OT: {$reg->ot}, estado: {$estado}, isFinalized: " . ($isFinalized ? 'true' : 'false') . ", showControlCard: " . ($showControlCard ? 'true' : 'false') . " -->";
+
 
                                                 $libStatus = $targetReg->calidad_revision_status ?? null;
                                                 $fsmState = 'recibido';
@@ -1493,7 +1497,7 @@
                                                                         <h3 style="margin-top: 15px; margin-bottom: 10px; color: {{ $group['color'] }}; border-bottom: 2px solid {{ $group['color'] }}; padding-bottom: 5px;">
                                                                             {{ $group['titulo'] }}
                                                                         </h3>
-                                                                        <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                                                        <div class="alm-pdf-grid">
                                                                             @foreach ($group['archivos'] as $archivoInfo)
                                                                                 @php
                                                                                     $tipoCls = $archivoInfo['tipo'] === 'ayuda' ? 'card-ayuda' : '';
@@ -1535,7 +1539,7 @@
                                                                     <h3 style="margin-top: 25px; margin-bottom: 10px; color: {{ $group['color'] }}; border-bottom: 2px solid {{ $group['color'] }}; padding-bottom: 5px;">
                                                                         {{ $group['titulo'] }}
                                                                     </h3>
-                                                                    <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                                                    <div class="alm-pdf-grid">
                                                                         @foreach ($group['archivos'] as $otroArchivo)
                                                                             @php
                                                                                 $canDelete = false;
@@ -1637,7 +1641,7 @@
 
                                                                     $isCalidadAlerted = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'aprobado', 'rechazado', 'mixto', 'parcial']);
                                                                     $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado');
-                                                                    $aprobCardDisabled = ($todosCastingProcesados && !$isCalidadAlerted) ? 'opacity: 0.5; pointer-events: none;' : '';
+                                                                    $aprobCardDisabled = '';
                                                                     @endphp
                                                                     <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}"
                                                                         style="margin-top: 15px; {{ $aprobCardDisabled }}">
@@ -1721,6 +1725,7 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
+                                                        @endif
 
 
                                                         @php
@@ -1937,8 +1942,6 @@
                                                                 </div>
                                                             @endif
                                                         @endif
-
-
                                                         @if ($showControlCard)
                                                                 @php
                                                                     $esReproceso = (bool) preg_match('/_R\d+$/i', $targetReg->ot);
@@ -2014,13 +2017,14 @@
                                                                     $algunaClaseProcesada  = count($clasesActivasCubiertas) > 0;
                                                                     $tienePreOrden = (bool)($targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent);
 
-                                                                    $isCalidadAlerted = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'aprobado', 'rechazado', 'mixto', 'parcial']);
-                                                                    $controlDisabled = ($todasClasesProcesadas && !$isCalidadAlerted) ? 'opacity: 0.5; pointer-events: none;' : '';
+                                                                    // Nunca deshabilitamos la tarjeta entera para que el usuario siempre pueda interactuar
+                                                                    $controlDisabled = '';
                                                                     $hideControlCard = ''; // Siempre mostrar la tarjeta principal de controles
                                                                     $hideTengoModelo = $esReproceso ? 'display: none;' : '';
                                                                     $hideGenerarFormato = ($esReproceso || $tienePreOrden) ? 'display: none;' : '';
                                                                     $hideReprocesoPreOrden = ($esReproceso && !$tienePreOrden) ? '' : 'display: none;';
-                                                                    $hideEditMail = ($tienePreOrden && (!$todasClasesProcesadas || $isCalidadAlerted)) ? '' : 'display: none;';
+                                                                    $hideEditPreOrden = $tienePreOrden ? '' : 'display: none;';
+                                                                    $hideSendEmail = $tienePreOrden ? '' : 'display: none;';
 
                                                                     $clasesFisicamenteConfirmadas = [];
                                                                     $liberacionesFisicas = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
@@ -2147,7 +2151,7 @@
                                                                                 <button class="btn-modelo btn-modelo-edit"
                                                                                     onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
                                                                                     title="Editar información de la preorden existente"
-                                                                                    style="{{ $hideEditMail }}">
+                                                                                    style="{{ $hideEditPreOrden }}">
                                                                                     <img src="{{ asset('images/editar-informacion.png') }}"
                                                                                         alt="Editar">
                                                                                     <span>Editar Pre-orden</span>
@@ -2155,7 +2159,7 @@
                                                                                 <button class="btn-modelo btn-modelo-email"
                                                                                     onclick="abrirModalEnviarPreOrden('{{ $targetReg->ot }}', 'modelo', {{ $clasesParaEnvioJson }})"
                                                                                     title="{{ $esReproceso ? 'Enviar alerta a Calidad para iniciar revisión de re-proceso' : 'Enviar pre-orden por correo electrónico' }}"
-                                                                                    style="{{ $hideEditMail }}">
+                                                                                    style="{{ $hideSendEmail }}">
                                                                                     <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
                                                                                     <span>{{ $esReproceso ? 'Enviar Alerta' : 'Enviar Correo' }}</span>
                                                                                 </button>
@@ -2179,9 +2183,47 @@
                                                                         && in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'calidad_parcial']);
                                                                 @endphp
 
-                                                                @if ($castingEmailSent && count($aprobados) === 0)
+                                                                @if (count($aprobados) > 0)
+                                                                    @php
+                                                                    /** @var \App\Models\FundicionHistory $reg */
+                                                                    $castingPre = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->where('pdf_filename', 'LIKE', '%Casting%')->first();
+                                                                    $hasCastingPre = (bool) $castingPre;
+
+                                                                    // Validar si todas las clases aprobadas tienen una pre-orden de casting enviada
+                                                                    $todosCastingProcesados = count($aprobados) > 0;
+                                                                    /** @var \Illuminate\Database\Eloquent\Collection<\App\Models\PreOrdenFundicion> $castingSent */
+                                                                    $castingSent = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->where('pdf_filename', 'LIKE', '%Casting%')->where('is_sent', true)->get();
+                                                                    $clasesCastingProcesadas = [];
+                                                                    foreach ($castingSent as $po) {
+                                                                        $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
+                                                                        if (is_array($filas)) {
+                                                                            foreach ($filas as $f) {
+                                                                                if (!empty($f['clase'] ?? $f['clase_nombre'])) {
+                                                                                    $clasesCastingProcesadas[] = strtolower($f['clase'] ?? $f['clase_nombre']);
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    foreach ($aprobados as $clActiva) {
+                                                                        $procesada = false;
+                                                                        foreach ($clasesCastingProcesadas as $cp) {
+                                                                            if (strpos($cp, strtolower($clActiva)) !== false || strpos(strtolower($clActiva), $cp) !== false) {
+                                                                                $procesada = true;
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                        if (!$procesada) {
+                                                                            $todosCastingProcesados = false;
+                                                                            break;
+                                                                        }
+                                                                    }
+
+                                                                    $isCalidadAlerted = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'aprobado', 'rechazado', 'mixto', 'parcial']);
+                                                                    $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado');
+                                                                    $aprobCardDisabled = '';
+                                                                    @endphp
                                                                     <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}"
-                                                                        style="margin-top: 15px; opacity: 0.9; pointer-events: none; border: 2px solid #16a34a;">
+                                                                        style="margin-top: 15px; {{ $aprobCardDisabled }}">
                                                                         <div class="lib-calidad-card-header"
                                                                             style="background: linear-gradient(135deg, #16a34a, #15803d); border-bottom: 2px solid rgba(22, 163, 74, 0.5);">
                                                                             <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
@@ -2189,7 +2231,7 @@
                                                                             <div style="overflow:hidden;">
                                                                                 <span class="lib-calidad-card-title" style="color: #ffffff;">Control de
                                                                                     Modelos
-                                                                                    &mdash; Almacén</span>
+                                                                                    &mdash; Almacén (Aprobados)</span>
                                                                                 <span class="lib-calidad-card-ot"
                                                                                     style="color: #d1fae5;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                             </div>
@@ -2197,18 +2239,66 @@
                                                                         <div class="lib-calidad-card-body">
                                                                             <div class="lib-calidad-action-row">
                                                                                 <h4 class="lib-calidad-card-prompt">
-                                                                                    <span
-                                                                                        style="color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                                                                                        <img src="{{ asset('images/ready.png') }}"
-                                                                                            style="width: 22px; height: 22px; vertical-align: middle;"
-                                                                                            alt="Listo">
-                                                                                        Proceso de pre-orden finalizado correctamente. El correo ha sido
-                                                                                        enviado
-                                                                                        al proveedor. Favor de esperar nuevas instrucciones.
-                                                                                    </span>
+                                                                                    @if ($castingEmailSent)
+                                                                                        <span
+                                                                                            style="color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                                                                                            <img src="{{ asset('images/ready.png') }}"
+                                                                                                style="width: 20px; height: 20px; vertical-align: middle;"
+                                                                                                alt="Listo">
+                                                                                            Proceso de pre-orden finalizado correctamente. El correo ha sido
+                                                                                            enviado
+                                                                                            al proveedor. Favor de esperar nuevas instrucciones.
+                                                                                        </span>
+                                                                                    @elseif ($hasCastingPre)
+                                                                                        Pre-orden de casting generada para los modelos:
+                                                                                        <strong>{{ implode(', ', $aprobados) }}</strong>. Puedes editar los
+                                                                                        datos o
+                                                                                        enviar la pre-orden por correo.
+                                                                                    @elseif ($reg->casting_pdf_generated)
+                                                                                        Formatos LDM subidos. Procede a generar la Pre-Orden de Fabricación
+                                                                                        de
+                                                                                        Casting para los modelos:
+                                                                                        <strong>{{ implode(', ', $aprobados) }}</strong>.
+                                                                                    @else
+                                                                                        Modelos Aprobados por Calidad:
+                                                                                        <strong>{{ implode(', ', $aprobados) }}</strong>. Procede a subir
+                                                                                        los
+                                                                                        formatos F-CCL-LDM firmados para iniciar el casting.
+                                                                                    @endif
                                                                                 </h4>
                                                                                 <div class="lib-calidad-card-btns">
-                                                                                    {{-- Sin botones: el proceso está terminado --}}
+                                                                                    @if ($castingEmailSent && !$isCalidadAlerted)
+                                                                                        {{-- Controles ocultos tras finalizar el proceso --}}
+                                                                                    @elseif ($hasCastingPre)
+                                                                                        <button class="btn-modelo btn-modelo-si"
+                                                                                            onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')"
+                                                                                            style="display: flex; background-color: #15803d; color: white;">
+                                                                                            <img src="{{ asset('images/editar-informacion.png') }}"
+                                                                                                alt="Editar">
+                                                                                            <span>Editar Pre-orden</span>
+                                                                                        </button>
+                                                                                        <button class="btn-modelo btn-modelo-email"
+                                                                                            onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'casting')"
+                                                                                            style="display: flex; background-color: #033966; color: white;">
+                                                                                            <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
+                                                                                            <span>Enviar Correo</span>
+                                                                                        </button>
+                                                                                    @elseif ($reg->casting_pdf_generated)
+                                                                                        <button class="btn-modelo btn-modelo-si"
+                                                                                            onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')"
+                                                                                            style="display: flex; background-color: #15803d; color: white;">
+                                                                                            <img src="{{ asset('images/almacen.png') }}" alt="Preorden"
+                                                                                                style="width: 16px; height: 16px; filter: brightness(0) invert(1);">
+                                                                                            <span>Preorden de Casting</span>
+                                                                                        </button>
+                                                                                    @else
+                                                                                        <button class="btn-modelo btn-modelo-si"
+                                                                                            onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($aprobados) }}, [])"
+                                                                                            style="display: flex; background-color: #15803d; color: white;">
+                                                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
+                                                                                            <span>Procesar Aceptados</span>
+                                                                                        </button>
+                                                                                    @endif
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -2238,12 +2328,12 @@
                                                                             $reprocesoAprobadoPorCalidad = $latestReproceso
                                                                                 && in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'calidad_parcial']);
                                                                             if ($castingEmailSentReproceso) {
-                                                                                $rechCardDisabled = 'opacity: 0.5; pointer-events: none;';
+                                                                                $rechCardDisabled = '';
                                                                             } elseif ($ultimoRechazadoPorCalidad || $reprocesoAprobadoPorCalidad) {
 
                                                                                 $rechCardDisabled = '';
                                                                             } elseif (!$latestReproceso || $latestReproceso->pre_orden_email_sent || $latestReproceso->tiene_modelo) {
-                                                                                $rechCardDisabled = 'opacity: 0.65; pointer-events: none;';
+                                                                                $rechCardDisabled = '';
                                                                             }
                                                                         }
                                                                     @endphp
@@ -2439,7 +2529,6 @@
                                                                         </div>
                                                                     </div>
                                                                 @endif
-                                                        @endif
 
                                                     </td>
                                                 </tr>
