@@ -88,6 +88,8 @@ Route::controller(WOController::class)->group(function () {
     Route::get('/piecesInProgress/ptaCard/{otId}/{claseId}', 'getPtaCardData')->name('ptaCardData'); // AJAX endpoint para card PTA
     Route::get('/piecesInProgress/fundicionChecklist/{otId}/{className?}', 'getFundicionChecklist')->name('fundicionChecklistData'); // AJAX endpoint para checklist de fundición
     Route::get('/piecesInProgress/planeacionChecklist/{otId}', 'getPlaneacionChecklist')->name('planeacionChecklistData'); // AJAX endpoint para checklist de planeación
+    Route::get('/piecesInProgress/termicoChecklist/{otId}', 'getTermicoChecklist')->name('termicoChecklistData'); // AJAX endpoint para checklist de tratamiento termico
+    Route::get('/piecesInProgress/classesData/{otId}', 'getClassesData')->name('classesData');
     Route::post('/fundicion/updateFlag', 'markFundicionFlag')->name('fundicionUpdateFlag');
     Route::get('/piecesInProgress/priorityManager', 'showPriorityManager')->name('showPriorityManager'); // Vista panel de prioridades (perfiles 1 y 3)
     Route::post('/piecesInProgress/priorities', 'savePriorities')->name('savePriorities');               // AJAX: guardar nuevo orden de prioridades

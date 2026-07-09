@@ -29,9 +29,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const pedido    = row.dataset.pedido;
             const piezas    = row.dataset.piezas;
             const idOt      = row.dataset.idOt;
+            const composicion = row.dataset.composicion;
+            const soldadura   = row.dataset.soldadura;
 
             // ── Panel izquierdo: campos editables ──
             document.getElementById('clase-nombre').value          = nombre + ' – ' + tamanio;
+            
+            const inputComposicion = document.getElementById('input-composicion');
+            const inputSoldadura   = document.getElementById('input-soldadura');
+            inputComposicion.value = (composicion && composicion !== 'null' && composicion.trim() !== '') ? composicion : 'N/A';
+            inputSoldadura.value   = (soldadura && soldadura !== 'null' && soldadura.trim() !== '') ? soldadura : 'N/A';
             
             const inputPedido = document.getElementById('input-pedido');
             const inputPiezas = document.getElementById('input-piezas');
@@ -656,4 +663,61 @@ document.addEventListener('DOMContentLoaded', () => {
             rows[0].click();
         }
     }
+
+    // ── Lógica de Polling (Sincronización en tiempo real) ──
+    if (window.classesDataUrl && typeof otIdParaPolleo !== 'undefined') {
+        setInterval(async () => {
+            try {
+                const res = await fetch(`${window.classesDataUrl}/${otIdParaPolleo}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                
+                if (data && Array.isArray(data)) {
+                    data.forEach(updatedClass => {
+                        // Buscar la fila correspondiente
+                        const row = document.querySelector(`.fila-clase[data-id-clase="${updatedClass.id}"]`);
+                        if (row) {
+                            const currentPedido = parseInt(row.dataset.pedido);
+                            const currentPiezas = parseInt(row.dataset.piezas);
+                            
+                            // Si cambiaron los datos
+                            if (currentPedido !== updatedClass.pedido || currentPiezas !== updatedClass.piezas) {
+                                // Actualizar dataset
+                                row.dataset.pedido = updatedClass.pedido;
+                                row.dataset.piezas = updatedClass.piezas;
+                                
+                                // Actualizar texto visual (las celdas asumiendo el orden: nombre, tamaño, piezas, pedido)
+                                const cells = row.querySelectorAll('td');
+                                if (cells.length >= 4) {
+                                    cells[2].textContent = updatedClass.piezas;
+                                    cells[3].textContent = updatedClass.pedido;
+                                }
+
+                                // Si la clase está seleccionada actualmente, recalcular y actualizar panel izquierdo
+                                if (row.classList.contains('selected')) {
+                                    // Actualizar inputs si NO estamos en modo edición
+                                    const btnGuardar = document.getElementById('btn-guardar-clase');
+                                    const isEditing = btnGuardar && btnGuardar.style.display !== 'none';
+                                    
+                                    if (!isEditing) {
+                                        const inputPedido = document.getElementById('input-pedido');
+                                        const inputPiezas = document.getElementById('input-piezas');
+                                        if (inputPedido) inputPedido.value = updatedClass.pedido;
+                                        if (inputPiezas) inputPiezas.value = updatedClass.piezas;
+                                    }
+                                    
+                                    // Actualizar resúmenes (esto recalcula porcentajes y barra de progreso)
+                                    updateResumen(updatedClass.id, updatedClass.pedido, updatedClass.piezas);
+                                    updateResumenTratamiento(updatedClass.id, updatedClass.pedido, updatedClass.piezas);
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (e) {
+                // Silencioso en caso de error de red temporal
+            }
+        }, 15000); // Polling cada 15 segundos
+    }
+
 });

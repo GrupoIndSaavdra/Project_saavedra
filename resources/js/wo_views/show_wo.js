@@ -455,7 +455,7 @@ function createTableClasses(classes) {
                 case "pedido":
                     if (classArray[field] != null) {
                         let div_td = document.createElement("div");
-                        div_td.className = "div-td";
+                        div_td.className = "div-td td-" + field;
                         div_td.textContent = classArray[field];
                         button.appendChild(div_td);
                     }
@@ -1424,4 +1424,54 @@ function toggleWeldingTypeVisibility(className) {
             select.value = "";
         }
     }
+}
+
+// ── Lógica de Polling (Sincronización en tiempo real) ──
+if (window.classesDataUrl && window.workOrder && window.workOrder.id) {
+    setInterval(async () => {
+        try {
+            const res = await fetch(`${window.classesDataUrl}/${window.workOrder.id}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            
+            if (data && Array.isArray(data) && window.classes) {
+                data.forEach(updatedClass => {
+                    // Actualizar el array en memoria
+                    const classInMem = window.classes.find(c => c.id == updatedClass.id);
+                    if (classInMem) {
+                        const currentPedido = parseInt(classInMem.pedido);
+                        const currentPiezas = parseInt(classInMem.piezas);
+                        
+                        if (currentPedido !== updatedClass.pedido || currentPiezas !== updatedClass.piezas) {
+                            classInMem.pedido = updatedClass.pedido;
+                            classInMem.piezas = updatedClass.piezas;
+                            
+                            // Actualizar visualmente la tabla
+                            const btn = document.querySelector(`.btnClass[value="${updatedClass.id}"]`);
+                            if (btn) {
+                                const tdPedido = btn.querySelector('.td-pedido');
+                                const tdPiezas = btn.querySelector('.td-piezas');
+                                if (tdPedido) tdPedido.textContent = updatedClass.pedido;
+                                if (tdPiezas) tdPiezas.textContent = updatedClass.piezas;
+                            }
+                            
+                            // Actualizar los inputs si esta clase es la que está abierta actualmente y NO estamos editando
+                            const idClassInput = document.getElementById('idClass');
+                            if (idClassInput && idClassInput.value == updatedClass.id) {
+                                const isEditing = document.getElementById('btn-saveClass') != null;
+                                if (!isEditing) {
+                                    const inputOrder = document.querySelector('input[name="order"]');
+                                    const inputPieces = document.querySelector('input[name="pieces"]');
+                                    if (inputOrder) inputOrder.value = updatedClass.pedido;
+                                    if (inputPieces) inputPieces.value = updatedClass.piezas;
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        } catch (e) {
+            // Error silencioso de red
+        }
+    }, 15000);
 }

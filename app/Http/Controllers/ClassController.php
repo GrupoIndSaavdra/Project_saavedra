@@ -149,7 +149,7 @@ class ClassController extends Controller
         $class = Clase::query()->find($idClass, ['*']);
         $workOrder = Orden_trabajo::query()->find($class->id_ot, ['*']);
 
-        if (auth()->user()->perfil != 5) {
+        if (auth()->user()->perfil != 5 && $request->input('from_almacen') != 1) {
             $class->pedido = $request->input('order');
             $class->piezas = $request->input('pieces');
             $class->fecha_inicio = $request->input('start_date');
@@ -209,6 +209,10 @@ class ClassController extends Controller
             'id_ot' => $workOrder->id,
             'id_clase' => $class->id,
         ]);
+
+        if ($request->input('from_almacen') == 1) {
+            return redirect()->back()->with("success", "¡La clase {$class->nombre} se ha editado con éxito!");
+        }
 
         return redirect()->route('showWO', ['workOrder' => $request->input('workOrder')])->with("success", "¡La clase {$class->nombre} se ha editado con éxito!");
     }

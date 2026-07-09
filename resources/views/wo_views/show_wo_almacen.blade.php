@@ -58,7 +58,9 @@
                         data-nombre="{{ $clase->nombre }}"
                         data-tamanio="{{ $clase->tamanio }}"
                         data-pedido="{{ $clase->pedido }}"
-                        data-piezas="{{ $clase->piezas }}">
+                        data-piezas="{{ $clase->piezas }}"
+                        data-composicion="{{ $clase->composicion_quimica }}"
+                        data-soldadura="{{ $clase->tipo_soldadura }}">
                         <td>{{ $clase->nombre }}</td>
                         <td>{{ $clase->tamanio }}</td>
                         <td>{{ $clase->piezas }}</td>
@@ -93,9 +95,21 @@
                 <input type="hidden" name="idClass"   id="hidden-idClase">
                 <input type="hidden" name="class"     id="hidden-clase-nombre">
                 <input type="hidden" name="size"      id="hidden-clase-tamanio">
+                <input type="hidden" name="from_almacen" value="1">
                 {{-- Fechas vacías: almacén no las edita --}}
                 <input type="hidden" name="start_date" value="">
                 <input type="hidden" name="start_time" value="">
+
+                <div class="field-group">
+                    <div class="field">
+                        <label>Composición Química</label>
+                        <input type="text" id="input-composicion" disabled>
+                    </div>
+                    <div class="field">
+                        <label>Tipo de Soldadura</label>
+                        <input type="text" id="input-soldadura" disabled>
+                    </div>
+                </div>
 
                 <div class="field-group">
                     <div class="field">
@@ -516,4 +530,7 @@
     </div>
 </div>
 
+<script>
+    window.classesDataUrl = "{{ url('/piecesInProgress/classesData') }}";
+</script>
 @endsection

@@ -7,6 +7,7 @@
     //Rutas de imagenes
     window.deleteImgUrl = "{{ asset('images/delete.png') }}";
     window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";
+    window.classesDataUrl = "{{ url('/piecesInProgress/classesData') }}";
 </script>
 @vite(['resources/css/wo_views/show_wo.css', 'resources/js/wo_views/show_wo.js'])
 @endsection

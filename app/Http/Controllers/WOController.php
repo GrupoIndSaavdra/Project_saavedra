@@ -240,6 +240,7 @@ class WOController extends Controller
         $array[$class->nombre]["startDate"] = $this->getStringDate($class->fecha_inicio, $class->hora_inicio);
         $array[$class->nombre]["endDate"] = $class->fecha_termino ? $this->getStringDate($class->fecha_termino, $class->hora_termino) : "-";
         $array[$class->nombre]["entregadas"] = ParcialidadOt::query()->where('id_clase', $class->id)->sum('cantidad');
+        $array[$class->nombre]["tratadas"] = \App\Models\TratamientoTermico::query()->where('id_clase', $class->id)->sum('cantidad');
         $array[$class->nombre]["processes"] = $this->insertProcessesData($class);
 
         // Flag para indicar si la clase lleva el proceso Soldadura PTA activo.
@@ -965,6 +966,56 @@ class WOController extends Controller
             return response()->json(['error' => 'No fundicion data'], 200);
         }
         return response()->json($data);
+    }
+
+    /**
+     * AJAX: devuelve el checklist de Tratamiento Térmico actualizado para una OT.
+     * GET /piecesInProgress/termicoChecklist/{otId}
+     */
+    public function getTermicoChecklist(string $otId)
+    {
+        $otIdClean = explode('_', $otId)[0];
+        $ot = Orden_trabajo::with('clases')->find($otIdClean);
+        if (!$ot) {
+            return response()->json([]);
+        }
+
+        $termicoData = [];
+        foreach ($ot->clases as $clase) {
+            if ($clase->finalizada == 0) {
+                $tratadas = \App\Models\TratamientoTermico::where('id_clase', $clase->id)->sum('cantidad');
+                $termicoData[$clase->nombre] = [
+                    'tratadas' => (int) $tratadas,
+                    'pieces' => (int) $clase->piezas
+                ];
+            }
+        }
+
+        return response()->json($termicoData);
+    }
+
+    /**
+     * AJAX: devuelve los datos básicos de las clases de una OT (pedido, piezas).
+     * GET /piecesInProgress/classesData/{otId}
+     */
+    public function getClassesData(string $otId)
+    {
+        $otIdClean = explode('_', $otId)[0];
+        $ot = Orden_trabajo::with('clases')->find($otIdClean);
+        if (!$ot) {
+            return response()->json([]);
+        }
+
+        $classesData = [];
+        foreach ($ot->clases as $clase) {
+            $classesData[] = [
+                'id' => $clase->id,
+                'pedido' => (int) $clase->pedido,
+                'piezas' => (int) $clase->piezas
+            ];
+        }
+
+        return response()->json($classesData);
     }
 
     /**

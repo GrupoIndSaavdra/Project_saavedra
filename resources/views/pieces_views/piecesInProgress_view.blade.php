@@ -43,6 +43,7 @@
         window.fundicionChecklist    = @json($fundicionChecklist ?? []);
         window.fundicionChecklistUrl = "{{ url('/piecesInProgress/fundicionChecklist') }}";
         window.planeacionChecklistUrl = "{{ url('/piecesInProgress/planeacionChecklist') }}";
+        window.termicoChecklistUrl = "{{ url('/piecesInProgress/termicoChecklist') }}";
 
         {{-- Timeout elevado a 120s: el polling de las cards cubre actualizaciones frecuentes --}}
         setTimeout(() => {

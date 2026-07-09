@@ -975,6 +975,112 @@ class PlaneacionChecklistCard {
     }
 }
 
+class TermicoChecklistCard {
+    constructor(otId, className, initialData, container) {
+        this.otId = otId;
+        this.className = className;
+        this.container = container;
+        this.tPieces = initialData.pieces || 0;
+        this.tTratadas = initialData.tratadas || 0;
+        this._build();
+        this._poll();
+        this._pollTimer = setInterval(() => this._poll(), 30_000);
+    }
+
+    _build() {
+        this.root = document.createElement('div');
+        this.root.style.flex = '0.7 1 0%';
+        this.root.style.minWidth = '250px';
+        this.root.style.cursor = 'pointer';
+        
+        this._renderContent();
+        
+        this.container.appendChild(this.root);
+
+        this.root.addEventListener('click', () => {
+            const tItems = this.root.querySelector('.checklist-items');
+            if (tItems) {
+                if (tItems.style.display === 'none') {
+                    tItems.style.display = '';
+                    this.root.classList.remove('is-closed');
+                } else {
+                    tItems.style.display = 'none';
+                    this.root.classList.add('is-closed');
+                }
+            }
+        });
+    }
+
+    _renderContent() {
+        const isTermicoComplete = (this.tPieces > 0 && this.tTratadas >= this.tPieces);
+        
+        // Mantener estado abierto/cerrado si se está re-renderizando
+        const tItems = this.root.querySelector('.checklist-items');
+        const displayStyle = tItems ? tItems.style.display : 'none';
+        const isClosedClass = tItems ? (this.root.classList.contains('is-closed') ? 'is-closed' : '') : 'is-closed';
+
+        this.root.className = isTermicoComplete 
+            ? `fundicion-checklist-card card-state-completado ${isClosedClass}` 
+            : `fundicion-checklist-card card-state-incompleto ${isClosedClass}`;
+
+        const baseUrl = window.baseUrl || (window.location.origin + '/');
+        const slash = baseUrl.endsWith('/') ? '' : '/';
+        const iconUrl = isTermicoComplete ? `${baseUrl}${slash}images/Aprobado.png` : `${baseUrl}${slash}images/Espera.png`;
+        const badgeClass = isTermicoComplete ? 'badge--completado' : 'badge--pendiente';
+        const badgeText = isTermicoComplete ? 'COMPLETADO' : 'PENDIENTE';
+        const iconStateClass = isTermicoComplete ? 'checklist-item--completado' : 'checklist-item--pendiente';
+
+        this.root.innerHTML = `
+            <div class="checklist-header">
+                <span class="checklist-title">Tratamiento Térmico</span>
+            </div>
+            <div class="checklist-items" style="padding-top: 15px; display: ${displayStyle};">
+                <div class="checklist-item ${iconStateClass}" title="Piezas en tratamiento térmico" style="cursor: help;">
+                    <div class="checklist-icon-col">
+                        <span class="checklist-icon">
+                            <img src="${iconUrl}" alt="${badgeText.toLowerCase()}" class="checklist-state-icon">
+                        </span>
+                    </div>
+                    <div class="checklist-content-col">
+                        <span class="checklist-label">Piezas en tratamiento: ${this.tTratadas} / ${this.tPieces}</span>
+                    </div>
+                    <div class="checklist-action-col">
+                        <span class="checklist-status-badge ${badgeClass}">${badgeText}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    async _poll() {
+        if (!this.root || !this.root.isConnected) {
+            this._destroy();
+            return;
+        }
+        try {
+            const res = await fetch(`${window.termicoChecklistUrl}/${this.otId}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data && !data.error && data[this.className]) {
+                const newData = data[this.className];
+                if (this.tTratadas !== newData.tratadas || this.tPieces !== newData.pieces) {
+                    this.tTratadas = newData.tratadas;
+                    this.tPieces = newData.pieces;
+                    this._renderContent();
+                }
+            }
+        } catch (_) { }
+    }
+
+    _destroy() {
+        clearInterval(this._pollTimer);
+        this._pollTimer = null;
+        if (this.root && this.root.isConnected) {
+            this.root.remove();
+        }
+    }
+}
+
 class Dashboard {
     constructor(wOrderArray) {
         this.wOrderArray = wOrderArray;
@@ -1097,47 +1203,13 @@ class Dashboard {
                             checklistWrapper.appendChild(emptyCard);
                         }
 
-                    // Card 2: Tratamiento Térmico (Referencia)
-                    const termicoCard = document.createElement('div');
-                    termicoCard.className = 'fundicion-checklist-card card-state-incompleto';
-                    termicoCard.style.flex = '0.7 1 0%';
-                    termicoCard.style.minWidth = '250px';
-                    const baseUrl = window.baseUrl || (window.location.origin + '/');
-                    const slash = baseUrl.endsWith('/') ? '' : '/';
-                    const iconUrl = `${baseUrl}${slash}images/Espera.png`;
-                    termicoCard.innerHTML = `
-                        <div class="checklist-header">
-                            <span class="checklist-title">Tratamiento Térmico</span>
-                        </div>
-                        <div class="checklist-items" style="padding-top: 15px; display: none;">
-                            <div class="checklist-item checklist-item--pendiente" title="Piezas en tratamiento térmico" style="cursor: help;">
-                                <div class="checklist-icon-col">
-                                    <span class="checklist-icon">
-                                        <img src="${iconUrl}" alt="pendiente" class="checklist-state-icon">
-                                    </span>
-                                </div>
-                                <div class="checklist-content-col">
-                                    <span class="checklist-label">Piezas en tratamiento: 0 / ${classArray["pieces"]}</span>
-                                </div>
-                                <div class="checklist-action-col">
-                                    <span class="checklist-status-badge badge--pendiente">PENDIENTE</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    const tItems = termicoCard.querySelector('.checklist-items');
-                    termicoCard.classList.add('is-closed');
-                    termicoCard.style.cursor = 'pointer';
-                    termicoCard.addEventListener('click', () => {
-                        if (tItems.style.display === 'none') {
-                            tItems.style.display = '';
-                            termicoCard.classList.remove('is-closed');
-                        } else {
-                            tItems.style.display = 'none';
-                            termicoCard.classList.add('is-closed');
-                        }
-                    });
-                    checklistWrapper.appendChild(termicoCard);
+                    // Card 2: Tratamiento Térmico (Reactiva)
+                    const termicoCard = new TermicoChecklistCard(
+                        wOrderName,
+                        className,
+                        { pieces: classArray["pieces"] || 0, tratadas: classArray["tratadas"] || 0 },
+                        checklistWrapper
+                    );
 
                     // Card 3: Planeación (Reactiva)
                     const planeacionCard = new PlaneacionChecklistCard(
