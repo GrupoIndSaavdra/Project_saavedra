@@ -1512,7 +1512,7 @@
                                                                         <h3 style="margin-top: 15px; margin-bottom: 10px; color: {{ $group['color'] }}; border-bottom: 2px solid {{ $group['color'] }}; padding-bottom: 5px;">
                                                                             {{ $group['titulo'] }}
                                                                         </h3>
-                                                                        <div class="alm-pdf-grid">
+                                                                        <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
                                                                             @foreach ($group['archivos'] as $archivoInfo)
                                                                                 @php
                                                                                     $tipoCls = $archivoInfo['tipo'] === 'ayuda' ? 'card-ayuda' : '';
@@ -2155,63 +2155,35 @@
 
                                                                     <div class="lib-calidad-card" id="control-almacen-rechazados-{{ md5($reg->ot) }}"
                                                                         style="margin-top: 15px; {{ $rechCardDisabled }}">
-                                                                        @if ($reprocesoAprobadoPorCalidad)
-                                                                            <div class="lib-calidad-card-header"
-                                                                                style="background: linear-gradient(135deg, #16a34a, #15803d); border-bottom: 2px solid rgba(22, 163, 74, 0.5);">
-                                                                                <img src="{{ asset('images/Reproceso.png') }}" alt="Reproceso"
-                                                                                    style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
-                                                                                <div style="overflow:hidden;">
-                                                                                    <span class="lib-calidad-card-title" style="color: #ffffff;">Control de
-                                                                                        Modelos
-                                                                                        &mdash; Almacén (<span
-                                                                                            style="color: #ff0000; font-weight: 800;">Re-Proceso</span>)</span>
-                                                                                    <span class="lib-calidad-card-ot"
-                                                                                        style="color: #d1fae5;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
-                                                                                </div>
+                                                                        <div class="lib-calidad-card-header"
+                                                                            style="background: linear-gradient(135deg, #dc2626, #b91c1c); border-bottom: 2px solid rgba(220, 38, 38, 0.5);">
+                                                                            <img src="{{ asset('images/Reproceso.png') }}" alt="Reproceso"
+                                                                                style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
+                                                                            <div style="overflow:hidden;">
+                                                                                <span class="lib-calidad-card-title" style="color: #ffffff;">Control de
+                                                                                    Modelos
+                                                                                    &mdash; Almacén (Rechazados)</span>
+                                                                                <span class="lib-calidad-card-ot"
+                                                                                    style="color: #fee2e2;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                             </div>
-                                                                        @else
-                                                                            <div class="lib-calidad-card-header"
-                                                                                style="background: linear-gradient(135deg, #dc2626, #b91c1c); border-bottom: 2px solid rgba(220, 38, 38, 0.5);">
-                                                                                <img src="{{ asset('images/Reproceso.png') }}" alt="Reproceso"
-                                                                                    style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
-                                                                                <div style="overflow:hidden;">
-                                                                                    <span class="lib-calidad-card-title" style="color: #ffffff;">Control de
-                                                                                        Modelos
-                                                                                        &mdash; Almacén (Rechazados)</span>
-                                                                                    <span class="lib-calidad-card-ot"
-                                                                                        style="color: #fee2e2;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
-                                                                                </div>
-                                                                            </div>
-                                                                        @endif
+                                                                        </div>
                                                                         <div class="lib-calidad-card-body">
                                                                             <div class="lib-calidad-action-row">
                                                                                 <h4 class="lib-calidad-card-prompt">
                                                                                     @if ($reg->rechazos_procesados)
-                                                                                        @if ($reprocesoAprobadoPorCalidad && $latestReproceso)
-                                                                                            <span
-                                                                                                style="color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                                                                                                <img src="{{ asset('images/Aprobado.png') }}"
-                                                                                                    style="width: 20px; height: 20px; vertical-align: middle;"
-                                                                                                    alt="Aprobado">
-                                                                                                ¡Re-proceso
-                                                                                                <strong>{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $latestReproceso->ot) }}</strong>
-                                                                                                aprobado por Calidad! Los modelos:
-                                                                                                <strong>{{ implode(', ', $rechazados) }}</strong> han sido
-                                                                                                liberados.
-                                                                                                Procede a subir los formatos F-CCL-LDM firmados para iniciar el
-                                                                                                casting.
-                                                                                            </span>
-                                                                                        @elseif ($ultimoRechazadoPorCalidad && $latestReproceso)
-                                                                                            Modelos Rechazados por Calidad para la OT de re-proceso
-                                                                                            <strong>{{ $latestReproceso->ot }}</strong>:
-                                                                                            <strong>{{ implode(', ', $rechazados) }}</strong>. Procede a subir
-                                                                                            el
-                                                                                            Formato de Rechazo y el SCAR correspondiente.
-                                                                                        @elseif ($latestReproceso)
-                                                                                            <span style="color: #111827; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                                                                                                <img src="{{ asset('images/Reproceso.png') }}" style="width: 20px; height: 20px; filter: brightness(0);" alt="Info">
-                                                                                                Se está trabajando el reproceso de la <strong style="color: #dc2626;">{{ $reg->ot }}</strong> en la nueva OT <strong style="color: #16a34a;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $latestReproceso->ot) }}</strong>. Por favor diríjase para esa OT presionando el botón.
-                                                                                            </span>
+                                                                                        @if ($latestReproceso)
+                                                                                            <div style="background: linear-gradient(to right, #f8fafc, #f1f5f9); border-left: 4px solid #0284c7; padding: 14px 18px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); margin-bottom: 5px; display: inline-block;">
+                                                                                                <span style="color: #1e293b; font-weight: 600; display: inline-flex; align-items: center; gap: 12px; font-size: 1.05rem;">
+                                                                                                    <span style="display: flex; align-items: center; justify-content: center; background: #e0f2fe; width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;">
+                                                                                                        <img src="{{ asset('images/redireccionar.png') }}" style="width: 22px; height: 22px; filter: invert(36%) sepia(87%) saturate(1514%) hue-rotate(176deg) brightness(94%) contrast(101%);" alt="Info">
+                                                                                                    </span>
+                                                                                                    <span style="line-height: 1.45;">
+                                                                                                        El reproceso de la <strong style="color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 4px; font-weight: 800;">{{ $reg->ot }}</strong> 
+                                                                                                        se está trabajando en la nueva OT <strong style="color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 4px; font-weight: 800;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $latestReproceso->ot) }}</strong>.<br>
+                                                                                                        <span style="font-size: 0.9rem; color: #64748b; font-weight: 500;">Presiona el botón para redirigirte a la nueva Orden de Trabajo.</span>
+                                                                                                    </span>
+                                                                                                </span>
+                                                                                            </div>
                                                                                         @else
                                                                                             Formatos de rechazo y SCAR subidos para los modelos:
                                                                                             <strong>{{ implode(', ', $rechazados) }}</strong>. Nueva pre-orden
@@ -2227,66 +2199,15 @@
                                                                                 </h4>
                                                                                 <div class="lib-calidad-card-btns">
                                                                                     @if ($reg->rechazos_procesados)
-                                                                                        @if ($reprocesoAprobadoPorCalidad && $latestReproceso)
-                                                                                            @php
-                                                                                                /** @var \App\Models\FundicionHistory $latestReproceso */
-                                                                                                $latestAprobados = \App\Models\LiberacionModeloFundicion::where('ot', $latestReproceso->ot)
-                                                                                                    ->where('estado', '!=', 'pendiente')
-                                                                                                    ->where('decision', 'aprobar')
-                                                                                                    ->pluck('tipo_modelo')
-                                                                                                    ->toArray();
-                                                                                                $castingPreReproceso = \App\Models\PreOrdenFundicion::where('ot', $latestReproceso->ot)
-                                                                                                    ->where('pdf_filename', 'LIKE', '%Casting%')
-                                                                                                    ->first();
-                                                                                                $hasCastingPreReproceso = (bool) $castingPreReproceso;
-                                                                                                $castingEmailSentReproceso = ($latestReproceso->calidad_revision_status === 'casting_aprobado');
-                                                                                            @endphp
-                                                                                            @if ($castingEmailSentReproceso)
-
-                                                                                            @elseif ($hasCastingPreReproceso)
-                                                                                                <button class="btn-modelo btn-modelo-si"
-                                                                                                    onclick="abrirModalPreOrdenCasting('{{ $latestReproceso->ot }}')"
-                                                                                                    style="display: flex; background-color: #15803d; color: white;">
-                                                                                                    <img src="{{ asset('images/editar-informacion.png') }}"
-                                                                                                        alt="Editar">
-                                                                                                    <span>Editar Pre-orden</span>
-                                                                                                </button>
-                                                                                                <button class="btn-modelo btn-modelo-email"
-                                                                                                    onclick="abrirModalEnviarPreOrden('{{ $latestReproceso->ot }}', 'casting')"
-                                                                                                    style="display: flex; background-color: #033966; color: white;">
-                                                                                                    <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
-                                                                                                    <span>Enviar Correo</span>
-                                                                                                </button>
-                                                                                            @elseif ($latestReproceso->casting_pdf_generated)
-                                                                                                <button class="btn-modelo btn-modelo-si"
-                                                                                                    onclick="abrirModalPreOrdenCasting('{{ $latestReproceso->ot }}')"
-                                                                                                    style="display: flex; background-color: #15803d; color: white;">
-                                                                                                    <img src="{{ asset('images/almacen.png') }}" alt="Preorden"
-                                                                                                        style="width: 16px; height: 16px; filter: brightness(0) invert(1);">
-                                                                                                    <span>Preorden de Casting</span>
-                                                                                                </button>
-                                                                                            @else
-                                                                                                <button class="btn-modelo btn-modelo-si"
-                                                                                                    onclick="abrirModalGestionVeredicto('{{ $latestReproceso->ot }}', {{ json_encode($latestAprobados ?: $rechazados) }}, [])"
-                                                                                                    style="display: flex; background-color: #15803d; color: white;">
-                                                                                                    <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado">
-                                                                                                    <span>Procesar Aceptados</span>
-                                                                                                </button>
-                                                                                            @endif
-                                                                                        @elseif ($ultimoRechazadoPorCalidad && $latestReproceso)
-                                                                                            <button class="btn-modelo btn-modelo-no"
-                                                                                                onclick="abrirModalGestionVeredicto('{{ $latestReproceso->ot }}', [], {{ json_encode($rechazados) }})"
-                                                                                                style="display: flex; background-color: #b91c1c; color: white;">
-                                                                                                <img src="{{ asset('images/Rechazado.png') }}" alt="No">
-                                                                                                <span>Procesar Rechazados</span>
-                                                                                            </button>
-                                                                                        @elseif ($latestReproceso)
+                                                                                        @if ($latestReproceso)
                                                                                             <button class="btn-modelo btn-modelo-si"
                                                                                                 onclick="const row = document.querySelector('tr[data-ot=\'{{ $latestReproceso->ot }}\']'); if(row) { row.scrollIntoView({behavior: 'smooth', block: 'center'}); row.animate([{ backgroundColor: '#86efac' }, { backgroundColor: 'transparent' }], { duration: 800, iterations: 3 }); } else { alert('La OT de reproceso se encuentra en otra página o filtro.'); }"
-                                                                                                style="display: flex; background-color: #0284c7; color: white; padding: 12px 30px; font-size: 1.15em; align-items: center; justify-content: center; min-height: 50px; border-radius: 8px; gap: 8px;"
+                                                                                                style="display: flex; background: linear-gradient(135deg, #0284c7, #0369a1); color: white; padding: 12px 35px; font-size: 1.15em; align-items: center; justify-content: center; min-height: 52px; border-radius: 10px; gap: 10px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35); border: none; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;"
+                                                                                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(2, 132, 199, 0.45)';"
+                                                                                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(2, 132, 199, 0.35)';"
                                                                                                 title="Ir a la OT de re-proceso">
                                                                                                 <img src="{{ asset('images/redireccionar.png') }}" alt="Ir" style="width: 24px; height: 24px; filter: brightness(0) invert(1);">
-                                                                                                <span style="font-weight: 700;">Ir</span>
+                                                                                                <span style="font-weight: 700; letter-spacing: 0.5px;">Ir a la Nueva OT</span>
                                                                                             </button>
                                                                                         @else
                                                                                             <button class="btn-modelo btn-modelo-no"
