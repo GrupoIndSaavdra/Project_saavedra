@@ -813,10 +813,10 @@
                                                                     }
                                                                     if ($matchesRejected) {
                                                                         if (!in_array($base, $baseNames)) {
-                                                                            $rechazadosAyudas[] = [
+                                                                            $rechazadosOtros[] = [
                                                                                 'nombre' => $relativePath,
-                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
-                                                                                'tipo' => 'ayuda',
+                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'otro']),
+                                                                                'tipo' => 'otro',
                                                                                 'ot' => $otName,
                                                                             ];
                                                                             $baseNames[] = $base;
@@ -907,10 +907,10 @@
                                                                     }
                                                                     if ($matchesRejected) {
                                                                         if (!in_array($base, $baseNames)) {
-                                                                            $rechazadosAyudas[] = [
+                                                                            $rechazadosOtros[] = [
                                                                                 'nombre' => $relativePath,
-                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
-                                                                                'tipo' => 'ayuda',
+                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'otro']),
+                                                                                'tipo' => 'otro',
                                                                                 'ot' => $otName,
                                                                             ];
                                                                             $baseNames[] = $base;
@@ -976,10 +976,10 @@
                                                                     }
                                                                     if ($matchesRejected) {
                                                                         if (!in_array($base, $baseNames)) {
-                                                                            $rechazadosAyudas[] = [
+                                                                            $rechazadosOtros[] = [
                                                                                 'nombre' => $relativePath,
-                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
-                                                                                'tipo' => 'ayuda',
+                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'otro']),
+                                                                                'tipo' => 'otro',
                                                                                 'ot' => $otName,
                                                                             ];
                                                                             $baseNames[] = $base;
@@ -1038,10 +1038,10 @@
                                                                     }
                                                                     if ($matchesRejected) {
                                                                         if (!in_array($base, $baseNames)) {
-                                                                            $rechazadosAyudas[] = [
+                                                                            $rechazadosOtros[] = [
                                                                                 'nombre' => $relativePath,
-                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
-                                                                                'tipo' => 'ayuda',
+                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'otro']),
+                                                                                'tipo' => 'otro',
                                                                                 'ot' => $otName,
                                                                             ];
                                                                             $baseNames[] = $base;
@@ -1247,9 +1247,9 @@
                                                 $otrosRechazados = $archivosRechazados;
 
                                                 $countAprobados = count($otrosAprobados) + count($dibujosAprobados) + count($ayudasAprobados);
-                                                // Include the arrays that come from Rechazos_Almacen ($rechazadosDibujos, $rechazadosAyudas)
+                                                // Include the arrays that come from Rechazos_Almacen ($rechazadosDibujos, $rechazadosAyudas, $rechazadosOtros)
                                                 // instead of $dibujosRechazados / $ayudasRechazados which are empty.
-                                                $countRechazados = count($archivosRechazados) + count($rechazadosDibujos) + count($rechazadosAyudas);
+                                                $countRechazados = count($archivosRechazados) + count($rechazadosDibujos) + count($rechazadosAyudas) + count($rechazadosOtros);
                                                 $countPendientes = count($dibujosPendientes) + count($ayudasPendientes);
 
                                                 $isReprocesoBadge = (bool) preg_match('/_R\d+$/i', $reg->ot);
@@ -1538,7 +1538,7 @@
                                                                     <h3 style="margin-top: 25px; margin-bottom: 10px; color: {{ $group['color'] }}; border-bottom: 2px solid {{ $group['color'] }}; padding-bottom: 5px;">
                                                                         {{ $group['titulo'] }}
                                                                     </h3>
-                                                                    <div class="alm-pdf-grid">
+                                                                    <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
                                                                         @foreach ($group['archivos'] as $otroArchivo)
                                                                             @php
                                                                                 $canDelete = false;
@@ -1613,7 +1613,6 @@
                                                             // Aquí solo AGREGAMOS los archivos de la carpeta Documentos_Rechazados
                                                             // clasificándolos por nombre — igual que el patrón de Calidad.
                                                             // NO sobreescribimos: usamos los arrays del scan como base.
-                                                            $rechazadosOtros = [];
 
                                                             foreach ($archivosRechazados as $rArchivo) {
                                                                 $nameLow = strtolower($rArchivo['nombre']);
@@ -1802,7 +1801,7 @@
 
                                                                     // Nunca deshabilitamos la tarjeta entera para que el usuario siempre pueda interactuar
                                                                     $controlDisabled = '';
-                                                                    $hideControlCard = ''; // Siempre mostrar la tarjeta principal de controles
+                                                                    $hideControlCard = $hasVerdictosPendientes ? 'display: none;' : ''; // Siempre mostrar la tarjeta principal de controles
                                                                     $hideTengoModelo = $esReproceso ? 'display: none;' : '';
                                                                     $hideGenerarFormato = ($esReproceso || $tienePreOrden) ? 'display: none;' : '';
                                                                     $hideReprocesoPreOrden = ($esReproceso && !$tienePreOrden) ? '' : 'display: none;';
@@ -1967,7 +1966,7 @@
                                                                     $aprobados = $liberaciones->where('decision', 'aprobar')->pluck('tipo_modelo')->unique()->values()->toArray();
                                                                     $rechazados = $liberaciones->where('decision', 'rechazar')->pluck('tipo_modelo')->unique()->values()->toArray();
                                                                     
-                                                                    $isCalidadAlerted = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'aprobado', 'rechazado', 'mixto', 'parcial']);
+                                                                    $isCalidadAlerted = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'aprobado', 'rechazado', 'mixto', 'parcial', 'casting_aprobado']);
                                                                     $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado');
 
                                                                     // Detectar si el último reproceso fue aprobado por Calidad.
@@ -2061,7 +2060,7 @@
                                                                                     @endif
                                                                                 </h4>
                                                                                 <div class="lib-calidad-card-btns">
-                                                                                    @if ($castingEmailSent && !$isCalidadAlerted)
+                                                                                    @if ($castingEmailSent)
                                                                                         {{-- Controles ocultos tras finalizar el proceso --}}
                                                                                     @elseif ($hasCastingPre)
                                                                                         <button class="btn-modelo btn-modelo-si"
@@ -2100,7 +2099,7 @@
                                                                 @endif
 
                                                                 {{-- Card 2: Rejected models --}}
-                                                                @if (count($rechazados) > 0 && !$reg->rechazos_procesados && $isCalidadAlerted)
+                                                                @if (count($rechazados) > 0 && $isCalidadAlerted)
                                                                     @php
                                                                         $latestReproceso = null;
                                                                         /** @var \App\Models\FundicionHistory $reg */
@@ -2187,21 +2186,10 @@
                                                                                             el
                                                                                             Formato de Rechazo y el SCAR correspondiente.
                                                                                         @elseif ($latestReproceso)
-                                                                                            @if ($latestReproceso->pre_orden_email_sent)
-                                                                                                Alerta enviada a Calidad para la OT de re-proceso
-                                                                                                <strong>{{ $latestReproceso->ot }}</strong>. En espera de su
-                                                                                                revisión.
-                                                                                            @elseif ($latestReproceso->pre_orden_sent)
-                                                                                                Pre-orden de re-proceso lista para
-                                                                                                <strong>{{ $latestReproceso->ot }}</strong>. Puedes editar los datos
-                                                                                                o
-                                                                                                enviar la alerta a Calidad para iniciar la revisión.
-                                                                                            @else
-                                                                                                OT en re-proceso por rechazo de Calidad
-                                                                                                (<strong>{{ $latestReproceso->ot }}</strong>). Genera o edita la
-                                                                                                pre-orden
-                                                                                                de modelo para iniciar el nuevo ciclo.
-                                                                                            @endif
+                                                                                            <span style="color: #111827; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                                                                                                <img src="{{ asset('images/Reproceso.png') }}" style="width: 20px; height: 20px; filter: brightness(0);" alt="Info">
+                                                                                                Se está trabajando el reproceso de la <strong style="color: #dc2626;">{{ $reg->ot }}</strong> en la nueva OT <strong style="color: #16a34a;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $latestReproceso->ot) }}</strong>. Por favor diríjase para esa OT presionando el botón.
+                                                                                            </span>
                                                                                         @else
                                                                                             Formatos de rechazo y SCAR subidos para los modelos:
                                                                                             <strong>{{ implode(', ', $rechazados) }}</strong>. Nueva pre-orden
@@ -2271,37 +2259,12 @@
                                                                                                 <span>Procesar Rechazados</span>
                                                                                             </button>
                                                                                         @elseif ($latestReproceso)
-                                                                                            @php
-                                                                                                $hideReprocesoPreOrden = (!$latestReproceso->pre_orden_sent && !$latestReproceso->pre_orden_email_sent) ? '' : 'display: none;';
-                                                                                                $hideEditMail = ($latestReproceso->pre_orden_sent && !$latestReproceso->pre_orden_email_sent) ? '' : 'display: none;';
-
-                                                                                                // VALIDACIÓN ESTRICTA: SCAR Obligatorio
-                                                                                                $scarExists = \App\Models\ScarModelo::where('ot', preg_replace('/_R\d+$/i', '', $latestReproceso->ot))->orWhere('ot', $latestReproceso->ot)->exists();
-                                                                                                $scarDisabledAttr = (!$scarExists) ? 'disabled style="opacity: 0.5; cursor: not-allowed; ' . $hideReprocesoPreOrden . '" title="Requisito faltante: SCAR firmado y Formato de Rechazo"' : 'style="' . $hideReprocesoPreOrden . '" title="Generar / editar la pre-orden de fabricación de modelo"';
-                                                                                            @endphp
-                                                                                            {{-- Botón inicial para re-proceso: generar pre-orden --}}
-                                                                                            <button class="btn-modelo btn-modelo-no"
-                                                                                                onclick="abrirModalPreOrden('{{ $latestReproceso->ot }}')"
-                                                                                                {!! $scarDisabledAttr !!}>
-                                                                                                <img src="{{ asset('images/pdf.png') }}" alt="Pre-Orden">
-                                                                                                <span>Pre-Orden de Modelo</span>
-                                                                                            </button>
-
-                                                                                            {{-- Editar + Enviar Alerta (cuando pre-orden ya existe) --}}
-                                                                                            <button class="btn-modelo btn-modelo-edit"
-                                                                                                onclick="abrirModalPreOrden('{{ $latestReproceso->ot }}')"
-                                                                                                title="Editar información de la preorden existente"
-                                                                                                style="{{ $hideEditMail }}">
-                                                                                                <img src="{{ asset('images/editar-informacion.png') }}"
-                                                                                                    alt="Editar">
-                                                                                                <span>Editar Pre-orden</span>
-                                                                                            </button>
-                                                                                            <button class="btn-modelo btn-modelo-email"
-                                                                                                onclick="abrirModalEnviarPreOrden('{{ $latestReproceso->ot }}', 'modelo')"
-                                                                                                title="Enviar alerta a Calidad para iniciar revisión de re-proceso"
-                                                                                                style="{{ $hideEditMail }}">
-                                                                                                <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
-                                                                                                <span>Enviar Alerta</span>
+                                                                                            <button class="btn-modelo btn-modelo-si"
+                                                                                                onclick="const row = document.querySelector('tr[data-ot=\'{{ $latestReproceso->ot }}\']'); if(row) { row.scrollIntoView({behavior: 'smooth', block: 'center'}); row.animate([{ backgroundColor: '#86efac' }, { backgroundColor: 'transparent' }], { duration: 800, iterations: 3 }); } else { alert('La OT de reproceso se encuentra en otra página o filtro.'); }"
+                                                                                                style="display: flex; background-color: #0284c7; color: white; padding: 12px 30px; font-size: 1.15em; align-items: center; justify-content: center; min-height: 50px; border-radius: 8px; gap: 8px;"
+                                                                                                title="Ir a la OT de re-proceso">
+                                                                                                <img src="{{ asset('images/redireccionar.png') }}" alt="Ir" style="width: 24px; height: 24px; filter: brightness(0) invert(1);">
+                                                                                                <span style="font-weight: 700;">Ir</span>
                                                                                             </button>
                                                                                         @else
                                                                                             <button class="btn-modelo btn-modelo-no"
@@ -2948,6 +2911,30 @@
             revisando: "{{ asset('images/Revisando.png') }}",
             espera: "{{ asset('images/Espera.png') }}",
         };
+
+        // DOM Rearrangement for Control Cards to match corresponding document sections
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.alm-files-row').forEach(row => {
+                const tbody = row.querySelector('td');
+                if (!tbody) return;
+                
+                const aprobadosCard = tbody.querySelector('[id^="control-almacen-aprobados-"]');
+                const mainCard = tbody.querySelector('[id^="control-modelo-"]');
+                
+                if (aprobadosCard) {
+                    // Find the Rechazados section title
+                    const h3Rechazados = Array.from(tbody.querySelectorAll('h3')).find(el => el.textContent.includes('Rechazados') || el.textContent.includes('Rechazadas'));
+                    
+                    if (h3Rechazados) {
+                        // Insert immediately before the Rechazados section
+                        tbody.insertBefore(aprobadosCard, h3Rechazados);
+                    } else if (mainCard) {
+                        // If no Rechazados section exists, insert before the main card (so it stays immediately below Aprobados grids)
+                        tbody.insertBefore(aprobadosCard, mainCard);
+                    }
+                }
+            });
+        });
     </script>
 
 @endsection
