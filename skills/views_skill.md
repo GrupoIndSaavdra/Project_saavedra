@@ -1,5 +1,9 @@
 # 👁️ Guía de Vistas Blade (Views Skill) - Máximo Nivel
 
+> **📁 Directorio de Referencia:** `resources/views/`
+> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+
+
 `Project_saavedra` usa Blade como motor de renderizado. Las vistas deben ser ligeras, modulares y seguras. 
 
 ## 1. Directivas de Seguridad (CSRF y Method Spoofing)
@@ -153,3 +157,70 @@ En lugar de forzar scripts globales, si un componente o vista parcial requiere C
 ## 9. Seguridad XSS: Escapar `{{ }}` vs Renderizar `{!! !!}`
 - **Siempre usa double curly braces `{{ $variable }}`:** Esto escapa automáticamente etiquetas HTML/JS previniendo inyección maliciosa (XSS).
 - **Evita a toda costa `{!! $variable !!}`:** Esto renderiza HTML crudo y es una brecha de seguridad grave a menos que el contenido haya sido sanitizado previamente y sea 100% confiable.
+
+## 10. Separación y Renderizado Condicional de Archivos (Categorización)
+Cuando se listan archivos (ej. en Calidad o Almacén) que deben separarse visualmente en contenedores diferentes basados en un estado (ej. Aprobados vs Rechazados), NUNCA lo dejes a la suerte dentro del render HTML iterativo ni asumas estados de arreglos combinados.
+
+1. **Pre-procesamiento en arrays estrictos:** Al leer y agrupar la información, define y llena arreglos específicos separados ANTES del `@foreach` en el HTML.
+```php
+@php
+    $rechazadosDibujos = [];
+    $rechazadosAyudas = [];
+    $rechazadosOtros = [];
+    
+    foreach ($archivos as $archivo) {
+        // ... Lógica para verificar rechazo de LA CLASE ACTUAL
+        if ($matchesRejected) {
+            if ($tipo === 'dibujo') $rechazadosDibujos[] = $archivo;
+            elseif ($tipo === 'ayuda') $rechazadosAyudas[] = $archivo;
+            continue; // CRÍTICO: Prevenir que el archivo caiga en arreglos aprobados
+        }
+        // ... Lógica de aprobados
+    }
+@endphp
+```
+
+2. **Renderizado en Grillas Modulares:** Evalúa el contenido usando `count()` de manera independiente. Si usas estilos de fondo para resaltar estatus (ej. contenedor rojo para rechazados `#fef2f2`), aplica el estilo de fondo sobre el contenedor principal (`div.alm-pdf-grid`), NO en cada tarjeta individual.
+
+```blade
+@if (count($rechazadosDibujos) > 0)
+    <h3 style="color: #9c0300;">Dibujos Rechazados</h3>
+    {{-- Fondo de estatus en el contenedor padre --}}
+    <div class="alm-pdf-grid" style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
+        @foreach ($rechazadosDibujos as $dibujo)
+            @include('partials.file_card', ['file' => $dibujo, 'status' => 'rechazado'])
+        @endforeach
+    </div>
+@endif
+```
+
+---
+
+## 11. Estructura de Vistas del Proyecto (Referencia Rápida)
+Las vistas están organizadas por módulo. Nunca mezcles CSS de diferentes módulos:
+
+| Carpeta en `resources/views/` | Descripción |
+|---|---|
+| `almacen/` | Vistas de Almacén Fundición (recepción, liberación, reprocesos) |
+| `calidad/` | Vistas de Calidad Fundición (revisión, SCARs, liberación de modelos) |
+| `wo_views/` | Vistas de Órdenes de Trabajo (listado, detalle, maquinado) |
+| `pdf/` | Plantillas exclusivas para generación PDF con DomPDF |
+| `layouts/` | Layout base `appMenu.blade.php` del que extienden todas las vistas |
+| `emails/` | Plantillas de correo enviadas vía Mailables de Laravel |
+| `pta_views/` | Vistas del flujo PTA (Procedimiento de Trabajo Autorizado) |
+| `processes_views/` | Vistas por proceso de maquinado (cepillado, rectificado, etc.) |
+
+### CSS y JS por Módulo
+Cada módulo tiene su propio archivo CSS y JS en `resources/css/` y `resources/js/`:
+- **Almacén Fundición:** `almacen_views/almacen_fundicion.css` + `almacen_views/almacen_fundicion.js`
+- **Calidad Fundición:** `calidad_views/calidad_fundicion.css` + `calidad_views/calidad_fundicion.js`
+- **Liberación:** `almacen_views/lib_liberacion.css`
+
+Siempre cárgalos con `@vite` en el `@section('head')` de la vista:
+```blade
+@section('head')
+    <title>Almacén Fundición</title>
+    @vite(['resources/css/almacen_views/almacen_fundicion.css',
+           'resources/js/almacen_views/almacen_fundicion.js'])
+@endsection
+```

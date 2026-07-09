@@ -1,0 +1,18 @@
+# Reglas Globales de Ejecución y Solución de Errores
+
+## 1. Prioridad de Búsqueda de Soluciones (Skills)
+**Regla Crítica:** Siempre que te enfrentes a un error (ej. `Undefined array key`, `syntax error`, `ParseError`), una excepción en el código, o necesites implementar o modificar una funcionalidad existente, **ANTES de sugerir o aplicar una solución por tu cuenta**, debes realizar lo siguiente:
+
+1. **Buscar en la carpeta `skills/`**: Revisa los archivos `.md` dentro de la carpeta `C:\Users\Jaxer020406\Documents\GitHub\Project_saavedra\skills` (ej. `error_logging_skill.md`, `logic_skill.md`, `views_skill.md`, etc.).
+2. **Aplicar la solución más efectiva**: Si encuentras un patrón de solución o una recomendación aplicable en la carpeta de *skills*, prioriza esa solución para optimizar recursos y mantener la consistencia del proyecto, aunque no sea la forma más rápida a corto plazo. Sé directo y aplica el patrón enseñado ahí.
+3. **Alternativa**: Solo en caso de que la carpeta de `skills/` no contenga información o guías para resolver el error específico, procede a utilizar tu propio conocimiento para deducir y aplicar la solución más robusta y efectiva.
+
+## 2. Creación, Evolución y Depuración Continua de Skills
+El repositorio de conocimientos debe mantenerse vivo y útil para acelerar la velocidad de desarrollo en iteraciones futuras.
+
+1. **Documentar lo Nuevo:** Cada vez que te enfrentes a un problema nuevo, diseñes un patrón arquitectónico nuevo, o apliques una solución repetible que te haya costado deducir en el proyecto, **tienes la obligación de agregarla a una skill existente o crear un nuevo archivo de skill (`.md`) dentro de la carpeta `skills/`.**
+2. **Depuración de Conocimiento Obsoleto:** Si al revisar o aplicar las `skills/` notas que hay reglas, patrones o comandos documentados que **ya no aplican** (debido a actualizaciones, refactorizaciones o cambios en la arquitectura), debes de forma proactiva **depurar, actualizar o eliminar** ese contenido obsoleto. Esto mantendrá nuestro conocimiento alineado 100% a la versión actual de Project Saavedra.
+
+## 3. Optimización de Recursos y Comunicación
+- **Sé directo:** Evita explicaciones extensas y redundantes si la solución se basa en una *skill* ya conocida. Aplícala directamente.
+- **Enfoque a largo plazo:** Prioriza soluciones que sean mantenibles y efectivas (basadas en las *skills*) en lugar de simples parches rápidos que puedan romper otras cosas o no seguir los estándares del proyecto.

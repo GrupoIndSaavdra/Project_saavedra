@@ -1,5 +1,9 @@
 # 🛡️ Guía de Validación y Sanitización de Datos (Validation Skill)
 
+> **📁 Directorio de Referencia:** `app/Http/Requests/ y Validaciones en Controladores`
+> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+
+
 La integridad de los datos en `Project_saavedra` es prioritaria. Ningún dato provisto por el usuario debe insertarse en la base de datos sin ser debidamente validado y sanitizado.
 
 ---
@@ -106,3 +110,36 @@ Laravel y Eloquent nos protegen automáticamente contra inyección SQL si usamos
    ```php
    $bote->peso_kg = (float) $request->peso_kg;
    ```
+
+---
+
+## 5. Validaciones Frecuentes en el Proyecto (Referencia Real)
+Estas son validaciones reales que se hacen en el sistema:
+
+### Validación de OT y Sanitización del Nombre
+En Almacén y Calidad, el nombre de la OT se sanitiza para usarse como nombre de directorio en el servidor:
+```php
+// Patrón real en AlmacenFundicionController y CalidadFundicionController
+$otNameSanitized = preg_replace('/[^a-zA-Z0-9_\-\. ]/', '_', $otName);
+// Jamás almacenes la OT sin sanitizar en el path del disco
+$storagePath = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/';
+```
+
+### Validación de Estado de OT en Blade (antes de renderizar controles)
+```php
+@php
+    // Validar si el usuario puede eliminar archivos basándose en su perfil y el estado de la OT
+    $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
+    $canDelete = false;
+    if (in_array(auth()->user()->perfil, [1, 2])) $canDelete = true;
+    elseif (auth()->user()->perfil == 5 && $fileOwner === 'almacen' && !$alertSent) $canDelete = true;
+    elseif (auth()->user()->perfil == 4 && $fileOwner === 'calidad') $canDelete = true;
+@endphp
+```
+
+### Validación de Extensión de Archivo en Subida
+```php
+$request->validate([
+    'archivo' => 'required|file|mimes:pdf,jpg,jpeg,png,gif,webp|max:20480',
+]);
+```

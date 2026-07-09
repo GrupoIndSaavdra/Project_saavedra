@@ -1,5 +1,9 @@
 # 🔍 Guía de Generación y Lectura de Códigos QR (QR Codes Skill)
 
+> **📁 Directorio de Referencia:** `Generación y vistas de QR en todo el proyecto`
+> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+
+
 Los códigos QR son el medio principal para el rastreo físico de materiales en planta (como soldaduras, lotes y botes). Su correcta generación y lectura previenen fallos operativos.
 
 ---
@@ -120,4 +124,31 @@ Dado que los operadores en planta usan lectores de mano rápidos:
         qrInput.focus();
     });
 </script>
+```
+
+---
+
+## 5. Controladores QR del Proyecto (Referencia Real)
+
+| Controlador | Descripción |
+|---|---|
+| `GenerarQRIndividualController.php` | Genera QR para una pieza individual |
+| `GenerarQRLoteController.php` | Genera QRs en lote para múltiples piezas |
+| `GenerarQRSoldaduraController.php` | Genera QRs para botes de soldadura |
+| `RegenerarQRController.php` | Regenera QRs inválidos o perdidos |
+| `LiberarQRPlantaController.php` | Flujo de liberación escaneando QR en planta |
+
+### Modelo `QrGenerado` — Estructura
+```php
+// En app/Models/QrGenerado.php
+// Campos: id, matricula, lote_id, numero_bote, qr_data (JSON), created_at, updated_at
+$qr = QrGenerado::where('matricula', $matricula)->first();
+$qrData = json_decode($qr->qr_data, true);
+```
+
+### Ruta de Renderizado QR (Vista en Blade)
+```blade
+{{-- Mostrar QR en una vista Blade (NO en PDF con domPDF si es externo) --}}
+<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&format=svg&data={{ urlencode($qrJson) }}"
+     alt="QR" style="width: 150px; height: 150px;">
 ```

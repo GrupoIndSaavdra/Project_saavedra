@@ -420,6 +420,21 @@
                                                 $allRelatedOtNames = $relatedRecords->pluck('ot')->toArray();
                                                 $allOtNames = $allRelatedOtNames;
 
+                                                $isReprocesoOT = preg_match('/_R\d+$/i', $reg->ot);
+                                                $baseOtOfReg = preg_replace('/_R\d+$/i', '', $reg->ot);
+                                                preg_match('/_R(\d+)$/i', $reg->ot, $mReg);
+                                                $sReg = isset($mReg[1]) ? (int)$mReg[1] : 0;
+
+                                                $allowFileCrossOt = function($fileOt) use ($reg, $isReprocesoOT, $baseOtOfReg, $sReg) {
+                                                    if ($fileOt === $reg->ot) return true;
+                                                    if (!$isReprocesoOT) return false;
+                                                    $baseOtOfFile = preg_replace('/_R\d+$/i', '', $fileOt);
+                                                    if ($baseOtOfFile !== $baseOtOfReg) return false;
+                                                    preg_match('/_R(\d+)$/i', $fileOt, $mFile);
+                                                    $sFile = isset($mFile[1]) ? (int)$mFile[1] : 0;
+                                                    return $sFile < $sReg;
+                                                };
+
                                                 // Obtener clases activas para filtrar archivos del historial
                                                 $activeClassesForOt = [];
                                                 $confSource = $targetReg->ayudas_config ?? ($reg->ayudas_config ?? null);
@@ -469,47 +484,72 @@
                                                 /** @var \App\Models\FundicionHistory $reg */
                                                 $isReproceso = preg_match('/_R\d+$/i', $reg->ot);
                                                 if ($isReproceso) {
-                                                    $prevOt = preg_replace_callback('/_R(\d+)$/i', function($m) {
-                                                        $num = intval($m[1]) - 1;
-                                                        return $num > 0 ? '_R' . $num : '';
-                                                    }, $reg->ot);
-
-                                                    $rechazados = \App\Models\LiberacionModeloFundicion::where('ot', '=', $prevOt)
-                                                        ->where('decision', '=', 'rechazar')
+                                                    // Para reprocesos: usar TODAS las clases con decisión en la OT ACTUAL
+                                                    // (tanto aprobadas como rechazadas), para que los archivos de todas
+                                                    // las clases evaluadas aparezcan en el scan del filesystem.
+                                                    $classesInCurrentOtRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
+                                                        ->where('decision', '!=', 'pendiente')
                                                         ->pluck('tipo_modelo')
                                                         ->toArray();
-
-                                                    $validClasses = [];
-                                                    foreach ($rechazados as $r) {
-                                                        $clases = array_map('trim', explode(',', strtolower($r)));
-                                                        foreach ($clases as $c) {
-                                                            $validClasses[] = $c;
+                                                    
+                                                    $parsedCurrent = [];
+                                                    foreach ($classesInCurrentOtRaw as $dc) {
+                                                        $parts = explode(',', strtolower($dc));
+                                                        foreach ($parts as $p) {
+                                                            $p = trim($p);
+                                                            if ($p !== '') $parsedCurrent[] = $p;
                                                         }
                                                     }
-                                                    if (!empty($validClasses)) {
-                                                        $activeClassesForOt = $validClasses;
+
+                                                    if (!empty($parsedCurrent)) {
+                                                        // Usar las clases de la OT actual (aprobadas + rechazadas)
+                                                        $activeClassesForOt = array_unique($parsedCurrent);
+                                                    } else {
+                                                        // Fallback: si la OT actual aún no tiene decisiones, mostrar las
+                                                        // rechazadas de la OT anterior (las que se están re-procesando)
+                                                        $prevOt = preg_replace_callback('/_R(\d+)$/i', function($m) {
+                                                            $num = intval($m[1]) - 1;
+                                                            return $num > 0 ? '_R' . $num : '';
+                                                        }, $reg->ot);
+                                                        $rejectedPrevRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $prevOt)
+                                                            ->where('decision', '=', 'rechazar')
+                                                            ->pluck('tipo_modelo')
+                                                            ->toArray();
+                                                        
+                                                        $parsedPrev = [];
+                                                        foreach ($rejectedPrevRaw as $dc) {
+                                                            $parts = explode(',', strtolower($dc));
+                                                            foreach ($parts as $p) {
+                                                                $p = trim($p);
+                                                                if ($p !== '') $parsedPrev[] = $p;
+                                                            }
+                                                        }
+                                                        if (!empty($parsedPrev)) {
+                                                            $activeClassesForOt = array_unique($parsedPrev);
+                                                        }
                                                     }
                                                 } else {
                                                     /** @var \App\Models\FundicionHistory $reg */
                                                     $hasLiberaciones = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)->exists();
                                                     if ($hasLiberaciones) {
-                                                        $aprobados = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
+                                                        $decidedClassesRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
                                                             ->where('decision', '!=', 'pendiente')
                                                             ->pluck('tipo_modelo')
                                                             ->toArray();
-
-                                                        $validClasses = [];
-                                                        foreach ($aprobados as $a) {
-                                                            $clases = array_map('trim', explode(',', strtolower($a)));
-                                                            foreach ($clases as $c) {
-                                                                $validClasses[] = $c;
+                                                        
+                                                        $parsedDecided = [];
+                                                        foreach ($decidedClassesRaw as $dc) {
+                                                            $parts = explode(',', strtolower($dc));
+                                                            foreach ($parts as $p) {
+                                                                $p = trim($p);
+                                                                if ($p !== '') $parsedDecided[] = $p;
                                                             }
                                                         }
-                                                        if (!empty($validClasses)) {
-                                                            $activeClassesForOt = $validClasses;
-                                                        } else {
-                                                            $activeClassesForOt = [];
+
+                                                        if (!empty($parsedDecided)) {
+                                                            $activeClassesForOt = array_unique($parsedDecided);
                                                         }
+                                                        // Si está vacío (solo pendientes), conservamos el activeClassesForOt poblado previamente (fallback normal)
                                                     }
                                                 }
 
@@ -518,6 +558,26 @@
                                                 }
                                                 $activeClassesForOt = array_values(array_unique($activeClassesForOt));
 
+                                                // Para reprocesos, las decisiones de rechazo están en la OT anterior (_R0, _R1, ...)
+                                                // Para OTs base, están en la misma OT.
+                                                $otParaRechazados = $reg->ot;
+                                                if (preg_match('/_R\d+$/i', $reg->ot)) {
+                                                    $otParaRechazados = preg_replace_callback('/_R(\d+)$/i', function($m) {
+                                                        $num = intval($m[1]) - 1;
+                                                        return $num > 0 ? '_R' . $num : '';
+                                                    }, $reg->ot);
+                                                }
+                                                $clasesRechazadas = \App\Models\LiberacionModeloFundicion::where('ot', $otParaRechazados)
+                                                    ->where('decision', 'rechazar')
+                                                    ->pluck('tipo_modelo')
+                                                    ->map(function ($modelo) {
+                                                        return strtolower(trim($modelo));
+                                                    })
+                                                    ->toArray();
+
+                                                $rechazadosDibujos = [];
+                                                $rechazadosAyudas = [];
+                                                $rechazadosOtros = [];
                                                 $archivos = [];
                                                 $dibujoBaseNames = [];
                                                 foreach ($relatedRecords as $relRec) {
@@ -538,16 +598,35 @@
                                                         }
                                                         if ($hasKnownClass) {
                                                             $matchesActive = false;
+                                                            $matchesRejected = false;
                                                             foreach ($activeClassesForOt as $ac) {
                                                                 if (strpos($fileLower, $ac) !== false) {
                                                                     $matchesActive = true;
                                                                     break;
                                                                 }
                                                             }
+                                                            foreach ($clasesRechazadas as $rc) {
+                                                                if (strpos($fileLower, $rc) !== false) {
+                                                                    $matchesRejected = true;
+                                                                    break;
+                                                                }
+                                                            }
+                                                            if ($matchesRejected) {
+                                                                if (!in_array($base, $dibujoBaseNames)) {
+                                                                    $rechazadosDibujos[] = [
+                                                                        'nombre' => $archivo,
+                                                                        'ot' => $relRec->ot,
+                                                                        'tipo' => 'dibujo',
+                                                                        'origin' => 'dibujo',
+                                                                    ];
+                                                                    $dibujoBaseNames[] = $base;
+                                                                }
+                                                                continue;
+                                                            }
                                                             if (!$matchesActive)
                                                                 continue;
                                                         } else {
-                                                            if ($relRec->ot !== $reg->ot) {
+                                                            if (!$allowFileCrossOt($relRec->ot)) {
                                                                 continue;
                                                             }
                                                         }
@@ -631,16 +710,35 @@
                                                                 }
                                                                 if ($hasKnownClass) {
                                                                     $matchesActive = false;
+                                                                    $matchesRejected = false;
                                                                     foreach ($activeClassesForOt as $ac) {
                                                                         if (strpos($fileLower, $ac) !== false) {
                                                                             $matchesActive = true;
                                                                             break;
                                                                         }
                                                                     }
+                                                                    foreach ($clasesRechazadas as $rc) {
+                                                                        if (strpos($fileLower, $rc) !== false) {
+                                                                            $matchesRejected = true;
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                    if ($matchesRejected) {
+                                                                        if (!in_array($base, $baseNames)) {
+                                                                            $rechazadosAyudas[] = [
+                                                                                'nombre' => $relativePath,
+                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
+                                                                                'tipo' => 'ayuda',
+                                                                                'ot' => $otName,
+                                                                            ];
+                                                                            $baseNames[] = $base;
+                                                                        }
+                                                                        continue;
+                                                                    }
                                                                     if (!$matchesActive)
                                                                         continue;
                                                                 } else {
-                                                                    if ($otName !== $reg->ot) {
+                                                                    if (!$allowFileCrossOt($otName)) {
                                                                         continue;
                                                                     }
                                                                 }
@@ -699,17 +797,36 @@
                                                                 }
                                                             }
                                                             if ($hasKnownClass) {
-                                                                $matchesActive = false;
-                                                                foreach ($activeClassesForOt as $ac) {
-                                                                    if (strpos($fileLower, $ac) !== false) {
-                                                                        $matchesActive = true;
-                                                                        break;
+                                                                    $matchesActive = false;
+                                                                    $matchesRejected = false;
+                                                                    foreach ($activeClassesForOt as $ac) {
+                                                                        if (strpos($fileLower, $ac) !== false) {
+                                                                            $matchesActive = true;
+                                                                            break;
+                                                                        }
                                                                     }
-                                                                }
-                                                                if (!$matchesActive)
-                                                                    continue;
-                                                            } else {
-                                                                if ($otName !== $reg->ot) {
+                                                                    foreach ($clasesRechazadas as $rc) {
+                                                                        if (strpos($fileLower, $rc) !== false) {
+                                                                            $matchesRejected = true;
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                    if ($matchesRejected) {
+                                                                        if (!in_array($base, $baseNames)) {
+                                                                            $rechazadosAyudas[] = [
+                                                                                'nombre' => $relativePath,
+                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
+                                                                                'tipo' => 'ayuda',
+                                                                                'ot' => $otName,
+                                                                            ];
+                                                                            $baseNames[] = $base;
+                                                                        }
+                                                                        continue;
+                                                                    }
+                                                                    if (!$matchesActive)
+                                                                        continue;
+                                                                } else {
+                                                                if (!$allowFileCrossOt($otName)) {
                                                                     continue;
                                                                 }
                                                             }
@@ -775,16 +892,35 @@
                                                                 }
                                                                 if ($hasKnownClass) {
                                                                     $matchesActive = false;
+                                                                    $matchesRejected = false;
                                                                     foreach ($activeClassesForOt as $ac) {
                                                                         if (strpos($fileLower, $ac) !== false) {
                                                                             $matchesActive = true;
                                                                             break;
                                                                         }
                                                                     }
+                                                                    foreach ($clasesRechazadas as $rc) {
+                                                                        if (strpos($fileLower, $rc) !== false) {
+                                                                            $matchesRejected = true;
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                    if ($matchesRejected) {
+                                                                        if (!in_array($base, $baseNames)) {
+                                                                            $rechazadosAyudas[] = [
+                                                                                'nombre' => $relativePath,
+                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
+                                                                                'tipo' => 'ayuda',
+                                                                                'ot' => $otName,
+                                                                            ];
+                                                                            $baseNames[] = $base;
+                                                                        }
+                                                                        continue;
+                                                                    }
                                                                     if (!$matchesActive)
                                                                         continue;
                                                                 } else {
-                                                                    if ($otName !== $reg->ot) {
+                                                                    if (!$allowFileCrossOt($otName)) {
                                                                         continue;
                                                                     }
                                                                 }
@@ -824,17 +960,36 @@
                                                                 }
                                                             }
                                                             if ($hasKnownClass) {
-                                                                $matchesActive = false;
-                                                                foreach ($activeClassesForOt as $ac) {
-                                                                    if (strpos($fileLower, $ac) !== false) {
-                                                                        $matchesActive = true;
-                                                                        break;
+                                                                    $matchesActive = false;
+                                                                    $matchesRejected = false;
+                                                                    foreach ($activeClassesForOt as $ac) {
+                                                                        if (strpos($fileLower, $ac) !== false) {
+                                                                            $matchesActive = true;
+                                                                            break;
+                                                                        }
                                                                     }
-                                                                }
-                                                                if (!$matchesActive)
-                                                                    continue;
-                                                            } else {
-                                                                if ($otName !== $reg->ot) {
+                                                                    foreach ($clasesRechazadas as $rc) {
+                                                                        if (strpos($fileLower, $rc) !== false) {
+                                                                            $matchesRejected = true;
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                    if ($matchesRejected) {
+                                                                        if (!in_array($base, $baseNames)) {
+                                                                            $rechazadosAyudas[] = [
+                                                                                'nombre' => $relativePath,
+                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
+                                                                                'tipo' => 'ayuda',
+                                                                                'ot' => $otName,
+                                                                            ];
+                                                                            $baseNames[] = $base;
+                                                                        }
+                                                                        continue;
+                                                                    }
+                                                                    if (!$matchesActive)
+                                                                        continue;
+                                                                } else {
+                                                                if (!$allowFileCrossOt($otName)) {
                                                                     continue;
                                                                 }
                                                             }
@@ -867,17 +1022,36 @@
                                                                 }
                                                             }
                                                             if ($hasKnownClass) {
-                                                                $matchesActive = false;
-                                                                foreach ($activeClassesForOt as $ac) {
-                                                                    if (strpos($fileLower, $ac) !== false) {
-                                                                        $matchesActive = true;
-                                                                        break;
+                                                                    $matchesActive = false;
+                                                                    $matchesRejected = false;
+                                                                    foreach ($activeClassesForOt as $ac) {
+                                                                        if (strpos($fileLower, $ac) !== false) {
+                                                                            $matchesActive = true;
+                                                                            break;
+                                                                        }
                                                                     }
-                                                                }
-                                                                if (!$matchesActive)
-                                                                    continue;
-                                                            } else {
-                                                                if ($otName !== $reg->ot) {
+                                                                    foreach ($clasesRechazadas as $rc) {
+                                                                        if (strpos($fileLower, $rc) !== false) {
+                                                                            $matchesRejected = true;
+                                                                            break;
+                                                                        }
+                                                                    }
+                                                                    if ($matchesRejected) {
+                                                                        if (!in_array($base, $baseNames)) {
+                                                                            $rechazadosAyudas[] = [
+                                                                                'nombre' => $relativePath,
+                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
+                                                                                'tipo' => 'ayuda',
+                                                                                'ot' => $otName,
+                                                                            ];
+                                                                            $baseNames[] = $base;
+                                                                        }
+                                                                        continue;
+                                                                    }
+                                                                    if (!$matchesActive)
+                                                                        continue;
+                                                                } else {
+                                                                if (!$allowFileCrossOt($otName)) {
                                                                     continue;
                                                                 }
                                                             }
@@ -972,7 +1146,6 @@
 
                                                 $countAyudas = count($ayudasArchivos);
                                                 $countOtros = count($otrosArchivos);
-                                                $count = $countDibujos + $countAyudas + $countOtros;
 
                                                 // ── CALCULAR APROBADOS Y RECHAZADOS DEL ÚLTIMO VEREDICTO DE CADA CLASE ──
                                                 // (Calculado ANTES de showControlCard para poder usarlos en la lógica de visibilidad)
@@ -1013,23 +1186,6 @@
                                                 $rechazados = array_values(array_filter($rechazadosRaw, function ($clase) use ($activeClassesForOt) {
                                                     return in_array(strtolower($clase), $activeClassesForOt);
                                                 }));
-
-                                                // ── CONTROL DE VISIBILIDAD DE LA CARD DE ALMACÉN ──
-                                                // La card se muestra siempre que:
-                                                //  (a) Calidad haya enviado al menos una alerta (hay aprobados o rechazados en BD), O
-                                                //  (b) El status aún no ha sido procesado completamente
-                                                // Importante: NO ocultar aunque el status sea 'calidad_aprobado' o similar,
-                                                // porque pueden llegar nuevas alertas parciales o re-envíos.
-                                                $hasVerdictosPendientes = count($aprobados) > 0 || count($rechazados) > 0;
-                                                $isFinalized = ($targetReg->calidad_revision_status === 'casting_aprobado') && !$hasVerdictosPendientes;
-                                                // Si hay clases que calidad marcó pero no han sido gestionadas por almacén, desbloquear la card
-                                                if ($hasVerdictosPendientes) {
-                                                    $isFinalized = false;
-                                                }
-                                                $showControlCard = (Auth::user()->perfil != 4 && $estado === 'activa' && !$isFinalized);
-                                                $hasFilesOrControl = ($count > 0 || $showControlCard);
-
-
 
                                                 $dibujosAprobados = [];
                                                 $dibujosRechazados = [];
@@ -1086,6 +1242,34 @@
                                                         $ayudasPendientes[] = $ayuda;
                                                     }
                                                 }
+
+                                                $otrosAprobados = $archivosAprobados;
+                                                $otrosRechazados = $archivosRechazados;
+
+                                                $countAprobados = count($otrosAprobados) + count($dibujosAprobados) + count($ayudasAprobados);
+                                                $countRechazados = count($otrosRechazados) + count($dibujosRechazados) + count($ayudasRechazados);
+                                                $countPendientes = count($dibujosPendientes) + count($ayudasPendientes);
+
+                                                $isReprocesoBadge = (bool) preg_match('/_R\d+$/i', $reg->ot);
+                                                $count = $countAprobados + $countPendientes;
+                                                if ($isReprocesoBadge) {
+                                                    $count += $countRechazados;
+                                                }
+
+                                                // ── CONTROL DE VISIBILIDAD DE LA CARD DE ALMACÉN ──
+                                                // La card se muestra siempre que:
+                                                //  (a) Calidad haya enviado al menos una alerta (hay aprobados o rechazados en BD), O
+                                                //  (b) El status aún no ha sido procesado completamente
+                                                // Importante: NO ocultar aunque el status sea 'calidad_aprobado' o similar,
+                                                // porque pueden llegar nuevas alertas parciales o re-envíos.
+                                                $hasVerdictosPendientes = count($aprobados) > 0 || count($rechazados) > 0;
+                                                $isFinalized = ($targetReg->calidad_revision_status === 'casting_aprobado') && !$hasVerdictosPendientes;
+                                                // Si hay clases que calidad marcó pero no han sido gestionadas por almacén, desbloquear la card
+                                                if ($hasVerdictosPendientes) {
+                                                    $isFinalized = false;
+                                                }
+                                                $showControlCard = (Auth::user()->perfil != 4 && $estado === 'activa' && !$isFinalized);
+                                                $hasFilesOrControl = ($count > 0 || $showControlCard);
 
                                                 $libStatus = $targetReg->calidad_revision_status ?? null;
                                                 $fsmState = 'recibido';
@@ -1296,15 +1480,6 @@
                                                 <tr class="alm-files-row" id="files-{{ $estado }}-{{ $loop->index }}">
                                                     <td colspan="6">
 
-                                                        @php
-                                                            $otrosAprobados = $archivosAprobados;
-                                                            $otrosRechazados = $archivosRechazados;
-
-                                                            $countAprobados = count($otrosAprobados) + count($dibujosAprobados) + count($ayudasAprobados);
-                                                            $countRechazados = count($otrosRechazados) + count($dibujosRechazados) + count($ayudasRechazados);
-                                                            $countPendientes = count($dibujosPendientes) + count($ayudasPendientes);
-                                                        @endphp
-
                                                         @if ($countPendientes > 0)
                                                             @if ($reg->alert_sent_at)
                                                                 @php
@@ -1318,7 +1493,7 @@
                                                                         <h3 style="margin-top: 15px; margin-bottom: 10px; color: {{ $group['color'] }}; border-bottom: 2px solid {{ $group['color'] }}; padding-bottom: 5px;">
                                                                             {{ $group['titulo'] }}
                                                                         </h3>
-                                                                        <div class="alm-pdf-grid">
+                                                                        <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
                                                                             @foreach ($group['archivos'] as $archivoInfo)
                                                                                 @php
                                                                                     $tipoCls = $archivoInfo['tipo'] === 'ayuda' ? 'card-ayuda' : '';
@@ -1360,7 +1535,7 @@
                                                                     <h3 style="margin-top: 25px; margin-bottom: 10px; color: {{ $group['color'] }}; border-bottom: 2px solid {{ $group['color'] }}; padding-bottom: 5px;">
                                                                         {{ $group['titulo'] }}
                                                                     </h3>
-                                                                    <div class="alm-pdf-grid">
+                                                                    <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
                                                                         @foreach ($group['archivos'] as $otroArchivo)
                                                                             @php
                                                                                 $canDelete = false;
@@ -1423,6 +1598,7 @@
                                                                 @endforeach
                                                             </div>
                                                         @endif
+                                                    @endforeach
 
                                                                 @if (count($aprobados) > 0)
                                                                     @php
@@ -1547,11 +1723,38 @@
                                                                 @endif
 
 
-                                                        @if ($countRechazados > 0)
+                                                        @php
+                                                            // $rechazadosDibujos y $rechazadosAyudas ya fueron poblados durante el
+                                                            // scan del filesystem (clases rechazadas detectadas por nombre de archivo).
+                                                            // Aquí solo AGREGAMOS los archivos de la carpeta Documentos_Rechazados
+                                                            // clasificándolos por nombre — igual que el patrón de Calidad.
+                                                            // NO sobreescribimos: usamos los arrays del scan como base.
+                                                            $rechazadosOtros = [];
+
+                                                            foreach ($archivosRechazados as $rArchivo) {
+                                                                $nameLow = strtolower($rArchivo['nombre']);
+                                                                $ext     = pathinfo($nameLow, PATHINFO_EXTENSION);
+                                                                $isImg   = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+
+                                                                $rArchivo['ot']   = $rArchivo['ot'] ?? $reg->ot;
+                                                                $rArchivo['tipo'] = $rArchivo['tipo'] ?? ($isImg ? 'imagen' : 'otro');
+
+                                                                if (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
+                                                                    if ($rArchivo['tipo'] === 'otro') $rArchivo['tipo'] = 'ayuda';
+                                                                    $rechazadosAyudas[] = $rArchivo;
+                                                                } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
+                                                                    $rechazadosDibujos[] = $rArchivo;
+                                                                } else {
+                                                                    $rechazadosOtros[] = $rArchivo;
+                                                                }
+                                                            }
+                                                        @endphp
+
+                                                        @if (count($rechazadosDibujos) > 0 && preg_match('/_R\d+$/i', $reg->ot))
                                                             <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
-                                                                Documentos Rechazados</h3>
-                                                            <div class="alm-pdf-grid">
-                                                                @foreach ($archivosRechazados as $otroArchivo)
+                                                                Dibujos Rechazados</h3>
+                                                            <div class="alm-pdf-grid" style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
+                                                                @foreach ($rechazadosDibujos as $otroArchivo)
                                                                     @php
                                                                         $canDelete = false;
                                                                         $fileOwner = $otroArchivo['owner'] ?? '';
@@ -1570,17 +1773,12 @@
                                                                     @endphp
                                                                     @if ($otroArchivo['tipo'] === 'imagen')
                                                                         <div class="dibujos-file-card card-otro card-imagen" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
-                                                                            <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')" style="cursor: pointer;" title="Ver imagen">
-                                                                                <img src="{{ $otroArchivo['url'] }}" class="file-icon-img-thumb" alt="{{ basename($otroArchivo['nombre']) }}" style="width:100%; height:80px; object-fit:cover; border-radius:6px; border:1px solid #fecaca;">
-                                                                            </div>
-                                                                            <div class="file-name" style="cursor: pointer;" title="Ver imagen" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
+                                                                            <img src="{{ $otroArchivo['url'] }}" alt="Evidencia">
+                                                                            <div class="file-name" style="cursor: pointer;" title="Abrir Imagen" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
                                                                             <div class="file-actions" style="display: flex; gap: 5px;">
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
-                                                                                @if ($canDelete)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
-                                                                                @endif
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
                                                                             </div>
                                                                         </div>
                                                                     @else
@@ -1594,14 +1792,150 @@
                                                                             </div>
                                                                             <div class="file-actions" style="display: flex; gap: 5px;">
                                                                             <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
-                                                                                @if ($canDelete)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
-                                                                                @endif
                                                                             </div>
                                                                         </div>
                                                                     @endif
                                                                 @endforeach
                                                             </div>
+                                                        @endif
+
+                                                        @if (count($rechazadosAyudas) > 0 && preg_match('/_R\d+$/i', $reg->ot))
+                                                            <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
+                                                                Ayudas Visuales Rechazadas</h3>
+                                                            <div class="alm-pdf-grid" style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
+                                                                @foreach ($rechazadosAyudas as $otroArchivo)
+                                                                    @php
+                                                                        $canDelete = false;
+                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
+                                                                        $userPerfil = Auth::user()->perfil;
+                                                                        $alertSent = false;
+                                                                        if ($fileOwner === 'almacen') {
+                                                                            $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
+                                                                        } elseif ($fileOwner === 'calidad') {
+                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
+                                                                        }
+                                                                        if (!$alertSent) {
+                                                                            if ($userPerfil == 1 || $userPerfil == 2) $canDelete = true;
+                                                                            elseif ($userPerfil == 5 && $fileOwner === 'almacen') $canDelete = true;
+                                                                            elseif ($userPerfil == 4 && $fileOwner === 'calidad') $canDelete = true;
+                                                                        }
+                                                                    @endphp
+                                                                    @if ($otroArchivo['tipo'] === 'imagen')
+                                                                        <div class="dibujos-file-card card-otro card-imagen" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                            <img src="{{ $otroArchivo['url'] }}" alt="Evidencia">
+                                                                            <div class="file-name" style="cursor: pointer;" title="Abrir Imagen" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                {{ basename($otroArchivo['nombre']) }}
+                                                                            </div>
+                                                                            <div class="file-actions" style="display: flex; gap: 5px;">
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    @else
+                                                                        <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                            <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')" style="cursor: pointer;" title="Abrir PDF">
+                                                                                <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                            </div>
+                                                                            <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                {{ basename($otroArchivo['nombre']) }}
+                                                                            </div>
+                                                                            <div class="file-actions" style="display: flex; gap: 5px;">
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    @endif
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+
+                                                        @if (count($rechazadosDibujos) > 0 || count($rechazadosAyudas) > 0 || count($rechazadosOtros) > 0)
+                                                            @if (count($rechazadosDibujos) > 0)
+                                                                <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
+                                                                    Dibujos Rechazados</h3>
+                                                                <div class="alm-pdf-grid" style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
+                                                                    @foreach ($rechazadosDibujos as $otroArchivo)
+                                                                        @php
+                                                                            $canDelete = false;
+                                                                        @endphp
+                                                                        <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                            <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'dibujo')" style="cursor: pointer;" title="Abrir PDF">
+                                                                                <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                            </div>
+                                                                            <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'dibujo')">
+                                                                                {{ basename($otroArchivo['nombre']) }}
+                                                                            </div>
+                                                                            <div class="file-actions" style="display: flex; gap: 5px;">
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'dibujo')">Ver</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    @endforeach
+                                                                </div>
+                                                            @endif
+
+                                                            @if (count($rechazadosAyudas) > 0)
+                                                                <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
+                                                                    Ayudas Visuales Rechazadas</h3>
+                                                                <div class="alm-pdf-grid" style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
+                                                                    @foreach ($rechazadosAyudas as $otroArchivo)
+                                                                        @php
+                                                                            $canDelete = false;
+                                                                        @endphp
+                                                                        <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                            <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')" style="cursor: pointer;" title="Abrir PDF">
+                                                                                <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                            </div>
+                                                                            <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">
+                                                                                {{ basename($otroArchivo['nombre']) }}
+                                                                            </div>
+                                                                            <div class="file-actions" style="display: flex; gap: 5px;">
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">Ver</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    @endforeach
+                                                                </div>
+                                                            @endif
+
+                                                            @if (count($rechazadosOtros) > 0)
+                                                                <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
+                                                                    Documentos Rechazados</h3>
+                                                                <div class="alm-pdf-grid" style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
+                                                                    @foreach ($rechazadosOtros as $otroArchivo)
+                                                                        @php
+                                                                            $canDelete = false;
+                                                                            $fileOwner = $otroArchivo['owner'] ?? '';
+                                                                            $userPerfil = Auth::user()->perfil;
+                                                                            $alertSent = false;
+                                                                            if ($fileOwner === 'almacen') {
+                                                                                $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
+                                                                            } elseif ($fileOwner === 'calidad') {
+                                                                                $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
+                                                                            }
+                                                                            if ($userPerfil == 1 || $userPerfil == 2) $canDelete = true;
+                                                                            elseif ($userPerfil == 5 && $fileOwner === 'almacen') $canDelete = true;
+                                                                            elseif ($userPerfil == 4 && $fileOwner === 'calidad') $canDelete = true;
+                                                                        @endphp
+                                                                        <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                            <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')" style="cursor: pointer;" title="Abrir PDF">
+                                                                                <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                            </div>
+                                                                            <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                {{ basename($otroArchivo['nombre']) }}
+                                                                            </div>
+                                                                            <div class="file-actions" style="display: flex; gap: 5px;">
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                            @if($canDelete && !$alertSent)
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar" onclick="confirmDeletePdf(this, '{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['origin'] ?? '' }}')" title="Eliminar archivo">
+                                                                                    X
+                                                                                </button>
+                                                                            @endif
+                                                                            </div>
+                                                                        </div>
+                                                                    @endforeach
+                                                                </div>
+                                                            @endif
                                                         @endif
 
 
@@ -1682,7 +2016,7 @@
 
                                                                     $isCalidadAlerted = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'aprobado', 'rechazado', 'mixto', 'parcial']);
                                                                     $controlDisabled = ($todasClasesProcesadas && !$isCalidadAlerted) ? 'opacity: 0.5; pointer-events: none;' : '';
-                                                                    $hideControlCard = $hasVerdictosPendientes ? 'display: none;' : '';
+                                                                    $hideControlCard = ''; // Siempre mostrar la tarjeta principal de controles
                                                                     $hideTengoModelo = $esReproceso ? 'display: none;' : '';
                                                                     $hideGenerarFormato = ($esReproceso || $tienePreOrden) ? 'display: none;' : '';
                                                                     $hideReprocesoPreOrden = ($esReproceso && !$tienePreOrden) ? '' : 'display: none;';
@@ -1740,7 +2074,7 @@
                                                                 <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}"
                                                                     style="{{ $controlDisabled }} {{ $hideControlCard }}">
                                                                     <div class="lib-calidad-card-header">
-                                                                        <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
+                                                                        <img src="{{ $esReproceso ? asset('images/Reproceso.png') : asset('images/almacen.png') }}" alt="Almacén"
                                                                             style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
                                                                         <div style="overflow:hidden; flex:1;">
                                                                             <span class="lib-calidad-card-title">Control de Modelos &mdash;
@@ -1914,14 +2248,12 @@
                                                                         }
                                                                     @endphp
 
-
-
                                                                     <div class="lib-calidad-card" id="control-almacen-rechazados-{{ md5($reg->ot) }}"
                                                                         style="margin-top: 15px; {{ $rechCardDisabled }}">
                                                                         @if ($reprocesoAprobadoPorCalidad)
                                                                             <div class="lib-calidad-card-header"
                                                                                 style="background: linear-gradient(135deg, #16a34a, #15803d); border-bottom: 2px solid rgba(22, 163, 74, 0.5);">
-                                                                                <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
+                                                                                <img src="{{ asset('images/Reproceso.png') }}" alt="Reproceso"
                                                                                     style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
                                                                                 <div style="overflow:hidden;">
                                                                                     <span class="lib-calidad-card-title" style="color: #ffffff;">Control de
@@ -1935,7 +2267,7 @@
                                                                         @else
                                                                             <div class="lib-calidad-card-header"
                                                                                 style="background: linear-gradient(135deg, #dc2626, #b91c1c); border-bottom: 2px solid rgba(220, 38, 38, 0.5);">
-                                                                                <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
+                                                                                <img src="{{ asset('images/Reproceso.png') }}" alt="Reproceso"
                                                                                     style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
                                                                                 <div style="overflow:hidden;">
                                                                                     <span class="lib-calidad-card-title" style="color: #ffffff;">Control de

@@ -1,5 +1,9 @@
 # ⚡ Guía de JavaScript (JS Skill) - Máximo Nivel
 
+> **📁 Directorio de Referencia:** `public/js/ y resources/js/`
+> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+
+
 Todo script en `Project_saavedra` debe estar diseñado para manejar fallos de red sin romper la UI. JS se utiliza para mejorar la UX y conectar endpoints silenciosos.
 
 ## 1. Patrón Asíncrono Definitivo (Async / Await)
@@ -198,3 +202,31 @@ document.getElementById('tabla-piezas').addEventListener('click', (e) => {
     }
 });
 ```
+
+---
+
+## 9. Funciones JS Globales del Proyecto (Referencia Real)
+Los archivos `almacen_fundicion.js` y `calidad_fundicion.js` son los más grandes (~328KB). Estas funciones ya existen y deben usarse en lugar de reimplementar la funcionalidad:
+
+| Función | Archivo | Descripción |
+|---|---|---|
+| `almacenVerPdf(ot, archivo, tipo)` | `almacen_fundicion.js` | Abre un PDF de almacén en el visor embebido |
+| `confirmDeletePdf(btn, ot, archivo, origin)` | `almacen_fundicion.js` | Confirma y ejecuta eliminación de PDF con Swal |
+| `calidadVerPdf(ot, archivo, tipo)` | `calidad_fundicion.js` | Abre un PDF de calidad en el visor embebido |
+| `mostrarAlerta(titulo, texto, icono)` | Global (ambos) | Muestra alerta SweetAlert2 estándar |
+| `openReproceso(otName)` | `almacen_fundicion.js` | Abre el modal de generación de reproceso |
+| `generarPreOrden(otName)` | `almacen_fundicion.js` | Inicia el flujo de pre-orden de fundición |
+
+### Patrón de Rutas Inyectadas por Blade (`window.routes`)
+Las URLs de las peticiones AJAX se inyectan desde Blade para evitar hardcodear rutas en JS:
+```blade
+<script>
+    window.routes = {
+        ...(window.routes || {}),
+        almacenServeFile:  @json(route('almacen.fundicion.serve', ['ot' => ':ot', 'archivo' => ':archivo', 'tipo' => ':tipo'])),
+        almacenDeleteFile: @json(route('almacen.fundicion.delete.pdf')),
+        calidadServeFile:  @json(route('calidad.fundicion.serve', ['ot' => ':ot', 'archivo' => ':archivo', 'tipo' => ':tipo'])),
+    };
+</script>
+```
+Luego en JS: `window.routes.almacenServeFile.replace(':ot', ot).replace(':archivo', archivo).replace(':tipo', tipo)`

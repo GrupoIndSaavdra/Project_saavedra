@@ -1,5 +1,9 @@
 # 📄 Guía de Generación de PDFs (PDF Skill) - Máximo Nivel
 
+> **📁 Directorio de Referencia:** `resources/views/pdf/ y Controladores que usen dompdf`
+> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+
+
 `domPDF` es una herramienta excelente en Laravel, pero su motor de renderizado HTML/CSS equivale a un navegador muy antiguo (piensa en Internet Explorer 8). Debes hackear visualmente la estructura para lograr resultados modernos.
 
 ## 1. La Regla de Oro: ¡Todo es una Tabla!
@@ -99,4 +103,44 @@ public function generarReporte() {
     
     return $pdf->stream('Reporte.pdf'); 
 }
+```
+
+---
+
+## 8. Controladores de PDF en el Proyecto (Referencia Real)
+
+| Controlador | Vista PDF | Descripción |
+|---|---|---|
+| `DibujosFundicionPdfController.php` | - | Genera PDFs de dibujos técnicos de modelos de fundición |
+| `AyudasVisualesFundicionPdfController.php` | - | PDFs de ayudas visuales de fundición |
+| `DibujosPdfController.php` | - | PDFs de dibujos técnicos de maquinado |
+| `AyudasVisualesPdfController.php` | - | PDFs de ayudas visuales de maquinado |
+| `ManualesPdfController.php` | - | PDFs de manuales técnicos |
+| `ReporteProduccionController.php` | `pdf/pre_orden.blade.php` | Pre-órdenes de fundición en formato PDF |
+
+### Vista PDF Real del Proyecto (`pre_orden.blade.php`)
+La única vista en `resources/views/pdf/` es la pre-orden de fundición. Su estructura usa tablas puras (sin Flex/Grid). Al crear nuevas vistas PDF, usa esta como base:
+```blade
+{{-- resources/views/pdf/pre_orden.blade.php --}}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <style>
+        body { font-family: Helvetica, Arial, sans-serif; font-size: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        td, th { border: 1px solid #000; padding: 4px; }
+        .page-break { page-break-after: always; }
+    </style>
+</head>
+<body>
+    <table>
+        <tr>
+            <td width="20%"><img src="{{ public_path('images/lg_saavedra.png') }}" width="80"></td>
+            <td width="60%" align="center"><strong>PRE-ORDEN DE FUNDICIÓN</strong></td>
+            <td width="20%">OT: {{ $ot }}</td>
+        </tr>
+    </table>
+    {{-- Contenido principal con tablas... --}}
+</body>
+</html>
 ```

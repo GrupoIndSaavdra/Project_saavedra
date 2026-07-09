@@ -1,5 +1,9 @@
 # ❌ Habilidad de No Pruebas (No Testing Rule)
 
+> **📁 Directorio de Referencia:** `(Aplicable a todo el flujo de pruebas/verificación manual)`
+> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+
+
 Esta regla define el alcance del agente IA en relación con las pruebas de interfaz de usuario y del navegador, así como las pruebas que sí están permitidas para el desarrollo.
 
 ---

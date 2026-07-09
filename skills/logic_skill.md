@@ -1,5 +1,9 @@
 # 🧠 Guía de Lógica y Modelos (Logic Skill) - Máximo Nivel
 
+> **📁 Directorio de Referencia:** `app/Models/ y Lógica de Negocio Central`
+> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+
+
 Los modelos en `Project_saavedra` gestionan la estructura profunda de datos. Esta guía define cómo filtrar de forma masiva, cómo manipular fechas correctamente y cómo orquestar permisos de usuario complejos.
 
 ## 1. El Pilar de Perfiles (`auth()->user()->perfil`)
@@ -133,5 +137,75 @@ protected function nombreCompleto(): Attribute {
             'nombre' => strtolower($value) // Guarda en minúscula
         ]
     );
+}
+```
+
+## 9. Agrupación Lógica en Consultas Eloquent (orWhere)
+**ERROR GRAVE COMÚN:** Al encadenar `where()` y `orWhere()`, si no agrupas lógicamente con una función de closure, el OR anulará las condiciones posteriores o anteriores dependiendo del motor SQL (debido a la precedencia del operador AND sobre OR).
+
+```php
+// ❌ PÉSIMO (Error lógico grave):
+// Esto ejecuta: WHERE ot = 'A' OR (ot LIKE 'A_R%' AND estado = 'rechazado')
+// Resultado: Obtiene TODOS los registros de 'A' sin importar su estado, más los rechazados de 'A_R%'.
+$registros = Model::where('ot', $ot)->orWhere('ot', 'LIKE', $ot . '_R%')->where('estado', 'rechazado')->get();
+
+// ✅ CORRECTO (Agrupado lógicamente):
+// Esto ejecuta: WHERE (ot = 'A' OR ot LIKE 'A_R%') AND estado = 'rechazado'
+$registros = Model::where(function($q) use ($ot) {
+    $q->where('ot', $ot)->orWhere('ot', 'LIKE', $ot . '_R%');
+})->where('estado', 'rechazado')->get();
+```
+Siempre que mezcles condiciones O (OR) con Y (AND), agrupa los OR en una clausula condicional aislada.
+
+---
+
+## 10. Modelos Críticos del Proyecto Saavedra (Referencia Rápida)
+
+| Modelo | Tabla | Responsabilidad |
+|---|---|---|
+| `FundicionHistory` | `fundicion_history` | Estado completo de una OT de fundición (archivos, alertas, liberaciones, reprocesos) |
+| `LiberacionModeloFundicion` | `liberacion_modelos_fundicion` | Decisiones de calidad por clase (Fondo, Molde, Bombillo, Obturador) |
+| `PreOrdenFundicion` | - | Pre-órdenes de reproceso de fundición enviadas por almacén |
+| `ScarModelo` | - | SCARs (no conformidades) relacionadas a modelos de fundición |
+| `Pieza` | `piezas` | Piezas individuales de cada proceso de maquinado |
+| `FundicionFileLog` | - | Historial de subida y eliminación de archivos en OTs de fundición |
+| `SoldaduraLote` | - | Lotes de soldadura con botes y piezas |
+| `SystemLog` | - | Eventos de auditoría del sistema |
+
+### Casting Estricto en `FundicionHistory`
+Este modelo usa `$casts` para booleanos y arrays JSON. Siempre respeta este casting:
+```php
+// En FundicionHistory.php — NUNCA accedas $reg->almacen_archivos como string
+$archivos = is_array($reg->almacen_archivos) ? $reg->almacen_archivos : [];
+
+// Revisar estado de proceso:
+if ($reg->pre_orden_sent && $reg->documentos_revisados_calidad) {
+    // Flujo completado
+}
+```
+
+### Patrón OT Base vs Reproceso (`_R1`, `_R2`, ...)
+Las OTs de reproceso tienen sufijo `_R\d+`. Siempre extrae la OT base antes de buscar archivos relacionados:
+```php
+$esReproceso = (bool) preg_match('/_R\d+$/i', $reg->ot);
+$baseOt = preg_replace('/_R\d+$/i', '', $reg->ot);
+
+// Buscar registros relacionados (OT base + todos sus reprocesos)
+$relatedRecords = FundicionHistory::where('ot', $baseOt)
+    ->orWhere('ot', 'LIKE', $baseOt . '_R%')
+    ->get();
+```
+
+### Clasificación de Tipos de Modelo en Fundición
+Los 4 tipos de modelo válidos son: `Fondo`, `Molde`, `Bombillo`, `Obturador`.
+Para filtrar archivos por clase, detecta el keyword en el nombre del archivo:
+```php
+$knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+$hasKnownClass = false;
+foreach ($knownClasses as $kc) {
+    if (strpos(strtolower($archivo), $kc) !== false) {
+        $hasKnownClass = true;
+        break;
+    }
 }
 ```

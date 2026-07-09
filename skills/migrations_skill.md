@@ -1,5 +1,9 @@
 # 💾 Habilidad de Migraciones — Estructura de Base de Datos y Cambios Recientes
 
+> **📁 Directorio de Referencia:** `database/migrations/`
+> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+
+
 Esta habilidad detalla el estándar para la creación, modificación y mantenimiento de las migraciones de base de datos en `Project_saavedra`.
 
 ---
@@ -82,4 +86,33 @@ graph TD
     B -- No (Ya en producción) --> D[Crear migración add_...]
     C --> E[Rollback y re-migrar]
     D --> F[Migrar incremental]
+```
+
+---
+
+## 4. Tablas Principales del Proyecto (Estado Actual)
+El proyecto tiene ~31 grupos de migraciones. Las más críticas para el flujo de fundición son:
+
+| Tabla | Uso Principal |
+|---|---|
+| `fundicion_history` | Estado completo de cada OT de fundición |
+| `liberacion_modelos_fundicion` | Decisiones de calidad por clase de modelo |
+| `pre_ordenes_fundicion` | Pre-órdenes de reproceso generadas por almacén |
+| `scar_modelos` | SCARs (no conformidades) vinculadas a OTs de fundición |
+| `fundicion_file_logs` | Log de auditoría de archivos subidos/eliminados en fundición |
+| `system_logs` | Log global de auditoría de acciones del sistema |
+| `soldadura_lotes` | Lotes de soldadura con botes |
+| `soldadura_botes` | Botes individuales dentro de un lote |
+| `qrs_generados` | QRs generados para piezas y botes |
+
+### Columnas JSON y Bool Frecuentes en Fundición
+Cuando agregues columnas a `fundicion_history`, siempre registra el cast en el modelo:
+```php
+// En la migración:
+$table->json('almacen_archivos')->nullable();
+$table->boolean('pre_orden_sent')->default(false);
+
+// En FundicionHistory.php ($casts):
+'almacen_archivos' => 'array',
+'pre_orden_sent'   => 'boolean',
 ```

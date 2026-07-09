@@ -1,5 +1,9 @@
 # ⚙️ Guía de Controladores (Controllers Skill) - Máximo Nivel
 
+> **📁 Directorio de Referencia:** `app/Http/Controllers/`
+> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+
+
 Los controladores en `Project_saavedra` son el corazón del sistema. Deben ser robustos, a prueba de fallos y estrictamente optimizados. No se permite código espagueti.
 
 ## 1. Nomenclatura, Rutas y Middlewares
@@ -127,4 +131,34 @@ public function destroy($idWOrder) { ... }
 
 // ✅ BIEN: Tipado estricto. (Laravel inyecta los parámetros de ruta como strings por defecto)
 public function destroy(string $idWOrder) { ... }
+```
+
+---
+
+## 8. Controladores Clave del Proyecto (Referencia Rápida)
+Los controladores más complejos del sistema son la mejor referencia para entender patrones establecidos:
+
+| Controlador | Responsabilidad |
+|---|---|
+| `AlmacenFundicionController.php` | Gestión de documentos, archivos, reprocesos y alertas de OTs de fundición para Almacén |
+| `CalidadFundicionController.php` | Revisión, liberación y seguimiento de estado de OTs de fundición para Calidad |
+| `ProcessProductionController.php` | Control del flujo de producción en cada proceso de maquinado |
+| `WOController.php` | CRUD principal de Órdenes de Trabajo (OTs) |
+| `DibujosFundicionPdfController.php` | Generación de PDFs de dibujos técnicos de fundición |
+| `SystemLogController.php` | Consulta y gestión del log de auditoría de eventos del sistema |
+| `LiberarQRPlantaController.php` | Flujo de liberación de piezas vía escaneo de QR en planta |
+
+### Patrón Real: Servir Archivos con Tipo (Almacén/Calidad)
+Al descargar/mostrar PDFs de fundición se determina la ruta del disco por tipo de documento:
+```php
+// Patrón en AlmacenFundicionController y CalidadFundicionController
+$tipoDocumento = $request->tipo; // 'dibujo', 'ayuda', 'otro', 'calidad'
+$basePath = match($tipoDocumento) {
+    'dibujo'  => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otSanitized . '/',
+    'ayuda'   => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otSanitized . '/ayudas_visuales/',
+    'calidad' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otSanitized . '/',
+    default   => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otSanitized . '/',
+};
+$fullPath = storage_path('app/' . $basePath . $archivo);
+return response()->file($fullPath);
 ```

@@ -1,5 +1,9 @@
 # 📝 Guía de Registro de Errores y Depuración (Error Logging Skill)
 
+> **📁 Directorio de Referencia:** `storage/logs/ y app/Exceptions/`
+> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+
+
 El registro adecuado de errores es vital para mantener la estabilidad de `Project_saavedra` y diagnosticar fallos silenciosos en la planta sin interrumpir la operación de los operarios.
 
 ---
@@ -96,3 +100,30 @@ o en entornos Linux:
 ```bash
 tail -f storage/logs/laravel.log
 ```
+
+---
+
+## 6. Modelo `SystemLog` — Auditoría de Negocio en BD
+El proyecto usa un modelo específico para registrar eventos de negocio en la base de datos (distintos al `laravel.log`):
+
+```php
+// Cómo registrar un evento de auditoría de negocio
+use App\Models\SystemLog;
+
+SystemLog::create([
+    'user_id'    => auth()->id(),
+    'user_name'  => auth()->user()->nombre ?? 'Sistema',
+    'accion'     => 'elimino_archivo_fundicion',
+    'descripcion'=> "Eliminó el archivo '{$archivo}' de la OT '{$ot}'",
+    'modulo'     => 'Almacén Fundición',
+    'ip'         => $request->ip(),
+]);
+```
+
+### Archivos de Log del Sistema (Rutas Reales)
+- **Laravel Log (Técnico):** `storage/logs/laravel.log`
+- **Revisar en tiempo real (PowerShell):**
+```powershell
+Get-Content -Path "storage/logs/laravel.log" -Tail 100 -Wait
+```
+- **Los logs de BD** se consultan en la vista `SystemLogController@index` con filtros por módulo, usuario y fecha.

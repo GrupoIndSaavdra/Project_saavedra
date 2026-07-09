@@ -1075,10 +1075,13 @@ class AlmacenFundicionController extends Controller
 
         // Si es una pre-orden, eliminar también el registro de la base de datos
         if (str_contains(strtolower($fileNameOnly), 'pre-orden')) {
-            PreOrdenFundicion::query()
+            $preOrden = PreOrdenFundicion::query()
                 ->where('ot', '=', $ot, 'and')
                 ->where('pdf_filename', '=', $fileNameOnly, 'and')
-                ->delete();
+                ->first();
+            if ($preOrden && isset($preOrden->id)) {
+                PreOrdenFundicion::destroy($preOrden->id);
+            }
         }
 
         return response()->json(['success' => true, 'message' => 'Archivo eliminado correctamente y sincronizado en todos los directorios.']);

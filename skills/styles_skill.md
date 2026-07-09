@@ -1,5 +1,9 @@
 # 🎨 Guía de Estilos y Colores (Styles Skill) - Máximo Nivel
 
+> **📁 Directorio de Referencia:** `public/css/ y resources/css/`
+> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+
+
 `Project_saavedra` no usa TailwindCSS ni Bootstrap. Todo es Vanilla CSS. El diseño debe ser absolutamente premium, intuitivo y responsivo.
 
 ## 1. La Base del Diseño (CSS Reset y Variables)
@@ -182,4 +186,49 @@ Si quieres que algo aparezca suavemente (Fade In) al cargar la página:
         transform: translateY(0);
     }
 }
+```
+
+
+## 10. Fondos en Grids (Aprobados vs Rechazados)
+Para diferenciar documentos aprobados de rechazados, no apliques el `background-color` a las tarjetas individuales (`.dibujos-file-card`). En su lugar, aplica el fondo y borde al **contenedor** `.alm-pdf-grid` completo.
+
+- **Contenedor Aprobados:** `style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;"`
+- **Contenedor Rechazados:** `style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;"`
+
+---
+
+## 11. Clases CSS Clave del Proyecto (Referencia Rápida)
+Estas clases ya están definidas en los archivos CSS de fundición. **NO las redefinitas inline**, úsalas directamente:
+
+| Clase CSS | Uso |
+|---|---|
+| `.alm-table-card` | Tarjeta contenedora de tablas en Almacén/Calidad |
+| `.alm-table-header` | Encabezado azul de tarjeta con contador de resultados |
+| `.alm-results-count` | Contador de resultados en la cabecera de tabla |
+| `.alm-pdf-grid` | Grid de tarjetas de documentos PDF |
+| `.dibujos-file-card` | Tarjeta individual de archivo (dibujo, ayuda, otro) |
+| `.card-otro` | Variante de tarjeta para documentos administrativos |
+| `.btn-dibujos` | Botón de acción en tarjetas de archivos |
+| `.btn-dibujos-sm` | Variante compacta del botón |
+| `.btn-ver` | Botón "Ver" (fondo verde o rojo según contexto) |
+| `.btn-eliminar` | Botón "X" de eliminación de archivo |
+| `.file-icon` | Ícono del archivo (normal) |
+| `.icon-hover` | Ícono alternativo que aparece al hacer hover |
+
+### Estilos de Fondo Aprobado/Rechazado (Aplicar al contenedor `.alm-pdf-grid`)
+```css
+/* Aprobado — verde suave */
+.alm-pdf-grid.aprobado {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+/* Rechazado — rojo suave */
+.alm-pdf-grid.rechazado {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+}
+```
+O en línea (cuando no hay clase disponible):
+```html
+<div class="alm-pdf-grid" style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
 ```

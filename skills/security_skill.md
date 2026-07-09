@@ -1,5 +1,9 @@
 # 🔒 Guía de Seguridad y Protección de Datos (Security Skill)
 
+> **📁 Directorio de Referencia:** `app/Http/Middleware/ y app/Providers/`
+> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+
+
 La seguridad en `Project_saavedra` garantiza que sólo el personal autorizado ejecute las acciones adecuadas según su rol, y protege los servidores contra ataques externos y fugas de datos.
 
 ---
@@ -108,4 +112,31 @@ public function destroy($id) {
     $pieza->delete();
     return back()->with('success', 'Pieza eliminada correctamente.');
 }
+```
+
+---
+
+## 6. Middlewares Activos del Proyecto (Referencia Real)
+
+| Middleware | Archivo | Descripción |
+|---|---|---|
+| `auth` | `Authenticate.php` | Bloquea el acceso a usuarios no autenticados |
+| `CheckPtaAccess` | `CheckPtaAccess.php` | Verifica permisos específicos del flujo PTA |
+| `guest` | `RedirectIfAuthenticated.php` | Redirige usuarios autenticados que intentan ir al login |
+
+### Perfiles Reales del Sistema (Actualizado)
+```php
+// auth()->user()->perfil — valores reales en uso:
+// 1 = Administrador: acceso total
+// 2 = Gerente/Supervisor: ver todo, aprobar
+// 4 = Calidad: revisión y liberación de OTs, SCARs
+// 5 = Almacén: recepción, pre-órdenes, reprocesos
+// 6 = Operador: maquinado de piezas, registro de medidas
+// 8 = Calidad Soldadura: liberación de botes y lotes de soldadura
+
+// Verificación estándar en controladores de Fundición:
+$perfil = auth()->user()->perfil;
+$puedeEliminar = in_array($perfil, [1, 2]);
+$esAlmacen     = ($perfil === 5);
+$esCalidad     = ($perfil === 4);
 ```
