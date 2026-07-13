@@ -283,78 +283,88 @@ class DibujosFundicionPdfController extends Controller
      */
     public function getFiles(Request $request)
     {
-        $ot = $this->sanitizePath($request->query('ot', ''));
-        $clase = $this->sanitizePath($request->query('clase', ''));
+        try {
+            $ot = $this->sanitizePath($request->query('ot', ''));
+            $clase = $this->sanitizePath($request->query('clase', ''));
 
-        if (empty($ot)) {
-            return response()->json(['error' => 'Parámetro OT es requerido.'], 422);
-        }
-
-        if ($clase === 'null' || $clase === '--')
-            $clase = '';
-
-        // Resolver nombre de carpeta si se pasó un ID
-        if (is_numeric($ot)) {
-            $otModel = Orden_trabajo::query()->with('moldura')->find($ot);
-            if ($otModel) {
-                $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-                $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+            if (empty($ot)) {
+                return response()->json(['error' => 'Parámetro OT es requerido.'], 422);
             }
-        } else {
-            $ot = $this->normalizeOTName($ot);
+
+            if ($clase === 'null' || $clase === '--')
+                $clase = '';
+
+            // Resolver nombre de carpeta si se pasó un ID
+            if (is_numeric($ot)) {
+                $otModel = Orden_trabajo::query()->with('moldura')->find($ot);
+                if ($otModel) {
+                    $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+                    $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+                }
+            } else {
+                $ot = $this->normalizeOTName($ot);
+            }
+
+            // 1. Directorios de Clase (Nuevo esquema)
+            $newClasePath = self::BASE_DIR . '/' . $ot . '/' . $clase;
+            $oldClasePath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
+
+            // 2. Directorios Raíz (Esquema anterior/legado)
+            $newRootPath = self::BASE_DIR . '/' . $ot;
+            $oldRootPath = self::OLD_BASE_DIR . '/' . $ot;
+
+            $files = [];
+
+            // --- Buscar en Clase seleccionada ---
+            if (!empty($clase)) {
+                $files = array_merge($files, Storage::disk('local')->exists($newClasePath) ? Storage::disk('local')->files($newClasePath) : []);
+                $files = array_merge($files, Storage::disk('local')->exists($oldClasePath) ? Storage::disk('local')->files($oldClasePath) : []);
+            }
+
+            // --- Buscar en Raíz de la OT (Archivos que no tienen clase aún) ---
+            $rootFilesNew = Storage::disk('local')->exists($newRootPath) ? Storage::disk('local')->files($newRootPath) : [];
+            $rootFilesOld = Storage::disk('local')->exists($oldRootPath) ? Storage::disk('local')->files($oldRootPath) : [];
+
+            $files = array_merge($files, $rootFilesNew, $rootFilesOld);
+
+            $allFiles = collect($files)
+                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
+                ->map(function ($f) use ($ot, $clase, $newClasePath, $oldClasePath, $newRootPath, $oldRootPath) {
+                    $rawName = basename($f);
+                    $utf8Name = $this->toUtf8($rawName);
+                    $fullPath = $f;
+
+                    // Determinar si el archivo está en la raíz o en una clase para generar la URL de servicio correcta
+                    $esRaiz = (strpos($fullPath, $newRootPath . '/' . $rawName) !== false || strpos($fullPath, $oldRootPath . '/' . $rawName) !== false);
+
+                    return [
+                        'nombre' => $utf8Name,
+                        'url' => route('fundicion.serve', [
+                            'ot' => $ot,
+                            'clase' => $esRaiz ? '--' : $clase,
+                            'archivo' => $utf8Name,
+                        ]),
+                        'es_raiz' => $esRaiz
+                    ];
+                })
+                ->unique('nombre')
+                ->values();
+
+            return response()->json([
+                'archivos' => $allFiles,
+                'ot' => $ot,
+                'clase' => $clase,
+                'existe' => (count($allFiles) > 0),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
         }
-
-        // 1. Directorios de Clase (Nuevo esquema)
-        $newClasePath = self::BASE_DIR . '/' . $ot . '/' . $clase;
-        $oldClasePath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
-
-        // 2. Directorios Raíz (Esquema anterior/legado)
-        $newRootPath = self::BASE_DIR . '/' . $ot;
-        $oldRootPath = self::OLD_BASE_DIR . '/' . $ot;
-
-        $files = [];
-
-        // --- Buscar en Clase seleccionada ---
-        if (!empty($clase)) {
-            $files = array_merge($files, Storage::disk('local')->exists($newClasePath) ? Storage::disk('local')->files($newClasePath) : []);
-            $files = array_merge($files, Storage::disk('local')->exists($oldClasePath) ? Storage::disk('local')->files($oldClasePath) : []);
-        }
-
-        // --- Buscar en Raíz de la OT (Archivos que no tienen clase aún) ---
-        $rootFilesNew = Storage::disk('local')->exists($newRootPath) ? Storage::disk('local')->files($newRootPath) : [];
-        $rootFilesOld = Storage::disk('local')->exists($oldRootPath) ? Storage::disk('local')->files($oldRootPath) : [];
-
-        $files = array_merge($files, $rootFilesNew, $rootFilesOld);
-
-        $allFiles = collect($files)
-            ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-            ->map(function ($f) use ($ot, $clase, $newClasePath, $oldClasePath, $newRootPath, $oldRootPath) {
-                $rawName = basename($f);
-                $utf8Name = $this->toUtf8($rawName);
-                $fullPath = $f;
-
-                // Determinar si el archivo está en la raíz o en una clase para generar la URL de servicio correcta
-                $esRaiz = (strpos($fullPath, $newRootPath . '/' . $rawName) !== false || strpos($fullPath, $oldRootPath . '/' . $rawName) !== false);
-
-                return [
-                    'nombre' => $utf8Name,
-                    'url' => route('fundicion.serve', [
-                        'ot' => $ot,
-                        'clase' => $esRaiz ? '--' : $clase,
-                        'archivo' => $utf8Name,
-                    ]),
-                    'es_raiz' => $esRaiz
-                ];
-            })
-            ->unique('nombre')
-            ->values();
-
-        return response()->json([
-            'archivos' => $allFiles,
-            'ot' => $ot,
-            'clase' => $clase,
-            'existe' => (count($allFiles) > 0),
-        ]);
     }
 
     /**

@@ -698,7 +698,7 @@
             window.activeParam2 = @json($claseActiva?->nombre ?? null);
         @elseif($moduleType === 'ayudas')
             window.activeParam1 = @json($procesoActivo?->nombre ?? null);
-            window.activeParam2 = @json($claseActiva?->nombre ?? null);
+            window.activeParam2 = null;
         @elseif($moduleType === 'ayudas_fundicion')
             window.activeParam1 = 'Fundicion';
             window.activeParam2 = @json($claseActiva?->nombre ?? null);
