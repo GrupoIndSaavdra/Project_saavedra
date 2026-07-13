@@ -102,7 +102,11 @@ export default defineConfig({
 
                 //Módulo Documentacion Técnica
                 'resources/css/wo_views/manage_documentation.css',
-                'resources/js/wo_views/manage_documentation.js',
+                'resources/js/wo_views/manage_dibujos.js',
+                'resources/js/wo_views/manage_fundicion.js',
+                'resources/js/wo_views/manage_manuales.js',
+                'resources/js/wo_views/manage_ayudas.js',
+                'resources/js/wo_views/manage_ayudas_fundicion.js',
 
                 //Vista Almacén/Calidad — Dibujos de Fundición
                 'resources/css/almacen_views/almacen_fundicion.css',

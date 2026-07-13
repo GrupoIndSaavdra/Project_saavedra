@@ -48,7 +48,7 @@ class ManualesPdfController extends Controller
         $procesoSeleccionadoId = $request->query('proceso_id'); // Ahora es el nombre directamente
         $procesoActivo = $procesoSeleccionadoId ? $todosLosProcesos->firstWhere('id', $procesoSeleccionadoId) : null;
 
-        return view('wo_views.manage_documentation', array_merge(compact(
+        return view('wo_views.manage_manuales', array_merge(compact(
             'estructura',
             'todosLosProcesos',
             'procesoSeleccionadoId',
