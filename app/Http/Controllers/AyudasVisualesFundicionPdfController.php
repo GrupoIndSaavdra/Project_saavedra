@@ -134,10 +134,7 @@ class AyudasVisualesFundicionPdfController extends Controller
                 $utf8Name = $this->toUtf8($rawName);
                 return [
                     'nombre' => $utf8Name,
-                    'url'    => route('ayudas_fundicion.serve', [
-                        'clase'   => $clase,
-                        'archivo' => $utf8Name,
-                    ]),
+                    'url'    => url('/ayudas_fundicion/serve') . '?clase=' . urlencode($clase) . '&archivo=' . urlencode($utf8Name),
                 ];
             })
             ->unique('nombre')
@@ -278,10 +275,7 @@ class AyudasVisualesFundicionPdfController extends Controller
             'success'  => true,
             'message'  => "PDF '{$finalName}' subido correctamente.",
             'nombre'   => $finalName,
-            'url'      => route('ayudas_fundicion.serve', [
-                'clase'   => $clase,
-                'archivo' => $finalName,
-            ]),
+            'url'      => url('/ayudas_fundicion/serve') . '?clase=' . urlencode($clase) . '&archivo=' . urlencode($finalName),
             'clase'    => $clase,
         ]);
     }
@@ -493,10 +487,7 @@ class AyudasVisualesFundicionPdfController extends Controller
             'success'  => true,
             'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$finalName}'.",
             'nombre'   => $finalName,
-            'url'      => route('ayudas_fundicion.serve', [
-                'clase'   => $clase,
-                'archivo' => $finalName,
-            ]),
+            'url'      => url('/ayudas_fundicion/serve') . '?clase=' . urlencode($clase) . '&archivo=' . urlencode($finalName),
             'clase'    => $clase,
         ]);
     }

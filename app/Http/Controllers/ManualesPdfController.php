@@ -117,10 +117,7 @@ class ManualesPdfController extends Controller
                 $utf8Name = $this->toUtf8($rawName);
                 return [
                     'nombre' => $utf8Name,
-                    'url'    => route('manuales.serve', [
-                        'proceso' => $proceso,
-                        'archivo' => $utf8Name,
-                    ]),
+                    'url'    => url('/manuales/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($utf8Name),
                 ];
             })
             ->unique('nombre')
@@ -260,10 +257,7 @@ class ManualesPdfController extends Controller
             'success'  => true,
             'message'  => "PDF '{$originalName}' subido correctamente.",
             'nombre'   => $originalName,
-            'url'      => route('manuales.serve', [
-                'proceso' => $proceso,
-                'archivo' => $originalName,
-            ]),
+            'url'      => url('/manuales/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($originalName),
         ]);
     }
 
@@ -406,10 +400,7 @@ class ManualesPdfController extends Controller
             'success'  => true,
             'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$originalName}'.",
             'nombre'   => $originalName,
-            'url'      => route('manuales.serve', [
-                'proceso' => $proceso,
-                'archivo' => $originalName,
-            ]),
+            'url'      => url('/manuales/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($originalName),
             'proceso'  => $proceso,
         ]);
     }

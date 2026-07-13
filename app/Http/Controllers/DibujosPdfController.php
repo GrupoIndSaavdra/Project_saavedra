@@ -138,11 +138,7 @@ class DibujosPdfController extends Controller
                 $utf8Name = $this->toUtf8($rawName);
                 return [
                     'nombre' => $utf8Name,
-                    'url'    => route('dibujos.serve', [
-                        'ot'     => $ot,
-                        'clase'  => $clase,
-                        'archivo'=> $utf8Name,
-                    ]),
+                    'url'    => url('/dibujos/serve') . '?ot=' . urlencode($ot) . '&clase=' . urlencode($clase) . '&archivo=' . urlencode($utf8Name),
                 ];
             })
             ->unique('nombre') // Evitar duplicados si existen en ambas carpetas
@@ -307,11 +303,7 @@ class DibujosPdfController extends Controller
             'success'  => true,
             'message'  => "PDF '{$originalName}' subido correctamente.",
             'nombre'   => $originalName,
-            'url'      => route('dibujos.serve', [
-                'ot'     => $otFolderName,
-                'clase'  => $clase,
-                'archivo'=> $originalName,
-            ]),
+            'url'      => url('/dibujos/serve') . '?ot=' . urlencode($otFolderName) . '&clase=' . urlencode($clase) . '&archivo=' . urlencode($originalName),
         ]);
     }
 
@@ -522,11 +514,7 @@ class DibujosPdfController extends Controller
             'success'  => true,
             'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$originalName}'.",
             'nombre'   => $originalName,
-            'url'      => route('dibujos.serve', [
-                'ot'     => $ot,
-                'clase'  => $clase,
-                'archivo'=> $originalName,
-            ]),
+            'url'      => url('/dibujos/serve') . '?ot=' . urlencode($ot) . '&clase=' . urlencode($clase) . '&archivo=' . urlencode($originalName),
             'ot'       => $ot,
             'clase'    => $clase,
         ]);

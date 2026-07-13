@@ -121,11 +121,7 @@ class AyudasVisualesPdfController extends Controller
                 $utf8Name = $this->toUtf8($rawName);
                 return [
                     'nombre' => $utf8Name,
-                    'url'    => route('ayudas.serve', [
-                        'proceso' => $proceso,
-                        
-                        'archivo' => $utf8Name,
-                    ]),
+                    'url'    => url('/ayudas/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($utf8Name),
                 ];
             })
             ->unique('nombre')
@@ -272,11 +268,7 @@ class AyudasVisualesPdfController extends Controller
             'success'  => true,
             'message'  => "PDF '{$finalName}' subido correctamente.",
             'nombre'   => $finalName,
-            'url'      => route('ayudas.serve', [
-                'proceso' => $proceso,
-                
-                'archivo' => $finalName,
-            ]),
+            'url'      => url('/ayudas/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($finalName),
             'proceso'  => $proceso,
         ]);
     }
@@ -480,11 +472,7 @@ class AyudasVisualesPdfController extends Controller
             'success'  => true,
             'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$finalName}'.",
             'nombre'   => $finalName,
-            'url'      => route('ayudas.serve', [
-                'proceso' => $proceso,
-                
-                'archivo' => $finalName,
-            ]),
+            'url'      => url('/ayudas/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($finalName),
             'proceso'  => $proceso,
         ]);
     }

@@ -349,11 +349,7 @@ class DibujosFundicionPdfController extends Controller
 
                     return [
                         'nombre' => $utf8Name,
-                        'url' => route('fundicion.serve', [
-                            'ot' => $ot,
-                            'clase' => $esRaiz ? '--' : $clase,
-                            'archivo' => $utf8Name,
-                        ]),
+                        'url' => url('/fundicion/serve') . '?ot=' . urlencode($ot) . '&clase=' . urlencode($esRaiz ? '--' : $clase) . '&archivo=' . urlencode($utf8Name),
                         'es_raiz' => $esRaiz
                     ];
                 })
@@ -572,11 +568,7 @@ class DibujosFundicionPdfController extends Controller
             'success' => true,
             'message' => "PDF '{$newName}' subido correctamente.",
             'nombre' => $newName,
-            'url' => route('fundicion.serve', [
-                'ot' => $otFolderName,
-                'clase' => $clase,
-                'archivo' => $newName,
-            ]),
+            'url' => url('/fundicion/serve') . '?ot=' . urlencode($otFolderName) . '&clase=' . urlencode($clase) . '&archivo=' . urlencode($newName),
             'ot' => $otFolderName,
             'clase' => $clase,
         ]);
@@ -1091,11 +1083,7 @@ class DibujosFundicionPdfController extends Controller
             'success' => true,
             'message' => "PDF reemplazado correctamente por '{$newName}'.",
             'nombre' => $newName,
-            'url' => route('fundicion.serve', [
-                'ot' => $otNorm,
-                'clase' => $clase,
-                'archivo' => $newName,
-            ]),
+            'url' => url('/fundicion/serve') . '?ot=' . urlencode($otNorm) . '&clase=' . urlencode($clase) . '&archivo=' . urlencode($newName),
         ]);
     }
 

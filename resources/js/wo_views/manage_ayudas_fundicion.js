@@ -43,16 +43,41 @@ window.irACarpeta = function(p1, p2, isId = false) {
 };
 
 function updateDependentSelectors() {
-        const clSel = document.getElementById('clase-select');
-    const prSel = document.getElementById('proceso-select');
+    const urlParams = new URLSearchParams(window.location.search);
     const otSel = document.getElementById('ot-select');
+    const clSel = document.getElementById('clase-select');
+    const prSel = document.getElementById('proceso-select');
 
-    if (module === 'ayudas' || module === 'ayudas_fundicion') {
-        if (prSel) {
-            prSel.disabled = !clSel.value;
+    function forceOption(sel, paramName) {
+        if (!sel) return;
+        const val = urlParams.get(paramName);
+        if (!val) return;
+        let found = Array.from(sel.options).some(o => o.value === val || o.text === val);
+        if (!found) {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.text = val;
+            sel.appendChild(opt);
         }
+        let matchingOpt = Array.from(sel.options).find(o => o.value === val || o.text === val);
+        if (matchingOpt) sel.value = matchingOpt.value;
+    }
+
+    if (module === 'dibujos' || module === 'fundicion') {
+        forceOption(otSel, 'ot_id');
+        forceOption(clSel, 'clase_id');
+    } else if (module === 'manuales' || module === 'ayudas') {
+        forceOption(prSel, 'proceso_id');
+        forceOption(clSel, 'clase_id');
+    } else if (module === 'ayudas_fundicion') {
+        forceOption(clSel, 'clase_id');
+        forceOption(prSel, 'proceso_id');
+    }
+
+    if (module === 'ayudas_fundicion') {
+        if (prSel && clSel) prSel.disabled = !clSel.value;
     } else if (module === 'dibujos' || module === 'fundicion') {
-        if (clSel) clSel.disabled = !otSel.value;
+        if (clSel && otSel) clSel.disabled = !otSel.value;
     }
 }
 
