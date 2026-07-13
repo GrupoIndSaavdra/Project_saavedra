@@ -10,6 +10,7 @@ use App\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DibujosPdfController extends Controller
@@ -180,16 +181,17 @@ class DibujosPdfController extends Controller
                 'existe'   => (count($allFiles) > 0),
             ]);
         } catch (\Throwable $e) {
+            Log::error('Error en DibujosPdfController@getFiles: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             $errorMsg = $e->getMessage();
-            if (!mb_check_encoding($errorMsg, 'UTF-8')) {
-                $errorMsg = mb_convert_encoding($errorMsg, 'UTF-8', 'Windows-1252');
+            if (function_exists('mb_convert_encoding')) {
+                $errorMsg = @mb_convert_encoding($errorMsg, 'UTF-8', 'UTF-8');
             }
             return response()->json([
                 'success' => false,
                 'error' => $errorMsg,
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ], 500);
+                'archivos' => [],
+                'existe' => false
+            ], 200);
         }
     }
 
@@ -290,7 +292,7 @@ class DibujosPdfController extends Controller
                 'clase'   => $clase,
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Error en DibujosPdfController@createFolder: " . $e->getMessage());
+            Log::error("Error en DibujosPdfController@createFolder: " . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Ocurrió un error al crear la carpeta.',

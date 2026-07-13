@@ -252,15 +252,17 @@ class DibujosFundicionPdfController extends Controller
             // 3. Ayudas Visuales vinculadas
             $history = FundicionHistory::where('ot', '=', $otNorm, 'and')->first();
             $ayudas = $history ? ($history->ayudas_config ?? []) : [];
-            foreach ($ayudas as $aName) {
-                $ayudaBases = [
-                    'DOCUMENTACION_GIS/AYUDAS_FUNDICION/' . $aName,           // Nuevo
-                    'DOCUMENTACION_GIS/AYUDAS_FUNDICION/' . $aName . '/Fundicion', // Legacy intermedio
-                    'AYUDAS_GIS/' . $aName . '/Fundicion'                     // Legacy antiguo
-                ];
-                foreach ($ayudaBases as $b) {
-                    if (Storage::disk('local')->exists($b)) {
-                        $total += collect(Storage::disk('local')->files($b))
+            
+            if (is_array($ayudas)) {
+                foreach ($ayudas as $aName) {
+                    $ayudaDirNew = 'DOCUMENTACION_GIS/AYUDAS_MAQUINADOS/' . $aName;
+                    $ayudaDirOld = 'DOCUMENTACION_GIS/AYUDAS/' . $aName;
+                    if (Storage::disk('local')->exists($ayudaDirNew)) {
+                        $total += collect(Storage::disk('local')->allFiles($ayudaDirNew))
+                            ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
+                    }
+                    if (Storage::disk('local')->exists($ayudaDirOld)) {
+                        $total += collect(Storage::disk('local')->allFiles($ayudaDirOld))
                             ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
                     }
                 }
@@ -268,17 +270,16 @@ class DibujosFundicionPdfController extends Controller
 
             return response()->json(['total' => $total]);
         } catch (\Throwable $e) {
+            Log::error('Error en DibujosFundicionPdfController@getTotalFiles: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             $errorMsg = $e->getMessage();
-            if (!mb_check_encoding($errorMsg, 'UTF-8')) {
-                $errorMsg = mb_convert_encoding($errorMsg, 'UTF-8', 'Windows-1252');
+            if (function_exists('mb_convert_encoding')) {
+                $errorMsg = @mb_convert_encoding($errorMsg, 'UTF-8', 'UTF-8');
             }
             return response()->json([
                 'success' => false,
                 'total' => 0,
-                'error' => $errorMsg,
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ], 500);
+                'error' => $errorMsg
+            ], 200);
         }
     }
 
@@ -347,14 +348,17 @@ class DibujosFundicionPdfController extends Controller
                     $rawName = basename($f);
                     $utf8Name = $this->toUtf8($rawName);
                     $fullPath = $f;
-
-                    // Determinar si el archivo está en la raíz o en una clase para generar la URL de servicio correcta
-                    $esRaiz = (strpos($fullPath, $newRootPath . '/' . $rawName) !== false || strpos($fullPath, $oldRootPath . '/' . $rawName) !== false);
+                    
+                    // Determinar si el archivo está en la raíz o en una clase específica
+                    // Esto ayuda a generar la URL correcta para servirlo
+                    $isRoot = (strpos($fullPath, $newRootPath . '/') === 0 && strpos($fullPath, $newClasePath) === false) ||
+                              (strpos($fullPath, $oldRootPath . '/') === 0 && strpos($fullPath, $oldClasePath) === false);
+                              
+                    $serveClase = $isRoot ? '' : $clase;
 
                     return [
                         'nombre' => $utf8Name,
-                        'url' => url('/fundicion/serve') . '?ot=' . urlencode($ot) . '&clase=' . urlencode($esRaiz ? '--' : $clase) . '&archivo=' . urlencode($utf8Name),
-                        'es_raiz' => $esRaiz
+                        'url' => url('/fundicion/serve') . '?ot=' . urlencode($ot) . '&clase=' . urlencode($serveClase) . '&archivo=' . urlencode($utf8Name),
                     ];
                 })
                 ->unique('nombre')
@@ -367,16 +371,17 @@ class DibujosFundicionPdfController extends Controller
                 'existe' => (count($allFiles) > 0),
             ]);
         } catch (\Throwable $e) {
+            Log::error('Error en DibujosFundicionPdfController@getFiles: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             $errorMsg = $e->getMessage();
-            if (!mb_check_encoding($errorMsg, 'UTF-8')) {
-                $errorMsg = mb_convert_encoding($errorMsg, 'UTF-8', 'Windows-1252');
+            if (function_exists('mb_convert_encoding')) {
+                $errorMsg = @mb_convert_encoding($errorMsg, 'UTF-8', 'UTF-8');
             }
             return response()->json([
                 'success' => false,
                 'error' => $errorMsg,
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ], 500);
+                'archivos' => [],
+                'existe' => false
+            ], 200);
         }
     }
 
@@ -779,8 +784,8 @@ class DibujosFundicionPdfController extends Controller
         // 4. Limpiar los registros antiguos de Almacén y Calidad si se indica
         // Esto garantiza que cada vez que se envía un correo, el flujo se reinicia (borrón y cuenta nueva)
         if ($resetFlags) {
-            \App\Models\PreOrdenFundicion::where('ot', '=', $otName, 'and')->delete();
-            \App\Models\LiberacionModeloFundicion::where('ot', '=', $otName, 'and')->delete();
+            \App\Models\PreOrdenFundicion::query()->where('ot', $otName)->delete();
+            \App\Models\LiberacionModeloFundicion::query()->where('ot', $otName)->delete();
 
             FundicionHistory::updateOrCreate(
                 ['ot' => $otName],

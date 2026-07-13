@@ -11,6 +11,7 @@ use App\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AyudasVisualesPdfController extends Controller
@@ -102,37 +103,49 @@ class AyudasVisualesPdfController extends Controller
      */
     public function getFiles(Request $request)
     {
-        $proceso = $this->sanitizePath($request->query('proceso', ''));
+        try {
+            $proceso = $this->sanitizePath($request->query('proceso', ''));
 
-        if (empty($proceso)) {
-            return response()->json(['error' => 'Parámetro Proceso es requerido.'], 422);
+            if (empty($proceso)) {
+                return response()->json(['error' => 'Parámetro Proceso es requerido.'], 422);
+            }
+
+            $newDirPath = self::BASE_DIR . '/' . $proceso;
+            $oldDirPath = self::OLD_BASE_DIR . '/' . $proceso;
+
+            $newFiles = Storage::disk('local')->exists($newDirPath) ? Storage::disk('local')->files($newDirPath) : [];
+            $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
+
+            $allFiles = collect(array_merge($newFiles, $oldFiles))
+                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
+                ->map(function($f) use ($proceso) {
+                    $rawName = basename($f);
+                    $utf8Name = $this->toUtf8($rawName);
+                    return [
+                        'nombre' => $utf8Name,
+                        'url'    => url('/ayudas/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($utf8Name),
+                    ];
+                })
+                ->unique('nombre')
+                ->values();
+
+            return response()->json([
+                'archivos' => $allFiles,
+                'proceso'  => $proceso,
+                'existe'   => (count($allFiles) > 0),
+            ]);
+        } catch (\Throwable $e) {
+            $errorMsg = $e->getMessage();
+            if (function_exists('mb_convert_encoding')) {
+                $errorMsg = @mb_convert_encoding($errorMsg, 'UTF-8', 'UTF-8');
+            }
+            return response()->json([
+                'success' => false,
+                'error' => $errorMsg,
+                'archivos' => [],
+                'existe' => false
+            ], 200);
         }
-
-        $newDirPath = self::BASE_DIR . '/' . $proceso;
-        $oldDirPath = self::OLD_BASE_DIR . '/' . $proceso;
-
-        $newFiles = Storage::disk('local')->exists($newDirPath) ? Storage::disk('local')->files($newDirPath) : [];
-        $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
-
-        $allFiles = collect(array_merge($newFiles, $oldFiles))
-            ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-            ->map(function($f) use ($proceso) {
-                $rawName = basename($f);
-                $utf8Name = $this->toUtf8($rawName);
-                return [
-                    'nombre' => $utf8Name,
-                    'url'    => url('/ayudas/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($utf8Name),
-                ];
-            })
-            ->unique('nombre')
-            ->values();
-
-        return response()->json([
-            'archivos' => $allFiles,
-            'proceso'  => $proceso,
-            
-            'existe'   => (count($allFiles) > 0),
-        ]);
     }
 
         /**
@@ -211,7 +224,13 @@ class AyudasVisualesPdfController extends Controller
 
             Storage::disk('local')->makeDirectory($dirPath);
 
-            AyudaVisualHistory::firstOrCreate(['proceso' => $proceso], ['clase' => 'N/A']);
+            $history = AyudaVisualHistory::where('proceso', $proceso)->first();
+            if (!$history) {
+                $history = new AyudaVisualHistory();
+                $history->proceso = $proceso;
+                $history->clase = 'N/A';
+                $history->save();
+            }
             $this->logAction('crear_carpeta', $proceso, null);
 
             return response()->json([
@@ -221,7 +240,7 @@ class AyudasVisualesPdfController extends Controller
                 
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Error en AyudasVisualesPdfController@createFolder: " . $e->getMessage());
+            Log::error("Error en AyudasVisualesPdfController@createFolder: " . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno al crear la carpeta: ' . $e->getMessage(),
@@ -246,7 +265,13 @@ class AyudasVisualesPdfController extends Controller
 
         if (!Storage::disk('local')->exists($dirPath)) {
             Storage::disk('local')->makeDirectory($dirPath);
-            AyudaVisualHistory::firstOrCreate(['proceso' => $proceso], ['clase' => 'N/A']);
+            $history = AyudaVisualHistory::where('proceso', $proceso)->first();
+            if (!$history) {
+                $history = new AyudaVisualHistory();
+                $history->proceso = $proceso;
+                $history->clase = 'N/A';
+                $history->save();
+            }
         }
 
         $file         = $request->file('pdf');

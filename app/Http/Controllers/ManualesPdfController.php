@@ -9,6 +9,7 @@ use App\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ManualesPdfController extends Controller
@@ -130,16 +131,17 @@ class ManualesPdfController extends Controller
                 'existe'   => (count($allFiles) > 0),
             ]);
         } catch (\Throwable $e) {
+            Log::error('Error en ManualesPdfController@getFiles: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             $errorMsg = $e->getMessage();
-            if (!mb_check_encoding($errorMsg, 'UTF-8')) {
-                $errorMsg = mb_convert_encoding($errorMsg, 'UTF-8', 'Windows-1252');
+            if (function_exists('mb_convert_encoding')) {
+                $errorMsg = @mb_convert_encoding($errorMsg, 'UTF-8', 'UTF-8');
             }
             return response()->json([
                 'success' => false,
                 'error' => $errorMsg,
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ], 500);
+                'archivos' => [],
+                'existe' => false
+            ], 200);
         }
     }
 
@@ -226,7 +228,7 @@ class ManualesPdfController extends Controller
                 'proceso' => $proceso,
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Error en ManualesPdfController@createFolder: " . $e->getMessage());
+            Log::error("Error en ManualesPdfController@createFolder: " . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno al crear la carpeta: ' . $e->getMessage(),

@@ -11,6 +11,7 @@ use App\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AyudasVisualesFundicionPdfController extends Controller
@@ -107,44 +108,58 @@ class AyudasVisualesFundicionPdfController extends Controller
      */
     public function getFiles(Request $request)
     {
-        $clase = $this->sanitizePath($request->query('clase', ''));
+        try {
+            $clase = $this->sanitizePath($request->query('clase', ''));
 
-        if (empty($clase)) {
-            return response()->json(['error' => 'Parámetro Clase es requerido.'], 422);
-        }
-
-        // Buscar en las tres posibles ubicaciones (nuevo, legacy intermedio, legacy antiguo)
-        $paths = [
-            self::BASE_DIR     . '/' . $clase,                        // Nuevo: DOCUMENTACION_GIS/AYUDAS_FUNDICION/{Clase}
-            self::BASE_DIR     . '/' . $clase . '/Fundicion',          // Legacy intermedio: {Clase}/Fundicion
-            self::OLD_BASE_DIR . '/' . $clase . '/Fundicion',          // Legacy antiguo: AYUDAS_GIS/{Clase}/Fundicion
-        ];
-
-        $allRawFiles = [];
-        foreach ($paths as $path) {
-            if (Storage::disk('local')->exists($path)) {
-                $allRawFiles = array_merge($allRawFiles, Storage::disk('local')->files($path));
+            if (empty($clase)) {
+                return response()->json(['error' => 'Parámetro Clase es requerido.'], 422);
             }
+
+            // Buscar en las tres posibles ubicaciones (nuevo, legacy intermedio, legacy antiguo)
+            $paths = [
+                self::BASE_DIR     . '/' . $clase,                        // Nuevo: DOCUMENTACION_GIS/AYUDAS_FUNDICION/{Clase}
+                self::BASE_DIR     . '/' . $clase . '/Fundicion',          // Legacy intermedio: {Clase}/Fundicion
+                self::OLD_BASE_DIR . '/' . $clase . '/Fundicion',          // Legacy antiguo: AYUDAS_GIS/{Clase}/Fundicion
+            ];
+
+            $allRawFiles = [];
+            foreach ($paths as $path) {
+                if (Storage::disk('local')->exists($path)) {
+                    $allRawFiles = array_merge($allRawFiles, Storage::disk('local')->files($path));
+                }
+            }
+
+            $allFiles = collect($allRawFiles)
+                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
+                ->map(function($f) use ($clase) {
+                    $rawName = basename($f);
+                    $utf8Name = $this->toUtf8($rawName);
+                    return [
+                        'nombre' => $utf8Name,
+                        'url'    => url('/ayudas_fundicion/serve') . '?clase=' . urlencode($clase) . '&archivo=' . urlencode($utf8Name),
+                    ];
+                })
+                ->unique('nombre')
+                ->values();
+
+            return response()->json([
+                'archivos' => $allFiles,
+                'clase'    => $clase,
+                'existe'   => ($allFiles->count() > 0),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error en AyudasVisualesFundicionPdfController@getFiles: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            $errorMsg = $e->getMessage();
+            if (function_exists('mb_convert_encoding')) {
+                $errorMsg = @mb_convert_encoding($errorMsg, 'UTF-8', 'UTF-8');
+            }
+            return response()->json([
+                'success' => false,
+                'error' => $errorMsg,
+                'archivos' => [],
+                'existe' => false
+            ], 200);
         }
-
-        $allFiles = collect($allRawFiles)
-            ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-            ->map(function($f) use ($clase) {
-                $rawName = basename($f);
-                $utf8Name = $this->toUtf8($rawName);
-                return [
-                    'nombre' => $utf8Name,
-                    'url'    => url('/ayudas_fundicion/serve') . '?clase=' . urlencode($clase) . '&archivo=' . urlencode($utf8Name),
-                ];
-            })
-            ->unique('nombre')
-            ->values();
-
-        return response()->json([
-            'archivos' => $allFiles,
-            'clase'    => $clase,
-            'existe'   => ($allFiles->count() > 0),
-        ]);
     }
 
         /**
@@ -230,7 +245,7 @@ class AyudasVisualesFundicionPdfController extends Controller
                 'clase'   => $clase,
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Error en AyudasVisualesFundicionPdfController@createFolder: " . $e->getMessage());
+            Log::error("Error en AyudasVisualesFundicionPdfController@createFolder: " . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno al crear la carpeta: ' . $e->getMessage(),
