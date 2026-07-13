@@ -52,6 +52,10 @@ function updateDependentSelectors() {
         if (!sel) return;
         const val = urlParams.get(paramName);
         if (!val) return;
+        if (sel.tagName === 'INPUT') {
+            sel.value = val;
+            return;
+        }
         let found = Array.from(sel.options).some(o => o.value === val || o.text === val);
         if (!found) {
             const opt = document.createElement('option');

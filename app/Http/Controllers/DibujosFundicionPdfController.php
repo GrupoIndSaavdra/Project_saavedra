@@ -268,10 +268,14 @@ class DibujosFundicionPdfController extends Controller
 
             return response()->json(['total' => $total]);
         } catch (\Throwable $e) {
+            $errorMsg = $e->getMessage();
+            if (!mb_check_encoding($errorMsg, 'UTF-8')) {
+                $errorMsg = mb_convert_encoding($errorMsg, 'UTF-8', 'Windows-1252');
+            }
             return response()->json([
                 'success' => false,
                 'total' => 0,
-                'error' => $e->getMessage(),
+                'error' => $errorMsg,
                 'file' => $e->getFile(),
                 'line' => $e->getLine()
             ], 500);
@@ -363,12 +367,15 @@ class DibujosFundicionPdfController extends Controller
                 'existe' => (count($allFiles) > 0),
             ]);
         } catch (\Throwable $e) {
+            $errorMsg = $e->getMessage();
+            if (!mb_check_encoding($errorMsg, 'UTF-8')) {
+                $errorMsg = mb_convert_encoding($errorMsg, 'UTF-8', 'Windows-1252');
+            }
             return response()->json([
                 'success' => false,
-                'error' => $e->getMessage(),
+                'error' => $errorMsg,
                 'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'trace' => $e->getTraceAsString()
+                'line' => $e->getLine()
             ], 500);
         }
     }

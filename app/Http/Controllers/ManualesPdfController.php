@@ -98,36 +98,49 @@ class ManualesPdfController extends Controller
      */
     public function getFiles(Request $request)
     {
-        $proceso = $this->sanitizePath($request->query('proceso', ''));
+        try {
+            $proceso = $this->sanitizePath($request->query('proceso', ''));
 
-        if (empty($proceso)) {
-            return response()->json(['error' => 'Parámetro Proceso es requerido.'], 422);
+            if (empty($proceso)) {
+                return response()->json(['error' => 'Parámetro Proceso es requerido.'], 422);
+            }
+
+            $newDirPath = self::BASE_DIR . '/' . $proceso;
+            $oldDirPath = self::OLD_BASE_DIR . '/' . $proceso;
+
+            $newFiles = Storage::disk('local')->exists($newDirPath) ? Storage::disk('local')->files($newDirPath) : [];
+            $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
+
+            $allFiles = collect(array_merge($newFiles, $oldFiles))
+                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
+                ->map(function($f) use ($proceso) {
+                    $rawName = basename($f);
+                    $utf8Name = $this->toUtf8($rawName);
+                    return [
+                        'nombre' => $utf8Name,
+                        'url'    => url('/manuales/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($utf8Name),
+                    ];
+                })
+                ->unique('nombre')
+                ->values();
+
+            return response()->json([
+                'archivos' => $allFiles,
+                'proceso'  => $proceso,
+                'existe'   => (count($allFiles) > 0),
+            ]);
+        } catch (\Throwable $e) {
+            $errorMsg = $e->getMessage();
+            if (!mb_check_encoding($errorMsg, 'UTF-8')) {
+                $errorMsg = mb_convert_encoding($errorMsg, 'UTF-8', 'Windows-1252');
+            }
+            return response()->json([
+                'success' => false,
+                'error' => $errorMsg,
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
-
-        $newDirPath = self::BASE_DIR . '/' . $proceso;
-        $oldDirPath = self::OLD_BASE_DIR . '/' . $proceso;
-
-        $newFiles = Storage::disk('local')->exists($newDirPath) ? Storage::disk('local')->files($newDirPath) : [];
-        $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
-
-        $allFiles = collect(array_merge($newFiles, $oldFiles))
-            ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-            ->map(function($f) use ($proceso) {
-                $rawName = basename($f);
-                $utf8Name = $this->toUtf8($rawName);
-                return [
-                    'nombre' => $utf8Name,
-                    'url'    => url('/manuales/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($utf8Name),
-                ];
-            })
-            ->unique('nombre')
-            ->values();
-
-        return response()->json([
-            'archivos' => $allFiles,
-            'proceso'  => $proceso,
-            'existe'   => (count($allFiles) > 0),
-        ]);
     }
 
         /**

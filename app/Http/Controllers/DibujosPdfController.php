@@ -118,38 +118,79 @@ class DibujosPdfController extends Controller
      */
     public function getFiles(Request $request)
     {
-        $ot    = $this->normalizeOTName($this->sanitizePath($request->query('ot', '')));
-        $clase = $this->sanitizePath($request->query('clase', ''));
+        try {
+            $ot = $this->sanitizePath($request->query('ot', ''));
+            $clase = $this->sanitizePath($request->query('clase', ''));
 
-        if (empty($ot) || empty($clase)) {
-            return response()->json(['error' => 'Parámetros OT y Clase son requeridos.'], 422);
+            if (empty($ot)) {
+                return response()->json(['error' => 'Parámetro OT es requerido.'], 422);
+            }
+
+            if ($clase === 'null' || $clase === '--') $clase = '';
+
+            // Resolver nombre de OT si es numérico
+            if (is_numeric($ot)) {
+                $otModel = Orden_trabajo::query()->with('moldura')->find($ot);
+                if ($otModel) {
+                    $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+                    $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+                }
+            } else {
+                $ot = $this->normalizeOTName($ot);
+            }
+
+            $newClasePath = self::BASE_DIR . '/' . $ot . '/' . $clase;
+            $oldClasePath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
+            $newRootPath = self::BASE_DIR . '/' . $ot;
+            $oldRootPath = self::OLD_BASE_DIR . '/' . $ot;
+
+            $files = [];
+
+            if (!empty($clase)) {
+                $files = array_merge($files, Storage::disk('local')->exists($newClasePath) ? Storage::disk('local')->files($newClasePath) : []);
+                $files = array_merge($files, Storage::disk('local')->exists($oldClasePath) ? Storage::disk('local')->files($oldClasePath) : []);
+            }
+
+            $rootFilesNew = Storage::disk('local')->exists($newRootPath) ? Storage::disk('local')->files($newRootPath) : [];
+            $rootFilesOld = Storage::disk('local')->exists($oldRootPath) ? Storage::disk('local')->files($oldRootPath) : [];
+
+            $files = array_merge($files, $rootFilesNew, $rootFilesOld);
+
+            $allFiles = collect($files)
+                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
+                ->map(function($f) use ($ot, $clase, $newRootPath, $oldRootPath) {
+                    $rawName = basename($f);
+                    $utf8Name = $this->toUtf8($rawName);
+                    $fullPath = $f;
+                    $esRaiz = (strpos($fullPath, $newRootPath . '/' . $rawName) !== false || strpos($fullPath, $oldRootPath . '/' . $rawName) !== false);
+
+                    return [
+                        'nombre'  => $utf8Name,
+                        'url'     => url('/dibujos/serve') . '?ot=' . urlencode($ot) . '&clase=' . urlencode($esRaiz ? '--' : $clase) . '&archivo=' . urlencode($utf8Name),
+                        'es_raiz' => $esRaiz
+                    ];
+                })
+                ->unique('nombre')
+                ->values();
+
+            return response()->json([
+                'archivos' => $allFiles,
+                'ot'       => $ot,
+                'clase'    => $clase,
+                'existe'   => (count($allFiles) > 0),
+            ]);
+        } catch (\Throwable $e) {
+            $errorMsg = $e->getMessage();
+            if (!mb_check_encoding($errorMsg, 'UTF-8')) {
+                $errorMsg = mb_convert_encoding($errorMsg, 'UTF-8', 'Windows-1252');
+            }
+            return response()->json([
+                'success' => false,
+                'error' => $errorMsg,
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
         }
-
-        $newDirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
-        $oldDirPath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
-
-        $newFiles = Storage::disk('local')->exists($newDirPath) ? Storage::disk('local')->files($newDirPath) : [];
-        $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
-
-        $allFiles = collect(array_merge($newFiles, $oldFiles))
-            ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-            ->map(function($f) use ($ot, $clase) {
-                $rawName = basename($f);
-                $utf8Name = $this->toUtf8($rawName);
-                return [
-                    'nombre' => $utf8Name,
-                    'url'    => url('/dibujos/serve') . '?ot=' . urlencode($ot) . '&clase=' . urlencode($clase) . '&archivo=' . urlencode($utf8Name),
-                ];
-            })
-            ->unique('nombre') // Evitar duplicados si existen en ambas carpetas
-            ->values();
-
-        return response()->json([
-            'archivos' => $allFiles,
-            'ot'       => $ot,
-            'clase'    => $clase,
-            'existe'   => (count($allFiles) > 0),
-        ]);
     }
 
     /**
@@ -252,7 +293,8 @@ class DibujosPdfController extends Controller
             \Illuminate\Support\Facades\Log::error("Error en DibujosPdfController@createFolder: " . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Error interno al crear la carpeta: ' . $e->getMessage(),
+                'message' => 'Ocurrió un error al crear la carpeta.',
+                'error'   => $e->getMessage(),
             ], 500);
         }
     }
