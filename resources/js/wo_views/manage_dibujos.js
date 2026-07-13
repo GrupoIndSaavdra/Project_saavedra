@@ -229,16 +229,13 @@ function initCreateFolderBtn() {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Carpeta creada correctamente.');
-                if (data.ot && data.clase) {
-                    if (!window.estructura[data.ot]) window.estructura[data.ot] = [];
-                    if (!window.estructura[data.ot].includes(data.clase)) {
-                        window.estructura[data.ot].push(data.clase);
-                    }
-                }
-                renderEstructuraTable();
-                updateAdminUI();
-                actualizarBadge(payload.param1, payload.param2);
-                if (typeof loadAuditLog === 'function') loadAuditLog();
+                fetch(window.routes['doc.estructura']).then(r=>r.json()).then(str => {
+                    window.estructura = str;
+                    renderEstructuraTable();
+                    updateAdminUI();
+                    actualizarBadge(payload.param1, payload.param2);
+                    if (typeof loadAuditLog === 'function') loadAuditLog();
+                });
             } else {
                 mostrarNotificacion(data.message || 'No se pudo crear la carpeta.', true);
             }
@@ -1356,13 +1353,13 @@ function renderEstructuraTable() {
                             ${!esHuerfano ? 
                                 `<button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
                                     onclick="irACarpeta('${otName}', '${claseLabel}')">
-                                    <img src="/images/documento.png" alt="Ver">
+                                    <img src="${window.baseUrl}/images/documento.png" alt="Ver">
                                     <span>Ver PDF's</span>
                                 </button>` : ''
                             }
                             <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                                 onclick="confirmarEliminarCarpeta('${otName}', '${claseLabel}', '${otName}${esHuerfano ? "" : " / " + claseLabel}')">
-                                <img src="/images/Eliminar-Carpeta.png" alt="Eliminar">
+                                <img src="${window.baseUrl}/images/Eliminar-Carpeta.png" alt="Eliminar">
                                 <span>Eliminar ${esHuerfano ? 'Directorio Raíz' : 'Clase'}</span>
                             </button>
                         </div>

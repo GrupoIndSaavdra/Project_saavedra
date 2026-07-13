@@ -84,13 +84,13 @@ function updateAdminUI() {
             p2 = clSel.options[clSel.selectedIndex].text.trim();
             label = `${p1} / ${p2}`;
         }
-    } else if ((module === 'manuales' || module === 'ayudas') && prSel && prSel.value) {
+    } else if (module === 'manuales' && prSel && prSel.value) {
         if (prSel.selectedIndex !== -1) {
             ready = true;
             p1 = prSel.options[prSel.selectedIndex].text.trim();
             label = p1;
         }
-    } else if (module === 'ayudas_fundicion' && clSel && prSel && clSel.value && prSel.value) {
+    } else if ((module === 'ayudas' || module === 'ayudas_fundicion') && clSel && prSel && clSel.value && prSel.value) {
         // En ayudas_fundicion, prSel puede ser un input hidden
         const isClSelect = clSel.tagName === 'SELECT';
         const isPrSelect = prSel.tagName === 'SELECT';
@@ -119,9 +119,11 @@ function updateAdminUI() {
         let label = '';
         if (module === 'dibujos' || module === 'fundicion') {
             label = `<span class="lvl-1">${p1}</span> <span class="lvl-sep">/</span> <span class="lvl-2">${p2}</span>`;
+        } else if (module === 'ayudas') {
+            label = `<span class="lvl-1">${p2}</span> <span class="lvl-sep">/</span> <span class="lvl-2">${p1}</span>`;
         } else if (module === 'ayudas_fundicion') {
             label = `<span class="lvl-1">${p2}</span>`;
-        } else if (module === 'manuales' || module === 'ayudas') {
+        } else if (module === 'manuales') {
             label = `<span class="lvl-1">${p1}</span>`;
         }
 
@@ -140,7 +142,7 @@ function updateAdminUI() {
         let existe = false;
         if (module === 'dibujos' || module === 'fundicion') existe = window.estructura[p1] && window.estructura[p1].includes(p2);
         else if (module === 'manuales') existe = Array.isArray(window.estructura) ? window.estructura.includes(p1) : window.estructura[p1];
-        else if (module === 'ayudas') existe = Array.isArray(window.estructura) ? window.estructura.includes(p1) : window.estructura[p1];
+        else if (module === 'ayudas') existe = window.estructura[p2] && window.estructura[p2].includes(p1);
         else if (module === 'ayudas_fundicion') existe = !!window.estructura[p2];
 
         // Visibilidad Alertas Izquierda
@@ -150,7 +152,8 @@ function updateAdminUI() {
         if (btnCrear) {
             btnCrear.style.display = existe ? 'none' : 'block';
             if (module === 'dibujos' || module === 'fundicion') { btnCrear.dataset.otId = otSel.value; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
-            else if (module === 'manuales' || module === 'ayudas') { btnCrear.dataset.proceso = p1; btnCrear.dataset.folderParam1 = p1; }
+            else if (module === 'manuales') { btnCrear.dataset.proceso = p1; btnCrear.dataset.folderParam1 = p1; }
+            else if (module === 'ayudas') { btnCrear.dataset.proceso = p1; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
             else if (module === 'ayudas_fundicion') { btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
         }
 
@@ -169,7 +172,8 @@ function updateAdminUI() {
             btnSubir.disabled = !existe;
             btnSubir.style.display = existe ? 'inline-block' : 'none';
             if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
-            else if (module === 'manuales' || module === 'ayudas') { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; }
+            else if (module === 'manuales') { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; }
+            else if (module === 'ayudas') { btnSubir.dataset.proceso = p1; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
             else if (module === 'ayudas_fundicion') { btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
         }
 
@@ -224,17 +228,13 @@ function initCreateFolderBtn() {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Carpeta creada correctamente.');
-                if (data.proceso) {
-                    if (Array.isArray(window.estructura)) {
-                        if (!window.estructura.includes(data.proceso)) window.estructura.push(data.proceso);
-                    } else {
-                        window.estructura[data.proceso] = true;
-                    }
-                }
-                renderEstructuraTable();
-                updateAdminUI();
-                actualizarBadge(payload.param1, payload.param2);
-                if (typeof loadAuditLog === 'function') loadAuditLog();
+                fetch(window.routes['doc.estructura']).then(r=>r.json()).then(str => {
+                    window.estructura = str;
+                    renderEstructuraTable();
+                    updateAdminUI();
+                    actualizarBadge(payload.param1, payload.param2);
+                    if (typeof loadAuditLog === 'function') loadAuditLog();
+                });
             } else {
                 mostrarNotificacion(data.message || 'No se pudo crear la carpeta.', true);
             }
@@ -1344,12 +1344,12 @@ function renderEstructuraTable() {
                     <div class="td-actions">
                         <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
                             onclick="irACarpeta('${procesoIdBD || procesoName}', null, ${procesoIdBD ? 'true' : 'false'})">
-                            <img src="/images/documento.png" alt="Ver">
+                            <img src="${window.baseUrl}/images/documento.png" alt="Ver">
                             <span>Ver PDF's</span>
                         </button>
                         <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                             onclick="confirmarEliminarCarpeta('${procesoName}', null, '${procesoName}')">
-                            <img src="/images/Eliminar-Carpeta.png" alt="Eliminar">
+                            <img src="${window.baseUrl}/images/Eliminar-Carpeta.png" alt="Eliminar">
                             <span>Eliminar Directorio Raíz</span>
                         </button>
                     </div>

@@ -229,13 +229,13 @@ function initCreateFolderBtn() {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Carpeta creada correctamente.');
-                if (data.clase) {
-                    window.estructura[data.clase] = true;
-                }
-                renderEstructuraTable();
-                updateAdminUI();
-                actualizarBadge(payload.param1, payload.param2);
-                if (typeof loadAuditLog === 'function') loadAuditLog();
+                fetch(window.routes['doc.estructura']).then(r=>r.json()).then(str => {
+                    window.estructura = str;
+                    renderEstructuraTable();
+                    updateAdminUI();
+                    actualizarBadge(payload.param1, payload.param2);
+                    if (typeof loadAuditLog === 'function') loadAuditLog();
+                });
             } else {
                 mostrarNotificacion(data.message || 'No se pudo crear la carpeta.', true);
             }
@@ -1349,13 +1349,13 @@ function renderEstructuraTable() {
                     <div class="td-actions">
                         <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
                             onclick="irACarpeta(null, '${claseIdBD || claseName}', ${claseIdBD ? 'true' : 'false'})">
-                            <img src="/images/documento.png" alt="Ver">
+                            <img src="${window.baseUrl}/images/documento.png" alt="Ver">
                             <span>Ver PDF's</span>
                         </button>
                         <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                             onclick="confirmarEliminarCarpeta(null, '${claseName}', '${claseName}')">
-                            <img src="/images/Eliminar-Carpeta.png" alt="Eliminar">
-                            <span>Eliminar Directorio Raíz</span>
+                            <img src="${window.baseUrl}/images/Eliminar-Carpeta.png" alt="Eliminar">
+                            <span>Eliminar Carpeta</span>
                         </button>
                     </div>
                 </td>

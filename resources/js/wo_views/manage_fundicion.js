@@ -1405,13 +1405,13 @@ function renderEstructuraTable() {
                             ${!esHuerfano ? 
                                 `<button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
                                     onclick="irACarpeta('${otName}', '${claseLabel}')">
-                                    <img src="/images/documento.png" alt="Ver">
+                                    <img src="${window.baseUrl}/images/documento.png" alt="Ver">
                                     <span>Ver PDF's</span>
                                 </button>` : ''
                             }
                             <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                                 onclick="confirmarEliminarCarpeta('${otName}', '${claseLabel}', '${otName}${esHuerfano ? "" : " / " + claseLabel}')">
-                                <img src="/images/Eliminar-Carpeta.png" alt="Eliminar">
+                                <img src="${window.baseUrl}/images/Eliminar-Carpeta.png" alt="Eliminar">
                                 <span>Eliminar ${esHuerfano ? 'Directorio Raíz' : 'Clase'}</span>
                             </button>
                         </div>
@@ -1496,7 +1496,7 @@ function renderAlertasTable() {
                     <div class="td-actions">
                         <button class="btn-action-icon btn-alerta-fund" title="Enviar correo de alerta global"
                             onclick="enviarAlertaFundicion(null, '${otName}', this)">
-                            <img src="/images/enviando.png" alt="Alerta">
+                            <img src="${window.baseUrl}/images/enviando.png" alt="Alerta">
                             <span>Enviar Correo</span>
                         </button>
                     </div>
