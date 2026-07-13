@@ -7,6 +7,8 @@ function crearTabla(piezas, infoPiezas) {
     oldTbodies.forEach(tb => tb.remove());
     
     const tbody = document.createElement("tbody");
+    // Ocultar el tbody mientras se renderizan los chunks para evitar que se vean piezas no filtradas
+    tbody.style.display = "none";
     table.appendChild(tbody);
     
     // Delegación de eventos para los botones de liberar/rechazar
@@ -104,6 +106,7 @@ function crearTabla(piezas, infoPiezas) {
         } else {
             // Solo aplicamos filtros al terminar TODO el renderizado para evitar carga O(N^2)
             applyAllFilters();
+            tbody.style.display = ""; // Mostrar el tbody una vez que los filtros están aplicados
             const loading = document.querySelector('.loading');
             if(loading) loading.style.display = 'none';
         }

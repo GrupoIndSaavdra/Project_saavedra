@@ -227,45 +227,55 @@ class DibujosFundicionPdfController extends Controller
      */
     public function getTotalFiles(Request $request)
     {
-        $ot = $this->sanitizePath($request->query('ot', ''));
-        if (empty($ot))
-            return response()->json(['total' => 0]);
+        try {
+            $ot = $this->sanitizePath($request->query('ot', ''));
+            if (empty($ot))
+                return response()->json(['total' => 0]);
 
-        $otNorm = $this->normalizeOTName($ot);
-        $total = 0;
+            $otNorm = $this->normalizeOTName($ot);
+            $total = 0;
 
-        // 1. Dibujos en directorio base
-        $baseDir = self::BASE_DIR . '/' . $otNorm;
-        if (Storage::disk('local')->exists($baseDir)) {
-            $total += collect(Storage::disk('local')->allFiles($baseDir))
-                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
-        }
+            // 1. Dibujos en directorio base
+            $baseDir = self::BASE_DIR . '/' . $otNorm;
+            if (Storage::disk('local')->exists($baseDir)) {
+                $total += collect(Storage::disk('local')->allFiles($baseDir))
+                    ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
+            }
 
-        // 2. Dibujos en directorio legado
-        $oldBaseDir = self::OLD_BASE_DIR . '/' . $otNorm;
-        if (Storage::disk('local')->exists($oldBaseDir)) {
-            $total += collect(Storage::disk('local')->allFiles($oldBaseDir))
-                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
-        }
+            // 2. Dibujos en directorio legado
+            $oldBaseDir = self::OLD_BASE_DIR . '/' . $otNorm;
+            if (Storage::disk('local')->exists($oldBaseDir)) {
+                $total += collect(Storage::disk('local')->allFiles($oldBaseDir))
+                    ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
+            }
 
-        // 3. Ayudas Visuales vinculadas
-        $history = FundicionHistory::where('ot', '=', $otNorm, 'and')->first();
-        $ayudas = $history ? ($history->ayudas_config ?? []) : [];
-        foreach ($ayudas as $aName) {
-            $ayudaBases = [
-                'DOCUMENTACION_GIS/AYUDAS_FUNDICION/' . $aName,           // Nuevo
-                'DOCUMENTACION_GIS/AYUDAS_FUNDICION/' . $aName . '/Fundicion', // Legacy intermedio
-                'AYUDAS_GIS/' . $aName . '/Fundicion'                     // Legacy antiguo
-            ];
-            foreach ($ayudaBases as $b) {
-                if (Storage::disk('local')->exists($b)) {
-                    $total += collect(Storage::disk('local')->files($b))
-                        ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
+            // 3. Ayudas Visuales vinculadas
+            $history = FundicionHistory::where('ot', '=', $otNorm, 'and')->first();
+            $ayudas = $history ? ($history->ayudas_config ?? []) : [];
+            foreach ($ayudas as $aName) {
+                $ayudaBases = [
+                    'DOCUMENTACION_GIS/AYUDAS_FUNDICION/' . $aName,           // Nuevo
+                    'DOCUMENTACION_GIS/AYUDAS_FUNDICION/' . $aName . '/Fundicion', // Legacy intermedio
+                    'AYUDAS_GIS/' . $aName . '/Fundicion'                     // Legacy antiguo
+                ];
+                foreach ($ayudaBases as $b) {
+                    if (Storage::disk('local')->exists($b)) {
+                        $total += collect(Storage::disk('local')->files($b))
+                            ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
+                    }
                 }
             }
-        }
 
-        return response()->json(['total' => $total]);
+            return response()->json(['total' => $total]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'total' => 0,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ], 500);
+        }
     }
 
     // =========================================================================

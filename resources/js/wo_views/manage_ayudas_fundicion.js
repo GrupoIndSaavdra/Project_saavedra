@@ -600,7 +600,15 @@ function actualizarTotalBadge(ot, badgeElement) {
     const url = window.routes['doc.total_archivos'] + '?ot=' + encodeURIComponent(ot);
     
     fetch(url, { headers: { 'Accept': 'application/json' } })
-        .then(r => r.json())
+        .then(async r => {
+            const text = await r.text();
+            try {
+                return JSON.parse(text);
+            } catch (err) {
+                console.error('Error parseando JSON de total_archivos. Respuesta raw:', text);
+                throw err;
+            }
+        })
         .then(data => {
             const count = data.total || 0;
             badgeElement.textContent = count;
