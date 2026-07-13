@@ -20,7 +20,7 @@ class HomeController extends Controller
         $perfil = auth()->user()->perfil;
 
         if ($perfil !== null) {
-            $backgroundImage = "images/fondoadmin.jpg";
+            $backgroundImage = "images/fondoadmin.png";
             $objectiveT = 'Nuestro objetivo es producir moldes de alta calidad para botellas de vidrio que cumplan con las especificaciones de los clientes y sean eficientes en términos de costos de producción.';
             $pieces_Released = [];
             $info_Pieces = [];
@@ -31,22 +31,24 @@ class HomeController extends Controller
                     break;
                 case 2:
                     $layout = "layouts.menu.appProduction";
-                    $backgroundImage = "images/OPE.png";
+                    $backgroundImage = "images/operadores.png";
                     $welcomeT = 'Bienvenido a Producción';
                     break;
                 case 3:
                     $layout = "layouts.menu.appMaster";
+                    $backgroundImage = "images/fondo master.png";
                     $welcomeT = 'Bienvenido Master';
                     break;
                 case 4:
                     $layout = "layouts.menu.appQuality";
-                    $backgroundImage = "images/calidad.png";
+                    $backgroundImage = "images/fondocalidad.png";
                     $welcomeT = 'Bienvenido a Control de calidad';
                     $objectiveT = 'En nuestro perfil de calidad, cada milímetro importa. Nos comprometemos a inspeccionar con precisión cada pieza, asegurando medidas exactas y calidad impecable. En la búsqueda constante de la excelencia, nos destacamos por nuestra meticulosidad y compromiso con la perfección.';
                     [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
                     break;
                 case 5:
                     $layout = "layouts.menu.appWarehouse";
+                    $backgroundImage = "images/fondoalmacen.png";
                     $welcomeT = 'Bienvenido a Almacen';
                     break;
             }

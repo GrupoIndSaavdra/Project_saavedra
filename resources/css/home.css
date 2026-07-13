@@ -28,8 +28,8 @@
     position: fixed;
     width: 100vw;
     height: 100vh;
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(1px);
+    backdrop-filter: blur(1px);
 }
 /* Introduction section */
 .intro {
@@ -91,37 +91,40 @@
     height: calc(100vh - 5vh);
     width: 60px;
     overflow: hidden;
-    background: rgba(3, 57, 102, 0.1); 
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border-left: 2px solid rgba(255, 255, 255, 0.1);
-    will-change: width, background-color, box-shadow;
-    transition: width 0.7s cubic-bezier(0.25, 1, 0.5, 1), 
-                background-color 0.7s cubic-bezier(0.25, 1, 0.5, 1),
-                box-shadow 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+    /* Premium Industrial Glassmorphism - Neutral Dark */
+    background: linear-gradient(135deg, rgba(40, 40, 40, 0.5), rgba(0, 0, 0, 0.7));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-left: 2px solid rgba(255, 255, 255, 0.15);
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.4);
+    will-change: width, background, box-shadow;
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 1rem;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 8em;
-    font-weight: 100;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 5em;
+    font-weight: 300;
     cursor: pointer;
     z-index: 10;
 }
 
 .div-new-report:hover {
-    background: rgba(3, 57, 102, 0.25);
-    color: #ffffff;
-    width: 80px;
+    background: linear-gradient(135deg, rgba(60, 60, 60, 0.8), rgba(20, 20, 20, 0.9));
+    color: #0a8504; /* Verde Saavedra */
+    width: 85px;
+    box-shadow: -10px 0 30px rgba(10, 133, 4, 0.3);
+    border-left: 2px solid rgba(255, 255, 255, 0.3);
+    text-shadow: 0 0 10px rgba(10, 133, 4, 0.5);
 }
 
 .div-new-report.active {
     width: 50vw;
-    background: #030041;
-    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.5);
+    background: linear-gradient(135deg, rgba(25, 25, 25, 0.98), rgba(5, 5, 5, 0.98));
+    box-shadow: -20px 0 50px rgba(0, 0, 0, 0.8);
     color: #ffffff;
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    border-left: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .div-new-report h1 {
