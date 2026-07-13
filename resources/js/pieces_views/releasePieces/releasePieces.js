@@ -5,12 +5,12 @@ function crearTabla(piezas, infoPiezas) {
     // Limpiar cualquier tbody existente para evitar duplicidad y que los filtros respondan correctamente
     const oldTbodies = table.querySelectorAll("tbody");
     oldTbodies.forEach(tb => tb.remove());
-    
+
     const tbody = document.createElement("tbody");
     // Ocultar el tbody mientras se renderizan los chunks para evitar que se vean piezas no filtradas
     tbody.style.display = "none";
     table.appendChild(tbody);
-    
+
     // Delegación de eventos para los botones de liberar/rechazar
     tbody.addEventListener("click", (e) => {
         const btn = e.target.closest(".btn-action-liberar, .btn-action-rechazar");
@@ -53,11 +53,11 @@ function crearTabla(piezas, infoPiezas) {
             let piezaOG = data.original;
             let infoP = data.info;
             let pieza = data.ordered;
-            
+
             // Para el atributo data-pieza usamos join para ser más rápidos que JSON.stringify
             let piezasIds = infoP[0].join(",");
-            
-            chunkHtml += `<tr style="background-color: ${pieza.colorPiece};" 
+
+            chunkHtml += `<tr style="background-color: ${pieza.colorPiece};"
                 data-color="${esc(pieza.colorPiece).toUpperCase()}"
                 data-workorder="${esc(pieza.workOrder)}"
                 data-class="${esc(pieza.class)}"
@@ -72,7 +72,7 @@ function crearTabla(piezas, infoPiezas) {
             Object.keys(pieza).forEach((key) => {
                 if (key !== "colorPiece") {
                     let cellValue = pieza[key] !== null && pieza[key] !== undefined ? pieza[key] : "";
-                    
+
                     if (key === "btn_release") {
                         let btnHtml = "";
                         // Logic de negocio original
@@ -263,7 +263,7 @@ function obtenerRequest() {
     for (let i = 0; i < names.length; i++) {
         let el = document.getElementsByName(names[i])[0];
         let value = el ? el.value : "Todos";
-        
+
         // Solo reemplazar "/" por "|" en workOrder (no en machine que ya usa "_" para agrupadas)
         if (names[i] === "workOrder" && value) {
             value = value.replaceAll("/", "!"); // Usamos ! para no confundir con el separador de campos |
@@ -488,7 +488,7 @@ function createFilters() {
             document.querySelectorAll(".input-filter").forEach(input => {
                 input.value = "";
             });
-            
+
             let statusSel = document.getElementById("statusPieceFilter");
             if (statusSel) {
                 statusSel.value = "Todos";
@@ -611,10 +611,10 @@ function setupCascadingFilters() {
         window.pieces.forEach(p => {
             let pieceOT = String(p[0]).trim();
             let pieceClass = String(p.className).trim();
-            
+
             let matchOT = finalOT === "Todos" ? true : (pieceOT === String(finalOT).split(" - ")[0].trim());
             let matchClass = finalClass === "Todos" ? true : (pieceClass === finalClass);
-            
+
             if (matchOT && matchClass) {
                 activeProcesses.add(String(p[4]).trim());
             }
@@ -868,7 +868,7 @@ function sortPiezasDatabaseOrder(piezas, infoPiezas) {
 if (window.pieces.length > 0) {
     let sortedData = sortPiezasDatabaseOrder(window.pieces, window.infoPiezas);
     // Pasamos el array de objetos ya mapeados {original, info, ordered} para evitar re-calculo
-    crearTabla(sortedData.mapped, null); 
+    crearTabla(sortedData.mapped, null);
 }
 const pdf = document.getElementById("pdf");
 

@@ -50,12 +50,12 @@ class PzasLiberadasController extends Controller
     public function show()
     {
         $retainedFilters = session('retainedFilters');
-        
+
         if ($retainedFilters) {
             // Restore from flashed session after a liberation action
             $emptyDatos = array_fill_keys(array_keys($retainedFilters), "Todos");
             $emptyDatos['action'] = null;
-            
+
             $array = $this->controladorPzas->search($emptyDatos, "quality");
             $array[4] = $retainedFilters;
             return $this->showPieces($array);
@@ -127,11 +127,11 @@ class PzasLiberadasController extends Controller
             // El resto de la función se encargará de procesar los filtros y devolver la vista actualizada
         }
         $extraRequest = explode("|", $request->extraRequest);
-        
+
         // El workOrder usa "!" como reemplazo de "/"
         $workOrder = isset($extraRequest[0]) ? str_replace("!", "/", $extraRequest[0]) : "Todos";
         $operator = $extraRequest[2] ?? "Todos";
-        
+
         if ($operator !== "Todos") {
             $operatorObj = \App\Models\User::query()->where('matricula', $operator)->first();
             if ($operatorObj) {
@@ -152,7 +152,7 @@ class PzasLiberadasController extends Controller
             "action"    => null,
         );
 
-        // Redirigir a la vista GET utilizando variables de sesión flash, 
+        // Redirigir a la vista GET utilizando variables de sesión flash,
         // para que un simple F5 no reenvíe el formulario y limpie los filtros.
         return redirect()->route('showReleasePieces_view')->with('retainedFilters', $selectedItems);
     }
@@ -409,7 +409,7 @@ class PzasLiberadasController extends Controller
         // 1. Actualizar estado de liberación en la tabla Pieza para todas
         foreach ($piezas as $pza) {
             $n_pieza = $pza->n_pieza ?: $pza->n_juego;
-            
+
             Pieza::query()->where('n_pieza', $n_pieza)
                 ->where('id_clase', $meta->id_clase)
                 ->where('proceso', $proceso)
