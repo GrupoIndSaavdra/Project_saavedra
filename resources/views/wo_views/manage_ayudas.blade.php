@@ -4,7 +4,7 @@
     <title>{{ $pageTitle ?? 'Gestión de Documentación' }}</title>
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite([
-        'resources/css/wo_views/manage_documentation.css',
+        'resources/css/wo_views/manage_ayudas.css',
         'resources/js/wo_views/manage_ayudas.js'
     ])
 @endsection
@@ -111,31 +111,16 @@
                     </div>
 
                 @elseif($moduleType === 'ayudas')
-                    {{-- Selector de Clase --}}
-                    <div class="dibujos-form-group">
-                        <label for="clase-select">Clase</label>
-                        <select id="clase-select" onchange="changeDocSelector('clase_id', this.value, ['proceso_id'])">
-                            <option value="">— Seleccionar Clase —</option>
-                            @foreach($clasesUnicas as $claseOpt)
-                                <option value="{{ $claseOpt->id }}" {{ $claseSeleccionadaId == $claseOpt->id ? 'selected' : '' }}>
-                                    {{ $claseOpt->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
                     {{-- Selector de Proceso --}}
                     <div class="dibujos-form-group">
                         <label for="proceso-select">Proceso</label>
-                        <select id="proceso-select" onchange="changeDocSelector('proceso_id', this.value)" {{ !$claseSeleccionadaId ? 'disabled' : '' }}>
+                        <select id="proceso-select" onchange="changeDocSelector('proceso_id', this.value)">
                             <option value="">— Seleccionar Proceso —</option>
-                            @if($claseSeleccionadaId)
-                                @foreach($todosLosProcesos as $procesoOpt)
-                                    <option value="{{ $procesoOpt->id }}" {{ $procesoSeleccionadoId == $procesoOpt->id ? 'selected' : '' }}>
-                                        {{ $procesoOpt->nombre }}
-                                    </option>
-                                @endforeach
-                            @endif
+                            @foreach($todosLosProcesos as $procesoOpt)
+                                <option value="{{ $procesoOpt->id }}" {{ $procesoSeleccionadoId == $procesoOpt->id ? 'selected' : '' }}>
+                                    {{ $procesoOpt->nombre }}
+                                </option>
+                            @endforeach
                         </select>
                     </div>
                 @elseif($moduleType === 'ayudas_fundicion')
@@ -177,13 +162,12 @@
                         $folderPathLabel = "<span class='lvl-1'>" . $procesoActivo->nombre . "</span>";
                         $carpetaExiste = in_array($param1Name, $estructura);
                         $folderProps = ['data-proceso' => $param1Name];
-                    } elseif ($moduleType === 'ayudas' && $procesoSeleccionadoId && $claseSeleccionadaId && $procesoActivo && $claseActiva) {
+                    } elseif ($moduleType === 'ayudas' && $procesoSeleccionadoId && $procesoActivo) {
                         $isReady = true;
                         $param1Name = $procesoActivo->nombre;
-                        $param2Name = $claseActiva->nombre;
-                        $folderPathLabel = "<span class='lvl-1'>" . $claseActiva->nombre . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . $procesoActivo->nombre . "</span>";
-                        $carpetaExiste = isset($estructura[$param2Name]) && in_array($param1Name, $estructura[$param2Name]);
-                        $folderProps = ['data-proceso' => $param1Name, 'data-clase' => $param2Name];
+                        $folderPathLabel = "<span class='lvl-1'>" . $procesoActivo->nombre . "</span>";
+                        $carpetaExiste = in_array($param1Name, $estructura);
+                        $folderProps = ['data-proceso' => $param1Name];
                     } elseif ($moduleType === 'ayudas_fundicion' && $claseSeleccionadaId && $claseActiva) {
                         $isReady = true;
                         $param1Name = 'Fundicion';
@@ -208,12 +192,12 @@
                 <div id="admin-status-container">
                     <div id="alert-ready-exists" class="d-alert d-alert-success d-mt-2"
                         style="display: {{ $isReady && $carpetaExiste ? 'block' : 'none' }};">
-                        La carpeta <strong class="folder-label">{{ $folderPathLabel ?? '...' }}</strong> ya existe en el
+                        La carpeta <strong class="folder-label">{!! $folderPathLabel ?? '...' !!}</strong> ya existe en el
                         servidor.
                     </div>
                     <div id="alert-ready-not-exists" class="d-alert d-alert-warning d-mt-2"
                         style="display: {{ $isReady && !$carpetaExiste ? 'block' : 'none' }};">
-                        La carpeta <strong class="folder-label">{{ $folderPathLabel ?? '...' }}</strong> aun <strong>no
+                        La carpeta <strong class="folder-label">{!! $folderPathLabel ?? '...' !!}</strong> aun <strong>no
                             existe</strong>. Creala antes de
                         subir PDFs.
                     </div>
@@ -272,10 +256,10 @@
         {{-- Panel de archivos de la carpeta seleccionada --}}
         @if($isReady)
             <div class="dibujos-files-panel active" id="panel-archivos">
-                <h2>Archivos en: <span>{{ $folderPathLabel }}</span></h2>
+                <h2>Archivos en: <span>{!! $folderPathLabel !!}</span></h2>
 
                 <div class="dibujos-files-breadcrumb">
-                    Carpeta activa: <strong>{{ $folderPathLabel }}</strong>
+                    Carpeta activa: <strong>{!! $folderPathLabel !!}</strong>
                 </div>
 
                 <div class="dibujos-files-grid" id="archivos-grid">
@@ -307,7 +291,6 @@
                                     <th class="d-text-center">Orden de Trabajo</th>
                                     <th class="d-text-center">Clase</th>
                                 @elseif($moduleType === 'ayudas')
-                                    <th class="d-text-center">Clase</th>
                                     <th class="d-text-center">Proceso</th>
                                 @else
                                     <th class="d-text-center">Clase</th>
@@ -372,7 +355,7 @@
                                         @endforeach
                                     @endif
                                 @endforeach
-                            @elseif($moduleType === 'manuales')
+                            @elseif($moduleType === 'manuales' || $moduleType === 'ayudas')
                                 @foreach($estructura as $procesoName)
                                     @php
                                         $procesoReal = $todosLosProcesos->firstWhere('nombre', $procesoName);
@@ -492,58 +475,30 @@
                                     @endforeach
                                 @endforeach
                             @elseif($moduleType === 'ayudas')
-                                @foreach($estructura as $claseName => $procesos)
+                                @foreach($estructura as $procesoName)
                                     @php
-                                        $claseReal = $clasesUnicas->firstWhere('nombre', $claseName);
-                                        $claseIdBD = $claseReal ? $claseReal->id : null;
-
-                                        // Si no tiene procesos, mostramos una fila "huérfana" para poder borrar la Clase
-                                        $displayProcesos = count($procesos) > 0 ? $procesos : ['--'];
+                                        $procesoReal = $todosLosProcesos->firstWhere('nombre', $procesoName);
+                                        $procesoIdBD = $procesoReal ? $procesoReal->id : null;
+                                        $badgeId = "badge-" . Str::slug($procesoName);
                                     @endphp
-
-                                    @foreach($displayProcesos as $procesoName)
-                                        @php
-                                            $esHuerfano = ($procesoName === '--');
-                                            $procesoReal = $esHuerfano ? null : $todosLosProcesos->firstWhere('nombre', $procesoName);
-                                            $procesoIdBD = $procesoReal ? $procesoReal->id : null;
-                                            $badgeId = "badge-" . Str::slug($claseName) . "-" . Str::slug($procesoName);
-                                        @endphp
-                                        <tr data-proceso="{{ $procesoName }}" data-clase="{{ $claseName }}">
-                                            <td class="d-text-center d-text-primary">
-                                                <strong>{{ $claseName }}</strong>
-                                            </td>
-                                            <td class="d-text-center">
-                                                @if($esHuerfano)
-                                                    <em class="d-text-danger d-text-bold">Sin procesos</em>
-                                                @else
-                                                    <span class="d-text-success d-text-bold">{{ $procesoName }}</span>
-                                                @endif
-                                            </td>
-                                            <td class="d-text-center">
-                                                @if($esHuerfano)
-                                                    <span class="d-text-subtle">—</span>
-                                                @else
-                                                    <span class="badge-count" id="{{ $badgeId }}">...</span>
-                                                @endif
-                                            </td>
-                                            <td class="d-text-center">
-                                                <div class="td-actions">
-                                                    @if(!$esHuerfano)
-                                                        <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                            onclick="irACarpeta('{{ $procesoIdBD ?? $procesoName }}', '{{ $claseIdBD ?? $claseName }}', {{ $procesoIdBD ? 'true' : 'false' }})">
-                                                            <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                            <span>Ver PDF's</span>
-                                                        </button>
-                                                    @endif
-                                                    <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                                        onclick="confirmarEliminarCarpeta('{{ $procesoName }}', '{{ $claseName }}', '{{ $claseName }}{{ $esHuerfano ? "" : " / " . $procesoName }}')">
-                                                        <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
-                                                        <span>Eliminar {{ $esHuerfano ? 'Directorio Raíz' : 'Proceso' }}</span>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
+                                    <tr data-proceso="{{ $procesoName }}">
+                                        <td class="d-text-center d-text-primary"><strong>{{ $procesoName }}</strong></td>
+                                        <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
+                                        <td class="d-text-center">
+                                            <div class="td-actions">
+                                                <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
+                                                    onclick="irACarpeta('{{ $procesoIdBD ?? $procesoName }}', null, {{ $procesoIdBD ? 'true' : 'false' }})">
+                                                    <img src="{{ asset('images/documento.png') }}" alt="Ver">
+                                                    <span>Ver PDF's</span>
+                                                </button>
+                                                <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
+                                                    onclick="confirmarEliminarCarpeta('{{ $procesoName }}', null, '{{ $procesoName }}')">
+                                                    <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                                                    <span>Eliminar Directorio Raíz</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 @endforeach
                             @elseif($moduleType === 'ayudas_fundicion')
                                 @foreach($estructura as $claseName => $exists)

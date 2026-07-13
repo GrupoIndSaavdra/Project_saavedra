@@ -23,7 +23,7 @@ window.changeDocSelector = function(paramName, value, toClear = []) {
 };
 
 window.irACarpeta = function(p1, p2, isId = false) {
-    const module = 'ayudas';
+    const module = 'manuales';
     const url = new URL(window.location.href);
 
     if (module === 'dibujos' || module === 'fundicion') {
@@ -43,7 +43,7 @@ window.irACarpeta = function(p1, p2, isId = false) {
 };
 
 function updateDependentSelectors() {
-    const module = 'ayudas';
+    const module = 'manuales';
     const clSel = document.getElementById('clase-select');
     const prSel = document.getElementById('proceso-select');
     const otSel = document.getElementById('ot-select');
@@ -84,13 +84,13 @@ function updateAdminUI() {
             p2 = clSel.options[clSel.selectedIndex].text.trim();
             label = `${p1} / ${p2}`;
         }
-    } else if (module === 'manuales' && prSel && prSel.value) {
+    } else if ((module === 'manuales' || module === 'ayudas') && prSel && prSel.value) {
         if (prSel.selectedIndex !== -1) {
             ready = true;
             p1 = prSel.options[prSel.selectedIndex].text.trim();
             label = p1;
         }
-    } else if ((module === 'ayudas' || module === 'ayudas_fundicion') && clSel && prSel && clSel.value && prSel.value) {
+    } else if (module === 'ayudas_fundicion' && clSel && prSel && clSel.value && prSel.value) {
         // En ayudas_fundicion, prSel puede ser un input hidden
         const isClSelect = clSel.tagName === 'SELECT';
         const isPrSelect = prSel.tagName === 'SELECT';
@@ -119,11 +119,9 @@ function updateAdminUI() {
         let label = '';
         if (module === 'dibujos' || module === 'fundicion') {
             label = `<span class="lvl-1">${p1}</span> <span class="lvl-sep">/</span> <span class="lvl-2">${p2}</span>`;
-        } else if (module === 'ayudas') {
-            label = `<span class="lvl-1">${p2}</span> <span class="lvl-sep">/</span> <span class="lvl-2">${p1}</span>`;
         } else if (module === 'ayudas_fundicion') {
             label = `<span class="lvl-1">${p2}</span>`;
-        } else if (module === 'manuales') {
+        } else if (module === 'manuales' || module === 'ayudas') {
             label = `<span class="lvl-1">${p1}</span>`;
         }
 
@@ -139,11 +137,10 @@ function updateAdminUI() {
             if (bcrumb) bcrumb.innerHTML = label;
         }
 
-        // Determinar existencia
         let existe = false;
         if (module === 'dibujos' || module === 'fundicion') existe = window.estructura[p1] && window.estructura[p1].includes(p2);
         else if (module === 'manuales') existe = Array.isArray(window.estructura) ? window.estructura.includes(p1) : window.estructura[p1];
-        else if (module === 'ayudas') existe = window.estructura[p2] && window.estructura[p2].includes(p1);
+        else if (module === 'ayudas') existe = Array.isArray(window.estructura) ? window.estructura.includes(p1) : window.estructura[p1];
         else if (module === 'ayudas_fundicion') existe = !!window.estructura[p2];
 
         // Visibilidad Alertas Izquierda
@@ -153,8 +150,7 @@ function updateAdminUI() {
         if (btnCrear) {
             btnCrear.style.display = existe ? 'none' : 'block';
             if (module === 'dibujos' || module === 'fundicion') { btnCrear.dataset.otId = otSel.value; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
-            else if (module === 'manuales') { btnCrear.dataset.proceso = p1; btnCrear.dataset.folderParam1 = p1; }
-            else if (module === 'ayudas') { btnCrear.dataset.proceso = p1; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
+            else if (module === 'manuales' || module === 'ayudas') { btnCrear.dataset.proceso = p1; btnCrear.dataset.folderParam1 = p1; }
             else if (module === 'ayudas_fundicion') { btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
         }
 
@@ -173,8 +169,7 @@ function updateAdminUI() {
             btnSubir.disabled = !existe;
             btnSubir.style.display = existe ? 'inline-block' : 'none';
             if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
-            else if (module === 'manuales') { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; }
-            else if (module === 'ayudas') { btnSubir.dataset.proceso = p1; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
+            else if (module === 'manuales' || module === 'ayudas') { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; }
             else if (module === 'ayudas_fundicion') { btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
         }
 
@@ -229,7 +224,17 @@ function initCreateFolderBtn() {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Carpeta creada correctamente.');
-                setTimeout(() => window.location.reload(), 1200);
+                if (data.proceso) {
+                    if (Array.isArray(window.estructura)) {
+                        if (!window.estructura.includes(data.proceso)) window.estructura.push(data.proceso);
+                    } else {
+                        window.estructura[data.proceso] = true;
+                    }
+                }
+                renderEstructuraTable();
+                updateAdminUI();
+                actualizarBadge(payload.param1, payload.param2);
+                if (typeof loadAuditLog === 'function') loadAuditLog();
             } else {
                 mostrarNotificacion(data.message || 'No se pudo crear la carpeta.', true);
             }
@@ -318,35 +323,34 @@ function initUploadBtn() {
             mostrarNotificacion(successCount === 1 ? 'Archivo subido correctamente.' : `${successCount} archivos subidos correctamente.`);
             
             // Recargar vista de archivos y badges
-            const p1 = ('ayudas' === 'manuales') ? payload.proceso : payload.param1;
-            const p2 = ('ayudas' === 'manuales') ? null : payload.param2;
+            const p1 = ('manuales' === 'manuales') ? payload.proceso : payload.param1;
+            const p2 = ('manuales' === 'manuales') ? null : payload.param2;
 
             cargarArchivosEnPanel(p1, p2);
             actualizarBadge(p1, p2);
-            loadBadgeCounts();
             loadAuditLog();
         }
     });
 }
 
 function getPayloadFromBtn(btn) {
-    if ('ayudas' === 'dibujos' || 'ayudas' === 'fundicion') return { 
+    if ('manuales' === 'dibujos' || 'manuales' === 'fundicion') return { 
         ot_id: btn.dataset.otId, 
         clase: btn.dataset.clase, 
         param1: btn.dataset.folderParam1 || btn.dataset.otId, 
         param2: btn.dataset.folderParam2 || btn.dataset.clase 
     };
-    if ('ayudas' === 'manuales') return { 
+    if ('manuales' === 'manuales') return { 
         proceso: btn.dataset.proceso, 
         param1: btn.dataset.folderParam1 || btn.dataset.proceso 
     };
-    if ('ayudas' === 'ayudas') return { 
+    if ('manuales' === 'ayudas') return { 
         proceso: btn.dataset.proceso, 
         clase: btn.dataset.clase, 
         param1: btn.dataset.folderParam1 || btn.dataset.proceso, 
         param2: btn.dataset.folderParam2 || btn.dataset.clase 
     };
-    if ('ayudas' === 'ayudas_fundicion') return { 
+    if ('manuales' === 'ayudas_fundicion') return { 
         clase: btn.dataset.clase, 
         param1: btn.dataset.folderParam1, 
         param2: btn.dataset.folderParam2 || btn.dataset.clase 
@@ -517,7 +521,6 @@ function subirPdf(payload, file, btn, onSuccess) {
     .then(data => {
         if (data.success) {
             mostrarNotificacion(data.message || 'Archivo subido correctamente.');
-            loadBadgeCounts();
             loadAuditLog();
             if (onSuccess) onSuccess();
         } else {
@@ -568,16 +571,14 @@ function reemplazarPdf(payload, file, btn, onSuccess) {
 function loadBadgeCounts() {
     let rows;
     if ('ayudas' === 'dibujos' || 'ayudas' === 'fundicion') rows = document.querySelectorAll('[data-ot][data-clase]');
-    else if ('ayudas' === 'manuales') rows = document.querySelectorAll('[data-proceso]');
-    else if ('ayudas' === 'ayudas') rows = document.querySelectorAll('[data-proceso][data-clase]');
+    else if ('ayudas' === 'manuales' || 'ayudas' === 'ayudas') rows = document.querySelectorAll('[data-proceso]');
     else if ('ayudas' === 'ayudas_fundicion') rows = document.querySelectorAll('[data-clase]');
     
     if(!rows) return;
 
     rows.forEach(row => {
         if ('ayudas' === 'dibujos' || 'ayudas' === 'fundicion') actualizarBadge(row.dataset.ot, row.dataset.clase);
-        else if ('ayudas' === 'manuales') actualizarBadge(row.dataset.proceso);
-        else if ('ayudas' === 'ayudas') actualizarBadge(row.dataset.proceso, row.dataset.clase);
+        else if ('ayudas' === 'manuales' || 'ayudas' === 'ayudas') actualizarBadge(row.dataset.proceso);
         else if ('ayudas' === 'ayudas_fundicion') actualizarBadge(null, row.dataset.clase);
     });
 
@@ -612,10 +613,8 @@ function getBadgeElement(param1, param2 = null) {
 
     if ('ayudas' === 'dibujos' || 'ayudas' === 'fundicion') {
         rowSelector = `tr[data-ot="${safeParam1}"][data-clase="${safeParam2}"]`;
-    } else if ('ayudas' === 'manuales') {
+    } else if ('ayudas' === 'manuales' || 'ayudas' === 'ayudas') {
         rowSelector = `tr[data-proceso="${safeParam1}"]`;
-    } else if ('ayudas' === 'ayudas') {
-        rowSelector = `tr[data-proceso="${safeParam1}"][data-clase="${safeParam2}"]`;
     } else if ('ayudas' === 'ayudas_fundicion') {
         rowSelector = `tr[data-clase="${safeParam2}"]`;
     }
@@ -632,8 +631,7 @@ function getBadgeElement(param1, param2 = null) {
     let badgeId = '';
     if ('ayudas' === 'dibujos') badgeId = `badge-${slugify(param1)}-${param2 ? slugify(param2) : 'raiz'}`;
     else if ('ayudas' === 'fundicion') badgeId = `badge-${slugify(param1)}-${slugify(param2 || 'Raíz OT')}`;
-    else if ('ayudas' === 'manuales') badgeId = `badge-${slugify(param1)}`;
-    else if ('ayudas' === 'ayudas') badgeId = `badge-${slugify(param2)}-${slugify(param1)}`;
+    else if ('ayudas' === 'manuales' || 'ayudas' === 'ayudas') badgeId = `badge-${slugify(param1)}`;
     else if ('ayudas' === 'ayudas_fundicion') badgeId = `badge-${slugify(param2)}`;
     
     return document.getElementById(badgeId);
@@ -644,10 +642,10 @@ function actualizarBadge(param1, param2 = null) {
     if (!badge) return;
 
     let url = window.routes['doc.archivos'] + '?';
-    if ('ayudas' === 'dibujos' || 'ayudas' === 'fundicion') url += `ot=${encodeURIComponent(param1)}&clase=${encodeURIComponent(param2)}`;
-    else if ('ayudas' === 'manuales') url += `proceso=${encodeURIComponent(param1)}`;
-    else if ('ayudas' === 'ayudas') url += `proceso=${encodeURIComponent(param1)}&clase=${encodeURIComponent(param2)}`;
-    else if ('ayudas' === 'ayudas_fundicion') url += `clase=${encodeURIComponent(param2)}`;
+    if ('manuales' === 'dibujos' || 'manuales' === 'fundicion') url += `ot=${encodeURIComponent(param1)}&clase=${encodeURIComponent(param2)}`;
+    else if ('manuales' === 'manuales') url += `proceso=${encodeURIComponent(param1)}`;
+    else if ('manuales' === 'ayudas') url += `proceso=${encodeURIComponent(param1)}&clase=${encodeURIComponent(param2)}`;
+    else if ('manuales' === 'ayudas_fundicion') url += `clase=${encodeURIComponent(param2)}`;
 
     fetch(url, { headers: { 'Accept': 'application/json' } })
         .then(r => r.json())
@@ -669,9 +667,9 @@ function actualizarBadge(param1, param2 = null) {
                     // Identificar si es Directorio Raíz
                     const isRoot = (row.dataset.proceso === '--' || 
                                     (!row.dataset.clase && !row.dataset.proceso) || 
-                                    ('ayudas' === 'dibujos' && !row.dataset.clase) ||
-                                    ('ayudas' === 'fundicion' && !row.dataset.clase) ||
-                                    'ayudas' === 'manuales');
+                                    ('manuales' === 'dibujos' && !row.dataset.clase) ||
+                                    ('manuales' === 'fundicion' && !row.dataset.clase) ||
+                                    'manuales' === 'manuales');
                     
                     if (count > 0) {
                         if (btnSpan) btnSpan.textContent = 'Vaciar Carpeta';
@@ -682,7 +680,7 @@ function actualizarBadge(param1, param2 = null) {
                     } else {
                         // Etiquetas específicas para subcarpetas vacías
                         const labelMap = { 'dibujos': 'Clase', 'ayudas': 'Proceso', 'ayudas_fundicion': 'Carpeta' };
-                        if (btnSpan) btnSpan.textContent = 'Eliminar ' + (labelMap['ayudas'] || 'Carpeta');
+                        if (btnSpan) btnSpan.textContent = 'Eliminar ' + (labelMap['manuales'] || 'Carpeta');
                         if (btnImg) btnImg.src = window.baseUrl + '/images/Eliminar-Carpeta.png';
                     }
                 }
@@ -897,7 +895,7 @@ window.cerrarConfirmarEliminar = function() {
 };
 
 function eliminarCarpetaAJAX(folder) {
-    const module = 'ayudas';
+    const module = 'manuales';
     let payload = {};
     let route = window.routes['doc.deleteFolder'];
 
@@ -966,9 +964,10 @@ function eliminarCarpetaAJAX(folder) {
                     delete window.estructura[folder.p1];
                 }
             } else if (module === 'ayudas') {
-                if (window.estructura[folder.p2]) {
-                    window.estructura[folder.p2] = window.estructura[folder.p2].filter(p => p !== folder.p1);
-                    if (window.estructura[folder.p2].length === 0) delete window.estructura[folder.p2];
+                if (Array.isArray(window.estructura)) {
+                    window.estructura = window.estructura.filter(p => p !== folder.p1);
+                } else {
+                    delete window.estructura[folder.p1];
                 }
             }
 
@@ -976,13 +975,7 @@ function eliminarCarpetaAJAX(folder) {
             updateAdminUI();
             loadBadgeCounts();
             loadAuditLog();
-
-            // Opcional: recargar tabla para reflejar cambios (o podrías eliminar la fila del DOM)
-            // Por ahora updateAdminUI y badges son suficientes si el usuario vuelve a filtrar.
-            // Pero para la tabla, lo mejor es un refresco ligero o recarga si es necesario.
-            // Como usamos Blade simple para la tabla, un reload podria ser util aqui si no queremos
-            // manipular el DOM de la tabla manualmente.
-            setTimeout(() => window.location.reload(), 1500); 
+            renderEstructuraTable();
 
         } else {
             mostrarNotificacion(data.message || 'Error al eliminar carpeta.', true);
@@ -1307,3 +1300,62 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.initFundicionChecklists = initFundicionChecklists;
+
+
+function renderEstructuraTable() {
+    const tbody = document.querySelector('#tabla-estructura tbody');
+    if (!tbody) return;
+    
+    // Guardar conteos existentes para no perderlos y evitar peticiones extras
+    const existingCounts = {};
+    tbody.querySelectorAll('.badge-count').forEach(span => {
+        existingCounts[span.id] = span.textContent;
+    });
+
+    tbody.innerHTML = '';
+
+    if (Array.isArray(window.estructura) && window.estructura.length > 0) {
+        const prSel = document.getElementById('proceso-select');
+        
+        window.estructura.forEach(procesoName => {
+            let procesoIdBD = null;
+            if (prSel) {
+                const opt = Array.from(prSel.options).find(o => o.text === procesoName);
+                if (opt) procesoIdBD = opt.value;
+            }
+            const badgeId = "badge-" + slugify(procesoName);
+            const savedCount = existingCounts[badgeId] !== undefined ? existingCounts[badgeId] : '0';
+            const countClass = savedCount === '0' ? 'badge-count badge-count-empty' : 'badge-count';
+            
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-proceso', procesoName);
+            tr.innerHTML = `
+                <td class="d-text-center d-text-primary"><strong>${procesoName}</strong></td>
+                <td class="d-text-center"><span class="${countClass}" id="${badgeId}">${savedCount}</span></td>
+                <td class="d-text-center">
+                    <div class="td-actions">
+                        <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
+                            onclick="irACarpeta('${procesoIdBD || procesoName}', null, ${procesoIdBD ? 'true' : 'false'})">
+                            <img src="/images/documento.png" alt="Ver">
+                            <span>Ver PDF's</span>
+                        </button>
+                        <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
+                            onclick="confirmarEliminarCarpeta('${procesoName}', null, '${procesoName}')">
+                            <img src="/images/Eliminar-Carpeta.png" alt="Eliminar">
+                            <span>Eliminar Directorio Raíz</span>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } else {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td colspan="3" class="d-text-center d-text-subtle">
+                No hay carpetas de procesos registradas en el servidor.
+            </td>
+        `;
+        tbody.appendChild(tr);
+    }
+}

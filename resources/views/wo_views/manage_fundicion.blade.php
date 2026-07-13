@@ -4,7 +4,7 @@
     <title>{{ $pageTitle ?? 'Gestión de Documentación' }}</title>
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
     @vite([
-        'resources/css/wo_views/manage_documentation.css',
+        'resources/css/wo_views/manage_fundicion.css',
         'resources/js/wo_views/manage_fundicion.js'
     ])
 @endsection
@@ -90,12 +90,12 @@
                 <div id="admin-status-container">
                     <div id="alert-ready-exists" class="d-alert d-alert-success d-mt-2"
                         style="display: {{ $isReady && $carpetaExiste ? 'block' : 'none' }};">
-                        La carpeta <strong class="folder-label">{{ $folderPathLabel ?? '...' }}</strong> ya existe en el
+                        La carpeta <strong class="folder-label">{!! $folderPathLabel ?? '...' !!}</strong> ya existe en el
                         servidor.
                     </div>
                     <div id="alert-ready-not-exists" class="d-alert d-alert-warning d-mt-2"
                         style="display: {{ $isReady && !$carpetaExiste ? 'block' : 'none' }};">
-                        La carpeta <strong class="folder-label">{{ $folderPathLabel ?? '...' }}</strong> aun <strong>no
+                        La carpeta <strong class="folder-label">{!! $folderPathLabel ?? '...' !!}</strong> aun <strong>no
                             existe</strong>. Creala antes de
                         subir PDFs.
                     </div>
@@ -154,10 +154,10 @@
         {{-- Panel de archivos de la carpeta seleccionada --}}
         @if($isReady)
             <div class="dibujos-files-panel active" id="panel-archivos">
-                <h2>Archivos en: <span>{{ $folderPathLabel }}</span></h2>
+                <h2>Archivos en: <span>{!! $folderPathLabel !!}</span></h2>
 
                 <div class="dibujos-files-breadcrumb">
-                    Carpeta activa: <strong>{{ $folderPathLabel }}</strong>
+                    Carpeta activa: <strong>{!! $folderPathLabel !!}</strong>
                 </div>
 
                 <div class="dibujos-files-grid" id="archivos-grid">
@@ -464,7 +464,7 @@
                                 <th class="d-text-center">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="tabla-alertas-body">
                             @foreach($estructura as $otName => $clasesFisicas)
                                 @php
                                     preg_match('/OT\s*(\d+)/', $otName, $matches);
@@ -602,6 +602,12 @@
                                 };
         window.csrfToken = "{{ csrf_token() }}";
         window.estructura = @json($estructura);
+
+        @if($moduleType === 'fundicion')
+            window.todasLasOTs = {!! json_encode($todasLasOTs->map(fn($o) => ['id' => $o->id, 'moldura_nombre' => $o->moldura?->nombre])) !!};
+            window.todasLasClases = {!! json_encode($todasLasClases->map(fn($c) => ['id' => $c->id, 'nombre' => $c->nombre])) !!};
+            window.historiales = {!! json_encode($historiales) !!};
+        @endif
 
         // Exportar active selection para cargar panel inicialmente
         @if($moduleType === 'dibujos')

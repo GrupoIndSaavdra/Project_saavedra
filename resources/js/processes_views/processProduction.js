@@ -2161,8 +2161,6 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
 
 
     navDiv.appendChild(selOTWrap);
-    navDiv.appendChild(selClaseWrap);
-
     headerDiv.appendChild(divCerrar);
     headerDiv.appendChild(titulo);
     headerDiv.appendChild(navDiv);
@@ -2523,7 +2521,6 @@ window.openAyudasViewer = function () {
     const selProcesoWrap = _dibujosSelectGroup('Proceso', 'd-viewer-ayudas-proceso');
 
 
-    navDiv.appendChild(selClaseWrap);
     navDiv.appendChild(selProcesoWrap);
 
     headerDiv.appendChild(divCerrar);
@@ -2664,12 +2661,10 @@ window.openTechDocsModal = function () {
     navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end; flex:2; min-width: 400px;';
 
     // Solo necesitamos Clase y Proceso
-    const selClaseWrap = _dibujosSelectGroup('Clase', 'tech-doc-clase');
     const selProcesoWrap = _dibujosSelectGroup('Proceso', 'tech-doc-proceso');
 
     selClaseWrap.style.display = 'none';
 
-    navDiv.appendChild(selClaseWrap);
     navDiv.appendChild(selProcesoWrap);
 
     topBar.appendChild(tabsContainer);
@@ -2692,7 +2687,6 @@ window.openTechDocsModal = function () {
     let manualEstructura = [];
     let ayudasEstructura = {};
 
-    const selClase = document.getElementById('tech-doc-clase');
     const selProceso = document.getElementById('tech-doc-proceso');
 
     divOpacity.addEventListener('click', (e) => {

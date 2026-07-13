@@ -224,3 +224,11 @@ Siempre cárgalos con `@vite` en el `@section('head')` de la vista:
            'resources/js/almacen_views/almacen_fundicion.js'])
 @endsection
 ```
+
+## 12. Sincronización entre Controladores y Vistas (Evitar Variables Indefinidas y Fallos en Blade)
+
+1. **Limpieza de variables al refactorizar**: Cuando modifiques un controlador para remover filtros o lógica (por ejemplo, remover una columna de catálogo como `Clase` y pasar a un flujo puramente de `Proceso`), es imperativo buscar y eliminar **todas** las referencias a esas variables en las vistas Blade correspondientes.
+2. **Cuelgues por compilación**: Laravel Blade compila la plantilla completa. Si una variable que eliminaste en el controlador (ej. `$clasesUnicas`) se mantiene dentro de una directiva `@if` o `@foreach`, la vista lanzará una excepción fatal `ErrorException: Undefined variable`, incluso si esa rama del condicional supuestamente está inactiva.
+3. **Escapado de HTML**:
+   - Por defecto, `{{ $variable }}` escapa de manera segura los caracteres HTML para prevenir ataques XSS.
+   - Si tienes variables generadas por el controlador que contienen etiquetas HTML con estilos (ej. `<span class="lvl-1">Proceso</span>`), **debes** usar `{!! $variable !!}` en Blade para que el navegador renderice los colores y estilos en vez de mostrar las etiquetas de texto plano crudas.

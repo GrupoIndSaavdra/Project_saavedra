@@ -230,3 +230,40 @@ Las URLs de las peticiones AJAX se inyectan desde Blade para evitar hardcodear r
 </script>
 ```
 Luego en JS: `window.routes.almacenServeFile.replace(':ot', ot).replace(':archivo', archivo).replace(':tipo', tipo)`
+
+## 10. Actualización Dinámica de Tablas en Tiempo Real (Evitar Carga de Página)
+
+Al implementar operaciones CRUD vía fetch (creación de carpetas, subida o eliminación de archivos) que deban actualizar el contenido de una tabla estructural sin recargar la página completa, utiliza el siguiente patrón de diseño:
+
+1. **Función de Re-renderizado Local (`renderEstructuraTable`)**: Crea una función que limpie el `<tbody>` de la tabla en el DOM y reconstruya las filas dinámicamente iterando sobre la estructura actualizada en memoria (`window.estructura`).
+2. **Preservación de Estado Visual (Caché Local de Conteos)**: Para evitar cuellos de botella y cascadas de peticiones HTTP innecesarias al redibujar una tabla que contiene contadores o badges de archivos, lee y guarda temporalmente los conteos actuales del DOM antes de limpiar el contenedor. Reutiliza estos conteos al pintar las nuevas filas:
+   ```javascript
+   function renderEstructuraTable() {
+       const tbody = document.querySelector('#tabla-estructura tbody');
+       if (!tbody) return;
+
+       // 1. Guardar conteos existentes
+       const existingCounts = {};
+       tbody.querySelectorAll('.badge-count').forEach(span => {
+           existingCounts[span.id] = span.textContent;
+       });
+
+       tbody.innerHTML = ''; // 2. Limpiar
+
+       // 3. Pintar de nuevo con los conteos cacheados
+       window.estructura.forEach(item => {
+           const badgeId = "badge-" + slugify(item);
+           const savedCount = existingCounts[badgeId] !== undefined ? existingCounts[badgeId] : '0';
+           
+           const tr = document.createElement('tr');
+           tr.innerHTML = `
+               <td>${item}</td>
+               <td><span class="badge-count" id="${badgeId}">${savedCount}</span></td>
+           `;
+           tbody.appendChild(tr);
+       });
+   }
+   ```
+3. **Sincronización en Caliente del Estado Local**: Si la creación o subida de archivos vincula entidades de forma automática en la base de datos (por ejemplo, relacionando una ayuda visual con su orden de trabajo), asegúrate de que el controlador devuelva la `ot` y la `clase` correspondientes en el JSON de respuesta. El frontend debe interceptar esta respuesta e inyectarla en caliente en los objetos de memoria (`window.historiales` / `window.estructura`) antes de llamar al re-renderizado para mantener la consistencia sin forzar un F5.
+4. **Peligro en Reemplazo con Expresiones Regulares (Syntax Error in build/Vite)**: Si utilizas scripts (ej. Python `re.sub`) para inyectar cadenas de texto o alertar en los archivos JS del proyecto, evita generar escapes innecesarios como `\'` dentro de literales de cadena ordinarios. Un escape de comillas simple literal (`\'`) dentro de un JS no-procesado causará fallos en los compiladores de esbuild/Vite lanzando errores de sintaxis críticos e impidiendo la carga de dependencias.
+

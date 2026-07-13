@@ -19,7 +19,7 @@ class AcabadoBombilloController extends Controller
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
-            $pieceId = $request->piece[$index] ?? null;
+            $pieceId = $request->input('piece')[$index] ?? null;
             if (!$pieceId)
                 return;
             $piece = AcabadoBombilo_pza::query()->find($pieceId);
@@ -49,12 +49,12 @@ class AcabadoBombilloController extends Controller
 
             $data = array();
             foreach ($fields as $field) {
-                $data[$field] = $request->$field[$index] ?? null;
+                $data[$field] = $request->input($field)[$index] ?? null;
             }
             $piece->fill($data);
-            $error = $request->error[$index] ?? 'Ninguno';
+            $error = $request->input('error')[$index] ?? 'Ninguno';
         } else {
-            $pieceId = $request->piece;
+            $pieceId = $request->input('piece');
             if (!$pieceId)
                 return;
             $piece = AcabadoBombilo_pza::query()->find($pieceId);
@@ -80,7 +80,7 @@ class AcabadoBombilloController extends Controller
                 'simetria',
                 'observaciones',
             ]));
-            $error = $request->error ?? 'Ninguno';
+            $error = $request->input('error') ?? 'Ninguno';
         }
         $piece->estado = 2;
 
@@ -99,7 +99,7 @@ class AcabadoBombilloController extends Controller
         $piece->save();
     }
     /**
-     * @param \App\Models\AcabadoBombilo_pza $pieza
+     * @param AcabadoBombilo_pza $pieza
      * @param mixed $cNominal
      * @param mixed $tolerancia
      * @return int

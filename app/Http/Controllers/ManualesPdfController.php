@@ -94,7 +94,7 @@ class ManualesPdfController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function getFiles(Request $request)
     {
@@ -134,7 +134,7 @@ class ManualesPdfController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function serveFile(Request $request): BinaryFileResponse
     {
@@ -186,7 +186,7 @@ class ManualesPdfController extends Controller
     // =========================================================================
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function createFolder(Request $request)
     {
@@ -225,7 +225,7 @@ class ManualesPdfController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function uploadPdf(Request $request)
     {
@@ -268,7 +268,7 @@ class ManualesPdfController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function deletePdf(Request $request)
     {
@@ -319,6 +319,7 @@ class ManualesPdfController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Archivo '{$archivo}' eliminado correctamente.",
+            'proceso' => $proceso,
         ]);
     }
 
@@ -351,6 +352,8 @@ class ManualesPdfController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Se eliminaron " . count($files) . " archivos del proceso '{$proceso}'.",
+                'proceso' => $proceso,
+                'vaciada' => true,
             ]);
         }
 
@@ -364,7 +367,7 @@ class ManualesPdfController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function replacePdf(Request $request)
     {
@@ -407,6 +410,7 @@ class ManualesPdfController extends Controller
                 'proceso' => $proceso,
                 'archivo' => $originalName,
             ]),
+            'proceso'  => $proceso,
         ]);
     }
 
@@ -471,6 +475,7 @@ class ManualesPdfController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Carpeta del proceso '{$proceso}' eliminada correctamente.",
+            'proceso' => $proceso,
         ]);
     }
     /**

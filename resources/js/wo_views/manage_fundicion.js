@@ -229,7 +229,22 @@ function initCreateFolderBtn() {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Carpeta creada correctamente.');
-                setTimeout(() => window.location.reload(), 1200);
+                
+                // Actualizar historiales locales en caliente para la vinculación automática
+                if (data.ot && data.clase) {
+                    if (!window.historiales) window.historiales = {};
+                    if (!window.historiales[data.ot]) window.historiales[data.ot] = [];
+                    if (!window.historiales[data.ot].includes(data.clase)) {
+                        window.historiales[data.ot].push(data.clase);
+                    }
+                }
+
+                fetch(window.routes['doc.estructura']).then(r=>r.json()).then(str => {
+                    window.estructura = str;
+                    renderEstructuraTable();
+                    updateAdminUI();
+                    actualizarBadge(payload.param1, payload.param2);
+                });
             } else {
                 mostrarNotificacion(data.message || 'No se pudo crear la carpeta.', true);
             }
@@ -294,8 +309,17 @@ function initUploadBtn() {
             
             try {
                 const data = await subirArchivoIndividual(payload, file);
-                if (data.success) successCount++;
-                else {
+                if (data.success) {
+                    successCount++;
+                    // Sincronizar window.historiales si la respuesta trae ot/clase
+                    if (data.ot && data.clase) {
+                        if (!window.historiales) window.historiales = {};
+                        if (!window.historiales[data.ot]) window.historiales[data.ot] = [];
+                        if (!window.historiales[data.ot].includes(data.clase)) {
+                            window.historiales[data.ot].push(data.clase);
+                        }
+                    }
+                } else {
                     errorCount++;
                     mostrarNotificacion(`Error en "${file.name}": ${data.message}`, true);
                 }
@@ -323,7 +347,7 @@ function initUploadBtn() {
 
             cargarArchivosEnPanel(p1, p2);
             actualizarBadge(p1, p2);
-            loadBadgeCounts();
+            renderAlertasTable();
             loadAuditLog();
         }
     });
@@ -517,7 +541,6 @@ function subirPdf(payload, file, btn, onSuccess) {
     .then(data => {
         if (data.success) {
             mostrarNotificacion(data.message || 'Archivo subido correctamente.');
-            loadBadgeCounts();
             loadAuditLog();
             if (onSuccess) onSuccess();
         } else {
@@ -658,6 +681,14 @@ function actualizarBadge(param1, param2 = null) {
             }
             badge.textContent = count;
             badge.classList.toggle('badge-count-empty', count === 0);
+
+            // Sincronizar el badge total de la tabla de alertas para esta OT
+            if (param1) {
+                const totalBadge = document.querySelector(`[data-ot-total="${param1.replace(/"/g, '\\"')}"]`);
+                if (totalBadge) {
+                    actualizarTotalBadge(param1, totalBadge);
+                }
+            }
 
             // Actualizar texto del botón de eliminar dinámicamente
             const row = badge.closest('tr');
@@ -1055,8 +1086,11 @@ function initAyudasFundicionForm() {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Ayudas visuales vinculadas correctamente.');
                 loadAuditLog();
-                // Recargar página para actualizar la tabla de estructura (columna Ayudas Vinculadas)
-                setTimeout(() => window.location.reload(), 1500);
+                if (data.ayudasLinked !== undefined && data.ot) {
+                    if (!window.historiales) window.historiales = {};
+                    window.historiales[data.ot] = data.ayudasLinked;
+                    if (typeof renderAlertasTable === 'function') renderAlertasTable();
+                }
             } else {
                 mostrarNotificacion(data.message || 'No se pudieron vincular las ayudas.', true);
             }
@@ -1093,7 +1127,12 @@ function initAyudasFundicionForm() {
             .then(data => {
                 if (data.success) {
                     mostrarNotificacion(data.message || 'Ayudas desvinculadas.');
-                    setTimeout(() => window.location.reload(), 1500);
+                    loadAuditLog();
+                    if (data.ayudasLinked !== undefined && data.ot) {
+                        if (!window.historiales) window.historiales = {};
+                        window.historiales[data.ot] = data.ayudasLinked;
+                        if (typeof renderAlertasTable === 'function') renderAlertasTable();
+                    }
                 } else {
                     mostrarNotificacion(data.message || 'No se pudo desvincular.', true);
                 }
@@ -1307,3 +1346,162 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.initFundicionChecklists = initFundicionChecklists;
+
+
+function renderEstructuraTable() {
+    const tbody = document.querySelector('#tabla-estructura tbody');
+    if (!tbody) return;
+    
+    // Guardar conteos existentes para no perderlos y evitar peticiones extras
+    const existingCounts = {};
+    tbody.querySelectorAll('.badge-count').forEach(span => {
+        existingCounts[span.id] = span.textContent;
+    });
+
+    tbody.innerHTML = '';
+
+    const ots = Object.keys(window.estructura);
+    if (ots.length > 0) {
+        ots.forEach(otName => {
+            const clases = window.estructura[otName];
+            const displayClases = clases.length > 0 ? clases : ['--'];
+            
+            displayClases.forEach(claseLabel => {
+                const esHuerfano = (claseLabel === '--');
+                const badgeId = "badge-" + slugify(otName) + "-" + slugify(claseLabel);
+                const savedCount = existingCounts[badgeId] !== undefined ? existingCounts[badgeId] : '0';
+                const countClass = savedCount === '0' ? 'badge-count badge-count-empty' : 'badge-count';
+                
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-ot', otName);
+                tr.setAttribute('data-clase', claseLabel);
+                tr.innerHTML = `
+                    <td class="d-text-center d-text-primary"><strong>${otName}</strong></td>
+                    <td class="d-text-center">
+                        ${esHuerfano ? 
+                            `<em class="d-text-danger d-text-bold">Sin clases</em>` : 
+                            `<span class="d-text-success d-text-bold">${claseLabel}</span>`
+                        }
+                    </td>
+                    <td class="d-text-center">
+                        ${esHuerfano ? 
+                            `<span class="d-text-subtle">—</span>` : 
+                            `<span class="${countClass}" id="${badgeId}">${savedCount}</span>`
+                        }
+                    </td>
+                    <td class="d-text-center">
+                        <div class="td-actions">
+                            ${!esHuerfano ? 
+                                `<button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
+                                    onclick="irACarpeta('${otName}', '${claseLabel}')">
+                                    <img src="/images/documento.png" alt="Ver">
+                                    <span>Ver PDF's</span>
+                                </button>` : ''
+                            }
+                            <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
+                                onclick="confirmarEliminarCarpeta('${otName}', '${claseLabel}', '${otName}${esHuerfano ? "" : " / " + claseLabel}')">
+                                <img src="/images/Eliminar-Carpeta.png" alt="Eliminar">
+                                <span>Eliminar ${esHuerfano ? 'Directorio Raíz' : 'Clase'}</span>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    } else {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td colspan="4" class="d-text-center d-text-subtle">
+                No hay carpetas de OTs registradas en el servidor.
+            </td>
+        `;
+        tbody.appendChild(tr);
+    }
+    if (typeof renderAlertasTable === 'function') renderAlertasTable();
+}
+
+function renderAlertasTable() {
+    const tbody = document.getElementById('tabla-alertas-body');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+
+    const ots = Object.keys(window.estructura);
+    if (ots.length > 0) {
+        ots.forEach(otName => {
+            const clasesFisicas = window.estructura[otName];
+            
+            // Parsear ID de OT
+            const match = otName.match(/OT\s*(\d+)/i);
+            const otIdNumber = match ? parseInt(match[1]) : 0;
+            
+            // Buscar datos de la OT
+            const otReal = window.todasLasOTs ? window.todasLasOTs.find(o => o.id === otIdNumber) : null;
+            const otLabel = otReal ? `OT ${otReal.id}${otReal.moldura_nombre ? ' — ' + otReal.moldura_nombre : ''}` : otName;
+            const otIdBD = otReal ? otReal.id : null;
+            
+            // Filtrar ayudas que sí existen físicamente
+            const ayudasLinked = window.historiales ? (window.historiales[otName] || []) : [];
+            const ayudasFiltradas = ayudasLinked.filter(a => {
+                const val = (a || '').toString().trim().toLowerCase();
+                if (!val || val === 'null' || val === 'undefined') return false;
+                return clasesFisicas.includes(a);
+            });
+            
+            let htmlAyudas = '';
+            if (ayudasFiltradas.length > 0) {
+                htmlAyudas = `<div class="d-flex d-flex-wrap d-justify-center d-gap-1">`;
+                ayudasFiltradas.forEach(al => {
+                    let clTagId = 'null';
+                    const clTagReal = window.todasLasClases ? window.todasLasClases.find(c => c.nombre === al) : null;
+                    if (clTagReal) {
+                        clTagId = clTagReal.id;
+                    } else if (['Pistones', 'Guías', 'Guias'].includes(al)) {
+                        clTagId = al;
+                    }
+                    
+                    htmlAyudas += `
+                        <span class="badge-ayuda-tag clickable-tag" title="Ir a esta carpeta"
+                            onclick="irACarpeta('${otIdBD || otName}', '${clTagId}', ${otIdBD ? 'true' : 'false'})">
+                            ${al}
+                        </span>
+                    `;
+                });
+                htmlAyudas += `</div>`;
+            } else {
+                htmlAyudas = `<span class="d-text-subtle">Sin ayudas vinculadas</span>`;
+            }
+            
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="d-text-center d-text-primary"><strong>${otLabel}</strong></td>
+                <td class="d-text-center">${htmlAyudas}</td>
+                <td class="d-text-center">
+                    <span class="badge-count" data-ot-total="${otName}">
+                        ...
+                    </span>
+                </td>
+                <td class="d-text-center">
+                    <div class="td-actions">
+                        <button class="btn-action-icon btn-alerta-fund" title="Enviar correo de alerta global"
+                            onclick="enviarAlertaFundicion(null, '${otName}', this)">
+                            <img src="/images/enviando.png" alt="Alerta">
+                            <span>Enviar Correo</span>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        // Cargar conteos de totales para esta tabla
+        loadTotalBadgeCounts();
+    }
+}
+
+function loadTotalBadgeCounts() {
+    const totalBadges = document.querySelectorAll('[data-ot-total]');
+    totalBadges.forEach(badge => {
+        actualizarTotalBadge(badge.dataset.otTotal, badge);
+    });
+}

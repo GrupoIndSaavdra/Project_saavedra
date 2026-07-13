@@ -229,7 +229,16 @@ function initCreateFolderBtn() {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Carpeta creada correctamente.');
-                setTimeout(() => window.location.reload(), 1200);
+                if (data.ot && data.clase) {
+                    if (!window.estructura[data.ot]) window.estructura[data.ot] = [];
+                    if (!window.estructura[data.ot].includes(data.clase)) {
+                        window.estructura[data.ot].push(data.clase);
+                    }
+                }
+                renderEstructuraTable();
+                updateAdminUI();
+                actualizarBadge(payload.param1, payload.param2);
+                if (typeof loadAuditLog === 'function') loadAuditLog();
             } else {
                 mostrarNotificacion(data.message || 'No se pudo crear la carpeta.', true);
             }
@@ -323,7 +332,6 @@ function initUploadBtn() {
 
             cargarArchivosEnPanel(p1, p2);
             actualizarBadge(p1, p2);
-            loadBadgeCounts();
             loadAuditLog();
         }
     });
@@ -517,7 +525,6 @@ function subirPdf(payload, file, btn, onSuccess) {
     .then(data => {
         if (data.success) {
             mostrarNotificacion(data.message || 'Archivo subido correctamente.');
-            loadBadgeCounts();
             loadAuditLog();
             if (onSuccess) onSuccess();
         } else {
@@ -976,13 +983,7 @@ function eliminarCarpetaAJAX(folder) {
             updateAdminUI();
             loadBadgeCounts();
             loadAuditLog();
-
-            // Opcional: recargar tabla para reflejar cambios (o podrías eliminar la fila del DOM)
-            // Por ahora updateAdminUI y badges son suficientes si el usuario vuelve a filtrar.
-            // Pero para la tabla, lo mejor es un refresco ligero o recarga si es necesario.
-            // Como usamos Blade simple para la tabla, un reload podria ser util aqui si no queremos
-            // manipular el DOM de la tabla manualmente.
-            setTimeout(() => window.location.reload(), 1500); 
+            renderEstructuraTable();
 
         } else {
             mostrarNotificacion(data.message || 'Error al eliminar carpeta.', true);
@@ -1307,3 +1308,76 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.initFundicionChecklists = initFundicionChecklists;
+
+
+function renderEstructuraTable() {
+    const tbody = document.querySelector('#tabla-estructura tbody');
+    if (!tbody) return;
+    
+    // Guardar conteos existentes para no perderlos y evitar peticiones extras
+    const existingCounts = {};
+    tbody.querySelectorAll('.badge-count').forEach(span => {
+        existingCounts[span.id] = span.textContent;
+    });
+
+    tbody.innerHTML = '';
+
+    const ots = Object.keys(window.estructura);
+    if (ots.length > 0) {
+        ots.forEach(otName => {
+            const clases = window.estructura[otName];
+            const displayClases = clases.length > 0 ? clases : ['--'];
+            
+            displayClases.forEach(claseLabel => {
+                const esHuerfano = (claseLabel === '--');
+                const badgeId = "badge-" + slugify(otName) + "-" + slugify(claseLabel);
+                const savedCount = existingCounts[badgeId] !== undefined ? existingCounts[badgeId] : '0';
+                const countClass = savedCount === '0' ? 'badge-count badge-count-empty' : 'badge-count';
+                
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-ot', otName);
+                tr.setAttribute('data-clase', claseLabel);
+                tr.innerHTML = `
+                    <td class="d-text-center d-text-primary"><strong>${otName}</strong></td>
+                    <td class="d-text-center">
+                        ${esHuerfano ? 
+                            `<em class="d-text-danger d-text-bold">Sin clases</em>` : 
+                            `<span class="d-text-success d-text-bold">${claseLabel}</span>`
+                        }
+                    </td>
+                    <td class="d-text-center">
+                        ${esHuerfano ? 
+                            `<span class="d-text-subtle">—</span>` : 
+                            `<span class="${countClass}" id="${badgeId}">${savedCount}</span>`
+                        }
+                    </td>
+                    <td class="d-text-center">
+                        <div class="td-actions">
+                            ${!esHuerfano ? 
+                                `<button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
+                                    onclick="irACarpeta('${otName}', '${claseLabel}')">
+                                    <img src="/images/documento.png" alt="Ver">
+                                    <span>Ver PDF's</span>
+                                </button>` : ''
+                            }
+                            <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
+                                onclick="confirmarEliminarCarpeta('${otName}', '${claseLabel}', '${otName}${esHuerfano ? "" : " / " + claseLabel}')">
+                                <img src="/images/Eliminar-Carpeta.png" alt="Eliminar">
+                                <span>Eliminar ${esHuerfano ? 'Directorio Raíz' : 'Clase'}</span>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    } else {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td colspan="4" class="d-text-center d-text-subtle">
+                No hay carpetas de OTs registradas en el servidor.
+            </td>
+        `;
+        tbody.appendChild(tr);
+    }
+}

@@ -103,7 +103,7 @@ class AyudasVisualesFundicionPdfController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function getFiles(Request $request)
     {
@@ -151,7 +151,7 @@ class AyudasVisualesFundicionPdfController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function serveFile(Request $request): BinaryFileResponse
     {
@@ -203,7 +203,7 @@ class AyudasVisualesFundicionPdfController extends Controller
     // =========================================================================
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function createFolder(Request $request)
     {
@@ -242,7 +242,7 @@ class AyudasVisualesFundicionPdfController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function uploadPdf(Request $request)
     {
@@ -282,11 +282,12 @@ class AyudasVisualesFundicionPdfController extends Controller
                 'clase'   => $clase,
                 'archivo' => $finalName,
             ]),
+            'clase'    => $clase,
         ]);
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function deletePdf(Request $request)
     {
@@ -341,6 +342,7 @@ class AyudasVisualesFundicionPdfController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Archivo '{$archivo}' eliminado correctamente.",
+            'clase'   => $clase,
         ]);
     }
 
@@ -384,6 +386,8 @@ class AyudasVisualesFundicionPdfController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Se eliminaron " . count($allFiles) . " archivos de la clase '{$clase}'.",
+                'clase'   => $clase,
+                'vaciada' => true,
             ]);
         }
 
@@ -393,6 +397,7 @@ class AyudasVisualesFundicionPdfController extends Controller
         return response()->json([
             'success' => true,
             'message' => "La carpeta de la clase '{$clase}' fue eliminada correctamente.",
+            'clase'   => $clase,
         ]);
     }
 
@@ -442,11 +447,12 @@ class AyudasVisualesFundicionPdfController extends Controller
         return response()->json([
             'success' => true,
             'message' => "La carpeta de la clase '{$clase}' fue eliminada correctamente.",
+            'clase'   => $clase,
         ]);
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function replacePdf(Request $request)
     {
@@ -491,6 +497,7 @@ class AyudasVisualesFundicionPdfController extends Controller
                 'clase'   => $clase,
                 'archivo' => $finalName,
             ]),
+            'clase'    => $clase,
         ]);
     }
 

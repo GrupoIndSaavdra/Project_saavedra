@@ -101,7 +101,11 @@ export default defineConfig({
                 'resources/css/reportes/envio_pta.css',
 
                 //Módulo Documentacion Técnica
-                'resources/css/wo_views/manage_documentation.css',
+                'resources/css/wo_views/manage_dibujos.css',
+                'resources/css/wo_views/manage_fundicion.css',
+                'resources/css/wo_views/manage_manuales.css',
+                'resources/css/wo_views/manage_ayudas.css',
+                'resources/css/wo_views/manage_ayudas_fundicion.css',
                 'resources/js/wo_views/manage_dibujos.js',
                 'resources/js/wo_views/manage_fundicion.js',
                 'resources/js/wo_views/manage_manuales.js',

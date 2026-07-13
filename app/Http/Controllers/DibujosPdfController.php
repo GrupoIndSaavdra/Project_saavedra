@@ -373,6 +373,8 @@ class DibujosPdfController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Archivo '{$archivo}' eliminado correctamente.",
+            'ot'      => $ot,
+            'clase'   => $clase,
         ]);
     }
 
@@ -407,6 +409,9 @@ class DibujosPdfController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => "Se eliminaron " . count($files) . " archivos de la clase '{$clase}' (OT: {$ot}).",
+                'ot'      => $ot,
+                'clase'   => $clase,
+                'vaciada' => true,
             ]);
         }
 
@@ -416,6 +421,8 @@ class DibujosPdfController extends Controller
         return response()->json([
             'success' => true,
             'message' => "La subcarpeta de la clase '{$clase}' (OT: {$ot}) fue eliminada correctamente.",
+            'ot'      => $ot,
+            'clase'   => $clase,
         ]);
     }
 
@@ -465,6 +472,7 @@ class DibujosPdfController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Carpeta principal '{$ot}' eliminada correctamente.",
+            'ot'      => $ot,
         ]);
     }
 
@@ -519,6 +527,8 @@ class DibujosPdfController extends Controller
                 'clase'  => $clase,
                 'archivo'=> $originalName,
             ]),
+            'ot'       => $ot,
+            'clase'    => $clase,
         ]);
     }
 

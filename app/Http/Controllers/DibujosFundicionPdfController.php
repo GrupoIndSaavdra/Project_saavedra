@@ -36,7 +36,7 @@ class DibujosFundicionPdfController extends Controller
     // =========================================================================
 
     /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request Request $request
      */
     public function showManage(Request $request)
     {
@@ -223,7 +223,7 @@ class DibujosFundicionPdfController extends Controller
 
     /**
      * Devuelve el conteo total de archivos para una OT (Dibujos + Ayudas Visuales Vinculadas).
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request Request $request
      */
     public function getTotalFiles(Request $request)
     {
@@ -279,7 +279,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request Request $request
      */
     public function getFiles(Request $request)
     {
@@ -358,7 +358,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request Request $request
      */
     public function serveFile(Request $request): BinaryFileResponse
     {
@@ -436,7 +436,7 @@ class DibujosFundicionPdfController extends Controller
     // =========================================================================
 
     /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request Request $request
      */
     public function createFolder(Request $request)
     {
@@ -493,7 +493,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request Request $request
      */
     public function uploadPdf(Request $request)
     {
@@ -514,16 +514,17 @@ class DibujosFundicionPdfController extends Controller
 
         if (!Storage::disk('local')->exists($dirPath)) {
             Storage::disk('local')->makeDirectory($dirPath);
-            $history = FundicionHistory::firstOrCreate(['ot' => $otFolderName]);
+        }
 
-            // VINCULACIÓN AUTOMÁTICA: Si se sube a una clase, vincularla
-            $ayudas = $history->ayudas_config ?? [];
-            if (!empty($clase) && !in_array($clase, $ayudas)) {
-                $ayudas[] = $clase;
-                $history->ayudas_config = $ayudas;
-                $history->save();
-                $this->copyToAlmacen($otFolderName);
-            }
+        $history = FundicionHistory::firstOrCreate(['ot' => $otFolderName]);
+
+        // VINCULACIÓN AUTOMÁTICA: Si se sube a una clase, vincularla
+        $ayudas = $history->ayudas_config ?? [];
+        if (!empty($clase) && !in_array($clase, $ayudas)) {
+            $ayudas[] = $clase;
+            $history->ayudas_config = $ayudas;
+            $history->save();
+            $this->copyToAlmacen($otFolderName);
         }
 
         $file = $request->file('pdf');
@@ -556,11 +557,13 @@ class DibujosFundicionPdfController extends Controller
                 'clase' => $clase,
                 'archivo' => $newName,
             ]),
+            'ot' => $otFolderName,
+            'clase' => $clase,
         ]);
     }
 
     /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request Request $request
      */
     public function sendEmailAlert(Request $request)
     {
@@ -821,7 +824,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request Request $request
      */
     public function deletePdf(Request $request)
     {
@@ -882,7 +885,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request Request $request
      */
     public function deleteFolder(Request $request)
     {
@@ -1020,7 +1023,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request Request $request
      */
     public function replacePdf(Request $request)
     {
@@ -1125,7 +1128,9 @@ class DibujosFundicionPdfController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => $msg
+                'message' => $msg,
+                'ayudasLinked' => $ayudasFinales,
+                'ot' => $ot
             ]);
         }
 
@@ -1152,7 +1157,9 @@ class DibujosFundicionPdfController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Ayudas visuales desvinculadas correctamente.'
+            'message' => 'Ayudas visuales desvinculadas correctamente.',
+            'ayudasLinked' => [],
+            'ot' => $ot
         ]);
     }
 

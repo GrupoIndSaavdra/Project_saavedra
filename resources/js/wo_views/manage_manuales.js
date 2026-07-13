@@ -229,7 +229,17 @@ function initCreateFolderBtn() {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Carpeta creada correctamente.');
-                setTimeout(() => window.location.reload(), 1200);
+                if (data.proceso) {
+                    if (Array.isArray(window.estructura)) {
+                        if (!window.estructura.includes(data.proceso)) window.estructura.push(data.proceso);
+                    } else {
+                        window.estructura[data.proceso] = true;
+                    }
+                }
+                renderEstructuraTable();
+                updateAdminUI();
+                actualizarBadge(payload.param1, payload.param2);
+                if (typeof loadAuditLog === 'function') loadAuditLog();
             } else {
                 mostrarNotificacion(data.message || 'No se pudo crear la carpeta.', true);
             }
@@ -323,7 +333,6 @@ function initUploadBtn() {
 
             cargarArchivosEnPanel(p1, p2);
             actualizarBadge(p1, p2);
-            loadBadgeCounts();
             loadAuditLog();
         }
     });
@@ -517,7 +526,6 @@ function subirPdf(payload, file, btn, onSuccess) {
     .then(data => {
         if (data.success) {
             mostrarNotificacion(data.message || 'Archivo subido correctamente.');
-            loadBadgeCounts();
             loadAuditLog();
             if (onSuccess) onSuccess();
         } else {
@@ -976,13 +984,7 @@ function eliminarCarpetaAJAX(folder) {
             updateAdminUI();
             loadBadgeCounts();
             loadAuditLog();
-
-            // Opcional: recargar tabla para reflejar cambios (o podrías eliminar la fila del DOM)
-            // Por ahora updateAdminUI y badges son suficientes si el usuario vuelve a filtrar.
-            // Pero para la tabla, lo mejor es un refresco ligero o recarga si es necesario.
-            // Como usamos Blade simple para la tabla, un reload podria ser util aqui si no queremos
-            // manipular el DOM de la tabla manualmente.
-            setTimeout(() => window.location.reload(), 1500); 
+            renderEstructuraTable();
 
         } else {
             mostrarNotificacion(data.message || 'Error al eliminar carpeta.', true);
@@ -1307,3 +1309,62 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.initFundicionChecklists = initFundicionChecklists;
+
+
+function renderEstructuraTable() {
+    const tbody = document.querySelector('#tabla-estructura tbody');
+    if (!tbody) return;
+    
+    // Guardar conteos existentes para no perderlos y evitar peticiones extras
+    const existingCounts = {};
+    tbody.querySelectorAll('.badge-count').forEach(span => {
+        existingCounts[span.id] = span.textContent;
+    });
+
+    tbody.innerHTML = '';
+
+    if (Array.isArray(window.estructura) && window.estructura.length > 0) {
+        const prSel = document.getElementById('proceso-select');
+        
+        window.estructura.forEach(procesoName => {
+            let procesoIdBD = null;
+            if (prSel) {
+                const opt = Array.from(prSel.options).find(o => o.text === procesoName);
+                if (opt) procesoIdBD = opt.value;
+            }
+            const badgeId = "badge-" + slugify(procesoName);
+            const savedCount = existingCounts[badgeId] !== undefined ? existingCounts[badgeId] : '0';
+            const countClass = savedCount === '0' ? 'badge-count badge-count-empty' : 'badge-count';
+            
+            const tr = document.createElement('tr');
+            tr.setAttribute('data-proceso', procesoName);
+            tr.innerHTML = `
+                <td class="d-text-center d-text-primary"><strong>${procesoName}</strong></td>
+                <td class="d-text-center"><span class="${countClass}" id="${badgeId}">${savedCount}</span></td>
+                <td class="d-text-center">
+                    <div class="td-actions">
+                        <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
+                            onclick="irACarpeta('${procesoIdBD || procesoName}', null, ${procesoIdBD ? 'true' : 'false'})">
+                            <img src="/images/documento.png" alt="Ver">
+                            <span>Ver PDF's</span>
+                        </button>
+                        <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
+                            onclick="confirmarEliminarCarpeta('${procesoName}', null, '${procesoName}')">
+                            <img src="/images/Eliminar-Carpeta.png" alt="Eliminar">
+                            <span>Eliminar Directorio Raíz</span>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } else {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td colspan="3" class="d-text-center d-text-subtle">
+                No hay carpetas de procesos registradas en el servidor.
+            </td>
+        `;
+        tbody.appendChild(tr);
+    }
+}

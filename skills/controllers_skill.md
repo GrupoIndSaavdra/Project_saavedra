@@ -162,3 +162,18 @@ $basePath = match($tipoDocumento) {
 $fullPath = storage_path('app/' . $basePath . $archivo);
 return response()->file($fullPath);
 ```
+
+## 9. Prevención de Errores de Restricción de Base de Datos en Refactorizaciones (Valores por Defecto)
+
+Cuando refactorices lógica de negocio para simplificar flujos o relaciones (por ejemplo, al eliminar el uso de la columna `clase` en el módulo de Ayudas Visuales), ten en cuenta que las tablas del historial o los modelos de logs podrían seguir teniendo restricciones de integridad a nivel base de datos (`NOT NULL` o `NO DEFAULT VALUE`) para esas columnas.
+
+1. **Evitar Fallos de Validación SQL (Error 500)**: En lugar de crear complejas migraciones de reversión para hacer la columna nullable si no se requiere, pasa un valor por defecto seguro (ej: `'N/A'`) en la inserción/creación del registro.
+2. **Métodos con `firstOrCreate` u `updateOrCreate`**: Asegúrate de pasar el valor por defecto como el segundo parámetro (valores que se insertarán únicamente si el registro es nuevo) para cumplir con el esquema SQL:
+   ```php
+   // ❌ MAL: Lanza query error SQLSTATE[HY000] si 'clase' es NOT NULL
+   AyudaVisualHistory::firstOrCreate(['proceso' => $proceso]);
+
+   // ✅ BIEN: 'clase' se llena con 'N/A' como fallback si el registro no existe
+   AyudaVisualHistory::firstOrCreate(['proceso' => $proceso], ['clase' => 'N/A']);
+   ```
+
