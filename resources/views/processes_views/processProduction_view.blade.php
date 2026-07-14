@@ -7,7 +7,7 @@
     @vite(['resources/css/processes_views/processProduction.css', 'resources/js/processes_views/processProduction.js'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/Fondoprocesos.png") . '")')
+@section('background-body', 'background-color: #f2f2f2; background-image: repeating-linear-gradient(45deg, transparent, transparent 78px, rgba(64,64,64,0.35) 78px, rgba(64,64,64,0.35) 80px, rgba(255,255,255,1) 80px, rgba(255,255,255,1) 82px), repeating-linear-gradient(-45deg, transparent, transparent 78px, rgba(64,64,64,0.35) 78px, rgba(64,64,64,0.35) 80px, rgba(255,255,255,1) 80px, rgba(255,255,255,1) 82px), radial-gradient(circle at 50% -20%, #ffffff 0%, transparent 80%); background-attachment: fixed; background-size: cover;')
 @section('content')
     <div class="container-meta">
         <div class="principal-data">

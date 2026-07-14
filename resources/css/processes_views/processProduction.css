@@ -10,6 +10,7 @@ body {
     background-position: center;
     background-attachment: fixed;
     background-repeat: no-repeat;
+    min-height: 100vh;
 }
 
 .container-meta {
@@ -425,9 +426,9 @@ p {
     padding: 1.5em;
     margin: 1em auto;
     border-radius: 12px;
-    background-color: #42ddd5; /* Amarillo de advertencia */
-    border: 3px solid #89d2db8c;
-    color: #000000;
+    background-color: #ffffff;
+    border: 3px solid #ff0707;
+    color: #1a1a1a;
     display: block;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -441,18 +442,20 @@ p {
     0% {
         transform: scale(1);
         border-color: #ff0707;
-        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        box-shadow: 0 4px 15px rgba(255, 7, 7, 0.15);
+        background-color: #ffffff;
     }
     50% {
         transform: scale(1.02);
         border-color: #dc3545; /* Rojo de urgencia */
-        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
-        background-color: #fff;
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+        background-color: #ffe0e0; /* Fondo rojizo claro para que se note el cambio */
     }
     100% {
         transform: scale(1);
         border-color: #ff0707;
-        box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2);
+        box-shadow: 0 4px 15px rgba(255, 7, 7, 0.15);
+        background-color: #ffffff;
     }
 }
 
