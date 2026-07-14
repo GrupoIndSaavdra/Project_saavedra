@@ -1950,7 +1950,7 @@ class AlmacenFundicionController extends Controller
         }
 
         // 3. Generar el PDF en orientación horizontal
-        ini_set('memory_limit', '512M');
+        ini_set('memory_limit', '2048M');
         $pdf = Pdf::loadView('pdf.pre_orden', [
             'data' => $data,
             'user' => $user
@@ -2085,7 +2085,7 @@ class AlmacenFundicionController extends Controller
         }
 
         // Generar PDF combinado
-        ini_set('memory_limit', '512M');
+        ini_set('memory_limit', '2048M');
 
         $pages = [$p1Data];
         if ($hasPage2) {
@@ -3093,7 +3093,7 @@ class AlmacenFundicionController extends Controller
                     $newPoData['folio'] .= $newSuffix;
                 }
 
-                ini_set('memory_limit', '512M');
+                ini_set('memory_limit', '2048M');
                 $pdf = Pdf::loadView('pdf.pre_orden', [
                     'data' => $newPoData,
                     'user' => Auth::user()

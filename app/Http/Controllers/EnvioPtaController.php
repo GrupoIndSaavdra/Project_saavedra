@@ -76,7 +76,7 @@ class EnvioPtaController extends Controller
      */
     public function enviar(Request $request)
     {
-        ini_set('memory_limit', '512M');
+        ini_set('memory_limit', '2048M');
         set_time_limit(120);
 
         $request->validate([

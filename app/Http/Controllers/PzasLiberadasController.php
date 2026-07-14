@@ -102,7 +102,7 @@ class PzasLiberadasController extends Controller
         } else {
             // Configuración para generación de PDFs grandes
             @ini_set('max_execution_time', '300'); // 5 minutos
-            @ini_set('memory_limit', '512M'); // Aumentar memoria disponible
+            @ini_set('memory_limit', '2048M'); // Aumentar memoria disponible
             @set_time_limit(300);
 
             $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'profile'));

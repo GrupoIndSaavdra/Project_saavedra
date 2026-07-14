@@ -12,6 +12,9 @@ window.refreshPieceStartTime = function() {
     });
 };
 
+// Función global para validaciones case-insensitive
+window.eq = (a, b) => a && b && String(a).toLowerCase() === String(b).toLowerCase();
+
 document.addEventListener("DOMContentLoaded", () => {
     // Inicializar datos si estamos en proceso
     if (window.arrayData && window.arrayData.meta) {
@@ -2219,9 +2222,11 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
             let otNumMatch = activeOT ? activeOT.match(/\d+/) : null;
             let otNum = otNumMatch ? otNumMatch[0] : activeOT;
 
-            if (activeOT && !estructura[activeOT]) {
-                const foundKey = Object.keys(estructura).find(key => key.includes("OT " + otNum) || key.includes(activeOT));
+            if (activeOT && !Object.keys(estructura).some(k => window.eq(k, activeOT))) {
+                const foundKey = Object.keys(estructura).find(key => key.includes("OT " + otNum) || window.eq(key, activeOT));
                 if (foundKey) exactActiveOT = foundKey;
+            } else {
+                exactActiveOT = Object.keys(estructura).find(k => window.eq(k, activeOT)) || activeOT;
             }
 
             selOT.innerHTML = '<option value="">— Seleccionar OT —</option>';
@@ -2233,7 +2238,7 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
                 const opt = document.createElement('option');
                 opt.value = ot;
                 opt.textContent = label;
-                if (ot === exactActiveOT) opt.selected = true;
+                if (window.eq(ot, exactActiveOT)) opt.selected = true;
                 selOT.appendChild(opt);
             });
 
@@ -2267,15 +2272,15 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
                 }
             });
 
-            if (exactActiveOT && estructura[exactActiveOT]) {
+            if (exactActiveOT && Object.keys(estructura).some(k => window.eq(k, exactActiveOT))) {
                 selOT.value = exactActiveOT;
                 selOT.dispatchEvent(new Event('change'));
                 setTimeout(() => {
-                    const opt = selClase.querySelector(`option[value="${activeClase}"]`);
+                    const opt = Array.from(selClase.options).find(o => window.eq(o.value, activeClase));
                     if (opt) {
                         opt.selected = true;
                         const otText = selOT.options[selOT.selectedIndex].text;
-                        _dibujosCargarArchivos(exactActiveOT, activeClase, contentDiv, otText);
+                        _dibujosCargarArchivos(exactActiveOT, opt.value, contentDiv, otText);
                     }
                 }, 50);
             }
@@ -2474,7 +2479,7 @@ window.openManualesViewer = function () {
             });
 
             // Intentar seleccionar el proceso actual
-            const optDefault = selProceso.querySelector(`option[value="${activeProceso}"]`);
+            const optDefault = Array.from(selProceso.options).find(o => window.eq(o.value, activeProceso));
             if (optDefault) optDefault.selected = true;
 
             if (selProceso.value) {
@@ -2581,7 +2586,7 @@ window.openAyudasViewer = function () {
                 const opt = document.createElement('option');
                 opt.value = clase;
                 opt.textContent = clase;
-                if (clase === activeClase) opt.selected = true;
+                if (window.eq(clase, activeClase)) opt.selected = true;
                 selClase.appendChild(opt);
             });
 
@@ -2594,18 +2599,22 @@ window.openAyudasViewer = function () {
 
                     procs.sort().forEach(proc => {
                         const opt = document.createElement('option');
-                        selClase.appendChild(opt);
+                        opt.value = proc;
+                        opt.textContent = proc;
+                        selProceso.appendChild(opt);
                     });
-                    selClase.disabled = false;
+                    selProceso.disabled = false;
                 } else {
-                    selClase.disabled = true;
+                    selProceso.disabled = true;
                 }
             });
 
-            if (activeProceso && estructura[activeProceso]) {
+            let matchingProcesoKey = Object.keys(estructura).find(k => window.eq(k, activeProceso));
+            if (activeProceso && matchingProcesoKey) {
+                selProceso.value = matchingProcesoKey;
                 selProceso.dispatchEvent(new Event('change'));
                 setTimeout(() => {
-                    const opt = selClase.querySelector(`option[value="${activeClase}"]`);
+                    const opt = Array.from(selClase.options).find(o => window.eq(o.value, activeClase));
                     if (opt) opt.selected = true;
                     if (selProceso.value && selClase.value) {
                         _ayudasCargarArchivos(selProceso.value, selClase.value, contentDiv);
@@ -2730,9 +2739,19 @@ window.openTechDocsModal = function () {
         ayudasEstructura = ayuData;
 
         let matchedProc = activeProcess;
-        if (!manualEstructura.includes(matchedProc) && activeProcess && activeProcess.includes('_')) {
+        let found = manualEstructura.find(p => window.eq(p, matchedProc));
+        
+        if (!found && activeProcess && activeProcess.includes('_')) {
             matchedProc = activeProcess.split('_')[0];
-            if (!manualEstructura.includes(matchedProc)) matchedProc = activeProcess.split('_')[1];
+            found = manualEstructura.find(p => window.eq(p, matchedProc));
+            if (!found) {
+                matchedProc = activeProcess.split('_')[1];
+                found = manualEstructura.find(p => window.eq(p, matchedProc));
+            }
+        }
+        
+        if (found) {
+            matchedProc = found;
         }
 
         updateManualesSelect(matchedProc);
@@ -2799,20 +2818,33 @@ window.openTechDocsModal = function () {
                 if (activeTab === 'manuales') {
                     selProcesoWrap.style.display = 'flex';
                     let matchedProc = activeProcess;
-                    if (!manualEstructura.includes(matchedProc) && activeProcess && activeProcess.includes('_')) {
+                    let found = manualEstructura.find(p => window.eq(p, matchedProc));
+                    if (!found && activeProcess && activeProcess.includes('_')) {
                         matchedProc = activeProcess.split('_')[0];
-                        if (!manualEstructura.includes(matchedProc)) matchedProc = activeProcess.split('_')[1];
+                        found = manualEstructura.find(p => window.eq(p, matchedProc));
+                        if (!found) {
+                            matchedProc = activeProcess.split('_')[1];
+                            found = manualEstructura.find(p => window.eq(p, matchedProc));
+                        }
                     }
+                    if (found) matchedProc = found;
                     updateManualesSelect(matchedProc);
                 } else if (activeTab === 'ayudas') {
                     selProcesoWrap.style.display = 'flex';
                     let matchedProc = activeProcess;
                     let ayuProcs = [...new Set(Object.values(ayudasEstructura).flat())];
-                    if (!ayuProcs.includes(matchedProc) && activeProcess && activeProcess.includes('_')) {
+                    
+                    let found = ayuProcs.find(p => window.eq(p, matchedProc));
+                    if (!found && activeProcess && activeProcess.includes('_')) {
                         matchedProc = activeProcess.split('_')[0];
-                        if (!ayuProcs.includes(matchedProc)) matchedProc = activeProcess.split('_')[1];
+                        found = ayuProcs.find(p => window.eq(p, matchedProc));
+                        if (!found) {
+                            matchedProc = activeProcess.split('_')[1];
+                            found = ayuProcs.find(p => window.eq(p, matchedProc));
+                        }
                     }
-                    updateAyudasFilters(ayuProcs.includes(matchedProc) ? matchedProc : null);
+                    if (found) matchedProc = found;
+                    updateAyudasFilters(matchedProc);
                 }
                 _triggerSearch();
             } catch (err) {

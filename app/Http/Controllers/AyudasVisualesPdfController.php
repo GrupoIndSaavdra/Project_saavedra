@@ -173,10 +173,12 @@ class AyudasVisualesPdfController extends Controller
 
         $files = Storage::disk('local')->files($dirPath);
         $foundFile = null;
+        $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
         foreach ($files as $f) {
             $rawName = basename($f);
             $utf8Name = $this->toUtf8($rawName);
-            if ($utf8Name === $archivo) {
+            $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
+            if ($utf8NameNorm === $archivoNorm) {
                 $foundFile = $f;
                 break;
             }
@@ -224,7 +226,7 @@ class AyudasVisualesPdfController extends Controller
 
             Storage::disk('local')->makeDirectory($dirPath);
 
-            $history = AyudaVisualHistory::where('proceso', $proceso)->first();
+            $history = AyudaVisualHistory::query()->where('proceso', $proceso)->first();
             if (!$history) {
                 $history = new AyudaVisualHistory();
                 $history->proceso = $proceso;
@@ -265,7 +267,7 @@ class AyudasVisualesPdfController extends Controller
 
         if (!Storage::disk('local')->exists($dirPath)) {
             Storage::disk('local')->makeDirectory($dirPath);
-            $history = AyudaVisualHistory::where('proceso', $proceso)->first();
+            $history = AyudaVisualHistory::query()->where('proceso', $proceso)->first();
             if (!$history) {
                 $history = new AyudaVisualHistory();
                 $history->proceso = $proceso;
@@ -317,10 +319,12 @@ class AyudasVisualesPdfController extends Controller
         $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
         
         $foundFile = null;
+        $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
         foreach ($files as $f) {
             $rawName = basename($f);
             $utf8Name = $this->toUtf8($rawName);
-            if ($utf8Name === $archivo) {
+            $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
+            if ($utf8NameNorm === $archivoNorm) {
                 $foundFile = $f;
                 break;
             }
@@ -330,10 +334,12 @@ class AyudasVisualesPdfController extends Controller
             // Fallback for read-only error
             $oldDirPath = self::OLD_BASE_DIR . '/' . $proceso;
             $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
+            $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
             foreach ($oldFiles as $f) {
                 $rawName = basename($f);
                 $utf8Name = $this->toUtf8($rawName);
-                if ($utf8Name === $archivo) {
+                $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
+                if ($utf8NameNorm === $archivoNorm) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Las ayudas visuales antiguas son de solo lectura.',
@@ -472,10 +478,12 @@ class AyudasVisualesPdfController extends Controller
         
         $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
         $foundFile = null;
+        $archivoAnteriorNorm = \Normalizer::normalize(mb_strtolower($archivoAnterior, 'UTF-8'), \Normalizer::FORM_C);
         foreach ($files as $f) {
             $rawName = basename($f);
             $utf8Name = $this->toUtf8($rawName);
-            if ($utf8Name === $archivoAnterior) {
+            $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
+            if ($utf8NameNorm === $archivoAnteriorNorm) {
                 $foundFile = $f;
                 break;
             }

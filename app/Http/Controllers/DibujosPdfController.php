@@ -222,10 +222,12 @@ class DibujosPdfController extends Controller
 
         $files = Storage::disk('local')->files($dirPath);
         $foundFile = null;
+        $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
         foreach ($files as $f) {
             $rawName = basename($f);
             $utf8Name = $this->toUtf8($rawName);
-            if ($utf8Name === $archivo) {
+            $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
+            if ($utf8NameNorm === $archivoNorm) {
                 $foundFile = $f;
                 break;
             }
@@ -373,10 +375,12 @@ class DibujosPdfController extends Controller
         $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
         
         $foundFile = null;
+        $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
         foreach ($files as $f) {
             $rawName = basename($f);
             $utf8Name = $this->toUtf8($rawName);
-            if ($utf8Name === $archivo) {
+            $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
+            if ($utf8NameNorm === $archivoNorm) {
                 $foundFile = $f;
                 break;
             }
@@ -386,10 +390,12 @@ class DibujosPdfController extends Controller
             // Si no existe en el nuevo, verificamos si existe en el viejo para dar error de solo lectura
             $oldDirPath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
             $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
+            $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
             foreach ($oldFiles as $f) {
                 $rawName = basename($f);
                 $utf8Name = $this->toUtf8($rawName);
-                if ($utf8Name === $archivo) {
+                $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
+                if ($utf8NameNorm === $archivoNorm) {
                     return response()->json([
                         'success' => false,
                         'message' => 'Los archivos del directorio antiguo son de solo lectura y no pueden ser eliminados.',
@@ -534,10 +540,12 @@ class DibujosPdfController extends Controller
         
         $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
         $foundFile = null;
+        $archivoAnteriorNorm = \Normalizer::normalize(mb_strtolower($archivoAnterior, 'UTF-8'), \Normalizer::FORM_C);
         foreach ($files as $f) {
             $rawName = basename($f);
             $utf8Name = $this->toUtf8($rawName);
-            if ($utf8Name === $archivoAnterior) {
+            $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
+            if ($utf8NameNorm === $archivoAnteriorNorm) {
                 $foundFile = $f;
                 break;
             }

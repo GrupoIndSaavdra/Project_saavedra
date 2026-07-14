@@ -166,12 +166,21 @@ function updateAdminUI() {
             if (bcrumb) bcrumb.innerHTML = label;
         }
 
-        // Determinar existencia
+        // Función case-insensitive para verificar existencia en el servidor Linux
+        const eq = (a, b) => a && b && String(a).toLowerCase() === String(b).toLowerCase();
         let existe = false;
-        if (module === 'dibujos' || module === 'fundicion') existe = window.estructura[p1] && window.estructura[p1].includes(p2);
-        else if (module === 'manuales') existe = Array.isArray(window.estructura) ? window.estructura.includes(p1) : window.estructura[p1];
-        else if (module === 'ayudas') existe = window.estructura[p2] && window.estructura[p2].includes(p1);
-        else if (module === 'ayudas_fundicion') existe = !!window.estructura[p2];
+        if (window.estructura) {
+            if (module === 'dibujos' || module === 'fundicion') {
+                const k1 = Object.keys(window.estructura).find(k => eq(k, p1));
+                if (k1 && window.estructura[k1]) existe = window.estructura[k1].some(val => eq(val, p2));
+            } else if (module === 'manuales' || module === 'ayudas') {
+                if (Array.isArray(window.estructura)) existe = window.estructura.some(val => eq(val, p1));
+                else existe = !!Object.keys(window.estructura).find(k => eq(k, p1));
+            } else if (module === 'ayudas_fundicion') {
+                if (Array.isArray(window.estructura)) existe = window.estructura.some(val => eq(val, p2));
+                else existe = !!Object.keys(window.estructura).find(k => eq(k, p2));
+            }
+        }
 
         // Visibilidad Alertas Izquierda
         if (alertNotReady) alertNotReady.style.display = 'none';

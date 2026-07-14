@@ -1145,7 +1145,7 @@ class CalidadFundicionController extends Controller
                     @unlink($oldFile);
                 }
             }
-            ini_set('memory_limit', '512M');
+            ini_set('memory_limit', '2048M');
             $hasRechazo = ($nuevoEstado === 'rechazado') || 
                            ($nuevoEstado === 'pendiente' && $decision === 'rechazar');
             $viewName = $hasRechazo ? 'almacen.pdf_rechazo' : 'almacen.pdf_liberacion';
@@ -1362,7 +1362,7 @@ class CalidadFundicionController extends Controller
             }
         }
         
-        ini_set('memory_limit', '512M');
+        ini_set('memory_limit', '2048M');
         $pdf = Pdf::loadView('almacen.pdf_scar', ['scar' => $scar])
                   ->setPaper('letter', 'portrait');
                   
@@ -1504,7 +1504,7 @@ class CalidadFundicionController extends Controller
                 }
             }
 
-            ini_set('memory_limit', '512M');
+            ini_set('memory_limit', '2048M');
             $pdf = Pdf::loadView('almacen.pdf_scar', ['scar' => $scarData])
                       ->setPaper('letter', 'portrait');
 
@@ -1706,7 +1706,7 @@ class CalidadFundicionController extends Controller
 
         // 2.5 Regenerar el PDF digital del SCAR para que plasme la fecha de compromiso
         try {
-            ini_set('memory_limit', '512M');
+            ini_set('memory_limit', '2048M');
             $pdf = Pdf::loadView('almacen.pdf_scar', ['scar' => $scar])
                       ->setPaper('letter', 'portrait');
             $pdf->save("{$pdfDir}/{$scar->pdf_filename}");

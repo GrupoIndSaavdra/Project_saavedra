@@ -185,10 +185,12 @@ class AyudasVisualesFundicionPdfController extends Controller
         foreach ($candidateDirs as $dir) {
             if (Storage::disk('local')->exists($dir)) {
                 $files = Storage::disk('local')->files($dir);
+                $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
                 foreach ($files as $f) {
                     $rawName = basename($f);
                     $utf8Name = $this->toUtf8($rawName);
-                    if ($utf8Name === $archivo) {
+                    $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
+                    if ($utf8NameNorm === $archivoNorm) {
                         $foundFile = $f;
                         break 2;
                     }
@@ -319,10 +321,12 @@ class AyudasVisualesFundicionPdfController extends Controller
         foreach ($candidateDirs as $dir) {
             if (Storage::disk('local')->exists($dir)) {
                 $files = Storage::disk('local')->files($dir);
+                $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
                 foreach ($files as $f) {
                     $rawName = basename($f);
                     $utf8Name = $this->toUtf8($rawName);
-                    if ($utf8Name === $archivo) {
+                    $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
+                    if ($utf8NameNorm === $archivoNorm) {
                         $found = $f;
                         break 2;
                     }
@@ -477,10 +481,12 @@ class AyudasVisualesFundicionPdfController extends Controller
         
         $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
         $foundFile = null;
+        $archivoAnteriorNorm = \Normalizer::normalize(mb_strtolower($archivoAnterior, 'UTF-8'), \Normalizer::FORM_C);
         foreach ($files as $f) {
             $rawName = basename($f);
             $utf8Name = $this->toUtf8($rawName);
-            if ($utf8Name === $archivoAnterior) {
+            $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
+            if ($utf8NameNorm === $archivoAnteriorNorm) {
                 $foundFile = $f;
                 break;
             }

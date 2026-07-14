@@ -50,14 +50,14 @@ class ReporteProduccionController extends Controller
      */
     public function reenviarCorreo(Request $request)
     {
-        ini_set('memory_limit', '512M');
+        ini_set('memory_limit', '2048M');
         $request->validate([
             'fecha' => 'required|date',
             'correos' => 'nullable|string',
         ]);
 
-        $fecha = Carbon::parse($request->fecha);
-        $raw = $request->correos ?: config('mail.report_recipients');
+        $fecha = Carbon::parse($request->input('fecha'));
+        $raw = $request->input('correos') ?: config('mail.report_recipients');
         
         // 1. Limpiar comillas y espacios externos
         $raw = trim($raw, '"\' ');
@@ -174,29 +174,29 @@ class ReporteProduccionController extends Controller
         $query = Pieza::query()->with(['clase', 'operador', 'ordenTrabajo']);
 
         // ── Rango de fechas ───────────────────────────────────────────────
-        $desde = $request->fecha_desde ?? Carbon::today()->toDateString();
-        $hasta = $request->fecha_hasta ?? Carbon::today()->toDateString();
+        $desde = $request->input('fecha_desde') ?? Carbon::today()->toDateString();
+        $hasta = $request->input('fecha_hasta') ?? Carbon::today()->toDateString();
         $query->whereDate('created_at', '>=', $desde)
             ->whereDate('created_at', '<=', $hasta);
 
         // ── OT ────────────────────────────────────────────────────────────
-        if ($request->ot && $request->ot !== 'Todos') {
+        if ($request->input('ot') && $request->input('ot') !== 'Todos') {
             // Acepta "5 - Moldura X" o solo "5"
-            $otId = explode(' - ', $request->ot)[0];
+            $otId = explode(' - ', $request->input('ot'))[0];
             $query->where('id_ot', trim($otId));
         }
 
         // ── Clase ─────────────────────────────────────────────────────────
-        if ($request->clase && $request->clase !== 'Todos') {
-            $clase = Clase::query()->where('nombre', $request->clase)->first();
+        if ($request->input('clase') && $request->input('clase') !== 'Todos') {
+            $clase = Clase::query()->where('nombre', $request->input('clase'))->first();
             if ($clase) {
                 $query->where('id_clase', $clase->id);
             }
         }
 
         // ── Proceso ───────────────────────────────────────────────────────
-        if ($request->proceso && $request->proceso !== 'Todos') {
-            $query->where('proceso', $request->proceso);
+        if ($request->input('proceso') && $request->input('proceso') !== 'Todos') {
+            $query->where('proceso', $request->input('proceso'));
         }
 
         return $query->orderBy('id_ot')
@@ -490,7 +490,7 @@ class ReporteProduccionController extends Controller
     /**
      * Recupera las observaciones del operador desde las tablas específicas de cada proceso.
      * Lógica adaptada de PzasGeneralesController/ProcessProductionController.
-     * @param \App\Models\Pieza $pieza
+     * @param Pieza $pieza
      */
     private function getObservacionesOperador($pieza): string
     {
