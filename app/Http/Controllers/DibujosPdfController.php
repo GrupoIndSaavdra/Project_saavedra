@@ -211,9 +211,16 @@ class DibujosPdfController extends Controller
             abort(422, 'Parámetros inválidos.');
         }
 
-        $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
-        if (!Storage::disk('local')->exists($dirPath)) {
-            $dirPath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
+        if ($clase === '--') {
+            $dirPath = self::BASE_DIR . '/' . $ot;
+            if (!Storage::disk('local')->exists($dirPath)) {
+                $dirPath = self::OLD_BASE_DIR . '/' . $ot;
+            }
+        } else {
+            $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
+            if (!Storage::disk('local')->exists($dirPath)) {
+                $dirPath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
+            }
         }
 
         if (!Storage::disk('local')->exists($dirPath)) {
@@ -273,7 +280,11 @@ class DibujosPdfController extends Controller
             $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
             $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
-            $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+            if ($clase === '--') {
+                $dirPath = self::BASE_DIR . '/' . $otFolderName;
+            } else {
+                $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+            }
 
             if (Storage::disk('local')->exists($dirPath)) {
                 return response()->json([
@@ -321,10 +332,14 @@ class DibujosPdfController extends Controller
         $clase = $this->sanitizePath($request->input('clase'));
         
         $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
-        $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-        $otFolderName = $this->sanitizePath($otFolderName);
+        $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+        $otFolderName = $this->normalizeOTName($this->sanitizePath($otLabel));
 
-        $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+        if ($clase === '--') {
+            $dirPath = self::BASE_DIR . '/' . $otFolderName;
+        } else {
+            $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+        }
 
         if (!Storage::disk('local')->exists($dirPath)) {
             Storage::disk('local')->makeDirectory($dirPath);
@@ -590,7 +605,16 @@ class DibujosPdfController extends Controller
             foreach ($otDirs as $otDir) {
                 $otName = $this->toUtf8(basename($otDir));
                 $claseDirs = Storage::disk('local')->directories($otDir);
-                $estructura[$otName] = array_map(fn($d) => $this->toUtf8(basename($d)), $claseDirs);
+                $clases = array_map(fn($d) => $this->toUtf8(basename($d)), $claseDirs);
+                
+                $hasFilesAtRoot = collect(Storage::disk('local')->files($otDir))
+                    ->contains(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf');
+
+                if ($hasFilesAtRoot) {
+                    $clases[] = '--';
+                }
+
+                $estructura[$otName] = $clases;
             }
         }
 
@@ -600,6 +624,13 @@ class DibujosPdfController extends Controller
             foreach ($oldOtDirs as $otDir) {
                 $otName = $this->toUtf8(basename($otDir));
                 $claseDirs = array_map(fn($d) => $this->toUtf8(basename($d)), Storage::disk('local')->directories($otDir));
+                
+                $hasFilesAtRoot = collect(Storage::disk('local')->files($otDir))
+                    ->contains(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf');
+
+                if ($hasFilesAtRoot) {
+                    $claseDirs[] = '--';
+                }
                 
                 if (isset($estructura[$otName])) {
                     $estructura[$otName] = array_unique(array_merge($estructura[$otName], $claseDirs));

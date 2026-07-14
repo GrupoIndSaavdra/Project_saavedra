@@ -94,8 +94,21 @@ class AyudasVisualesPdfController extends Controller
 
     public function getStructure()
     {
-        $estructura = $this->buildStructure();
-        return response()->json($estructura);
+        // El usuario solicitó utilizar una matriz estática exacta que relaciona Clases con sus respectivos Procesos,
+        // descartando el uso de "General" y el historial dinámico anterior de la BD para esta vista.
+        $estructuraPorClase = [
+            'Bombillo'          => ['Cepillado', 'Desbaste Exterior', 'Revision Laterales', 'Primera Operacion', 'Barreno Maniobra', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo', 'Barreno Profundidad', 'Cavidades', 'Off Set', 'Palomas', 'Rebajes', 'Grabado'],
+            'Molde'             => ['Cepillado', 'Desbaste Exterior', 'Revision Laterales', 'Primera Operacion', 'Barreno Maniobra', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo', 'Barreno Profundidad', 'Cavidades', 'Off Set', 'Palomas', 'Rebajes', 'Grabado'],
+            'Obturador'         => ['Soldadura', 'Soldadura PTA', 'Operacion Equipo'],
+            'Fondo'             => ['Soldadura', 'Soldadura PTA', 'Operacion Equipo'],
+            'Corona'            => ['Cepillado', 'Desbaste Exterior', 'Primera Operacion', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Calificado'],
+            'Plato'             => ['Barreno Profundidad', 'Operacion Equipo'],
+            'Embudo'            => ['Operacion Equipo', 'Embudo CM'],
+            'Cabeza de Soplo'   => ['Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'],
+            'Candado Obturador' => ['Operacion Equipo']
+        ];
+        
+        return response()->json($estructuraPorClase);
     }
 
     /**

@@ -4649,24 +4649,28 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
                     const isDibujoOrAyuda = f.tipo === 'dibujo' || f.tipo === 'ayuda';
                     const isPreordenFile = pl.includes('pre-orden') || pl.includes('preorden') || (pl.includes('confirmacionmodelo') && !pl.includes('casting'));
 
+                    const allRelevantModels = [...arrAprobados, ...arrRechazados];
+
                     if (isPreordenFile) return true;
 
                     if (decision === 'aprobar') {
                         if (isRechazadoFile) return false;
+                        // Dibujos/ayudas y preordenes solo de las clases aprobadas
                         return archivoPerteneceAModelos(f.nombre, arrAprobados);
                     }
 
                     if (decision === 'rechazar') {
-                        if (isDibujoOrAyuda) return false;
-                        if (!isRechazadoFile) return false;
-                        return archivoPerteneceAModelos(f.nombre, arrRechazados);
+                        if (isRechazadoFile) return archivoPerteneceAModelos(f.nombre, arrRechazados);
+                        // Incluir dibujos/ayudas de las clases rechazadas (contexto útil para el correo)
+                        if (isDibujoOrAyuda) return archivoPerteneceAModelos(f.nombre, arrRechazados);
+                        return false;
                     }
 
                     // mixto
                     if (isRechazadoFile) return archivoPerteneceAModelos(f.nombre, arrRechazados);
-                    if (isDibujoOrAyuda) return archivoPerteneceAModelos(f.nombre, arrAprobados);
+                    if (isDibujoOrAyuda) return archivoPerteneceAModelos(f.nombre, allRelevantModels);
 
-                    return archivoPerteneceAModelos(f.nombre, [...arrAprobados, ...arrRechazados]);
+                    return archivoPerteneceAModelos(f.nombre, allRelevantModels);
                 });
                 const sectionsHtml = generarHtmlCategorizadoArchivos(filteredFiles, ot, baseUrl, 'calidad');
                 if (filesContainer) {

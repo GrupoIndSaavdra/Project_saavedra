@@ -663,6 +663,39 @@
                                                 $ayudasArchivos = [];
                                                 $otrosArchivos = [];
                                                 $baseNames = [];
+                                                $dibujoBaseNames = [];
+
+                                                // --- NUEVO: Escanear ayudas visuales globales desde AYUDAS_FUNDICION ---
+                                                $ayudasGlobalesBase = 'DOCUMENTACION_GIS/AYUDAS_FUNDICION';
+                                                foreach ($activeClassesForOt as $activeClass) {
+                                                    $classNameProper = ucfirst(strtolower($activeClass));
+                                                    
+                                                    $candidateDirs = [
+                                                        $ayudasGlobalesBase . '/' . $classNameProper,
+                                                        $ayudasGlobalesBase . '/' . $classNameProper . '/Fundicion'
+                                                    ];
+                                                    
+                                                    foreach ($candidateDirs as $globalClassDir) {
+                                                        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($globalClassDir)) {
+                                                            $files = \Illuminate\Support\Facades\Storage::disk('local')->files($globalClassDir);
+                                                            foreach ($files as $f) {
+                                                                $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                                                                if ($ext === 'pdf') {
+                                                                    $base = basename($f);
+                                                                    if (!in_array($base, $baseNames)) {
+                                                                        $ayudasArchivos[] = [
+                                                                            'nombre' => $classNameProper . '/' . $base,
+                                                                            'url' => route('ayudas_fundicion.serve', ['clase' => $classNameProper, 'archivo' => $base]),
+                                                                            'tipo' => 'ayuda',
+                                                                            'ot' => $reg->ot,
+                                                                        ];
+                                                                        $baseNames[] = $base;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
 
                                                 $liberacionesPath = storage_path('app/public/liberaciones_pdf');
 
@@ -1209,7 +1242,7 @@
 
                                                 foreach ($archivos as $dibujo) {
                                                     $found = false;
-                                                    $nameLower = strtolower(basename($dibujo['nombre']));
+                                                    $nameLower = strtolower($dibujo['nombre']);
                                                     foreach ($aprobados as $aprClass) {
                                                         if (strpos($nameLower, strtolower($aprClass)) !== false) {
                                                             $dibujosAprobados[] = $dibujo;
@@ -1237,7 +1270,7 @@
 
                                                 foreach ($ayudasArchivos as $ayuda) {
                                                     $found = false;
-                                                    $nameLower = strtolower(basename($ayuda['nombre']));
+                                                    $nameLower = strtolower($ayuda['nombre']);
                                                     foreach ($aprobados as $aprClass) {
                                                         if (strpos($nameLower, strtolower($aprClass)) !== false) {
                                                             $ayudasAprobados[] = $ayuda;
@@ -1263,8 +1296,11 @@
                                                 $otrosRechazados = $archivosRechazados;
 
                                                 $countAprobados = count($otrosAprobados) + count($dibujosAprobados) + count($ayudasAprobados);
-                                                // Include the arrays that come from Rechazos_Almacen ($rechazadosDibujos, $rechazadosAyudas, $rechazadosOtros)
-                                                // instead of $dibujosRechazados / $ayudasRechazados which are empty.
+                                                
+                                                // Combinar los rechazos que vienen del escaneo de clases con los de Documentos_Rechazados
+                                                $rechazadosDibujos = array_merge($rechazadosDibujos, $dibujosRechazados);
+                                                $rechazadosAyudas = array_merge($rechazadosAyudas, $ayudasRechazados);
+                                                
                                                 $countRechazados = count($archivosRechazados) + count($rechazadosDibujos) + count($rechazadosAyudas) + count($rechazadosOtros);
                                                 $countPendientes = count($dibujosPendientes) + count($ayudasPendientes);
 
@@ -1541,43 +1577,87 @@
                                                             @endif
                                                         @endif
 
-                                                        @if ($countAprobados > 0)
-                                                            @php
-                                                                $aprobadosGroups = [
-                                                                    ['titulo' => 'Dibujos de Fundición Aprobados', 'archivos' => $dibujosAprobados, 'color' => '#155724'],
-                                                                    ['titulo' => 'Ayudas Visuales Aprobadas', 'archivos' => $ayudasAprobados, 'color' => '#155724'],
-                                                                    ['titulo' => 'Documentos Aprobados', 'archivos' => $otrosAprobados, 'color' => '#155724'],
-                                                                ];
-                                                            @endphp
-                                                            @foreach ($aprobadosGroups as $group)
-                                                                @if (count($group['archivos']) > 0)
-                                                                    <h3 style="margin-top: 25px; margin-bottom: 10px; color: {{ $group['color'] }}; border-bottom: 2px solid {{ $group['color'] }}; padding-bottom: 5px;">
-                                                                        {{ $group['titulo'] }}
-                                                                    </h3>
-                                                                    <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
-                                                                        @foreach ($group['archivos'] as $otroArchivo)
-                                                                            @php
-                                                                                $canDelete = false;
-                                                                                $fileOwner = $otroArchivo['owner'] ?? '';
-                                                                                $fileNameLower = strtolower($otroArchivo['nombre']);
-                                                                                if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
-                                                                                    $fileOwner = 'calidad';
-                                                                                }
-                                                                                $userPerfil = Auth::user()->perfil;
+                                                        @php
+                                                            // $rechazadosDibujos y $rechazadosAyudas ya fueron poblados durante el
+                                                            // scan del filesystem (clases rechazadas detectadas por nombre de archivo).
+                                                            // Aquí solo AGREGAMOS los archivos de la carpeta Documentos_Rechazados
+                                                            // clasificándolos por nombre — igual que el patrón de Calidad.
+                                                            // NO sobreescribimos: usamos los arrays del scan como base.
 
+                                                            foreach ($archivosRechazados as $rArchivo) {
+                                                                $nameLow = strtolower($rArchivo['nombre']);
+                                                                $ext     = pathinfo($nameLow, PATHINFO_EXTENSION);
+                                                                $isImg   = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+
+                                                                $rArchivo['ot']   = $rArchivo['ot'] ?? $reg->ot;
+                                                                $rArchivo['tipo'] = $rArchivo['tipo'] ?? ($isImg ? 'imagen' : 'otro');
+
+                                                                if (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
+                                                                    if ($rArchivo['tipo'] === 'otro') $rArchivo['tipo'] = 'ayuda';
+                                                                    $rechazadosAyudas[] = $rArchivo;
+                                                                } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
+                                                                    $rechazadosDibujos[] = $rArchivo;
+                                                                } else {
+                                                                    $rechazadosOtros[] = $rArchivo;
+                                                                }
+                                                            }
+                                                        @endphp
+
+                                                        @if (count($rechazadosAyudas) > 0)
+                                                            <h3 style="margin-top: 25px; margin-bottom: 10px; color: #155724; border-bottom: 2px solid #155724; padding-bottom: 5px;">
+                                                                Ayudas Visuales de Fundición</h3>
+                                                            <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                                                @foreach ($rechazadosAyudas as $otroArchivo)
+                                                                    @php
+                                                                        $canDelete = false;
+                                                                    @endphp
+                                                                    <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
+                                                                        <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')" style="cursor: pointer;" title="Abrir PDF">
+                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                        </div>
+                                                                        <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">
+                                                                            {{ basename($otroArchivo['nombre']) }}
+                                                                        </div>
+                                                                        <div class="file-actions" style="display: flex; gap: 5px;">
+                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #155724; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">Ver</button>
+                                                                        </div>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+
+                                                        {{-- BLOQUE 4: Renombrar sección a "Documentos Aprobados" --}}
+                                                        @if ($countAprobados > 0)
+                                                            <h3 style="margin-top: 25px; margin-bottom: 10px; color: #155724; border-bottom: 2px solid #155724; padding-bottom: 5px;">
+                                                                Documentos Aprobados</h3>
+                                                            <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                                                @php
+                                                                    $archivosAprobados = array_merge($dibujosAprobados, $ayudasAprobados, $otrosAprobados);
+                                                                @endphp
+                                                                @foreach ($archivosAprobados as $otroArchivo)
+                                                                    @php
+                                                                        $canDelete = false;
+                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
+                                                                        $fileNameLower = strtolower($otroArchivo['nombre']);
+                                                                        if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
+                                                                            $fileOwner = 'calidad';
+                                                                        }
+                                                                        $userPerfil = Auth::user()->perfil;
+                                                                        
                                                                         $alertSent = false;
                                                                         if ($fileOwner === 'almacen') {
                                                                             $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
                                                                         } elseif ($fileOwner === 'calidad') {
                                                                             $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
                                                                         }
-
+                                                                        
                                                                         if (!$alertSent) {
-                                                                            if ($userPerfil == 1 || $userPerfil == 2) {
+                                                                            if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
                                                                                 $canDelete = true;
                                                                             } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
                                                                                 $canDelete = true;
-                                                                            } elseif ($userPerfil == 4 && $fileOwner === 'calidad') {
+                                                                            } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
                                                                                 $canDelete = true;
                                                                             }
                                                                         }
@@ -1617,37 +1697,11 @@
                                                                 @endforeach
                                                             </div>
                                                         @endif
-                                                    @endforeach
 
 
-                                                        @endif
 
 
-                                                        @php
-                                                            // $rechazadosDibujos y $rechazadosAyudas ya fueron poblados durante el
-                                                            // scan del filesystem (clases rechazadas detectadas por nombre de archivo).
-                                                            // Aquí solo AGREGAMOS los archivos de la carpeta Documentos_Rechazados
-                                                            // clasificándolos por nombre — igual que el patrón de Calidad.
-                                                            // NO sobreescribimos: usamos los arrays del scan como base.
 
-                                                            foreach ($archivosRechazados as $rArchivo) {
-                                                                $nameLow = strtolower($rArchivo['nombre']);
-                                                                $ext     = pathinfo($nameLow, PATHINFO_EXTENSION);
-                                                                $isImg   = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-
-                                                                $rArchivo['ot']   = $rArchivo['ot'] ?? $reg->ot;
-                                                                $rArchivo['tipo'] = $rArchivo['tipo'] ?? ($isImg ? 'imagen' : 'otro');
-
-                                                                if (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
-                                                                    if ($rArchivo['tipo'] === 'otro') $rArchivo['tipo'] = 'ayuda';
-                                                                    $rechazadosAyudas[] = $rArchivo;
-                                                                } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
-                                                                    $rechazadosDibujos[] = $rArchivo;
-                                                                } else {
-                                                                    $rechazadosOtros[] = $rArchivo;
-                                                                }
-                                                            }
-                                                        @endphp
 
 
 
@@ -1676,15 +1730,17 @@
                                                                 </div>
                                                             @endif
 
+
+
                                                             @if (count($rechazadosAyudas) > 0)
-                                                                <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
-                                                                    Ayudas Visuales Rechazadas</h3>
-                                                                <div class="alm-pdf-grid" style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
+                                                                <h3 style="margin-top: 25px; margin-bottom: 10px; color: #15803d; border-bottom: 2px solid #15803d; padding-bottom: 5px;">
+                                                                    Ayudas Visuales de Fundición</h3>
+                                                                <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
                                                                     @foreach ($rechazadosAyudas as $otroArchivo)
                                                                         @php
                                                                             $canDelete = false;
                                                                         @endphp
-                                                                        <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                        <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
                                                                             <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')" style="cursor: pointer;" title="Abrir PDF">
                                                                                 <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                                                 <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
@@ -1693,12 +1749,14 @@
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
                                                                             <div class="file-actions" style="display: flex; gap: 5px;">
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">Ver</button>
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #15803d; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">Ver</button>
                                                                             </div>
                                                                         </div>
                                                                     @endforeach
                                                                 </div>
                                                             @endif
+
+
 
                                                             @if (count($rechazadosOtros) > 0)
                                                                 <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
@@ -1730,8 +1788,8 @@
                                                                             <div class="file-actions" style="display: flex; gap: 5px;">
                                                                             <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
                                                                             @if($canDelete && !$alertSent)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar" onclick="confirmDeletePdf(this, '{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['origin'] ?? '' }}')" title="Eliminar archivo">
-                                                                                    X
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')" title="Eliminar archivo">
+                                                                                    Eliminar
                                                                                 </button>
                                                                             @endif
                                                                             </div>

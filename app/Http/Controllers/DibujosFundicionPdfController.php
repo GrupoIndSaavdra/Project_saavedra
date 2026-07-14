@@ -36,7 +36,7 @@ class DibujosFundicionPdfController extends Controller
     // =========================================================================
 
     /**
-     * @param Request Request $request
+     * @param Request $request
      */
     public function showManage(Request $request)
     {
@@ -223,7 +223,7 @@ class DibujosFundicionPdfController extends Controller
 
     /**
      * Devuelve el conteo total de archivos para una OT (Dibujos + Ayudas Visuales Vinculadas).
-     * @param Request Request $request
+     * @param Request $request
      */
     public function getTotalFiles(Request $request)
     {
@@ -294,7 +294,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param Request Request $request
+     * @param Request $request
      */
     public function getFiles(Request $request)
     {
@@ -386,7 +386,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param Request Request $request
+     * @param Request $request
      */
     public function serveFile(Request $request): BinaryFileResponse
     {
@@ -464,7 +464,7 @@ class DibujosFundicionPdfController extends Controller
     // =========================================================================
 
     /**
-     * @param Request Request $request
+     * @param Request $request
      */
     public function createFolder(Request $request)
     {
@@ -481,7 +481,11 @@ class DibujosFundicionPdfController extends Controller
             $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
             $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
-            $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+            if ($clase === '--') {
+                $dirPath = self::BASE_DIR . '/' . $otFolderName;
+            } else {
+                $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+            }
 
             if (Storage::disk('local')->exists($dirPath)) {
                 return response()->json([
@@ -521,7 +525,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param Request Request $request
+     * @param Request $request
      */
     public function uploadPdf(Request $request)
     {
@@ -538,7 +542,11 @@ class DibujosFundicionPdfController extends Controller
         $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
         $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
-        $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+        if ($clase === '--') {
+            $dirPath = self::BASE_DIR . '/' . $otFolderName;
+        } else {
+            $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+        }
 
         if (!Storage::disk('local')->exists($dirPath)) {
             Storage::disk('local')->makeDirectory($dirPath);
@@ -548,7 +556,7 @@ class DibujosFundicionPdfController extends Controller
 
         // VINCULACIÓN AUTOMÁTICA: Si se sube a una clase, vincularla
         $ayudas = $history->ayudas_config ?? [];
-        if (!empty($clase) && !in_array($clase, $ayudas)) {
+        if (!empty($clase) && $clase !== '--' && !in_array($clase, $ayudas)) {
             $ayudas[] = $clase;
             $history->ayudas_config = $ayudas;
             $history->save();
@@ -560,7 +568,7 @@ class DibujosFundicionPdfController extends Controller
 
         // Prefijar con el nombre de la clase si no lo tiene ya y si no es nula
         $newName = $cleanName;
-        if (!empty($clase)) {
+        if (!empty($clase) && $clase !== '--') {
             $prefix = $clase . " - ";
             $newName = (strpos($cleanName, $prefix) === 0) ? $cleanName : $prefix . $cleanName;
         }
@@ -587,7 +595,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param Request Request $request
+     * @param Request $request
      */
     public function sendEmailAlert(Request $request)
     {
@@ -848,7 +856,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param Request Request $request
+     * @param Request $request
      */
     public function deletePdf(Request $request)
     {
@@ -909,7 +917,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param Request Request $request
+     * @param Request $request
      */
     public function deleteFolder(Request $request)
     {
@@ -1047,7 +1055,7 @@ class DibujosFundicionPdfController extends Controller
     }
 
     /**
-     * @param Request Request $request
+     * @param Request $request
      */
     public function replacePdf(Request $request)
     {
@@ -1205,7 +1213,7 @@ class DibujosFundicionPdfController extends Controller
                         ->contains(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf');
 
                     if ($hasFilesAtRoot) {
-                        $clases[] = null; // Indicador de archivos en raíz
+                        $clases[] = '--'; // Indicador de archivos en raíz
                     }
 
                     if (isset($estructura[$otName])) {

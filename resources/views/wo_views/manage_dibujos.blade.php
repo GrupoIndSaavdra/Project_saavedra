@@ -56,6 +56,9 @@
                                         {{ $claseOpt->nombre }}
                                     </option>
                                 @endforeach
+                                <option value="--" {{ $claseSeleccionadaId === '--' ? 'selected' : '' }}>
+                                    Archivos en Raíz (Antiguos)
+                                </option>
                             @endif
                         </select>
                     </div>
@@ -346,23 +349,26 @@
                                     @else
                                         @foreach($clases as $claseName)
                                             @php
-                                                $claseReal = $otReal ? $otReal->clases->firstWhere('nombre', $claseName) : null;
-                                                $claseIdBD = $claseReal ? $claseReal->id : null;
-                                                $badgeId = "badge-" . Str::slug($otName) . "-" . Str::slug($claseName);
+                                                $isRoot = $claseName === null || $claseName === '--';
+                                                $paramClase = $isRoot ? '--' : $claseName;
+                                                $displayClase = $isRoot ? 'Archivos en Raíz' : $claseName;
+                                                $claseReal = (!$isRoot && $otReal) ? $otReal->clases->firstWhere('nombre', $claseName) : null;
+                                                $claseIdBD = $claseReal ? $claseReal->id : $paramClase;
+                                                $badgeId = "badge-" . Str::slug($otName) . "-" . Str::slug($paramClase);
                                             @endphp
-                                            <tr data-ot="{{ $otName }}" data-clase="{{ $claseName }}">
+                                            <tr data-ot="{{ $otName }}" data-clase="{{ $paramClase }}">
                                                 <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
-                                                <td class="d-text-center d-text-success d-text-bold">{{ $claseName }}</td>
+                                                <td class="d-text-center {{ $isRoot ? 'd-text-warning' : 'd-text-success' }} d-text-bold">{{ $displayClase }}</td>
                                                 <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
                                                 <td class="d-text-center">
                                                     <div class="td-actions">
                                                         <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                            onclick="irACarpeta('{{ $otIdBD ?? $otName }}', '{{ $claseIdBD ?? $claseName }}', {{ $otIdBD ? 'true' : 'false' }})">
+                                                            onclick="irACarpeta('{{ $otIdBD ?? $otName }}', '{{ $claseIdBD }}', {{ $otIdBD ? 'true' : 'false' }})">
                                                             <img src="{{ asset('images/documento.png') }}" alt="Ver">
                                                             <span>Ver PDF's</span>
                                                         </button>
                                                         <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                                            onclick="confirmarEliminarCarpeta('{{ $otName }}', '{{ $claseName }}', '{{ $otLabel }} / {{ $claseName }}')">
+                                                            onclick="confirmarEliminarCarpeta('{{ $otName }}', '{{ $isRoot ? null : $claseName }}', '{{ $otLabel }}{{ $isRoot ? '' : ' / ' . $claseName }}')">
                                                             <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
                                                             <span>Eliminar Clase</span>
                                                         </button>

@@ -62,6 +62,9 @@
                                 <option value="Guías" {{ $claseSeleccionadaId === 'Guías' ? 'selected' : '' }}>
                                     Guías (Opcional)
                                 </option>
+                                <option value="--" {{ $claseSeleccionadaId === '--' ? 'selected' : '' }}>
+                                    Archivos en Raíz (Antiguos)
+                                </option>
                             @endif
                         </select>
                     </div>
@@ -218,23 +221,26 @@
                                     @else
                                         @foreach($clases as $claseName)
                                             @php
-                                                $claseReal = $otReal ? $otReal->clases->firstWhere('nombre', $claseName) : null;
-                                                $claseIdBD = $claseReal ? $claseReal->id : null;
-                                                $badgeId = "badge-" . Str::slug($otName) . "-" . Str::slug($claseName);
+                                                $isRoot = $claseName === null || $claseName === '--';
+                                                $paramClase = $isRoot ? '--' : $claseName;
+                                                $displayClase = $isRoot ? 'Archivos en Raíz' : $claseName;
+                                                $claseReal = (!$isRoot && $otReal) ? $otReal->clases->firstWhere('nombre', $claseName) : null;
+                                                $claseIdBD = $claseReal ? $claseReal->id : $paramClase;
+                                                $badgeId = "badge-" . Str::slug($otName) . "-" . Str::slug($paramClase);
                                             @endphp
-                                            <tr data-ot="{{ $otName }}" data-clase="{{ $claseName }}">
+                                            <tr data-ot="{{ $otName }}" data-clase="{{ $paramClase }}">
                                                 <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
-                                                <td class="d-text-center d-text-success d-text-bold">{{ $claseName }}</td>
+                                                <td class="d-text-center {{ $isRoot ? 'd-text-warning' : 'd-text-success' }} d-text-bold">{{ $displayClase }}</td>
                                                 <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
                                                 <td class="d-text-center">
                                                     <div class="td-actions">
                                                         <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                            onclick="irACarpeta('{{ $otIdBD ?? $otName }}', '{{ $claseIdBD ?? $claseName }}', {{ $otIdBD ? 'true' : 'false' }})">
+                                                            onclick="irACarpeta('{{ $otIdBD ?? $otName }}', '{{ $claseIdBD }}', {{ $otIdBD ? 'true' : 'false' }})">
                                                             <img src="{{ asset('images/documento.png') }}" alt="Ver">
                                                             <span>Ver PDF's</span>
                                                         </button>
                                                         <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                                            onclick="confirmarEliminarCarpeta('{{ $otName }}', '{{ $claseName }}', '{{ $otLabel }} / {{ $claseName }}')">
+                                                            onclick="confirmarEliminarCarpeta('{{ $otName }}', '{{ $isRoot ? null : $claseName }}', '{{ $otLabel }}{{ $isRoot ? '' : ' / ' . $claseName }}')">
                                                             <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
                                                             <span>Eliminar Clase</span>
                                                         </button>
@@ -282,8 +288,14 @@
                                         // Ayudas vinculadas desde el historial
                                         $ayudasLinked = $historiales[$otName] ?? [];
 
-                                        // Si no hay clases físicas, creamos una entrada para la raíz
-                                        $displayClases = count($clasesFisicas) > 0 ? $clasesFisicas : [null];
+                                        // Combinar las clases físicas con las ayudas vinculadas para asegurar que todas tengan una fila
+                                        $clasesCompletas = array_unique(array_merge($clasesFisicas, $ayudasLinked));
+                                        $clasesValidas = array_filter($clasesCompletas, function($c) {
+                                            if (is_null($c)) return true; // Mantener archivos en raíz
+                                            $val = trim(strtolower((string) $c));
+                                            return !empty($val) && $val !== 'null' && $val !== 'undefined';
+                                        });
+                                        $displayClases = count($clasesValidas) > 0 ? $clasesValidas : [null];
                                     @endphp
 
                                     @foreach($displayClases as $claseName)
@@ -307,12 +319,10 @@
                                             <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
                                             <td class="d-text-center">
                                                 @php
-                                                    // Filtrar por existencia física real en el servidor
-                                                    $ayudasFiltradas = collect($ayudasLinked)->filter(function ($a) use ($clasesFisicas) {
+                                                    // Ya no filtramos por existencia física, mostramos todas las vinculadas
+                                                    $ayudasFiltradas = collect($ayudasLinked)->filter(function ($a) {
                                                         $val = trim(strtolower((string) $a));
-                                                        if (empty($val) || $val === 'null' || $val === 'undefined')
-                                                            return false;
-                                                        return in_array($a, $clasesFisicas);
+                                                        return !empty($val) && $val !== 'null' && $val !== 'undefined';
                                                     });
                                                 @endphp
                                                 @if($ayudasFiltradas->count() > 0)
@@ -474,12 +484,9 @@
                                     $otIdBD = $otReal ? $otReal->id : null;
                                     $ayudasLinked = $historiales[$otName] ?? [];
 
-                                    $ayudasFiltradas = collect($ayudasLinked)->filter(function ($a) use ($clasesFisicas) {
+                                    $ayudasFiltradas = collect($ayudasLinked)->filter(function ($a) {
                                         $val = trim(strtolower((string) $a));
-                                        if (empty($val) || $val === 'null' || $val === 'undefined')
-                                            return false;
-                                        // Solo mostrar si existe la carpeta física actualmente en la OT
-                                        return in_array($a, $clasesFisicas);
+                                        return !empty($val) && $val !== 'null' && $val !== 'undefined';
                                     });
                                 @endphp
                                 <tr>

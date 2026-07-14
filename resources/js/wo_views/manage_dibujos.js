@@ -101,6 +101,7 @@ function updateAdminUI() {
             let rawP2 = clSel.options[clSel.selectedIndex].text.trim();
             // Limpiar texto de (Opcional) si existe
             p2 = rawP2.replace(' (Opcional)', '');
+            if (clSel.value === '--') p2 = '--';
             label = `${p1} / ${p2}`;
         }
     } else if (module === 'dibujos' && otSel && clSel && otSel.value && clSel.value) {
@@ -109,6 +110,7 @@ function updateAdminUI() {
             const otText = otSel.options[otSel.selectedIndex].text.trim();
             p1 = normalizeOTName(otText); 
             p2 = clSel.options[clSel.selectedIndex].text.trim();
+            if (clSel.value === '--') p2 = '--';
             label = `${p1} / ${p2}`;
         }
     } else if (module === 'manuales' && prSel && prSel.value) {
