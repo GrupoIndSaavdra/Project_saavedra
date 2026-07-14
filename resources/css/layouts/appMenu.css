@@ -148,7 +148,8 @@ body {
     width: 100%;
 }
 .icon {
-    width: 100%;
+    width: 80%;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .open-menu {
     border: none;
@@ -165,10 +166,15 @@ body {
 }
 .open-menu:hover {
     background-color: #c9c9c99b;
-    transform: translateY(-2px);
+}
+.open-menu:hover .icon {
+    transform: scale(1.15); /* Zoom al pasar el mouse */
 }
 .open-menu:active {
-    transform: translateY(0);
+    transform: scale(0.95); /* El botón se hunde un poco */
+}
+.open-menu:active .icon {
+    transform: scale(1.15) rotate(360deg); /* Gira la vuelta completa al hacer clic */
 }
 .text-header {
     font-weight: 700;
@@ -239,12 +245,12 @@ body {
     margin-right: 15px;
 }
 
-/* Opciones principales activas (Verde) - Incluyendo el Inicio y los Toggles desplegados */
+/* Opciones principales activas (Azul) - Incluyendo el Inicio y los Toggles desplegados */
 .nav-list > li > .nav-link.active,
 .menu-section.active > .submenu-toggle {
-    background: linear-gradient(90deg, #11998e, #38ef7d) !important;
+    background: linear-gradient(90deg, #033966, #0a4f8c) !important;
     color: white !important;
-    box-shadow: 0 4px 15px rgba(56, 239, 125, 0.3);
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.3);
     border-left: none !important;
 }
 
@@ -252,24 +258,24 @@ body {
     color: white;
 }
 
-/* Opciones secundarias activas (Azul) */
+/* Opciones secundarias activas (Gris) */
 .submenu .nav-link.active {
-    background: linear-gradient(90deg, #1e3c72, #2a5298) !important;
+    background: linear-gradient(90deg, #6c757d, #929ba3) !important;
     color: white !important;
-    box-shadow: 0 4px 15px rgba(42, 82, 152, 0.3);
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
     border-left: none !important;
 }
 
 .nav-link:hover,
 .submenu-toggle:hover {
-    background: rgba(17, 153, 142, 0.1);
-    color: #11998e;
+    background: rgba(3, 57, 102, 0.1);
+    color: #033966;
     padding-left: 25px;
 }
 
 .submenu .nav-link:hover {
-    background: rgba(30, 60, 114, 0.1);
-    color: #1e3c72;
+    background: rgba(108, 117, 125, 0.1);
+    color: #6c757d;
 }
 .btn-close-session {
     position: absolute;
@@ -332,14 +338,20 @@ body {
 
 /* Triángulo a la derecha */
 .submenu-toggle::after {
-    content: "▼";
-    font-size: 1em;
-    transition: transform 0.3s ease;
+    content: "";
+    display: inline-block;
+    width: 1.2em;
+    height: 1.2em;
+    background-image: url('/images/triangulo_abajo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efecto de rebote (padre) */
 }
 
 /* Si la sección está activa, rotar la flecha */
 .menu-section.active > .submenu-toggle::after {
-    transform: rotate(180deg); /* Flecha hacia arriba */
+    transform: rotate(-180deg); /* Gira hacia arriba fluidamente */
 }
 
 @media (max-width: 991.98px) {
