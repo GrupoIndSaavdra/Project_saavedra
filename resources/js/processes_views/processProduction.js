@@ -1080,6 +1080,16 @@ function createBtnMetaEdit() {
 function createBtnTechDocs() {
     let wrapper = document.createElement("div");
     wrapper.className = "tech-docs-wrapper";
+    wrapper.style.display = "flex";
+    wrapper.style.flexDirection = "column";
+    wrapper.style.alignItems = "center";
+    wrapper.style.justifyContent = "center";
+
+    // Contenedor relativo para posicionar el pez sin afectar el centrado del logo
+    let imgContainer = document.createElement("div");
+    imgContainer.style.position = "relative";
+    imgContainer.style.display = "flex";
+    imgContainer.style.justifyContent = "center";
 
     let btn_docs = document.createElement("img");
     btn_docs.className = "img-edit";
@@ -1087,15 +1097,32 @@ function createBtnTechDocs() {
     btn_docs.alt = "Documentación";
     btn_docs.title = "Ver Manuales y Ayudas Visuales";
 
+    // El pececito adjuntado (Oculto a petición)
+    let fish_gif = document.createElement("img");
+    fish_gif.src = window.baseUrl + "/images/fish.gif";
+    fish_gif.alt = "Pez";
+    fish_gif.style.height = "20px";
+    fish_gif.style.width = "auto";
+    fish_gif.style.position = "absolute";
+    fish_gif.style.right = "-25px";
+    fish_gif.style.bottom = "12px";
+    fish_gif.style.display = "none"; // Ocultado
+
     let label = document.createElement("div");
     label.className = "action-label";
     label.textContent = "Documentos";
+    label.style.textAlign = "center";
+    label.style.marginTop = "5px";
 
-    btn_docs.addEventListener("click", function () {
+    // Asignar el clic a todo el contenedor para mayor facilidad de uso
+    wrapper.addEventListener("click", function () {
         openTechDocsModal();
     });
 
-    wrapper.appendChild(btn_docs);
+    imgContainer.appendChild(btn_docs);
+    imgContainer.appendChild(fish_gif);
+
+    wrapper.appendChild(imgContainer);
     wrapper.appendChild(label);
     return wrapper;
 }
@@ -2601,6 +2628,9 @@ window.openAyudasViewer = function () {
  * Abre el modal técnico con pestañas para Manuales y Ayudas Visuales
  */
 window.openTechDocsModal = function () {
+    // Evitar abrir múltiples modales si se dan clics rápidos
+    if (document.getElementById('tech-docs-overlay')) return;
+
     let activeProcess = window.arrayData ? window.arrayData["process"] || (window.arrayData["meta"] ? window.arrayData["meta"].proceso : null) : null;
     let activeClass = window.arrayData ? window.arrayData["class"] || (window.arrayData["meta"] ? window.arrayData["meta"].clase : null) : null;
     let activeOT = window.arrayData ? window.arrayData["ot_folio"] || window.arrayData["ot"] || (window.arrayData["meta"] ? window.arrayData["meta"].ot : null) : null;
@@ -2660,10 +2690,8 @@ window.openTechDocsModal = function () {
     const navDiv = document.createElement('div');
     navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end; flex:2; min-width: 400px;';
 
-    // Solo necesitamos Clase y Proceso
+    // Solo necesitamos Proceso
     const selProcesoWrap = _dibujosSelectGroup('Proceso', 'tech-doc-proceso');
-
-    selClaseWrap.style.display = 'none';
 
     navDiv.appendChild(selProcesoWrap);
 
@@ -2716,15 +2744,14 @@ window.openTechDocsModal = function () {
     });
 
     function _triggerSearch() {
-        const cl = selClase.value;
         const proc = selProceso.value;
 
         if (activeTab === 'manuales') {
             if (proc) _techDocsCargarArchivos('manuales', proc, null, contentDiv);
             else _techDocsShowEmpty(contentDiv, "Seleccione un Proceso.");
         } else if (activeTab === 'ayudas') {
-            if (cl && proc) _techDocsCargarArchivos('ayudas', proc, cl, contentDiv);
-            else _techDocsShowEmpty(contentDiv, "Seleccione Clase y Proceso.");
+            if (proc) _techDocsCargarArchivos('ayudas', proc, activeClass || '', contentDiv);
+            else _techDocsShowEmpty(contentDiv, "Seleccione un Proceso.");
         }
     }
 
@@ -2739,87 +2766,59 @@ window.openTechDocsModal = function () {
         });
         selProceso.disabled = false;
     }
-
-    function updateAyudasFilters(claseVal = null, procVal = null) {
-        const allClases = Object.keys(ayudasEstructura).sort();
-        const currentClase = claseVal || selClase.value;
-        const currentProc = procVal || selProceso.value;
-
-        selClase.innerHTML = '<option value="">— Seleccionar Clase —</option>';
-        allClases.forEach(c => {
-            if (c === '-- SIN CLASE --') return; // Quitar opcion sin clase por peticion
-            const opt = document.createElement('option');
-            opt.value = c;
-            opt.textContent = c;
-            if (c === currentClase) opt.selected = true;
-            selClase.appendChild(opt);
-        });
+    function updateAyudasFilters(procVal = null) {
+        let ayuProcs = [...new Set(Object.values(ayudasEstructura).flat())];
+        if (!ayuProcs.includes('General')) ayuProcs.push('General');
 
         selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
-        if (currentClase && ayudasEstructura[currentClase]) {
-            selProceso.disabled = false;
-            const procs = [...ayudasEstructura[currentClase]];
-            if (!procs.includes('General')) procs.push('General');
-
-            procs.sort().forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p;
-                opt.textContent = p;
-                if (p === currentProc) opt.selected = true;
-                selProceso.appendChild(opt);
-            });
-        } else {
-            selProceso.disabled = true;
-        }
+        ayuProcs.sort().forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p;
+            opt.textContent = p;
+            if (p === procVal) opt.selected = true;
+            selProceso.appendChild(opt);
+        });
+        selProceso.disabled = false;
     }
 
-    selClase.addEventListener('change', () => {
-        if (activeTab === 'ayudas') {
-            updateAyudasFilters(selClase.value, null);
-            _triggerSearch();
-        }
-    });
-
     selProceso.addEventListener('change', () => {
-        if (activeTab === 'manuales') {
-            _triggerSearch();
-        } else if (activeTab === 'ayudas') {
-            updateAyudasFilters(null, selProceso.value);
-            _triggerSearch();
-        }
+        _triggerSearch();
     });
 
     const tabs = tabsContainer.querySelectorAll('.tech-tab-btn');
     tabs.forEach(tab => {
         tab.onclick = () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            activeTab = tab.dataset.tab;
+            try {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                activeTab = tab.dataset.tab;
 
-            // Ocultar todos
-            selClaseWrap.style.display = 'none';
-            selProcesoWrap.style.display = 'none';
+                // Ocultar todos (ya solo queda proceso)
+                selProcesoWrap.style.display = 'none';
 
-            if (activeTab === 'manuales') {
-                selProcesoWrap.style.display = 'flex';
-                let matchedProc = activeProcess;
-                if (!manualEstructura.includes(matchedProc) && activeProcess && activeProcess.includes('_')) {
-                    matchedProc = activeProcess.split('_')[0];
-                    if (!manualEstructura.includes(matchedProc)) matchedProc = activeProcess.split('_')[1];
+                if (activeTab === 'manuales') {
+                    selProcesoWrap.style.display = 'flex';
+                    let matchedProc = activeProcess;
+                    if (!manualEstructura.includes(matchedProc) && activeProcess && activeProcess.includes('_')) {
+                        matchedProc = activeProcess.split('_')[0];
+                        if (!manualEstructura.includes(matchedProc)) matchedProc = activeProcess.split('_')[1];
+                    }
+                    updateManualesSelect(matchedProc);
+                } else if (activeTab === 'ayudas') {
+                    selProcesoWrap.style.display = 'flex';
+                    let matchedProc = activeProcess;
+                    let ayuProcs = [...new Set(Object.values(ayudasEstructura).flat())];
+                    if (!ayuProcs.includes(matchedProc) && activeProcess && activeProcess.includes('_')) {
+                        matchedProc = activeProcess.split('_')[0];
+                        if (!ayuProcs.includes(matchedProc)) matchedProc = activeProcess.split('_')[1];
+                    }
+                    updateAyudasFilters(ayuProcs.includes(matchedProc) ? matchedProc : null);
                 }
-                updateManualesSelect(matchedProc);
-            } else if (activeTab === 'ayudas') {
-                selClaseWrap.style.display = 'flex';
-                selProcesoWrap.style.display = 'flex';
-                let matchedProc = activeProcess;
-                let ayuProcs = [...new Set(Object.values(ayudasEstructura).flat())];
-                if (!ayuProcs.includes(matchedProc) && activeProcess && activeProcess.includes('_')) {
-                    matchedProc = activeProcess.split('_')[0];
-                    if (!ayuProcs.includes(matchedProc)) matchedProc = activeProcess.split('_')[1];
-                }
-                updateAyudasFilters(activeClass, ayuProcs.includes(matchedProc) ? matchedProc : null);
+                _triggerSearch();
+            } catch (err) {
+                alert("Error al cambiar pestaña: " + err.message);
+                console.error(err);
             }
-            _triggerSearch();
         };
     });
 
@@ -2933,7 +2932,7 @@ window.handlePTAMaterialSelectChange = function(idWidget) {
         const name = selectEl.name;
         selectEl.name = '';
         selectEl.style.display = 'none';
-        
+
         otroWrap.style.display = 'flex';
         otroWrap.classList.add('visible');
         inputEl.name = name;
