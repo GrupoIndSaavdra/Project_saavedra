@@ -1129,8 +1129,18 @@ class Dashboard {
 
                 Object.values(classArray["processes"]).forEach((processesArray, indexProcess) => {
                     let processName = Object.keys(classArray["processes"])[indexProcess]
-                    let previousProcess = classArray["processes"][Object.keys(classArray["processes"])[indexProcess - 1]];
-                    let limitPieces = previousProcess ? previousProcess["pieces"]["good"] : classArray["pieces"];
+
+                    // ── Cálculo de piezas disponibles (limitPieces) ──────────────────────────
+                    // Se toma la consignación original y se le descuentan TODAS las bajas
+                    // acumuladas de los procesos ANTERIORES a este.
+                    // Esto garantiza que si en cepillado hay 1 baja de 128,
+                    // el siguiente proceso tiene 127 disponibles (no las que ya se procesaron).
+                    let accumulatedBad = 0;
+                    for (let p = 0; p < indexProcess; p++) {
+                        let prevProcKey = Object.keys(classArray["processes"])[p];
+                        accumulatedBad += (classArray["processes"][prevProcKey]["pieces"]["bad"] || 0);
+                    }
+                    let limitPieces = classArray["pieces"] - accumulatedBad;
 
                     processesSection.appendChild(this.generateProcessSection(processesArray, processName, limitPieces, classArray["pieces"], indexProcess + 1));
                 });
@@ -1519,11 +1529,13 @@ class Dashboard {
         processTitle.innerHTML = processName;
         processSection.appendChild(processTitle);
 
+        // "Total disponible" = las piezas que entran a este proceso (buenas del proceso anterior,
+        // o la consignación si es el primero). Las bajas de ESTE proceso se ven en la barra roja.
         let limitLabel = document.createElement("label");
         limitLabel.className = "limit-label";
         limitLabel.style.fontSize = "12px";
         limitLabel.style.color = "#fff";
-        limitLabel.innerHTML = `Total disponible: ${limitPieces - processesArray["pieces"]["bad"]}`;
+        limitLabel.innerHTML = `Total disponible: ${limitPieces}`;
         processSection.appendChild(limitLabel);
 
         let pieces = [processesArray["pieces"]["good"], processesArray["pieces"]["bad"]];
@@ -1533,7 +1545,9 @@ class Dashboard {
             processSection.classList.add("inactive-process");
         }
 
-        // Efectos dinámicos y cálculo de colores
+        // El 100% de la barra verde es sobre limitPieces (piezas disponibles de entrada).
+        // Esto garantiza que si todos los procesos previos están bien y este también,
+        // la barra llega exactamente a 100%.
         let goodPercentage = limitPieces == 0 ? (pieces[0] > 0 ? 100 : 0) : (pieces[0] * 100) / limitPieces;
         goodPercentage = Math.min(100, goodPercentage); // Clamp a 100%
 
@@ -1573,6 +1587,8 @@ class Dashboard {
             progress.className = i == 0 ? "good-progress" : "bad-progress";
             progress.classList.add("progress");
 
+            // Ambas barras (buenas y malas) se calculan sobre el total disponible de ENTRADA (limitPieces)
+            // Así, buenas + malas <= 100% y el usuario ve de forma inmediata cuántas piezas se perdieron.
             let percentage = limitPieces == 0 ? (pieces[i] > 0 ? 100 : 0) : (pieces[i] * 100) / limitPieces;
             let displayPercentage = percentage;
             percentage = Math.min(100, percentage); // Clamp para el width visual y el color
@@ -1598,6 +1614,7 @@ class Dashboard {
         //Agregar evento al div de progreso
         processSection.addEventListener("click", () => {
             this.generateDivBadPieces(processName, processesArray["piecesBadData"]);
+
         });
         return processSection;
     }
