@@ -65,8 +65,8 @@ body {
     align-items: center;
     text-align: center;
     background: #0000003a;
-    backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(8px); /* Safari */
+    backdrop-filter: blur(5px);
     z-index: 990;
 }
 /* ESTILOS PARA LA TABLA */
@@ -128,8 +128,8 @@ body {
     align-items: center;
     text-align: center;
     background: #0000003a;
-    backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(8px); /* Safari */
+    backdrop-filter: blur(5px);
     z-index: 991;
 }
 .loading {
@@ -342,7 +342,7 @@ body {
     display: inline-block;
     width: 1.2em;
     height: 1.2em;
-    background-image: url('/images/triangulo_abajo.png');
+    background-image: url('../../../public/images/triangulo_abajo.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
