@@ -1,17 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
 * {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
+
 form {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 100%;
-    max-height: 50vh;
-    overflow: auto;
 }
+
 .wrapper {
     position: absolute;
     top: 50%;
@@ -21,119 +24,212 @@ form {
     flex-direction: column;
     align-items: center;
     box-sizing: border-box;
-    padding: 1.5em;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 5px 10px 80px #000000b0;
+    padding: 2.5em;
+    width: 90%;
+    max-width: 800px;
+    
+    /* Glassmorphism */
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+    
+    animation: fadeIn 0.6s ease-out forwards;
 }
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
 .lg-saavedra {
-    width: 200px;
-    padding: 2em 0;
+    width: 180px;
+    padding: 0 0 1.5em 0;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    transition: transform 0.3s ease;
 }
+
+.lg-saavedra:hover {
+    transform: scale(1.05);
+}
+
 h2 {
-    font-size: 1.5em;
-    margin: 1em;
-    color: #404040;
-    font-weight: 100;
+    font-size: 1.8em;
+    margin-bottom: 1em;
+    color: #1e293b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 3px solid #033966;
+    padding-bottom: 0.3em;
 }
+
 .machines-table-container {
     width: 100%;
-    max-height: 50vh;
-    overflow: auto;
+    max-height: 55vh;
+    overflow-y: auto;
+    border-radius: 8px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+    background: rgba(255, 255, 255, 0.5);
 }
+
+/* Custom scrollbar for table container */
+.machines-table-container::-webkit-scrollbar {
+    width: 8px;
+}
+.machines-table-container::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.05);
+    border-radius: 8px;
+}
+.machines-table-container::-webkit-scrollbar-thumb {
+    background: rgba(3, 57, 102, 0.5);
+    border-radius: 8px;
+}
+.machines-table-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(3, 57, 102, 0.8);
+}
+
 table {
-    position: relative;
     width: 100%;
     border-collapse: collapse;
-    margin-top: 1em;
-    font-size: 1em;
+    font-size: 0.95em;
 }
+
 thead {
-    background-color: #033966;
-    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
-tbody {
-    background-color: #f9f9f9;
-}
+
 th {
-    padding: 0.7em 0;
-}
-th,
-td {
-    border: 1px solid #ddd;
+    background: linear-gradient(135deg, #033966 0%, #065494 100%);
+    color: #ffffff;
+    padding: 1em;
+    font-weight: 600;
     text-align: center;
-    border-bottom: 1px solid #ddd;
+    letter-spacing: 0.5px;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+
+th:first-child {
+    border-top-left-radius: 8px;
+}
+th:last-child {
+    border-top-right-radius: 8px;
+}
+
+.machine-table-row {
+    background-color: transparent;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.machine-table-row:hover {
+    background-color: rgba(3, 57, 102, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+td {
+    padding: 0.5em;
+    text-align: center;
+    border: none;
+}
+
 input[type="text"] {
     width: 100%;
-    padding: 10px;
-    border: none;
-    font-size: 1em;
-    font-weight: 700;
+    padding: 0.6em;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 0.95em;
+    font-weight: 600;
     text-align: center;
+    color: #334155;
+    background-color: transparent;
+    transition: all 0.2s ease;
 }
-.machine-table-row:hover {
-    background-color: #f1f1f1;
+
+.machine-table-row:hover input[type="text"] {
+    background-color: #ffffff;
+    border-color: rgba(0,0,0,0.1);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
 }
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #033966;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.1);
+}
+
 .btn {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     color: #fff;
-    font-size: 1em;
+    font-size: 0.9em;
+    font-weight: 600;
     border: none;
-    padding: 0.5em 1em;
-    margin: 0.2em;
-    border-radius: 5px;
+    padding: 0.6em 1.2em;
+    border-radius: 6px;
     letter-spacing: 0.5px;
-    transition: 0.2s;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
 }
+
 .btn-desoccupied {
-    background-color: #9c0303;
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3), 0 2px 4px -1px rgba(239, 68, 68, 0.2);
 }
-.btn:hover {
-    transform: scale(1.1);
-    transition: 0.2s;
+
+.btn-desoccupied:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px -1px rgba(239, 68, 68, 0.4), 0 4px 6px -1px rgba(239, 68, 68, 0.3);
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
 }
+
+.btn-desoccupied:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(239, 68, 68, 0.3);
+}
+
 @media (max-width: 991.98px) {
-    /* PARA TODOS LOS ESTILOS */
     body {
-        overflow: hidden;
-        background-size: auto;
+        overflow-x: hidden;
+    }
+    .wrapper {
+        width: 95%;
+        padding: 1.5em 1em;
+        border-radius: 12px;
     }
     .lg-saavedra {
-        width: 60%;
-        padding: 1em 0;
+        width: 130px;
+        padding: 0 0 1em 0;
     }
     h2 {
         font-size: 1.4em;
-        margin: 0.5em;
-    }
-    .wrapper {
-        width: 90vw;
-        padding: 1em;
+        margin-bottom: 0.8em;
     }
     table {
-        font-size: 0.9em;
-    }
-    .td {
-        padding: 0.5em;
-    }
-    .btn {
-        font-size: 0.9em;
-    }
-    .btn-desoccupied {
-        background-color: #0a8504;
+        font-size: 0.85em;
     }
     th {
-        width: 50%;
+        padding: 0.8em 0.4em;
+    }
+    td {
+        padding: 0.4em;
     }
     input[type="text"] {
-        font-weight: 700;
-        text-align: center;
-        padding: 5px;
-        overflow-x: auto;
-        white-space: nowrap;
+        padding: 0.4em;
     }
-    .alert {
-        font-size: 0.8em;
+    .btn {
+        padding: 0.5em 0.8em;
+        font-size: 0.85em;
     }
 }
