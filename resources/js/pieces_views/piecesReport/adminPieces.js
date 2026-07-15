@@ -43,7 +43,8 @@ function crearTabla(piezas, infoPiezas) {
                         let url = `${window.baseUrl}/pieces/${nPiezas}/${infoP[1]}/${profileValue}`;
                         chunkHtml += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver pieza" class="ver"></a></td>`;
                     } else {
-                        let widthAttr = (key === "operator" || key === "observations" || key === "observacion_liberacion") ? ' style="width: 600px;"' : '';
+                        let widthAttr = (key === "operator") ? ' style="max-width: 300px; white-space: normal;"' : 
+                                        (key === "observations" || key === "observacion_liberacion") ? ' style="max-width: 350px; white-space: normal;"' : '';
                         chunkHtml += `<td${widthAttr}>${cellValue}</td>`;
                     }
                 }

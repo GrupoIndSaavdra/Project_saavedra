@@ -41,8 +41,7 @@
             }
         </style>
     @endif
-    <div class="container">
-        <form action="{{ route('piecesRelease') }}" method="post" class="form-search">
+    <form action="{{ route('piecesRelease') }}" method="post" class="form-search">
             @csrf
             <!-- FILTROS DE BÚSQUEDA Y RESULTADOS DE PIEZAS EN GENERAL. -->
             <h1>Liberación de piezas</h1>
@@ -113,7 +112,6 @@
                 </tbody>
             </table>
         </div>
-    </div>
     <script>
         window.pieces = @json($pieces);
         window.infoPiezas = @json($infoPieces);
