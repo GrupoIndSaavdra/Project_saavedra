@@ -303,7 +303,7 @@ function createFilters() {
                 div.appendChild(input);
                 break;
             default:
-                if (item != "action" && item != "n_juego") {
+                if (item != "action" && item != "n_juego" && item != "status") {
                     const select = document.createElement("select");
                     select.className = "select-filter";
                     select.name = item;
@@ -407,7 +407,7 @@ function createFilters() {
                 break;
         }
         //Agregar label
-        if (item != "action" && item != "n_juego") {
+        if (item != "action" && item != "n_juego" && item != "status") {
             let label = document.createElement("label");
             label.textContent = titles[item] + ": ";
             div.appendChild(label);
@@ -643,6 +643,7 @@ function createStatusFilterUI() {
     let selectStatus = document.createElement("select");
     selectStatus.className = "select-filter";
     selectStatus.id = "statusPieceFilter";
+    selectStatus.name = "status";
 
     const statuses = [
         { value: "Todos", text: "Todos" },

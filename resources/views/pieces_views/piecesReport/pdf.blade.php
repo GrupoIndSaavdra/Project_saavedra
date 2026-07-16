@@ -127,6 +127,7 @@
                 'dateFrom' => 'Desde',
                 'dateTo' => 'Hasta',
                 'n_juego' => 'N# Pieza',
+                'status' => 'Estado',
             ];
             ?>
             <table class="table-filters">
@@ -145,6 +146,17 @@
                             <td>{{ $titles[$key] }}</td>
                             @if ($key == 'operator' && $filter != 'Todos')
                                 <td>{{ $filter->nombre }} {{ $filter->a_paterno }} {{ $filter->a_materno }}</td>
+                            @elseif ($key == 'status' && $filter != 'Todos')
+                                <?php
+                                $statusNames = [
+                                    '#79BFED' => 'Liberadas',
+                                    '#FF6B6B' => 'Rechazadas',
+                                    '#90EE90' => 'Buenas sin liberación',
+                                    '#DDA0DD' => 'Malas sin liberación',
+                                    '#FFD700' => 'Incompletas'
+                                ];
+                                ?>
+                                <td>{{ $statusNames[strtoupper($filter)] ?? $filter }}</td>
                             @else
                                 <td>{{ $filter }}</td>
                             @endif
@@ -191,7 +203,12 @@
                         } elseif ($errVal === 'Ninguno') {
                             $colorColumn = '#90EE90'; // Verde - Buena sin liberación
                         } else {
-                            $colorColumn = '#DDA0DD'; // Morado - Mala sin liberación
+                            $procName = $pieces[$i][4] ?? '';
+                            if ($procName === 'Soldadura PTA' && !str_contains(strtolower($errVal), 'fundicion') && !str_contains(strtolower($errVal), 'fundición')) {
+                                $colorColumn = '#90EE90';
+                            } else {
+                                $colorColumn = '#DDA0DD'; // Morado - Mala sin liberación
+                            }
                         }
                         break;
                 }

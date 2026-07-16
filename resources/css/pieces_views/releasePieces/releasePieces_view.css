@@ -122,7 +122,7 @@ label {
     cursor: pointer;
 }
 .btn-pza:hover {
-    transform: scale(1.4);
+    transform: scale(1.15);
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
 
@@ -132,12 +132,12 @@ label {
 
 .btn-liberar {
     display: inline-block;
-    width: 40px;
+    width: 36px;
     transition: transform 0.2s ease, filter 0.2s ease;
     cursor: pointer;
 }
 .btn-liberar:hover {
-    transform: scale(1.4);
+    transform: scale(1.15);
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
 }
 
@@ -212,7 +212,7 @@ table {
 th, td {
     text-align: center;
     font-size: 0.95em;
-    padding: 10px 15px;
+    padding: 4px 10px;
     border: 1px solid rgba(3, 57, 102, 0.2);
     white-space: nowrap;
 }
@@ -329,24 +329,21 @@ tr:hover {
     position: fixed;
     text-align: center;
     width: max-content;
-    top: 50%;
+    top: 280px;
     left: 1%;
-    transform: translateY(-50%);
+    transform: none;
     
     /* Estética moderna */
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.5);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
-    
-    padding: 10px;
-    margin: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 12px;
-    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    padding: 10px;
 }
 
 .table-colors {
-    font-size: 0.7em;
+    font-size: 0.65em;
     width: 100%;
 }
 

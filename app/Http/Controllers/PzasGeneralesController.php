@@ -149,6 +149,42 @@ class PzasGeneralesController extends Controller
         $pieces  = $this->buscarPiezas($piecesData, $selectedItems, true);
 
         $pieces = $pieces == null ? array() : $pieces;
+
+        if (isset($piecesData['status']) && $piecesData['status'] !== 'Todos' && $piecesData['status'] !== null) {
+            $selectedItems['status'] = $piecesData['status'];
+            $statusFilter = strtoupper($piecesData['status']);
+            $filteredPieces = [];
+            foreach ($pieces as $p) {
+                $libVal = $p[9] ?? null;
+                $errVal = $p[5] ?? 'Ninguno';
+                $procName = $p[4] ?? '';
+                $colorColumn = '#FFFFFF';
+                switch (true) {
+                    case $libVal == 1: $colorColumn = '#79BFED'; break;
+                    case $libVal == 2: $colorColumn = '#FF6B6B'; break;
+                    default:
+                        if (str_contains($errVal, 'Incompleto')) {
+                            $colorColumn = '#FFD700';
+                        } elseif ($errVal === 'Ninguno') {
+                            $colorColumn = '#90EE90';
+                        } else {
+                            if ($procName === 'Soldadura PTA' && !str_contains(strtolower($errVal), 'fundicion') && !str_contains(strtolower($errVal), 'fundición')) {
+                                $colorColumn = '#90EE90';
+                            } else {
+                                $colorColumn = '#DDA0DD';
+                            }
+                        }
+                        break;
+                }
+                if ($colorColumn === $statusFilter) {
+                    $filteredPieces[] = $p;
+                }
+            }
+            $pieces = $filteredPieces;
+        } else {
+            $selectedItems['status'] = 'Todos';
+        }
+
         $this->saveInfoPzas($infoPieces, $pieces);
 
         if ($profile == 'admin' && ($piecesData['action'] ?? null) !== null) {
@@ -263,6 +299,7 @@ class PzasGeneralesController extends Controller
             "dateFrom" => $request->dateFrom,
             "dateTo" => $request->dateTo,
             "n_juego" => $request->n_juego,
+            "status" => $request->status,
             "action" => $request->input("action"),
         );
         return $this->search($datosPiezas, 'admin');
