@@ -108,7 +108,7 @@ function crearTabla(piezas, infoPiezas) {
             applyAllFilters();
             tbody.style.display = ""; // Mostrar el tbody una vez que los filtros están aplicados
             const loading = document.querySelector('.loading');
-            if(loading) loading.style.display = 'none';
+            if (loading) loading.style.display = 'none';
         }
     }
 
@@ -671,6 +671,7 @@ function createStatusFilterUI() {
     selectStatus.addEventListener("change", function () {
         sessionStorage.setItem("currentStatusFilter", this.value);
         applyAllFilters();
+        updateStatusPersonFilter(this.value);
     });
 
     divStatus.appendChild(selectStatus);
@@ -681,6 +682,113 @@ function createStatusFilterUI() {
 
     let filtersContainer = document.querySelector(".filters");
     if (filtersContainer) filtersContainer.appendChild(divStatus);
+
+    // ============================================
+    // FILTRO CONDICIONAL: Persona (activo solo cuando hay estado seleccionado)
+    // ============================================
+    createStatusPersonFilterUI();
+
+    // Si ya hay un estado guardado en sesión, activar el filtro de persona
+    if (savedStatus && savedStatus !== "Todos") {
+        setTimeout(() => updateStatusPersonFilter(savedStatus), 0);
+    }
+}
+
+/**
+ * Crea el contenedor del filtro "Persona" (oculto por defecto).
+ * Se activa dinámicamente cuando el usuario selecciona un Estado.
+ */
+function createStatusPersonFilterUI() {
+    let divPerson = document.createElement("div");
+    divPerson.className = "filter";
+    divPerson.id = "statusPersonFilterDiv";
+    divPerson.style.display = "none"; // Oculto por defecto
+
+    let selectPerson = document.createElement("select");
+    selectPerson.className = "select-filter";
+    selectPerson.id = "statusPersonFilter";
+    selectPerson.name = "statusPerson";
+
+    let defaultOpt = document.createElement("option");
+    defaultOpt.value = "Todos";
+    defaultOpt.textContent = "Todos";
+    selectPerson.appendChild(defaultOpt);
+
+    selectPerson.addEventListener("change", function () {
+        applyAllFilters();
+        if (window.updateClearButtonState) window.updateClearButtonState();
+    });
+
+    divPerson.appendChild(selectPerson);
+
+    let labelPerson = document.createElement("label");
+    labelPerson.textContent = "Liberó: ";
+    divPerson.appendChild(labelPerson);
+
+    let filtersContainer = document.querySelector(".filters");
+    if (filtersContainer) filtersContainer.appendChild(divPerson);
+}
+
+/**
+ * Actualiza las opciones del filtro "Persona" según el estado seleccionado.
+ * Extrae de las filas de la tabla solo las personas activas para ese estado.
+ * @param {string} statusValue - El valor hex del estado seleccionado (o "Todos")
+ */
+function updateStatusPersonFilter(statusValue) {
+    const divPerson = document.getElementById("statusPersonFilterDiv");
+    const selectPerson = document.getElementById("statusPersonFilter");
+    if (!divPerson || !selectPerson) return;
+
+    if (!statusValue || statusValue === "Todos") {
+        divPerson.style.display = "none";
+        selectPerson.value = "Todos";
+        while (selectPerson.options.length > 1) selectPerson.remove(1);
+        return;
+    }
+
+    // Liberadas/Rechazadas → liberador (celda índice 10 en releasePieces)
+    // Resto → operador (data-operator)
+    const useOperator = (statusValue === "#90EE90" || statusValue === "#DDA0DD" || statusValue === "#FFD700");
+
+    const rows = document.querySelectorAll(".table tbody tr");
+    let personSet = new Set();
+
+    rows.forEach(row => {
+        let rowColor = (row.dataset.color || "").toUpperCase();
+        if (rowColor !== statusValue.toUpperCase()) return;
+
+        if (useOperator) {
+            let ops = String(row.dataset.operator || "").split("/").map(o => o.trim()).filter(Boolean);
+            ops.forEach(op => { if (op) personSet.add(op); });
+        } else {
+            let liberador = row.dataset.liberador || "";
+            if (!liberador) {
+                // En releasePieces la columna "Liberado por" es la índice 10
+                let cells = row.querySelectorAll("td");
+                if (cells[10]) liberador = cells[10].textContent.trim();
+            }
+            if (liberador) personSet.add(liberador);
+        }
+    });
+
+    let prevValue = selectPerson.value;
+    while (selectPerson.options.length > 1) selectPerson.remove(1);
+
+    let sortedPersons = Array.from(personSet).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    sortedPersons.forEach(person => {
+        let opt = document.createElement("option");
+        opt.value = person;
+        opt.textContent = person;
+        selectPerson.appendChild(opt);
+    });
+
+    if (prevValue !== "Todos" && sortedPersons.includes(prevValue)) {
+        selectPerson.value = prevValue;
+    } else {
+        selectPerson.value = "Todos";
+    }
+
+    divPerson.style.display = "";
 }
 
 function applyAllFilters() {
@@ -696,6 +804,12 @@ function applyAllFilters() {
 
     let statusFilterEl = document.getElementById("statusPieceFilter");
     let statusFilter = statusFilterEl ? statusFilterEl.value : "Todos";
+
+    let statusPersonFilterEl = document.getElementById("statusPersonFilter");
+    let statusPersonFilter = statusPersonFilterEl ? statusPersonFilterEl.value : "Todos";
+
+    // Liberadas/Rechazadas → filtrar por liberador; resto → filtrar por operador
+    const personUsesOperator = (statusFilter === "#90EE90" || statusFilter === "#DDA0DD" || statusFilter === "#FFD700");
 
     let f = {
         workOrder: getVal("workOrder"),
@@ -753,6 +867,22 @@ function applyAllFilters() {
             if (ds.color !== statusFilter.toUpperCase()) show = false;
         }
 
+        // Filtro de Persona (solo activo si Estado != Todos)
+        if (statusFilter !== "Todos" && statusPersonFilter && statusPersonFilter !== "Todos") {
+            if (personUsesOperator) {
+                let rowOps = String(ds.operator || "").split("/").map(o => o.trim());
+                if (!rowOps.includes(statusPersonFilter)) show = false;
+            } else {
+                let liberador = ds.liberador || "";
+                if (!liberador) {
+                    // En releasePieces la columna "Liberado por" es índice 10
+                    let cells = row.querySelectorAll("td");
+                    if (cells[10]) liberador = cells[10].textContent.trim();
+                }
+                if (liberador !== statusPersonFilter) show = false;
+            }
+        }
+
         // Filtro de fecha: se aplica sobre la fecha de maquinado (machinedDate)
         // El estado de liberación es irrelevante para este filtro.
         // Si la pieza tiene fecha de maquinado válida, se compara contra el rango.
@@ -801,6 +931,12 @@ function applyAllFilters() {
     }
 
     if (window.updateClearButtonState) window.updateClearButtonState();
+
+    // Actualizar opciones del filtro de persona si el estado está activo
+    let curStatus = statusFilterEl ? statusFilterEl.value : "Todos";
+    if (curStatus !== "Todos") {
+        updateStatusPersonFilter(curStatus);
+    }
 }
 
 function sortPiezasDatabaseOrder(piezas, infoPiezas) {

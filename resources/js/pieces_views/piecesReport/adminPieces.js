@@ -43,8 +43,8 @@ function crearTabla(piezas, infoPiezas) {
                         let url = `${window.baseUrl}/pieces/${nPiezas}/${infoP[1]}/${profileValue}`;
                         chunkHtml += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver pieza" class="ver"></a></td>`;
                     } else {
-                        let widthAttr = (key === "operator") ? ' style="max-width: 300px; white-space: normal;"' : 
-                                        (key === "observations" || key === "observacion_liberacion") ? ' style="max-width: 350px; white-space: normal;"' : '';
+                        let widthAttr = (key === "operator") ? ' style="max-width: 300px; white-space: normal;"' :
+                            (key === "observations" || key === "observacion_liberacion") ? ' style="max-width: 350px; white-space: normal;"' : '';
                         chunkHtml += `<td${widthAttr}>${cellValue}</td>`;
                     }
                 }
@@ -424,6 +424,7 @@ function createStatusFilterUI() {
     selectStatus.addEventListener("change", function () {
         sessionStorage.setItem("currentStatusFilter", this.value);
         applyAllFilters();
+        updateStatusPersonFilter(this.value);
     });
 
     divStatus.appendChild(selectStatus);
@@ -434,6 +435,125 @@ function createStatusFilterUI() {
 
     let filtersContainer = document.querySelector(".filters");
     if (filtersContainer) filtersContainer.appendChild(divStatus);
+
+    // ============================================
+    // FILTRO CONDICIONAL: Persona (activo solo cuando hay estado seleccionado)
+    // ============================================
+    createStatusPersonFilterUI();
+
+    // Si ya hay un estado guardado en sesión, activar el filtro de persona
+    if (savedStatus && savedStatus !== "Todos") {
+        // Se activa después de que el DOM esté listo
+        setTimeout(() => updateStatusPersonFilter(savedStatus), 0);
+    }
+}
+
+/**
+ * Crea el contenedor del filtro "Persona" (oculto por defecto).
+ * Se activa dinámicamente cuando el usuario selecciona un Estado.
+ */
+function createStatusPersonFilterUI() {
+    let divPerson = document.createElement("div");
+    divPerson.className = "filter";
+    divPerson.id = "statusPersonFilterDiv";
+    divPerson.style.display = "none"; // Oculto por defecto
+
+    let selectPerson = document.createElement("select");
+    selectPerson.className = "select-filter";
+    selectPerson.id = "statusPersonFilter";
+    selectPerson.name = "statusPerson";
+
+    let defaultOpt = document.createElement("option");
+    defaultOpt.value = "Todos";
+    defaultOpt.textContent = "Todos";
+    selectPerson.appendChild(defaultOpt);
+
+    selectPerson.addEventListener("change", function () {
+        applyAllFilters();
+        if (window.updateClearButtonState) window.updateClearButtonState();
+    });
+
+    divPerson.appendChild(selectPerson);
+
+    let labelPerson = document.createElement("label");
+    labelPerson.textContent = "Liberó: ";
+    divPerson.appendChild(labelPerson);
+
+    let filtersContainer = document.querySelector(".filters");
+    if (filtersContainer) filtersContainer.appendChild(divPerson);
+}
+
+/**
+ * Actualiza las opciones del filtro "Persona" según el estado seleccionado.
+ * Extrae de las filas de la tabla solo las personas activas para ese estado.
+ * @param {string} statusValue - El valor hex del estado seleccionado (o "Todos")
+ */
+function updateStatusPersonFilter(statusValue) {
+    const divPerson = document.getElementById("statusPersonFilterDiv");
+    const selectPerson = document.getElementById("statusPersonFilter");
+    if (!divPerson || !selectPerson) return;
+
+    if (!statusValue || statusValue === "Todos") {
+        // Ocultar y resetear el filtro de persona
+        divPerson.style.display = "none";
+        selectPerson.value = "Todos";
+        while (selectPerson.options.length > 1) selectPerson.remove(1);
+        return;
+    }
+
+    // Determinar qué campo usar según el estado:
+    // Liberadas / Rechazadas  → quién liberó/rechazó (data-liberador)
+    // Resto → quién operó (data-operator)
+    const useOperator = (statusValue === "#90EE90" || statusValue === "#DDA0DD" || statusValue === "#FFD700");
+
+    // Recorrer todas las filas y recopilar las personas del estado seleccionado
+    const rows = document.querySelectorAll(".table tbody tr");
+    let personSet = new Set();
+
+    rows.forEach(row => {
+        let rowColor = (row.dataset.color || "").toUpperCase();
+        if (rowColor !== statusValue.toUpperCase()) return;
+
+        if (useOperator) {
+            // Puede haber múltiples operadores separados por "/"
+            let ops = String(row.dataset.operator || "").split("/").map(o => o.trim()).filter(Boolean);
+            ops.forEach(op => { if (op) personSet.add(op); });
+        } else {
+            // Liberador: columna de texto "Liberado por" (índice fijo en la tabla)
+            // Buscamos la celda con data-liberador o por posición en tr
+            // Usamos data-liberador si existe, de lo contrario buscamos en las celdas
+            let liberador = row.dataset.liberador || "";
+            if (!liberador) {
+                // Fallback: recorrer celdas para encontrar el valor del liberador
+                // En la tabla admin, la celda de "Liberado por" es la 13ª (índice 13)
+                let cells = row.querySelectorAll("td");
+                if (cells[13]) liberador = cells[13].textContent.trim();
+            }
+            if (liberador) personSet.add(liberador);
+        }
+    });
+
+    // Limpiar y repoblar el select de persona
+    let prevValue = selectPerson.value;
+    while (selectPerson.options.length > 1) selectPerson.remove(1);
+
+    let sortedPersons = Array.from(personSet).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    sortedPersons.forEach(person => {
+        let opt = document.createElement("option");
+        opt.value = person;
+        opt.textContent = person;
+        selectPerson.appendChild(opt);
+    });
+
+    // Restaurar valor previo si sigue existiendo
+    if (prevValue !== "Todos" && sortedPersons.includes(prevValue)) {
+        selectPerson.value = prevValue;
+    } else {
+        selectPerson.value = "Todos";
+    }
+
+    // Mostrar el filtro
+    divPerson.style.display = "";
 }
 createFilters();
 
@@ -532,10 +652,10 @@ function setupCascadingFilters() {
         window.pieces.forEach(p => {
             let pieceOT = String(p[0]).trim();
             let pieceClass = String(p.className).trim();
-            
+
             let matchOT = finalOT === "Todos" ? true : (pieceOT === String(finalOT).split(" - ")[0].trim());
             let matchClass = finalClass === "Todos" ? true : (pieceClass === finalClass);
-            
+
             if (matchOT && matchClass) {
                 activeProcesses.add(String(p[4]).trim());
             }
@@ -570,6 +690,12 @@ function applyAllFilters() {
 
     let statusFilterEl = document.getElementById("statusPieceFilter");
     let statusFilter = statusFilterEl ? statusFilterEl.value : "Todos";
+
+    let statusPersonFilterEl = document.getElementById("statusPersonFilter");
+    let statusPersonFilter = statusPersonFilterEl ? statusPersonFilterEl.value : "Todos";
+
+    // Determinar si el filtro de persona aplica a operador o liberador
+    const personUsesOperator = (statusFilter === "#90EE90" || statusFilter === "#DDA0DD" || statusFilter === "#FFD700");
 
     let f = {
         workOrder: getVal("workOrder"),
@@ -629,6 +755,23 @@ function applyAllFilters() {
             if (ds.color !== statusFilter.toUpperCase()) show = false;
         }
 
+        // Filtro de Persona (solo activo si Estado != Todos)
+        if (statusFilter !== "Todos" && statusPersonFilter && statusPersonFilter !== "Todos") {
+            if (personUsesOperator) {
+                // Comparar contra operadores de la fila (puede ser múltiple separado por "/")
+                let rowOps = String(ds.operator || "").split("/").map(o => o.trim());
+                if (!rowOps.includes(statusPersonFilter)) show = false;
+            } else {
+                // Comparar contra el liberador de la fila
+                let liberador = ds.liberador || "";
+                if (!liberador) {
+                    let cells = row.querySelectorAll("td");
+                    if (cells[13]) liberador = cells[13].textContent.trim();
+                }
+                if (liberador !== statusPersonFilter) show = false;
+            }
+        }
+
         // Filtro de fecha: se aplica sobre la fecha de maquinado (machinedDate)
         // El estado de liberación es irrelevante para este filtro.
         // Si la pieza tiene fecha de maquinado válida, se compara contra el rango.
@@ -677,6 +820,12 @@ function applyAllFilters() {
     }
 
     if (window.updateClearButtonState) window.updateClearButtonState();
+
+    // Actualizar opciones del filtro de persona si el estado está activo
+    let curStatus = statusFilterEl ? statusFilterEl.value : "Todos";
+    if (curStatus !== "Todos") {
+        updateStatusPersonFilter(curStatus);
+    }
 }
 
 function sortPiezasDatabaseOrder(piezas, infoPiezas) {
