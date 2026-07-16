@@ -335,10 +335,12 @@ class ClassController extends Controller
                 $processFounded = Procesos::query()->where('id_clase', '=', $class->id, 'and')->first();
                 for ($i = 0; $i < count($processNames); $i++) {
                     if ($processFounded) {
-                        //Crear el registro de la fecha de inicio del proceso
+                        //Crear el registro de la fecha de inicio del proceso solo si está activo
                         $string = $processNames[$i]; //Asigno el nombre del proceso.
-                        $processDates = $this->registerProcessDates($class, $processNames, $i, $noProcess, $processFounded->$string);
-                        $noProcess++;
+                        if (isset($processFounded->$string) && $processFounded->$string > 0) {
+                            $processDates = $this->registerProcessDates($class, $processNames, $i, $noProcess, $processFounded->$string);
+                            $noProcess++;
+                        }
                     }
                 }
             } else {

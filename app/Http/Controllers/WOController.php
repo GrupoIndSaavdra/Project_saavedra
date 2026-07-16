@@ -303,27 +303,36 @@ class WOController extends Controller
             }
 
             foreach ($processesInOrder as $process) {
-                $isActive = $anyActive ? ($processesFounded[$process] != 0) : true;
-                if ($isActive) {
-                    if (str_contains($process, "soldadura") && $soldaduraBand) { // Verificar si soldadura o soldadura PTA ya fueron insertadas
-                        continue;
-                    }
-                    $soldaduraBand = str_contains($process, "soldadura") ? true : false;
-                    $field = $process == "operacionEquipo" ? ["1 operacion", "2 operacion"] : [$process];
-                    foreach ($field as $processField) {
-                        //Asignar el nombre del proceso
-                        if (count($field) > 1) {
-                            $processName = "Operacion Equipo_" . $processField;
+                $field = $process == "operacionEquipo" ? ["1 operacion", "2 operacion"] : [$process];
+                foreach ($field as $processField) {
+                    //Asignar el nombre del proceso
+                    if (count($field) > 1) {
+                        $processName = "Operacion Equipo_" . $processField;
+                    } else {
+                        if (str_contains($processField, "soldadura")) {
+                            $processName = "Soldadura y Soldadura PTA";
                         } else {
-                            if (str_contains($processField, "soldadura")) {
-                                $processName = "Soldadura y Soldadura PTA";
-                            } else {
-                                $processName = $this->nombreProceso($processField);
-                            }
+                            $processName = $this->nombreProceso($processField);
                         }
+                    }
+
+                    $piecesBadData = array();
+                    $pieces = $this->getPieces($class, $processName, $piecesBadData);
+
+                    // Decidir si está activo:
+                    // 1. Si hay al menos un proceso configurado (>0 en la BD), usamos la configuración de la BD.
+                    // 2. Si no hay configuración (todo en 0), solo lo mostramos si tiene piezas registradas (total > 0).
+                    $dbActive = isset($processesFounded[$process]) && $processesFounded[$process] != 0;
+                    $isActive = $anyActive ? $dbActive : ($pieces['total'] > 0);
+
+                    if ($isActive) {
+                        if (str_contains($process, "soldadura") && $soldaduraBand) { // Verificar si soldadura o soldadura PTA ya fueron insertadas
+                            continue;
+                        }
+                        $soldaduraBand = str_contains($process, "soldadura") ? true : false;
+
                         $processes[$processName] = array();
-                        $piecesBadData = array();
-                        $processes[$processName]['pieces'] = $this->getPieces($class, $processName, $piecesBadData);
+                        $processes[$processName]['pieces'] = $pieces;
                         $processes[$processName]['piecesBadData'] = $piecesBadData; //Informacion de las piezas malas
                         $processes[$processName]['endDate'] = $this->getDateEndFromProcess($field, $class); //Fecha de termino del proceso
                         
