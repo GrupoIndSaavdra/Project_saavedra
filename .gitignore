@@ -25,3 +25,7 @@ yarn-error.log
 /config/configMCP.yaml
 /.configMCP.yaml
 /public/DOCUMENTACION_GIS/
+
+# Archivos de volcado de datos locales
+/pieces_output.json
+/pieces_full.json
