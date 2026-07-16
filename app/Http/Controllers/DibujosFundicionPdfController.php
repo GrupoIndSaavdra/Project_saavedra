@@ -254,16 +254,21 @@ class DibujosFundicionPdfController extends Controller
             $ayudas = $history ? ($history->ayudas_config ?? []) : [];
             
             if (is_array($ayudas)) {
+                $newBase = 'DOCUMENTACION_GIS/AYUDAS_FUNDICION';
+                $oldBase = 'AYUDAS_GIS';
+
                 foreach ($ayudas as $aName) {
-                    $ayudaDirNew = 'DOCUMENTACION_GIS/AYUDAS_MAQUINADOS/' . $aName;
-                    $ayudaDirOld = 'DOCUMENTACION_GIS/AYUDAS/' . $aName;
-                    if (Storage::disk('local')->exists($ayudaDirNew)) {
-                        $total += collect(Storage::disk('local')->allFiles($ayudaDirNew))
-                            ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
-                    }
-                    if (Storage::disk('local')->exists($ayudaDirOld)) {
-                        $total += collect(Storage::disk('local')->allFiles($ayudaDirOld))
-                            ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
+                    $candidates = [
+                        $newBase . '/' . $aName,
+                        $oldBase . '/' . $aName,
+                        $oldBase . '/' . $aName . '/Fundicion'
+                    ];
+
+                    foreach ($candidates as $ayudaDir) {
+                        if (Storage::disk('local')->exists($ayudaDir)) {
+                            $total += collect(Storage::disk('local')->files($ayudaDir))
+                                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
+                        }
                     }
                 }
             }

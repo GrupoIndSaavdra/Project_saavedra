@@ -444,9 +444,12 @@
                                                         foreach ($configs as $val) {
                                                             $val = strtolower($val);
                                                             if (str_contains($val, 'opcional')) continue;
-                                                            foreach (['fondo', 'obturador', 'bombillo', 'molde'] as $kc) {
-                                                                if (strpos($val, $kc) !== false) {
-                                                                    $activeClassesForOt[] = $kc;
+                                                            $parts = explode(',', $val);
+                                                            foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'] as $kc) {
+                                                                foreach ($parts as $p) {
+                                                                    if (trim($p) === $kc) {
+                                                                        $activeClassesForOt[] = $kc;
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -470,9 +473,12 @@
                                                                     $val = strtolower($f['tipo_modelo']);
                                                                 }
                                                                 if ($val) {
-                                                                    foreach (['fondo', 'obturador', 'bombillo', 'molde'] as $kc) {
-                                                                        if (strpos($val, $kc) !== false) {
-                                                                            $activeClassesForOt[] = $kc;
+                                                                    $parts = explode(',', $val);
+                                                                    foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'] as $kc) {
+                                                                        foreach ($parts as $p) {
+                                                                            if (trim($p) === $kc) {
+                                                                                $activeClassesForOt[] = $kc;
+                                                                            }
                                                                         }
                                                                     }
                                                                 }
@@ -604,29 +610,19 @@
                                                         if (strpos($fileLower, 'ayudas_visuales') !== false || strpos($fileLower, 'ayudas-visuales') !== false) {
                                                             continue;
                                                         }
-                                                        $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                                                        $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                                                         $hasKnownClass = false;
+                                                        $foundClass = null;
                                                         foreach ($knownClasses as $kc) {
                                                             if (strpos($fileLower, $kc) !== false) {
                                                                 $hasKnownClass = true;
+                                                                $foundClass = $kc;
                                                                 break;
                                                             }
                                                         }
                                                         if ($hasKnownClass) {
-                                                            $matchesActive = false;
-                                                            $matchesRejected = false;
-                                                            foreach ($activeClassesForOt as $ac) {
-                                                                if (strpos($fileLower, $ac) !== false) {
-                                                                    $matchesActive = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            foreach ($clasesRechazadas as $rc) {
-                                                                if (strpos($fileLower, $rc) !== false) {
-                                                                    $matchesRejected = true;
-                                                                    break;
-                                                                }
-                                                            }
+                                                            $matchesActive = in_array($foundClass, $activeClassesForOt);
+                                                            $matchesRejected = in_array($foundClass, $clasesRechazadas);
                                                             if ($matchesRejected) {
                                                                 if (!in_array($base, $dibujoBaseNames)) {
                                                                     $rechazadosDibujos[] = [
@@ -1243,20 +1239,22 @@
                                                 foreach ($archivos as $dibujo) {
                                                     $found = false;
                                                     $nameLower = strtolower($dibujo['nombre']);
-                                                    foreach ($aprobados as $aprClass) {
-                                                        if (strpos($nameLower, strtolower($aprClass)) !== false) {
-                                                            $dibujosAprobados[] = $dibujo;
-                                                            $found = true;
+                                                    $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
+                                                    $foundClass = null;
+                                                    foreach ($knownClasses as $kc) {
+                                                        if (strpos($nameLower, $kc) !== false) {
+                                                            $foundClass = $kc;
                                                             break;
                                                         }
                                                     }
-                                                    if (!$found) {
-                                                        foreach ($rechazados as $rejClass) {
-                                                            if (strpos($nameLower, strtolower($rejClass)) !== false) {
-                                                                $dibujosRechazados[] = $dibujo;
-                                                                $found = true;
-                                                                break;
-                                                            }
+                                                    
+                                                    if ($foundClass) {
+                                                        if (in_array($foundClass, $aprobados)) {
+                                                            $dibujosAprobados[] = $dibujo;
+                                                            $found = true;
+                                                        } elseif (in_array($foundClass, $rechazados)) {
+                                                            $dibujosRechazados[] = $dibujo;
+                                                            $found = true;
                                                         }
                                                     }
                                                     if (!$found) {
@@ -1271,20 +1269,22 @@
                                                 foreach ($ayudasArchivos as $ayuda) {
                                                     $found = false;
                                                     $nameLower = strtolower($ayuda['nombre']);
-                                                    foreach ($aprobados as $aprClass) {
-                                                        if (strpos($nameLower, strtolower($aprClass)) !== false) {
-                                                            $ayudasAprobados[] = $ayuda;
-                                                            $found = true;
+                                                    $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
+                                                    $foundClass = null;
+                                                    foreach ($knownClasses as $kc) {
+                                                        if (strpos($nameLower, $kc) !== false) {
+                                                            $foundClass = $kc;
                                                             break;
                                                         }
                                                     }
-                                                    if (!$found) {
-                                                        foreach ($rechazados as $rejClass) {
-                                                            if (strpos($nameLower, strtolower($rejClass)) !== false) {
-                                                                $ayudasRechazados[] = $ayuda;
-                                                                $found = true;
-                                                                break;
-                                                            }
+                                                    
+                                                    if ($foundClass) {
+                                                        if (in_array($foundClass, $aprobados)) {
+                                                            $ayudasAprobados[] = $ayuda;
+                                                            $found = true;
+                                                        } elseif (in_array($foundClass, $rechazados)) {
+                                                            $ayudasRechazados[] = $ayuda;
+                                                            $found = true;
                                                         }
                                                     }
                                                     if (!$found) {

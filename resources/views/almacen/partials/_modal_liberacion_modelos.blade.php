@@ -64,7 +64,12 @@
                 <option value="Fondo">Fondo</option>
                 <option value="Obturador">Obturador</option>
                 <option value="Molde">Molde</option>
-                <option value="Bombillo">Bombillo</option>
+                                <option value="Bombillo">Bombillo</option>
+                <option value="Corona">Corona</option>
+                <option value="Plato">Plato</option>
+                <option value="Embudo">Embudo</option>
+                <option value="Cabeza de Soplo">Cabeza de Soplo</option>
+                <option value="Candado Obturador">Candado Obturador</option>
               </select>
             </div>
             <div class="lib-dato-group">
@@ -276,7 +281,7 @@
              TABLA 3 — Fondo (solo Fondo)
              ──────────────────────────────────────────────────────────────────── --}}
         <div class="lib-tabla-section" id="lib-tabla-fondo" style="display:none;">
-          <h4 class="lib-section-title">Dimensiones de Fondo</h4>
+          <h4 class="lib-section-title" id="lib-tabla-fondo-title">Dimensiones de Fondo</h4>
           <div class="lib-table-wrapper">
             <table class="lib-report-table">
               <thead>

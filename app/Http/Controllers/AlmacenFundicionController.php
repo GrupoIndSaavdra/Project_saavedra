@@ -175,9 +175,12 @@ class AlmacenFundicionController extends Controller
                         $val = strtolower($f['clase_nombre']);
                     }
                     if ($val) {
-                        foreach (['fondo', 'obturador', 'bombillo', 'molde'] as $kc) {
-                            if (strpos($val, $kc) !== false) {
-                                $activeClasses[] = $kc;
+                        $parts = explode(',', $val);
+                        foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'] as $kc) {
+                            foreach ($parts as $p) {
+                                if (trim($p) === $kc) {
+                                    $activeClasses[] = $kc;
+                                }
                             }
                         }
                     }
@@ -312,9 +315,9 @@ class AlmacenFundicionController extends Controller
                         ->filter(function ($f) use ($sharedDir, $activeClasses) {
                             $rel = str_replace(str_replace('\\', '/', $sharedDir) . '/', '', str_replace('\\', '/', $f));
                             $lower = strtolower($rel);
-                            $known = ['fondo', 'obturador', 'bombillo', 'molde'];
+                            $known = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                             foreach ($known as $k) {
-                                if (str_contains($lower, $k)) {
+                                if (strpos($lower, $k) !== false) {
                                     return in_array($k, $activeClasses);
                                 }
                             }
@@ -464,22 +467,18 @@ class AlmacenFundicionController extends Controller
                             $relName = ltrim(str_replace($dirNorm, '', $fNorm), '/');
                             $fileLower = strtolower($relName);
 
-                            $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                            $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                             $hasKnownClass = false;
+                            $foundClass = null;
                             foreach ($knownClasses as $kc) {
                                 if (strpos($fileLower, $kc) !== false) {
                                     $hasKnownClass = true;
+                                    $foundClass = $kc;
                                     break;
                                 }
                             }
                             if ($hasKnownClass) {
-                                $matchesActive = false;
-                                foreach ($activeClasses as $ac) {
-                                    if (strpos($fileLower, $ac) !== false) {
-                                        $matchesActive = true;
-                                        break;
-                                    }
-                                }
+                                $matchesActive = in_array($foundClass, $activeClasses);
                                 if (!$matchesActive)
                                     return false;
                             } else {

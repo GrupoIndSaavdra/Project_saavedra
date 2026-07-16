@@ -276,6 +276,11 @@
                 <span style="font-size: 6.5px; margin-left: 2px; font-weight: bold;">
                     MOLDE [ {{ $tipo == 'Molde' ? 'X' : ' ' }} ] &nbsp;
                     FONDO [ {{ $tipo == 'Fondo' ? 'X' : ' ' }} ] &nbsp;
+                    CORONA [ {{ $tipo == 'Corona' ? 'X' : ' ' }} ] &nbsp;
+                    PLATO [ {{ $tipo == 'Plato' ? 'X' : ' ' }} ] &nbsp;
+                    EMBUDO [ {{ $tipo == 'Embudo' ? 'X' : ' ' }} ] &nbsp;
+                    C. SOPLO [ {{ $tipo == 'Cabeza de Soplo' ? 'X' : ' ' }} ] &nbsp;
+                    C. OBTURADOR [ {{ $tipo == 'Candado Obturador' ? 'X' : ' ' }} ] &nbsp;
                     OBTURADOR [ {{ $tipo == 'Obturador' ? 'X' : ' ' }} ] &nbsp;
                     BOMBILLO [ {{ $tipo == 'Bombillo' ? 'X' : ' ' }} ]
                 </span>
@@ -328,7 +333,7 @@
                     <tr>
                         <td style="width: 35%; vertical-align: top; padding-right: 5px;">
 
-                            <div class="section-title">FONDO</div>
+                            <div class="section-title">{{ in_array($tipo, ['Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador']) ? strtoupper($tipo) : 'FONDO' }}</div>
                             <table class="data-table">
                                 <thead>
                                     <tr>
@@ -474,8 +479,8 @@
                 {{-- OBSERVACIONES --}}
                 <div class="section-title" style="margin-top: 5px;">OBSERVACIONES</div>
                 <div class="obs-box" style="margin-bottom: 5px;">
-                    @if ($tipo === 'Fondo')
-                        <span class="obs-label">Fondo:</span>
+                    @if (in_array($tipo, ['Fondo', 'Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador']))
+                        <span class="obs-label">{{ $tipo }}:</span>
                         {!! nl2br(e($liberacion->observaciones_fondo ?: 'Ninguna.')) !!}
                     @elseif ($tipo === 'Obturador')
                         <span class="obs-label">Obturador:</span>

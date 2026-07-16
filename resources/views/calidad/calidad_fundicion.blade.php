@@ -2002,7 +2002,12 @@
                                                     } elseif (strpos($clLow, "obturador") !== false) {
                                                         $tipo = "Obturador";
                                                     } elseif (strpos($clLow, "molde") !== false) {
-                                                        $tipo = "Molde";
+                                                        $tipo = "Molde"; } elseif (strpos($clLow, "corona") !== false) {
+                                                                            $tipo = "Corona"; } elseif (strpos($clLow, "plato") !== false) {
+                                                                            $tipo = "Plato"; } elseif (strpos($clLow, "embudo") !== false) {
+                                                                            $tipo = "Embudo"; } elseif (strpos($clLow, "cabeza de soplo") !== false) {
+                                                                            $tipo = "Cabeza de Soplo"; } elseif (strpos($clLow, "candado obturador") !== false) {
+                                                                            $tipo = "Candado Obturador";
                                                     } elseif (strpos($clLow, "bombillo") !== false) {
                                                         $tipo = "Bombillo";
                                                     }
@@ -2032,7 +2037,12 @@
                                                 } elseif (strpos($clLow, "obturador") !== false) {
                                                     $tipo = "Obturador";
                                                 } elseif (strpos($clLow, "molde") !== false) {
-                                                    $tipo = "Molde";
+                                                    $tipo = "Molde"; } elseif (strpos($clLow, "corona") !== false) {
+                                                                            $tipo = "Corona"; } elseif (strpos($clLow, "plato") !== false) {
+                                                                            $tipo = "Plato"; } elseif (strpos($clLow, "embudo") !== false) {
+                                                                            $tipo = "Embudo"; } elseif (strpos($clLow, "cabeza de soplo") !== false) {
+                                                                            $tipo = "Cabeza de Soplo"; } elseif (strpos($clLow, "candado obturador") !== false) {
+                                                                            $tipo = "Candado Obturador";
                                                 } elseif (strpos($clLow, "bombillo") !== false) {
                                                     $tipo = "Bombillo";
                                                 }
@@ -3242,7 +3252,12 @@
                                                                             } elseif (strpos($clLow, "obturador") !== false) {
                                                                                 $tipo = "Obturador";
                                                                             } elseif (strpos($clLow, "molde") !== false) {
-                                                                                $tipo = "Molde";
+                                                                                $tipo = "Molde"; } elseif (strpos($clLow, "corona") !== false) {
+                                                                            $tipo = "Corona"; } elseif (strpos($clLow, "plato") !== false) {
+                                                                            $tipo = "Plato"; } elseif (strpos($clLow, "embudo") !== false) {
+                                                                            $tipo = "Embudo"; } elseif (strpos($clLow, "cabeza de soplo") !== false) {
+                                                                            $tipo = "Cabeza de Soplo"; } elseif (strpos($clLow, "candado obturador") !== false) {
+                                                                            $tipo = "Candado Obturador";
                                                                             } elseif (strpos($clLow, "bombillo") !== false) {
                                                                                 $tipo = "Bombillo";
                                                                             }
@@ -3287,7 +3302,12 @@
                                                                         } elseif (strpos($clLow, "obturador") !== false) {
                                                                             $tipo = "Obturador";
                                                                         } elseif (strpos($clLow, "molde") !== false) {
-                                                                            $tipo = "Molde";
+                                                                            $tipo = "Molde"; } elseif (strpos($clLow, "corona") !== false) {
+                                                                            $tipo = "Corona"; } elseif (strpos($clLow, "plato") !== false) {
+                                                                            $tipo = "Plato"; } elseif (strpos($clLow, "embudo") !== false) {
+                                                                            $tipo = "Embudo"; } elseif (strpos($clLow, "cabeza de soplo") !== false) {
+                                                                            $tipo = "Cabeza de Soplo"; } elseif (strpos($clLow, "candado obturador") !== false) {
+                                                                            $tipo = "Candado Obturador";
                                                                         } elseif (strpos($clLow, "bombillo") !== false) {
                                                                             $tipo = "Bombillo";
                                                                         }
@@ -3463,7 +3483,12 @@
                                                                             } elseif (strpos($clLow, "obturador") !== false) {
                                                                                 $tipo = "Obturador";
                                                                             } elseif (strpos($clLow, "molde") !== false) {
-                                                                                $tipo = "Molde";
+                                                                                $tipo = "Molde"; } elseif (strpos($clLow, "corona") !== false) {
+                                                                            $tipo = "Corona"; } elseif (strpos($clLow, "plato") !== false) {
+                                                                            $tipo = "Plato"; } elseif (strpos($clLow, "embudo") !== false) {
+                                                                            $tipo = "Embudo"; } elseif (strpos($clLow, "cabeza de soplo") !== false) {
+                                                                            $tipo = "Cabeza de Soplo"; } elseif (strpos($clLow, "candado obturador") !== false) {
+                                                                            $tipo = "Candado Obturador";
                                                                             } elseif (strpos($clLow, "bombillo") !== false) {
                                                                                 $tipo = "Bombillo";
                                                                             }
@@ -3511,7 +3536,12 @@
                                                                         } elseif (strpos($clLow, "obturador") !== false) {
                                                                             $tipo = "Obturador";
                                                                         } elseif (strpos($clLow, "molde") !== false) {
-                                                                            $tipo = "Molde";
+                                                                            $tipo = "Molde"; } elseif (strpos($clLow, "corona") !== false) {
+                                                                            $tipo = "Corona"; } elseif (strpos($clLow, "plato") !== false) {
+                                                                            $tipo = "Plato"; } elseif (strpos($clLow, "embudo") !== false) {
+                                                                            $tipo = "Embudo"; } elseif (strpos($clLow, "cabeza de soplo") !== false) {
+                                                                            $tipo = "Cabeza de Soplo"; } elseif (strpos($clLow, "candado obturador") !== false) {
+                                                                            $tipo = "Candado Obturador";
                                                                         } elseif (strpos($clLow, "bombillo") !== false) {
                                                                             $tipo = "Bombillo";
                                                                         }

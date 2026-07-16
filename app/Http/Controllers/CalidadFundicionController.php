@@ -1109,7 +1109,7 @@ class CalidadFundicionController extends Controller
             $actualizacion['observaciones_modelo'] = $request->input('observaciones_modelo');
             $actualizacion['medidas_plantilla']       = $sanitizarMedidas($request->input('plantilla'));
             $actualizacion['observaciones_plantilla'] = $request->input('observaciones_plantilla');
-        } elseif ($tipo === 'Fondo') {
+        } elseif (in_array($tipo, ['Fondo', 'Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador'])) {
             $actualizacion['medidas_fondo']       = $sanitizarMedidas($request->input('fondo'));
             $actualizacion['observaciones_fondo'] = $request->input('observaciones_fondo');
         } elseif ($tipo === 'Obturador') {

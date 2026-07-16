@@ -1482,6 +1482,11 @@ const LIB_TABLA_MAP = {
     Obturador: ["lib-tabla-obturador"],
     Molde: ["lib-tabla-1", "lib-tabla-2"],
     Bombillo: ["lib-tabla-1", "lib-tabla-2"],
+    Corona: ["lib-tabla-fondo"],
+    Plato: ["lib-tabla-fondo"],
+    Embudo: ["lib-tabla-fondo"],
+    "Cabeza de Soplo": ["lib-tabla-fondo"],
+    "Candado Obturador": ["lib-tabla-fondo"],
 };
 const LIB_TODAS_TABLAS = ["lib-tabla-1", "lib-tabla-2", "lib-tabla-fondo", "lib-tabla-obturador"];
 let _libTipo = "aprobar";
@@ -1647,6 +1652,12 @@ window.libCambiarTipo = function (tipo) {
         });
     });
     if (aviso) aviso.style.display = visibles.length > 0 ? "none" : "";
+    const tituloFondo = document.getElementById("lib-tabla-fondo-title");
+    if(tituloFondo) {
+        if(tipo === 'Fondo') tituloFondo.textContent = "Dimensiones de Fondo";
+        else tituloFondo.textContent = "Dimensiones de " + tipo;
+    }
+
     const decisionSelector = document.getElementById("lib-decision-selector");
     if (decisionSelector) {
         decisionSelector.style.display = tipo ? "flex" : "none";
