@@ -30,14 +30,14 @@
                 }
 
                 /* .generar_pdf {
-                                                                                        width: 10%;
-                                                                                        height: 10%;
-                                                                                    }
+                                                                                                        width: 10%;
+                                                                                                        height: 10%;
+                                                                                                    }
 
-                                                                                    form {
-                                                                                        overflow: hidden;
-                                                                                        width: 100%;
-                                                                                    } */
+                                                                                                    form {
+                                                                                                        overflow: hidden;
+                                                                                                        width: 100%;
+                                                                                                    } */
 
                 .icono-liberar,
                 .icono-rechazar {
@@ -94,36 +94,41 @@
             </div>
         @endif
     </form>
-    <div class="colors">
-        <table class="table-colors">
-            <thead>
-                <tr>
-                    <th colspan="2">Tabla de colores</th>
-                </tr>
-                <tr>
-                    <th>Color</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php
-                $colorsArray = ['Azul' => 'Liberado', 'Rojo' => 'Rechazado', 'Verde' => 'Buena sin liberacion/rechazo', 'Morado' => 'Mala sin liberacion/rechazo', 'Amarillo' => 'Incompleto'];
-                $colorStyles = [
-                    'Azul' => 'background-color: #79BFED; color: black; font-weight: bold;',
-                    'Rojo' => 'background-color: #FF6B6B; color: black; font-weight: bold;',
-                    'Verde' => 'background-color: #90EE90; color: black; font-weight: bold;',
-                    'Morado' => 'background-color: #DDA0DD; color: black; font-weight: bold;',
-                    'Amarillo' => 'background-color: #FFD700; color: black; font-weight: bold;',
-                ];
-                ?>
-                @foreach ($colorsArray as $key => $colorArray)
+    <div class="colors-legend-container">
+        <button type="button" class="colors-toggle-btn">
+            <span class="toggle-text">Código de Colores</span>
+        </button>
+        <div class="colors-content">
+            <table class="table-colors">
+                <thead>
                     <tr>
-                        <td style="{{ $colorStyles[$key] }}">{{ $key }}</td>
-                        <td>{{ $colorArray }}</td>
+                        <th colspan="2">Tabla de colores</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                    <tr>
+                        <th>Color</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+    $colorsArray = ['Azul' => 'Liberado', 'Rojo' => 'Rechazado', 'Verde' => 'Buena sin liberacion/rechazo', 'Morado' => 'Mala sin liberacion/rechazo', 'Amarillo' => 'Incompleto'];
+    $colorStyles = [
+        'Azul' => 'background-color: #79BFED; color: black; font-weight: bold;',
+        'Rojo' => 'background-color: #FF6B6B; color: black; font-weight: bold;',
+        'Verde' => 'background-color: #90EE90; color: black; font-weight: bold;',
+        'Morado' => 'background-color: #DDA0DD; color: black; font-weight: bold;',
+        'Amarillo' => 'background-color: #FFD700; color: black; font-weight: bold;',
+    ];
+                            ?>
+                    @foreach ($colorsArray as $key => $colorArray)
+                        <tr>
+                            <td style="{{ $colorStyles[$key] }}">{{ $key }}</td>
+                            <td>{{ $colorArray }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
     <script>
         window.pieces = @json($pieces);

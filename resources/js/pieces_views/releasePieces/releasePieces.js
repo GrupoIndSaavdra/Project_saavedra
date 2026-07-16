@@ -887,22 +887,32 @@ function setupGameFilterLogic() {
 
         const otVal = otSelect.value;
         const classVal = classSelect.value;
+        const gameContainer = gameSelect.closest('.filter');
 
         if (otVal && otVal !== "Todos" && classVal && classVal !== "Todos") {
+            // Mostrar y habilitar el filtro
+            if (gameContainer) gameContainer.style.display = "";
             gameSelect.disabled = false;
             // Cargar juegos
             loadAvailableGames(otVal, classVal, gameSelect);
         } else {
+            // Ocultar y deshabilitar el filtro
+            if (gameContainer) gameContainer.style.display = "none";
             gameSelect.disabled = true;
             gameSelect.value = "Todos";
             while (gameSelect.options.length > 1) {
                 gameSelect.remove(1);
             }
+            applyAllFilters();
         }
     }
 
     if (otSelect) otSelect.addEventListener("change", checkEnableGameFilter);
     if (classSelect) classSelect.addEventListener("change", checkEnableGameFilter);
+
+    // Ocultar por defecto al inicializar
+    const gameContainer = gameSelect?.closest('.filter');
+    if (gameContainer) gameContainer.style.display = "none";
 
     // Chequeo inicial
     checkEnableGameFilter();

@@ -1034,8 +1034,11 @@ function setupGameFilterLogic() {
 
         const otVal = otSelect.value;
         const classVal = classSelect.value;
+        const gameContainer = gameSelect.closest('.filter');
 
         if (otVal && otVal !== "Todos" && classVal && classVal !== "Todos") {
+            // Mostrar y habilitar el filtro
+            if (gameContainer) gameContainer.style.display = "";
             gameSelect.disabled = false;
             // Debounce: esperar 150ms para evitar múltiples requests al cambiar rápido
             clearTimeout(gameFilterDebounceTimer);
@@ -1044,18 +1047,25 @@ function setupGameFilterLogic() {
             }, 150);
         } else {
             clearTimeout(gameFilterDebounceTimer);
+            // Ocultar y deshabilitar el filtro
+            if (gameContainer) gameContainer.style.display = "none";
             gameSelect.disabled = true;
             gameSelect.value = "Todos";
             // Limpiar opciones extra (mantener solo "Todos")
             while (gameSelect.options.length > 1) {
                 gameSelect.remove(1);
             }
+            applyAllFilters();
         }
     }
 
     // Usar listeners con {passive: true} para que no bloqueen el submit del formulario
     if (otSelect) otSelect.addEventListener("change", checkEnableGameFilter);
     if (classSelect) classSelect.addEventListener("change", checkEnableGameFilter);
+
+    // Ocultar por defecto al inicializar
+    const gameContainer = gameSelect?.closest('.filter');
+    if (gameContainer) gameContainer.style.display = "none";
 
     // Chequeo inicial: solo cargar juegos si OT y clase ya tienen valor seleccionado
     // (es decir, si el usuario ya había filtrado antes)

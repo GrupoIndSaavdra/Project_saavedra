@@ -42,47 +42,51 @@
         </style>
     @endif
     <form action="{{ route('piecesRelease') }}" method="post" class="form-search">
-            @csrf
-            <!-- FILTROS DE BÚSQUEDA Y RESULTADOS DE PIEZAS EN GENERAL. -->
-            <h1>Liberación de piezas</h1>
-            <div class="filters"></div>
-            <!-- IMAGEN DE PDF -->
-            <button type="submit" name="action" value="pdf" class="btn-PDF">
-                <img src="{{ asset('images/pdf.png') }}" alt="pdf" id="pdf" class="generar_pdf">
-            </button>
+        @csrf
+        <!-- FILTROS DE BÚSQUEDA Y RESULTADOS DE PIEZAS EN GENERAL. -->
+        <h1>Liberación de piezas</h1>
+        <div class="filters"></div>
+        <!-- IMAGEN DE PDF -->
+        <button type="submit" name="action" value="pdf" class="btn-PDF">
+            <img src="{{ asset('images/pdf.png') }}" alt="pdf" id="pdf" class="generar_pdf">
+        </button>
 
-            @if (count($pieces) > 0)
-                <div class="div-table">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Clase</th>
-                                <th>Orden de trabajo</th>
-                                <th>Juego</th>
-                                <th>Nombre del operador</th>
-                                <th>Máquina</th>
-                                <th>Proceso</th>
-                                <th>Errores</th>
-                                <th>Observaciones</th>
-                                <th>Fecha de Maquinado</th>
-                                <th>Fecha de Liberacion</th>
-                                <th>Liberado por</th>
-                                <th>Observaciones de Liberacion</th>
-                                <th>Liberar</th>
-                                <th>Rechazar</th>
-                                <th>Ver</th>
-                            </tr>
-                        </thead>
-                    </table>
-                </div>
-                <div class="total-records-found">Registros encontrados: {{ count($pieces) }}</div>
-            @else
-                <div class="letrero">
-                    <label class="advertence"> No hay piezas trabajadas.</label>
-                </div>
-            @endif
-        </form>
-        <div class="colors">
+        @if (count($pieces) > 0)
+            <div class="div-table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Clase</th>
+                            <th>Orden de trabajo</th>
+                            <th>Juego</th>
+                            <th>Nombre del operador</th>
+                            <th>Máquina</th>
+                            <th>Proceso</th>
+                            <th>Errores</th>
+                            <th>Observaciones</th>
+                            <th>Fecha de Maquinado</th>
+                            <th>Fecha de Liberacion</th>
+                            <th>Liberado por</th>
+                            <th>Observaciones de Liberacion</th>
+                            <th>Liberar</th>
+                            <th>Rechazar</th>
+                            <th>Ver</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+            <div class="total-records-found">Registros encontrados: {{ count($pieces) }}</div>
+        @else
+            <div class="letrero">
+                <label class="advertence"> No hay piezas trabajadas.</label>
+            </div>
+        @endif
+    </form>
+    <div class="colors-legend-container">
+        <button type="button" class="colors-toggle-btn">
+            <span class="toggle-text">Código de Colores</span>
+        </button>
+        <div class="colors-content">
             <table class="table-colors">
                 <thead>
                     <tr>
@@ -95,14 +99,14 @@
                 </thead>
                 <tbody>
                     <?php $colorsArray = ['Azul' => 'Liberado', 'Rojo' => 'Rechazado', 'Verde' => 'Buena sin liberacion/rechazo', 'Morado' => 'Mala sin liberacion/rechazo', 'Amarillo' => 'Incompleto'];
-                    $colorStyles = [
-                        'Azul' => 'background-color: #79BFED; color: black; font-weight: bold;',
-                        'Rojo' => 'background-color: #FF6B6B; color: black; font-weight: bold;',
-                        'Verde' => 'background-color: #90EE90; color: black; font-weight: bold;',
-                        'Morado' => 'background-color: #DDA0DD; color: black; font-weight: bold;',
-                        'Amarillo' => 'background-color: #FFD700; color: black; font-weight: bold;',
-                    ];
-                    ?>
+    $colorStyles = [
+        'Azul' => 'background-color: #79BFED; color: black; font-weight: bold;',
+        'Rojo' => 'background-color: #FF6B6B; color: black; font-weight: bold;',
+        'Verde' => 'background-color: #90EE90; color: black; font-weight: bold;',
+        'Morado' => 'background-color: #DDA0DD; color: black; font-weight: bold;',
+        'Amarillo' => 'background-color: #FFD700; color: black; font-weight: bold;',
+    ];
+                            ?>
                     @foreach ($colorsArray as $key => $colorArray)
                         <tr>
                             <td style="{{ $colorStyles[$key] }}">{{ $key }}</td>
@@ -112,6 +116,7 @@
                 </tbody>
             </table>
         </div>
+    </div>
     <script>
         window.pieces = @json($pieces);
         window.infoPiezas = @json($infoPieces);
