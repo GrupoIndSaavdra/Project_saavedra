@@ -6,8 +6,11 @@
         "build": "vite build"
     },
     "devDependencies": {
+        "@prettier/plugin-php": "^0.24.0",
         "axios": "^1.1.2",
         "laravel-vite-plugin": "^0.8.0",
+        "prettier": "^3.9.5",
+        "prettier-plugin-blade": "^3.2.2",
         "vite": "^4.0.0"
     },
     "dependencies": {
