@@ -1825,13 +1825,25 @@ class ProcessProductionController extends Controller
 
         //Verificar los procesos por los que pasa la clase
         $processesNotEmpty = Procesos::query()->where("id_clase", $class->id)->first();
-        foreach ($processesInOrder as $key => $proc) {
-            if ($processesNotEmpty->$proc == 0) {
-                unset($processesInOrder[$key]);
+        if ($processesNotEmpty) {
+            // Solo filtrar si hay al menos un proceso configurado (valor > 0) para esta clase
+            $hasConfiguration = false;
+            foreach ($processesInOrder as $proc) {
+                if (isset($processesNotEmpty->$proc) && $processesNotEmpty->$proc > 0) {
+                    $hasConfiguration = true;
+                    break;
+                }
+            }
+            if ($hasConfiguration) {
+                foreach ($processesInOrder as $key => $proc) {
+                    if (isset($processesNotEmpty->$proc) && $processesNotEmpty->$proc == 0) {
+                        unset($processesInOrder[$key]);
+                    }
+                }
+                // Reindexar el array para mantener los índices consecutivos
+                $processesInOrder = array_values($processesInOrder);
             }
         }
-        // Reindexar el array para mantener los índices consecutivos
-        $processesInOrder = array_values($processesInOrder);
 
         //Obtener el proceso anterior al actual
         $positionActualProcess = array_search($process, $processesInOrder);
