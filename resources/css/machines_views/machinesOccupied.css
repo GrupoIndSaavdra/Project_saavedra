@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
 
 * {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
 }
 
 form {
@@ -70,9 +70,11 @@ h2 {
     width: 100%;
     max-height: 55vh;
     overflow-y: auto;
-    border-radius: 8px;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
-    background: rgba(255, 255, 255, 0.5);
+    border-radius: 12px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.08), 0 10px 20px rgba(0,0,0,0.05);
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 /* Custom scrollbar for table container */
@@ -84,16 +86,17 @@ h2 {
     border-radius: 8px;
 }
 .machines-table-container::-webkit-scrollbar-thumb {
-    background: rgba(3, 57, 102, 0.5);
+    background: linear-gradient(180deg, rgba(3, 57, 102, 0.4), rgba(6, 84, 148, 0.6));
     border-radius: 8px;
 }
 .machines-table-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(3, 57, 102, 0.8);
+    background: linear-gradient(180deg, rgba(3, 57, 102, 0.6), rgba(6, 84, 148, 0.8));
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 0.95em;
 }
 
@@ -106,63 +109,75 @@ thead {
 th {
     background: linear-gradient(135deg, #033966 0%, #065494 100%);
     color: #ffffff;
-    padding: 1em;
+    padding: 1.2em 1em;
     font-weight: 600;
     text-align: center;
     letter-spacing: 0.5px;
     border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    backdrop-filter: blur(10px);
 }
 
 th:first-child {
-    border-top-left-radius: 8px;
+    border-top-left-radius: 10px;
 }
 th:last-child {
-    border-top-right-radius: 8px;
+    border-top-right-radius: 10px;
 }
 
 .machine-table-row {
-    background-color: transparent;
-    transition: all 0.3s ease;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    background-color: rgba(255, 255, 255, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideUpFade 0.5s ease-out forwards;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+/* Staggered animation for rows */
+.machine-table-row:nth-child(1) { animation-delay: 0.1s; }
+.machine-table-row:nth-child(2) { animation-delay: 0.2s; }
+.machine-table-row:nth-child(3) { animation-delay: 0.3s; }
+.machine-table-row:nth-child(4) { animation-delay: 0.4s; }
+.machine-table-row:nth-child(5) { animation-delay: 0.5s; }
+.machine-table-row:nth-child(n+6) { animation-delay: 0.6s; }
+
+@keyframes slideUpFade {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .machine-table-row:hover {
-    background-color: rgba(3, 57, 102, 0.05);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    /* Sin efecto de fila completa para que destaquen los inputs individuales */
 }
 
 td {
-    padding: 0.5em;
+    padding: 0.8em;
     text-align: center;
-    border: none;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
 input[type="text"] {
     width: 100%;
-    padding: 0.6em;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    font-size: 0.95em;
+    padding: 0.8em;
+    border: none;
+    background: transparent;
+    font-size: 1em;
     font-weight: 600;
     text-align: center;
     color: #334155;
-    background-color: transparent;
-    transition: all 0.2s ease;
+    cursor: default;
+    outline: none;
 }
 
+/* Remove hover and focus effects that made them look like inputs */
 .machine-table-row:hover input[type="text"] {
-    background-color: #ffffff;
-    border-color: rgba(0,0,0,0.1);
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    /* Mantenemos el fondo transparente */
 }
 
 input[type="text"]:focus {
     outline: none;
-    border-color: #033966;
-    background-color: #ffffff;
-    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.1);
 }
 
 .btn {
@@ -171,32 +186,47 @@ input[type="text"]:focus {
     justify-content: center;
     color: #fff;
     font-size: 0.9em;
-    font-weight: 600;
+    font-weight: 700;
     border: none;
-    padding: 0.6em 1.2em;
-    border-radius: 6px;
+    padding: 0.8em 1.5em;
+    border-radius: 8px;
     letter-spacing: 0.5px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-transform: uppercase;
     position: relative;
     overflow: hidden;
 }
 
 .btn-desoccupied {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3), 0 2px 4px -1px rgba(239, 68, 68, 0.2);
+    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+}
+
+.btn-desoccupied::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(45deg) translateY(-100%);
+    transition: all 0.4s ease;
 }
 
 .btn-desoccupied:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 8px -1px rgba(239, 68, 68, 0.4), 0 4px 6px -1px rgba(239, 68, 68, 0.3);
-    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(239, 68, 68, 0.4);
+}
+
+.btn-desoccupied:hover::after {
+    transform: rotate(45deg) translateY(100%);
 }
 
 .btn-desoccupied:active {
     transform: translateY(1px);
-    box-shadow: 0 1px 2px rgba(239, 68, 68, 0.3);
+    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
 }
 
 @media (max-width: 991.98px) {
