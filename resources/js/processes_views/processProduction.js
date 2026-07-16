@@ -2553,9 +2553,7 @@ window.openAyudasViewer = function () {
     const navDiv = document.createElement('div');
     navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.2em;';
 
-    const selClaseWrap = _dibujosSelectGroup('Clase', 'd-viewer-ayudas-clase');
     const selProcesoWrap = _dibujosSelectGroup('Proceso', 'd-viewer-ayudas-proceso');
-
 
     navDiv.appendChild(selProcesoWrap);
 
@@ -2576,7 +2574,6 @@ window.openAyudasViewer = function () {
         if (e.target === divOpacity) divOpacity.remove();
     });
 
-    const selClase = document.getElementById('d-viewer-ayudas-clase');
     const selProceso = document.getElementById('d-viewer-ayudas-proceso');
 
     fetch(window.baseUrl + '/ayudas/estructura', {
@@ -2585,51 +2582,31 @@ window.openAyudasViewer = function () {
     })
         .then(r => r.json())
         .then(estructura => {
-            selClase.innerHTML = '<option value="">— Seleccionar Clase —</option>';
-            Object.keys(estructura).sort().forEach(clase => {
-                if (clase === '-- SIN CLASE --') return;
+            let ayuProcs = [...new Set(Object.values(estructura).flat())];
+            
+            selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
+            ayuProcs.sort().forEach(proc => {
                 const opt = document.createElement('option');
-                opt.value = clase;
-                opt.textContent = clase;
-                if (window.eq(clase, activeClase)) opt.selected = true;
-                selClase.appendChild(opt);
+                opt.value = proc;
+                opt.textContent = proc;
+                selProceso.appendChild(opt);
             });
+            selProceso.disabled = false;
 
-            selClase.addEventListener('change', () => {
-                const selClaseVal = selClase.value;
-                selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
-                if (selClaseVal && estructura[selClaseVal]) {
-                    const procs = [...estructura[selClaseVal]];
-                    if (!procs.includes('General')) procs.push('General');
-
-                    procs.sort().forEach(proc => {
-                        const opt = document.createElement('option');
-                        opt.value = proc;
-                        opt.textContent = proc;
-                        selProceso.appendChild(opt);
-                    });
-                    selProceso.disabled = false;
-                } else {
-                    selProceso.disabled = true;
-                }
-            });
-
-            let matchingProcesoKey = Object.keys(estructura).find(k => window.eq(k, activeProceso));
+            let matchingProcesoKey = ayuProcs.find(k => window.eq(k, activeProceso));
             if (activeProceso && matchingProcesoKey) {
                 selProceso.value = matchingProcesoKey;
                 selProceso.dispatchEvent(new Event('change'));
                 setTimeout(() => {
-                    const opt = Array.from(selClase.options).find(o => window.eq(o.value, activeClase));
-                    if (opt) opt.selected = true;
-                    if (selProceso.value && selClase.value) {
-                        _ayudasCargarArchivos(selProceso.value, selClase.value, contentDiv);
+                    if (selProceso.value) {
+                        _ayudasCargarArchivos(selProceso.value, null, contentDiv);
                     }
                 }, 50);
             }
 
-            selClase.addEventListener('change', () => {
-                if (selProceso.value && selClase.value) {
-                    _ayudasCargarArchivos(selProceso.value, selClase.value, contentDiv);
+            selProceso.addEventListener('change', () => {
+                if (selProceso.value) {
+                    _ayudasCargarArchivos(selProceso.value, null, contentDiv);
                 }
             });
         })
@@ -2774,7 +2751,7 @@ window.openTechDocsModal = function () {
             if (proc) _techDocsCargarArchivos('manuales', proc, null, contentDiv);
             else _techDocsShowEmpty(contentDiv, "Seleccione un Proceso.");
         } else if (activeTab === 'ayudas') {
-            if (proc) _techDocsCargarArchivos('ayudas', proc, activeClass || '', contentDiv);
+            if (proc) _techDocsCargarArchivos('ayudas', proc, null, contentDiv);
             else _techDocsShowEmpty(contentDiv, "Seleccione un Proceso.");
         }
     }
@@ -2792,7 +2769,6 @@ window.openTechDocsModal = function () {
     }
     function updateAyudasFilters(procVal = null) {
         let ayuProcs = [...new Set(Object.values(ayudasEstructura).flat())];
-        if (!ayuProcs.includes('General')) ayuProcs.push('General');
 
         selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
         ayuProcs.sort().forEach(p => {
@@ -2882,7 +2858,7 @@ window.openTechDocsModal = function () {
         if (type === 'manuales') {
             url = `${window.baseUrl}/manuales/archivos?proceso=${encodeURIComponent(proc)}`;
         } else if (type === 'ayudas') {
-            url = `${window.baseUrl}/ayudas/archivos?proceso=${encodeURIComponent(proc)}&clase=${encodeURIComponent(clase)}`;
+            url = `${window.baseUrl}/ayudas/archivos?proceso=${encodeURIComponent(proc)}`;
         } else if (type === 'dibujos') {
             url = `${window.baseUrl}/dibujos/archivos?ot=${encodeURIComponent(proc)}&clase=${encodeURIComponent(clase)}`;
         }

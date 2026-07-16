@@ -12,6 +12,11 @@
     <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
 
     @yield('head')
+    <style>
+        :root {
+            --triangulo-abajo: url('{{ asset("images/triangulo_abajo.png") }}');
+        }
+    </style>
     <script>
         window.loading = "{{ asset('images/loading.gif') }}"
         window.liberar = "{{ asset('images/Liberar.png') }}"

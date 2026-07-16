@@ -42,6 +42,8 @@ class ManualesPdfController extends Controller
             'Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'
         ];
 
+        $nombresProcesos = array_unique(array_merge($nombresProcesos, $estructura));
+
         $todosLosProcesos = collect($nombresProcesos)->map(function($nombre) {
             return (object)[ 'id' => $nombre, 'nombre' => $nombre ];
         });

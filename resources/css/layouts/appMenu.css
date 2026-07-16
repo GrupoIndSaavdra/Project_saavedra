@@ -342,7 +342,7 @@ body {
     display: inline-block;
     width: 1.2em;
     height: 1.2em;
-    background-image: url('../../../public/images/triangulo_abajo.png');
+    background-image: var(--triangulo-abajo);
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
