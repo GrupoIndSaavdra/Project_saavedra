@@ -31,7 +31,7 @@
                     Si la carpeta no existe en el servidor, se creará antes de subir el primer PDF.
                 </p>
 
-                @if($moduleType === 'dibujos')
+
                     {{-- Selector de OT --}}
                     <div class="dibujos-form-group">
                         <label for="ot-select">Orden de Trabajo (OT)</label>
@@ -63,101 +63,7 @@
                         </select>
                     </div>
 
-                @elseif($moduleType === 'fundicion')
-                    {{-- Selector de OT --}}
-                    <div class="dibujos-form-group">
-                        <label for="ot-select">Orden de Trabajo (OT)</label>
-                        <select id="ot-select" onchange="changeDocSelector('ot_id', this.value, ['clase_id'])">
-                            <option value="">— Seleccionar OT —</option>
-                            @foreach($todasLasOTs as $otOpt)
-                                <option value="{{ $otOpt->id }}" {{ $otSeleccionadaId == $otOpt->id ? 'selected' : '' }}>
-                                    OT {{ $otOpt->id }}{{ $otOpt->moldura ? ' — ' . $otOpt->moldura->nombre : '' }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
 
-                    {{-- Selector de Clase --}}
-                    <div class="dibujos-form-group">
-                        <label for="clase-select">Clase</label>
-                        <select id="clase-select" onchange="changeDocSelector('clase_id', this.value)" {{ !$otSeleccionadaId ? 'disabled' : '' }}>
-                            <option value="">— Seleccionar Clase —</option>
-                            @if($otSeleccionadaId && $otActiva)
-                                @foreach($otActiva->clases as $claseOpt)
-                                    <option value="{{ $claseOpt->id }}" {{ $claseSeleccionadaId == $claseOpt->id ? 'selected' : '' }}>
-                                        {{ $claseOpt->nombre }}
-                                    </option>
-                                @endforeach
-                                {{-- Opciones Opcionales --}}
-                                <option value="Pistones" {{ $claseSeleccionadaId === 'Pistones' ? 'selected' : '' }}>
-                                    Pistones (Opcional)
-                                </option>
-                                <option value="Guías" {{ $claseSeleccionadaId === 'Guías' ? 'selected' : '' }}>
-                                    Guías (Opcional)
-                                </option>
-                            @endif
-                        </select>
-                    </div>
-
-                @elseif($moduleType === 'manuales')
-                    {{-- Selector de Proceso --}}
-                    <div class="dibujos-form-group">
-                        <label for="proceso-select">Proceso</label>
-                        <select id="proceso-select" onchange="changeDocSelector('proceso_id', this.value)">
-                            <option value="">— Seleccionar Proceso —</option>
-                            @foreach($todosLosProcesos as $procesoOpt)
-                                <option value="{{ $procesoOpt->id }}" {{ $procesoSeleccionadoId == $procesoOpt->id ? 'selected' : '' }}>
-                                    {{ $procesoOpt->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                @elseif($moduleType === 'ayudas')
-                    {{-- Selector de Clase --}}
-                    <div class="dibujos-form-group">
-                        <label for="clase-select">Clase</label>
-                        <select id="clase-select" onchange="changeDocSelector('clase_id', this.value, ['proceso_id'])">
-                            <option value="">— Seleccionar Clase —</option>
-                            @foreach($clasesUnicas as $claseOpt)
-                                <option value="{{ $claseOpt->id }}" {{ $claseSeleccionadaId == $claseOpt->id ? 'selected' : '' }}>
-                                    {{ $claseOpt->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    {{-- Selector de Proceso --}}
-                    <div class="dibujos-form-group">
-                        <label for="proceso-select">Proceso</label>
-                        <select id="proceso-select" onchange="changeDocSelector('proceso_id', this.value)" {{ !$claseSeleccionadaId ? 'disabled' : '' }}>
-                            <option value="">— Seleccionar Proceso —</option>
-                            @if($claseSeleccionadaId)
-                                @foreach($todosLosProcesos as $procesoOpt)
-                                    <option value="{{ $procesoOpt->id }}" {{ $procesoSeleccionadoId == $procesoOpt->id ? 'selected' : '' }}>
-                                        {{ $procesoOpt->nombre }}
-                                    </option>
-                                @endforeach
-                            @endif
-                        </select>
-                    </div>
-                @elseif($moduleType === 'ayudas_fundicion')
-                    {{-- Selector de Clase --}}
-                    <div class="dibujos-form-group">
-                        <label for="clase-select">Clase</label>
-                        <select id="clase-select" onchange="changeDocSelector('clase_id', this.value, ['proceso_id'])">
-                            <option value="">— Seleccionar Clase —</option>
-                            @foreach($clasesUnicas as $claseOpt)
-                                <option value="{{ $claseOpt->id }}" {{ $claseSeleccionadaId == $claseOpt->id ? 'selected' : '' }}>
-                                    {{ $claseOpt->nombre }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    {{-- Proceso Oculto, ya sabemos que es Fundición --}}
-                    <input type="hidden" id="proceso-select" value="Fundicion">
-                @endif
 
                 {{-- Estado de la carpeta y botón crear --}}
                 @php
@@ -174,37 +80,6 @@
                         $folderPathLabel = "<span class='lvl-1'>OT " . $otActiva->id . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . $claseActiva->nombre . "</span>";
                         $carpetaExiste = isset($estructura[$param1Name]) && in_array($param2Name, $estructura[$param1Name]);
                         $folderProps = ['data-ot' => $param1Name, 'data-clase' => $param2Name];
-                    } elseif ($moduleType === 'manuales' && $procesoSeleccionadoId && $procesoActivo) {
-                        $isReady = true;
-                        $param1Name = $procesoActivo->nombre;
-                        $folderPathLabel = "<span class='lvl-1'>" . $procesoActivo->nombre . "</span>";
-                        $carpetaExiste = in_array($param1Name, $estructura);
-                        $folderProps = ['data-proceso' => $param1Name];
-                    } elseif ($moduleType === 'ayudas' && $procesoSeleccionadoId && $claseSeleccionadaId && $procesoActivo && $claseActiva) {
-                        $isReady = true;
-                        $param1Name = $procesoActivo->nombre;
-                        $param2Name = $claseActiva->nombre;
-                        $folderPathLabel = "<span class='lvl-1'>" . $claseActiva->nombre . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . $procesoActivo->nombre . "</span>";
-                        $carpetaExiste = isset($estructura[$param2Name]) && in_array($param1Name, $estructura[$param2Name]);
-                        $folderProps = ['data-proceso' => $param1Name, 'data-clase' => $param2Name];
-                    } elseif ($moduleType === 'ayudas_fundicion' && $claseSeleccionadaId && $claseActiva) {
-                        $isReady = true;
-                        $param1Name = 'Fundicion';
-                        $param2Name = $claseActiva->nombre;
-                        $folderPathLabel = "<span class='lvl-1'>" . $claseActiva->nombre . "</span>";
-                        $carpetaExiste = isset($estructura[$param2Name]);
-                        $folderProps = ['data-proceso' => $param1Name, 'data-clase' => $param2Name];
-                    } elseif ($moduleType === 'fundicion' && $otSeleccionadaId && $claseSeleccionadaId && $otActiva) {
-                        $isReady = true;
-                        $otLabel = "OT " . $otActiva->id . ($otActiva->moldura ? " - " . $otActiva->moldura->nombre : "");
-                        // Normalización básica para coincidir con el controlador
-                        $normalizedOt = trim(preg_replace('/\s+/', ' ', mb_strtoupper(str_replace(['—', '–', "\xc2\xa0"], '-', $otLabel))));
-
-                        $param1Name = $normalizedOt;
-                        $param2Name = $claseActiva ? $claseActiva->nombre : $claseSeleccionadaId;
-                        $folderPathLabel = "<span class='lvl-1'>" . $otLabel . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . $param2Name . "</span>";
-                        $carpetaExiste = isset($estructura[$param1Name]) && in_array($param2Name, $estructura[$param1Name]);
-                        $folderProps = ['data-ot' => $param1Name, 'data-clase' => $param2Name, 'data-ot-id' => $otActiva->id];
                     }
                 @endphp
 
@@ -303,18 +178,8 @@
                     <table class="dibujos-table" id="tabla-estructura">
                         <thead>
                             <tr>
-                                @if($moduleType === 'dibujos')
                                     <th class="d-text-center">Orden de Trabajo</th>
                                     <th class="d-text-center">Clase</th>
-                                @elseif($moduleType === 'fundicion')
-                                    <th class="d-text-center">Orden de Trabajo</th>
-                                    <th class="d-text-center">Clase</th>
-                                @elseif($moduleType === 'ayudas')
-                                    <th class="d-text-center">Clase</th>
-                                    <th class="d-text-center">Proceso</th>
-                                @else
-                                    <th class="d-text-center">Clase</th>
-                                @endif
                                 <th class="d-text-center">Archivos PDF</th>
                                 <th class="d-text-center">Acciones</th>
                             </tr>
@@ -378,291 +243,12 @@
                                         @endforeach
                                     @endif
                                 @endforeach
-                            @elseif($moduleType === 'manuales')
-                                @foreach($estructura as $procesoName)
-                                    @php
-                                        $procesoReal = $todosLosProcesos->firstWhere('nombre', $procesoName);
-                                        $procesoIdBD = $procesoReal ? $procesoReal->id : null;
-                                        $badgeId = "badge-" . Str::slug($procesoName);
-                                    @endphp
-                                    <tr data-proceso="{{ $procesoName }}">
-                                        <td class="d-text-center d-text-primary"><strong>{{ $procesoName }}</strong></td>
-                                        <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
-                                        <td class="d-text-center">
-                                            <div class="td-actions">
-                                                <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                    onclick="irACarpeta('{{ $procesoIdBD ?? $procesoName }}', null, {{ $procesoIdBD ? 'true' : 'false' }})">
-                                                    <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                    <span>Ver PDF's</span>
-                                                </button>
-                                                <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                                    onclick="confirmarEliminarCarpeta('{{ $procesoName }}', null, '{{ $procesoName }}')">
-                                                    <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
-                                                    <span>Eliminar Directorio Raíz</span>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            @elseif($moduleType === 'fundicion')
-                                @foreach($estructura as $otName => $clasesFisicas)
-                                    @php
-                                        preg_match('/OT\s*(\d+)/', $otName, $matches);
-                                        $otIdNumber = isset($matches[1]) ? (int) $matches[1] : 0;
-                                        $otReal = $otIdNumber > 0 ? $todasLasOTs->firstWhere('id', $otIdNumber) : null;
-                                        $otLabel = $otReal ? ("OT " . $otReal->id . ($otReal->moldura ? " — " . $otReal->moldura->nombre : "")) : $otName;
-                                        $otIdBD = $otReal ? $otReal->id : null;
-
-                                        // Ayudas vinculadas desde el historial
-                                        $ayudasLinked = $historiales[$otName] ?? [];
-
-                                        // Si no hay clases físicas, creamos una entrada para la raíz
-                                        $displayClases = count($clasesFisicas) > 0 ? $clasesFisicas : [null];
-                                    @endphp
-
-                                    @foreach($displayClases as $claseName)
-                                        @php
-                                            $esRaiz = is_null($claseName);
-                                            $claseLabel = $esRaiz ? 'Raíz OT' : $claseName;
-                                            $claseReal = (!$esRaiz && $otReal) ? $otReal->clases->firstWhere('nombre', $claseName) : null;
-
-                                            // Si no hay clase en BD pero es una de nuestras clases virtuales, usamos el nombre como ID
-                                            if ($claseReal) {
-                                                $claseIdBD = $claseReal->id;
-                                            } elseif (in_array($claseName, ['Pistones', 'Guías', 'Guias'])) {
-                                                $claseIdBD = $claseName;
-                                            } else {
-                                                $claseIdBD = 'null';
-                                            }
-
-                                            $badgeId = "badge-" . Str::slug($otName) . "-" . Str::slug($claseLabel);
-                                        @endphp
-                                        <tr data-ot="{{ $otName }}" data-clase="{{ $claseName }}">
-                                            <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
-                                            <td class="d-text-center">
-                                                @php
-                                                    // Filtrar por existencia física real en el servidor
-                                                    $ayudasFiltradas = collect($ayudasLinked)->filter(function ($a) use ($clasesFisicas) {
-                                                        $val = trim(strtolower((string) $a));
-                                                        if (empty($val) || $val === 'null' || $val === 'undefined')
-                                                            return false;
-                                                        return in_array($a, $clasesFisicas);
-                                                    });
-                                                @endphp
-                                                @if($ayudasFiltradas->count() > 0)
-                                                    <div class="d-flex d-flex-wrap d-justify-center d-gap-1">
-                                                        @foreach($ayudasFiltradas as $al)
-                                                            @php
-                                                                // Mostrar solo si coincide con la clase de la fila actual
-                                                                if ($al !== $claseName && !$esRaiz)
-                                                                    continue;
-
-                                                                $clTagReal = $todasLasClases->firstWhere('nombre', $al);
-                                                                if ($clTagReal) {
-                                                                    $clTagId = $clTagReal->id;
-                                                                } elseif (in_array($al, ['Pistones', 'Guías', 'Guias'])) {
-                                                                    $clTagId = $al;
-                                                                } else {
-                                                                    $clTagId = 'null';
-                                                                }
-                                                                $isThisClass = ($al === $claseName);
-                                                            @endphp
-                                                            <span class="badge-ayuda-tag clickable-tag {{ $isThisClass ? 'badge-tag-active' : '' }}"
-                                                                title="Filtrar por esta clase"
-                                                                onclick="irACarpeta('{{ $otIdBD ?? $otName }}', '{{ $clTagId }}', {{ $otIdBD ? 'true' : 'false' }})">
-                                                                {{ $al }}
-                                                            </span>
-                                                        @endforeach
-                                                    </div>
-                                                @else
-                                                    <span class="d-text-subtle" style="font-size: 0.85em;">Sin ayudas</span>
-                                                @endif
-                                            </td>
-                                            <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
-                                            <td class="d-text-center">
-                                                <div class="td-actions">
-                                                    <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                        onclick="irACarpeta('{{ $otIdBD ?? $otName }}', '{{ $claseIdBD }}', {{ $otIdBD ? 'true' : 'false' }})">
-                                                        <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                        <span>Ver PDF's</span>
-                                                    </button>
-                                                    {{-- Botón de Correo Eliminado de aquí --}}
-                                                    <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                                        onclick="confirmarEliminarCarpeta('{{ $otName }}', '{{ $claseName }}', '{{ $otLabel }} / {{ $claseLabel }}')">
-                                                        <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
-                                                        <span>{{ $esRaiz ? 'Vaciar Raíz' : 'Eliminar Clase' }}</span>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                @endforeach
-                            @elseif($moduleType === 'ayudas')
-                                @foreach($estructura as $claseName => $procesos)
-                                    @php
-                                        $claseReal = $clasesUnicas->firstWhere('nombre', $claseName);
-                                        $claseIdBD = $claseReal ? $claseReal->id : null;
-
-                                        // Si no tiene procesos, mostramos una fila "huérfana" para poder borrar la Clase
-                                        $displayProcesos = count($procesos) > 0 ? $procesos : ['--'];
-                                    @endphp
-
-                                    @foreach($displayProcesos as $procesoName)
-                                        @php
-                                            $esHuerfano = ($procesoName === '--');
-                                            $procesoReal = $esHuerfano ? null : $todosLosProcesos->firstWhere('nombre', $procesoName);
-                                            $procesoIdBD = $procesoReal ? $procesoReal->id : null;
-                                            $badgeId = "badge-" . Str::slug($claseName) . "-" . Str::slug($procesoName);
-                                        @endphp
-                                        <tr data-proceso="{{ $procesoName }}" data-clase="{{ $claseName }}">
-                                            <td class="d-text-center d-text-primary">
-                                                <strong>{{ $claseName }}</strong>
-                                            </td>
-                                            <td class="d-text-center">
-                                                @if($esHuerfano)
-                                                    <em class="d-text-danger d-text-bold">Sin procesos</em>
-                                                @else
-                                                    <span class="d-text-success d-text-bold">{{ $procesoName }}</span>
-                                                @endif
-                                            </td>
-                                            <td class="d-text-center">
-                                                @if($esHuerfano)
-                                                    <span class="d-text-subtle">—</span>
-                                                @else
-                                                    <span class="badge-count" id="{{ $badgeId }}">...</span>
-                                                @endif
-                                            </td>
-                                            <td class="d-text-center">
-                                                <div class="td-actions">
-                                                    @if(!$esHuerfano)
-                                                        <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                            onclick="irACarpeta('{{ $procesoIdBD ?? $procesoName }}', '{{ $claseIdBD ?? $claseName }}', {{ $procesoIdBD ? 'true' : 'false' }})">
-                                                            <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                            <span>Ver PDF's</span>
-                                                        </button>
-                                                    @endif
-                                                    <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                                        onclick="confirmarEliminarCarpeta('{{ $procesoName }}', '{{ $claseName }}', '{{ $claseName }}{{ $esHuerfano ? "" : " / " . $procesoName }}')">
-                                                        <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
-                                                        <span>Eliminar {{ $esHuerfano ? 'Directorio Raíz' : 'Proceso' }}</span>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                @endforeach
-                            @elseif($moduleType === 'ayudas_fundicion')
-                                @foreach($estructura as $claseName => $exists)
-                                    @php
-                                        $claseReal = $clasesUnicas->firstWhere('nombre', $claseName);
-                                        $claseIdBD = $claseReal ? $claseReal->id : null;
-                                        $badgeId = "badge-" . Str::slug($claseName);
-                                    @endphp
-                                    <tr data-proceso="Fundicion" data-clase="{{ $claseName }}">
-                                        <td class="d-text-center d-text-primary"><strong>{{ $claseName }}</strong></td>
-                                        <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
-                                        <td class="d-text-center">
-                                            <div class="td-actions">
-                                                <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                    onclick="irACarpeta('Fundicion', '{{ $claseIdBD ?? $claseName }}', false)">
-                                                    <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                    <span>Ver PDF's</span>
-                                                </button>
-                                                <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar clase completa"
-                                                    onclick="confirmarEliminarCarpeta('{{ $claseName }}', null, '{{ $claseName }}')">
-                                                    <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
-                                                    <span>Eliminar Carpeta</span>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
                             @endif
                         </tbody>
                     </table>
                 </div>
             @endif
         </div>
-
-        {{-- NUEVA TABLA: Envío de Alertas por OT (Simplificada) --}}
-        @if($moduleType === 'fundicion' && count($estructura) > 0)
-            <div class="dibujos-table-section d-mt-3">
-                <h2>Envío de Alertas</h2>
-                <div class="dibujos-table-container">
-                    <table class="dibujos-table">
-                        <thead>
-                            <tr>
-                                <th class="d-text-center">Orden de Trabajo</th>
-                                <th class="d-text-center">Ayudas Visuales Vinculadas por Clase</th>
-                                <th class="d-text-center">Archivos PDF</br>(Total)</th>
-                                <th class="d-text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($estructura as $otName => $clasesFisicas)
-                                @php
-                                    preg_match('/OT\s*(\d+)/', $otName, $matches);
-                                    $otIdNumber = isset($matches[1]) ? (int) $matches[1] : 0;
-                                    $otReal = $otIdNumber > 0 ? $todasLasOTs->firstWhere('id', $otIdNumber) : null;
-                                    $otLabel = $otReal ? ("OT " . $otReal->id . ($otReal->moldura ? " — " . $otReal->moldura->nombre : "")) : $otName;
-                                    $otIdBD = $otReal ? $otReal->id : null;
-                                    $ayudasLinked = $historiales[$otName] ?? [];
-
-                                    $ayudasFiltradas = collect($ayudasLinked)->filter(function ($a) use ($clasesFisicas) {
-                                        $val = trim(strtolower((string) $a));
-                                        if (empty($val) || $val === 'null' || $val === 'undefined')
-                                            return false;
-                                        // Solo mostrar si existe la carpeta física actualmente en la OT
-                                        return in_array($a, $clasesFisicas);
-                                    });
-                                @endphp
-                                <tr>
-                                    <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
-                                    <td class="d-text-center">
-                                        @if($ayudasFiltradas->count() > 0)
-                                            <div class="d-flex d-flex-wrap d-justify-center d-gap-1">
-                                                @foreach($ayudasFiltradas as $al)
-                                                    @php
-                                                        $clTagReal = $todasLasClases->firstWhere('nombre', $al);
-                                                        if ($clTagReal) {
-                                                            $clTagId = $clTagReal->id;
-                                                        } elseif (in_array($al, ['Pistones', 'Guías', 'Guias'])) {
-                                                            $clTagId = $al;
-                                                        } else {
-                                                            $clTagId = 'null';
-                                                        }
-                                                    @endphp
-                                                    <span class="badge-ayuda-tag clickable-tag" title="Ir a esta carpeta"
-                                                        onclick="irACarpeta('{{ $otIdBD ?? $otName }}', '{{ $clTagId }}', {{ $otIdBD ? 'true' : 'false' }})">
-                                                        {{ $al }}
-                                                    </span>
-                                                @endforeach
-                                            </div>
-                                        @else
-                                            <span class="d-text-subtle">Sin ayudas vinculadas</span>
-                                        @endif
-                                    </td>
-                                    <td class="d-text-center">
-                                        <span class="badge-count" data-ot-total="{{ $otName }}">
-                                            ...
-                                        </span>
-                                    </td>
-                                    <td class="d-text-center">
-                                        <div class="td-actions">
-                                            <button class="btn-action-icon btn-alerta-fund" title="Enviar correo de alerta global"
-                                                onclick="enviarAlertaFundicion(null, '{{ $otName }}', this)">
-                                                <img src="{{ asset('images/enviando.png') }}" alt="Alerta">
-                                                <span>Enviar Correo</span>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        @endif
 
         {{-- Log de auditoria --}}
         <div class="dibujos-table-section">
@@ -729,11 +315,7 @@
             'doc.log': "{{ url('/') }}/{{ $modulePrefix }}/log",
             'doc.deleteFolder': "{{ route($modulePrefix . '.deleteFolder') }}",
             'doc.deleteParent': "{{ route($modulePrefix . '.deleteParent') }}",
-            @if($moduleType === 'fundicion')
-                                'fundicion.send_alert': "{{ route('fundicion.send_alert') }}",
-                'doc.total_archivos': "{{ route('fundicion.total_archivos') }}",
-            @endif
-                                };
+        };
         window.csrfToken = "{{ csrf_token() }}";
         window.estructura = @json($estructura);
 

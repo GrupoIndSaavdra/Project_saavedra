@@ -192,91 +192,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @if($moduleType === 'dibujos')
-                                @foreach($estructura as $otName => $clases)
-                                    @php
-                                        // $otName format: "OT 6695 - TALL BOY..."
-                                        preg_match('/OT\s*(\d+)/', $otName, $matches);
-                                        $otIdNumber = isset($matches[1]) ? (int) $matches[1] : 0;
-                                        $otReal = $otIdNumber > 0 ? $todasLasOTs->firstWhere('id', $otIdNumber) : null;
-                                        $otLabel = $otReal ? ("OT " . $otReal->id . ($otReal->moldura ? " — " . $otReal->moldura->nombre : "")) : $otName;
-                                        $otIdBD = $otReal ? $otReal->id : null;
-                                    @endphp
-                                    @if(count($clases) === 0)
-                                        <tr data-ot="{{ $otName }}" data-clase="">
-                                            <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
-                                            <td class="d-text-center"><em class="d-text-danger d-text-bold">Sin clases</em></td>
-                                            <td class="d-text-center"><span class="badge-count"
-                                                    id="badge-{{ Str::slug($otName) }}-raiz">...</span></td>
-                                            <td class="d-text-center">
-                                                <div class="td-actions">
-                                                    <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar OT completa"
-                                                        onclick="confirmarEliminarCarpeta('{{ $otName }}', null, '{{ $otLabel }}')">
-                                                        <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
-                                                        <span>Eliminar Directorio Raíz</span>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @else
-                                        @foreach($clases as $claseName)
-                                            @php
-                                                $isRoot = $claseName === null || $claseName === '--';
-                                                $paramClase = $isRoot ? '--' : $claseName;
-                                                $displayClase = $isRoot ? 'Archivos en Raíz' : $claseName;
-                                                $claseReal = (!$isRoot && $otReal) ? $otReal->clases->firstWhere('nombre', $claseName) : null;
-                                                $claseIdBD = $claseReal ? $claseReal->id : $paramClase;
-                                                $badgeId = "badge-" . Str::slug($otName) . "-" . Str::slug($paramClase);
-                                            @endphp
-                                            <tr data-ot="{{ $otName }}" data-clase="{{ $paramClase }}">
-                                                <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
-                                                <td class="d-text-center {{ $isRoot ? 'd-text-warning' : 'd-text-success' }} d-text-bold">{{ $displayClase }}</td>
-                                                <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
-                                                <td class="d-text-center">
-                                                    <div class="td-actions">
-                                                        <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                            onclick="irACarpeta('{{ $otIdBD ?? $otName }}', '{{ $claseIdBD }}', {{ $otIdBD ? 'true' : 'false' }})">
-                                                            <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                            <span>Ver PDF's</span>
-                                                        </button>
-                                                        <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                                            onclick="confirmarEliminarCarpeta('{{ $otName }}', '{{ $isRoot ? null : $claseName }}', '{{ $otLabel }}{{ $isRoot ? '' : ' / ' . $claseName }}')">
-                                                            <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
-                                                            <span>Eliminar Clase</span>
-                                                        </button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    @endif
-                                @endforeach
-                            @elseif($moduleType === 'manuales')
-                                @foreach($estructura as $procesoName)
-                                    @php
-                                        $procesoReal = $todosLosProcesos->firstWhere('nombre', $procesoName);
-                                        $procesoIdBD = $procesoReal ? $procesoReal->id : null;
-                                        $badgeId = "badge-" . Str::slug($procesoName);
-                                    @endphp
-                                    <tr data-proceso="{{ $procesoName }}">
-                                        <td class="d-text-center d-text-primary"><strong>{{ $procesoName }}</strong></td>
-                                        <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
-                                        <td class="d-text-center">
-                                            <div class="td-actions">
-                                                <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                    onclick="irACarpeta('{{ $procesoIdBD ?? $procesoName }}', null, {{ $procesoIdBD ? 'true' : 'false' }})">
-                                                    <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                    <span>Ver PDF's</span>
-                                                </button>
-                                                <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                                    onclick="confirmarEliminarCarpeta('{{ $procesoName }}', null, '{{ $procesoName }}')">
-                                                    <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
-                                                    <span>Eliminar Directorio Raíz</span>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            @elseif($moduleType === 'fundicion')
+
                                 @foreach($estructura as $otName => $clasesFisicas)
                                     @php
                                         preg_match('/OT\s*(\d+)/', $otName, $matches);
@@ -373,87 +289,7 @@
                                         </tr>
                                     @endforeach
                                 @endforeach
-                            @elseif($moduleType === 'ayudas')
-                                @foreach($estructura as $claseName => $procesos)
-                                    @php
-                                        $claseReal = $clasesUnicas->firstWhere('nombre', $claseName);
-                                        $claseIdBD = $claseReal ? $claseReal->id : null;
 
-                                        // Si no tiene procesos, mostramos una fila "huérfana" para poder borrar la Clase
-                                        $displayProcesos = count($procesos) > 0 ? $procesos : ['--'];
-                                    @endphp
-
-                                    @foreach($displayProcesos as $procesoName)
-                                        @php
-                                            $esHuerfano = ($procesoName === '--');
-                                            $procesoReal = $esHuerfano ? null : $todosLosProcesos->firstWhere('nombre', $procesoName);
-                                            $procesoIdBD = $procesoReal ? $procesoReal->id : null;
-                                            $badgeId = "badge-" . Str::slug($claseName) . "-" . Str::slug($procesoName);
-                                        @endphp
-                                        <tr data-proceso="{{ $procesoName }}" data-clase="{{ $claseName }}">
-                                            <td class="d-text-center d-text-primary">
-                                                <strong>{{ $claseName }}</strong>
-                                            </td>
-                                            <td class="d-text-center">
-                                                @if($esHuerfano)
-                                                    <em class="d-text-danger d-text-bold">Sin procesos</em>
-                                                @else
-                                                    <span class="d-text-success d-text-bold">{{ $procesoName }}</span>
-                                                @endif
-                                            </td>
-                                            <td class="d-text-center">
-                                                @if($esHuerfano)
-                                                    <span class="d-text-subtle">—</span>
-                                                @else
-                                                    <span class="badge-count" id="{{ $badgeId }}">...</span>
-                                                @endif
-                                            </td>
-                                            <td class="d-text-center">
-                                                <div class="td-actions">
-                                                    @if(!$esHuerfano)
-                                                        <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                            onclick="irACarpeta('{{ $procesoIdBD ?? $procesoName }}', '{{ $claseIdBD ?? $claseName }}', {{ $procesoIdBD ? 'true' : 'false' }})">
-                                                            <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                            <span>Ver PDF's</span>
-                                                        </button>
-                                                    @endif
-                                                    <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                                        onclick="confirmarEliminarCarpeta('{{ $procesoName }}', '{{ $claseName }}', '{{ $claseName }}{{ $esHuerfano ? "" : " / " . $procesoName }}')">
-                                                        <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
-                                                        <span>Eliminar {{ $esHuerfano ? 'Directorio Raíz' : 'Proceso' }}</span>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                @endforeach
-                            @elseif($moduleType === 'ayudas_fundicion')
-                                @foreach($estructura as $claseName => $exists)
-                                    @php
-                                        $claseReal = $clasesUnicas->firstWhere('nombre', $claseName);
-                                        $claseIdBD = $claseReal ? $claseReal->id : null;
-                                        $badgeId = "badge-" . Str::slug($claseName);
-                                    @endphp
-                                    <tr data-proceso="Fundicion" data-clase="{{ $claseName }}">
-                                        <td class="d-text-center d-text-primary"><strong>{{ $claseName }}</strong></td>
-                                        <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
-                                        <td class="d-text-center">
-                                            <div class="td-actions">
-                                                <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                    onclick="irACarpeta('Fundicion', '{{ $claseIdBD ?? $claseName }}', false)">
-                                                    <img src="{{ asset('images/documento.png') }}" alt="Ver">
-                                                    <span>Ver PDF's</span>
-                                                </button>
-                                                <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar clase completa"
-                                                    onclick="confirmarEliminarCarpeta('{{ $claseName }}', null, '{{ $claseName }}')">
-                                                    <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
-                                                    <span>Eliminar Carpeta</span>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            @endif
                         </tbody>
                     </table>
                 </div>
@@ -461,7 +297,7 @@
         </div>
 
         {{-- NUEVA TABLA: Envío de Alertas por OT (Simplificada) --}}
-        @if($moduleType === 'fundicion' && count($estructura) > 0)
+        @if(count($estructura) > 0)
             <div class="dibujos-table-section d-mt-3">
                 <h2>Envío de Alertas</h2>
                 <div class="dibujos-table-container">
@@ -602,36 +438,18 @@
             'doc.log': "{{ url('/') }}/{{ $modulePrefix }}/log",
             'doc.deleteFolder': "{{ route($modulePrefix . '.deleteFolder') }}",
             'doc.deleteParent': "{{ route($modulePrefix . '.deleteParent') }}",
-            @if($moduleType === 'fundicion')
-                                'fundicion.send_alert': "{{ route('fundicion.send_alert') }}",
-                'doc.total_archivos': "{{ route('fundicion.total_archivos') }}",
-            @endif
+            'fundicion.send_alert': "{{ route('fundicion.send_alert') }}",
+            'doc.total_archivos': "{{ route('fundicion.total_archivos') }}",
                                 };
         window.csrfToken = "{{ csrf_token() }}";
         window.estructura = @json($estructura);
 
-        @if($moduleType === 'fundicion')
-            window.todasLasOTs = {!! json_encode($todasLasOTs->map(fn($o) => ['id' => $o->id, 'moldura_nombre' => $o->moldura?->nombre])) !!};
-            window.todasLasClases = {!! json_encode($todasLasClases->map(fn($c) => ['id' => $c->id, 'nombre' => $c->nombre])) !!};
-            window.historiales = {!! json_encode($historiales) !!};
-        @endif
+        window.todasLasOTs = {!! json_encode($todasLasOTs->map(fn($o) => ['id' => $o->id, 'moldura_nombre' => $o->moldura?->nombre])) !!};
+        window.todasLasClases = {!! json_encode($todasLasClases->map(fn($c) => ['id' => $c->id, 'nombre' => $c->nombre])) !!};
+        window.historiales = {!! json_encode($historiales) !!};
 
         // Exportar active selection para cargar panel inicialmente
-        @if($moduleType === 'dibujos')
-            window.activeParam1 = @json($otActiva?->id ?? null);
-            window.activeParam2 = @json($claseActiva?->nombre ?? null);
-        @elseif($moduleType === 'manuales')
-            window.activeParam1 = @json($procesoActivo?->nombre ?? null);
-            window.activeParam2 = null;
-        @elseif($moduleType === 'fundicion')
-            window.activeParam1 = @json($otActiva?->id ?? null);
-            window.activeParam2 = @json($claseActiva?->nombre ?? null);
-        @elseif($moduleType === 'ayudas')
-            window.activeParam1 = @json($procesoActivo?->nombre ?? null);
-            window.activeParam2 = @json($claseActiva?->nombre ?? null);
-        @elseif($moduleType === 'ayudas_fundicion')
-            window.activeParam1 = 'Fundicion';
-            window.activeParam2 = @json($claseActiva?->nombre ?? null);
-        @endif
+        window.activeParam1 = @json($otActiva?->id ?? null);
+        window.activeParam2 = @json($claseActiva?->nombre ?? null);
     </script>
 @endsection

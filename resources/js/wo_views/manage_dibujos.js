@@ -24,20 +24,11 @@ window.changeDocSelector = function(paramName, value, toClear = []) {
 };
 
 window.irACarpeta = function(p1, p2, isId = false) {
-        const url = new URL(window.location.href);
+    const url = new URL(window.location.href);
 
-    if (module === 'dibujos' || module === 'fundicion') {
-        url.searchParams.set('ot_id', p1);
-        if (p2 && p2 !== 'null') url.searchParams.set('clase_id', p2);
-        else url.searchParams.delete('clase_id');
-    } else if (module === 'manuales') {
-        url.searchParams.set('proceso_id', p1);
-    } else if (module === 'ayudas') {
-        if (p2 && p2 !== 'null') url.searchParams.set('clase_id', p2);
-        url.searchParams.set('proceso_id', p1);
-    } else if (module === 'ayudas_fundicion') {
-        if (p2 && p2 !== 'null') url.searchParams.set('clase_id', p2);
-    }
+    url.searchParams.set('ot_id', p1);
+    if (p2 && p2 !== 'null') url.searchParams.set('clase_id', p2);
+    else url.searchParams.delete('clase_id');
     
     window.location.href = url.toString();
 };
@@ -46,7 +37,6 @@ function updateDependentSelectors() {
     const urlParams = new URLSearchParams(window.location.search);
     const otSel = document.getElementById('ot-select');
     const clSel = document.getElementById('clase-select');
-    const prSel = document.getElementById('proceso-select');
 
     function forceOption(sel, paramName) {
         if (!sel) return;
@@ -67,44 +57,20 @@ function updateDependentSelectors() {
         if (matchingOpt) sel.value = matchingOpt.value;
     }
 
-    if (module === 'dibujos' || module === 'fundicion') {
-        forceOption(otSel, 'ot_id');
-        forceOption(clSel, 'clase_id');
-    } else if (module === 'manuales' || module === 'ayudas') {
-        forceOption(prSel, 'proceso_id');
-        forceOption(clSel, 'clase_id');
-    } else if (module === 'ayudas_fundicion') {
-        forceOption(clSel, 'clase_id');
-        forceOption(prSel, 'proceso_id');
-    }
+    forceOption(otSel, 'ot_id');
+    forceOption(clSel, 'clase_id');
 
-    if (module === 'ayudas_fundicion') {
-        if (prSel && clSel) prSel.disabled = !clSel.value;
-    } else if (module === 'dibujos' || module === 'fundicion') {
-        if (clSel && otSel) clSel.disabled = !otSel.value;
-    }
+    if (clSel && otSel) clSel.disabled = !otSel.value;
 }
 
 function updateAdminUI() {
-        let p1 = null, p2 = null, label = '';
+    let p1 = null, p2 = null, label = '';
     let ready = false;
 
     const otSel = document.getElementById('ot-select');
     const clSel = document.getElementById('clase-select');
-    const prSel = document.getElementById('proceso-select');
 
-    if (module === 'fundicion' && otSel && clSel && otSel.value && clSel.value) {
-        if (otSel.selectedIndex !== -1 && clSel.selectedIndex !== -1) {
-            ready = true;
-            const otText = otSel.options[otSel.selectedIndex].text.trim();
-            p1 = normalizeOTName(otText); 
-            let rawP2 = clSel.options[clSel.selectedIndex].text.trim();
-            // Limpiar texto de (Opcional) si existe
-            p2 = rawP2.replace(' (Opcional)', '');
-            if (clSel.value === '--') p2 = '--';
-            label = `${p1} / ${p2}`;
-        }
-    } else if (module === 'dibujos' && otSel && clSel && otSel.value && clSel.value) {
+    if (otSel && clSel && otSel.value && clSel.value) {
         if (otSel.selectedIndex !== -1 && clSel.selectedIndex !== -1) {
             ready = true;
             const otText = otSel.options[otSel.selectedIndex].text.trim();
@@ -112,22 +78,6 @@ function updateAdminUI() {
             p2 = clSel.options[clSel.selectedIndex].text.trim();
             if (clSel.value === '--') p2 = '--';
             label = `${p1} / ${p2}`;
-        }
-    } else if (module === 'manuales' && prSel && prSel.value) {
-        if (prSel.selectedIndex !== -1) {
-            ready = true;
-            p1 = prSel.options[prSel.selectedIndex].text.trim();
-            label = p1;
-        }
-    } else if ((module === 'ayudas' || module === 'ayudas_fundicion') && clSel && prSel && clSel.value && prSel.value) {
-        // En ayudas_fundicion, prSel puede ser un input hidden
-        const isClSelect = clSel.tagName === 'SELECT';
-        const isPrSelect = prSel.tagName === 'SELECT';
-
-        if ((!isClSelect || clSel.selectedIndex !== -1) && (!isPrSelect || prSel.selectedIndex !== -1)) {
-            ready = true;
-            p1 = isPrSelect ? prSel.options[prSel.selectedIndex].text.trim() : prSel.value;
-            p2 = isClSelect ? clSel.options[clSel.selectedIndex].text.trim() : clSel.value;
         }
     }
 
@@ -145,16 +95,7 @@ function updateAdminUI() {
     const btnSubir = document.getElementById('btn-subir-pdf');
 
     if (ready) {
-        let label = '';
-        if (module === 'dibujos' || module === 'fundicion') {
-            label = `<span class="lvl-1">${p1}</span> <span class="lvl-sep">/</span> <span class="lvl-2">${p2}</span>`;
-        } else if (module === 'ayudas') {
-            label = `<span class="lvl-1">${p2}</span> <span class="lvl-sep">/</span> <span class="lvl-2">${p1}</span>`;
-        } else if (module === 'ayudas_fundicion') {
-            label = `<span class="lvl-1">${p2}</span>`;
-        } else if (module === 'manuales') {
-            label = `<span class="lvl-1">${p1}</span>`;
-        }
+        let label = `<span class="lvl-1">${p1}</span> <span class="lvl-sep">/</span> <span class="lvl-2">${p2}</span>`;
 
         // Carpeta destino labels
         document.querySelectorAll('.folder-label').forEach(el => el.innerHTML = label);
@@ -172,16 +113,8 @@ function updateAdminUI() {
         const eq = (a, b) => a && b && String(a).toLowerCase() === String(b).toLowerCase();
         let existe = false;
         if (window.estructura) {
-            if (module === 'dibujos' || module === 'fundicion') {
-                const k1 = Object.keys(window.estructura).find(k => eq(k, p1));
-                if (k1 && window.estructura[k1]) existe = window.estructura[k1].some(val => eq(val, p2));
-            } else if (module === 'manuales' || module === 'ayudas') {
-                if (Array.isArray(window.estructura)) existe = window.estructura.some(val => eq(val, p1));
-                else existe = !!Object.keys(window.estructura).find(k => eq(k, p1));
-            } else if (module === 'ayudas_fundicion') {
-                if (Array.isArray(window.estructura)) existe = window.estructura.some(val => eq(val, p2));
-                else existe = !!Object.keys(window.estructura).find(k => eq(k, p2));
-            }
+            const k1 = Object.keys(window.estructura).find(k => eq(k, p1));
+            if (k1 && window.estructura[k1]) existe = window.estructura[k1].some(val => eq(val, p2));
         }
 
         // Visibilidad Alertas Izquierda
@@ -190,10 +123,7 @@ function updateAdminUI() {
         if (alertReadyNotExists) alertReadyNotExists.style.display = existe ? 'none' : 'block';
         if (btnCrear) {
             btnCrear.style.display = existe ? 'none' : 'block';
-            if (module === 'dibujos' || module === 'fundicion') { btnCrear.dataset.otId = otSel.value; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
-            else if (module === 'manuales') { btnCrear.dataset.proceso = p1; btnCrear.dataset.folderParam1 = p1; }
-            else if (module === 'ayudas') { btnCrear.dataset.proceso = p1; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
-            else if (module === 'ayudas_fundicion') { btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
+            btnCrear.dataset.otId = otSel.value; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2;
         }
 
         // Visibilidad Panel Derecha (Subir)
@@ -210,17 +140,10 @@ function updateAdminUI() {
         if (btnSubir) {
             btnSubir.disabled = !existe;
             btnSubir.style.display = existe ? 'inline-block' : 'none';
-            if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
-            else if (module === 'manuales') { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; }
-            else if (module === 'ayudas') { btnSubir.dataset.proceso = p1; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
-            else if (module === 'ayudas_fundicion') { btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
+            btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2;
         }
 
         cargarArchivosEnPanel(p1, p2);
-        
-        if (window.initFundicionChecklists) {
-            setTimeout(window.initFundicionChecklists, 100);
-        }
     } else {
         if (panelFiles) panelFiles.classList.remove('active');
         if (alertNotReady) alertNotReady.style.display = 'block';
@@ -373,28 +296,12 @@ function initUploadBtn() {
 }
 
 function getPayloadFromBtn(btn) {
-    if (module === 'dibujos' || module === 'fundicion') return { 
+    return { 
         ot_id: btn.dataset.otId, 
         clase: btn.dataset.clase, 
         param1: btn.dataset.folderParam1 || btn.dataset.otId, 
         param2: btn.dataset.folderParam2 || btn.dataset.clase 
     };
-    if (module === 'manuales') return { 
-        proceso: btn.dataset.proceso, 
-        param1: btn.dataset.folderParam1 || btn.dataset.proceso 
-    };
-    if (module === 'ayudas') return { 
-        proceso: btn.dataset.proceso, 
-        clase: btn.dataset.clase, 
-        param1: btn.dataset.folderParam1 || btn.dataset.proceso, 
-        param2: btn.dataset.folderParam2 || btn.dataset.clase 
-    };
-    if (module === 'ayudas_fundicion') return { 
-        clase: btn.dataset.clase, 
-        param1: btn.dataset.folderParam1, 
-        param2: btn.dataset.folderParam2 || btn.dataset.clase 
-    };
-    return {};
 }
 
 function cargarArchivosEnPanel(param1, param2 = null, payloadObj = null) {
@@ -407,15 +314,7 @@ function cargarArchivosEnPanel(param1, param2 = null, payloadObj = null) {
     const c1 = param1 ? encodeURIComponent(param1) : '';
     const c2 = (param2 && param2 !== 'null') ? encodeURIComponent(param2) : '';
 
-    if (module === 'dibujos' || module === 'fundicion') {
-        url += `ot=${c1}&clase=${c2}`;
-    } else if (module === 'manuales') {
-        url += `proceso=${c1}`;
-    } else if (module === 'ayudas') {
-        url += `proceso=${c1}&clase=${c2}`;
-    } else if (module === 'ayudas_fundicion') {
-        url += `clase=${c2}`;
-    }
+    url += `ot=${c1}&clase=${c2}`;
 
     fetch(url, { headers: { 'Accept': 'application/json' } })
         .then(r => r.json())
@@ -427,10 +326,6 @@ function cargarArchivosEnPanel(param1, param2 = null, payloadObj = null) {
 
 function renderArchivosGrid(data, param1, param2) {
     const grid = document.getElementById('archivos-grid');
-    const ayudasSection = document.getElementById('fundicion-ayudas-section');
-    if (module === 'fundicion' && ayudasSection) {
-        ayudasSection.style.display = (data.existe && data.archivos.length > 0) ? 'block' : 'none';
-    }
 
     if (!data.existe || data.archivos.length === 0) {
         grid.innerHTML = `
@@ -485,10 +380,7 @@ window.prepararReemplazo = function(nombreArchivo, param1, param2, btnElement) {
         if (!file) return;
         
         let payload = { archivo_anterior: nombreArchivo };
-        if (module === 'dibujos' || module === 'fundicion') { payload.ot = param1; payload.clase = param2; }
-        else if (module === 'manuales') { payload.proceso = param1; }
-        else if (module === 'ayudas') { payload.proceso = param1; payload.clase = param2; }
-        else if (module === 'ayudas_fundicion') { payload.clase = param2; }
+        payload.ot = param1; payload.clase = param2;
         
         reemplazarPdf(payload, file, btnElement, () => {
             cargarArchivosEnPanel(param1, param2);
@@ -505,10 +397,7 @@ window.eliminarPdf = function(nombreArchivo, param1, param2) {
     if (!confirm(`¿Deseas eliminar el archivo "${nombreArchivo}"?\nEsta acción no se puede deshacer.`)) return;
 
     let payload = { archivo: nombreArchivo };
-    if (module === 'dibujos' || module === 'fundicion') { payload.ot = param1; payload.clase = param2; }
-    else if (module === 'manuales') { payload.proceso = param1; }
-    else if (module === 'ayudas') { payload.proceso = param1; payload.clase = param2; }
-    else if (module === 'ayudas_fundicion') { payload.clase = param2; }
+    payload.ot = param1; payload.clase = param2;
 
     fetch(window.routes['doc.delete'], {
         method: 'POST',
@@ -609,27 +498,13 @@ function reemplazarPdf(payload, file, btn, onSuccess) {
 
 function loadBadgeCounts() {
     let rows;
-    if (module === 'dibujos' || module === 'fundicion') rows = document.querySelectorAll('[data-ot][data-clase]');
-    else if (module === 'manuales') rows = document.querySelectorAll('[data-proceso]');
-    else if (module === 'ayudas') rows = document.querySelectorAll('[data-proceso][data-clase]');
-    else if (module === 'ayudas_fundicion') rows = document.querySelectorAll('[data-clase]');
+    rows = document.querySelectorAll('[data-ot][data-clase]');
     
     if(!rows) return;
 
     rows.forEach(row => {
-        if (module === 'dibujos' || module === 'fundicion') actualizarBadge(row.dataset.ot, row.dataset.clase);
-        else if (module === 'manuales') actualizarBadge(row.dataset.proceso);
-        else if (module === 'ayudas') actualizarBadge(row.dataset.proceso, row.dataset.clase);
-        else if (module === 'ayudas_fundicion') actualizarBadge(null, row.dataset.clase);
+        actualizarBadge(row.dataset.ot, row.dataset.clase);
     });
-
-    // Totales globales por OT (Solo Fundicion)
-    if (module === 'fundicion') {
-        const totalBadges = document.querySelectorAll('[data-ot-total]');
-        totalBadges.forEach(badge => {
-            actualizarTotalBadge(badge.dataset.otTotal, badge);
-        });
-    }
 }
 
 function actualizarTotalBadge(ot, badgeElement) {
@@ -652,15 +527,7 @@ function getBadgeElement(param1, param2 = null) {
     const safeParam1 = param1 ? param1.replace(/"/g, '\\"') : '';
     const safeParam2 = param2 ? param2.replace(/"/g, '\\"') : '';
 
-    if (module === 'dibujos' || module === 'fundicion') {
-        rowSelector = `tr[data-ot="${safeParam1}"][data-clase="${safeParam2}"]`;
-    } else if (module === 'manuales') {
-        rowSelector = `tr[data-proceso="${safeParam1}"]`;
-    } else if (module === 'ayudas') {
-        rowSelector = `tr[data-proceso="${safeParam1}"][data-clase="${safeParam2}"]`;
-    } else if (module === 'ayudas_fundicion') {
-        rowSelector = `tr[data-clase="${safeParam2}"]`;
-    }
+    rowSelector = `tr[data-ot="${safeParam1}"][data-clase="${safeParam2}"]`;
 
     if (rowSelector) {
         const row = document.querySelector(rowSelector);
@@ -671,12 +538,7 @@ function getBadgeElement(param1, param2 = null) {
     }
 
     // Fallback original con IDs
-    let badgeId = '';
-    if (module === 'dibujos') badgeId = `badge-${slugify(param1)}-${param2 ? slugify(param2) : 'raiz'}`;
-    else if (module === 'fundicion') badgeId = `badge-${slugify(param1)}-${slugify(param2 || 'Raíz OT')}`;
-    else if (module === 'manuales') badgeId = `badge-${slugify(param1)}`;
-    else if (module === 'ayudas') badgeId = `badge-${slugify(param2)}-${slugify(param1)}`;
-    else if (module === 'ayudas_fundicion') badgeId = `badge-${slugify(param2)}`;
+    let badgeId = `badge-${slugify(param1)}-${param2 ? slugify(param2) : 'raiz'}`;
     
     return document.getElementById(badgeId);
 }
@@ -686,10 +548,7 @@ function actualizarBadge(param1, param2 = null) {
     if (!badge) return;
 
     let url = window.routes['doc.archivos'] + '?';
-    if (module === 'dibujos' || module === 'fundicion') url += `ot=${encodeURIComponent(param1)}&clase=${encodeURIComponent(param2)}`;
-    else if (module === 'manuales') url += `proceso=${encodeURIComponent(param1)}`;
-    else if (module === 'ayudas') url += `proceso=${encodeURIComponent(param1)}&clase=${encodeURIComponent(param2)}`;
-    else if (module === 'ayudas_fundicion') url += `clase=${encodeURIComponent(param2)}`;
+    url += `ot=${encodeURIComponent(param1)}&clase=${encodeURIComponent(param2)}`;
 
     fetch(url, { headers: { 'Accept': 'application/json' } })
         .then(r => r.json())
@@ -708,12 +567,7 @@ function actualizarBadge(param1, param2 = null) {
                 if (btnEliminar) {
                     const btnSpan = btnEliminar.querySelector('span');
                     const btnImg = btnEliminar.querySelector('img');
-                    // Identificar si es Directorio Raíz
-                    const isRoot = (row.dataset.proceso === '--' || 
-                                    (!row.dataset.clase && !row.dataset.proceso) || 
-                                    (module === 'dibujos' && !row.dataset.clase) ||
-                                    (module === 'fundicion' && !row.dataset.clase) ||
-                                    module === 'manuales');
+                    const isRoot = (!row.dataset.clase);
                     
                     if (count > 0) {
                         if (btnSpan) btnSpan.textContent = 'Vaciar Carpeta';
@@ -722,9 +576,7 @@ function actualizarBadge(param1, param2 = null) {
                         if (btnSpan) btnSpan.textContent = 'Eliminar Directorio Raíz';
                         if (btnImg) btnImg.src = window.baseUrl + '/images/Eliminar-Carpeta.png';
                     } else {
-                        // Etiquetas específicas para subcarpetas vacías
-                        const labelMap = { 'dibujos': 'Clase', 'ayudas': 'Proceso', 'ayudas_fundicion': 'Carpeta' };
-                        if (btnSpan) btnSpan.textContent = 'Eliminar ' + (labelMap['dibujos'] || 'Carpeta');
+                        if (btnSpan) btnSpan.textContent = 'Eliminar Clase';
                         if (btnImg) btnImg.src = window.baseUrl + '/images/Eliminar-Carpeta.png';
                     }
                 }
@@ -873,45 +725,13 @@ window.confirmarEliminarCarpeta = function(p1, p2, label) {
         
         let finalHtml = '';
 
-        if (module === 'dibujos') {
-            if (!p2) { // Eliminando OT (Raíz)
-                finalHtml = `Se va a ${actionWord} del Directorio Raíz:<br>
-                             <strong style="color: #033966; font-size: 1.2em;">${p1}</strong>`;
-            } else { // Eliminando Clase (Subcarpeta)
-                finalHtml = `Se va a ${actionWord} de la clase:<br>
-                             <span class="confirm-label-highlight" style="display: inline-block; margin-top: 0.3em;">${p2}</span><br>
-                             <small style="color: #555;">(Orden de Trabajo: ${label.split(' / ')[0]})</small>`;
-            }
-        } else if (module === 'fundicion') {
-            if (!p2) { // Eliminando OT (Raíz)
-                finalHtml = `Se va a ${actionWord} del Directorio Raíz:<br>
-                             <strong style="color: #033966; font-size: 1.2em;">${p1}</strong>`;
-            } else { // Eliminando Clase (Subcarpeta)
-                finalHtml = `Se va a ${actionWord} de la clase:<br>
-                             <span class="confirm-label-highlight" style="display: inline-block; margin-top: 0.3em;">${p2}</span><br>
-                             <small style="color: #555;">(Orden de Trabajo: ${label.split(' / ')[0]})</small>`;
-            }
-        } else if (module === 'manuales') {
+        if (!p2) { // Eliminando OT (Raíz)
             finalHtml = `Se va a ${actionWord} del Directorio Raíz:<br>
-                         <strong style="color: #033966; font-size: 1.2em;">${p1}</strong>`;
-        } else if (module === 'ayudas') {
-            if (p1 === '--') { // Eliminando Clase (Raíz)
-                finalHtml = `Se va a ${actionWord} del Directorio Raíz:<br>
-                             <strong style="color: #033966; font-size: 1.2em;">${p2}</strong>`;
-            } else { // Eliminando Proceso (Subcarpeta)
-                finalHtml = `Se va a ${actionWord} del proceso:<br>
-                             <span class="confirm-label-highlight" style="display: inline-block; margin-top: 0.3em;">${p1}</span><br>
-                             <small style="color: #555;">(Clase: ${p2})</small>`;
-            }
-        } else if (module === 'ayudas_fundicion') {
-            if (p1 === '--') { // Eliminando Clase (Raíz)
-                finalHtml = `Se va a ${actionWord} del Directorio Raíz:<br>
-                             <strong style="color: #033966; font-size: 1.2em;">${p2}</strong>`;
-            } else { // Eliminando 'Fundicion' (Subcarpeta)
-                finalHtml = `Se va a ${actionWord} de la carpeta:<br>
-                             <span class="confirm-label-highlight" style="display: inline-block; margin-top: 0.3em;">Fundición</span><br>
-                             <small style="color: #555;">(Clase: ${p2})</small>`;
-            }
+                            <strong style="color: #033966; font-size: 1.2em;">${p1}</strong>`;
+        } else { // Eliminando Clase (Subcarpeta)
+            finalHtml = `Se va a ${actionWord} de la clase:<br>
+                            <span class="confirm-label-highlight" style="display: inline-block; margin-top: 0.3em;">${p2}</span><br>
+                            <small style="color: #555;">(Orden de Trabajo: ${label.split(' / ')[0]})</small>`;
         }
 
         msgContainer.innerHTML = finalHtml;
@@ -941,33 +761,11 @@ function eliminarCarpetaAJAX(folder) {
         let payload = {};
     let route = window.routes['doc.deleteFolder'];
 
-    if (module === 'dibujos') {
-        if (!folder.p2) {
-            payload = { ot: folder.p1 };
-            route = window.routes['doc.deleteParent'];
-        } else {
-            payload = { ot: folder.p1, clase: folder.p2 };
-        }
-    } else if (module === 'fundicion') {
-        if (!folder.p2) {
-            payload = { ot: folder.p1 };
-            route = window.routes['doc.deleteParent'];
-        } else {
-            payload = { ot: folder.p1, clase: folder.p2 };
-            route = window.routes['doc.deleteFolder'];
-        }
-    } else if (module === 'manuales') {
-        payload = { proceso: folder.p1 };
-    } else if (module === 'ayudas') {
-        if (!folder.p1 || folder.p1 === '--' || folder.p1 === '-- SIN CLASE --') {
-            payload = { proceso: folder.p2 }; // Enviamos la Clase al deleteParent
-            route = window.routes['doc.deleteParent'];
-        } else {
-            payload = { proceso: folder.p1, clase: folder.p2 };
-        }
-    } else if (module === 'ayudas_fundicion') {
-        // Estructura de 1 nivel: solo clase
-        payload = { clase: folder.p1 };
+    if (!folder.p2) {
+        payload = { ot: folder.p1 };
+        route = window.routes['doc.deleteParent'];
+    } else {
+        payload = { ot: folder.p1, clase: folder.p2 };
     }
 
     fetch(route, {
@@ -985,31 +783,9 @@ function eliminarCarpetaAJAX(folder) {
             mostrarNotificacion(data.message || 'Carpeta eliminada.');
             
             // Actualizar estructura local
-            if (module === 'dibujos') {
-                if (window.estructura[folder.p1]) {
-                    window.estructura[folder.p1] = window.estructura[folder.p1].filter(c => c !== folder.p2);
-                    if (window.estructura[folder.p1].length === 0) delete window.estructura[folder.p1];
-                }
-            } else if (module === 'fundicion') {
-                if (window.estructura[folder.p1]) {
-                    if (folder.p2) {
-                        window.estructura[folder.p1] = window.estructura[folder.p1].filter(c => c !== folder.p2);
-                        if (window.estructura[folder.p1].length === 0) delete window.estructura[folder.p1];
-                    } else {
-                        delete window.estructura[folder.p1];
-                    }
-                }
-            } else if (module === 'manuales') {
-                if (Array.isArray(window.estructura)) {
-                    window.estructura = window.estructura.filter(p => p !== folder.p1);
-                } else {
-                    delete window.estructura[folder.p1];
-                }
-            } else if (module === 'ayudas') {
-                if (window.estructura[folder.p2]) {
-                    window.estructura[folder.p2] = window.estructura[folder.p2].filter(p => p !== folder.p1);
-                    if (window.estructura[folder.p2].length === 0) delete window.estructura[folder.p2];
-                }
+            if (window.estructura[folder.p1]) {
+                window.estructura[folder.p1] = window.estructura[folder.p1].filter(c => c !== folder.p2);
+                if (window.estructura[folder.p1].length === 0) delete window.estructura[folder.p1];
             }
 
             // Si la carpeta eliminada era la que estabamos viendo, limpiar UI
@@ -1025,322 +801,7 @@ function eliminarCarpetaAJAX(folder) {
     .catch(() => mostrarNotificacion('Error de conexión.', true));
 }
 
-window.enviarAlertaFundicion = function(archivo, ot, btnEl) {
-    const originalContent = btnEl.innerHTML;
-    
-    // Check if we already have the spinner to prevent multiple clicks
-    if (btnEl.disabled) return;
-    
-    btnEl.disabled = true;
-    btnEl.innerHTML = '<span class="dibujos-spinner dibujos-spinner-sm"></span>...';
-    
-    fetch(window.routes['fundicion.send_alert'] || '/fundicion/send-alert', {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': window.csrfToken,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        },
-        body: JSON.stringify({ ot: ot, archivo: archivo || null })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            mostrarNotificacion(data.message || 'Alerta enviada correctamente.');
-            loadAuditLog();
-        } else {
-            mostrarNotificacion(data.message || 'No se pudo enviar la alerta.', true);
-        }
-    })
-    .catch(() => mostrarNotificacion('Error de conexión al enviar alerta.', true))
-    .finally(() => {
-        btnEl.disabled = false;
-        btnEl.innerHTML = originalContent;
-    });
-};
 
-function initAyudasFundicionForm() {
-    const section = document.getElementById('fundicion-ayudas-section');
-    if (!section) return;
-
-    const form = section.querySelector('form');
-    if (!form) return;
-
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const btn = form.querySelector('button[type="submit"]');
-        const originalText = btn.innerHTML;
-        const formData = new FormData(form);
-        
-        btn.disabled = true;
-        btn.innerHTML = '<span class="dibujos-spinner dibujos-spinner-sm"></span> Guardando...';
-
-        fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': window.csrfToken,
-                'Accept': 'application/json',
-            },
-            body: formData
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                mostrarNotificacion(data.message || 'Ayudas visuales vinculadas correctamente.');
-                loadAuditLog();
-                // Recargar página para actualizar la tabla de estructura (columna Ayudas Vinculadas)
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                mostrarNotificacion(data.message || 'No se pudieron vincular las ayudas.', true);
-            }
-        })
-        .catch(() => {
-            mostrarNotificacion('Error de conexión al guardar ayudas.', true);
-        })
-        .finally(() => {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        });
-    });
-
-    // Botón de Desvincular Manual
-    const btnUnlink = section.querySelector('#btn-desvincular-ayudas');
-    if (btnUnlink) {
-        btnUnlink.addEventListener('click', () => {
-            if (!confirm('¿Seguro que deseas desvincular todas las ayudas visuales de esta OT? Esto también las eliminará de la vista de Almacén.')) return;
-
-            const originalText = btnUnlink.innerHTML;
-            btnUnlink.disabled = true;
-            btnUnlink.innerHTML = '<span class="dibujos-spinner dibujos-spinner-sm"></span>...';
-
-            fetch(window.routes['fundicion.unlink_ayudas'] || '/fundicion/unlink-ayudas', {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': window.csrfToken,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ ot: btnUnlink.dataset.ot })
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    mostrarNotificacion(data.message || 'Ayudas desvinculadas.');
-                    setTimeout(() => window.location.reload(), 1500);
-                } else {
-                    mostrarNotificacion(data.message || 'No se pudo desvincular.', true);
-                }
-            })
-            .catch(() => mostrarNotificacion('Error de conexión.', true))
-            .finally(() => {
-                btnUnlink.disabled = false;
-                btnUnlink.innerHTML = originalText;
-            });
-        });
-    }
-}
-
-// ══════════════════════════════════════════════════════════
-// FundicionChecklistCard — Checklist reactivo del flujo de fundición
-// (Añadido para dar soporte interactivo a la vista actual)
-// ══════════════════════════════════════════════════════════
-class FundicionChecklistCard {
-    constructor(otId, container) {
-        this.otId = otId;
-        this._data = { pasos: {} };
-        this.container = container;
-        this._pollTimer = null;
-        this._mounted = false;
-        this.root = null;
-
-        if (container.classList.contains('fundicion-checklist-card')) {
-            this.root = container;
-            this.root.innerHTML = '';
-            this._mounted = true;
-            this._renderInto(this.root);
-        } else {
-            this._mount();
-        }
-
-        this._poll();
-        this._startPolling();
-    }
-
-    _mount() {
-        if (this._mounted) return;
-        this.root = document.createElement('div');
-        this.root.className = 'fundicion-checklist-card';
-        this.root.id = `fundicion-checklist-${this.otId}`;
-        this._renderInto(this.root);
-        this.container.appendChild(this.root);
-        this._mounted = true;
-    }
-
-    _renderInto(card) {
-        const header = document.createElement('div');
-        header.className = 'checklist-header';
-
-        const title = document.createElement('span');
-        title.className = 'checklist-title';
-        title.textContent = 'Levantamiento de OT';
-        header.appendChild(title);
-
-        const badge = document.createElement('span');
-        badge.className = 'checklist-reproceso-badge';
-        badge.id = `checklist-badge-${this.otId}`;
-        badge.textContent = 'Reproceso';
-        badge.style.display = 'none';
-        header.appendChild(badge);
-
-        card.appendChild(header);
-
-        const itemsContainer = document.createElement('div');
-        itemsContainer.className = 'checklist-items';
-        itemsContainer.id = `checklist-items-${this.otId}`;
-        itemsContainer.style.display = 'none';
-        card.appendChild(itemsContainer);
-        
-        card.classList.add('is-closed');
-
-        // Toggle logic: make whole card clickable
-        card.style.cursor = 'pointer';
-        card.addEventListener('click', () => {
-            if (itemsContainer.style.display === 'none') {
-                itemsContainer.style.display = '';
-                card.classList.remove('is-closed');
-            } else {
-                itemsContainer.style.display = 'none';
-                card.classList.add('is-closed');
-            }
-        });
-
-        this._updateCard(card, this._data);
-    }
-
-    _getIconFor(estado) {
-        const baseUrl = window.baseUrl || (window.location.origin + '/');
-        const slash = baseUrl.endsWith('/') ? '' : '/';
-        let imgName = '';
-        switch (estado) {
-            case 'completado': imgName = 'Aprobado.png'; break;
-            case 'pendiente': imgName = 'Espera.png'; break;
-            case 'rechazado': imgName = 'Rechazado.png'; break;
-            case 'inactivo': default: imgName = 'Recibido.png'; break;
-        }
-        return `${baseUrl}${slash}images/${imgName}`;
-    }
-
-    _getBorderColor(data) {
-        const pasos = Object.values(data.pasos || {});
-        if (pasos.some(p => p.estado === 'rechazado')) return '#9D0402';
-        if (pasos.length > 0 && pasos.every(p => p.estado === 'completado')) return '#0C8201';
-        return '#424141';
-    }
-
-    _updateCard(card, data) {
-        if (!card) return;
-
-        let colorHex = this._getBorderColor(data);
-        if (colorHex === '#9D0402') { card.style.borderColor = '#9D0402'; card.style.boxShadow = 'none'; }
-        else if (colorHex === '#0C8201') { card.style.borderColor = '#0C8201'; card.style.boxShadow = 'none'; }
-        else { card.style.borderColor = ''; card.style.boxShadow = ''; }
-
-        const badge = card.querySelector(`#checklist-badge-${this.otId}`);
-        if (badge) {
-            badge.style.display = data.isBadgeVisible ? 'inline-flex' : 'none';
-            if (data.badgeText) badge.textContent = data.badgeText;
-        }
-
-        const container = card.querySelector(`#checklist-items-${this.otId}`);
-        if (!container) return;
-        container.innerHTML = '';
-
-        const pasosEntries = Object.entries(data.pasos || {});
-        if (pasosEntries.length === 0) {
-            container.innerHTML = `<div style="padding: 10px; color: #64748b; font-size: 0.85rem; text-align: center;">Cargando estado...</div>`;
-            return;
-        }
-
-        pasosEntries.forEach(([key, paso]) => {
-            if (!paso) return;
-
-            const item = document.createElement('div');
-            item.className = `checklist-item checklist-item--${paso.estado}`;
-            if (paso.tooltip) { item.title = paso.tooltip; item.style.cursor = 'help'; }
-
-            const iconSpan = document.createElement('span');
-            iconSpan.className = 'checklist-icon';
-
-            const img = document.createElement('img');
-            img.src = this._getIconFor(paso.estado);
-            img.alt = paso.estado;
-            img.className = 'checklist-state-icon';
-            iconSpan.appendChild(img);
-
-            const label = document.createElement('span');
-            label.className = 'checklist-label';
-            label.textContent = paso.label;
-
-            item.appendChild(iconSpan);
-            item.appendChild(label);
-            container.appendChild(item);
-        });
-    }
-
-    _startPolling() {
-        this._pollTimer = setInterval(() => this._poll(), 30_000);
-    }
-
-    async _poll() {
-        if (!this.root || !this.root.isConnected) {
-            this._destroy();
-            return;
-        }
-        try {
-            const endpointUrl = window.fundicionChecklistUrl || `${window.location.origin}/admin/fundicion/checklist`;
-            const endpoint = `${endpointUrl}/${this.otId}`;
-            const res = await fetch(endpoint);
-            if (!res.ok) return;
-
-            const data = await res.json();
-            if (data && !data.error) {
-                this._data = data;
-                this._updateCard(this.root, data);
-            }
-        } catch (_) {}
-    }
-
-    _destroy() {
-        clearInterval(this._pollTimer);
-        this._pollTimer = null;
-        if (this.root && this.root.isConnected && !this.root.classList.contains('fundicion-checklist-card')) {
-            this.root.remove();
-        }
-    }
-}
-
-function initFundicionChecklists() {
-    document.querySelectorAll('.fundicion-checklist-card, .fundicion-checklist-container').forEach(el => {
-        if (el.hasAttribute('data-checklist-init')) return;
-        
-        let otId = el.getAttribute('data-ot');
-        if (!otId && el.id && el.id.startsWith('fundicion-checklist-')) {
-            otId = el.id.replace('fundicion-checklist-', '');
-        }
-        
-        if (otId) {
-            el.setAttribute('data-checklist-init', 'true');
-            new FundicionChecklistCard(otId, el);
-        }
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(initFundicionChecklists, 500);
-});
-
-window.initFundicionChecklists = initFundicionChecklists;
 
 
 function renderEstructuraTable() {
