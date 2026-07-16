@@ -892,7 +892,21 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                             // Siempre mantener archivos que no estén divididos por carpetas de clase
                             if (n.includes("documentos_aprobados") || n.includes("documentos_rechazados") || n.includes("pre-orden")) return true;
                             // Para Ayudas Visuales y Dibujos (que están dentro de carpetas de clase), validar si la clase es faltante
-                            return clasesFaltantes.some((clase) => n.includes(clase.toLowerCase()));
+                            const knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
+                            let foundClass = null;
+                            for (let kc of knownClasses) {
+                                if (n.includes(kc)) {
+                                    foundClass = kc;
+                                    break;
+                                }
+                            }
+                            if (foundClass) {
+                                return clasesFaltantes.some((clase) => {
+                                    let c = clase.toLowerCase().trim().replace(/^modelo\s+/i, "").replace(/^casting\s+/i, "").trim();
+                                    return foundClass === c;
+                                });
+                            }
+                            return false;
                         });
                     }
                 }
@@ -3079,7 +3093,7 @@ window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null,
                 let yaProcesada = false;
                 if (clasesFaltantes !== null && Array.isArray(clasesFaltantes)) {
                     // Validar si la clase actual NO está en clasesFaltantes
-                    const esFaltante = clasesFaltantes.some((f) => f.toLowerCase().includes(nombreNorm) || nombreNorm.includes(f.toLowerCase()));
+                    const esFaltante = clasesFaltantes.some((f) => f.toLowerCase() === nombreNorm);
                     yaProcesada = !esFaltante;
                 }
                 if (yaProcesada) {
@@ -3128,7 +3142,21 @@ onchange="window.onCmClaseToggle(this);">
                         archivosAMostrar = archivosAMostrar.filter((f) => {
                             const n = (f.nombre || "").toLowerCase();
                             if (n.includes("documentos_aprobados") || n.includes("documentos_rechazados") || n.includes("pre-orden")) return true;
-                            return clasesFaltantes.some((clase) => n.includes(clase.toLowerCase()));
+                            const knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
+                            let foundClass = null;
+                            for (let kc of knownClasses) {
+                                if (n.includes(kc)) {
+                                    foundClass = kc;
+                                    break;
+                                }
+                            }
+                            if (foundClass) {
+                                return clasesFaltantes.some((clase) => {
+                                    let c = clase.toLowerCase().trim().replace(/^modelo\s+/i, "").replace(/^casting\s+/i, "").trim();
+                                    return foundClass === c;
+                                });
+                            }
+                            return false;
                         });
                     }
                     const sectionsHtml = generarHtmlCategorizadoArchivos(archivosAMostrar, ot, baseUrl, "preorden"); // Use preorden to show Dibujos and Ayudas
@@ -3832,7 +3860,7 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
                 // Función para comprobar si el archivo pertenece a un listado de modelos activos
                 const archivoPerteneceAModelos = (nombre, modelosActivos) => {
                     const pl = nombre.toLowerCase();
-                    const todosModelosPosibles = ["bombillo", "fondo", "obturador", "molde"];
+                    const todosModelosPosibles = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
                     const modelosEncontrados = todosModelosPosibles.filter((m) => pl.includes(m));
                     if (modelosEncontrados.length === 0) {
                         return false;
@@ -4086,7 +4114,7 @@ Esta OT tiene modelos aprobados (<strong>${arrAprobados.join(", ")}</strong>) y 
             if (data.existe && data.archivos?.length > 0) {
                 const archivoPerteneceAModelos = (nombre, modelosActivos) => {
                     const pl = nombre.toLowerCase();
-                    const todosModelosPosibles = ["bombillo", "fondo", "obturador", "molde"];
+                    const todosModelosPosibles = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
                     const modelosEncontrados = todosModelosPosibles.filter((m) => pl.includes(m));
                     if (modelosEncontrados.length === 0) {
                         return false;
@@ -5791,7 +5819,7 @@ window.quitarArchivoRechazo = function (ot, archivo, buttonEl) {
                                     return false;
                                 return true;
                             });
-                            const clasesMonitoreadas = ["fondo", "bombillo", "molde", "obturador"];
+                            const clasesMonitoreadas = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
                             const filtrados = baseRech.filter((f) => {
                                 const nombre = (f.nombre || "").toLowerCase();
                                 const perteneceAClase = clasesMonitoreadas.some((c) => nombre.includes(c));
@@ -5849,7 +5877,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
     const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     document.getElementById("mgv-fecha").value = formattedToday;
     document.querySelectorAll(".mgv-form-fecha").forEach((i) => (i.value = formattedToday));
-    const requiredClasses = ["fondo", "bombillo", "molde", "obturador"];
+    const requiredClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
     const filteredAprobados = (aprobados || []).filter((c) => requiredClasses.includes(c.toLowerCase()));
     const filteredRechazados = (rechazados || []).filter((c) => requiredClasses.includes(c.toLowerCase()));
     const hiddenClasesRech = document.getElementById("mgv-clases-rechazadas");
@@ -5899,7 +5927,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
             if (data.existe && data.archivos && data.archivos.length > 0) {
                 // Función helper para filtrar archivos por clases activas en la pestaña
                 const filtrarPorClasesActivas = (archivosList, clasesActivas, esAprobados) => {
-                    const clasesMonitoreadas = ["fondo", "bombillo", "molde", "obturador"];
+                    const clasesMonitoreadas = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
                     return archivosList.filter((f) => {
                         const nombre = (f.nombre || "").toLowerCase();
                         const perteneceAClase = clasesMonitoreadas.some((c) => nombre.includes(c));

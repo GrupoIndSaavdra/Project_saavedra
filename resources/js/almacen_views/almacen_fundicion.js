@@ -3623,10 +3623,23 @@ window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null,
                         archivosAMostrar = archivosAMostrar.filter(f => {
                             const n = (f.nombre || '').toLowerCase();
                             if (n.includes('documentos_aprobados') || n.includes('documentos_rechazados') || n.includes('pre-orden')) return true;
-                            return clasesFaltantes.some(clase => {
-                                let c = clase.toLowerCase().trim().replace(/^modelo\s+/i, '').replace(/^casting\s+/i, '').trim();
-                                return n.includes(c);
-                            });
+                            
+                            const knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
+                            let foundClass = null;
+                            for (let kc of knownClasses) {
+                                if (n.includes(kc)) {
+                                    foundClass = kc;
+                                    break;
+                                }
+                            }
+                            
+                            if (foundClass) {
+                                return clasesFaltantes.some(clase => {
+                                    let c = clase.toLowerCase().trim().replace(/^modelo\s+/i, '').replace(/^casting\s+/i, '').trim();
+                                    return foundClass === c;
+                                });
+                            }
+                            return false;
                         });
                     }
 
@@ -6449,7 +6462,7 @@ window.quitarArchivoRechazo = function (ot, archivo, buttonEl) {
                                 if (nombre.includes('aprobado') || (nombre.includes('pre-orden') && nombre.includes('fundicion') && !nombre.includes('modelo'))) return false;
                                 return true;
                             });
-                            const clasesMonitoreadas = ['fondo', 'bombillo', 'molde', 'obturador'];
+                            const clasesMonitoreadas = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                             const filtrados = baseRech.filter(f => {
                                 const nombre = (f.nombre || '').toLowerCase();
                                 const perteneceAClase = clasesMonitoreadas.some(c => nombre.includes(c));
@@ -6513,7 +6526,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
     document.getElementById('mgv-fecha').value = formattedToday;
     document.querySelectorAll('.mgv-form-fecha').forEach(i => i.value = formattedToday);
 
-    const requiredClasses = ['fondo', 'bombillo', 'molde', 'obturador'];
+    const requiredClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
     const filteredAprobados = (aprobados || []).filter(c => requiredClasses.includes(c.toLowerCase()));
     const filteredRechazados = (rechazados || []).filter(c => requiredClasses.includes(c.toLowerCase()));
 
@@ -6576,7 +6589,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
                 // Un archivo es "de una clase" cuando su nombre incluye el nombre de esa clase.
                 // Si menciona varias clases, solo se incluye si al menos UNA de las clases activas aparece.
                 const filtrarPorClasesActivas = (archivosList, clasesActivas) => {
-                    const clasesMonitoreadas = ['fondo', 'bombillo', 'molde', 'obturador'];
+                    const clasesMonitoreadas = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                     const clasesActivasLower = clasesActivas.map(c => c.toLowerCase());
                     return archivosList.filter(f => {
                         const nombre = (f.nombre || '').toLowerCase();

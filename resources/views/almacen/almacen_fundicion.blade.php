@@ -560,7 +560,7 @@
                                                 }
 
                                                 if (empty($activeClassesForOt)) {
-                                                    $activeClassesForOt = ['fondo', 'bombillo', 'molde', 'obturador'];
+                                                    $activeClassesForOt = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                                                 }
                                                 $activeClassesForOt = array_values(array_unique($activeClassesForOt));
 
@@ -2308,10 +2308,8 @@
             <div class="alm-modal-header"
                 style="background: linear-gradient(135deg, #0a8504, #064e03); border-bottom: 2px solid #064e03; padding: 2.2em 2.5em 2em; position: relative;">
                 <div class="div-cerrar">
-                    <button type="button" class="btn-cerrar" onclick="cerrarModalConfirmarModelo()"
-                        style="position: absolute; top: 25px; right: 25px; background: rgba(255, 255, 255, 0.18); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 50%; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
-                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar"
-                            style="width: 14px; height: 14px; filter: brightness(0) invert(1);">
+                    <button type="button" class="btn-cerrar" onclick="cerrarModalConfirmarModelo()">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
                     </button>
                 </div>
                 <div style="display: flex; align-items: center; gap: 18px;">

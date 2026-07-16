@@ -192,7 +192,7 @@ class AlmacenFundicionController extends Controller
         $tipoPeticion = $request->query('tipo', '');
 
         if ($todo || $tipoPeticion === 'modelo') {
-            $activeClasses = ['fondo', 'bombillo', 'molde', 'obturador'];
+            $activeClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
         } else {
             // Filtrar clases activas basándose en las decisiones de Calidad
             $isReproceso = preg_match('/_R\d+$/i', $ot);
@@ -243,7 +243,7 @@ class AlmacenFundicionController extends Controller
             }
 
             if (empty($activeClasses)) {
-                $activeClasses = ['fondo', 'bombillo', 'molde', 'obturador'];
+                $activeClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
             }
         }
 

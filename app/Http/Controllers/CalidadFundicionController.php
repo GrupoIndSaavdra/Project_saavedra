@@ -183,7 +183,7 @@ class CalidadFundicionController extends Controller
         }
 
         if (empty($activeClasses)) {
-            $activeClasses = ['fondo', 'bombillo', 'molde', 'obturador'];
+            $activeClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
         }
         $activeClasses = array_unique($activeClasses);
 
@@ -1246,7 +1246,7 @@ class CalidadFundicionController extends Controller
             
             // 3. Fallback a todas si no se pudo determinar
             if (empty($clasesRequeridas)) {
-                $clasesRequeridas = ['Fondo', 'Bombillo', 'Molde', 'Obturador'];
+                $clasesRequeridas = ['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo'];
             }
             $clasesRequeridas = array_unique($clasesRequeridas);
             
