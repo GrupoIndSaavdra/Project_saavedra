@@ -326,6 +326,21 @@ class WOController extends Controller
                         $processes[$processName]['pieces'] = $this->getPieces($class, $processName, $piecesBadData);
                         $processes[$processName]['piecesBadData'] = $piecesBadData; //Informacion de las piezas malas
                         $processes[$processName]['endDate'] = $this->getDateEndFromProcess($field, $class); //Fecha de termino del proceso
+                        
+                        // Check if cotas are uploaded for this process
+                        $searchProcess = explode('_', $processName)[0];
+                        if ($processName === 'Soldadura y Soldadura PTA') {
+                            $searchProcess = 'none';
+                        }
+                        $hasCotas = false;
+                        if ($searchProcess !== 'none') {
+                            $hasCotas = SystemLog::query()->where('id_ot', $class->id_ot)
+                                ->where('clase', $class->nombre)
+                                ->where('action', 'Cargo/Modificación Cotas Nominales')
+                                ->where('proceso', $searchProcess)
+                                ->exists();
+                        }
+                        $processes[$processName]['hasCotas'] = $hasCotas;
                     }
                 }
             }
@@ -1048,52 +1063,125 @@ class WOController extends Controller
 
             $claseNameClean = trim(preg_replace('/[\/\\\\]/', '', preg_replace('/\.\.+/', '', $clase->nombre)));
 
+            // Calculate active processes exactly as they will be rendered in UI
+            $procesosActivosParaCotas = 0;
+            $procesosTotalesAsignados = 0;
+            $cotasGuardadas = 0;
+            
+            $procesosFounded = Procesos::query()->where('id_clase', $clase->id)->first();
+            $processesInOrder = [];
+            switch ($clase->nombre) {
+                case "Bombillo": case "Molde":
+                    $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                    break;
+                case 'Corona':
+                    $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
+                    break;
+                case "Obturador": case "Fondo":
+                    $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                    break;
+                case "Candado Obturador":
+                    $processesInOrder = ["operacionEquipo"];
+                    break;
+                case "Plato":
+                    $processesInOrder = ["barreno_maniobra", "operacionEquipo"];
+                    break;
+                case "Embudo":
+                    $processesInOrder = ["operacionEquipo", "embudoCM"];
+                    break;
+                case "Cabeza de Soplo":
+                    $processesInOrder = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+                    break;
+            }
+
+            $soldaduraBand = false;
+            if ($procesosFounded) {
+                $anyActive = false;
+                foreach ($processesInOrder as $p) {
+                    if ($procesosFounded[$p] != 0) {
+                        $anyActive = true;
+                        break;
+                    }
+                }
+
+                foreach ($processesInOrder as $process) {
+                    $isActive = $anyActive ? ($procesosFounded[$process] != 0) : true;
+                    if ($isActive) {
+                        if (str_contains($process, "soldadura") && $soldaduraBand) { 
+                            continue;
+                        }
+                        $soldaduraBand = str_contains($process, "soldadura") ? true : false;
+                        $field = $process == "operacionEquipo" ? ["1 operacion", "2 operacion"] : [$process];
+                        
+                        foreach ($field as $processField) {
+                            $procesosTotalesAsignados++;
+                            
+                            $processName = "";
+                            if (count($field) > 1) {
+                                $processName = "Operacion Equipo_" . $processField;
+                            } else {
+                                if (str_contains($processField, "soldadura")) {
+                                    $processName = "Soldadura y Soldadura PTA";
+                                } else {
+                                    $processName = $this->nombreProceso($processField);
+                                }
+                            }
+                            
+                            if ($processName !== 'Soldadura y Soldadura PTA') {
+                                $procesosActivosParaCotas++;
+                                
+                                $searchProcess = explode('_', $processName)[0];
+                                $hasCota = SystemLog::query()->where('id_ot', $ot->id)
+                                    ->where('clase', $clase->nombre)
+                                    ->where('action', 'Cargo/Modificación Cotas Nominales')
+                                    ->where('proceso', $searchProcess)
+                                    ->exists();
+                                if ($hasCota) {
+                                    $cotasGuardadas++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             // 1. Dibujos de maquinados subidos
-            $hasDibujos = false;
+            $dibujosSubidosCount = 0;
             $newPath = $dibujosDir . '/' . $claseNameClean;
             $oldPath = $oldDibujosDir . '/' . $claseNameClean;
 
             if (\Illuminate\Support\Facades\Storage::disk('local')->exists($newPath)) {
                 $files = \Illuminate\Support\Facades\Storage::disk('local')->files($newPath);
-                $hasDibujos = count(array_filter($files, fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')) > 0;
+                $dibujosSubidosCount = count(array_filter($files, fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf'));
             }
-            if (!$hasDibujos && \Illuminate\Support\Facades\Storage::disk('local')->exists($oldPath)) {
+            if ($dibujosSubidosCount === 0 && \Illuminate\Support\Facades\Storage::disk('local')->exists($oldPath)) {
                 $files = \Illuminate\Support\Facades\Storage::disk('local')->files($oldPath);
-                $hasDibujos = count(array_filter($files, fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')) > 0;
+                $dibujosSubidosCount = count(array_filter($files, fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf'));
             }
+            $hasDibujos = $dibujosSubidosCount > 0;
+            
+            // 2. Cotas finalizadas
+            $hasCotas = $procesosActivosParaCotas > 0 ? ($cotasGuardadas >= $procesosActivosParaCotas) : false;
 
-            // 2. Cotas de OT/Clase subidas (Admin)
-            // Se asume que Admin modificó cotas si hay un SystemLog, o simplemente chequeando si la clase tiene procesos con cotas.
-            // Para ser exactos y rápidos, consultamos si existe el registro de Admin en SystemLog para esta OT/Clase.
-            $hasCotas = SystemLog::query()->where('id_ot', $ot->id)
-                ->where('clase', $clase->nombre)
-                ->where('action', 'Cargo/Modificación Cotas Nominales')
-                ->exists();
-
-            // 3. Proceso asignado
-            // Chequear si existe un registro en `procesos` donde al menos una columna no sea id_clase tenga un valor positivo.
-            // Pero de forma simplificada, si el registro existe.
-            $hasProceso = Procesos::query()->where('id_clase', $clase->id)->exists();
-
+            $hasProceso = $procesosTotalesAsignados > 0 ? true : false;
             // Armar el estado del checklist
             $pasos = [];
 
             // Paso 1
             $pasos['fase1'] = [
-                'label' => 'Dibujos de maquinados subidos',
-                'estado' => $hasDibujos ? 'completado' : 'pendiente'
+                'label' => "Procesos de Producción ({$procesosTotalesAsignados})",
+                'estado' => $hasProceso ? 'completado' : 'pendiente'
             ];
 
             // Paso 2
             $pasos['fase2'] = [
-                'label' => 'Cotas de OT/Clase subidas (Admin)',
-                'estado' => $hasCotas ? 'completado' : ($hasDibujos ? 'pendiente' : 'inactivo')
+                'label' => $dibujosSubidosCount > 0 ? "Dibujos de maquinados subidos ({$dibujosSubidosCount})" : 'Dibujos de maquinados subidos',
+                'estado' => $hasDibujos ? 'completado' : ($hasProceso ? 'pendiente' : 'inactivo')
             ];
 
             // Paso 3
             $pasos['fase3'] = [
-                'label' => 'Proceso asignado',
-                'estado' => $hasProceso ? 'completado' : ($hasCotas ? 'pendiente' : 'inactivo')
+                'label' => "Cotas de OT/Clase subidas (Admin) ({$cotasGuardadas}/{$procesosActivosParaCotas})",
+                'estado' => $hasCotas ? 'completado' : ($hasDibujos ? 'pendiente' : 'inactivo')
             ];
 
             $checklist[$clase->id] = $pasos;

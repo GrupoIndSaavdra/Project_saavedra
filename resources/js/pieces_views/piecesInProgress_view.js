@@ -555,7 +555,7 @@ class FundicionChecklistCard {
             img.alt = safeEstado;
             img.className = 'checklist-state-icon';
             iconSpan.appendChild(img);
-            
+
             iconCol.appendChild(iconSpan);
 
             // Conector vertical
@@ -570,11 +570,11 @@ class FundicionChecklistCard {
             contentCol.className = 'checklist-content-col';
 
             const labelParts = paso.label.split(': ');
-            
+
             const labelDesc = document.createElement('span');
             labelDesc.className = 'checklist-label-desc';
             labelDesc.textContent = labelParts.length > 1 ? labelParts[1] : paso.label;
-            
+
             contentCol.appendChild(labelDesc);
 
             if (labelParts.length > 1) {
@@ -591,7 +591,7 @@ class FundicionChecklistCard {
             const statusBadge = document.createElement('span');
             statusBadge.className = `checklist-status-badge badge--${safeEstado.replace(/_/g, '-')}`;
             statusBadge.textContent = paso.estado.toUpperCase();
-            
+
             actionCol.appendChild(statusBadge);
 
             item.appendChild(iconCol);
@@ -609,10 +609,10 @@ class FundicionChecklistCard {
                     const spEstado = subPaso.estado.toLowerCase().replace(/\s+/g, '_');
                     const spItem = document.createElement('div');
                     spItem.className = `checklist-subpaso-item checklist-subpaso-item--${spEstado}`;
-                    
+
                     const spIconCol = document.createElement('div');
                     spIconCol.className = 'checklist-subpaso-icon-col';
-                    
+
                     const spIcon = document.createElement('img');
                     spIcon.src = this._getIconFor(subPaso.estado);
                     spIcon.className = 'checklist-subpaso-icon';
@@ -626,7 +626,7 @@ class FundicionChecklistCard {
 
                     const spContentCol = document.createElement('div');
                     spContentCol.className = 'checklist-subpaso-content-col';
-                    
+
                     const spLabel = document.createElement('span');
                     spLabel.className = 'checklist-subpaso-label';
                     spLabel.textContent = subPaso.label;
@@ -641,7 +641,7 @@ class FundicionChecklistCard {
 
                     const spBadgeCol = document.createElement('div');
                     spBadgeCol.className = 'checklist-subpaso-badge-col';
-                    
+
                     const spStatusBadge = document.createElement('span');
                     spStatusBadge.className = `checklist-subpaso-badge badge--${spEstado.replace(/_/g, '-')}`;
                     spStatusBadge.textContent = subPaso.estado.toUpperCase();
@@ -650,7 +650,7 @@ class FundicionChecklistCard {
                     spItem.appendChild(spIconCol);
                     spItem.appendChild(spContentCol);
                     spItem.appendChild(spBadgeCol);
-                    
+
                     subPasosContainer.appendChild(spItem);
                 });
 
@@ -663,7 +663,7 @@ class FundicionChecklistCard {
                 item.style.cursor = 'pointer';
                 item.addEventListener('click', (e) => {
                     e.stopPropagation(); // Avoid triggering the main card toggle
-                    
+
                     // Close other expanded items
                     const allExpandedItems = container.querySelectorAll('.checklist-item.is-expanded');
                     allExpandedItems.forEach(expandedItem => {
@@ -760,16 +760,26 @@ class PlaneacionChecklistCard {
         this._mounted = true;
     }
 
-    _getIconFor(estado) {
+    _getIconFor(estado, label = '') {
         const baseUrl = window.baseUrl || (window.location.origin + '/');
         const slash = baseUrl.endsWith('/') ? '' : '/';
         let imgName = '';
-        switch (estado) {
-            case 'completado': imgName = 'Aprobado.png'; break;
-            case 'pendiente': imgName = 'Espera.png'; break;
-            case 'rechazado': imgName = 'Rechazado.png'; break;
-            case 'inactivo':
-            default: imgName = 'Recibido.png'; break;
+
+        if (estado === 'completado') {
+            imgName = 'Aprobado.png';
+        } else {
+            if (label.includes('Cotas de OT/Clase subidas')) {
+                imgName = 'icono_cotas.png';
+            } else if (label.includes('Dibujos de maquinados subidos')) {
+                imgName = 'DrawsProduction.png';
+            } else {
+                switch (estado) {
+                    case 'pendiente': imgName = 'Espera.png'; break;
+                    case 'rechazado': imgName = 'Rechazado.png'; break;
+                    case 'inactivo':
+                    default: imgName = 'Recibido.png'; break;
+                }
+            }
         }
         return `${baseUrl}${slash}images/${imgName}`;
     }
@@ -799,7 +809,7 @@ class PlaneacionChecklistCard {
                         <div class="checklist-connector-line"></div>
                     </div>
                     <div class="checklist-content-col">
-                        <span class="checklist-label">Dibujos de maquinados subidos</span>
+                        <span class="checklist-label">Procesos de Producción</span>
                     </div>
                     <div class="checklist-action-col">
                         <span class="checklist-status-badge badge--pendiente">PENDIENTE</span>
@@ -807,8 +817,19 @@ class PlaneacionChecklistCard {
                 </div>
                 <div class="checklist-item checklist-item--inactivo" title="Inactivo">
                     <div class="checklist-icon-col">
-                        <span class="checklist-icon"><img src="${this._getIconFor('inactivo')}" alt="inactivo" class="checklist-state-icon"></span>
+                        <span class="checklist-icon"><img src="${this._getIconFor('inactivo', 'Dibujos de maquinados subidos')}" alt="inactivo" class="checklist-state-icon"></span>
                         <div class="checklist-connector-line"></div>
+                    </div>
+                    <div class="checklist-content-col">
+                        <span class="checklist-label">Dibujos de maquinados subidos</span>
+                    </div>
+                    <div class="checklist-action-col">
+                        <span class="checklist-status-badge badge--inactivo">INACTIVO</span>
+                    </div>
+                </div>
+                <div class="checklist-item checklist-item--inactivo" title="Inactivo">
+                    <div class="checklist-icon-col">
+                        <span class="checklist-icon"><img src="${this._getIconFor('inactivo', 'Cotas de OT/Clase subidas')}" alt="inactivo" class="checklist-state-icon"></span>
                     </div>
                     <div class="checklist-content-col">
                         <span class="checklist-label">Cotas de OT/Clase subidas (Admin)</span>
@@ -817,20 +838,9 @@ class PlaneacionChecklistCard {
                         <span class="checklist-status-badge badge--inactivo">INACTIVO</span>
                     </div>
                 </div>
-                <div class="checklist-item checklist-item--completado" title="Completado">
-                    <div class="checklist-icon-col">
-                        <span class="checklist-icon"><img src="${this._getIconFor('completado')}" alt="completado" class="checklist-state-icon"></span>
-                    </div>
-                    <div class="checklist-content-col">
-                        <span class="checklist-label">Proceso asignado</span>
-                    </div>
-                    <div class="checklist-action-col">
-                        <span class="checklist-status-badge badge--completado">COMPLETADO</span>
-                    </div>
-                </div>
             </div>
         `;
-        
+
         const itemsContainer = card.querySelector('.checklist-items');
         card.classList.add('is-closed');
         card.style.cursor = 'pointer';
@@ -905,11 +915,11 @@ class PlaneacionChecklistCard {
             iconSpan.className = 'checklist-icon';
 
             const img = document.createElement('img');
-            img.src = this._getIconFor(paso.estado);
+            img.src = this._getIconFor(paso.estado, paso.label);
             img.alt = safeEstado;
             img.className = 'checklist-state-icon';
             iconSpan.appendChild(img);
-            
+
             iconCol.appendChild(iconSpan);
 
             // Conector vertical
@@ -926,7 +936,7 @@ class PlaneacionChecklistCard {
             const label = document.createElement('span');
             label.className = 'checklist-label';
             label.textContent = paso.label;
-            
+
             contentCol.appendChild(label);
 
             // 3. Área de Acción / Status (Derecha)
@@ -936,7 +946,7 @@ class PlaneacionChecklistCard {
             const actionBadge = document.createElement('span');
             actionBadge.className = `checklist-status-badge badge--${safeEstado.replace(/_/g, '-')}`;
             actionBadge.textContent = paso.estado.toUpperCase();
-            
+
             actionCol.appendChild(actionBadge);
 
             item.appendChild(iconCol);
@@ -948,7 +958,7 @@ class PlaneacionChecklistCard {
 
     _startPolling() {
         this._poll();
-        this._pollTimer = setInterval(() => this._poll(), 30_000);
+        this._pollTimer = setInterval(() => this._poll(), 5_000);
     }
 
     async _poll() {
@@ -992,9 +1002,9 @@ class TermicoChecklistCard {
         this.root.style.flex = '0.7 1 0%';
         this.root.style.minWidth = '250px';
         this.root.style.cursor = 'pointer';
-        
+
         this._renderContent();
-        
+
         this.container.appendChild(this.root);
 
         this.root.addEventListener('click', () => {
@@ -1013,19 +1023,19 @@ class TermicoChecklistCard {
 
     _renderContent() {
         const isTermicoComplete = (this.tPieces > 0 && this.tTratadas >= this.tPieces);
-        
+
         // Mantener estado abierto/cerrado si se está re-renderizando
         const tItems = this.root.querySelector('.checklist-items');
         const displayStyle = tItems ? tItems.style.display : 'none';
         const isClosedClass = tItems ? (this.root.classList.contains('is-closed') ? 'is-closed' : '') : 'is-closed';
 
-        this.root.className = isTermicoComplete 
-            ? `fundicion-checklist-card card-state-completado ${isClosedClass}` 
+        this.root.className = isTermicoComplete
+            ? `fundicion-checklist-card card-state-completado ${isClosedClass}`
             : `fundicion-checklist-card card-state-incompleto ${isClosedClass}`;
 
         const baseUrl = window.baseUrl || (window.location.origin + '/');
         const slash = baseUrl.endsWith('/') ? '' : '/';
-        const iconUrl = isTermicoComplete ? `${baseUrl}${slash}images/Aprobado.png` : `${baseUrl}${slash}images/Espera.png`;
+        const iconUrl = isTermicoComplete ? `${baseUrl}${slash}images/Aprobado.png` : `${baseUrl}${slash}images/tratamiento_termico.png`;
         const badgeClass = isTermicoComplete ? 'badge--completado' : 'badge--pendiente';
         const badgeText = isTermicoComplete ? 'COMPLETADO' : 'PENDIENTE';
         const iconStateClass = isTermicoComplete ? 'checklist-item--completado' : 'checklist-item--pendiente';
@@ -1111,8 +1121,8 @@ class Dashboard {
     }
     createSections() {
         let body = document.querySelector("body");
-        let otIds = window.orderedOtIds && window.orderedOtIds.length > 0 
-            ? window.orderedOtIds 
+        let otIds = window.orderedOtIds && window.orderedOtIds.length > 0
+            ? window.orderedOtIds
             : Object.keys(this.wOrderArray);
 
         otIds.forEach((wOrderName) => {
@@ -1171,7 +1181,7 @@ class Dashboard {
                 if (
                     userProfileChecklist &&
                     (userProfileChecklist.value === "1" || userProfileChecklist.value === "2" || userProfileChecklist.value === "3" ||
-                     userProfileChecklist.value === "4" || userProfileChecklist.value === "5")
+                        userProfileChecklist.value === "4" || userProfileChecklist.value === "5")
                 ) {
                     section.classList.add('section--has-checklist');
                     const checklistWrapper = document.createElement('div');
@@ -1182,25 +1192,25 @@ class Dashboard {
                     checklistWrapper.style.alignItems = 'flex-start';
 
                     if (window.fundicionChecklist && window.fundicionChecklist[wOrderName] && window.fundicionChecklist[wOrderName][className]) {
-                            const levantamientoCard = new FundicionChecklistCard(
-                                wOrderName,
-                                window.fundicionChecklist[wOrderName][className],
-                                checklistWrapper,
-                                className   // instanceId único por sección de clase
-                            );
-                            if (levantamientoCard.root) {
-                                levantamientoCard.root.style.flex = '1';
-                                levantamientoCard.root.style.minWidth = '300px';
-                            }
-                        } else {
-                            // Render empty state card
-                            const emptyCard = document.createElement('div');
-                            emptyCard.className = 'fundicion-checklist-card empty-checklist-card inactive-process';
-                            emptyCard.style.borderLeftColor = '#424141';
-                            emptyCard.style.flex = '1';
-                            emptyCard.style.minWidth = '300px';
-                            emptyCard.style.pointerEvents = 'none';
-                            emptyCard.innerHTML = `
+                        const levantamientoCard = new FundicionChecklistCard(
+                            wOrderName,
+                            window.fundicionChecklist[wOrderName][className],
+                            checklistWrapper,
+                            className   // instanceId único por sección de clase
+                        );
+                        if (levantamientoCard.root) {
+                            levantamientoCard.root.style.flex = '1';
+                            levantamientoCard.root.style.minWidth = '300px';
+                        }
+                    } else {
+                        // Render empty state card
+                        const emptyCard = document.createElement('div');
+                        emptyCard.className = 'fundicion-checklist-card empty-checklist-card inactive-process';
+                        emptyCard.style.borderLeftColor = '#424141';
+                        emptyCard.style.flex = '1';
+                        emptyCard.style.minWidth = '300px';
+                        emptyCard.style.pointerEvents = 'none';
+                        emptyCard.innerHTML = `
                                 <div class="checklist-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0; justify-content: center;">
                                     <span class="checklist-title" style="color: #ffffff;">
                                         Levantamiento de OT No Disponible
@@ -1210,8 +1220,8 @@ class Dashboard {
                                     Esta orden de trabajo es antigua o no requiere el levantamiento de OT.
                                 </div>
                             `;
-                            checklistWrapper.appendChild(emptyCard);
-                        }
+                        checklistWrapper.appendChild(emptyCard);
+                    }
 
                     // Card 2: Tratamiento Térmico (Reactiva)
                     const termicoCard = new TermicoChecklistCard(
@@ -1275,13 +1285,13 @@ class Dashboard {
         a.addEventListener("click", async (e) => {
             e.preventDefault();
             if (a.dataset.loading === "true") return;
-            
+
             a.dataset.loading = "true";
             let originalText = a.innerHTML;
             a.innerHTML = "Procesando...";
             a.style.opacity = "0.7";
             a.style.pointerEvents = "none";
-            
+
             try {
                 let response = await fetch(a.href, {
                     headers: {
@@ -1289,12 +1299,12 @@ class Dashboard {
                         "X-Requested-With": "XMLHttpRequest"
                     }
                 });
-                
+
                 let data = await response.json();
-                
+
                 // Muestra modal dinámico
                 mostrarModalFinalizarPedido(data[0], data[1], data[0] === "success");
-                
+
             } catch (err) {
                 console.error("Error al finalizar pedido, intentando redirigir...", err);
                 window.location.href = a.href;
@@ -1456,7 +1466,7 @@ class Dashboard {
                 otH3.style.setProperty('font-size', '1.6rem', 'important');
                 otH3.style.setProperty('line-height', '1.2', 'important');
                 otH3.innerHTML = `<span style="font-size: 0.75em; color: #94a3b8; font-weight: 600; text-transform: uppercase; margin-right: 5px; letter-spacing: 0.5px;">OT:</span>${wOrderName} ${moldingName}`;
-                
+
                 // Clase text
                 let classH3 = document.createElement("h3");
                 classH3.className = "class-text";
@@ -1517,6 +1527,24 @@ class Dashboard {
     generateProcessSection(processesArray, processName, limitPieces, pedido, processNumber) {
         let processSection = document.createElement("div");
         processSection.className = "process-section";
+        processSection.style.position = "relative"; // Permitir que el badge de cotas sea absoluto
+
+        if (processesArray["hasCotas"]) {
+            let cotasBadge = document.createElement("img");
+            cotasBadge.className = "cotas-badge";
+            const baseUrl = window.baseUrl || (window.location.origin + '/');
+            const slash = baseUrl.endsWith('/') ? '' : '/';
+            cotasBadge.src = `${baseUrl}${slash}images/icono_cotas.png`;
+            cotasBadge.style.position = "absolute";
+            cotasBadge.style.top = "12px";
+            cotasBadge.style.right = "12px";
+            cotasBadge.style.width = "40px";
+            cotasBadge.style.height = "40px";
+            cotasBadge.style.zIndex = "5";
+            cotasBadge.style.animation = "pulseCotasBadge 1.2s infinite alternate ease-in-out";
+            cotasBadge.title = "Cotas registradas correctamente";
+            processSection.appendChild(cotasBadge);
+        }
 
         // Badge con número de proceso en la esquina superior izquierda
         let numberBadge = document.createElement("span");
@@ -1913,7 +1941,7 @@ document.addEventListener("DOMContentLoaded", () => {
     updateScrollButtons(); // Ejecutar inicialmente
     window.addEventListener('scroll', () => {
         updateScrollButtons();
-        
+
         // Cerrar automáticamente las tarjetas de checklist al hacer scroll
         if (!window.isScrollingProgrammatically) {
             document.querySelectorAll('.fundicion-checklist-card:not(.is-closed)').forEach(card => {
@@ -1929,48 +1957,48 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(updateCachedSections, 200);
 });
 
-window.mostrarModalFinalizarPedido = function(tipo, mensaje, recargar = false) {
+window.mostrarModalFinalizarPedido = function (tipo, mensaje, recargar = false) {
     let divOpacity = document.createElement("div");
     divOpacity.className = "div-opacity";
-    
+
     let alertDiv = document.createElement("div");
     alertDiv.className = "alert-finishOrder";
-    
+
     let divCerrar = document.createElement("div");
     divCerrar.className = "div-cerrar";
-    
+
     let btnCerrar = document.createElement("button");
     btnCerrar.className = "btn-cerrar";
     btnCerrar.innerHTML = `<img class="img-cerrar" src="${window.cerrarImgUrl || window.baseUrl + '/images/cerrar.png'}">`;
-    
+
     btnCerrar.addEventListener("click", (e) => {
         e.stopPropagation();
         divOpacity.remove();
         if (recargar) location.reload();
     });
-    
+
     divCerrar.appendChild(btnCerrar);
     alertDiv.appendChild(divCerrar);
-    
+
     let imgRoute = (tipo === "error") ? "/images/error.png" : "/images/ready.png";
     let img = document.createElement("img");
     img.className = "img-error";
     img.src = (window.baseUrl || "") + imgRoute;
     img.alt = "alert image";
     alertDiv.appendChild(img);
-    
+
     let label = document.createElement("label");
     label.textContent = mensaje;
     alertDiv.appendChild(label);
-    
+
     divOpacity.appendChild(alertDiv);
-    
+
     divOpacity.addEventListener("click", (e) => {
         if (e.target === divOpacity) {
             divOpacity.remove();
             if (recargar) location.reload();
         }
     });
-    
+
     document.body.appendChild(divOpacity);
 };
