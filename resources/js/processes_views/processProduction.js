@@ -2191,6 +2191,7 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
 
 
     navDiv.appendChild(selOTWrap);
+    navDiv.appendChild(selClaseWrap);
     headerDiv.appendChild(divCerrar);
     headerDiv.appendChild(titulo);
     headerDiv.appendChild(navDiv);
@@ -2214,7 +2215,8 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
     const selClase = document.getElementById('d-viewer-clase');
 
     fetch(window.baseUrl + '/dibujos/estructura', {
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-store'
     })
         .then(r => r.json())
         .then(estructura => {
@@ -2285,8 +2287,9 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
                 }, 50);
             }
         })
-        .catch(() => {
-            contentDiv.innerHTML = '<p style="color:#9c0300;text-align:center;">Error al cargar la estructura de carpetas.</p>';
+        .catch((err) => {
+            console.error(err);
+            contentDiv.innerHTML = '<p style="color:#d9534f;text-align:center;padding:2em;font-weight:bold;font-style:italic;">ERROR AL CARGAR LA ESTRUCTURA DE CARPETAS. ' + err.message + '</p>';
         });
 };
 
@@ -2466,7 +2469,8 @@ window.openManualesViewer = function () {
     const selProceso = document.getElementById('d-viewer-manuales-proceso');
 
     fetch(window.baseUrl + '/manuales/estructura', {
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-store'
     })
         .then(r => r.json())
         .then(estructura => {
@@ -2576,7 +2580,8 @@ window.openAyudasViewer = function () {
     const selProceso = document.getElementById('d-viewer-ayudas-proceso');
 
     fetch(window.baseUrl + '/ayudas/estructura', {
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-store'
     })
         .then(r => r.json())
         .then(estructura => {

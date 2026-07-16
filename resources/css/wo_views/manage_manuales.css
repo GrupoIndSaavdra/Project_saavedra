@@ -22,8 +22,8 @@ body {
 
 /* ── Contenedor principal ── */
 .dibujos-wrapper {
-    max-width: 1400px;
-    margin: 2em auto;
+    max-width: 98%;
+    margin: 0.5em auto;
     padding: 0 1.5em;
 }
 
@@ -62,6 +62,50 @@ body {
     .dibujos-panel {
         grid-template-columns: 1fr;
     }
+}
+
+/* ── Layout Dashboard Rediseñado ── */
+.dibujos-dashboard-layout {
+    display: grid;
+    grid-template-columns: 380px minmax(0, 1fr);
+    gap: 2em;
+    align-items: start;
+}
+
+@media (max-width: 1200px) {
+    .dibujos-dashboard-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dibujos-dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    position: sticky;
+    top: 1.5em;
+    z-index: 10;
+}
+
+.dibujos-dashboard-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+}
+
+/* Ajustes para el panel interno dentro del sidebar */
+.dibujos-dashboard-layout .dibujos-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    margin-bottom: 0;
+}
+
+/* Eliminar márgenes sobrantes */
+.dibujos-dashboard-layout .dibujos-files-panel,
+.dibujos-dashboard-layout .dibujos-table-section {
+    margin-bottom: 0;
+    width: 100%;
 }
 
 .dibujos-card {
@@ -229,7 +273,7 @@ body {
 }
 
 .dibujos-table-container {
-    max-height: 50vh;
+    max-height: 25vh; /* Reducido para evitar scroll global */
     overflow-y: auto;
     border: 2px solid #033966;
     border-radius: 8px;
@@ -365,9 +409,12 @@ body {
 
 .dibujos-files-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
     gap: 1.5em;
     margin-top: 1.5em;
+    max-height: 35vh; /* Scroll interno para no afectar el alto total */
+    overflow-y: auto;
+    padding-right: 10px;
 }
 
 @keyframes prodCardPopIn {
@@ -389,7 +436,7 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 1.5em;
+    padding: 1.2em;
     border: 3px solid #033966;
     border-radius: 12px;
     background: #f5f9ff;
@@ -398,9 +445,9 @@ body {
         background-color 0.3s ease,
         box-shadow 0.3s ease;
     cursor: pointer;
-    min-height: 180px;
+    min-height: 155px;
     position: relative;
-    overflow: hidden;
+    /* overflow: hidden; Eliminado para que los botones no se recorten en hover */
     will-change: transform, background-color, box-shadow;
     animation: prodCardPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
@@ -427,9 +474,9 @@ body {
 
 .dibujos-file-card .file-icon-wrapper {
     position: relative;
-    width: 50px;
-    height: 50px;
-    margin-bottom: 0.8em;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0.5em;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -466,16 +513,17 @@ body {
 
 .dibujos-file-card .file-actions {
     display: flex;
-    gap: 0.6em;
+    gap: 0.4em;
     margin-top: auto;
     width: 100%;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 /* Botones dentro de la tarjeta - Más grandes y con colores que resaltan en el hover */
 .dibujos-file-card .btn-dibujos-sm {
-    padding: 0.6em 1.2em;
-    font-size: 0.9em;
+    padding: 0.5em 0.3em;
+    font-size: 0.8em;
     flex: 1;
     text-align: center;
     border-radius: 6px;
@@ -705,14 +753,21 @@ body {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.85em;
+    background: #ffffff; /* Añadido fondo blanco para solucionar la transparencia */
 }
 
 .dibujos-log-table th {
     background: #033966;
     color: #fff;
-    padding: 0.6em 0.8em;
+    font-weight: 700;
+    padding: 0.8em;
     text-align: left;
-    border: 1px solid #022847;
+}
+
+.dibujos-log-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 5;
 }
 
 .dibujos-log-table td {
@@ -769,6 +824,42 @@ body {
 .action-badge.desvincular_ayudas {
     background: #f0f0f0;
     color: #555;
+}
+
+/* ── Log details (Collapsible) ── */
+.dibujos-log-details summary {
+    cursor: pointer;
+    background: #f5f9ff;
+    color: #033966;
+    padding: 0.8em 1.2em;
+    border: 3px solid #033966;
+    border-radius: 8px;
+    font-weight: 700;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s;
+    font-size: 1.05em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.dibujos-log-details summary:hover {
+    background: #033966;
+    color: #fff;
+}
+.dibujos-log-details summary::-webkit-details-marker {
+    display: none;
+}
+.dibujos-log-details summary::after {
+    content: "▼";
+    font-size: 0.9em;
+}
+.dibujos-log-details[open] summary::after {
+    content: "▲";
+}
+.dibujos-log-details[open] .dibujos-table-container {
+    margin-top: 1em;
 }
 
 /* ── Clases de Utilidad para Limpieza de Estilos Inline ── */
@@ -1142,7 +1233,7 @@ body {
     font-size: 0.9em;
     font-weight: 600;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .ayuda-chip:hover .ayuda-chip-content {
@@ -1209,9 +1300,15 @@ body {
 }
 
 @keyframes pulse-green {
-    0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
 }
 
 .ayuda-up-to-date {
@@ -1230,10 +1327,24 @@ body {
     color: #475569 !important;
 }
 /* ── Utilidades Flex ── */
-.d-flex { display: flex !important; }
-.d-justify-end { justify-content: flex-end !important; }
-.d-justify-center { justify-content: center !important; }
-.d-align-center { align-items: center !important; }
-.d-gap-1 { gap: 0.5em !important; }
-.d-gap-2 { gap: 1em !important; }
-.d-w-100 { width: 100% !important; }
+.d-flex {
+    display: flex !important;
+}
+.d-justify-end {
+    justify-content: flex-end !important;
+}
+.d-justify-center {
+    justify-content: center !important;
+}
+.d-align-center {
+    align-items: center !important;
+}
+.d-gap-1 {
+    gap: 0.5em !important;
+}
+.d-gap-2 {
+    gap: 1em !important;
+}
+.d-w-100 {
+    width: 100% !important;
+}

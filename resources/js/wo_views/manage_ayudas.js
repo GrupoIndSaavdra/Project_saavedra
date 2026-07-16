@@ -402,7 +402,8 @@ function renderArchivosGrid(data, param1, param2) {
 
     if (!data.existe || data.archivos.length === 0) {
         grid.innerHTML = `
-            <div class="dibujos-empty-state" style="grid-column:1/-1;">
+            <div class="dibujos-empty-state" style="grid-column:1/-1; text-align:center;">
+                <img src="${window.baseUrl}/images/sin_archivos.png" alt="Sin archivos" style="width: 120px; opacity: 0.6; margin-bottom: 1em;">
                 <p>No hay archivos PDF. Sube el primero usando el panel de arriba.</p>
             </div>`;
         return;

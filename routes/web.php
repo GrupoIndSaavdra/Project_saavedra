@@ -360,21 +360,17 @@ Route::middleware(['auth'])->prefix('reportes/pta')->name('reportes.pta')->group
    Módulo de Dibujos / Planos PDF (DIBUJOS_GIS)
 =========================== */
 
+Route::prefix('dibujos')->name('dibujos.')->group(function () {
+    Route::get('/estructura', [DibujosPdfController::class, 'getStructure'])->name('estructura');
+    Route::get('/archivos', [DibujosPdfController::class, 'getFiles'])->name('archivos');
+    Route::get('/serve', [DibujosPdfController::class, 'serveFile'])->name('serve');
+});
+
 Route::middleware(['auth'])->prefix('dibujos')->name('dibujos.')->group(function () {
 
     // ── Vista de administración ──
     Route::get('/manage', [DibujosPdfController::class, 'showManage'])
         ->name('manage');
-
-    // ── API de Lectura (operadores y administradores) ──
-    Route::get('/estructura', [DibujosPdfController::class, 'getStructure'])
-        ->name('estructura');
-
-    Route::get('/archivos', [DibujosPdfController::class, 'getFiles'])
-        ->name('archivos');
-
-    Route::get('/serve', [DibujosPdfController::class, 'serveFile'])
-        ->name('serve');
 
     // ── CRUD Administración ──
     Route::post('/createFolder', [DibujosPdfController::class, 'createFolder'])
@@ -399,12 +395,15 @@ Route::middleware(['auth'])->prefix('dibujos')->name('dibujos.')->group(function
    Módulo de Manuales (MANUALES_GIS)
 =========================== */
 
-Route::middleware(['auth'])->prefix('fundicion')->name('fundicion.')->group(function () {
-    Route::get('/manage', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'showManage'])->name('manage');
+Route::prefix('fundicion')->name('fundicion.')->group(function () {
     Route::get('/estructura', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getStructure'])->name('estructura');
     Route::get('/archivos', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getFiles'])->name('archivos');
     Route::get('/total-archivos', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getTotalFiles'])->name('total_archivos');
     Route::get('/serve', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'serveFile'])->name('serve');
+});
+
+Route::middleware(['auth'])->prefix('fundicion')->name('fundicion.')->group(function () {
+    Route::get('/manage', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'showManage'])->name('manage');
     
     Route::post('/createFolder', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'createFolder'])->name('createFolder');
     Route::post('/upload', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'uploadPdf'])->name('upload');
@@ -510,11 +509,14 @@ Route::middleware(['auth'])->prefix('calidad/fundicion')->name('calidad.fundicio
    Módulo de Manuales (MANUALES_GIS)
 =========================== */
 
-Route::middleware(['auth'])->prefix('manuales')->name('manuales.')->group(function () {
-    Route::get('/manage', [\App\Http\Controllers\ManualesPdfController::class, 'showManage'])->name('manage');
+Route::prefix('manuales')->name('manuales.')->group(function () {
     Route::get('/estructura', [\App\Http\Controllers\ManualesPdfController::class, 'getStructure'])->name('estructura');
     Route::get('/archivos', [\App\Http\Controllers\ManualesPdfController::class, 'getFiles'])->name('archivos');
     Route::get('/serve', [\App\Http\Controllers\ManualesPdfController::class, 'serveFile'])->name('serve');
+});
+
+Route::middleware(['auth'])->prefix('manuales')->name('manuales.')->group(function () {
+    Route::get('/manage', [\App\Http\Controllers\ManualesPdfController::class, 'showManage'])->name('manage');
     
     Route::post('/createFolder', [\App\Http\Controllers\ManualesPdfController::class, 'createFolder'])->name('createFolder');
     Route::post('/upload', [\App\Http\Controllers\ManualesPdfController::class, 'uploadPdf'])->name('upload');
@@ -529,11 +531,14 @@ Route::middleware(['auth'])->prefix('manuales')->name('manuales.')->group(functi
    Módulo de Ayudas Visuales (AYUDAS_GIS)
 =========================== */
 
-Route::middleware(['auth'])->prefix('ayudas')->name('ayudas.')->group(function () {
-    Route::get('/manage', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'showManage'])->name('manage');
+Route::prefix('ayudas')->name('ayudas.')->group(function () {
     Route::get('/estructura', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'getStructure'])->name('estructura');
     Route::get('/archivos', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'getFiles'])->name('archivos');
     Route::get('/serve', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'serveFile'])->name('serve');
+});
+
+Route::middleware(['auth'])->prefix('ayudas')->name('ayudas.')->group(function () {
+    Route::get('/manage', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'showManage'])->name('manage');
     
     Route::post('/createFolder', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'createFolder'])->name('createFolder');
     Route::post('/upload', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'uploadPdf'])->name('upload');
@@ -548,11 +553,14 @@ Route::middleware(['auth'])->prefix('ayudas')->name('ayudas.')->group(function (
    Módulo de Ayudas Visuales (Fundición)
 =========================== */
 
-Route::middleware(['auth'])->prefix('ayudas_fundicion')->name('ayudas_fundicion.')->group(function () {
-    Route::get('/manage', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'showManage'])->name('manage');
+Route::prefix('ayudas_fundicion')->name('ayudas_fundicion.')->group(function () {
     Route::get('/estructura', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'getStructure'])->name('estructura');
     Route::get('/archivos', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'getFiles'])->name('archivos');
     Route::get('/serve', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'serveFile'])->name('serve');
+});
+
+Route::middleware(['auth'])->prefix('ayudas_fundicion')->name('ayudas_fundicion.')->group(function () {
+    Route::get('/manage', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'showManage'])->name('manage');
     
     Route::post('/createFolder', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'createFolder'])->name('createFolder');
     Route::post('/upload', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'uploadPdf'])->name('upload');
