@@ -184,16 +184,16 @@
 }
 
 .home-priorities-panel {
-    background: linear-gradient(135deg, rgba(3, 31, 56, 0.95), rgba(2, 22, 41, 0.97));
-    border: 1px solid rgba(56, 189, 248, 0.25);
+    background: linear-gradient(135deg, rgba(2, 26, 48, 0.65), rgba(1, 14, 26, 0.75));
+    border: 1px solid rgba(56, 189, 248, 0.2);
     border-radius: 16px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
     height: 100%;
     overflow: hidden;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 .home-priorities-header {
@@ -201,8 +201,8 @@
     align-items: center;
     gap: 16px;
     padding: 1.5rem 2rem;
-    border-bottom: 1px solid rgba(56, 189, 248, 0.2);
-    background: rgba(2, 38, 68, 0.4);
+    border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+    background: rgba(2, 38, 68, 0.25);
 }
 
 .home-priorities-icon {
@@ -259,8 +259,8 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    background: rgba(3, 45, 82, 0.85);
-    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    background: rgba(3, 45, 82, 0.55);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 12px 20px;
     transition: all 0.25s ease;
@@ -311,6 +311,16 @@
     height: 100%;
     object-fit: contain;
     z-index: 1;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.home-priority-card:hover .home-priority-medal {
+    transform: scale(1.18) rotate(4deg);
+    filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.9)) brightness(1.1);
+}
+
+.home-priority-card.glow-silver:hover .home-priority-medal {
+    filter: drop-shadow(0 0 10px rgba(203, 213, 225, 0.9)) brightness(1.1);
 }
 
 .home-priority-body {
@@ -366,11 +376,20 @@
     font-size: 0.75rem;
     font-weight: 800;
     color: #38bdf8;
-    background: rgba(56, 189, 248, 0.1);
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    padding: 3px 8px;
-    border-radius: 6px;
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    padding: 3px 9px;
+    border-radius: 20px;
     text-transform: uppercase;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+}
+
+.home-priority-card:hover .home-priority-class-badge {
+    border-color: rgba(56, 189, 248, 0.6);
+    background: rgba(56, 189, 248, 0.15);
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.2);
 }
 
 .operator-welcome-panel {

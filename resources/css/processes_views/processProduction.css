@@ -421,22 +421,35 @@ p {
 
 .warning-pieces {
     width: 90%;
-    font-size: 1em;
+    font-size: 0.95em;
     font-weight: bold;
-    padding: 1.5em;
+    padding: 1.25em 2em;
     margin: 1em auto;
     border-radius: 12px;
     background-color: #fff5f5;
     border: 3px solid #e53e3e;
     color: #000000;
-    display: block;
-    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    text-align: left;
     box-shadow: 0 4px 15px rgba(229, 62, 62, 0.1);
     line-height: 1.6;
 
     /* Animación distintiva */
     animation: alert-breathing 3s ease-in-out infinite;
     transition: all 0.3s ease-in-out;
+}
+
+.warning-icon {
+    width: 44px;
+    height: 44px;
+    color: #e53e3e;
+    flex-shrink: 0;
+}
+
+.warning-text {
+    flex: 1;
 }
 
 .warning-pieces .highlight-red {
