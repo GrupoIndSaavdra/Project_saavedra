@@ -2533,10 +2533,8 @@
             <div class="alm-modal-header" id="poc-header"
                 style="background: linear-gradient(135deg, #0369a1, #0284c7); padding: 2.2em 2.5em 1.5em; position: relative;">
                 <div class="div-cerrar">
-                    <button type="button" class="btn-cerrar" onclick="cerrarModalPreOrdenCasting()"
-                        style="position: absolute; top: 25px; right: 25px; background: rgba(255, 255, 255, 0.18); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 50%; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
-                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}"
-                            style="width: 14px; height: 14px; filter: brightness(0) invert(1);" alt="Cerrar">
+                    <button type="button" class="btn-cerrar" onclick="cerrarModalPreOrdenCasting()">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
                     </button>
                 </div>
                 <h3 style="font-size: 2em; margin: 0; font-family:'Poppins', sans-serif; font-weight: 700; color: #fff;">

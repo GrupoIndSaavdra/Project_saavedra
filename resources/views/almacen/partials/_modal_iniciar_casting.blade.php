@@ -4,10 +4,8 @@
         <div id="mgv-header" class="alm-modal-header lib-modal-header"
             style="background: linear-gradient(135deg, #16a34a, #15803d); padding: 2.5em 3em 2.2em; transition: background 0.3s ease;">
             <div class="div-cerrar">
-                <button type="button" class="btn-cerrar" onclick="cerrarModalGestionVeredicto()"
-                    style="position: absolute; top: 25px; right: 25px; background: rgba(255, 255, 255, 0.18); border: 1.5px solid rgba(255, 255, 255, 0.45); border-radius: 50%; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;">
-                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}"
-                        style="width: 14px; height: 14px; filter: brightness(0) invert(1);">
+                <button type="button" class="btn-cerrar" onclick="cerrarModalGestionVeredicto()">
+                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
                 </button>
             </div>
             <h3 style="font-size: 2.2em; margin: 0; font-family:'Poppins', sans-serif; font-weight: 700; color: #fff;"

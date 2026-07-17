@@ -11208,6 +11208,23 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                                                             </div>
 
 
+                                                            @if ($decisionGlobal === 'ninguno' && $targetReg->calidad_revision_status !== 'pendiente')
+                                                                <div class="lib-calidad-card" id="control-calidad-enviados-{{ md5($targetReg->ot) }}" style="margin-top: 15px; ">
+                                                                    <div class="lib-calidad-card-header" style="background: linear-gradient(135deg, #059669, #047857); border-bottom: 2px solid rgba(5, 150, 105, 0.5);">
+                                                                        <img src="{{ asset('images/Quality.png') }}" alt="Calidad" style="width:38px;height:38px;object-fit:contain;flex-shrink:0; filter: brightness(0) invert(1);">
+                                                                        <div style="overflow:hidden; flex:1;">
+                                                                            <span class="lib-calidad-card-title" style="color: #ffffff;">Alertas Enviadas &mdash; Calidad</span>
+                                                                            <span class="lib-calidad-card-ot" style="color: rgba(255,255,255,0.9);">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $targetReg->ot) }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="lib-calidad-card-body" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-top: none; padding: 15px; text-align: center;">
+                                                                        <img src="{{ asset('images/enviando.png') }}" alt="Enviado" style="width: 48px; height: 48px; margin-bottom: 10px;">
+                                                                        <h4 style="color: #065f46; font-size: 1.1em; margin: 0 0 5px 0; font-weight: 600;">Alertas de Liberación Completadas</h4>
+                                                                        <p style="color: #064e3b; font-size: 0.9em; margin: 0;">Las notificaciones de liberación correspondientes a este modelo ya han sido procesadas y enviadas exitosamente al almacén.</p>
+                                                                    </div>
+                                                                </div>
+                                                            @endif
+
                                                         </div>
 
 
@@ -11365,9 +11382,6 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
 
 
                                                             @endphp
-
-
-                                                            </div>
 
 
                                                         @endif

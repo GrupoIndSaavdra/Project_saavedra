@@ -2214,8 +2214,32 @@ async function _libCargarDatos(ot) {
         });
         const data = await resp.json();
 
-        // Guardamos el cache completo de registros independientes
-        window.cacheLiberacionGlobal = data.registros_por_tipo || {};
+        // Normalizar claves de cache desde la DB para evitar problemas case-sensitive
+        const rawCache = data.registros_por_tipo || {};
+        window.cacheLiberacionGlobal = {};
+        const MAPA_TIPO = {
+            "candado obturador": "Candado Obturador",
+            "cabeza de soplo": "Cabeza de Soplo",
+            "embudo": "Embudo",
+            "corona": "Corona",
+            "plato": "Plato",
+            "fondo": "Fondo",
+            "obturador": "Obturador",
+            "molde": "Molde",
+            "bombillo": "Bombillo",
+        };
+        const knownKeys = Object.keys(MAPA_TIPO);
+        for (let key in rawCache) {
+            let normalizedKey = key;
+            const keyLow = key.toLowerCase();
+            for (let k of knownKeys) {
+                if (keyLow.includes(k)) {
+                    normalizedKey = MAPA_TIPO[k];
+                    break;
+                }
+            }
+            window.cacheLiberacionGlobal[normalizedKey] = rawCache[key];
+        }
 
         // Colorear las opciones del select según su estado
         _libActualizarColoresSelect();
@@ -2224,16 +2248,34 @@ async function _libCargarDatos(ot) {
 
         const lastLib = data.liberacion;
 
-        // Pre-seleccionar tipo y actualizar visibilidad de tablas (esto desencadenara libCambiarTipo y rellenara inputs)
+        // Pre-seleccionar tipo y actualizar visibilidad de tablas
         const selectTipo = document.getElementById('lib-tipo');
-        if (selectTipo && lastLib && lastLib.tipo_modelo) {
-            selectTipo.value = lastLib.tipo_modelo;
-            libCambiarTipo(lastLib.tipo_modelo);
-        } else {
-            // Capturar el estado si no habia lastLib (formulario vacio inicial)
-            setTimeout(() => {
-                window._libLastSavedState = _libGetSerializedForm();
-            }, 150);
+        if (selectTipo) {
+            if (window._currentClasesActivas) {
+                // Si venimos del flujo unificado, reevaluar auto-selección (ignorar los ya verdes)
+                const autoSelectValue = _libFiltrarTiposModelo(window._currentClasesActivas, window._currentTodasClases);
+                if (autoSelectValue) {
+                    selectTipo.value = autoSelectValue;
+                    libCambiarTipo(autoSelectValue);
+                }
+            } else if (lastLib && lastLib.tipo_modelo) {
+                // Flujo normal: cargar el último modelo que guardamos
+                let tipo = lastLib.tipo_modelo;
+                const tipoLow = tipo.toLowerCase();
+                for (let k of knownKeys) {
+                    if (tipoLow.includes(k)) {
+                        tipo = MAPA_TIPO[k];
+                        break;
+                    }
+                }
+                selectTipo.value = tipo;
+                libCambiarTipo(tipo);
+            } else {
+                // Capturar el estado si no habia lastLib
+                setTimeout(() => {
+                    window._libLastSavedState = _libGetSerializedForm();
+                }, 150);
+            }
         }
     } catch (err) {
         console.error('Error al cargar datos de liberacion:', err);
