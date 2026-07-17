@@ -322,7 +322,7 @@ class WOController extends Controller
                     // Decidir si está activo:
                     // 1. Si hay al menos un proceso configurado (>0 en la BD), usamos la configuración de la BD.
                     // 2. Si no hay configuración (todo en 0), solo lo mostramos si tiene piezas registradas (total > 0).
-                    $dbActive = isset($processesFounded[$process]) && $processesFounded[$process] != 0;
+                    $dbActive = $processesFounded->$process != 0;
                     $isActive = $anyActive ? $dbActive : ($pieces['total'] > 0);
 
                     if ($isActive) {
