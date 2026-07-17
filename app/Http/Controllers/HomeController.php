@@ -18,7 +18,7 @@ class HomeController extends Controller
     public function index()
     {
         $perfil = auth()->user()->perfil;
-
+ 
         if ($perfil !== null) {
             $backgroundImage = "images/fondoadmin.png";
             $objectiveT = 'Nuestro objetivo es producir moldes de alta calidad para botellas de vidrio que cumplan con las especificaciones de los clientes y sean eficientes en términos de costos de producción.';
@@ -52,7 +52,36 @@ class HomeController extends Controller
                     $welcomeT = 'Bienvenido a Almacen';
                     break;
             }
-            return view('home', compact('layout', 'backgroundImage', 'objectiveT', 'welcomeT', 'pieces_Released', 'info_Pieces'));
+
+            // Obtener el listado de prioridades activo
+            $workOrders = \App\Models\Orden_trabajo::query()
+                ->whereHas('clases', function ($q) {
+                    $q->where('finalizada', 0);
+                })
+                ->with([
+                    'clases' => function ($q) {
+                        $q->where('finalizada', 0)->select('id', 'id_ot', 'nombre');
+                    },
+                    'moldura' => function ($q) {
+                        $q->select('id', 'nombre');
+                    }
+                ])
+                ->orderByRaw('prioridad IS NULL ASC')
+                ->orderBy('prioridad')
+                ->orderBy('id')
+                ->take(9)
+                ->get(['id', 'id_moldura', 'prioridad']);
+
+            $otPriorities = $workOrders->map(function ($ot, $index) {
+                return [
+                    'ot_id'    => $ot->id,
+                    'moldura'  => $ot->moldura ? $ot->moldura->nombre : '—',
+                    'clases'   => $ot->clases->pluck('nombre')->toArray(),
+                    'prioridad' => $ot->prioridad ?? ($index + 1),
+                ];
+            })->values()->toArray();
+
+            return view('home', compact('layout', 'backgroundImage', 'objectiveT', 'welcomeT', 'pieces_Released', 'info_Pieces', 'otPriorities'));
         }
     }
 }
