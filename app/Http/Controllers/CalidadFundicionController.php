@@ -165,9 +165,10 @@ class CalidadFundicionController extends Controller
             if (is_array($config)) {
                 foreach ($config as $c) {
                     $clLow = strtolower($c);
-                    foreach (['fondo', 'obturador', 'bombillo', 'molde'] as $kc) {
+                    foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'] as $kc) {
                         if (strpos($clLow, $kc) !== false) {
                             $activeClasses[] = $kc;
+                            break;
                         }
                     }
                 }
@@ -205,7 +206,7 @@ class CalidadFundicionController extends Controller
 
             if (!$soloPreorden) {
                 // 1a. Dibujos — nueva ruta: {Clase}/Dibujos/ (con fallback a raíz de clase en ALMACEN)
-                foreach (['Bombillo', 'Fondo', 'Obturador', 'Molde'] as $claseDir) {
+                foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo'] as $claseDir) {
                     $claseNorm = strtolower($claseDir);
                     if (!in_array($claseNorm, $activeClasses)) continue;
 
@@ -251,7 +252,7 @@ class CalidadFundicionController extends Controller
                         ->filter(function ($f) use ($sharedDir, $activeClasses) {
                             $rel = str_replace(str_replace('\\', '/', $sharedDir) . '/', '', str_replace('\\', '/', $f));
                             $lower = strtolower($rel);
-                            $known = ['fondo', 'obturador', 'bombillo', 'molde'];
+                            $known = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                             foreach ($known as $k) {
                                 if (str_contains($lower, $k)) return in_array($k, $activeClasses);
                             }
@@ -274,7 +275,7 @@ class CalidadFundicionController extends Controller
                 }
 
                 // 2a. Ayudas Visuales — nueva ruta: {Clase}/Ayudas_Visuales/ (con fallback legacy ALMACEN)
-                foreach (['Bombillo', 'Fondo', 'Obturador', 'Molde'] as $claseDir) {
+                foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo'] as $claseDir) {
                     $claseNorm = strtolower($claseDir);
                     if (!in_array($claseNorm, $activeClasses)) continue;
 
@@ -398,7 +399,7 @@ class CalidadFundicionController extends Controller
                             $relName = ltrim(str_replace($dirNorm, '', $fNorm), '/');
                             $fileLower = strtolower($relName);
 
-                            $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                            $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                             $hasKnownClass = false;
                             foreach ($knownClasses as $kc) {
                                 if (strpos($fileLower, $kc) !== false) {
@@ -1214,7 +1215,7 @@ class CalidadFundicionController extends Controller
                     foreach ($configs as $val) {
                         $val = strtolower($val);
                         if (str_contains($val, 'opcional')) continue;
-                        foreach (['fondo', 'obturador', 'bombillo', 'molde'] as $kc) {
+                        foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'] as $kc) {
                             if (strpos($val, $kc) !== false) {
                                 $clasesRequeridas[] = ucfirst($kc);
                             }
@@ -1234,9 +1235,10 @@ class CalidadFundicionController extends Controller
                     if (is_array($filas)) {
                         foreach ($filas as $fila) {
                             $val = strtolower($fila['clase'] ?? ($fila['clase_nombre'] ?? ''));
-                            foreach (['fondo', 'obturador', 'bombillo', 'molde'] as $kc) {
+                            foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'] as $kc) {
                                 if (strpos($val, $kc) !== false) {
                                     $clasesRequeridas[] = ucfirst($kc);
+                                    break;
                                 }
                             }
                         }
@@ -2219,7 +2221,12 @@ class CalidadFundicionController extends Controller
             foreach ($history->ayudas_config as $c) {
                 if (!str_contains(strtolower($c), 'opcional')) {
                     $clLow = strtolower($c);
-                    if (strpos($clLow, 'fondo') !== false) $clasesActivas[] = 'fondo';
+                    if (strpos($clLow, 'candado obturador') !== false) $clasesActivas[] = 'candado obturador';
+                    elseif (strpos($clLow, 'cabeza de soplo') !== false) $clasesActivas[] = 'cabeza de soplo';
+                    elseif (strpos($clLow, 'embudo') !== false) $clasesActivas[] = 'embudo';
+                    elseif (strpos($clLow, 'corona') !== false) $clasesActivas[] = 'corona';
+                    elseif (strpos($clLow, 'plato') !== false) $clasesActivas[] = 'plato';
+                    elseif (strpos($clLow, 'fondo') !== false) $clasesActivas[] = 'fondo';
                     elseif (strpos($clLow, 'obturador') !== false) $clasesActivas[] = 'obturador';
                     elseif (strpos($clLow, 'molde') !== false) $clasesActivas[] = 'molde';
                     elseif (strpos($clLow, 'bombillo') !== false) $clasesActivas[] = 'bombillo';

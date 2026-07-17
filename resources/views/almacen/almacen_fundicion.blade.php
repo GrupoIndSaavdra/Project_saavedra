@@ -632,6 +632,7 @@
                                                                         'origin' => 'dibujo',
                                                                     ];
                                                                     $dibujoBaseNames[] = $base;
+                                                                    break;
                                                                 }
                                                                 continue;
                                                             }
@@ -711,7 +712,7 @@
                                                             'base_dir' => $ayudasDir,
                                                         ];
                                                     }
-                                                    foreach (['Bombillo', 'Fondo', 'Obturador', 'Molde'] as $claseDir) {
+                                                    foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo'] as $claseDir) {
                                                         $newAyDir = $almacenRootScan . '/' . $claseDir . '/Ayudas_Visuales';
                                                         if (\Illuminate\Support\Facades\Storage::disk('local')->exists($newAyDir)) {
                                                             $scanDirs[] = [
@@ -745,7 +746,7 @@
                                                                 $base = basename($relativePath);
 
                                                                 $fileLower = strtolower($relativePath);
-                                                                $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                                                                $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                                                                 $hasKnownClass = false;
                                                                 foreach ($knownClasses as $kc) {
                                                                     if (strpos($fileLower, $kc) !== false) {
@@ -777,6 +778,7 @@
                                                                                 'ot' => $otName,
                                                                             ];
                                                                             $baseNames[] = $base;
+                                                                            break;
                                                                         }
                                                                         continue;
                                                                     }
@@ -833,7 +835,7 @@
                                                             $base = basename($relativePath);
 
                                                             $fileLower = strtolower($relativePath);
-                                                            $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                                                            $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                                                             $hasKnownClass = false;
                                                             foreach ($knownClasses as $kc) {
                                                                 if (strpos($fileLower, $kc) !== false) {
@@ -865,6 +867,7 @@
                                                                                 'ot' => $otName,
                                                                             ];
                                                                             $baseNames[] = $base;
+                                                                            break;
                                                                         }
                                                                         continue;
                                                                     }
@@ -927,7 +930,7 @@
                                                                 $base = basename($relativePath);
 
                                                                 $fileLower = strtolower($relativePath);
-                                                                $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                                                                $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                                                                 $hasKnownClass = false;
                                                                 foreach ($knownClasses as $kc) {
                                                                     if (strpos($fileLower, $kc) !== false) {
@@ -959,6 +962,7 @@
                                                                                 'ot' => $otName,
                                                                             ];
                                                                             $baseNames[] = $base;
+                                                                            break;
                                                                         }
                                                                         continue;
                                                                     }
@@ -996,7 +1000,7 @@
                                                         foreach (glob($ldmPattern) ?: [] as $f) {
                                                             $base = basename($f);
                                                             $fileLower = strtolower($base);
-                                                            $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                                                            $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                                                             $hasKnownClass = false;
                                                             foreach ($knownClasses as $kc) {
                                                                 if (strpos($fileLower, $kc) !== false) {
@@ -1028,6 +1032,7 @@
                                                                                 'ot' => $otName,
                                                                             ];
                                                                             $baseNames[] = $base;
+                                                                            break;
                                                                         }
                                                                         continue;
                                                                     }
@@ -1058,7 +1063,7 @@
                                                         foreach (array_unique($scarFiles) as $f) {
                                                             $base = basename($f);
                                                             $fileLower = strtolower($base);
-                                                            $knownClasses = ['fondo', 'obturador', 'bombillo', 'molde'];
+                                                            $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                                                             $hasKnownClass = false;
                                                             foreach ($knownClasses as $kc) {
                                                                 if (strpos($fileLower, $kc) !== false) {
@@ -1090,6 +1095,7 @@
                                                                                 'ot' => $otName,
                                                                             ];
                                                                             $baseNames[] = $base;
+                                                                            break;
                                                                         }
                                                                         continue;
                                                                     }
@@ -1252,6 +1258,7 @@
                                                         if (in_array($foundClass, $aprobados)) {
                                                             $dibujosAprobados[] = $dibujo;
                                                             $found = true;
+                                                            break;
                                                         } elseif (in_array($foundClass, $rechazados)) {
                                                             $dibujosRechazados[] = $dibujo;
                                                             $found = true;
@@ -1282,6 +1289,7 @@
                                                         if (in_array($foundClass, $aprobados)) {
                                                             $ayudasAprobados[] = $ayuda;
                                                             $found = true;
+                                                            break;
                                                         } elseif (in_array($foundClass, $rechazados)) {
                                                             $ayudasRechazados[] = $ayuda;
                                                             $found = true;

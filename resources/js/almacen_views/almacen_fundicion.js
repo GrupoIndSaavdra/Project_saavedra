@@ -3911,29 +3911,49 @@ window.abrirModalLiberacionUnificado = function (ot, clasesActivas, todasClases)
  * Retorna el valor del primer modelo no procesado (activo), o en su defecto el primer disponible.
  */
 function _libFiltrarTiposModelo(clasesActivas, todasClases) {
-    const select = document.getElementById('lib-tipo');
+    const select = document.getElementById("lib-tipo") || document.getElementById("lib-tipo");
     if (!select) return null;
 
     let firstAvailable = null;
     let firstUnprocessed = null;
 
     const MAPA_TIPO = {
-        'fondo': 'Fondo',
-        'obturador': 'Obturador',
-        'molde': 'Molde',
-        'bombillo': 'Bombillo',
+        "candado obturador": "Candado Obturador",
+        "cabeza de soplo": "Cabeza de Soplo",
+        "embudo": "Embudo",
+        "corona": "Corona",
+        "plato": "Plato",
+        "fondo": "Fondo",
+        "obturador": "Obturador",
+        "molde": "Molde",
+        "bombillo": "Bombillo",
     };
+    
+    const knownKeys = [
+        "candado obturador",
+        "cabeza de soplo",
+        "embudo",
+        "corona",
+        "plato",
+        "fondo",
+        "obturador",
+        "molde",
+        "bombillo"
+    ];
 
-    // Calcular qué tipos están configurados en la OT (usando todasClases o clasesActivas como fallback)
+    // Calcular qué tipos están configurados en la OT
     const tiposConfigurados = new Set();
     const clasesAUsar = (todasClases && todasClases.length > 0) ? todasClases : clasesActivas;
 
     if (clasesAUsar && clasesAUsar.length > 0) {
         clasesAUsar.forEach(clase => {
             const clLow = clase.toLowerCase();
-            Object.entries(MAPA_TIPO).forEach(([key, val]) => {
-                if (clLow.includes(key)) tiposConfigurados.add(val);
-            });
+            for (let key of knownKeys) {
+                if (clLow.includes(key)) {
+                    tiposConfigurados.add(MAPA_TIPO[key]);
+                    break;
+                }
+            }
         });
     }
 
@@ -3942,38 +3962,42 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
     if (clasesActivas && clasesActivas.length > 0) {
         clasesActivas.forEach(clase => {
             const clLow = clase.toLowerCase();
-            Object.entries(MAPA_TIPO).forEach(([key, val]) => {
-                if (clLow.includes(key)) tiposActivos.add(val);
-            });
+            for (let key of knownKeys) {
+                if (clLow.includes(key)) {
+                    tiposActivos.add(MAPA_TIPO[key]);
+                    break;
+                }
+            }
         });
     }
 
     // Mostrar/ocultar opciones según tiposActivos
-    select.querySelectorAll('option').forEach(opt => {
+    select.querySelectorAll("option").forEach(opt => {
         if (!opt.value) {
             opt.hidden = false;
             opt.disabled = false;
-            opt.style.display = '';
+            opt.style.display = "";
             return;
-        } // Mantener placeholder
-
+        } 
+        
+        // Comparamos case-insensitive para ser más robustos
+        let optValLow = opt.value.toLowerCase();
+        let isActive = Array.from(tiposActivos).some(t => t.toLowerCase() === optValLow);
+        
         let shouldHide = false;
-        // Si no hay clases activas, mostramos todo
         if (tiposActivos.size === 0) {
             shouldHide = false;
         } else {
-            shouldHide = !tiposActivos.has(opt.value);
+            shouldHide = !isActive;
         }
 
         opt.hidden = shouldHide;
         opt.disabled = shouldHide;
-        opt.style.display = shouldHide ? 'none' : '';
+        opt.style.display = shouldHide ? "none" : "";
 
         if (!shouldHide) {
             if (!firstAvailable) firstAvailable = opt.value;
-
-            // Preferimos auto-seleccionar uno que esté activo (pendiente de procesar)
-            if (tiposActivos.has(opt.value) || tiposActivos.size === 0) {
+            if (isActive || tiposActivos.size === 0) {
                 const cached = window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[opt.value];
                 if (!cached && !firstUnprocessed) {
                     firstUnprocessed = opt.value;
@@ -4396,7 +4420,7 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
                 // Función para comprobar si el archivo pertenece a un listado de modelos activos
                 const archivoPerteneceAModelos = (nombre, modelosActivos) => {
                     const pl = nombre.toLowerCase();
-                    const todosModelosPosibles = ['bombillo', 'fondo', 'obturador', 'molde'];
+                    const todosModelosPosibles = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
 
                     // comprobar si el path contiene el modelo como carpeta o prefijo
                     const modelosEncontrados = todosModelosPosibles.filter(m => {
@@ -4651,7 +4675,7 @@ window.abrirModalFinalizarCalidad = function (ot, decision, tiposAprobados, tipo
                 // Función para comprobar si el archivo pertenece a un listado de modelos activos
                 const archivoPerteneceAModelos = (nombre, modelosActivos) => {
                     const pl = nombre.toLowerCase();
-                    const todosModelosPosibles = ['bombillo', 'fondo', 'obturador', 'molde'];
+                    const todosModelosPosibles = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
 
                     // comprobar si el path contiene el modelo como carpeta o prefijo
                     const modelosEncontrados = todosModelosPosibles.filter(m => {
@@ -5149,6 +5173,11 @@ window.handlePocProveedorChange = function (pageNum) {
 
 function getTipoModeloFromClase(claseNombre) {
     const clLow = (claseNombre || '').toLowerCase();
+    if (clLow.includes('candado obturador')) return 'Candado obturador';
+    if (clLow.includes('cabeza de soplo')) return 'Cabeza de soplo';
+    if (clLow.includes('embudo')) return 'Embudo';
+    if (clLow.includes('corona')) return 'Corona';
+    if (clLow.includes('plato')) return 'Plato';
     if (clLow.includes('fondo')) return 'Fondo';
     if (clLow.includes('obturador')) return 'Obturador';
     if (clLow.includes('molde')) return 'Molde';

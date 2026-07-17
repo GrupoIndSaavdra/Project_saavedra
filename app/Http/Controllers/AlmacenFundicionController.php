@@ -265,7 +265,7 @@ class AlmacenFundicionController extends Controller
 
             if (!$soloPreorden) {
                 // 1a. Dibujos — nueva ruta: {Clase}/Dibujos/ (con fallback a raíz de clase)
-                foreach (['Bombillo', 'Fondo', 'Obturador', 'Molde'] as $claseDir) {
+                foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo'] as $claseDir) {
                     $claseNorm = strtolower($claseDir);
                     if (!in_array($claseNorm, $activeClasses))
                         continue;
@@ -340,7 +340,7 @@ class AlmacenFundicionController extends Controller
                 }
 
                 // 2a. Ayudas Visuales — nueva ruta: {Clase}/Ayudas_Visuales/ (con fallback legacy)
-                foreach (['Bombillo', 'Fondo', 'Obturador', 'Molde'] as $claseDir) {
+                foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo'] as $claseDir) {
                     $claseNorm = strtolower($claseDir);
                     if (!in_array($claseNorm, $activeClasses))
                         continue;
@@ -1242,7 +1242,12 @@ class AlmacenFundicionController extends Controller
                 $nombres = [];
                 foreach ($clasesSeleccionadas as $c) {
                     $l = strtolower($c);
-                    if (strpos($l, 'fondo') !== false) $nombres[] = 'Fondo';
+                    if (strpos($l, 'candado obturador') !== false) $nombres[] = 'Candado obturador';
+                    elseif (strpos($l, 'cabeza de soplo') !== false) $nombres[] = 'Cabeza de soplo';
+                    elseif (strpos($l, 'embudo') !== false) $nombres[] = 'Embudo';
+                    elseif (strpos($l, 'corona') !== false) $nombres[] = 'Corona';
+                    elseif (strpos($l, 'plato') !== false) $nombres[] = 'Plato';
+                    elseif (strpos($l, 'fondo') !== false) $nombres[] = 'Fondo';
                     elseif (strpos($l, 'obturador') !== false) $nombres[] = 'Obturador';
                     elseif (strpos($l, 'molde') !== false) $nombres[] = 'Molde';
                     elseif (strpos($l, 'bombillo') !== false) $nombres[] = 'Bombillo';
@@ -1285,7 +1290,17 @@ class AlmacenFundicionController extends Controller
             foreach ($clasesSeleccionadas as $claseNombre) {
                 $tipo = null;
                 $clLow = strtolower($claseNombre);
-                if (strpos($clLow, 'fondo') !== false) {
+                if (strpos($clLow, 'candado obturador') !== false) {
+                    $tipo = 'Candado obturador';
+                } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
+                    $tipo = 'Cabeza de soplo';
+                } elseif (strpos($clLow, 'embudo') !== false) {
+                    $tipo = 'Embudo';
+                } elseif (strpos($clLow, 'corona') !== false) {
+                    $tipo = 'Corona';
+                } elseif (strpos($clLow, 'plato') !== false) {
+                    $tipo = 'Plato';
+                } elseif (strpos($clLow, 'fondo') !== false) {
                     $tipo = 'Fondo';
                 } elseif (strpos($clLow, 'obturador') !== false) {
                     $tipo = 'Obturador';
@@ -1338,7 +1353,12 @@ class AlmacenFundicionController extends Controller
             foreach ($clasesActivas as $clName) {
                 $tipo = null;
                 $clLow = strtolower($clName);
-                if (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+                if (strpos($clLow, 'candado obturador') !== false) $tipo = 'Candado obturador';
+                elseif (strpos($clLow, 'cabeza de soplo') !== false) $tipo = 'Cabeza de soplo';
+                elseif (strpos($clLow, 'embudo') !== false) $tipo = 'Embudo';
+                elseif (strpos($clLow, 'corona') !== false) $tipo = 'Corona';
+                elseif (strpos($clLow, 'plato') !== false) $tipo = 'Plato';
+                elseif (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
                 elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
                 elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
                 elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
@@ -1569,9 +1589,10 @@ class AlmacenFundicionController extends Controller
                         $val = strtolower($f['clase_nombre']);
                     }
                     if ($val) {
-                        foreach (['fondo', 'obturador', 'bombillo', 'molde'] as $kc) {
+                        foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'] as $kc) {
                             if (strpos($val, $kc) !== false) {
                                 $activeClasses[] = $kc;
+                                break;
                             }
                         }
                     }
@@ -1590,14 +1611,15 @@ class AlmacenFundicionController extends Controller
 
             $clLow = strtolower($c['nombre']);
             $tipo = null;
-            if (strpos($clLow, 'fondo') !== false)
-                $tipo = 'Fondo';
-            elseif (strpos($clLow, 'obturador') !== false)
-                $tipo = 'Obturador';
-            elseif (strpos($clLow, 'molde') !== false)
-                $tipo = 'Molde';
-            elseif (strpos($clLow, 'bombillo') !== false)
-                $tipo = 'Bombillo';
+            if (strpos($clLow, 'candado obturador') !== false) $tipo = 'Candado obturador';
+            elseif (strpos($clLow, 'cabeza de soplo') !== false) $tipo = 'Cabeza de soplo';
+            elseif (strpos($clLow, 'embudo') !== false) $tipo = 'Embudo';
+            elseif (strpos($clLow, 'corona') !== false) $tipo = 'Corona';
+            elseif (strpos($clLow, 'plato') !== false) $tipo = 'Plato';
+            elseif (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+            elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+            elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+            elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
 
             if ($tipo) {
                 if ($type === 'casting') {
@@ -1631,14 +1653,15 @@ class AlmacenFundicionController extends Controller
 
             $clLow = strtolower($claseNombre);
             $tipo = null;
-            if (strpos($clLow, 'fondo') !== false)
-                $tipo = 'Fondo';
-            elseif (strpos($clLow, 'obturador') !== false)
-                $tipo = 'Obturador';
-            elseif (strpos($clLow, 'molde') !== false)
-                $tipo = 'Molde';
-            elseif (strpos($clLow, 'bombillo') !== false)
-                $tipo = 'Bombillo';
+            if (strpos($clLow, 'candado obturador') !== false) $tipo = 'Candado obturador';
+            elseif (strpos($clLow, 'cabeza de soplo') !== false) $tipo = 'Cabeza de soplo';
+            elseif (strpos($clLow, 'embudo') !== false) $tipo = 'Embudo';
+            elseif (strpos($clLow, 'corona') !== false) $tipo = 'Corona';
+            elseif (strpos($clLow, 'plato') !== false) $tipo = 'Plato';
+            elseif (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+            elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+            elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+            elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
 
             if ($tipo) {
                 $isAprobado = LiberacionModeloFundicion::query()
@@ -1733,14 +1756,15 @@ class AlmacenFundicionController extends Controller
                     }
                     $clLow = strtolower($claseNombre);
                     $tipo = null;
-                    if (strpos($clLow, 'fondo') !== false)
-                        $tipo = 'Fondo';
-                    elseif (strpos($clLow, 'obturador') !== false)
-                        $tipo = 'Obturador';
-                    elseif (strpos($clLow, 'molde') !== false)
-                        $tipo = 'Molde';
-                    elseif (strpos($clLow, 'bombillo') !== false)
-                        $tipo = 'Bombillo';
+                    if (strpos($clLow, 'candado obturador') !== false) $tipo = 'Candado obturador';
+                    elseif (strpos($clLow, 'cabeza de soplo') !== false) $tipo = 'Cabeza de soplo';
+                    elseif (strpos($clLow, 'embudo') !== false) $tipo = 'Embudo';
+                    elseif (strpos($clLow, 'corona') !== false) $tipo = 'Corona';
+                    elseif (strpos($clLow, 'plato') !== false) $tipo = 'Plato';
+                    elseif (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+                    elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+                    elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+                    elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
 
                     if ($tipo) {
                         $isAprobado = LiberacionModeloFundicion::query()
@@ -1908,14 +1932,15 @@ class AlmacenFundicionController extends Controller
                 $claseNombre = $fila['clase_nombre'] ?? $fila['clase'] ?? '';
                 $clLow = strtolower($claseNombre);
                 $tipo = null;
-                if (strpos($clLow, 'fondo') !== false)
-                    $tipo = 'Fondo';
-                elseif (strpos($clLow, 'obturador') !== false)
-                    $tipo = 'Obturador';
-                elseif (strpos($clLow, 'molde') !== false)
-                    $tipo = 'Molde';
-                elseif (strpos($clLow, 'bombillo') !== false)
-                    $tipo = 'Bombillo';
+                if (strpos($clLow, 'candado obturador') !== false) $tipo = 'Candado obturador';
+                elseif (strpos($clLow, 'cabeza de soplo') !== false) $tipo = 'Cabeza de soplo';
+                elseif (strpos($clLow, 'embudo') !== false) $tipo = 'Embudo';
+                elseif (strpos($clLow, 'corona') !== false) $tipo = 'Corona';
+                elseif (strpos($clLow, 'plato') !== false) $tipo = 'Plato';
+                elseif (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+                elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
+                elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
+                elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
 
                 if ($tipo) {
                     $isAprobado = LiberacionModeloFundicion::query()
@@ -2562,10 +2587,20 @@ class AlmacenFundicionController extends Controller
                     foreach ($filas as $fila) {
                         $claseNombre = $fila['clase_nombre'] ?? $fila['clase'] ?? $fila['descripcion'] ?? '';
                         $clLow = strtolower($claseNombre);
-                        if (strpos($clLow, 'fondo') !== false) $clasesNombres[] = 'Fondo';
-                        elseif (strpos($clLow, 'obturador') !== false) $clasesNombres[] = 'Obturador';
-                        elseif (strpos($clLow, 'molde') !== false) $clasesNombres[] = 'Molde';
-                        elseif (strpos($clLow, 'bombillo') !== false) $clasesNombres[] = 'Bombillo';
+                        if (strpos($clLow, 'candado obturador') !== false) $clasesNombres[] = 'Candado obturador';
+                        elseif (strpos($clLow, 'cabeza de soplo') !== false) $clasesNombres[] = 'Cabeza de soplo';
+                        elseif (strpos($clLow, 'embudo') !== false) $clasesNombres[] = 'Embudo';
+                        elseif (strpos($clLow, 'corona') !== false) $clasesNombres[] = 'Corona';
+                        elseif (strpos($clLow, 'plato') !== false) $clasesNombres[] = 'Plato';
+                        elseif (strpos($clLow, 'candado obturador') !== false) $clasesNombres[] = 'Candado obturador';
+elseif (strpos($clLow, 'cabeza de soplo') !== false) $clasesNombres[] = 'Cabeza de soplo';
+elseif (strpos($clLow, 'embudo') !== false) $clasesNombres[] = 'Embudo';
+elseif (strpos($clLow, 'corona') !== false) $clasesNombres[] = 'Corona';
+elseif (strpos($clLow, 'plato') !== false) $clasesNombres[] = 'Plato';
+elseif (strpos($clLow, 'fondo') !== false) $clasesNombres[] = 'Fondo';
+elseif (strpos($clLow, 'obturador') !== false) $clasesNombres[] = 'Obturador';
+elseif (strpos($clLow, 'molde') !== false) $clasesNombres[] = 'Molde';
+elseif (strpos($clLow, 'bombillo') !== false) $clasesNombres[] = 'Bombillo';
                     }
                 }
             }
@@ -2756,7 +2791,12 @@ class AlmacenFundicionController extends Controller
                         $claseNombre = $fila['clase'] ?? $fila['clase_nombre'] ?? '';
                         $clLow = strtolower($claseNombre);
                         $tipo = null;
-                        if (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
+                        if (strpos($clLow, 'candado obturador') !== false) $tipo = 'Candado obturador';
+                        elseif (strpos($clLow, 'cabeza de soplo') !== false) $tipo = 'Cabeza de soplo';
+                        elseif (strpos($clLow, 'embudo') !== false) $tipo = 'Embudo';
+                        elseif (strpos($clLow, 'corona') !== false) $tipo = 'Corona';
+                        elseif (strpos($clLow, 'plato') !== false) $tipo = 'Plato';
+                        elseif (strpos($clLow, 'fondo') !== false) $tipo = 'Fondo';
                         elseif (strpos($clLow, 'obturador') !== false) $tipo = 'Obturador';
                         elseif (strpos($clLow, 'molde') !== false) $tipo = 'Molde';
                         elseif (strpos($clLow, 'bombillo') !== false) $tipo = 'Bombillo';
