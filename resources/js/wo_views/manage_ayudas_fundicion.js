@@ -108,7 +108,13 @@ function updateAdminUI() {
         }
 
         // Función case-insensitive para verificar existencia en el servidor Linux
-        const eq = (a, b) => a && b && String(a).toLowerCase() === String(b).toLowerCase();
+        const sanitizeJS = (str) => {
+            if (!str) return '';
+            str = String(str).replace(/\.\.+/g, '');
+            str = str.replace(/[\\\/]/g, '');
+            return str.trim();
+        };
+        const eq = (a, b) => a && b && sanitizeJS(String(a)).toLowerCase() === sanitizeJS(String(b)).toLowerCase();
         let existe = false;
         if (window.estructura) {
             if (Array.isArray(window.estructura)) existe = window.estructura.some(val => eq(val, p2));

@@ -120,24 +120,21 @@ class DibujosPdfController extends Controller
     public function getFiles(Request $request)
     {
         try {
-            $ot = $this->sanitizePath($request->query('ot', ''));
+            $rawOt = $request->query('ot', '');
             $clase = $this->sanitizePath($request->query('clase', ''));
 
-            if (empty($ot)) {
+            if (empty($rawOt)) {
                 return response()->json(['error' => 'Parámetro OT es requerido.'], 422);
             }
 
             if ($clase === 'null' || $clase === '--') $clase = '';
 
-            // Resolver nombre de OT si es numérico
-            if (is_numeric($ot)) {
-                $otModel = Orden_trabajo::query()->with('moldura')->find($ot);
-                if ($otModel) {
-                    $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-                    $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
-                }
+            $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+            if ($otModel) {
+                $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+                $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
             } else {
-                $ot = $this->normalizeOTName($ot);
+                $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
             }
 
             $newClasePath = self::BASE_DIR . '/' . $ot . '/' . $clase;
@@ -203,7 +200,14 @@ class DibujosPdfController extends Controller
      */
     public function serveFile(Request $request): BinaryFileResponse
     {
-        $ot      = $this->normalizeOTName($this->sanitizePath($request->query('ot', '')));
+        $rawOt = $request->query('ot', '');
+        $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+        if ($otModel) {
+            $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+            $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+        } else {
+            $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
+        }
         $clase   = $this->sanitizePath($request->query('clase', ''));
         $archivo = $this->sanitizeFileName($request->query('archivo', ''));
 
@@ -382,7 +386,14 @@ class DibujosPdfController extends Controller
             'archivo'=> 'required|string|max:300',
         ]);
 
-        $ot      = $this->normalizeOTName($this->sanitizePath($request->input('ot')));
+        $rawOt = $request->input('ot');
+        $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+        if ($otModel) {
+            $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+            $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+        } else {
+            $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
+        }
         $clase   = $this->sanitizePath($request->input('clase'));
         $archivo = $this->sanitizeFileName($request->input('archivo'));
         

@@ -304,25 +304,21 @@ class DibujosFundicionPdfController extends Controller
     public function getFiles(Request $request)
     {
         try {
-            $ot = $this->sanitizePath($request->query('ot', ''));
+            $rawOt = $request->query('ot', '');
             $clase = $this->sanitizePath($request->query('clase', ''));
 
-            if (empty($ot)) {
+            if (empty($rawOt)) {
                 return response()->json(['error' => 'Parámetro OT es requerido.'], 422);
             }
 
-            if ($clase === 'null' || $clase === '--')
-                $clase = '';
+            if ($clase === 'null' || $clase === '--') $clase = '';
 
-            // Resolver nombre de carpeta si se pasó un ID
-            if (is_numeric($ot)) {
-                $otModel = Orden_trabajo::query()->with('moldura')->find($ot);
-                if ($otModel) {
-                    $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-                    $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
-                }
+            $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+            if ($otModel) {
+                $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+                $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
             } else {
-                $ot = $this->normalizeOTName($ot);
+                $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
             }
 
             // 1. Directorios de Clase (Nuevo esquema)
@@ -395,22 +391,20 @@ class DibujosFundicionPdfController extends Controller
      */
     public function serveFile(Request $request): BinaryFileResponse
     {
-        $ot = $this->sanitizePath($request->query('ot', ''));
+        $rawOt = $request->query('ot', '');
         $clase = $this->sanitizePath($request->query('clase', ''));
         $archivo = $this->sanitizeFileName($request->query('archivo', ''));
 
-        if (empty($ot) || empty($archivo)) {
+        if (empty($rawOt) || empty($archivo)) {
             abort(422, 'Parámetros inválidos.');
         }
 
-        if (is_numeric($ot)) {
-            $otModel = Orden_trabajo::query()->with('moldura')->find($ot);
-            if ($otModel) {
-                $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-                $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
-            }
+        $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+        if ($otModel) {
+            $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+            $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
         } else {
-            $ot = $this->normalizeOTName($ot);
+            $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
         }
 
         // Si la clase es '--', buscamos en la raíz de la OT
@@ -609,7 +603,14 @@ class DibujosFundicionPdfController extends Controller
             'archivo' => 'nullable|string|max:300',
         ]);
 
-        $otFolderName = $this->normalizeOTName($this->sanitizePath($request->input('ot')));
+        $rawOt = $request->input('ot');
+        $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+        if ($otModel) {
+            $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+            $otFolderName = $this->normalizeOTName($this->sanitizePath($otLabel));
+        } else {
+            $otFolderName = $this->normalizeOTName($this->sanitizePath($rawOt));
+        }
         $originalName = $request->input('archivo') ? $this->sanitizeFileName($request->input('archivo')) : null;
 
         try {
@@ -1124,7 +1125,14 @@ class DibujosFundicionPdfController extends Controller
             'ayudas.*' => 'string'
         ]);
 
-        $ot = $this->normalizeOTName($this->sanitizePath($request->input('ot')));
+        $rawOt = $request->input('ot');
+        $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+        if ($otModel) {
+            $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+            $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+        } else {
+            $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
+        }
         $nuevasAyudasManuales = $request->input('ayudas', []);
         $ayudasManualesPosibles = ['Pistones', 'Guias', 'Guías'];
 
