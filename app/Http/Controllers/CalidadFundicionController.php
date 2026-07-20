@@ -1739,7 +1739,10 @@ class CalidadFundicionController extends Controller
         }
 
         // 3. Destinatarios
-        $destinosStr = env('EMAIL_PRODUCCION_SS', 'produccion@ssmetalf.mx,laboratorio@ssmetalf.mx') . ',' . 
+        $isJacarandas = $scar && stripos($scar->proveedor, 'jacarandas') !== false;
+        $defaultEmail = $isJacarandas ? env('EMAIL_PRODUCCION_JACARANDAS', 'ventas_jacarandas@prodigy.net.mx,requisicionestec@grupoindsaavedra.com') : env('EMAIL_PRODUCCION_SS', 'produccion@ssmetalf.mx,laboratorio@ssmetalf.mx');
+        
+        $destinosStr = $defaultEmail . ',' . 
                        env('EMAIL_CC_GENERAL', 'alejandross@grupoindsaavedra.com,analilia@grupoindsaavedra.com,blanca@grupoindsaavedra.com,juanss@grupoindsaavedra.com,abraham@grupoindsaavedra.com,inspecciontec@grupoindsaavedra.com,requisicionestec@grupoindsaavedra.com,auxadmtec@grupoindsaavedra.com,producciontec@grupoindsaavedra.com');
         $destinatarios = array_filter(array_map('trim', explode(',', $destinosStr)));
 

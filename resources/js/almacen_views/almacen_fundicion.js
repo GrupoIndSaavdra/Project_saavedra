@@ -1146,7 +1146,11 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
             .then(data => {
                 if (data.success && data.pending && data.pending.length > 0) {
                     let html = '';
+                    let hasJacarandas = false;
                     data.pending.forEach(po => {
+                        if (po.proveedor && po.proveedor.toLowerCase().includes('jacarandas')) {
+                            hasJacarandas = true;
+                        }
                         html += `
                             <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px;">
                                 <input type="checkbox" name="pre_orden_ids[]" value="${po.id}" checked data-clases="${po.clases_str || ''}" onchange="if(window.syncArchivosSeleccionadosPreOrden) window.syncArchivosSeleccionadosPreOrden()">
@@ -1158,6 +1162,16 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                         `;
                     });
                     pendingContainer.innerHTML = html;
+                    
+                    const form = document.getElementById('formEnviarPreOrden');
+                    const inputDestinatario = document.getElementById('env-destinatario');
+                    if (hasJacarandas && form && inputDestinatario) {
+                        const jEmail = form.getAttribute('data-email-jacarandas');
+                        if (jEmail) {
+                            inputDestinatario.value = jEmail;
+                        }
+                    }
+                    
                     setTimeout(() => { if (window.syncArchivosSeleccionadosPreOrden) window.syncArchivosSeleccionadosPreOrden(); }, 50);
                 } else {
                     pendingContainer.innerHTML = `

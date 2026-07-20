@@ -2690,8 +2690,19 @@ elseif (strpos($clLow, 'bombillo') !== false) $clasesNombres[] = 'Bombillo';
             }
 
             if ($isCastingPo) {
+                // Determine if Jacarandas is the provider
+                $proveedores = $preOrdenes->pluck('proveedor')->map(function($p) { return strtolower($p); })->toArray();
+                $isJacarandas = false;
+                foreach($proveedores as $p) {
+                    if (strpos($p, 'jacarandas') !== false) {
+                        $isJacarandas = true;
+                        break;
+                    }
+                }
+                $defaultEmail = $isJacarandas ? env('EMAIL_PRODUCCION_JACARANDAS', 'ventas_jacarandas@prodigy.net.mx,requisicionestec@grupoindsaavedra.com') : env('EMAIL_PRODUCCION_SS', 'produccion@ssmetalf.mx,laboratorio@ssmetalf.mx');
+
                 // Para Casting: enviar a Proveedores de Casting y CC General
-                $destinosStr = !empty($destinatario) ? $destinatario : env('EMAIL_PRODUCCION_SS', 'produccion@ssmetalf.mx,laboratorio@ssmetalf.mx') . ',' .
+                $destinosStr = !empty($destinatario) ? $destinatario : $defaultEmail . ',' .
                     env('EMAIL_CC_GENERAL', 'alejandross@grupoindsaavedra.com,analilia@grupoindsaavedra.com,blanca@grupoindsaavedra.com,juanss@grupoindsaavedra.com,abraham@grupoindsaavedra.com,inspecciontec@grupoindsaavedra.com,requisicionestec@grupoindsaavedra.com,auxadmtec@grupoindsaavedra.com,producciontec@grupoindsaavedra.com');
                 $destinatarios = array_filter(array_map('trim', explode(',', $destinosStr)));
 
@@ -3286,6 +3297,7 @@ elseif (strpos($clLow, 'bombillo') !== false) $clasesNombres[] = 'Bombillo';
                     'id' => implode(',', $ids),
                     'clases_str' => $clasesStr,
                     'pdf_filename' => $first->pdf_filename,
+                    'proveedor' => $first->proveedor,
                     'fecha_creacion' => \Carbon\Carbon::parse($first->created_at)->format('d/m/Y H:i'),
                 ];
             }
