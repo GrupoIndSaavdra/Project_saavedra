@@ -19,6 +19,8 @@ class Orden_trabajo extends Model
 {
     use HasFactory;
     protected $table = 'orden_trabajo';
+    protected $keyType = 'string';
+    public $incrementing = false;
 
     protected $fillable = [
         'id',

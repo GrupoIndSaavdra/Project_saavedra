@@ -67,9 +67,6 @@
                                 <option value="Guías" {{ $claseSeleccionadaId === 'Guías' ? 'selected' : '' }}>
                                     Guías (Opcional)
                                 </option>
-                                <option value="--" {{ $claseSeleccionadaId === '--' ? 'selected' : '' }}>
-                                    Archivos en Raíz (Antiguos)
-                                </option>
                             @endif
                         </select>
                     </div>

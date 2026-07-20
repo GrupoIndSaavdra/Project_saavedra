@@ -180,13 +180,7 @@ function initCreateFolderBtn() {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Carpeta creada correctamente.');
-                fetch(window.routes['doc.estructura']).then(r=>r.json()).then(str => {
-                    window.estructura = str;
-                    renderEstructuraTable();
-                    updateAdminUI();
-                    actualizarBadge(payload.param1, payload.param2);
-                    if (typeof loadAuditLog === 'function') loadAuditLog();
-                });
+                setTimeout(() => window.location.reload(), 1000);
             } else {
                 mostrarNotificacion(data.message || 'No se pudo crear la carpeta.', true);
             }
@@ -400,9 +394,7 @@ window.eliminarPdf = function(nombreArchivo, param1, param2) {
     .then(data => {
         if (data.success) {
             mostrarNotificacion(data.message || 'Archivo eliminado correctamente.');
-            cargarArchivosEnPanel(param1, param2);
-            actualizarBadge(param1, param2);
-            loadAuditLog();
+            setTimeout(() => window.location.reload(), 1000);
         } else {
             mostrarNotificacion(data.message || 'No se pudo eliminar el archivo.', true);
         }
@@ -437,8 +429,7 @@ function subirPdf(payload, file, btn, onSuccess) {
     .then(data => {
         if (data.success) {
             mostrarNotificacion(data.message || 'Archivo subido correctamente.');
-            loadAuditLog();
-            if (onSuccess) onSuccess();
+            setTimeout(() => window.location.reload(), 1000);
         } else {
             mostrarNotificacion(data.message || 'No se pudo subir el archivo.', true);
         }
@@ -471,8 +462,7 @@ function reemplazarPdf(payload, file, btn, onSuccess) {
     .then(data => {
         if (data.success) {
             mostrarNotificacion(data.message || 'Archivo reemplazado correctamente.');
-            loadAuditLog();
-            if (onSuccess) onSuccess();
+            setTimeout(() => window.location.reload(), 1000);
         } else {
             mostrarNotificacion(data.message || 'No se pudo reemplazar.', true);
         }
@@ -753,19 +743,7 @@ function eliminarCarpetaAJAX(folder) {
     .then(data => {
         if (data.success) {
             mostrarNotificacion(data.message || 'Carpeta eliminada.');
-            
-            // Actualizar estructura local
-            if (Array.isArray(window.estructura)) {
-                window.estructura = window.estructura.filter(p => p !== folder.p1);
-            } else {
-                delete window.estructura[folder.p1];
-            }
-
-            // Si la carpeta eliminada era la que estabamos viendo, limpiar UI
-            updateAdminUI();
-            loadBadgeCounts();
-            loadAuditLog();
-            renderEstructuraTable();
+            setTimeout(() => window.location.reload(), 1000);
 
         } else {
             mostrarNotificacion(data.message || 'Error al eliminar carpeta.', true);

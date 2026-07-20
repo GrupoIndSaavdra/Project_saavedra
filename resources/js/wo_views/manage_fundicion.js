@@ -543,9 +543,7 @@ window.eliminarPdf = function (nombreArchivo, param1, param2) {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Archivo eliminado correctamente.');
-                cargarArchivosEnPanel(param1, param2);
-                actualizarBadge(param1, param2);
-                loadAuditLog();
+                setTimeout(() => window.location.reload(), 1000);
             } else {
                 mostrarNotificacion(data.message || 'No se pudo eliminar el archivo.', true);
             }
@@ -580,8 +578,7 @@ function subirPdf(payload, file, btn, onSuccess) {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Archivo subido correctamente.');
-                loadAuditLog();
-                if (onSuccess) onSuccess();
+                setTimeout(() => window.location.reload(), 1000);
             } else {
                 mostrarNotificacion(data.message || 'No se pudo subir el archivo.', true);
             }
@@ -614,8 +611,7 @@ function reemplazarPdf(payload, file, btn, onSuccess) {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Archivo reemplazado correctamente.');
-                loadAuditLog();
-                if (onSuccess) onSuccess();
+                setTimeout(() => window.location.reload(), 1000);
             } else {
                 mostrarNotificacion(data.message || 'No se pudo reemplazar.', true);
             }

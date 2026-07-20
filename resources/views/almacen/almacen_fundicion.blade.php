@@ -358,6 +358,61 @@
                                 resultado{{ $registrosEstado->count() !== 1 ? 's' : '' }}</span>
                         </div>
 
+                        @if ($estado === 'activa')
+                        {{-- ── BARRA DE SINCRONIZACIÓN MANUAL (solo tabla Activa) ── --}}
+                        <div id="sync-bar-activa" style="
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            flex-wrap: wrap;
+                            gap: 10px;
+                            padding: 10px 20px;
+                            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+                            border-bottom: 1px solid #bae6fd;
+                            font-size: 0.85rem;
+                            color: #0369a1;
+                            font-family: 'Poppins', sans-serif;
+                        ">
+                            <span id="sync-status-almacen" style="display: flex; align-items: center; gap: 6px; font-weight: 600;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0369a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                                    <polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                                <span id="sync-last-time-almacen">Sincronización automática activa</span>
+                            </span>
+                            <button
+                                id="btn-sync-manual-almacen"
+                                onclick="sincronizarDibujos(true)"
+                                title="Sincronizar archivos ahora"
+                                style="
+                                    display: inline-flex;
+                                    align-items: center;
+                                    gap: 7px;
+                                    padding: 7px 18px;
+                                    background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+                                    color: #fff;
+                                    border: none;
+                                    border-radius: 8px;
+                                    font-weight: 700;
+                                    font-size: 0.82rem;
+                                    font-family: 'Poppins', sans-serif;
+                                    cursor: pointer;
+                                    box-shadow: 0 3px 10px rgba(3,105,161,0.25);
+                                    transition: all 0.2s ease;
+                                    white-space: nowrap;
+                                "
+                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 5px 15px rgba(3,105,161,0.35)';"
+                                onmouseout="this.style.transform=''; this.style.boxShadow='0 3px 10px rgba(3,105,161,0.25)';"
+                            >
+                                <svg id="sync-icon-almacen" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                                Sincronizar ahora
+                            </button>
+                        </div>
+                        @endif
+
                         @if ($registrosEstado->isEmpty())
                             <div class="alm-empty">
                                 <div class="alm-empty-icon">
