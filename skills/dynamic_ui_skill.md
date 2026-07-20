@@ -12,24 +12,24 @@ Ensure your controller returns the necessary identifiers in the JSON response, s
 **Example for creating a folder:**
 ```php
 if ($request->expectsJson()) {
-    return response()->json([
-        'success' => true,
-        'message' => 'Carpeta creada correctamente.',
-        'ot' => $otName,
-        'clase' => $claseName
-    ]);
+ return response()->json([
+ 'success' => true,
+ 'message' => 'Carpeta creada correctamente.',
+ 'ot' => $otName,
+ 'clase' => $claseName
+ ]);
 }
 ```
 
 **Example for linking alerts/records:**
 ```php
 if ($request->expectsJson()) {
-    return response()->json([
-        'success' => true,
-        'message' => 'Ayudas vinculadas correctamente.',
-        'ayudasLinked' => $ayudasFinales,
-        'ot' => $ot
-    ]);
+ return response()->json([
+ 'success' => true,
+ 'message' => 'Ayudas vinculadas correctamente.',
+ 'ayudasLinked' => $ayudasFinales,
+ 'ot' => $ot
+ ]);
 }
 ```
 
@@ -39,40 +39,40 @@ In the `.then(data => { ... })` block of your `fetch` request, parse the identif
 **Example for Folder Creation:**
 ```javascript
 if (data.success) {
-    mostrarNotificacion(data.message);
-    
-    // 1. Mutate local state
-    if (data.ot && data.clase) {
-        if (!window.estructura[data.ot]) window.estructura[data.ot] = [];
-        if (!window.estructura[data.ot].includes(data.clase)) {
-            window.estructura[data.ot].push(data.clase);
-        }
-    }
-    
-    // 2. Call surgical render functions (DO NOT RELOAD PAGE)
-    if (typeof renderEstructuraTable === 'function') renderEstructuraTable();
-    updateAdminUI();
-    actualizarBadge(payload.param1, payload.param2);
-    if (typeof loadAuditLog === 'function') loadAuditLog();
+ mostrarNotificacion(data.message);
+
+ // 1. Mutate local state
+ if (data.ot && data.clase) {
+ if (!window.estructura[data.ot]) window.estructura[data.ot] = [];
+ if (!window.estructura[data.ot].includes(data.clase)) {
+ window.estructura[data.ot].push(data.clase);
+ }
+ }
+
+ // 2. Call surgical render functions (DO NOT RELOAD PAGE)
+ if (typeof renderEstructuraTable === 'function') renderEstructuraTable();
+ updateAdminUI();
+ actualizarBadge(payload.param1, payload.param2);
+ if (typeof loadAuditLog === 'function') loadAuditLog();
 }
 ```
 
 **Example for Deleting:**
 ```javascript
 if (data.success) {
-    mostrarNotificacion(data.message);
-    
-    // 1. Mutate local state
-    if (window.estructura[folder.p1]) {
-        window.estructura[folder.p1] = window.estructura[folder.p1].filter(c => c !== folder.p2);
-        if (window.estructura[folder.p1].length === 0) delete window.estructura[folder.p1];
-    }
-    
-    // 2. Refresh UI Components
-    updateAdminUI();
-    loadBadgeCounts();
-    loadAuditLog();
-    if (typeof renderEstructuraTable === 'function') renderEstructuraTable();
+ mostrarNotificacion(data.message);
+
+ // 1. Mutate local state
+ if (window.estructura[folder.p1]) {
+ window.estructura[folder.p1] = window.estructura[folder.p1].filter(c => c !== folder.p2);
+ if (window.estructura[folder.p1].length === 0) delete window.estructura[folder.p1];
+ }
+
+ // 2. Refresh UI Components
+ updateAdminUI();
+ loadBadgeCounts();
+ loadAuditLog();
+ if (typeof renderEstructuraTable === 'function') renderEstructuraTable();
 }
 ```
 

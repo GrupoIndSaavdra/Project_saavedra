@@ -1,6 +1,6 @@
-# 🛡️ Guía de Validación y Sanitización de Datos (Validation Skill)
+# Guía de Validación y Sanitización de Datos (Validation Skill)
 
-> **📁 Directorio de Referencia:** `app/Http/Requests/ y Validaciones en Controladores`
+> ** Directorio de Referencia:** `app/Http/Requests/ y Validaciones en Controladores`
 > *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
 
 
@@ -20,13 +20,13 @@ Para formularios pequeños o endpoints rápidos con menos de 3 campos.
 
 ```php
 public function store(Request $request) {
-    $validated = $request->validate([
-        'lote' => 'required|string|max:50',
-        'peso_total_kg' => 'required|numeric|min:0.01|max:9999.99',
-        'fecha_ingreso' => 'required|date',
-    ]);
-    
-    // $validated contiene únicamente los campos validados
+ $validated = $request->validate([
+ 'lote' => 'required|string|max:50',
+ 'peso_total_kg' => 'required|numeric|min:0.01|max:9999.99',
+ 'fecha_ingreso' => 'required|date',
+ ]);
+
+ // $validated contiene únicamente los campos validados
 }
 ```
 
@@ -41,29 +41,29 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class GuardarLoteRequest extends FormRequest
 {
-    public function authorize()
-    {
-        // Solo operarios autorizados y administradores
-        return in_array(auth()->user()->perfil, [1, 4, 8]);
-    }
+ public function authorize()
+ {
+ // Solo operarios autorizados y administradores
+ return in_array(auth()->user()->perfil, [1, 4, 8]);
+ }
 
-    public function rules()
-    {
-        return [
-            'nombre' => 'required|string|min:3|max:100',
-            'lote' => 'required|string|unique:soldadura_lotes,lote',
-            'peso_total_kg' => 'required|numeric|decimal:2|min:0.5',
-            'botes' => 'nullable|integer|min:1',
-        ];
-    }
+ public function rules()
+ {
+ return [
+ 'nombre' => 'required|string|min:3|max:100',
+ 'lote' => 'required|string|unique:soldadura_lotes,lote',
+ 'peso_total_kg' => 'required|numeric|decimal:2|min:0.5',
+ 'botes' => 'nullable|integer|min:1',
+ ];
+ }
 
-    public function messages()
-    {
-        return [
-            'lote.unique' => 'Este número de lote ya está registrado en el sistema.',
-            'peso_total_kg.decimal' => 'El peso debe tener exactamente 2 decimales.',
-        ];
-    }
+ public function messages()
+ {
+ return [
+ 'lote.unique' => 'Este número de lote ya está registrado en el sistema.',
+ 'peso_total_kg.decimal' => 'El peso debe tener exactamente 2 decimales.',
+ ];
+ }
 }
 ```
 
@@ -72,21 +72,21 @@ class GuardarLoteRequest extends FormRequest
 ## 3. Reglas de Validación Clave y Formatos
 
 - **`exists:table,column`**: Asegura integridad referencial.
-  ```php
-  'lote_id' => 'required|exists:soldadura_lotes,id'
-  ```
+ ```php
+ 'lote_id' => 'required|exists:soldadura_lotes,id'
+ ```
 - **`unique:table,column,except,idColumn`**: Evita duplicidad de llaves de negocio como matrículas o códigos de barras.
-  ```php
-  'matricula' => 'required|string|unique:soldadura_botes,matricula,' . $this->id
-  ```
+ ```php
+ 'matricula' => 'required|string|unique:soldadura_botes,matricula,' . $this->id
+ ```
 - **`in:val1,val2,...`**: Restringe valores de estados a enums lógicos.
-  ```php
-  'estado' => 'required|in:en_transito,almacen,liberado,rechazado'
-  ```
+ ```php
+ 'estado' => 'required|in:en_transito,almacen,liberado,rechazado'
+ ```
 - **`numeric|decimal:0,2`**: Para medidas y pesos con precisión flotante.
-  ```php
-  'peso_kg' => 'required|numeric|between:0.01,10.00'
-  ```
+ ```php
+ 'peso_kg' => 'required|numeric|between:0.01,10.00'
+ ```
 
 ---
 
@@ -94,22 +94,22 @@ class GuardarLoteRequest extends FormRequest
 Laravel y Eloquent nos protegen automáticamente contra inyección SQL si usamos el Query Builder estándar. Sin embargo, debes sanitizar entradas para prevenir Cross-Site Scripting (XSS) y datos corruptos.
 
 1. **Eliminar Espacios en Blanco Innecesarios:**
-   Laravel incluye por defecto el middleware `TrimStrings`. Aún así, si manejas códigos o matrículas con espacios al final, realiza un `trim()` manual antes de procesarlos.
-   ```php
-   $matricula = trim($request->matricula);
-   ```
+ Laravel incluye por defecto el middleware `TrimStrings`. Aún así, si manejas códigos o matrículas con espacios al final, realiza un `trim()` manual antes de procesarlos.
+ ```php
+ $matricula = trim($request->matricula);
+ ```
 
 2. **Sanitizar HTML (XSS Prevention):**
-   Si permites campos de texto libre o comentarios en los reportes de calidad, asegúrate de despojar etiquetas HTML usando `strip_tags()` antes de guardarlos.
-   ```php
-   $comentarioSanitizado = strip_tags($request->comentarios);
-   ```
+ Si permites campos de texto libre o comentarios en los reportes de calidad, asegúrate de despojar etiquetas HTML usando `strip_tags()` antes de guardarlos.
+ ```php
+ $comentarioSanitizado = strip_tags($request->comentarios);
+ ```
 
 3. **Uso de Castings:**
-   Fuerza los tipos de datos en el guardado de registros numéricos o booleanos para evitar almacenar cadenas vacías en columnas de enteros.
-   ```php
-   $bote->peso_kg = (float) $request->peso_kg;
-   ```
+ Fuerza los tipos de datos en el guardado de registros numéricos o booleanos para evitar almacenar cadenas vacías en columnas de enteros.
+ ```php
+ $bote->peso_kg = (float) $request->peso_kg;
+ ```
 
 ---
 
@@ -128,18 +128,18 @@ $storagePath = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/';
 ### Validación de Estado de OT en Blade (antes de renderizar controles)
 ```php
 @php
-    // Validar si el usuario puede eliminar archivos basándose en su perfil y el estado de la OT
-    $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
-    $canDelete = false;
-    if (in_array(auth()->user()->perfil, [1, 2])) $canDelete = true;
-    elseif (auth()->user()->perfil == 5 && $fileOwner === 'almacen' && !$alertSent) $canDelete = true;
-    elseif (auth()->user()->perfil == 4 && $fileOwner === 'calidad') $canDelete = true;
+ // Validar si el usuario puede eliminar archivos basándose en su perfil y el estado de la OT
+ $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
+ $canDelete = false;
+ if (in_array(auth()->user()->perfil, [1, 2])) $canDelete = true;
+ elseif (auth()->user()->perfil == 5 && $fileOwner === 'almacen' && !$alertSent) $canDelete = true;
+ elseif (auth()->user()->perfil == 4 && $fileOwner === 'calidad') $canDelete = true;
 @endphp
 ```
 
 ### Validación de Extensión de Archivo en Subida
 ```php
 $request->validate([
-    'archivo' => 'required|file|mimes:pdf,jpg,jpeg,png,gif,webp|max:20480',
+ 'archivo' => 'required|file|mimes:pdf,jpg,jpeg,png,gif,webp|max:20480',
 ]);
 ```

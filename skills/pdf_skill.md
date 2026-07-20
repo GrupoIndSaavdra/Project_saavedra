@@ -1,6 +1,6 @@
-# 📄 Guía de Generación de PDFs (PDF Skill) - Máximo Nivel
+# Guía de Generación de PDFs (PDF Skill) - Máximo Nivel
 
-> **📁 Directorio de Referencia:** `resources/views/pdf/ y Controladores que usen dompdf`
+> ** Directorio de Referencia:** `resources/views/pdf/ y Controladores que usen dompdf`
 > *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
 
 
@@ -13,16 +13,16 @@ Nunca uses `div` para crear layouts de columnas. No uses flexbox, grid, ni float
 ```html
 <!-- ESTO FALLARÁ MÍSERAMENTE EN DOMPDF -->
 <div style="display: flex; justify-content: space-between;">
-    <div>Columna Izquierda</div>
-    <div>Columna Derecha</div>
+ <div>Columna Izquierda</div>
+ <div>Columna Derecha</div>
 </div>
 
-<!-- ✅ ESTO ES LO CORRECTO EN DOMPDF -->
+<!-- ESTO ES LO CORRECTO EN DOMPDF -->
 <table width="100%" style="border-collapse: collapse;">
-    <tr>
-        <td width="50%" align="left" valign="top">Columna Izquierda</td>
-        <td width="50%" align="right" valign="top">Columna Derecha</td>
-    </tr>
+ <tr>
+ <td width="50%" align="left" valign="top">Columna Izquierda</td>
+ <td width="50%" align="right" valign="top">Columna Derecha</td>
+ </tr>
 </table>
 ```
 
@@ -41,10 +41,10 @@ Nunca uses URLs relativas o el helper `asset()` si tu servidor no tiene DNS resu
 ```blade
 <!-- Pon esto antes del cierre del </body> -->
 <script type="text/php">
-    if ( isset($pdf) ) {
-        // Coordenadas x, y, texto, fuente, tamaño, color rgb
-        $pdf->page_text(500, 800, "Página {PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0,0,0));
-    }
+ if ( isset($pdf) ) {
+ // Coordenadas x, y, texto, fuente, tamaño, color rgb
+ $pdf->page_text(500, 800, "Página {PAGE_NUM} de {PAGE_COUNT}", null, 10, array(0,0,0));
+ }
 </script>
 ```
 
@@ -61,13 +61,13 @@ Si una tabla es muy larga, puede que se corte mal en medio de una fila (el texto
 - Para obligar a saltar de hoja:
 ```css
 .page-break {
-    page-break-after: always;
+ page-break-after: always;
 }
 ```
 - Para evitar que filas individuales de una tabla se partan a la mitad entre dos páginas, aplica este estilo en el `tr`:
 ```css
 tr {
-    page-break-inside: avoid;
+ page-break-inside: avoid;
 }
 ```
 - Evita alturas fijas (`height`) en celdas de tablas de datos largos, permitiendo que la tabla crezca naturalmente.
@@ -78,10 +78,10 @@ tr {
 - **Fuentes personalizadas:** Si necesitas una fuente específica del corporativo (como *Orbitron* o *Inter*), debes descargar el archivo `.ttf` en el servidor y declararlo con `@font-face` localmente:
 ```css
 @font-face {
-    font-family: 'Orbitron';
-    src: url('{{ public_path("fonts/Orbitron-Regular.ttf") }}') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+ font-family: 'Orbitron';
+ src: url('{{ public_path("fonts/Orbitron-Regular.ttf") }}') format('truetype');
+ font-weight: normal;
+ font-style: normal;
 }
 ```
 
@@ -92,16 +92,16 @@ Si vas a consumir imágenes de servidores externos (como generadores de QRs en l
 use Barryvdh\DomPDF\Facade\Pdf;
 
 public function generarReporte() {
-    $pdf = Pdf::loadView('reportes.vista', compact('datos'));
-    
-    // Configuración para permitir imágenes externas y scripts PHP embebidos
-    $pdf->getDomPDF()->set_option('isRemoteEnabled', true);
-    $pdf->getDomPDF()->set_option('isPhpEnabled', true);
-    
-    // Forzar hoja Carta en Horizontal (Landscape)
-    $pdf->setPaper('letter', 'landscape');
-    
-    return $pdf->stream('Reporte.pdf'); 
+ $pdf = Pdf::loadView('reportes.vista', compact('datos'));
+
+ // Configuración para permitir imágenes externas y scripts PHP embebidos
+ $pdf->getDomPDF()->set_option('isRemoteEnabled', true);
+ $pdf->getDomPDF()->set_option('isPhpEnabled', true);
+
+ // Forzar hoja Carta en Horizontal (Landscape)
+ $pdf->setPaper('letter', 'landscape');
+
+ return $pdf->stream('Reporte.pdf'); 
 }
 ```
 
@@ -125,22 +125,22 @@ La única vista en `resources/views/pdf/` es la pre-orden de fundición. Su estr
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <style>
-        body { font-family: Helvetica, Arial, sans-serif; font-size: 10px; }
-        table { width: 100%; border-collapse: collapse; }
-        td, th { border: 1px solid #000; padding: 4px; }
-        .page-break { page-break-after: always; }
-    </style>
+ <style>
+ body { font-family: Helvetica, Arial, sans-serif; font-size: 10px; }
+ table { width: 100%; border-collapse: collapse; }
+ td, th { border: 1px solid #000; padding: 4px; }
+ .page-break { page-break-after: always; }
+ </style>
 </head>
 <body>
-    <table>
-        <tr>
-            <td width="20%"><img src="{{ public_path('images/lg_saavedra.png') }}" width="80"></td>
-            <td width="60%" align="center"><strong>PRE-ORDEN DE FUNDICIÓN</strong></td>
-            <td width="20%">OT: {{ $ot }}</td>
-        </tr>
-    </table>
-    {{-- Contenido principal con tablas... --}}
+ <table>
+ <tr>
+ <td width="20%"><img src="{{ public_path('images/lg_saavedra.png') }}" width="80"></td>
+ <td width="60%" align="center"><strong>PRE-ORDEN DE FUNDICIÓN</strong></td>
+ <td width="20%">OT: {{ $ot }}</td>
+ </tr>
+ </table>
+ {{-- Contenido principal con tablas... --}}
 </body>
 </html>
 ```

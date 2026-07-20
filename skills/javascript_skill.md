@@ -1,212 +1,296 @@
-# ⚡ Guía de JavaScript (JS Skill) - Máximo Nivel
+# Guía de JavaScript (JS Skill) — Project Saavedra
 
-> **📁 Directorio de Referencia:** `public/js/ y resources/js/`
-> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+> ** Directorio de Referencia:** `resources/js/`
+> *Todo script en `Project_saavedra` debe estar diseñado para manejar fallos de red sin romper la UI.*
 
-
-Todo script en `Project_saavedra` debe estar diseñado para manejar fallos de red sin romper la UI. JS se utiliza para mejorar la UX y conectar endpoints silenciosos.
+---
 
 ## 1. Patrón Asíncrono Definitivo (Async / Await)
+
 Olvida las cadenas `.then().catch()`. Todo debe usar `async / await` rodeado de un bloque `try / catch`.
 
 ```javascript
 async function procesarPieza(idPieza) {
-    // 1. Prepara UI (Mostrar Loading, deshabilitar botón)
-    const btn = document.getElementById('btn-procesar');
-    btn.disabled = true;
-    btn.innerHTML = 'Procesando...';
+ // 1. Prepara UI (Mostrar Loading, deshabilitar botón)
+ const btn = document.getElementById('btn-procesar');
+ setVisualLoading(btn, true);
 
-    try {
-        // 2. Extraer CSRF Token (OBLIGATORIO)
-        const token = document.querySelector('meta[name="csrf-token"]').content;
-        
-        // 3. Reemplazar ID en la URL inyectada por window.routes
-        const url = window.routes.apiProcesarPieza.replace(':id', idPieza);
+ try {
+ // 2. Extraer CSRF Token (OBLIGATORIO)
+ const token = document.querySelector('meta[name="csrf-token"]').content;
 
-        // 4. Hacer petición
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': token,
-                'Accept': 'application/json' // Obliga a Laravel a regresar JSON si hay error 422
-            },
-            body: JSON.stringify({ estado: 'ok' })
-        });
+ // 3. Reemplazar ID en la URL inyectada por window.routes
+ const url = window.routes.apiProcesarPieza.replace(':id', idPieza);
 
-        // 5. Verificar si el servidor dio error HTTP (4xx o 5xx)
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Error desconocido en servidor');
-        }
+ // 4. Hacer petición
+ const response = await fetch(url, {
+ method: 'POST',
+ headers: {
+ 'Content-Type': 'application/json',
+ 'X-CSRF-TOKEN': token,
+ 'Accept': 'application/json' // Obliga a Laravel a regresar JSON en error 422
+ },
+ body: JSON.stringify({ estado: 'ok' })
+ });
 
-        const data = await response.json();
-        
-        // 6. Éxito
-        mostrarAlerta('Éxito', data.success, 'success');
-        
-    } catch (error) {
-        // 7. Falla (Red caída, error 500, etc)
-        console.error(error);
-        mostrarAlerta('Error', error.message, 'error');
-    } finally {
-        // 8. Restaurar UI sin importar si fue éxito o error
-        btn.disabled = false;
-        btn.innerHTML = 'Procesar';
-    }
+ // 5. Verificar si el servidor dio error HTTP (4xx o 5xx)
+ if (!response.ok) {
+ const errorData = await response.json().catch(() => ({}));
+ throw new Error(errorData.message || `Error ${response.status} del servidor`);
+ }
+
+ const data = await response.json();
+
+ // 6. Éxito
+ mostrarAlerta('Éxito', data.message || data.success, 'success');
+
+ } catch (error) {
+ // 7. Falla (Red caída, error 500, etc.)
+ console.error('[procesarPieza]', error);
+ mostrarAlerta('Error', error.message, 'error');
+ } finally {
+ // 8. Restaurar UI sin importar si fue éxito o error
+ setVisualLoading(btn, false);
+ }
 }
 ```
+
+---
 
 ## 2. Alertas Elegantes (Uso de SweetAlert2)
-Si se requiere confirmación para borrar o procesar, usa la librería `Swal`.
 
 ```javascript
-function confirmarEliminacion(id) {
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: "Esta acción no se puede deshacer.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#b30404', // Rojo Peligro Saavedra
-        cancelButtonColor: '#030041',  // Azul Marino Saavedra
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            ejecutarEliminacion(id); // Llamar a tu función async fetch
-        }
-    });
+// Alerta estándar del proyecto
+function mostrarAlerta(titulo, texto, icono) {
+ Swal.fire({
+ title: titulo,
+ text: texto,
+ icon: icono, // 'success', 'error', 'warning', 'info'
+ timer: icono === 'success' ? 2500 : undefined, // Auto-cerrar en éxito
+ timerProgressBar: icono === 'success',
+ confirmButtonColor: icono === 'error' ? '#9c0303' : '#0a8504',
+ });
+}
+
+// Confirmación de acción destructiva
+function confirmarEliminacion(id, callback) {
+ Swal.fire({
+ title: '¿Estás seguro?',
+ text: "Esta acción no se puede deshacer.",
+ icon: 'warning',
+ showCancelButton: true,
+ confirmButtonColor: '#b30404', // Rojo Peligro Saavedra
+ cancelButtonColor: '#030041', // Azul Marino Saavedra
+ confirmButtonText: 'Sí, eliminar',
+ cancelButtonText: 'Cancelar'
+ }).then((result) => {
+ if (result.isConfirmed) {
+ callback(id);
+ }
+ });
 }
 ```
 
+---
+
 ## 3. Subida de Archivos o Formularios (FormData)
-Si necesitas enviar imágenes o formularios completos por Fetch, no uses `JSON.stringify`. Usa `FormData`.
 
 ```javascript
 async function subirDocumento(formularioHTML) {
-    const formData = new FormData(formularioHTML);
-    const token = document.querySelector('meta[name="csrf-token"]').content;
+ const formData = new FormData(formularioHTML);
+ const token = document.querySelector('meta[name="csrf-token"]').content;
 
-    try {
-        const response = await fetch(window.routes.apiSubir, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': token
-            },
-            body: formData
-        });
-        
-        const res = await response.json();
-        // Lógica posterior...
-    } catch (e) {
-        // Error handling...
-    }
+ // NO pongas 'Content-Type' al usar FormData — el browser lo pone con boundary automático
+ try {
+ const response = await fetch(window.routes.apiSubir, {
+ method: 'POST',
+ headers: { 'X-CSRF-TOKEN': token },
+ body: formData
+ });
+
+ if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+ const data = await response.json();
+ mostrarAlerta('Éxito', data.message, 'success');
+ return data;
+
+ } catch (e) {
+ mostrarAlerta('Error', e.message, 'error');
+ return null;
+ }
 }
 ```
 
+---
+
 ## 4. Manipulación del DOM y Template Literals
-Para inyectar HTML, usa siempre literales para que el código sea limpio y legible.
 
 ```javascript
 function agregarFila(datos) {
-    const tbody = document.getElementById('tabla-datos').querySelector('tbody');
-    
-    const fila = `
-        <tr id="fila-${datos.id}" class="fade-in">
-            <td>${datos.nombre}</td>
-            <td>
-                <span class="badge ${datos.estado === 'Activo' ? 'bg-green' : 'bg-red'}">
-                    ${datos.estado}
-                </span>
-            </td>
-        </tr>
-    `;
-    
-    tbody.insertAdjacentHTML('beforeend', fila);
+ const tbody = document.querySelector('#tabla-datos tbody');
+ if (!tbody) return;
+
+ const fila = `
+ <tr id="fila-${datos.id}" class="fade-in">
+ <td>${datos.nombre}</td>
+ <td>
+ <span class="badge ${datos.estado === 'Activo' ? 'bg-green' : 'bg-red'}">
+ ${datos.estado}
+ </span>
+ </td>
+ <td>
+ <button class="btn-ver" onclick="verDetalle('${datos.id}')">Ver</button>
+ <button class="btn-eliminar" data-id="${datos.id}"></button>
+ </td>
+ </tr>
+ `;
+
+ tbody.insertAdjacentHTML('beforeend', fila);
+}
+
+// Eliminar fila dinámicamente
+function eliminarFilaDOM(id) {
+ const fila = document.getElementById(`fila-${id}`);
+ if (fila) {
+ fila.style.opacity = '0';
+ fila.style.transition = 'opacity 0.3s ease';
+ setTimeout(() => fila.remove(), 300);
+ }
 }
 ```
 
+---
+
 ## 5. Aislamiento de Variables y Event Listener del DOM
-Para evitar la colisión de variables globales y errores al cargar el script antes del HTML, envuelve todo tu código JavaScript en el evento `DOMContentLoaded`.
+
+Envuelve TODO el código JavaScript de un módulo en un IIFE con `DOMContentLoaded`:
 
 ```javascript
 (function () {
-    'use strict';
+ 'use strict';
 
-    document.addEventListener('DOMContentLoaded', () => {
-        // Inicialización de componentes, listeners, etc.
-        const selectLote = document.getElementById('lote_id');
-        if (selectLote) {
-            selectLote.addEventListener('change', (e) => {
-                actualizarDetallesLote(e.target.value);
-            });
-        }
-    });
+ document.addEventListener('DOMContentLoaded', () => {
+ // Inicialización de componentes, listeners, etc.
+ inicializarModulo();
+ });
 
-    // Funciones internas del módulo (no expuestas globalmente)
-    async function actualizarDetallesLote(id) {
-        // ... Lógica fetch ...
-    }
+ function inicializarModulo() {
+ const selectLote = document.getElementById('lote_id');
+ if (selectLote) {
+ selectLote.addEventListener('change', (e) => {
+ actualizarDetallesLote(e.target.value);
+ });
+ }
+ }
+
+ // Funciones internas del módulo (no expuestas globalmente)
+ async function actualizarDetallesLote(id) {
+ // ... Lógica fetch ...
+ }
+
 })();
 ```
 
+---
+
 ## 6. Manejo de Estados de Carga Visual (Visual Loading State)
-Nunca dejes al usuario esperando sin retroalimentación visual al enviar datos.
-- Deshabilita los botones.
-- Agrega una clase CSS de spinner o un overlay de loading.
 
 ```javascript
+/**
+ * Activa o desactiva el estado de carga en un botón.
+ * @param {HTMLElement} elemento - El botón a modificar
+ * @param {boolean} isLoading - true para activar carga, false para restaurar
+ */
 function setVisualLoading(elemento, isLoading) {
-    if (isLoading) {
-        elemento.disabled = true;
-        elemento.dataset.originalText = elemento.innerHTML;
-        elemento.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...`;
-    } else {
-        elemento.disabled = false;
-        elemento.innerHTML = elemento.dataset.originalText || 'Enviar';
-    }
+ if (isLoading) {
+ elemento.disabled = true;
+ elemento.dataset.originalText = elemento.innerHTML;
+ elemento.innerHTML = `<span class="spinner"></span> Procesando...`;
+ } else {
+ elemento.disabled = false;
+ elemento.innerHTML = elemento.dataset.originalText || 'Enviar';
+ }
+}
+
+// Overlay de carga para toda la pantalla
+function setPageLoading(show) {
+ let overlay = document.getElementById('page-loading-overlay');
+ if (show) {
+ if (!overlay) {
+ overlay = document.createElement('div');
+ overlay.id = 'page-loading-overlay';
+ overlay.style.cssText = `
+ position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+ display: flex; align-items: center; justify-content: center;
+ z-index: 9999;
+ `;
+ overlay.innerHTML = `<div class="spinner" style="width:50px;height:50px;border-width:5px;"></div>`;
+ document.body.appendChild(overlay);
+ }
+ } else {
+ overlay?.remove();
+ }
 }
 ```
+
+---
 
 ## 7. Validación Temprana en el Frontend
-Valida la entrada del usuario antes de realizar una petición fetch para evitar consumos de red innecesarios.
 
 ```javascript
-function validarEntradaPieza(formulario) {
-    const nPieza = formulario.querySelector('#n_pieza').value.trim();
-    
-    if (nPieza === '') {
-        mostrarAlerta('Advertencia', 'El número de pieza es obligatorio', 'warning');
-        return false;
-    }
-    
-    if (nPieza.length < 3) {
-        mostrarAlerta('Advertencia', 'El número de pieza debe tener al menos 3 caracteres', 'warning');
-        return false;
-    }
-    
-    return true;
+/**
+ * Valida campos de un formulario antes de enviar al servidor.
+ * @returns {boolean} true si el formulario es válido
+ */
+function validarFormulario(formulario) {
+ const campos = formulario.querySelectorAll('[required]');
+ let valido = true;
+
+ campos.forEach(campo => {
+ campo.classList.remove('campo-invalido');
+ if (!campo.value.trim()) {
+ campo.classList.add('campo-invalido');
+ valido = false;
+ }
+ });
+
+ if (!valido) {
+ mostrarAlerta('Advertencia', 'Por favor completa todos los campos requeridos.', 'warning');
+ }
+
+ return valido;
 }
 ```
 
+---
+
 ## 8. Delegación de Eventos para Elementos Dinámicos
-Cuando tengas tablas o listas cuyos elementos se agregan de forma dinámica mediante JavaScript, no agregues event listeners individuales. Utiliza delegación de eventos en el contenedor padre.
+
+Cuando tablas o listas tengan elementos dinámicos, no agregues event listeners individuales:
 
 ```javascript
+// Delegación sobre el contenedor padre
 document.getElementById('tabla-piezas').addEventListener('click', (e) => {
-    // Buscar si el clic se hizo en el botón de eliminar pieza
-    const deleteBtn = e.target.closest('.btn-eliminar-pieza');
-    if (deleteBtn) {
-        const idPieza = deleteBtn.dataset.id;
-        confirmarEliminacion(idPieza);
-    }
+ // Eliminar pieza
+ const deleteBtn = e.target.closest('.btn-eliminar-pieza');
+ if (deleteBtn) {
+ const idPieza = deleteBtn.dataset.id;
+ confirmarEliminacion(idPieza, ejecutarEliminacion);
+ return;
+ }
+
+ // Ver detalle de pieza
+ const verBtn = e.target.closest('.btn-ver-pieza');
+ if (verBtn) {
+ abrirModalDetalle(verBtn.dataset.id);
+ return;
+ }
 });
 ```
 
 ---
 
 ## 9. Funciones JS Globales del Proyecto (Referencia Real)
-Los archivos `almacen_fundicion.js` y `calidad_fundicion.js` son los más grandes (~328KB). Estas funciones ya existen y deben usarse en lugar de reimplementar la funcionalidad:
 
 | Función | Archivo | Descripción |
 |---|---|---|
@@ -216,54 +300,110 @@ Los archivos `almacen_fundicion.js` y `calidad_fundicion.js` son los más grande
 | `mostrarAlerta(titulo, texto, icono)` | Global (ambos) | Muestra alerta SweetAlert2 estándar |
 | `openReproceso(otName)` | `almacen_fundicion.js` | Abre el modal de generación de reproceso |
 | `generarPreOrden(otName)` | `almacen_fundicion.js` | Inicia el flujo de pre-orden de fundición |
+| `setVisualLoading(elemento, isLoading)` | Global | Activa/desactiva estado de carga en botón |
 
 ### Patrón de Rutas Inyectadas por Blade (`window.routes`)
-Las URLs de las peticiones AJAX se inyectan desde Blade para evitar hardcodear rutas en JS:
+
 ```blade
 <script>
-    window.routes = {
-        ...(window.routes || {}),
-        almacenServeFile:  @json(route('almacen.fundicion.serve', ['ot' => ':ot', 'archivo' => ':archivo', 'tipo' => ':tipo'])),
-        almacenDeleteFile: @json(route('almacen.fundicion.delete.pdf')),
-        calidadServeFile:  @json(route('calidad.fundicion.serve', ['ot' => ':ot', 'archivo' => ':archivo', 'tipo' => ':tipo'])),
-    };
+ window.routes = {
+ ...(window.routes || {}),
+ almacenServeFile: @json(route('almacen.fundicion.serve', ['ot' => ':ot', 'archivo' => ':archivo', 'tipo' => ':tipo'])),
+ almacenDeleteFile: @json(route('almacen.fundicion.delete.pdf')),
+ calidadServeFile: @json(route('calidad.fundicion.serve', ['ot' => ':ot', 'archivo' => ':archivo', 'tipo' => ':tipo'])),
+ };
 </script>
 ```
-Luego en JS: `window.routes.almacenServeFile.replace(':ot', ot).replace(':archivo', archivo).replace(':tipo', tipo)`
 
-## 10. Actualización Dinámica de Tablas en Tiempo Real (Evitar Carga de Página)
+En JS: `window.routes.almacenServeFile.replace(':ot', ot).replace(':archivo', archivo).replace(':tipo', tipo)`
 
-Al implementar operaciones CRUD vía fetch (creación de carpetas, subida o eliminación de archivos) que deban actualizar el contenido de una tabla estructural sin recargar la página completa, utiliza el siguiente patrón de diseño:
+---
 
-1. **Función de Re-renderizado Local (`renderEstructuraTable`)**: Crea una función que limpie el `<tbody>` de la tabla en el DOM y reconstruya las filas dinámicamente iterando sobre la estructura actualizada en memoria (`window.estructura`).
-2. **Preservación de Estado Visual (Caché Local de Conteos)**: Para evitar cuellos de botella y cascadas de peticiones HTTP innecesarias al redibujar una tabla que contiene contadores o badges de archivos, lee y guarda temporalmente los conteos actuales del DOM antes de limpiar el contenedor. Reutiliza estos conteos al pintar las nuevas filas:
-   ```javascript
-   function renderEstructuraTable() {
-       const tbody = document.querySelector('#tabla-estructura tbody');
-       if (!tbody) return;
+## 10. Actualización Dinámica de Tablas (Evitar Carga de Página)
 
-       // 1. Guardar conteos existentes
-       const existingCounts = {};
-       tbody.querySelectorAll('.badge-count').forEach(span => {
-           existingCounts[span.id] = span.textContent;
-       });
+```javascript
+function renderEstructuraTable() {
+ const tbody = document.querySelector('#tabla-estructura tbody');
+ if (!tbody) return;
 
-       tbody.innerHTML = ''; // 2. Limpiar
+ // 1. Guardar conteos existentes antes de limpiar
+ const existingCounts = {};
+ tbody.querySelectorAll('.badge-count').forEach(span => {
+ existingCounts[span.id] = span.textContent;
+ });
 
-       // 3. Pintar de nuevo con los conteos cacheados
-       window.estructura.forEach(item => {
-           const badgeId = "badge-" + slugify(item);
-           const savedCount = existingCounts[badgeId] !== undefined ? existingCounts[badgeId] : '0';
-           
-           const tr = document.createElement('tr');
-           tr.innerHTML = `
-               <td>${item}</td>
-               <td><span class="badge-count" id="${badgeId}">${savedCount}</span></td>
-           `;
-           tbody.appendChild(tr);
-       });
-   }
-   ```
-3. **Sincronización en Caliente del Estado Local**: Si la creación o subida de archivos vincula entidades de forma automática en la base de datos (por ejemplo, relacionando una ayuda visual con su orden de trabajo), asegúrate de que el controlador devuelva la `ot` y la `clase` correspondientes en el JSON de respuesta. El frontend debe interceptar esta respuesta e inyectarla en caliente en los objetos de memoria (`window.historiales` / `window.estructura`) antes de llamar al re-renderizado para mantener la consistencia sin forzar un F5.
-4. **Peligro en Reemplazo con Expresiones Regulares (Syntax Error in build/Vite)**: Si utilizas scripts (ej. Python `re.sub`) para inyectar cadenas de texto o alertar en los archivos JS del proyecto, evita generar escapes innecesarios como `\'` dentro de literales de cadena ordinarios. Un escape de comillas simple literal (`\'`) dentro de un JS no-procesado causará fallos en los compiladores de esbuild/Vite lanzando errores de sintaxis críticos e impidiendo la carga de dependencias.
+ tbody.innerHTML = ''; // 2. Limpiar
 
+ // 3. Re-pintar con conteos cacheados
+ window.estructura.forEach(item => {
+ const badgeId = 'badge-' + slugify(item);
+ const savedCount = existingCounts[badgeId] !== undefined ? existingCounts[badgeId] : '0';
+
+ const tr = document.createElement('tr');
+ tr.innerHTML = `
+ <td>${item}</td>
+ <td><span class="badge-count" id="${badgeId}">${savedCount}</span></td>
+ `;
+ tbody.appendChild(tr);
+ });
+}
+
+// Helper: convertir texto a slug para IDs
+function slugify(text) {
+ return text.toLowerCase().replace(/[^a-z0-9]/g, '-');
+}
+```
+
+> **PELIGRO en ediciones con Python/scripts:** Si usas `re.sub` para inyectar cadenas en archivos JS, evita generar escapes innecesarios como `\'` dentro de literales ordinarios. Esto causa `SyntaxError` en esbuild/Vite.
+
+---
+
+## 11. Manejo de Errores de Red vs Errores de Servidor
+
+```javascript
+// Distinguir entre error de red (sin respuesta) y error HTTP (respuesta con código de error)
+async function fetchSeguro(url, options = {}) {
+ try {
+ const response = await fetch(url, options);
+
+ // El servidor respondió pero con error
+ if (!response.ok) {
+ let mensaje = `Error ${response.status}`;
+ try {
+ const err = await response.json();
+ mensaje = err.message || err.error || mensaje;
+ } catch (_) { /* El cuerpo no es JSON */ }
+ throw new Error(mensaje);
+ }
+
+ return await response.json();
+
+ } catch (error) {
+ if (error.name === 'TypeError') {
+ // Error de red (sin conexión, timeout, CORS)
+ throw new Error('Error de red: verifica tu conexión o contacta al administrador.');
+ }
+ throw error; // Re-lanzar errores HTTP
+ }
+}
+```
+
+---
+
+## 12. Inicialización Segura de Variables de Window
+
+Cuando leas datos de `window.*`, siempre verifica que existan antes de usarlos:
+
+```javascript
+// Acceso defensivo
+const estructura = window.estructura ?? {};
+const todasOTs = Array.isArray(window.todasLasOTs) ? window.todasLasOTs : [];
+const config = window.usuarioConfig ?? { perfil: 0 };
+
+// Actualizar estado de window sin sobreescribir
+window.estructura = window.estructura || {};
+window.estructura[ot] = window.estructura[ot] || [];
+if (!window.estructura[ot].includes(clase)) {
+ window.estructura[ot].push(clase);
+}
+```

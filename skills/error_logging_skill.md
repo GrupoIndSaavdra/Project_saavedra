@@ -1,6 +1,6 @@
-# 📝 Guía de Registro de Errores y Depuración (Error Logging Skill)
+# Guía de Registro de Errores y Depuración (Error Logging Skill)
 
-> **📁 Directorio de Referencia:** `storage/logs/ y app/Exceptions/`
+> ** Directorio de Referencia:** `storage/logs/ y app/Exceptions/`
 > *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
 
 
@@ -12,11 +12,11 @@ El registro adecuado de errores es vital para mantener la estabilidad de `Projec
 En este sistema existen dos tipos de registros muy diferenciados:
 
 1. **SystemLog (Logs de Auditoría en Base de Datos):**
-   - Registra eventos de negocio: inicio de sesión, cambio de estado de OT, piezas maquinadas, etc.
-   - Son visibles para los administradores del sistema y se guardan en la base de datos a través del modelo `SystemLog`.
+ - Registra eventos de negocio: inicio de sesión, cambio de estado de OT, piezas maquinadas, etc.
+ - Son visibles para los administradores del sistema y se guardan en la base de datos a través del modelo `SystemLog`.
 2. **Laravel Logs (Logs de Sistema en Archivo):**
-   - Registra errores técnicos, excepciones de base de datos (`PDOException`), fallos de red, etc.
-   - Se guardan físicamente en el servidor en `storage/logs/laravel.log` y son administrados por el Facade `Illuminate\Support\Facades\Log`.
+ - Registra errores técnicos, excepciones de base de datos (`PDOException`), fallos de red, etc.
+ - Se guardan físicamente en el servidor en `storage/logs/laravel.log` y son administrados por el Facade `Illuminate\Support\Facades\Log`.
 
 ---
 
@@ -33,19 +33,19 @@ Utiliza el nivel de severidad correcto según la naturaleza de la información:
 ## 3. Patrón de Logging Blindado con Contexto (Buenas Prácticas)
 Nunca concatenes strings dentro del log. Pasa el mensaje base y adjunta un **array asociativo con el contexto**. Esto facilita enormemente la lectura y análisis con herramientas externas.
 
-- **❌ PÉSIMO:**
+- ** PÉSIMO:**
 ```php
 Log::error("Error al procesar pieza " . $pieza->id . " por el usuario " . Auth::user()->id . " - Error: " . $e->getMessage());
 ```
 
-- **✅ EXCELENTE (Datos estructurados):**
+- ** EXCELENTE (Datos estructurados):**
 ```php
 Log::error('Fallo al procesar liberación de pieza.', [
-    'pieza_id'       => $pieza->id,
-    'matricula_user' => auth()->user()->matricula ?? 'sistema',
-    'proceso'        => $request->proceso,
-    'error'          => $e->getMessage(),
-    'trace'          => $e->getTraceAsString() // Adjuntar traza completa solo para errores críticos
+ 'pieza_id' => $pieza->id,
+ 'matricula_user' => auth()->user()->matricula ?? 'sistema',
+ 'proceso' => $request->proceso,
+ 'error' => $e->getMessage(),
+ 'trace' => $e->getTraceAsString() // Adjuntar traza completa solo para errores críticos
 ]);
 ```
 
@@ -59,22 +59,22 @@ Dependiendo del tipo de fallo, debemos decidir si mostramos el error al usuario 
 
 ```php
 try {
-    DB::beginTransaction();
-    // Operación SQL crítica...
-    DB::commit();
+ DB::beginTransaction();
+ // Operación SQL crítica...
+ DB::commit();
 } catch (\Throwable $e) {
-    DB::rollBack();
-    
-    Log::error('Error crítico en base de datos al guardar OT', [
-        'user'  => auth()->user()->matricula ?? 'N/A',
-        'input' => $request->only(['ot_id', 'piezas']),
-        'error' => $e->getMessage()
-    ]);
-    
-    return response()->json([
-        'success' => false,
-        'message' => 'Ocurrió un error interno del sistema. Por favor intente más tarde.'
-    ], 500);
+ DB::rollBack();
+
+ Log::error('Error crítico en base de datos al guardar OT', [
+ 'user' => auth()->user()->matricula ?? 'N/A',
+ 'input' => $request->only(['ot_id', 'piezas']),
+ 'error' => $e->getMessage()
+ ]);
+
+ return response()->json([
+ 'success' => false,
+ 'message' => 'Ocurrió un error interno del sistema. Por favor intente más tarde.'
+ ], 500);
 }
 ```
 
@@ -83,8 +83,8 @@ try {
 
 ```php
 if ($bote->estado === 'liberado') {
-    // Es un flujo esperado de negocio, no requiere Log::error
-    return back()->withErrors(['qr_content' => 'Este bote ya fue liberado']);
+ // Es un flujo esperado de negocio, no requiere Log::error
+ return back()->withErrors(['qr_content' => 'Este bote ya fue liberado']);
 }
 ```
 ---
@@ -111,12 +111,12 @@ El proyecto usa un modelo específico para registrar eventos de negocio en la ba
 use App\Models\SystemLog;
 
 SystemLog::create([
-    'user_id'    => auth()->id(),
-    'user_name'  => auth()->user()->nombre ?? 'Sistema',
-    'accion'     => 'elimino_archivo_fundicion',
-    'descripcion'=> "Eliminó el archivo '{$archivo}' de la OT '{$ot}'",
-    'modulo'     => 'Almacén Fundición',
-    'ip'         => $request->ip(),
+ 'user_id' => auth()->id(),
+ 'user_name' => auth()->user()->nombre ?? 'Sistema',
+ 'accion' => 'elimino_archivo_fundicion',
+ 'descripcion'=> "Eliminó el archivo '{$archivo}' de la OT '{$ot}'",
+ 'modulo' => 'Almacén Fundición',
+ 'ip' => $request->ip(),
 ]);
 ```
 

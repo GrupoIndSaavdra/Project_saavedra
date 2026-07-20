@@ -1,6 +1,6 @@
-# 🔒 Guía de Seguridad y Protección de Datos (Security Skill)
+# Guía de Seguridad y Protección de Datos (Security Skill)
 
-> **📁 Directorio de Referencia:** `app/Http/Middleware/ y app/Providers/`
+> ** Directorio de Referencia:** `app/Http/Middleware/ y app/Providers/`
 > *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
 
 
@@ -10,11 +10,11 @@ La seguridad en `Project_saavedra` garantiza que sólo el personal autorizado ej
 
 ## 1. Prevención de Inyección SQL (SQL Injection)
 Laravel protege el sistema de inyecciones SQL de manera nativa si usas el Query Builder de Eloquent o enlaces de parámetros.
-- **❌ PÉSIMO (Vulnerable):**
+- ** PÉSIMO (Vulnerable):**
 ```php
 $operador = DB::select("SELECT * FROM users WHERE matricula = '" . $request->matricula . "'");
 ```
-- **✅ EXCELENTE (Protegido por Eloquent/Bindings):**
+- ** EXCELENTE (Protegido por Eloquent/Bindings):**
 ```php
 $operador = User::where('matricula', $request->matricula)->first();
 // O con Query Builder crudo:
@@ -30,9 +30,9 @@ El ataque XSS ocurre cuando un usuario malintencionado inserta scripts HTML/JS e
 - **Directiva de Escapado:** Usa siempre `{{ $variable }}` en tus archivos de Blade. Laravel convertirá automáticamente caracteres especiales a entidades HTML inocuas.
 - **Evita `{!! $variable !!}`:** Úsalo **únicamente** para contenidos estáticos confiables o cuando el string haya sido explícitamente sanitizado con purificadores HTML.
 - **Entradas de Texto:** Si una columna almacena texto libre y se muestra en paneles, limpia las etiquetas HTML antes de persistirlo:
-  ```php
-  $model->observaciones = strip_tags($request->observaciones);
-  ```
+ ```php
+ $model->observaciones = strip_tags($request->observaciones);
+ ```
 
 ---
 
@@ -40,24 +40,24 @@ El ataque XSS ocurre cuando un usuario malintencionado inserta scripts HTML/JS e
 Cross-Site Request Forgery obliga a un usuario autenticado a enviar solicitudes no deseadas a un servidor web.
 
 1. **Formularios Blade:** Todo formulario de tipo `POST`, `PUT`, `PATCH` o `DELETE` debe incluir la directiva de token CSRF:
-   ```blade
-   <form action="{{ route('guardar') }}" method="POST">
-       @csrf
-       ...
-   </form>
-   ```
+ ```blade
+ <form action="{{ route('guardar') }}" method="POST">
+ @csrf
+ ...
+ </form>
+ ```
 2. **Peticiones Fetch / Axios:** Incluye el token extraído del meta-tag de la página en los headers de la solicitud:
-   ```javascript
-   const token = document.querySelector('meta[name="csrf-token"]').content;
-   const response = await fetch('/api/guardar', {
-       method: 'POST',
-       headers: {
-           'Content-Type': 'application/json',
-           'X-CSRF-TOKEN': token
-       },
-       body: JSON.stringify(data)
-   });
-   ```
+ ```javascript
+ const token = document.querySelector('meta[name="csrf-token"]').content;
+ const response = await fetch('/api/guardar', {
+ method: 'POST',
+ headers: {
+ 'Content-Type': 'application/json',
+ 'X-CSRF-TOKEN': token
+ },
+ body: JSON.stringify(data)
+ });
+ ```
 
 ---
 
@@ -66,10 +66,10 @@ El sistema restringe las funcionalidades según la matriz de perfiles del person
 
 | ID Perfil | Nombre del Rol | Ejemplo de Permiso |
 |-----------|----------------|--------------------|
-| **1**     | Administrador  | Creación de OTs, dibujos, depuración total |
-| **2**     | Operador       | Maquinado de piezas, registro de medidas |
-| **5**     | Almacén        | Recepción y liberación de botes de soldadura |
-| **6 / 8** | Calidad / Gte  | Liberación final, auditoría de logs, PTA |
+| **1** | Administrador | Creación de OTs, dibujos, depuración total |
+| **2** | Operador | Maquinado de piezas, registro de medidas |
+| **5** | Almacén | Recepción y liberación de botes de soldadura |
+| **6 / 8** | Calidad / Gte | Liberación final, auditoría de logs, PTA |
 
 ### Middleware de Ruta (Seguridad Temprana)
 Protege las rutas en el archivo `routes/web.php` usando middlewares existentes o validación en el constructor de controladores:
@@ -77,14 +77,14 @@ Protege las rutas en el archivo `routes/web.php` usando middlewares existentes o
 - **En Controlador:**
 ```php
 public function __construct() {
-    $this->middleware('auth');
+ $this->middleware('auth');
 }
 
 public function store(Request $request) {
-    // Validar perfil en el método
-    if (auth()->user()->perfil != 1) {
-        abort(403, 'No tienes permisos de Administrador.');
-    }
+ // Validar perfil en el método
+ if (auth()->user()->perfil != 1) {
+ abort(403, 'No tienes permisos de Administrador.');
+ }
 }
 ```
 
@@ -94,23 +94,23 @@ public function store(Request $request) {
 Cuando crees endpoints de borrado o edición, nunca confíes únicamente en la información de la URL para autorizar la acción. Asegúrate de verificar que el recurso pertenece a un contexto válido.
 
 ```php
-// ❌ PÉSIMO (Cualquiera podría cambiar el ID de la URL y borrar otra pieza):
+// PÉSIMO (Cualquiera podría cambiar el ID de la URL y borrar otra pieza):
 public function destroy($id) {
-    Pieza::destroy($id);
-    return back();
+ Pieza::destroy($id);
+ return back();
 }
 
-// ✅ EXCELENTE (Valida que el usuario tenga acceso y el estado sea coherente):
+// EXCELENTE (Valida que el usuario tenga acceso y el estado sea coherente):
 public function destroy($id) {
-    $pieza = Pieza::findOrFail($id);
-    
-    // Validar perfil autorizado para eliminar scrap
-    if (!in_array(auth()->user()->perfil, [1, 8])) {
-        abort(403, 'Acceso Denegado.');
-    }
-    
-    $pieza->delete();
-    return back()->with('success', 'Pieza eliminada correctamente.');
+ $pieza = Pieza::findOrFail($id);
+
+ // Validar perfil autorizado para eliminar scrap
+ if (!in_array(auth()->user()->perfil, [1, 8])) {
+ abort(403, 'Acceso Denegado.');
+ }
+
+ $pieza->delete();
+ return back()->with('success', 'Pieza eliminada correctamente.');
 }
 ```
 
@@ -137,6 +137,6 @@ public function destroy($id) {
 // Verificación estándar en controladores de Fundición:
 $perfil = auth()->user()->perfil;
 $puedeEliminar = in_array($perfil, [1, 2]);
-$esAlmacen     = ($perfil === 5);
-$esCalidad     = ($perfil === 4);
+$esAlmacen = ($perfil === 5);
+$esCalidad = ($perfil === 4);
 ```

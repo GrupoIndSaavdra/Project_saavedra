@@ -1,6 +1,6 @@
-# 🔍 Guía de Generación y Lectura de Códigos QR (QR Codes Skill)
+# Guía de Generación y Lectura de Códigos QR (QR Codes Skill)
 
-> **📁 Directorio de Referencia:** `Generación y vistas de QR en todo el proyecto`
+> ** Directorio de Referencia:** `Generación y vistas de QR en todo el proyecto`
 > *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
 
 
@@ -13,11 +13,11 @@ Todo código QR generado por el sistema debe contener una cadena en formato **JS
 
 ```json
 {
-  "tipo": "bote",
-  "id": 12,
-  "matricula": "1401261534ALLTBS-002",
-  "lote_id": 1,
-  "numero_bote": 2
+ "tipo": "bote",
+ "id": 12,
+ "matricula": "1401261534ALLTBS-002",
+ "lote_id": 1,
+ "numero_bote": 2
 }
 ```
 
@@ -32,55 +32,55 @@ Todo endpoint que reciba lecturas de QR físicas **DEBE** implementar el método
 ```php
 private function parseQRContent($qrContent)
 {
-    // 1. Intentar parsear como JSON directo (si se escribe o copia limpio)
-    $qrData = json_decode($qrContent, true);
-    if ($qrData && isset($qrData['tipo'])) {
-        return $qrData;
-    }
+ // 1. Intentar parsear como JSON directo (si se escribe o copia limpio)
+ $qrData = json_decode($qrContent, true);
+ if ($qrData && isset($qrData['tipo'])) {
+ return $qrData;
+ }
 
-    // 2. Mapear y reemplazar caracteres corruptos comunes del lector de hardware
-    $cleaned = $qrContent;
-    $cleaned = str_replace('¨[', '{', $cleaned);
-    $cleaned = str_replace('[Ñ[', ':"', $cleaned);
-    $cleaned = str_replace('[Ñ', ':', $cleaned);
-    $cleaned = str_replace('Ñ[', ':"', $cleaned);
-    $cleaned = str_replace('[,', '",', $cleaned);
-    $cleaned = str_replace("'", '-', $cleaned);
-    $cleaned = str_replace('?', '_', $cleaned);
+ // 2. Mapear y reemplazar caracteres corruptos comunes del lector de hardware
+ $cleaned = $qrContent;
+ $cleaned = str_replace('¨[', '{', $cleaned);
+ $cleaned = str_replace('[Ñ[', ':"', $cleaned);
+ $cleaned = str_replace('[Ñ', ':', $cleaned);
+ $cleaned = str_replace('Ñ[', ':"', $cleaned);
+ $cleaned = str_replace('[,', '",', $cleaned);
+ $cleaned = str_replace("'", '-', $cleaned);
+ $cleaned = str_replace('?', '_', $cleaned);
 
-    // Reemplazar corchetes restantes que deberían ser comillas
-    $cleaned = preg_replace('/\[([a-zA-Z_]+)\[/', '"$1":', $cleaned);
-    $cleaned = preg_replace('/\[([0-9]+)/', '$1', $cleaned);
-    $cleaned = str_replace('[', '"', $cleaned);
+ // Reemplazar corchetes restantes que deberían ser comillas
+ $cleaned = preg_replace('/\[([a-zA-Z_]+)\[/', '"$1":', $cleaned);
+ $cleaned = preg_replace('/\[([0-9]+)/', '$1', $cleaned);
+ $cleaned = str_replace('[', '"', $cleaned);
 
-    // Asegurar cierre de llaves JSON
-    $cleaned = rtrim($cleaned, ',');
-    if (substr($cleaned, -1) !== '}') {
-        $cleaned .= '"}';
-    }
+ // Asegurar cierre de llaves JSON
+ $cleaned = rtrim($cleaned, ',');
+ if (substr($cleaned, -1) !== '}') {
+ $cleaned .= '"}';
+ }
 
-    // 3. Re-intentar parsear el JSON limpio
-    $qrData = json_decode($cleaned, true);
-    if ($qrData && isset($qrData['tipo'])) {
-        return $qrData;
-    }
+ // 3. Re-intentar parsear el JSON limpio
+ $qrData = json_decode($cleaned, true);
+ if ($qrData && isset($qrData['tipo'])) {
+ return $qrData;
+ }
 
-    // 4. Si el JSON está severamente dañado, extraer campos clave usando Expresiones Regulares
-    $data = [];
-    if (preg_match('/tipo[^a-z]*([a-z_]+)/i', $qrContent, $matches)) {
-        $data['tipo'] = strtolower($matches[1]);
-    }
-    if (preg_match('/[^a-z]id[^0-9]*(\d+)/i', $qrContent, $matches)) {
-        $data['id'] = (int) $matches[1];
-    }
-    if (preg_match('/matricula[^a-zA-Z0-9]*([a-zA-Z0-9\-\']+)/i', $qrContent, $matches)) {
-        $data['matricula'] = str_replace("'", '-', $matches[1]);
-    }
-    if (preg_match('/lote[_\?]?id[^0-9]*(\d+)/i', $qrContent, $matches)) {
-        $data['lote_id'] = (int) $matches[1];
-    }
-    
-    return !empty($data) ? $data : null;
+ // 4. Si el JSON está severamente dañado, extraer campos clave usando Expresiones Regulares
+ $data = [];
+ if (preg_match('/tipo[^a-z]*([a-z_]+)/i', $qrContent, $matches)) {
+ $data['tipo'] = strtolower($matches[1]);
+ }
+ if (preg_match('/[^a-z]id[^0-9]*(\d+)/i', $qrContent, $matches)) {
+ $data['id'] = (int) $matches[1];
+ }
+ if (preg_match('/matricula[^a-zA-Z0-9]*([a-zA-Z0-9\-\']+)/i', $qrContent, $matches)) {
+ $data['matricula'] = str_replace("'", '-', $matches[1]);
+ }
+ if (preg_match('/lote[_\?]?id[^0-9]*(\d+)/i', $qrContent, $matches)) {
+ $data['lote_id'] = (int) $matches[1];
+ }
+
+ return !empty($data) ? $data : null;
 }
 ```
 
@@ -92,8 +92,8 @@ Para mostrar códigos QR en pantallas o reportes PDF, utiliza la API de QR Serve
 - **Generación en Blade/PDF mediante API (SVG Ligero):**
 ```html
 <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&format=svg&data={{ urlencode($qrContentJSON) }}" 
-     alt="Código QR" 
-     style="width: 100px; height: 100px;">
+ alt="Código QR" 
+ style="width: 100px; height: 100px;">
 ```
 
 ---
@@ -107,22 +107,22 @@ Dado que los operadores en planta usan lectores de mano rápidos:
 ```html
 <!-- Input enfocado que recibe la emulación de teclado del lector -->
 <form id="form-escaner" action="{{ route('soldadura.escanear') }}" method="POST">
-    @csrf
-    <input type="text" id="qr_content" name="qr_content" class="input-escaner" placeholder="Escanee el QR aquí..." autofocus required autocomplete="off">
+ @csrf
+ <input type="text" id="qr_content" name="qr_content" class="input-escaner" placeholder="Escanee el QR aquí..." autofocus required autocomplete="off">
 </form>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const qrInput = document.getElementById('qr_content');
-        
-        // Mantener el foco de manera forzada en el campo del escáner
-        document.addEventListener('click', () => {
-            qrInput.focus();
-        });
-        
-        // Enfocar de inmediato
-        qrInput.focus();
-    });
+ document.addEventListener('DOMContentLoaded', () => {
+ const qrInput = document.getElementById('qr_content');
+
+ // Mantener el foco de manera forzada en el campo del escáner
+ document.addEventListener('click', () => {
+ qrInput.focus();
+ });
+
+ // Enfocar de inmediato
+ qrInput.focus();
+ });
 </script>
 ```
 
@@ -150,5 +150,5 @@ $qrData = json_decode($qr->qr_data, true);
 ```blade
 {{-- Mostrar QR en una vista Blade (NO en PDF con domPDF si es externo) --}}
 <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&format=svg&data={{ urlencode($qrJson) }}"
-     alt="QR" style="width: 150px; height: 150px;">
+ alt="QR" style="width: 150px; height: 150px;">
 ```

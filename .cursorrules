@@ -1,18 +1,58 @@
-# Reglas Globales de Ejecución y Solución de Errores
+# Reglas Globales de Ejecución — Project Saavedra
 
-## 1. Prioridad de Búsqueda de Soluciones (Skills)
-**Regla Crítica:** Siempre que te enfrentes a un error (ej. `Undefined array key`, `syntax error`, `ParseError`), una excepción en el código, o necesites implementar o modificar una funcionalidad existente, **ANTES de sugerir o aplicar una solución por tu cuenta**, debes realizar lo siguiente:
+## REGLA MÁXIMA: Protocolo de Consulta de Skills
 
-1. **Buscar en la carpeta `skills/`**: Revisa los archivos `.md` dentro de la carpeta `C:\Users\Jaxer020406\Documents\GitHub\Project_saavedra\skills` (ej. `error_logging_skill.md`, `logic_skill.md`, `views_skill.md`, etc.).
-2. **Aplicar la solución más efectiva**: Si encuentras un patrón de solución o una recomendación aplicable en la carpeta de *skills*, prioriza esa solución para optimizar recursos y mantener la consistencia del proyecto, aunque no sea la forma más rápida a corto plazo. Sé directo y aplica el patrón enseñado ahí.
-3. **Alternativa**: Solo en caso de que la carpeta de `skills/` no contenga información o guías para resolver el error específico, procede a utilizar tu propio conocimiento para deducir y aplicar la solución más robusta y efectiva.
+**ANTES de escribir, modificar o eliminar cualquier línea de código en este proyecto**, el agente DEBE ejecutar obligatoriamente los siguientes pasos:
 
-## 2. Creación, Evolución y Depuración Continua de Skills
-El repositorio de conocimientos debe mantenerse vivo y útil para acelerar la velocidad de desarrollo en iteraciones futuras.
+### Paso 1 — Leer `general_skill.md` para identificar la skill correcta
 
-1. **Documentar lo Nuevo:** Cada vez que te enfrentes a un problema nuevo, diseñes un patrón arquitectónico nuevo, o apliques una solución repetible que te haya costado deducir en el proyecto, **tienes la obligación de agregarla a una skill existente o crear un nuevo archivo de skill (`.md`) dentro de la carpeta `skills/`.**
-2. **Depuración de Conocimiento Obsoleto:** Si al revisar o aplicar las `skills/` notas que hay reglas, patrones o comandos documentados que **ya no aplican** (debido a actualizaciones, refactorizaciones o cambios en la arquitectura), debes de forma proactiva **depurar, actualizar o eliminar** ese contenido obsoleto. Esto mantendrá nuestro conocimiento alineado 100% a la versión actual de Project Saavedra.
+```
+Ruta: C:\Users\Jaxer020406\Documents\GitHub\Project_saavedra\skills\general_skill.md
+```
 
-## 3. Optimización de Recursos y Comunicación
-- **Sé directo:** Evita explicaciones extensas y redundantes si la solución se basa en una *skill* ya conocida. Aplícala directamente.
-- **Enfoque a largo plazo:** Prioriza soluciones que sean mantenibles y efectivas (basadas en las *skills*) en lugar de simples parches rápidos que puedan romper otras cosas o no seguir los estándares del proyecto.
+Esta skill contiene la tabla de índice que mapea cada tipo de tarea a su skill correspondiente.
+
+### Paso 2 — Leer la skill específica con `view_file` ANTES de codificar
+
+| Si la tarea involucra... | Leer esta skill |
+|---|---|
+| Controladores, AJAX, JSON responses | `skills/controllers_skill.md` |
+| Modelos Eloquent, consultas BD, perfiles | `skills/logic_skill.md` |
+| Vistas Blade, layouts, partials | `skills/views_skill.md` |
+| CSS, colores, glassmorphism, animaciones | `skills/styles_skill.md` |
+| JavaScript, fetch, SweetAlert, DOM | `skills/javascript_skill.md` |
+| PDFs con DomPDF | `skills/pdf_skill.md` |
+| Migraciones, esquema de BD | `skills/migrations_skill.md` |
+| Validaciones, Form Requests | `skills/validation_skill.md` |
+| Códigos QR, lectores físicos | `skills/qr_codes_skill.md` |
+| Logs de errores, debugging | `skills/error_logging_skill.md` |
+| Seguridad, perfiles, CSRF, middlewares | `skills/security_skill.md` |
+| Comandos Artisan, NPM, Git, Python, PS | `skills/commands_skill.md` |
+| Actualización dinámica de UI, window.* | `skills/dynamic_ui_skill.md` |
+| Emails, Mailables, plantillas de correo | `skills/emails_skill.md` |
+| Rutas, web.php, naming, grupos de rutas | `skills/routes_skill.md` |
+
+### Paso 3 — Aplicar el patrón de la skill
+
+Si el patrón existe en la skill, aplícalo directamente. No improvises.
+
+### Paso 4 — Documentar lo nuevo
+
+Si dedujiste algo que no estaba en ninguna skill, agrégalo al archivo `.md` más cercano.
+
+---
+
+## Creación, Evolución y Depuración de Skills
+
+El repositorio de conocimientos debe mantenerse vivo para acelerar el desarrollo futuro.
+
+1. **Documentar lo Nuevo:** Cada vez que enfrentes un problema nuevo, diseñes un patrón arquitectónico o apliques una solución repetible, **debes** agregarla a una skill existente o crear un nuevo archivo `.md` en `skills/`.
+2. **Depuración de Conocimiento Obsoleto:** Si al aplicar una skill notas que hay reglas, patrones o comandos que **ya no aplican** (por refactorizaciones o cambios de arquitectura), actualiza o elimina ese contenido de manera proactiva.
+
+---
+
+## Optimización de Recursos y Comunicación
+
+- **Sé directo:** Evita explicaciones extensas si la solución se basa en una skill conocida. Aplícala directamente.
+- **Enfoque a largo plazo:** Prioriza soluciones mantenibles basadas en las skills, en lugar de parches rápidos.
+- **Stack fijo:** Este proyecto usa Laravel + Blade + Vanilla JS + Vanilla CSS. No introduces dependencias externas sin autorización explícita.

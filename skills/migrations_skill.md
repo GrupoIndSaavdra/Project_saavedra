@@ -1,6 +1,6 @@
-# 💾 Habilidad de Migraciones — Estructura de Base de Datos y Cambios Recientes
+# Habilidad de Migraciones — Estructura de Base de Datos y Cambios Recientes
 
-> **📁 Directorio de Referencia:** `database/migrations/`
+> ** Directorio de Referencia:** `database/migrations/`
 > *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
 
 
@@ -8,7 +8,7 @@ Esta habilidad detalla el estándar para la creación, modificación y mantenimi
 
 ---
 
-## 🛠️ Regla de Oro para Modificación de Tablas
+## Regla de Oro para Modificación de Tablas
 
 ### 1. Tablas Nuevas (No subidas al Servidor de Producción)
 Cuando se está desarrollando una característica nueva que introduce una tabla recién creada (y estas migraciones **aún no se han desplegado en el servidor de producción**):
@@ -24,7 +24,7 @@ Cuando se necesita alterar o añadir campos a una tabla vieja que ya existe y es
 
 ---
 
-## 🏗️ Estándares de Estructura e Integridad
+## Estándares de Estructura e Integridad
 
 ### 1. Naming Conventions (Convenciones de Nombres)
 - **Tablas:** Siempre en plural y snake_case (Ej: `ordenes_trabajo`, `soldadura_lotes`).
@@ -36,20 +36,20 @@ Declara las relaciones de manera explícita y con borrado/actualización control
 
 ```php
 Schema::create('soldadura_botes', function (Blueprint $table) {
-    $table->id();
-    
-    // Llave foránea declarada de forma moderna
-    $table->foreignId('lote_id')
-          ->constrained('soldadura_lotes')
-          ->onDelete('cascade'); // Elimina los botes si el lote es eliminado
-          
-    $table->string('matricula')->unique(); // Crea índice unique automático
-    $table->string('estado');
-    
-    // Índice explícito para búsquedas por estado
-    $table->index('estado');
-    
-    $table->timestamps();
+ $table->id();
+
+ // Llave foránea declarada de forma moderna
+ $table->foreignId('lote_id')
+ ->constrained('soldadura_lotes')
+ ->onDelete('cascade'); // Elimina los botes si el lote es eliminado
+
+ $table->string('matricula')->unique(); // Crea índice unique automático
+ $table->string('estado');
+
+ // Índice explícito para búsquedas por estado
+ $table->index('estado');
+
+ $table->timestamps();
 });
 ```
 
@@ -59,7 +59,7 @@ Para evitar la pérdida accidental de datos históricos en el sistema de producc
 - **En la Migración:**
 ```php
 Schema::table('ordenes_trabajo', function (Blueprint $table) {
-    $table->softDeletes(); // Crea la columna 'deleted_at'
+ $table->softDeletes(); // Crea la columna 'deleted_at'
 });
 ```
 
@@ -68,24 +68,24 @@ Schema::table('ordenes_trabajo', function (Blueprint $table) {
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Orden_trabajo extends Model {
-    use SoftDeletes;
-    
-    protected $dates = ['deleted_at'];
+ use SoftDeletes;
+
+ protected $dates = ['deleted_at'];
 }
 ```
 
 ---
 
-## 🚦 Proceso de Verificación
+## Proceso de Verificación
 Antes de proponer una migración nueva, sigue este flujo de toma de decisiones:
 
 ```mermaid
 graph TD
-    A[Necesidad de nuevo campo] --> B{¿La tabla es nueva y local?}
-    B -- Sí (No en producción) --> C[Editar archivo create_ original]
-    B -- No (Ya en producción) --> D[Crear migración add_...]
-    C --> E[Rollback y re-migrar]
-    D --> F[Migrar incremental]
+ A[Necesidad de nuevo campo] --> B{¿La tabla es nueva y local?}
+ B -- Sí (No en producción) --> C[Editar archivo create_ original]
+ B -- No (Ya en producción) --> D[Crear migración add_...]
+ C --> E[Rollback y re-migrar]
+ D --> F[Migrar incremental]
 ```
 
 ---
@@ -114,5 +114,5 @@ $table->boolean('pre_orden_sent')->default(false);
 
 // En FundicionHistory.php ($casts):
 'almacen_archivos' => 'array',
-'pre_orden_sent'   => 'boolean',
+'pre_orden_sent' => 'boolean',
 ```
