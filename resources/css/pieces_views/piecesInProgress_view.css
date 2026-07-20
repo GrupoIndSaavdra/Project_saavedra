@@ -291,13 +291,28 @@ header {
 
 .process-section:hover {
     transform: translateY(-2px) scale(1.01);
-    border-color: hsla(var(--glow-hue, 60), 100%, 60%, 1) !important;
+    border-color: hsla(var(--glow-hue, 60), 100%, 65%, 1) !important; /* Tono brillante puro, no blanco */
     box-shadow:
-        0 0 5px hsla(var(--glow-hue, 60), 100%, 70%, 0.8),
-        0 0 15px hsla(var(--glow-hue, 60), 100%, 50%, 0.6),
-        0 0 30px hsla(var(--glow-hue, 60), 100%, 50%, 0.4) !important;
-    background: rgba(3, 56, 97, 0.95) !important; /* Turn deep blue on hover */
+        0 0 2px hsla(var(--glow-hue, 60), 100%, 65%, 1), /* Núcleo del color puro */
+        0 0 5px hsla(var(--glow-hue, 60), 100%, 55%, 1),
+        0 0 10px hsla(var(--glow-hue, 60), 100%, 40%, 1), /* Caída rápida a oscuro */
+        0 0 16px hsla(var(--glow-hue, 60), 100%, 30%, 0.9), /* Tonos oscuros sólidos */
+        0 0 24px hsla(var(--glow-hue, 60), 100%, 20%, 0.8),
+        0 0 32px hsla(var(--glow-hue, 60), 100%, 10%, 0.7), /* Aura muy oscura para contraste */
+        inset 0 0 10px hsla(var(--glow-hue, 60), 100%, 40%, 0.4) !important;
     cursor: pointer;
+}
+
+.process-section.inactive-process:hover {
+    border-color: #ffffff !important; /* Borde blanco puro */
+    box-shadow:
+        0 0 2px #ffffff, /* Núcleo blanco intenso */
+        0 0 5px #ffffff,
+        0 0 10px rgba(156, 163, 175, 1), /* Gris claro muy sólido */
+        0 0 16px rgba(107, 114, 128, 0.9), /* Gris medio intenso */
+        0 0 24px rgba(75, 85, 99, 0.8), /* Gris oscuro */
+        0 0 32px rgba(55, 65, 81, 0.7), /* Gris más oscuro para el aura reducida */
+        inset 0 0 10px rgba(255, 255, 255, 0.4) !important;
 }
 
 .process-title {
@@ -348,11 +363,11 @@ header {
 }
 
 .good-progress {
-    background-color: #0c8201; /* Verde Principal (default) */
+    background-color: #096301; /* Verde Principal oscuro */
 }
 
 .bad-progress {
-    background-color: #9d0402 !important; /* Rojo Peligro */
+    background-color: #7a0301 !important; /* Rojo Peligro más oscuro */
 }
 
 .progress-percentage {

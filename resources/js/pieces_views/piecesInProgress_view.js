@@ -1650,7 +1650,7 @@ class Dashboard {
             // Cambiar color de barra según progreso (Naranja -> Verde)
             if (i == 0 && percentage > 0) {
                 let hue = 30 + (percentage * 0.9);
-                progress.style.backgroundColor = `hsl(${hue}, 100%, 40%)`;
+                progress.style.backgroundColor = `hsl(${hue}, 100%, 32%)`;
             }
 
             displayPercentage = displayPercentage != 0 ? displayPercentage.toFixed(1) : 0;
