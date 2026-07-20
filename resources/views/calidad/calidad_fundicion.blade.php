@@ -2953,7 +2953,7 @@
                         method="GET"
 
 
-                        action="{{ route('almacen.fundicion.index') }}"
+                        action="{{ route('calidad.fundicion.index') }}"
 
 
                         id="alm-filter-form"
@@ -3136,7 +3136,7 @@
                                     class="btns btn-clear-filters"
 
 
-                                    onclick="window.location.href='{{ route('almacen.fundicion.index') }}'"
+                                    onclick="window.location.href='{{ route('calidad.fundicion.index') }}'"
 
 
                                 >
