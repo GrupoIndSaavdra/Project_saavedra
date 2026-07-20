@@ -148,14 +148,15 @@ body {
     width: 100%;
 }
 .icon {
-    width: 80%;
+    width: 32px;
+    height: 32px;
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .open-menu {
     border: none;
     background-color: #ffffff00;
-    width: 4em;
-    height: 4em;
+    width: 40px;
+    height: 40px;
     padding: 4px;
     border-radius: 8px;
     cursor: pointer;
