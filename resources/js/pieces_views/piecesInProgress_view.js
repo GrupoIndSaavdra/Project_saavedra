@@ -430,7 +430,7 @@ class FundicionChecklistCard {
         if (pasos.some(p => (p.estado || '').toLowerCase() === 'rechazado')) return '#9D0402'; // corporate red
         if (pasos.length > 0 && pasos.every(p => {
             const st = (p.estado || '').toLowerCase();
-            return st === 'completado' || st === 'proveedor' || st === 'aprobado' || st === 'aprobado_final';
+            return st === 'completado' || st === 'proveedor' || st === 'aprobado' || st === 'aprobado_final' || st === 'no_aplica';
         })) return '#0C8201'; // corporate green
         return '#424141'; // pending - corporate gray
     }
@@ -767,6 +767,8 @@ class PlaneacionChecklistCard {
 
         if (estado === 'completado') {
             imgName = 'Aprobado.png';
+        } else if (estado === 'no_aplica') {
+            imgName = 'icono_sin_cotas.png';
         } else {
             if (label.includes('Cotas de OT/Clase subidas')) {
                 imgName = 'icono_cotas.png';
@@ -788,7 +790,10 @@ class PlaneacionChecklistCard {
         if (!pasos || Object.keys(pasos).length === 0) return '#424141';
         const vals = Object.values(pasos);
         if (vals.some(p => (p.estado || '').toLowerCase() === 'rechazado')) return '#9D0402';
-        if (vals.every(p => (p.estado || '').toLowerCase() === 'completado')) return '#0C8201';
+        if (vals.every(p => {
+            const st = (p.estado || '').toLowerCase();
+            return st === 'completado' || st === 'no_aplica';
+        })) return '#0C8201';
         return '#424141';
     }
 
@@ -1529,22 +1534,32 @@ class Dashboard {
         processSection.className = "process-section";
         processSection.style.position = "relative"; // Permitir que el badge de cotas sea absoluto
 
-        if (processesArray["hasCotas"]) {
-            let cotasBadge = document.createElement("img");
-            cotasBadge.className = "cotas-badge";
-            const baseUrl = window.baseUrl || (window.location.origin + '/');
-            const slash = baseUrl.endsWith('/') ? '' : '/';
+        let cotasBadge = document.createElement("img");
+        cotasBadge.className = "cotas-badge";
+        const baseUrl = window.baseUrl || (window.location.origin + '/');
+        const slash = baseUrl.endsWith('/') ? '' : '/';
+        
+        cotasBadge.style.position = "absolute";
+        cotasBadge.style.top = "12px";
+        cotasBadge.style.right = "12px";
+        cotasBadge.style.width = "40px";
+        cotasBadge.style.height = "40px";
+        cotasBadge.style.zIndex = "5";
+        
+        if (processesArray["requiresCotas"] === false) {
+            cotasBadge.src = `${baseUrl}${slash}images/Aprobado.png`;
+            cotasBadge.title = "No requiere cotas";
+            cotasBadge.classList.add("cotas-badge-glow");
+        } else if (processesArray["hasCotas"]) {
             cotasBadge.src = `${baseUrl}${slash}images/icono_cotas.png`;
-            cotasBadge.style.position = "absolute";
-            cotasBadge.style.top = "12px";
-            cotasBadge.style.right = "12px";
-            cotasBadge.style.width = "40px";
-            cotasBadge.style.height = "40px";
-            cotasBadge.style.zIndex = "5";
-            cotasBadge.style.animation = "pulseCotasBadge 1.2s infinite alternate ease-in-out";
             cotasBadge.title = "Cotas registradas correctamente";
-            processSection.appendChild(cotasBadge);
+            cotasBadge.classList.add("cotas-badge-glow");
+        } else {
+            cotasBadge.src = `${baseUrl}${slash}images/icono_sin_cotas.png`;
+            cotasBadge.title = "Falta registrar cotas";
+            cotasBadge.style.opacity = "0.7";
         }
+        processSection.appendChild(cotasBadge);
 
         // Badge con número de proceso en la esquina superior izquierda
         let numberBadge = document.createElement("span");
@@ -1597,12 +1612,21 @@ class Dashboard {
         if (goodPercentage >= 100) {
             processSection.style.borderColor = '#4ade80';
             processSection.style.boxShadow = 'none';
+            numberBadge.style.color = '#4ade80';
+            numberBadge.style.borderColor = 'rgba(74, 222, 128, 0.3)';
+            numberBadge.style.background = 'rgba(74, 222, 128, 0.1)';
         } else if (goodPercentage > 0) {
             processSection.style.borderColor = `hsl(${hue}, 100%, 50%)`;
             processSection.style.boxShadow = 'none';
+            numberBadge.style.color = `hsl(${hue}, 100%, 50%)`;
+            numberBadge.style.borderColor = `hsla(${hue}, 100%, 50%, 0.3)`;
+            numberBadge.style.background = `hsla(${hue}, 100%, 50%, 0.1)`;
         } else {
             processSection.style.borderColor = '';
             processSection.style.boxShadow = '';
+            numberBadge.style.color = '';
+            numberBadge.style.borderColor = '';
+            numberBadge.style.background = '';
         }
 
         for (let i = 0; i < pieces.length; i++) {

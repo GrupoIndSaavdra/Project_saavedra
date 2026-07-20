@@ -338,17 +338,19 @@ class WOController extends Controller
                         
                         // Check if cotas are uploaded for this process
                         $searchProcess = explode('_', $processName)[0];
-                        if ($processName === 'Soldadura y Soldadura PTA') {
+                        if (in_array($processName, ['Soldadura y Soldadura PTA', 'Asentado', 'Rectificado'])) {
                             $searchProcess = 'none';
                         }
                         $hasCotas = false;
-                        if ($searchProcess !== 'none') {
+                        $requiresCotas = ($searchProcess !== 'none');
+                        if ($requiresCotas) {
                             $hasCotas = SystemLog::query()->where('id_ot', $class->id_ot)
                                 ->where('clase', $class->nombre)
                                 ->where('action', 'Cargo/Modificación Cotas Nominales')
                                 ->where('proceso', $searchProcess)
                                 ->exists();
                         }
+                        $processes[$processName]['requiresCotas'] = $requiresCotas;
                         $processes[$processName]['hasCotas'] = $hasCotas;
                     }
                 }
@@ -1136,7 +1138,7 @@ class WOController extends Controller
                                 }
                             }
                             
-                            if ($processName !== 'Soldadura y Soldadura PTA') {
+                            if (!in_array($processName, ['Soldadura y Soldadura PTA', 'Asentado', 'Rectificado'])) {
                                 $procesosActivosParaCotas++;
                                 
                                 $searchProcess = explode('_', $processName)[0];
@@ -1168,8 +1170,46 @@ class WOController extends Controller
             }
             $hasDibujos = $dibujosSubidosCount > 0;
             
+            // Obtener fecha del primer dibujo subido
+            $fechaPrimerDibujo = null;
+            if ($dibujosSubidosCount > 0 && isset($files) && is_array($files)) {
+                $earliestTime = null;
+                foreach ($files as $f) {
+                    if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
+                        $mtime = \Illuminate\Support\Facades\Storage::disk('local')->lastModified($f);
+                        if ($earliestTime === null || $mtime < $earliestTime) {
+                            $earliestTime = $mtime;
+                        }
+                    }
+                }
+                if ($earliestTime) {
+                    $fechaPrimerDibujo = \Carbon\Carbon::createFromTimestamp($earliestTime);
+                }
+            }
+
+            // Obtener fecha de la primera cota registrada
+            $fechaPrimeraCota = null;
+            if ($cotasGuardadas > 0) {
+                $logCota = SystemLog::query()->where('id_ot', $ot->id)
+                    ->where('clase', $clase->nombre)
+                    ->where('action', 'Cargo/Modificación Cotas Nominales')
+                    ->where('proceso', '!=', 'none')
+                    ->orderBy('created_at', 'asc')
+                    ->first();
+                if ($logCota) {
+                    $fechaPrimeraCota = $logCota->created_at;
+                }
+            }
+
+            $cotasVaPrimero = false;
+            if ($fechaPrimeraCota && $fechaPrimerDibujo) {
+                $cotasVaPrimero = $fechaPrimeraCota->lt($fechaPrimerDibujo);
+            } elseif ($fechaPrimeraCota && !$fechaPrimerDibujo) {
+                $cotasVaPrimero = true;
+            }
+            
             // 2. Cotas finalizadas
-            $hasCotas = $procesosActivosParaCotas > 0 ? ($cotasGuardadas >= $procesosActivosParaCotas) : false;
+            $hasCotas = $procesosActivosParaCotas > 0 ? ($cotasGuardadas >= $procesosActivosParaCotas) : true;
 
             $hasProceso = $procesosTotalesAsignados > 0 ? true : false;
             // Armar el estado del checklist
@@ -1181,17 +1221,35 @@ class WOController extends Controller
                 'estado' => $hasProceso ? 'completado' : 'pendiente'
             ];
 
-            // Paso 2
-            $pasos['fase2'] = [
+            $pasoDibujos = [
                 'label' => $dibujosSubidosCount > 0 ? "Dibujos de maquinados subidos ({$dibujosSubidosCount})" : 'Dibujos de maquinados subidos',
-                'estado' => $hasDibujos ? 'completado' : ($hasProceso ? 'pendiente' : 'inactivo')
+            ];
+            
+            $pasoCotas = [
+                'label' => $procesosActivosParaCotas > 0 ? "Cotas de OT/Clase subidas (Admin) ({$cotasGuardadas}/{$procesosActivosParaCotas})" : "Cotas de OT/Clase subidas (Admin) (N/A)",
             ];
 
-            // Paso 3
-            $pasos['fase3'] = [
-                'label' => "Cotas de OT/Clase subidas (Admin) ({$cotasGuardadas}/{$procesosActivosParaCotas})",
-                'estado' => $hasCotas ? 'completado' : ($hasDibujos ? 'pendiente' : 'inactivo')
-            ];
+            if ($cotasVaPrimero) {
+                if ($procesosActivosParaCotas == 0) {
+                    $pasoCotas['estado'] = 'no_aplica';
+                } else {
+                    $pasoCotas['estado'] = $hasCotas ? 'completado' : ($hasProceso ? 'pendiente' : 'inactivo');
+                }
+                $pasoDibujos['estado'] = $hasDibujos ? 'completado' : (($hasCotas || $cotasGuardadas > 0 || $procesosActivosParaCotas == 0) ? 'pendiente' : 'inactivo');
+
+                $pasos['fase2'] = $pasoCotas;
+                $pasos['fase3'] = $pasoDibujos;
+            } else {
+                $pasoDibujos['estado'] = $hasDibujos ? 'completado' : ($hasProceso ? 'pendiente' : 'inactivo');
+                if ($procesosActivosParaCotas == 0) {
+                    $pasoCotas['estado'] = 'no_aplica';
+                } else {
+                    $pasoCotas['estado'] = $hasCotas ? 'completado' : ($hasDibujos ? 'pendiente' : 'inactivo');
+                }
+
+                $pasos['fase2'] = $pasoDibujos;
+                $pasos['fase3'] = $pasoCotas;
+            }
 
             $checklist[$clase->id] = $pasos;
         }
