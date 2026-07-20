@@ -2639,7 +2639,7 @@
                                     style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
                                     <option value="" disabled selected>-- Selecciona un proveedor --</option>
                                     <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de C. V.</option>
-                                    <option value="Fundición Especializada, S. A. de C. V.">Fundición Especializada, S. A. de C. V.</option>
+                                    <option value="SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS">SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS</option>
                                 </select>
                             </div>
                             <div class="form-group">
@@ -2742,7 +2742,7 @@
                                     onchange="handlePocProveedorChange(2)"
                                     style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
                                     <option value="" disabled selected>-- Selecciona un proveedor --</option>
-                                    <option value="Fundición Especializada, S. A. de C. V.">Fundición Especializada, S. A. de C. V.</option>
+                                    <option value="SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS">SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS</option>
                                     <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de C. V.</option>
                                 </select>
                             </div>
