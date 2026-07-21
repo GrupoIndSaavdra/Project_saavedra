@@ -1,162 +1,150 @@
-* {
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
-}
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 
-body {
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    min-height: 100vh;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", system-ui, -apple-system, sans-serif;
 }
 
 .wrapper {
     position: absolute;
-    width: 90%;
-    max-width: 650px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    
+    background: rgba(255, 255, 255, 0.75);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+    
+    padding: 2.5rem 3rem;
+    width: 90%;
+    max-width: 650px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 2.5em 3.5em 3.5em;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 5px 10px 80px #000000b0;
 }
 
 .lg-saavedra {
-    width: 240px;
-    padding: 1.5em 0;
+    width: 180px;
+    margin-bottom: 1.5rem;
 }
 
 h2 {
-    font-size: 1.5em;
-    margin: 0.5em 0 1em;
-    color: #404040;
-    font-weight: 400;
+    font-size: 1.4rem;
+    color: #1e293b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 3px solid #033966;
+    display: inline-block;
+    padding-bottom: 0.2em;
+    margin-bottom: 2rem;
     text-align: center;
 }
 
 form {
+    width: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    width: 100%;
-    margin: 0;
 }
 
 .input-field {
     width: 100%;
     border-radius: 6px;
-    padding: 0.8em 1.2em;
-    margin: 0.5em 0 1em;
-    border: 1px solid #00000033;
+    padding: 0.8rem 1rem;
+    border: 1px solid rgba(3, 57, 102, 0.2);
+    background-color: #ffffff;
+    color: #1e293b;
+    font-size: 1rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
     text-align: center;
-    font-size: 1.2em;
-    font-family: 'Poppins', sans-serif;
-    background: #03396610;
-    transition: border 0.2s;
+}
+
+.input-field::placeholder {
+    color: #64748b;
+    font-weight: 400;
 }
 
 .input-field:focus {
     outline: none;
-    border: 1px solid #033966;
-    background: #fff;
-}
-
-.input-field:hover {
-    border: 1px solid #033966;
+    border-color: #033966;
+    box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.15);
 }
 
 .btn {
-    display: inline-block;
-    color: #fff;
-    font-size: 1em;
-    border: none;
-    padding: 0.5em 1em;
-    margin: 0.2em;
-    border-radius: 5px;
-    letter-spacing: 0.5px;
-    transition: 0.2s;
+    width: auto;
+    min-width: 220px;
+    margin-top: 0.5rem;
+    padding: 0.6rem 2rem;
+    background: linear-gradient(to bottom, #0c9c05 0%, #0a8504 100%);
+    color: #ffffff;
+    border: 1px solid #086b03;
+    border-radius: 8px;
     cursor: pointer;
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    box-shadow: 0 4px 6px rgba(10, 133, 4, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
 }
 
 .btn:hover {
-    transform: scale(1.1);
-    transition: 0.2s;
+    background: linear-gradient(to bottom, #0eab06 0%, #0b9605 100%);
+    box-shadow: 0 6px 12px rgba(10, 133, 4, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: #097a04;
 }
 
-.btn.btn-block {
-    margin: 0.5em auto 0 auto;
-    border-radius: 20px;
-    background-color: #033966;
-    color: #fff;
-    border: none;
-    width: 60%;
-    font-size: 1.1em;
-    padding: 0.7em;
-    letter-spacing: 1px;
-    transition: 0.2s;
+.btn:active {
+    background: #097a04;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.2);
+    border-color: #075e03;
 }
 
-.btn.btn-block:hover {
-    transform: scale(1.05);
-    background-color: #0a8504;
-    transition: 0.2s;
-}
-
-/* ── Alertas ────────────────────────────────────────── */
+/* Alertas */
 .alert {
     width: 100%;
-    font-size: 0.9em;
-    border-radius: 6px;
-    padding: 0.6em 1em;
-    margin-bottom: 0.8em;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    padding: 0.875rem;
+    margin-bottom: 1.5rem;
     text-align: center;
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    font-weight: 600;
 }
 
-/* ── Responsive ─────────────────────────────────────── */
-@media (max-width: 991.98px) {
-    body {
-        overflow-y: auto;
-        background-size: auto;
-    }
-
+@media (max-width: 600px) {
     .wrapper {
-        width: 90vw;
-        padding: 1.2em 1em 1.5em;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        position: absolute;
+        padding: 2rem 1.5rem;
+        border-radius: 12px;
     }
-
-    .lg-saavedra {
-        width: 55%;
-        padding: 1em 0;
-    }
-
+    
     h2 {
-        font-size: 1.2em;
-        margin: 0.3em 0 0.8em;
+        font-size: 1.2rem;
     }
-
+    
+    .lg-saavedra {
+        width: 150px;
+    }
+    
     .input-field {
-        width: 100%;
-        font-size: 0.9em;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
     }
-
-    .btn.btn-block {
-        width: 70%;
-        font-size: 0.95em;
-        padding: 0.6em;
-    }
-
-    .alert {
-        font-size: 0.8em;
+    
+    .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
     }
 }
