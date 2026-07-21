@@ -1,183 +1,291 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+
 * {
-    padding: 0;
     margin: 0;
+    padding: 0;
     box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+    font-family: "Poppins", system-ui, -apple-system, sans-serif;
 }
+
 .wrapper {
     position: absolute;
-    width: 90%;
-    max-width: 1000px;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    
+    background: rgba(255, 255, 255, 0.85);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+    
+    padding: 3.5rem 3rem;
+    width: 95%;
+    max-width: 1200px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 1.5em;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 5px 10px 80px #000000b0;
 }
+
+.lg-saavedra {
+    width: 200px;
+    margin-bottom: 1.5rem;
+}
+
+h2 {
+    font-size: 1.4rem;
+    color: #1e293b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 3px solid #033966;
+    display: inline-block;
+    padding-bottom: 0.2em;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
 form {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 100%;
-    margin: 10px;
 }
-.lg-saavedra {
-    width: 200px;
-    padding: 2em 0;
-}
-h2 {
-    font-size: 1.5em;
-    margin: 1em;
-    color: #404040;
-    font-weight: 100;
-}
+
+/* Tabla MUY formal y corporativa */
 .table-container {
     width: 100%;
-    height: 30vh;
+    height: 45vh;
     overflow-y: auto;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    background: #ffffff;
+    margin-bottom: 1.5rem;
 }
+
+.table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.table-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 8px;
+}
+.table-container::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 8px;
+}
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
 table {
     width: 100%;
-    height: 80%;
     border-collapse: collapse;
-    font-size: 1em;
-    overflow: auto;
+    font-size: 0.95em;
 }
-thead {
-    background-color: #033966;
-    color: #fff;
+
+thead th {
+    background: #033966; /* Color sólido y plano */
+    color: #ffffff;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: 2px solid #022a4b;
+    padding: 14px 16px;
+    text-transform: uppercase;
+    font-size: 0.85em;
 }
+
 tbody {
-    background-color: #f9f9f9;
+    background-color: transparent;
 }
-th {
-    padding: 10px;
-}
+
 th,
 td {
-    border: 1px solid #ddd;
     text-align: center;
-    border-bottom: 1px solid #ddd;
+    padding: 12px 16px;
+    border: none; /* Se quitan bordes verticales */
+    border-bottom: 1px solid #e2e8f0; /* Solo bordes horizontales limpios */
+    white-space: nowrap;
 }
-input[type="text"] {
-    width: 100%;
-    border: none;
-    font-size: 1.2em;
-    font-weight: 700;
-    text-align: center;
+
+.molding-table-row:last-child td {
+    border-bottom: none;
+}
+
+.molding-table-row {
+    transition: background-color 0.2s ease;
+}
+.molding-table-row:nth-child(even) {
+    background-color: #f8fafc;
 }
 .molding-table-row:hover {
-    background-color: #f1f1f1;
+    background-color: #f1f5f9;
 }
+
 .molding-name {
-    font-weight: bold;
+    font-weight: 600;
+    color: #334155;
 }
+
+/* Inputs en la tabla */
+input[type="text"] {
+    width: 100%;
+    border-radius: 6px;
+    padding: 0.5rem;
+    border: 1px solid transparent; /* Más limpios, sin borde hasta hacer focus o hover */
+    background-color: transparent;
+    color: #1e293b;
+    font-size: 1rem;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+input[type="text"]:hover {
+    border-color: #cbd5e1;
+    background-color: #ffffff;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #033966;
+    background-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
+}
+
+/* Botones dentro de tabla (edit/delete) */
 .btn {
     display: inline-block;
     color: #fff;
-    font-size: 1em;
+    font-size: 0.85em;
     border: none;
     padding: 0.5em 1em;
     margin: 0.2em;
-    border-radius: 5px;
+    border-radius: 6px;
     letter-spacing: 0.5px;
-    transition: 0.2s;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
-.btn:hover {
-    transform: scale(1.1);
-    transition: 0.2s;
+
+.btn:active {
+    transform: translateY(1px);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
 .btn.btn-edit {
-    background-color: #033966;
+    background: #033966;
+    border: 1px solid #022a4b;
 }
+.btn.btn-edit:hover {
+    background: #065494;
+}
+
 .btn.btn-delete {
-    background-color: #9c0303;
+    background: #dc2626;
+    border: 1px solid #b91c1c;
 }
+.btn.btn-delete:hover {
+    background: #ef4444;
+}
+
+/* Botón block principal */
 .btn.btn-block {
-    margin: 1em auto 0 auto;
-    border-radius: 20px;
-    background-color: #033966;
-    color: #fff;
-    border: none;
-    width: 20%;
-    font-size: 1.3em;
-    padding: 0.7em;
-    letter-spacing: 1px;
-    transition: 0.2s;
+    width: auto;
+    min-width: 220px;
+    margin-top: 1rem;
+    padding: 0.6rem 2rem;
+    background: linear-gradient(to bottom, #0c9c05 0%, #0a8504 100%);
+    color: #ffffff;
+    border: 1px solid #086b03;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    box-shadow: 0 4px 6px rgba(10, 133, 4, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
+
 .btn.btn-block:hover {
-    transform: scale(1.1);
-    background-color: #0a8504;
-    transition: 0.2s;
+    background: linear-gradient(to bottom, #0eab06 0%, #0b9605 100%);
+    box-shadow: 0 6px 12px rgba(10, 133, 4, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: #097a04;
 }
+
+.btn.btn-block:active {
+    background: #097a04;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.2);
+    border-color: #075e03;
+}
+
+/* Otros */
 .disabling-element {
     position: fixed;
     top: 0;
     width: 100%;
     height: 100%;
-    background: #000000b0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
     z-index: 5;
 }
+
 .disabled-row * {
     pointer-events: none;
     opacity: 0.5;
 }
+
+/* Alertas */
+.alert {
+    width: 100%;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    padding: 0.875rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+    font-weight: 600;
+}
+
 @media (max-width: 991.98px) {
-    /* PARA TODOS LOS ESTILOS */
-    body {
-        overflow: hidden;
-        background-size: auto;
+    .wrapper {
+        width: 98vw;
+        padding: 1.5rem 0.5rem;
     }
     .lg-saavedra {
-        width: 60%;
-        padding: 1em 0;
+        width: 150px;
     }
     h2 {
-        font-size: 1.4em;
-        margin: 0.5em;
-    }
-    .wrapper {
-        width: 90vw;
-        padding: 1em;
+        font-size: 1.2rem;
     }
     table {
-        font-size: 0.9em;
+        font-size: 0.85em;
     }
     .molding-name {
-        font-size: 0.7em;
-    }
-    .td {
-        padding: 0.5em;
+        font-size: 0.9em;
     }
     .btn {
-        font-size: 0.9em;
-    }
-    .btn.btn-edit {
-        background-color: #033966;
+        font-size: 0.75em;
+        padding: 0.4em 0.6em;
     }
     .btn.btn-block {
-        width: 40%;
-        font-size: 0.9em;
-        padding: 0.5em;
-    }
-    th {
         width: 50%;
+        min-width: unset;
+        font-size: 0.95em;
+        padding: 0.5rem;
     }
     input[type="text"] {
-        font-weight: 700;
-        text-align: center;
-        padding: 5px;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-
-    .alert {
-        font-size: 0.8em;
+        font-size: 0.9em;
+        padding: 0.4rem;
     }
 }
