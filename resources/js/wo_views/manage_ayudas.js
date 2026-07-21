@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initUploadBtn();
     loadBadgeCounts();
     loadAuditLog();
+    initTableFilters();
 
     // Sincronizar UI inicial si hay parámetros cargados (mediante selectores)
     updateDependentSelectors();
@@ -1005,4 +1006,58 @@ function renderEstructuraTable() {
         `;
         tbody.appendChild(tr);
     }
+    poblarYFiltrarSelect('filtro-tabla-estructura', '#tabla-estructura', '— Mostrar Todos —');
+}
+
+function poblarYFiltrarSelect(selectId, tableOrTbodySelector, defaultLabel) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+
+    const target = document.querySelector(tableOrTbodySelector);
+    if (!target) return;
+
+    const rows = target.tagName === 'TBODY' ? target.querySelectorAll('tr') : target.querySelectorAll('tbody tr');
+    const selectedVal = select.value;
+
+    const opcionesSet = new Set();
+    rows.forEach(row => {
+        if (row.children.length === 1 && row.querySelector('td[colspan]')) return;
+        const firstTd = row.querySelector('td');
+        const mainCellText = firstTd ? firstTd.textContent.trim() : row.textContent.trim();
+        if (mainCellText) opcionesSet.add(mainCellText);
+    });
+
+    const arrayOpciones = Array.from(opcionesSet).sort((a, b) => a.localeCompare(b));
+    select.innerHTML = `<option value="">${defaultLabel}</option>`;
+    arrayOpciones.forEach(optText => {
+        const opt = document.createElement('option');
+        opt.value = optText;
+        opt.textContent = optText;
+        if (optText === selectedVal) opt.selected = true;
+        select.appendChild(opt);
+    });
+
+    const aplicarFiltrado = () => {
+        const val = select.value.toLowerCase().trim();
+        rows.forEach(row => {
+            if (row.children.length === 1 && row.querySelector('td[colspan]')) return;
+            if (!val) {
+                row.style.display = '';
+            } else {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(val) ? '' : 'none';
+            }
+        });
+    };
+
+    aplicarFiltrado();
+
+    if (!select.dataset.listenerAdded) {
+        select.addEventListener('change', () => aplicarFiltrado());
+        select.dataset.listenerAdded = 'true';
+    }
+}
+
+function initTableFilters() {
+    poblarYFiltrarSelect('filtro-tabla-estructura', '#tabla-estructura', '— Mostrar Todos —');
 }

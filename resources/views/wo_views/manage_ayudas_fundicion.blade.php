@@ -135,11 +135,11 @@
             </div> {{-- Fin Columna Izquierda --}}
 
             {{-- Columna Derecha (Visualización) --}}
-            <div class="dibujos-dashboard-main" style="display: grid; grid-template-columns: {{ $isReady ? 'minmax(0, 1fr) minmax(0, 1fr)' : '1fr' }}; min-height: calc(100vh - 180px); gap: 2em; align-items: stretch; align-content: start;">
+            <div class="dibujos-dashboard-main" style="display: grid; grid-template-columns: {{ $isReady ? 'minmax(0, 1fr) minmax(0, 1fr)' : '1fr' }}; grid-template-rows: 1fr; min-height: calc(100vh - 180px); gap: 2em; align-items: stretch;">
 
                 {{-- Panel de archivos de la carpeta seleccionada --}}
                 @if($isReady)
-                    <div class="dibujos-files-panel active" id="panel-archivos">
+                    <div class="dibujos-files-panel active" id="panel-archivos" style="display: flex; flex-direction: column; height: 100%;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
                             <h2 style="margin: 0; padding-bottom: 0; border: none;">Archivos en: <span>{!! $folderPathLabel !!}</span></h2>
                             <div class="dibujos-files-breadcrumb" style="margin: 0; background: none; padding: 0; border: none; flex-shrink: 0;">
@@ -147,7 +147,7 @@
                             </div>
                         </div>
 
-                        <div class="dibujos-files-grid" id="archivos-grid" style="max-height: none;">
+                        <div class="dibujos-files-grid" id="archivos-grid" style="flex: 1; max-height: none; overflow-y: auto; align-content: start;">
                             <p class="d-text-subtle d-text-center d-w-100">Cargando archivos...</p>
                         </div>
                     </div>
@@ -156,9 +156,17 @@
                     {{-- Sección de Ayudas Manuales Eliminada por Requerimiento --}}
                 @endif
 
-                <div style="{{ $isReady ? 'position: relative; height: 100%;' : '' }}">
-                    <div class="dibujos-table-section" style="{{ $isReady ? 'position: absolute; top: 0; left: 0; right: 0; bottom: 0;' : '' }} display: flex; flex-direction: column;">
-                        <h2>Estructura Actual de Carpetas en el Servidor</h2>
+                <div style="{{ $isReady ? 'position: relative; height: 100%;' : 'display: flex; flex-direction: column; height: 100%;' }}">
+                    <div class="dibujos-table-section" style="{{ $isReady ? 'position: absolute; top: 0; left: 0; right: 0; bottom: 0;' : 'flex: 1;' }} display: flex; flex-direction: column;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                            <h2 style="margin: 0; padding: 0; border: none;">Estructura Actual de Carpetas en el Servidor</h2>
+                            <div style="position: relative; min-width: 240px; max-width: 360px; flex: 1;">
+                                <select id="filtro-tabla-estructura" 
+                                        style="width: 100%; padding: 8px 14px; border-radius: 8px; border: 2px solid #033966; font-size: 0.9em; outline: none; background: #ffffff; color: #033966; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                    <option value="">— Mostrar Todos —</option>
+                                </select>
+                            </div>
+                        </div>
 
             @if(count($estructura) === 0)
                 <div class="dibujos-empty-state">
