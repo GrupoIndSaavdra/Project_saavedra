@@ -302,7 +302,7 @@
                                                             @endphp
                                                             <span class="badge-ayuda-tag clickable-tag {{ $isThisClass ? 'badge-tag-active' : '' }} {{ $tagClass }}"
                                                                 title="Filtrar por esta clase"
-                                                                onclick="irACarpeta({{ \Illuminate\Support\Js::from($otIdBD ?? $otName) }}, {{ \Illuminate\Support\Js::from($clTagId) }}, {{ $otIdBD ? 'true' : 'false' }})">
+                                                                onclick="irACarpeta({{ \Illuminate\Support\Js::from($otIdBD ?? $otName) }}, {{ \Illuminate\Support\Js::from($otIdBD ? $clTagId : $al) }}, {{ $otIdBD ? 'true' : 'false' }})">
                                                                 {{ $al }}
                                                             </span>
                                                         @endforeach
@@ -317,7 +317,7 @@
                                             <td class="d-text-center">
                                                 <div class="td-actions">
                                                     <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                        onclick="irACarpeta({{ \Illuminate\Support\Js::from($otIdBD ?? $otName) }}, {{ \Illuminate\Support\Js::from($claseIdBD) }}, {{ $otIdBD ? 'true' : 'false' }})">
+                                                        onclick="irACarpeta({{ \Illuminate\Support\Js::from($otIdBD ?? $otName) }}, {{ \Illuminate\Support\Js::from($otIdBD ? $claseIdBD : ($esRaiz ? null : $claseName)) }}, {{ $otIdBD ? 'true' : 'false' }})">
                                                         <img src="{{ asset('images/documento.png') }}" alt="Ver">
                                                         <span>Ver PDF's</span>
                                                     </button>
