@@ -439,18 +439,26 @@ class ManualesPdfController extends Controller
         $estructura = [];
 
         // 1. Nuevo
-        if (Storage::disk('local')->exists(self::BASE_DIR)) {
-            $dirs = Storage::disk('local')->directories(self::BASE_DIR);
-            foreach ($dirs as $dir) {
-                $estructura[$this->toUtf8(basename($dir))] = true;
+        $basePath = Storage::disk('local')->path(self::BASE_DIR);
+        if (is_dir($basePath)) {
+            $dirs = array_diff(scandir($basePath), ['.', '..']);
+            foreach ($dirs as $dirRaw) {
+                $dirPath = $basePath . DIRECTORY_SEPARATOR . $dirRaw;
+                if (is_dir($dirPath)) {
+                    $estructura[$this->toUtf8($dirRaw)] = true;
+                }
             }
         }
 
         // 2. Viejo
-        if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
-            $oldDirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
-            foreach ($oldDirs as $dir) {
-                $estructura[$this->toUtf8(basename($dir))] = true;
+        $oldBasePath = Storage::disk('local')->path(self::OLD_BASE_DIR);
+        if (is_dir($oldBasePath)) {
+            $oldDirs = array_diff(scandir($oldBasePath), ['.', '..']);
+            foreach ($oldDirs as $dirRaw) {
+                $dirPath = $oldBasePath . DIRECTORY_SEPARATOR . $dirRaw;
+                if (is_dir($dirPath)) {
+                    $estructura[$this->toUtf8($dirRaw)] = true;
+                }
             }
         }
 

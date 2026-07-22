@@ -221,7 +221,11 @@
                                     @if(count($clases) === 0)
                                         <tr data-ot="{{ $otName }}" data-clase="">
                                             <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
-                                            <td class="d-text-center"><em class="d-text-danger d-text-bold">Sin clases</em></td>
+                                            <td class="d-text-center">
+                                                <div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">
+                                                    <span class="badge-ayuda-tag alerta-sin-clases-tag" style="pointer-events: none;">Sin clases asignadas</span>
+                                                </div>
+                                            </td>
                                             <td class="d-text-center"><span class="badge-count"
                                                     id="badge-{{ Str::slug($otName) }}-raiz">...</span></td>
                                             <td class="d-text-center">
@@ -246,7 +250,7 @@
                                             @endphp
                                             <tr data-ot="{{ $otName }}" data-clase="{{ $paramClase }}">
                                                 <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
-                                                <td class="d-text-center {{ $isRoot ? 'd-text-warning' : 'd-text-success' }} d-text-bold">{{ $displayClase }}</td>
+                                                <td class="d-text-center"><span class="badge-ayuda-tag alerta-enviada-tag" style="transform: none !important;">{{ $displayClase }}</span></td>
                                                 <td class="d-text-center"><span class="badge-count" id="{{ $badgeId }}">...</span></td>
                                                 <td class="d-text-center">
                                                     <div class="td-actions">

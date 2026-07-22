@@ -609,44 +609,40 @@ class DibujosPdfController extends Controller
     private function buildStructure(): array
     {
         $estructura = [];
+        $bases = [self::BASE_DIR, self::OLD_BASE_DIR];
 
-        // 1. Escanear directorio nuevo
-        if (Storage::disk('local')->exists(self::BASE_DIR)) {
-            $otDirs = Storage::disk('local')->directories(self::BASE_DIR);
-            foreach ($otDirs as $otDir) {
-                $otName = $this->toUtf8(basename($otDir));
-                $claseDirs = Storage::disk('local')->directories($otDir);
-                $clases = array_map(fn($d) => $this->toUtf8(basename($d)), $claseDirs);
-                
-                $hasFilesAtRoot = collect(Storage::disk('local')->files($otDir))
-                    ->contains(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf');
+        foreach ($bases as $baseDir) {
+            $basePath = Storage::disk('local')->path($baseDir);
+            if (is_dir($basePath)) {
+                $otDirs = array_diff(scandir($basePath), ['.', '..']);
+                foreach ($otDirs as $otNameRaw) {
+                    $otDir = $basePath . DIRECTORY_SEPARATOR . $otNameRaw;
+                    if (is_dir($otDir)) {
+                        $otName = $this->toUtf8($this->normalizeOTName($otNameRaw));
+                        
+                        $clases = [];
+                        $hasFilesAtRoot = false;
+                        
+                        $innerItems = array_diff(scandir($otDir), ['.', '..']);
+                        foreach ($innerItems as $item) {
+                            $itemPath = $otDir . DIRECTORY_SEPARATOR . $item;
+                            if (is_dir($itemPath)) {
+                                $clases[] = $this->toUtf8($item);
+                            } elseif (is_file($itemPath) && strtolower(pathinfo($itemPath, PATHINFO_EXTENSION)) === 'pdf') {
+                                $hasFilesAtRoot = true;
+                            }
+                        }
 
-                if ($hasFilesAtRoot) {
-                    $clases[] = '--';
-                }
+                        if ($hasFilesAtRoot) {
+                            $clases[] = '--';
+                        }
 
-                $estructura[$otName] = $clases;
-            }
-        }
-
-        // 2. Escanear directorio viejo (Fallback)
-        if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
-            $oldOtDirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
-            foreach ($oldOtDirs as $otDir) {
-                $otName = $this->toUtf8(basename($otDir));
-                $claseDirs = array_map(fn($d) => $this->toUtf8(basename($d)), Storage::disk('local')->directories($otDir));
-                
-                $hasFilesAtRoot = collect(Storage::disk('local')->files($otDir))
-                    ->contains(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf');
-
-                if ($hasFilesAtRoot) {
-                    $claseDirs[] = '--';
-                }
-                
-                if (isset($estructura[$otName])) {
-                    $estructura[$otName] = array_unique(array_merge($estructura[$otName], $claseDirs));
-                } else {
-                    $estructura[$otName] = $claseDirs;
+                        if (isset($estructura[$otName])) {
+                            $estructura[$otName] = array_unique(array_merge($estructura[$otName], $clases));
+                        } else {
+                            $estructura[$otName] = $clases;
+                        }
+                    }
                 }
             }
         }

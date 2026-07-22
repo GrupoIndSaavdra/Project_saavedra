@@ -170,13 +170,63 @@ class DibujosFundicionPdfController extends Controller
         // Consolidar historiales (agrupar por nombre normalizado para evitar duplicidades por guiones)
         $historialesRaw = FundicionHistory::all();
         $historiales = [];
+        $alertasEnviadas = [];
+        
+        // Pre-procesar estructura keys para búsqueda rápida
+        $estructuraOTs = array_map(function($ot) { return self::normalizeOTName($ot); }, array_keys($estructura));
+
         foreach ($historialesRaw as $h) {
             $normName = $this->normalizeOTName($h->ot);
+            
+            // Ignorar historiales de OTs que ya no están activas en la estructura física
+            if (!in_array($normName, $estructuraOTs)) {
+                continue;
+            }
+
             if (!isset($historiales[$normName])) {
                 $historiales[$normName] = $h->ayudas_config ?? [];
             } else {
-                // Si ya existe, combinamos para no perder datos
                 $historiales[$normName] = array_unique(array_merge($historiales[$normName], ($h->ayudas_config ?? [])));
+            }
+            
+            $enviadas = is_array($h->clases_enviadas) ? $h->clases_enviadas : [];
+            $enviadasDict = [];
+            foreach ($enviadas as $key => $val) {
+                if (is_numeric($key)) {
+                    $enviadasDict[$val] = ""; 
+                } else {
+                    $enviadasDict[$key] = $val;
+                }
+            }
+
+            if (!isset($alertasEnviadas[$normName])) {
+                $alertasEnviadas[$normName] = [];
+            }
+
+            // Calcular estado para cada clase vinculada
+            $vinculadas = $h->ayudas_config ?? [];
+            foreach ($vinculadas as $clase) {
+                if (isset($enviadasDict[$clase])) {
+                    $storedHash = $enviadasDict[$clase];
+                    $currentHash = self::computeClassHash($h->ot, $clase);
+                    
+                    if ($currentHash === "") {
+                        // Si no hay archivos (hash vacío), la marcamos como vacía para no mostrarla en la tabla
+                        $alertasEnviadas[$normName][$clase] = 'vacio';
+                    } else if ($storedHash === $currentHash) {
+                        // Hash exacto = no hubo modificaciones
+                        $alertasEnviadas[$normName][$clase] = 'enviada';
+                    } else if ($storedHash === "") {
+                        // Legacy
+                        $alertasEnviadas[$normName][$clase] = 'modificada';
+                    } else {
+                        $alertasEnviadas[$normName][$clase] = 'modificada';
+                    }
+                } else {
+                    // No está en enviadas, verificamos si tiene archivos
+                    $currentHash = self::computeClassHash($h->ot, $clase);
+                    $alertasEnviadas[$normName][$clase] = ($currentHash === "") ? 'vacio' : 'pendiente';
+                }
             }
         }
 
@@ -188,6 +238,7 @@ class DibujosFundicionPdfController extends Controller
             'otActiva',
             'ayudasConEstado',
             'historiales',
+            'alertasEnviadas',
             'hasDibujos'
         ), [
             'moduleType' => 'fundicion',
@@ -642,11 +693,76 @@ class DibujosFundicionPdfController extends Controller
         // ─── 3. Enviar correo (incluyendo info de ayudas visuales) ───────────────
         $history = FundicionHistory::where('ot', '=', $otName, 'and')->first();
         $ayudas = $history ? ($history->ayudas_config ?? []) : [];
+        $clasesEnviadasNuevas = [];
+        $clasesAEnviar = [];
+        
+        if ($history) {
+            $history->alert_sent_at = now();
+            $enviadasPrevias = is_array($history->clases_enviadas) ? $history->clases_enviadas : [];
+            
+            // Normalizar a formato diccionario
+            $enviadasDict = [];
+            foreach ($enviadasPrevias as $key => $val) {
+                if (is_numeric($key)) {
+                    $enviadasDict[$val] = ""; // Legacy
+                } else {
+                    $enviadasDict[$key] = $val;
+                }
+            }
+
+            foreach ($ayudas as $clase) {
+                $currentHash = self::computeClassHash($otName, $clase);
+                
+                // Si la clase no tiene archivos (hash vacío), la ignoramos completamente (sigue pendiente)
+                if ($currentHash === "") {
+                    continue;
+                }
+
+                $storedHash = $enviadasDict[$clase] ?? null;
+
+                // Solo incluir en el correo si es nueva o cambió
+                if ($storedHash === null || $storedHash !== $currentHash) {
+                    $clasesAEnviar[] = $clase;
+                    // Actualizar SOLO el hash de esta clase en el merge final
+                    $clasesEnviadasNuevas[$clase] = $currentHash;
+                } else {
+                    // Sin cambios: conservar el hash previo tal cual
+                    $clasesEnviadasNuevas[$clase] = $storedHash;
+                }
+            }
+
+            // Merge: conservar clases previas que ya no están en ayudas (no borrar historial)
+            foreach ($enviadasDict as $clasePrevia => $hashPrevio) {
+                if (!isset($clasesEnviadasNuevas[$clasePrevia])) {
+                    $clasesEnviadasNuevas[$clasePrevia] = $hashPrevio;
+                }
+            }
+
+            // Guardar el estado combinado
+            $history->clases_enviadas = $clasesEnviadasNuevas;
+            $history->save();
+        }
+
+        // Si no hay clases nuevas/modificadas, podríamos abortar, pero tal vez quieran reenviar si $fileName no está vacío.
+        // Si no hay cambios pero se forzó el envío, enviamos todas por defecto para no romper UX.
+        if (empty($clasesAEnviar)) {
+            // Pero NUNCA enviamos clases que tienen 0 archivos (hash vacío)
+            foreach ($ayudas as $claseFallback) {
+                if (self::computeClassHash($otName, $claseFallback) !== "") {
+                    $clasesAEnviar[] = $claseFallback;
+                }
+            }
+        }
+
+        // Si después de todo esto sigue vacío (ej. la OT solo tiene clases en 0), abortamos para no enviar spam inútil.
+        if (empty($clasesAEnviar) && !$fileName) {
+            return; // No hay nada que enviar
+        }
 
         $emailsStr = config('services.almacen.email', 'almacentec@grupoindsaavedra.com');
         $emails = array_filter(array_map('trim', explode(',', $emailsStr)));
 
-        Mail::to($emails)->send(new DibujoFundicionAlertMail($otName, $fileName, $ayudas));
+        Mail::to($emails)->send(new DibujoFundicionAlertMail($otName, $fileName, $clasesAEnviar));
     }
 
     /**
@@ -657,7 +773,8 @@ class DibujosFundicionPdfController extends Controller
      */
     public static function copyToAlmacen(string $otName, bool $resetFlags = true): void
     {
-        $srcDir = self::BASE_DIR . '/' . $otName;
+        $instance = new self();
+        $srcDir = $instance->resolveCaseInsensitivePath(self::BASE_DIR . '/' . $otName);
         $dstDir = self::ALMACEN_DIR . '/' . $otName;
 
         // 1. Sincronizar dibujos por clase → nueva ruta: {Clase}/Dibujos/
@@ -1213,26 +1330,37 @@ class DibujosFundicionPdfController extends Controller
         $estructura = [];
         $bases = [self::BASE_DIR, self::OLD_BASE_DIR];
 
-        foreach ($bases as $base) {
-            if (Storage::disk('local')->exists($base)) {
-                $otDirs = Storage::disk('local')->directories($base);
-                foreach ($otDirs as $dir) {
-                    $otNameRaw = basename($dir);
-                    $otName = $this->toUtf8($this->normalizeOTName($otNameRaw));
-                    $clases = array_map(fn($d) => $this->toUtf8(basename($d)), Storage::disk('local')->directories($dir));
+        foreach ($bases as $baseDir) {
+            $basePath = Storage::disk('local')->path($baseDir);
+            if (is_dir($basePath)) {
+                $otDirs = array_diff(scandir($basePath), ['.', '..']);
+                foreach ($otDirs as $otNameRaw) {
+                    $otDir = $basePath . DIRECTORY_SEPARATOR . $otNameRaw;
+                    if (is_dir($otDir)) {
+                        $otName = $this->toUtf8($this->normalizeOTName($otNameRaw));
+                        
+                        $clases = [];
+                        $hasFilesAtRoot = false;
+                        
+                        $innerItems = array_diff(scandir($otDir), ['.', '..']);
+                        foreach ($innerItems as $item) {
+                            $itemPath = $otDir . DIRECTORY_SEPARATOR . $item;
+                            if (is_dir($itemPath)) {
+                                $clases[] = $this->toUtf8($item);
+                            } elseif (is_file($itemPath) && strtolower(pathinfo($itemPath, PATHINFO_EXTENSION)) === 'pdf') {
+                                $hasFilesAtRoot = true;
+                            }
+                        }
 
-                    // Verificar si hay archivos en la raíz
-                    $hasFilesAtRoot = collect(Storage::disk('local')->files($dir))
-                        ->contains(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf');
+                        if ($hasFilesAtRoot) {
+                            $clases[] = '--';
+                        }
 
-                    if ($hasFilesAtRoot) {
-                        $clases[] = '--'; // Indicador de archivos en raíz
-                    }
-
-                    if (isset($estructura[$otName])) {
-                        $estructura[$otName] = array_unique(array_merge($estructura[$otName], $clases));
-                    } else {
-                        $estructura[$otName] = $clases;
+                        if (isset($estructura[$otName])) {
+                            $estructura[$otName] = array_unique(array_merge($estructura[$otName], $clases));
+                        } else {
+                            $estructura[$otName] = $clases;
+                        }
                     }
                 }
             }
@@ -1316,6 +1444,7 @@ class DibujosFundicionPdfController extends Controller
 
             $partNorm = mb_strtolower($part, 'UTF-8');
             $partNorm = str_replace(['—', '–'], '-', $partNorm);
+            $partNorm = preg_replace('/[.,_]/', ' ', $partNorm);
             $partNorm = preg_replace('/\s+/', ' ', $partNorm);
             $partNorm = trim($partNorm);
 
@@ -1323,6 +1452,7 @@ class DibujosFundicionPdfController extends Controller
                 $base = basename($subdir);
                 $baseNorm = mb_strtolower($base, 'UTF-8');
                 $baseNorm = str_replace(['—', '–'], '-', $baseNorm);
+                $baseNorm = preg_replace('/[.,_]/', ' ', $baseNorm);
                 $baseNorm = preg_replace('/\s+/', ' ', $baseNorm);
                 $baseNorm = trim($baseNorm);
 
@@ -1340,6 +1470,7 @@ class DibujosFundicionPdfController extends Controller
                     $base = basename($file);
                     $baseNorm = mb_strtolower($base, 'UTF-8');
                     $baseNorm = str_replace(['—', '–'], '-', $baseNorm);
+                    $baseNorm = preg_replace('/[.,_]/', ' ', $baseNorm);
                     $baseNorm = preg_replace('/\s+/', ' ', $baseNorm);
                     $baseNorm = trim($baseNorm);
 
@@ -1385,9 +1516,6 @@ class DibujosFundicionPdfController extends Controller
         return $string;
     }
 
-    /**
-     * Normaliza el nombre de la OT para tratar consistentemente guiones largos, cortos y espacios.
-     */
     public static function normalizeOTName(?string $name): string
     {
         if (!$name)
@@ -1399,5 +1527,42 @@ class DibujosFundicionPdfController extends Controller
         // Eliminar espacios múltiples
         $name = preg_replace('/\s+/', ' ', $name);
         return trim($name);
+    }
+
+    /**
+     * Calcula un hash único basado en los archivos y sus fechas de modificación para una clase.
+     */
+    public static function computeClassHash(string $otName, string $claseName): string
+    {
+        $otNorm = self::normalizeOTName($otName);
+        $instance = new self();
+        
+        // SOLO ESCANEAMOS LAS CARPETAS ESPECÍFICAS DE LA OT (DIBUJOS), NO LAS AYUDAS GLOBALES
+        // Si no hay dibujos específicos, el hash será vacío y la clase se considerará en 0.
+        $dirsToScan = [
+            $instance->resolveCaseInsensitivePath(self::BASE_DIR . '/' . $otNorm . '/' . $claseName),
+            $instance->resolveCaseInsensitivePath(self::OLD_BASE_DIR . '/' . $otNorm . '/' . $claseName)
+        ];
+
+        $filesData = [];
+        foreach ($dirsToScan as $dir) {
+            if ($dir && Storage::disk('local')->exists($dir)) {
+                // allFiles permite explorar en subcarpetas (ej. /Fundicion/)
+                $files = Storage::disk('local')->allFiles($dir);
+                foreach ($files as $f) {
+                    if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
+                        $size = Storage::disk('local')->size($f);
+                        $mtime = Storage::disk('local')->lastModified($f);
+                        $name = basename($f);
+                        
+                        // Combinamos Nombre + Tamaño en Bytes + Fecha de Modificación
+                        $filesData[] = "{$name}_{$size}_{$mtime}";
+                    }
+                }
+            }
+        }
+        
+        sort($filesData);
+        return empty($filesData) ? "" : md5(implode('|', $filesData));
     }
 }

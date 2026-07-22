@@ -182,15 +182,35 @@
 
                 <div style="{{ $isReady ? 'position: relative; height: 100%;' : 'display: flex; flex-direction: column; height: 100%;' }}">
                     <div class="dibujos-table-section" style="{{ $isReady ? 'position: absolute; top: 0; left: 0; right: 0; bottom: 0;' : 'flex: 1;' }} display: flex; flex-direction: column;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-                            <h2 style="margin: 0; padding: 0; border: none;">Estructura Actual de Carpetas en el Servidor</h2>
-                            <div style="position: relative; min-width: 240px; max-width: 360px; flex: 1;">
-                                <select id="filtro-tabla-estructura" 
-                                        style="width: 100%; padding: 8px 14px; border-radius: 8px; border: 2px solid #033966; font-size: 0.9em; outline: none; background: #ffffff; color: #033966; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-                                    <option value="">— Mostrar Todos —</option>
-                                </select>
+                        @if($isReady)
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                                    <h2 style="margin: 0; padding: 0; border: none; flex: 1; min-width: 250px;">Estructura Actual de Carpetas en el Servidor</h2>
+                                    <div style="position: relative; min-width: 240px; max-width: 360px;">
+                                        <select id="filtro-tabla-estructura"
+                                                style="width: 100%; padding: 8px 14px; border-radius: 8px; border: 2px solid #033966; font-size: 0.9em; outline: none; background: #ffffff; color: #033966; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                            <option value="">— Mostrar Todos —</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; justify-content: flex-start; gap: 0.8rem; flex-wrap: wrap;">
+                                </div>
                             </div>
-                        </div>
+                        @else
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+                                <h2 style="margin: 0; padding: 0; border: none;">Estructura Actual de Carpetas en el Servidor</h2>
+
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 0.8rem; flex: 1; min-width: 250px;">
+                                </div>
+
+                                <div style="position: relative; min-width: 240px; max-width: 360px;">
+                                    <select id="filtro-tabla-estructura"
+                                            style="width: 100%; padding: 8px 14px; border-radius: 8px; border: 2px solid #033966; font-size: 0.9em; outline: none; background: #ffffff; color: #033966; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                        <option value="">— Mostrar Todos —</option>
+                                    </select>
+                                </div>
+                            </div>
+                        @endif
 
             @if(count($estructura) === 0)
                 <div class="dibujos-empty-state">
@@ -258,7 +278,7 @@
                                                     });
                                                 @endphp
                                                 @if($ayudasFiltradas->count() > 0)
-                                                    <div class="d-flex d-flex-wrap d-justify-center d-gap-1">
+                                                    <div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">
                                                         @foreach($ayudasFiltradas as $al)
                                                             @php
                                                                 // Mostrar solo si coincide con la clase de la fila actual
@@ -274,8 +294,13 @@
                                                                     $clTagId = 'null';
                                                                 }
                                                                 $isThisClass = ($al === $claseName);
+                                                                $estadoClase = $alertasEnviadas[$otName][$al] ?? 'pendiente';
+                                                                $tagClass = '';
+                                                                if ($estadoClase === 'enviada') $tagClass = 'alerta-enviada-tag';
+                                                                elseif ($estadoClase === 'modificada') $tagClass = 'alerta-modificada-tag';
+                                                                elseif ($estadoClase === 'vacio') $tagClass = 'alerta-vacia-tag';
                                                             @endphp
-                                                            <span class="badge-ayuda-tag clickable-tag {{ $isThisClass ? 'badge-tag-active' : '' }}"
+                                                            <span class="badge-ayuda-tag clickable-tag {{ $isThisClass ? 'badge-tag-active' : '' }} {{ $tagClass }}"
                                                                 title="Filtrar por esta clase"
                                                                 onclick="irACarpeta({{ \Illuminate\Support\Js::from($otIdBD ?? $otName) }}, {{ \Illuminate\Support\Js::from($clTagId) }}, {{ $otIdBD ? 'true' : 'false' }})">
                                                                 {{ $al }}
@@ -283,9 +308,8 @@
                                                         @endforeach
                                                     </div>
                                                 @else
-                                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
-                                                        <img src="{{ asset('images/sin_AV.png') }}" alt="Sin ayudas" style="width: 30px; height: 30px; opacity: 0.85;">
-                                                        <span style="color: #d32f2f; font-size: 0.85em; font-weight: 800; text-transform: uppercase;">Sin clases vinculadas</span>
+                                                    <div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">
+                                                        <span class="badge-ayuda-tag alerta-sin-clases-tag" style="pointer-events: none;">Sin clases vinculadas</span>
                                                     </div>
                                                 @endif
                                             </td>
@@ -325,14 +349,18 @@
             <div class="dibujos-table-section d-mt-3" style="grid-column: 1 / -1; {{ $isReady ? '' : 'display: flex; flex-direction: column;' }}">
                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
                     <h2 style="margin: 0; padding: 0; border: none;">Envío de Alertas a Producción</h2>
-                    <div style="position: relative; min-width: 240px; max-width: 360px; flex: 1;">
-                        <select id="filtro-tabla-alertas" 
+
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 0.8rem; flex: 1; min-width: 250px;">
+                    </div>
+
+                    <div style="position: relative; min-width: 240px; max-width: 360px;">
+                        <select id="filtro-tabla-alertas"
                                 style="width: 100%; padding: 8px 14px; border-radius: 8px; border: 2px solid #033966; font-size: 0.9em; outline: none; background: #ffffff; color: #033966; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
                             <option value="">— Mostrar Todas las OTs —</option>
                         </select>
                     </div>
                 </div>
-                <div class="dibujos-table-container d-log-scroll" style="{{ $isReady ? '' : 'flex: 1; max-height: none; overflow-y: auto;' }}">
+                <div class="dibujos-table-container d-log-scroll" style="{{ $isReady ? 'max-height: 22vh;' : 'flex: 1; max-height: none; overflow-y: auto;' }}">
                     <table class="dibujos-table">
                         <thead>
                             <tr>
@@ -351,6 +379,7 @@
                                     $otLabel = $otReal ? ("OT " . $otReal->id . ($otReal->moldura ? " — " . $otReal->moldura->nombre : "")) : $otName;
                                     $otIdBD = $otReal ? $otReal->id : null;
                                     $ayudasLinked = $historiales[$otName] ?? [];
+                                    $clasesEnviadas = $alertasEnviadas[$otName] ?? [];
 
                                     $ayudasFiltradas = collect($ayudasLinked)->filter(function ($a) {
                                         $val = trim(strtolower((string) $a));
@@ -361,7 +390,7 @@
                                     <td class="d-text-center d-text-primary"><strong>{{ $otLabel }}</strong></td>
                                     <td class="d-text-center">
                                         @if($ayudasFiltradas->count() > 0)
-                                            <div class="d-flex d-flex-wrap d-justify-center d-gap-1">
+                                            <div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">
                                                 @foreach($ayudasFiltradas as $al)
                                                     @php
                                                         $clTagReal = $todasLasClases->firstWhere('nombre', $al);
@@ -372,17 +401,21 @@
                                                         } else {
                                                             $clTagId = 'null';
                                                         }
+                                                        $estadoClase = $alertasEnviadas[$otName][$al] ?? 'pendiente';
+                                                        $tagClass = '';
+                                                        if ($estadoClase === 'enviada') $tagClass = 'alerta-enviada-tag';
+                                                        elseif ($estadoClase === 'modificada') $tagClass = 'alerta-modificada-tag';
+                                                        elseif ($estadoClase === 'vacio') $tagClass = 'alerta-vacia-tag';
                                                     @endphp
-                                                    <span class="badge-ayuda-tag clickable-tag" title="Ir a esta carpeta"
+                                                    <span class="badge-ayuda-tag clickable-tag {{ $tagClass }}" title="Ir a esta carpeta"
                                                         onclick="irACarpeta({{ \Illuminate\Support\Js::from($otIdBD ?? $otName) }}, {{ \Illuminate\Support\Js::from($clTagId) }}, {{ $otIdBD ? 'true' : 'false' }})">
                                                         {{ $al }}
                                                     </span>
                                                 @endforeach
                                             </div>
                                         @else
-                                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
-                                                <img src="{{ asset('images/sin_AV.png') }}" alt="Sin clases" style="width: 30px; height: 30px; opacity: 0.85;">
-                                                <span style="color: #d32f2f; font-size: 0.85em; font-weight: 800; text-transform: uppercase;">Sin ayudas visuales vinculadas</span>
+                                            <div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">
+                                                <span class="badge-ayuda-tag alerta-sin-clases-tag" style="pointer-events: none;">Sin clases vinculadas</span>
                                             </div>
                                         @endif
                                     </td>
@@ -460,11 +493,30 @@
         </div>
     </div>
 
+    <!-- Botón Flotante de Simbología -->
+    <div class="floating-symbology-wrapper">
+        <div class="floating-symbology-btn">
+            <span style="font-weight: bold; font-size: 1.1em; text-transform: uppercase;">Código de Colores</span>
+        </div>
+        <div class="floating-symbology-panel">
+            <span class="badge-ayuda-tag alerta-vacia-tag" style="padding: 8px 16px; font-size: 0.85em; pointer-events: none; transform: none !important; width: 100%; text-align: center; box-sizing: border-box;">Vacía</span>
+            <span class="badge-ayuda-tag" style="padding: 8px 16px; font-size: 0.85em; pointer-events: none; width: 100%; text-align: center; box-sizing: border-box;">Pendiente</span>
+            <span class="badge-ayuda-tag alerta-enviada-tag" style="padding: 8px 16px; font-size: 0.85em; pointer-events: none; transform: none !important; width: 100%; text-align: center; box-sizing: border-box;">Enviada</span>
+            <span class="badge-ayuda-tag alerta-modificada-tag" style="padding: 8px 16px; font-size: 0.85em; pointer-events: none; transform: none !important; width: 100%; text-align: center; box-sizing: border-box;">Modificada</span>
+            <span class="badge-ayuda-tag alerta-sin-clases-tag" style="padding: 8px 16px; font-size: 0.85em; pointer-events: none; transform: none !important; width: 100%; text-align: center; box-sizing: border-box;">Sin Clases</span>
+        </div>
+    </div>
+
     <script>
         window.baseUrl = "{{ url('/') }}";
         window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";
         window.moduleType = "{{ $moduleType }}";
         window.routesPrefix = "{{ $modulePrefix }}";
+        window.csrfToken = "{{ csrf_token() }}";
+        window.estructura = @json($estructura);
+        window.historiales = @json($historiales);
+        window.alertasEnviadas = @json($alertasEnviadas);
+        window.todasLasOTs = @json($todasLasOTs);
 
         window.routes = {
             ...(window.routes || {}),

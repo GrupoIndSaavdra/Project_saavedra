@@ -535,21 +535,28 @@ class AyudasVisualesPdfController extends Controller
         $estructura = [];
 
         // 1. Escaneo del directorio Nuevo
-        if (Storage::disk('local')->exists(self::BASE_DIR)) {
-            $pDirs = Storage::disk('local')->directories(self::BASE_DIR);
-            foreach ($pDirs as $pDir) {
-                $pName = $this->toUtf8(basename($pDir)); // Proceso
-                $estructura[] = $pName;
+        $basePath = Storage::disk('local')->path(self::BASE_DIR);
+        if (is_dir($basePath)) {
+            $pDirs = array_diff(scandir($basePath), ['.', '..']);
+            foreach ($pDirs as $pDirRaw) {
+                $dirPath = $basePath . DIRECTORY_SEPARATOR . $pDirRaw;
+                if (is_dir($dirPath)) {
+                    $estructura[] = $this->toUtf8($pDirRaw);
+                }
             }
         }
 
         // 2. Escaneo del directorio Viejo (Fallback)
-        if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
-            $pDirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
-            foreach ($pDirs as $pDir) {
-                $pName = $this->toUtf8(basename($pDir));
-                if (!in_array($pName, $estructura)) {
-                    $estructura[] = $pName;
+        $oldBasePath = Storage::disk('local')->path(self::OLD_BASE_DIR);
+        if (is_dir($oldBasePath)) {
+            $pDirs = array_diff(scandir($oldBasePath), ['.', '..']);
+            foreach ($pDirs as $pDirRaw) {
+                $dirPath = $oldBasePath . DIRECTORY_SEPARATOR . $pDirRaw;
+                if (is_dir($dirPath)) {
+                    $pName = $this->toUtf8($pDirRaw);
+                    if (!in_array($pName, $estructura)) {
+                        $estructura[] = $pName;
+                    }
                 }
             }
         }

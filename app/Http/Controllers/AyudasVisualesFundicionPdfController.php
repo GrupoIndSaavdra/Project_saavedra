@@ -521,29 +521,43 @@ class AyudasVisualesFundicionPdfController extends Controller
     {
         $estructura = [];
 
-        if (Storage::disk('local')->exists(self::BASE_DIR)) {
-            $claseDirs = Storage::disk('local')->directories(self::BASE_DIR);
-            foreach ($claseDirs as $claseDir) {
-                $claseName = $this->toUtf8(basename($claseDir));
-                // Detectar como existente si tiene archivos directos O tiene la subcarpeta /Fundicion (legacy)
-                $hasDirectFiles  = count(Storage::disk('local')->files($claseDir)) > 0;
-                $hasLegacySubDir = Storage::disk('local')->exists($claseDir . '/Fundicion');
-                if ($hasDirectFiles || $hasLegacySubDir) {
-                    $estructura[$claseName] = true;
-                } else {
-                    // Carpeta vacía pero existe — la incluimos igualmente para poder eliminarla
-                    $estructura[$claseName] = true;
+        $basePath = Storage::disk('local')->path(self::BASE_DIR);
+        if (is_dir($basePath)) {
+            $claseDirs = array_diff(scandir($basePath), ['.', '..']);
+            foreach ($claseDirs as $claseNameRaw) {
+                $claseDir = $basePath . DIRECTORY_SEPARATOR . $claseNameRaw;
+                if (is_dir($claseDir)) {
+                    $claseName = $this->toUtf8($claseNameRaw);
+                    
+                    $hasDirectFiles = false;
+                    $innerFiles = array_diff(scandir($claseDir), ['.', '..']);
+                    foreach ($innerFiles as $f) {
+                        if (is_file($claseDir . DIRECTORY_SEPARATOR . $f)) {
+                            $hasDirectFiles = true;
+                            break;
+                        }
+                    }
+                    
+                    $hasLegacySubDir = is_dir($claseDir . DIRECTORY_SEPARATOR . 'Fundicion');
+                    if ($hasDirectFiles || $hasLegacySubDir) {
+                        $estructura[$claseName] = true;
+                    } else {
+                        $estructura[$claseName] = true;
+                    }
                 }
             }
         }
 
-        // También detectar clases que solo existen en AYUDAS_GIS (legado puro)
-        if (Storage::disk('local')->exists(self::OLD_BASE_DIR)) {
-            $oldClassDirs = Storage::disk('local')->directories(self::OLD_BASE_DIR);
-            foreach ($oldClassDirs as $oldClaseDir) {
-                $claseName = $this->toUtf8(basename($oldClaseDir));
-                if (!isset($estructura[$claseName])) {
-                    $estructura[$claseName] = true;
+        $oldBasePath = Storage::disk('local')->path(self::OLD_BASE_DIR);
+        if (is_dir($oldBasePath)) {
+            $oldClassDirs = array_diff(scandir($oldBasePath), ['.', '..']);
+            foreach ($oldClassDirs as $oldClaseNameRaw) {
+                $oldClaseDir = $oldBasePath . DIRECTORY_SEPARATOR . $oldClaseNameRaw;
+                if (is_dir($oldClaseDir)) {
+                    $claseName = $this->toUtf8($oldClaseNameRaw);
+                    if (!isset($estructura[$claseName])) {
+                        $estructura[$claseName] = true;
+                    }
                 }
             }
         }

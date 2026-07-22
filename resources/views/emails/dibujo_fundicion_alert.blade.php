@@ -82,8 +82,7 @@
         </div>
 
         <div class="firma">
-            <div class="name">ADRIAN ALBARRAN TRINIDAD</div>
-            <div class="title mt-2">PROGRAMACION INGENIERIA TECAMAC</div>
+            <div class="name">DEPARTAMENTO DE PROGRAMACIÓN CNC, PLANTA TECÁMAC</div>
 
             <div class="mt-2">
                 <span class="link-text">PROLONGACION INSURGENTES NO. 5 KM. 39</span><br>

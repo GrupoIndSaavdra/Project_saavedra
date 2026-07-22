@@ -37,6 +37,7 @@ class FundicionHistory extends Model
     protected $fillable = [
         'ot',
         'ayudas_config',
+        'clases_enviadas',
         'status',
         'alert_sent_at',
         'almacen_archivos',
@@ -59,6 +60,7 @@ class FundicionHistory extends Model
         'alert_sent_at'                  => 'datetime',
         'almacen_archivos'               => 'array',
         'ayudas_config'                  => 'array',
+        'clases_enviadas'                => 'array',
         'tiene_modelo'                   => 'boolean',
         'pre_orden_sent'                 => 'boolean',
         'pre_orden_email_sent'           => 'boolean',
@@ -69,9 +71,35 @@ class FundicionHistory extends Model
         'alerta_calidad_sent'            => 'boolean',
         'documentos_revisados_calidad'   => 'boolean',
         'alerta_almacen_2_sent'          => 'boolean',
-        'documentos_vistos_almacen_2'    => 'boolean',
         'documentos_firmados_cargados'   => 'boolean',
     ];
+
+    protected static function booted()
+    {
+        static::saving(function ($history) {
+            // Si la clase se eliminó de ayudas_config, debemos olvidarla de clases_enviadas para siempre
+            $ayudasActuales = is_array($history->ayudas_config) ? $history->ayudas_config : [];
+            $enviadas = is_array($history->clases_enviadas) ? $history->clases_enviadas : [];
+            
+            if (!empty($enviadas)) {
+                $nuevoEnviadas = [];
+                foreach ($enviadas as $key => $val) {
+                    if (is_numeric($key)) {
+                        // Legacy: $enviadas era una lista plana ['Pistones', 'Bombillo']
+                        if (in_array($val, $ayudasActuales)) {
+                            $nuevoEnviadas[] = $val;
+                        }
+                    } else {
+                        // Nuevo: $enviadas es un diccionario ['Pistones' => 'hash123']
+                        if (in_array($key, $ayudasActuales)) {
+                            $nuevoEnviadas[$key] = $val;
+                        }
+                    }
+                }
+                $history->clases_enviadas = $nuevoEnviadas;
+            }
+        });
+    }
 
     public function isAlmacenFullyProcessed(): bool
     {

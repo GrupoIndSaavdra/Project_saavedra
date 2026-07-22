@@ -1096,6 +1096,36 @@ window.enviarAlertaFundicion = function (archivo, ot, btnEl) {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Alerta enviada correctamente.');
                 loadAuditLog();
+                
+                // Cambiar el color de las clases de esta fila y actualizar JS
+                const row = btnEl.closest('tr');
+                if (row) {
+                    const tags = row.querySelectorAll('.badge-ayuda-tag:not(.alerta-vacia-tag)');
+                    tags.forEach(tag => {
+                        tag.classList.remove('alerta-modificada-tag');
+                        tag.classList.add('alerta-enviada-tag');
+                    });
+                    
+                    if (window.alertasEnviadas === undefined) window.alertasEnviadas = {};
+                    if (!window.alertasEnviadas[ot]) window.alertasEnviadas[ot] = {};
+                    
+                    const currentTags = Array.from(tags).map(t => t.innerText.trim());
+                    currentTags.forEach(t => {
+                        window.alertasEnviadas[ot][t] = 'enviada';
+                    });
+
+                    // Actualizar también la tabla superior (Estructura Actual)
+                    const upperTableRows = document.querySelectorAll(`#tabla-estructura tr[data-ot="${ot}"]`);
+                    upperTableRows.forEach(uRow => {
+                        const uTags = uRow.querySelectorAll('.badge-ayuda-tag');
+                        uTags.forEach(uTag => {
+                            if (currentTags.includes(uTag.innerText.trim())) {
+                                uTag.classList.remove('alerta-modificada-tag');
+                                uTag.classList.add('alerta-enviada-tag');
+                            }
+                        });
+                    });
+                }
             } else {
                 mostrarNotificacion(data.message || 'No se pudo enviar la alerta.', true);
             }
@@ -1499,9 +1529,11 @@ function renderAlertasTable() {
                 return clasesFisicas.includes(a);
             });
 
+            const clasesEnviadas = (window.alertasEnviadas && window.alertasEnviadas[otName]) ? window.alertasEnviadas[otName] : {};
+
             let htmlAyudas = '';
             if (ayudasFiltradas.length > 0) {
-                htmlAyudas = `<div class="d-flex d-flex-wrap d-justify-center d-gap-1">`;
+                htmlAyudas = `<div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">`;
                 ayudasFiltradas.forEach(al => {
                     let clTagId = 'null';
                     const clTagReal = window.todasLasClases ? window.todasLasClases.find(c => c.nombre === al) : null;
@@ -1511,8 +1543,11 @@ function renderAlertasTable() {
                         clTagId = al;
                     }
 
+                    const estadoClase = clasesEnviadas[al] || 'pendiente';
+                    const tagClass = estadoClase === 'enviada' ? 'alerta-enviada-tag' : (estadoClase === 'modificada' ? 'alerta-modificada-tag' : '');
+
                     htmlAyudas += `
-                        <span class="badge-ayuda-tag clickable-tag" title="Ir a esta carpeta"
+                        <span class="badge-ayuda-tag clickable-tag ${tagClass}" title="Ir a esta carpeta"
                             onclick="irACarpeta('${otIdBD || otName}', '${clTagId}', ${otIdBD ? 'true' : 'false'})">
                             ${al}
                         </span>
@@ -1521,9 +1556,8 @@ function renderAlertasTable() {
                 htmlAyudas += `</div>`;
             } else {
                 htmlAyudas = `
-                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
-                        <img src="${window.baseUrl}/images/sin_AV.png" alt="Sin clases" style="width: 30px; height: 30px; opacity: 0.85;">
-                        <span style="color: #d32f2f; font-size: 0.85em; font-weight: 800; text-transform: uppercase;">Sin clases y ayudas visuales vinculadas</span>
+                    <div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">
+                        <span class="badge-ayuda-tag alerta-sin-clases-tag" style="pointer-events: none;">Sin clases vinculadas</span>
                     </div>
                 `;
             }
@@ -1592,7 +1626,8 @@ function poblarYFiltrarSelect(selectId, tableOrTbodySelector, defaultLabel) {
 
     const aplicarFiltrado = () => {
         const val = select.value.toLowerCase().trim();
-        rows.forEach(row => {
+        const currentRows = target.tagName === 'TBODY' ? target.querySelectorAll('tr') : target.querySelectorAll('tbody tr');
+        currentRows.forEach(row => {
             if (row.children.length === 1 && row.querySelector('td[colspan]')) return;
             if (!val) {
                 row.style.display = '';
