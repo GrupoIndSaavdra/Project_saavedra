@@ -171,7 +171,7 @@
                     <p>No hay carpetas creadas aun.</p>
                 </div>
             @else
-                <div class="dibujos-table-container" style="flex: 1; max-height: calc(100vh - 280px); overflow-y: auto;">
+                <div class="dibujos-table-container" style="flex: 1; {{ $isReady ? 'max-height: 100%;' : 'max-height: calc(100vh - 280px);' }} overflow-y: auto;">
                     <table class="dibujos-table" id="tabla-estructura">
                         <thead>
                             <tr>

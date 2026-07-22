@@ -217,7 +217,7 @@
                     <p>No hay carpetas creadas aun.</p>
                 </div>
             @else
-                <div class="dibujos-table-container" style="flex: 1; max-height: calc(100vh - 280px); overflow-y: auto;">
+                <div class="dibujos-table-container" style="flex: 1; {{ $isReady ? 'max-height: 100%;' : 'max-height: calc(100vh - 280px);' }} overflow-y: auto;">
                     <table class="dibujos-table" id="tabla-estructura">
                         <thead>
                             <tr>
@@ -360,7 +360,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="dibujos-table-container d-log-scroll" style="flex: 1; max-height: calc(50vh - 150px); overflow-y: auto;">
+                <div class="dibujos-table-container d-log-scroll" style="flex: 1; {{ $isReady ? 'max-height: calc(40vh - 100px);' : 'max-height: calc(100vh - 280px);' }} overflow-y: auto;">
                     <table class="dibujos-table">
                         <thead>
                             <tr>
