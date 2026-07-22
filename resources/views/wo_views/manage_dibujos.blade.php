@@ -82,11 +82,18 @@
                     $alertContext = 'Selecciona las opciones necesarias para continuar.';
                     $carpetaExiste = false;
 
-                    if ($moduleType === 'dibujos' && $otSeleccionadaId && $claseSeleccionadaId && $otActiva && $claseActiva) {
+                    if ($moduleType === 'dibujos' && $otSeleccionadaId && $claseSeleccionadaId) {
                         $isReady = true;
-                        $param1Name = (string) $otActiva->id;
-                        $param2Name = $claseActiva->nombre;
-                        $folderPathLabel = "<span class='lvl-1'>OT " . $otActiva->id . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . $claseActiva->nombre . "</span>";
+                        
+                        if ($otActiva && $claseActiva) {
+                            $param1Name = (string) $otActiva->id;
+                            $param2Name = $claseActiva->nombre;
+                        } else {
+                            $param1Name = $otSeleccionadaId;
+                            $param2Name = $claseSeleccionadaId;
+                        }
+                        
+                        $folderPathLabel = "<span class='lvl-1'>OT " . htmlspecialchars($param1Name) . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . htmlspecialchars($param2Name) . "</span>";
                         $carpetaExiste = isset($estructura[$param1Name]) && in_array($param2Name, $estructura[$param1Name]);
                         $folderProps = ['data-ot' => $param1Name, 'data-clase' => $param2Name];
                     }

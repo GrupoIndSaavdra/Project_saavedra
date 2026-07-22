@@ -58,10 +58,16 @@
                     $alertContext = 'Selecciona las opciones necesarias para continuar.';
                     $carpetaExiste = false;
 
-                    if ($moduleType === 'manuales' && $procesoSeleccionadoId && $procesoActivo) {
+                    if ($moduleType === 'manuales' && $procesoSeleccionadoId) {
                         $isReady = true;
-                        $param1Name = $procesoActivo->nombre;
-                        $folderPathLabel = "<span class='lvl-1'>" . $procesoActivo->nombre . "</span>";
+                        
+                        if ($procesoActivo) {
+                            $param1Name = $procesoActivo->nombre;
+                        } else {
+                            $param1Name = $procesoSeleccionadoId;
+                        }
+                        
+                        $folderPathLabel = "<span class='lvl-1'>" . htmlspecialchars($param1Name) . "</span>";
                         $carpetaExiste = in_array($param1Name, $estructura);
                         $folderProps = ['data-proceso' => $param1Name];
                     }

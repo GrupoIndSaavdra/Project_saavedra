@@ -58,11 +58,17 @@
                     $alertContext = 'Selecciona las opciones necesarias para continuar.';
                     $carpetaExiste = false;
 
-                    if ($moduleType === 'ayudas_fundicion' && $claseSeleccionadaId && $claseActiva) {
+                    if ($moduleType === 'ayudas_fundicion' && $claseSeleccionadaId) {
                         $isReady = true;
                         $param1Name = 'Fundicion';
-                        $param2Name = $claseActiva->nombre;
-                        $folderPathLabel = "<span class='lvl-1'>" . $claseActiva->nombre . "</span>";
+                        
+                        if ($claseActiva) {
+                            $param2Name = $claseActiva->nombre;
+                        } else {
+                            $param2Name = $claseSeleccionadaId;
+                        }
+                        
+                        $folderPathLabel = "<span class='lvl-1'>" . htmlspecialchars($param2Name) . "</span>";
                         $carpetaExiste = isset($estructura[$param2Name]);
                         $folderProps = ['data-proceso' => $param1Name, 'data-clase' => $param2Name];
                     }
