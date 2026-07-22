@@ -500,9 +500,17 @@ function loadBadgeCounts() {
     
     if(!rows) return;
 
-    rows.forEach(row => {
-        actualizarBadge(row.dataset.ot, row.dataset.clase);
-    });
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const row = entry.target;
+                actualizarBadge(row.dataset.ot, row.dataset.clase);
+                obs.unobserve(row);
+            }
+        });
+    }, { rootMargin: '50px' });
+
+    rows.forEach(row => observer.observe(row));
 }
 
 function actualizarTotalBadge(ot, badgeElement) {

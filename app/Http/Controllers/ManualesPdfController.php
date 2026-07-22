@@ -108,14 +108,13 @@ class ManualesPdfController extends Controller
                 return response()->json(['error' => 'Parámetro Proceso es requerido.'], 422);
             }
 
-            $newDirPath = self::BASE_DIR . '/' . $proceso;
-            $oldDirPath = self::OLD_BASE_DIR . '/' . $proceso;
+            $newDirPath = Storage::disk('local')->path(self::BASE_DIR . '/' . $proceso);
+            $oldDirPath = Storage::disk('local')->path(self::OLD_BASE_DIR . '/' . $proceso);
 
-            $newFiles = Storage::disk('local')->exists($newDirPath) ? Storage::disk('local')->files($newDirPath) : [];
-            $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
+            $newFiles = glob($newDirPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
+            $oldFiles = glob($oldDirPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
 
             $allFiles = collect(array_merge($newFiles, $oldFiles))
-                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
                 ->map(function($f) use ($proceso) {
                     $rawName = basename($f);
                     $utf8Name = $this->toUtf8($rawName);
@@ -441,11 +440,10 @@ class ManualesPdfController extends Controller
         // 1. Nuevo
         $basePath = Storage::disk('local')->path(self::BASE_DIR);
         if (is_dir($basePath)) {
-            $dirs = array_diff(scandir($basePath), ['.', '..']);
-            foreach ($dirs as $dirRaw) {
-                $dirPath = $basePath . DIRECTORY_SEPARATOR . $dirRaw;
-                if (is_dir($dirPath)) {
-                    $estructura[$this->toUtf8($dirRaw)] = true;
+            $dirs = glob($basePath . '/*', GLOB_ONLYDIR);
+            if ($dirs) {
+                foreach ($dirs as $dirPath) {
+                    $estructura[$this->toUtf8(basename($dirPath))] = true;
                 }
             }
         }
@@ -453,11 +451,11 @@ class ManualesPdfController extends Controller
         // 2. Viejo
         $oldBasePath = Storage::disk('local')->path(self::OLD_BASE_DIR);
         if (is_dir($oldBasePath)) {
-            $oldDirs = array_diff(scandir($oldBasePath), ['.', '..']);
-            foreach ($oldDirs as $dirRaw) {
-                $dirPath = $oldBasePath . DIRECTORY_SEPARATOR . $dirRaw;
-                if (is_dir($dirPath)) {
-                    $estructura[$this->toUtf8($dirRaw)] = true;
+            $oldDirs = glob($oldBasePath . '/*', GLOB_ONLYDIR);
+            if ($oldDirs) {
+                foreach ($oldDirs as $oldDirPath) {
+                    $dirName = $this->toUtf8(basename($oldDirPath));
+                    $estructura[$dirName] = true;
                 }
             }
         }

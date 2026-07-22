@@ -88,13 +88,11 @@ class DibujosFundicionPdfController extends Controller
                 ];
 
                 foreach ($candidates as $dir) {
-                    if (Storage::disk('local')->exists($dir)) {
-                        $files = Storage::disk('local')->files($dir);
-                        $hasPdf = collect($files)->contains(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf');
-                        if ($hasPdf) {
-                            $ayudasDisponibles[] = $clase;
-                            break 2; // Encontrado en esta clase, pasar a la siguiente base o clase
-                        }
+                    $absPath = Storage::disk('local')->path($dir);
+                    $pdfs = glob($absPath . '/*.{pdf,PDF}', GLOB_BRACE);
+                    if ($pdfs && count($pdfs) > 0) {
+                        $ayudasDisponibles[] = $clase;
+                        break 2;
                     }
                 }
             }
@@ -115,9 +113,11 @@ class DibujosFundicionPdfController extends Controller
             // 1. Verificar dibujos principales
             $newPath = self::BASE_DIR . '/' . $otFolderName;
             $oldPath = self::OLD_BASE_DIR . '/' . $otFolderName;
-            $newFiles = Storage::disk('local')->exists($newPath) ? Storage::disk('local')->files($newPath) : [];
-            $oldFiles = Storage::disk('local')->exists($oldPath) ? Storage::disk('local')->files($oldPath) : [];
-            $hasDibujos = collect(array_merge($newFiles, $oldFiles))->contains(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf');
+            $newAbsPath = Storage::disk('local')->path($newPath);
+            $oldAbsPath = Storage::disk('local')->path($oldPath);
+            $newPdfs = glob($newAbsPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
+            $oldPdfs = glob($oldAbsPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
+            $hasDibujos = count($newPdfs) > 0 || count($oldPdfs) > 0;
 
             foreach ($ayudasDisponibles as $clase) {
                 // REQUERIMIENTO: Solo Pistones y Guias aparecen en el panel manual
@@ -129,24 +129,22 @@ class DibujosFundicionPdfController extends Controller
                 $masterFiles = [];
                 $bases = [$newBase, $oldBase];
                 foreach ($bases as $base) {
-                    $claseDir = $base . '/' . $clase;
-                    if (Storage::disk('local')->exists($claseDir)) {
-                        $fList = Storage::disk('local')->files($claseDir);
-                        foreach ($fList as $f) {
-                            if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-                                $masterFiles[] = basename($f);
+                    $claseAbsPath = Storage::disk('local')->path($base . '/' . $clase);
+                    $pdfs = glob($claseAbsPath . '/*.{pdf,PDF}', GLOB_BRACE);
+                    if ($pdfs) {
+                        foreach ($pdfs as $pdf) {
+                            $masterFiles[] = basename($pdf);
                         }
                     }
                 }
 
                 $almacenAyudasBase = self::ALMACEN_DIR . '/' . $otFolderName . '/ayudas_visuales';
-                $almacenClaseDir = $almacenAyudasBase . '/' . $clase;
+                $almacenAbsPath = Storage::disk('local')->path($almacenAyudasBase . '/' . $clase);
                 $almacenFiles = [];
-                if (Storage::disk('local')->exists($almacenClaseDir)) {
-                    $fList = Storage::disk('local')->files($almacenClaseDir);
-                    foreach ($fList as $f) {
-                        if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
-                            $almacenFiles[] = basename($f);
+                $pdfs = glob($almacenAbsPath . '/*.{pdf,PDF}', GLOB_BRACE);
+                if ($pdfs) {
+                    foreach ($pdfs as $pdf) {
+                        $almacenFiles[] = basename($pdf);
                     }
                 }
 
@@ -373,38 +371,35 @@ class DibujosFundicionPdfController extends Controller
             }
 
             // 1. Directorios de Clase (Nuevo esquema)
-            $newClasePath = self::BASE_DIR . '/' . $ot . '/' . $clase;
-            $oldClasePath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
+            $newClasePath = Storage::disk('local')->path(self::BASE_DIR . '/' . $ot . '/' . $clase);
+            $oldClasePath = Storage::disk('local')->path(self::OLD_BASE_DIR . '/' . $ot . '/' . $clase);
 
             // 2. Directorios Raíz (Esquema anterior/legado)
-            $newRootPath = self::BASE_DIR . '/' . $ot;
-            $oldRootPath = self::OLD_BASE_DIR . '/' . $ot;
+            $newRootPath = Storage::disk('local')->path(self::BASE_DIR . '/' . $ot);
+            $oldRootPath = Storage::disk('local')->path(self::OLD_BASE_DIR . '/' . $ot);
 
             $files = [];
 
             // --- Buscar en Clase seleccionada ---
             if (!empty($clase)) {
-                $files = array_merge($files, Storage::disk('local')->exists($newClasePath) ? Storage::disk('local')->files($newClasePath) : []);
-                $files = array_merge($files, Storage::disk('local')->exists($oldClasePath) ? Storage::disk('local')->files($oldClasePath) : []);
+                $files = array_merge($files, glob($newClasePath . '/*.{pdf,PDF}', GLOB_BRACE) ?: []);
+                $files = array_merge($files, glob($oldClasePath . '/*.{pdf,PDF}', GLOB_BRACE) ?: []);
             }
 
             // --- Buscar en Raíz de la OT (Archivos que no tienen clase aún) ---
-            $rootFilesNew = Storage::disk('local')->exists($newRootPath) ? Storage::disk('local')->files($newRootPath) : [];
-            $rootFilesOld = Storage::disk('local')->exists($oldRootPath) ? Storage::disk('local')->files($oldRootPath) : [];
+            $rootFilesNew = glob($newRootPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
+            $rootFilesOld = glob($oldRootPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
 
             $files = array_merge($files, $rootFilesNew, $rootFilesOld);
 
             $allFiles = collect($files)
-                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
                 ->map(function ($f) use ($ot, $clase, $newClasePath, $oldClasePath, $newRootPath, $oldRootPath) {
                     $rawName = basename($f);
                     $utf8Name = $this->toUtf8($rawName);
                     $fullPath = $f;
                     
-                    // Determinar si el archivo está en la raíz o en una clase específica
-                    // Esto ayuda a generar la URL correcta para servirlo
-                    $isRoot = (strpos($fullPath, $newRootPath . '/') === 0 && strpos($fullPath, $newClasePath) === false) ||
-                              (strpos($fullPath, $oldRootPath . '/') === 0 && strpos($fullPath, $oldClasePath) === false);
+                    $dir = dirname($fullPath);
+                    $isRoot = ($dir === $newRootPath || $dir === $oldRootPath);
                               
                     $serveClase = $isRoot ? '' : $clase;
 
@@ -1333,26 +1328,22 @@ class DibujosFundicionPdfController extends Controller
         foreach ($bases as $baseDir) {
             $basePath = Storage::disk('local')->path($baseDir);
             if (is_dir($basePath)) {
-                $otDirs = array_diff(scandir($basePath), ['.', '..']);
-                foreach ($otDirs as $otNameRaw) {
-                    $otDir = $basePath . DIRECTORY_SEPARATOR . $otNameRaw;
-                    if (is_dir($otDir)) {
-                        $otName = $this->toUtf8($this->normalizeOTName($otNameRaw));
+                $otDirs = glob($basePath . '/*', GLOB_ONLYDIR);
+                if ($otDirs) {
+                    foreach ($otDirs as $otDir) {
+                        $otName = $this->toUtf8($this->normalizeOTName(basename($otDir)));
                         
                         $clases = [];
-                        $hasFilesAtRoot = false;
                         
-                        $innerItems = array_diff(scandir($otDir), ['.', '..']);
-                        foreach ($innerItems as $item) {
-                            $itemPath = $otDir . DIRECTORY_SEPARATOR . $item;
-                            if (is_dir($itemPath)) {
-                                $clases[] = $this->toUtf8($item);
-                            } elseif (is_file($itemPath) && strtolower(pathinfo($itemPath, PATHINFO_EXTENSION)) === 'pdf') {
-                                $hasFilesAtRoot = true;
+                        $claseDirs = glob($otDir . '/*', GLOB_ONLYDIR);
+                        if ($claseDirs) {
+                            foreach ($claseDirs as $claseDir) {
+                                $clases[] = $this->toUtf8(basename($claseDir));
                             }
                         }
-
-                        if ($hasFilesAtRoot) {
+                        
+                        $pdfs = glob($otDir . '/*.{pdf,PDF}', GLOB_BRACE);
+                        if ($pdfs && count($pdfs) > 0) {
                             $clases[] = '--';
                         }
 
@@ -1426,6 +1417,11 @@ class DibujosFundicionPdfController extends Controller
 
     private function resolveCaseInsensitivePath(string $path): string
     {
+        // Optimización masiva: si la ruta exacta ya existe, devolverla inmediatamente
+        if (Storage::disk('local')->exists($path)) {
+            return $path;
+        }
+
         $parts = explode('/', str_replace('\\', '/', $path));
         $resolved = '';
 
@@ -1434,8 +1430,15 @@ class DibujosFundicionPdfController extends Controller
                 continue;
 
             $currentSearch = $resolved ? $resolved : '.';
+            
+            $exactPath = $resolved ? $resolved . '/' . $part : $part;
+            if (Storage::disk('local')->exists($exactPath)) {
+                $resolved = $exactPath;
+                continue;
+            }
+
             if (!Storage::disk('local')->exists($currentSearch)) {
-                $resolved = $resolved ? $resolved . '/' . $part : $part;
+                $resolved = $exactPath;
                 continue;
             }
 
@@ -1547,17 +1550,19 @@ class DibujosFundicionPdfController extends Controller
         $filesData = [];
         foreach ($dirsToScan as $dir) {
             if ($dir && Storage::disk('local')->exists($dir)) {
-                // allFiles permite explorar en subcarpetas (ej. /Fundicion/)
-                $files = Storage::disk('local')->allFiles($dir);
-                foreach ($files as $f) {
-                    if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
-                        $size = Storage::disk('local')->size($f);
-                        $mtime = Storage::disk('local')->lastModified($f);
-                        $name = basename($f);
-                        
-                        // Combinamos Nombre + Tamaño en Bytes + Fecha de Modificación
-                        $filesData[] = "{$name}_{$size}_{$mtime}";
-                    }
+                $absDir = Storage::disk('local')->path($dir);
+                // Usar glob para los PDF en el directorio principal y en un nivel de subdirectorios
+                $pdfs = glob($absDir . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
+                $subPdfs = glob($absDir . '/*/*.{pdf,PDF}', GLOB_BRACE) ?: [];
+                $allPdfs = array_merge($pdfs, $subPdfs);
+
+                foreach ($allPdfs as $f) {
+                    $size = filesize($f);
+                    $mtime = filemtime($f);
+                    $name = basename($f);
+                    
+                    // Combinamos Nombre + Tamaño en Bytes + Fecha de Modificación
+                    $filesData[] = "{$name}_{$size}_{$mtime}";
                 }
             }
         }

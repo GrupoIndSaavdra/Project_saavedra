@@ -1092,6 +1092,11 @@ class AlmacenFundicionController extends Controller
 
     private function resolveCaseInsensitivePath(string $path): string
     {
+        // Optimización masiva: si la ruta exacta ya existe, devolverla inmediatamente
+        if (Storage::disk('local')->exists($path)) {
+            return $path;
+        }
+
         $parts = explode('/', str_replace('\\', '/', $path));
         $resolved = '';
 
@@ -1100,8 +1105,15 @@ class AlmacenFundicionController extends Controller
                 continue;
 
             $currentSearch = $resolved ? $resolved : '.';
+            
+            $exactPath = $resolved ? $resolved . '/' . $part : $part;
+            if (Storage::disk('local')->exists($exactPath)) {
+                $resolved = $exactPath;
+                continue;
+            }
+
             if (!Storage::disk('local')->exists($currentSearch)) {
-                $resolved = $resolved ? $resolved . '/' . $part : $part;
+                $resolved = $exactPath;
                 continue;
             }
 

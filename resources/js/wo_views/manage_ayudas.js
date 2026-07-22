@@ -576,18 +576,33 @@ function loadBadgeCounts() {
     
     if(!rows) return;
 
-    rows.forEach(row => {
-        if (module === 'dibujos' || module === 'fundicion') actualizarBadge(row.dataset.ot, row.dataset.clase);
-        else if (module === 'manuales' || module === 'ayudas') actualizarBadge(row.dataset.proceso);
-        else if (module === 'ayudas_fundicion') actualizarBadge(null, row.dataset.clase);
-    });
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const row = entry.target;
+                if (module === 'dibujos' || module === 'fundicion') actualizarBadge(row.dataset.ot, row.dataset.clase);
+                else if (module === 'manuales' || module === 'ayudas') actualizarBadge(row.dataset.proceso);
+                else if (module === 'ayudas_fundicion') actualizarBadge(null, row.dataset.clase);
+                obs.unobserve(row);
+            }
+        });
+    }, { rootMargin: '50px' });
+
+    rows.forEach(row => observer.observe(row));
 
     // Totales globales por OT (Solo Fundicion)
     if (module === 'fundicion') {
         const totalBadges = document.querySelectorAll('[data-ot-total]');
-        totalBadges.forEach(badge => {
-            actualizarTotalBadge(badge.dataset.otTotal, badge);
-        });
+        const totalObserver = new IntersectionObserver((entries, obs) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const badge = entry.target;
+                    actualizarTotalBadge(badge.dataset.otTotal, badge);
+                    obs.unobserve(badge);
+                }
+            });
+        }, { rootMargin: '50px' });
+        totalBadges.forEach(badge => totalObserver.observe(badge));
     }
 }
 

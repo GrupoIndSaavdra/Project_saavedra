@@ -137,30 +137,31 @@ class DibujosPdfController extends Controller
                 $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
             }
 
-            $newClasePath = self::BASE_DIR . '/' . $ot . '/' . $clase;
-            $oldClasePath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
-            $newRootPath = self::BASE_DIR . '/' . $ot;
-            $oldRootPath = self::OLD_BASE_DIR . '/' . $ot;
+            $newClasePath = Storage::disk('local')->path(self::BASE_DIR . '/' . $ot . '/' . $clase);
+            $oldClasePath = Storage::disk('local')->path(self::OLD_BASE_DIR . '/' . $ot . '/' . $clase);
+            $newRootPath = Storage::disk('local')->path(self::BASE_DIR . '/' . $ot);
+            $oldRootPath = Storage::disk('local')->path(self::OLD_BASE_DIR . '/' . $ot);
 
             $files = [];
 
             if (!empty($clase)) {
-                $files = array_merge($files, Storage::disk('local')->exists($newClasePath) ? Storage::disk('local')->files($newClasePath) : []);
-                $files = array_merge($files, Storage::disk('local')->exists($oldClasePath) ? Storage::disk('local')->files($oldClasePath) : []);
+                $files = array_merge($files, glob($newClasePath . '/*.{pdf,PDF}', GLOB_BRACE) ?: []);
+                $files = array_merge($files, glob($oldClasePath . '/*.{pdf,PDF}', GLOB_BRACE) ?: []);
             }
 
-            $rootFilesNew = Storage::disk('local')->exists($newRootPath) ? Storage::disk('local')->files($newRootPath) : [];
-            $rootFilesOld = Storage::disk('local')->exists($oldRootPath) ? Storage::disk('local')->files($oldRootPath) : [];
+            $rootFilesNew = glob($newRootPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
+            $rootFilesOld = glob($oldRootPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
 
             $files = array_merge($files, $rootFilesNew, $rootFilesOld);
 
             $allFiles = collect($files)
-                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
                 ->map(function($f) use ($ot, $clase, $newRootPath, $oldRootPath) {
                     $rawName = basename($f);
                     $utf8Name = $this->toUtf8($rawName);
                     $fullPath = $f;
-                    $esRaiz = (strpos($fullPath, $newRootPath . '/' . $rawName) !== false || strpos($fullPath, $oldRootPath . '/' . $rawName) !== false);
+                    
+                    $dir = dirname($fullPath);
+                    $esRaiz = ($dir === $newRootPath || $dir === $oldRootPath);
 
                     return [
                         'nombre'  => $utf8Name,
@@ -614,26 +615,22 @@ class DibujosPdfController extends Controller
         foreach ($bases as $baseDir) {
             $basePath = Storage::disk('local')->path($baseDir);
             if (is_dir($basePath)) {
-                $otDirs = array_diff(scandir($basePath), ['.', '..']);
-                foreach ($otDirs as $otNameRaw) {
-                    $otDir = $basePath . DIRECTORY_SEPARATOR . $otNameRaw;
-                    if (is_dir($otDir)) {
-                        $otName = $this->toUtf8($this->normalizeOTName($otNameRaw));
+                $otDirs = glob($basePath . '/*', GLOB_ONLYDIR);
+                if ($otDirs) {
+                    foreach ($otDirs as $otDir) {
+                        $otName = $this->toUtf8($this->normalizeOTName(basename($otDir)));
                         
                         $clases = [];
-                        $hasFilesAtRoot = false;
                         
-                        $innerItems = array_diff(scandir($otDir), ['.', '..']);
-                        foreach ($innerItems as $item) {
-                            $itemPath = $otDir . DIRECTORY_SEPARATOR . $item;
-                            if (is_dir($itemPath)) {
-                                $clases[] = $this->toUtf8($item);
-                            } elseif (is_file($itemPath) && strtolower(pathinfo($itemPath, PATHINFO_EXTENSION)) === 'pdf') {
-                                $hasFilesAtRoot = true;
+                        $claseDirs = glob($otDir . '/*', GLOB_ONLYDIR);
+                        if ($claseDirs) {
+                            foreach ($claseDirs as $claseDir) {
+                                $clases[] = $this->toUtf8(basename($claseDir));
                             }
                         }
-
-                        if ($hasFilesAtRoot) {
+                        
+                        $pdfs = glob($otDir . '/*.{pdf,PDF}', GLOB_BRACE);
+                        if ($pdfs && count($pdfs) > 0) {
                             $clases[] = '--';
                         }
 

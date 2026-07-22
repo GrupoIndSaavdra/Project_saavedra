@@ -125,14 +125,13 @@ class AyudasVisualesPdfController extends Controller
                 return response()->json(['error' => 'Parámetro Proceso es requerido.'], 422);
             }
 
-            $newDirPath = self::BASE_DIR . '/' . $proceso;
-            $oldDirPath = self::OLD_BASE_DIR . '/' . $proceso;
+            $newDirPath = Storage::disk('local')->path(self::BASE_DIR . '/' . $proceso);
+            $oldDirPath = Storage::disk('local')->path(self::OLD_BASE_DIR . '/' . $proceso);
 
-            $newFiles = Storage::disk('local')->exists($newDirPath) ? Storage::disk('local')->files($newDirPath) : [];
-            $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
+            $newFiles = glob($newDirPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
+            $oldFiles = glob($oldDirPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
 
             $allFiles = collect(array_merge($newFiles, $oldFiles))
-                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
                 ->map(function($f) use ($proceso) {
                     $rawName = basename($f);
                     $utf8Name = $this->toUtf8($rawName);
@@ -537,11 +536,10 @@ class AyudasVisualesPdfController extends Controller
         // 1. Escaneo del directorio Nuevo
         $basePath = Storage::disk('local')->path(self::BASE_DIR);
         if (is_dir($basePath)) {
-            $pDirs = array_diff(scandir($basePath), ['.', '..']);
-            foreach ($pDirs as $pDirRaw) {
-                $dirPath = $basePath . DIRECTORY_SEPARATOR . $pDirRaw;
-                if (is_dir($dirPath)) {
-                    $estructura[] = $this->toUtf8($pDirRaw);
+            $dirs = glob($basePath . '/*', GLOB_ONLYDIR);
+            if ($dirs) {
+                foreach ($dirs as $dirPath) {
+                    $estructura[] = $this->toUtf8(basename($dirPath));
                 }
             }
         }
@@ -549,11 +547,10 @@ class AyudasVisualesPdfController extends Controller
         // 2. Escaneo del directorio Viejo (Fallback)
         $oldBasePath = Storage::disk('local')->path(self::OLD_BASE_DIR);
         if (is_dir($oldBasePath)) {
-            $pDirs = array_diff(scandir($oldBasePath), ['.', '..']);
-            foreach ($pDirs as $pDirRaw) {
-                $dirPath = $oldBasePath . DIRECTORY_SEPARATOR . $pDirRaw;
-                if (is_dir($dirPath)) {
-                    $pName = $this->toUtf8($pDirRaw);
+            $oldDirs = glob($oldBasePath . '/*', GLOB_ONLYDIR);
+            if ($oldDirs) {
+                foreach ($oldDirs as $oldDirPath) {
+                    $pName = $this->toUtf8(basename($oldDirPath));
                     if (!in_array($pName, $estructura)) {
                         $estructura[] = $pName;
                     }

@@ -124,13 +124,12 @@ class AyudasVisualesFundicionPdfController extends Controller
 
             $allRawFiles = [];
             foreach ($paths as $path) {
-                if (Storage::disk('local')->exists($path)) {
-                    $allRawFiles = array_merge($allRawFiles, Storage::disk('local')->files($path));
-                }
+                $absPath = Storage::disk('local')->path($path);
+                $pdfs = glob($absPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
+                $allRawFiles = array_merge($allRawFiles, $pdfs);
             }
 
             $allFiles = collect($allRawFiles)
-                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
                 ->map(function($f) use ($clase) {
                     $rawName = basename($f);
                     $utf8Name = $this->toUtf8($rawName);
@@ -523,38 +522,21 @@ class AyudasVisualesFundicionPdfController extends Controller
 
         $basePath = Storage::disk('local')->path(self::BASE_DIR);
         if (is_dir($basePath)) {
-            $claseDirs = array_diff(scandir($basePath), ['.', '..']);
-            foreach ($claseDirs as $claseNameRaw) {
-                $claseDir = $basePath . DIRECTORY_SEPARATOR . $claseNameRaw;
-                if (is_dir($claseDir)) {
-                    $claseName = $this->toUtf8($claseNameRaw);
-                    
-                    $hasDirectFiles = false;
-                    $innerFiles = array_diff(scandir($claseDir), ['.', '..']);
-                    foreach ($innerFiles as $f) {
-                        if (is_file($claseDir . DIRECTORY_SEPARATOR . $f)) {
-                            $hasDirectFiles = true;
-                            break;
-                        }
-                    }
-                    
-                    $hasLegacySubDir = is_dir($claseDir . DIRECTORY_SEPARATOR . 'Fundicion');
-                    if ($hasDirectFiles || $hasLegacySubDir) {
-                        $estructura[$claseName] = true;
-                    } else {
-                        $estructura[$claseName] = true;
-                    }
+            $claseDirs = glob($basePath . '/*', GLOB_ONLYDIR);
+            if ($claseDirs) {
+                foreach ($claseDirs as $claseDir) {
+                    $claseName = $this->toUtf8(basename($claseDir));
+                    $estructura[$claseName] = true;
                 }
             }
         }
 
         $oldBasePath = Storage::disk('local')->path(self::OLD_BASE_DIR);
         if (is_dir($oldBasePath)) {
-            $oldClassDirs = array_diff(scandir($oldBasePath), ['.', '..']);
-            foreach ($oldClassDirs as $oldClaseNameRaw) {
-                $oldClaseDir = $oldBasePath . DIRECTORY_SEPARATOR . $oldClaseNameRaw;
-                if (is_dir($oldClaseDir)) {
-                    $claseName = $this->toUtf8($oldClaseNameRaw);
+            $oldClassDirs = glob($oldBasePath . '/*', GLOB_ONLYDIR);
+            if ($oldClassDirs) {
+                foreach ($oldClassDirs as $oldClaseDir) {
+                    $claseName = $this->toUtf8(basename($oldClaseDir));
                     if (!isset($estructura[$claseName])) {
                         $estructura[$claseName] = true;
                     }
