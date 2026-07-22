@@ -79,16 +79,22 @@
                     $alertContext = 'Selecciona las opciones necesarias para continuar.';
                     $carpetaExiste = false;
 
-                    if ($otSeleccionadaId && $claseSeleccionadaId && $otActiva) {
+                    if ($otSeleccionadaId && $claseSeleccionadaId) {
                         $isReady = true;
-                        $otLabel = "OT " . $otActiva->id . ($otActiva->moldura ? " - " . $otActiva->moldura->nombre : "");
-                        $normalizedOt = trim(preg_replace('/\s+/', ' ', mb_strtoupper(str_replace(['—', '–', "\xc2\xa0"], '-', $otLabel))));
-
-                        $param1Name = $normalizedOt;
-                        $param2Name = $claseActiva ? $claseActiva->nombre : $claseSeleccionadaId;
-                        $folderPathLabel = "<span class='lvl-1'>" . $otLabel . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . $param2Name . "</span>";
+                        
+                        if ($otActiva) {
+                            $otLabel = "OT " . $otActiva->id . ($otActiva->moldura ? " - " . $otActiva->moldura->nombre : "");
+                            $normalizedOt = trim(preg_replace('/\s+/', ' ', mb_strtoupper(str_replace(['—', '–', "\xc2\xa0"], '-', $otLabel))));
+                            $param1Name = $normalizedOt;
+                            $param2Name = $claseActiva ? $claseActiva->nombre : $claseSeleccionadaId;
+                        } else {
+                            $param1Name = $otSeleccionadaId; // Fallback al string crudo si no hay OT activa
+                            $param2Name = $claseSeleccionadaId;
+                        }
+                        
+                        $folderPathLabel = "<span class='lvl-1'>" . htmlspecialchars($param1Name) . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . htmlspecialchars($param2Name) . "</span>";
                         $carpetaExiste = isset($estructura[$param1Name]) && in_array($param2Name, $estructura[$param1Name]);
-                        $folderProps = ['data-ot' => $param1Name, 'data-clase' => $param2Name, 'data-ot-id' => $otActiva->id];
+                        $folderProps = ['data-ot' => $param1Name, 'data-clase' => $param2Name, 'data-ot-id' => $otActiva ? $otActiva->id : ''];
                     }
                 @endphp
 
