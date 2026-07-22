@@ -37,6 +37,9 @@ body {
     border-radius: 10px;
     margin-bottom: 1.5em;
     box-shadow: 0 4px 12px rgba(3, 57, 102, 0.4);
+    position: sticky;
+    top: 75px; /* Altura aproximada del nav superior */
+    z-index: 100;
 }
 
 .dibujos-header h1 {
@@ -83,7 +86,7 @@ body {
     flex-direction: column;
     gap: 1.5em;
     position: sticky;
-    top: 1.5em;
+    top: 165px; /* 75px (header) + 90px (altura header) */
     z-index: 10;
 }
 
