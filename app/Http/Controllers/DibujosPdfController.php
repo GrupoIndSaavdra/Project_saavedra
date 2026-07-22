@@ -354,22 +354,28 @@ class DibujosPdfController extends Controller
         $file         = $request->file('pdf');
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
 
-        if (Storage::disk('local')->exists($dirPath . '/' . $originalName)) {
+        $newName = $originalName;
+        if (!empty($clase) && $clase !== '--') {
+            $prefix = $clase . ' - ';
+            $newName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix . $originalName;
+        }
+
+        if (Storage::disk('local')->exists($dirPath . '/' . $newName)) {
             return response()->json([
                 'success' => false,
-                'message' => "Ya existe un archivo con el nombre '{$originalName}'. Use la función de Reemplazar.",
+                'message' => "Ya existe un archivo con el nombre '{$newName}'. Use la función de Reemplazar.",
             ], 409);
         }
 
-        $file->storeAs($dirPath, $originalName, 'local');
+        $file->storeAs($dirPath, $newName, 'local');
 
-        $this->logAction('subir_pdf', $otFolderName . '/' . $clase, $originalName);
+        $this->logAction('subir_pdf', $otFolderName . '/' . $clase, $newName);
 
         return response()->json([
             'success'  => true,
-            'message'  => "PDF '{$originalName}' subido correctamente.",
-            'nombre'   => $originalName,
-            'url'      => url('/dibujos/serve') . '?ot=' . urlencode($otFolderName) . '&clase=' . urlencode($clase) . '&archivo=' . urlencode($originalName),
+            'message'  => "PDF '{$newName}' subido correctamente.",
+            'nombre'   => $newName,
+            'url'      => url('/dibujos/serve') . '?ot=' . urlencode($otFolderName) . '&clase=' . urlencode($clase) . '&archivo=' . urlencode($newName),
         ]);
     }
 
@@ -585,15 +591,22 @@ class DibujosPdfController extends Controller
 
         $file         = $request->file('pdf');
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
-        $file->storeAs($dirPath, $originalName, 'local');
+        
+        $newName = $originalName;
+        if (!empty($clase) && $clase !== '--') {
+            $prefix = $clase . ' - ';
+            $newName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix . $originalName;
+        }
+        
+        $file->storeAs($dirPath, $newName, 'local');
 
-        $this->logAction('reemplazar_pdf', $ot . '/' . $clase, "{$archivoAnterior} → {$originalName}");
+        $this->logAction('reemplazar_pdf', $ot . '/' . $clase, "{$archivoAnterior} → {$newName}");
 
         return response()->json([
             'success'  => true,
-            'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$originalName}'.",
-            'nombre'   => $originalName,
-            'url'      => url('/dibujos/serve') . '?ot=' . urlencode($ot) . '&clase=' . urlencode($clase) . '&archivo=' . urlencode($originalName),
+            'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$newName}'.",
+            'nombre'   => $newName,
+            'url'      => url('/dibujos/serve') . '?ot=' . urlencode($ot) . '&clase=' . urlencode($clase) . '&archivo=' . urlencode($newName),
             'ot'       => $ot,
             'clase'    => $clase,
         ]);

@@ -292,7 +292,9 @@ class AyudasVisualesPdfController extends Controller
 
         $file         = $request->file('pdf');
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
-        $finalName = $originalName;
+        
+        $prefix = $proceso . ' - ';
+        $finalName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix . $originalName;
 
         if (Storage::disk('local')->exists($dirPath . '/' . $finalName)) {
             return response()->json([
@@ -509,7 +511,9 @@ class AyudasVisualesPdfController extends Controller
 
         $file         = $request->file('pdf');
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
-        $finalName = $originalName;
+        
+        $prefix = $proceso . ' - ';
+        $finalName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix . $originalName;
 
         $file->storeAs($dirPath, $finalName, 'local');
 
