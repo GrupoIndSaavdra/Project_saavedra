@@ -17,6 +17,7 @@
                          src="{{ asset($img->ruta) }}"
                          alt="{{ $img->nombre ?? 'Foto' }}"
                          title="{{ $img->nombre ?? 'Sin nombre' }}"
+                         loading="lazy"
                          onclick="htVerImagen('{{ asset($img->ruta) }}', '{{ addslashes($img->nombre ?? '') }}')">
                     @if($img->nombre)
                         <span class="ht-mini-caption">{{ $img->nombre }}</span>
