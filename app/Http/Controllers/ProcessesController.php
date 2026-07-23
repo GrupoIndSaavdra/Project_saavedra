@@ -371,7 +371,7 @@ class ProcessesController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function storeCNominalsData(Request $request)
     {
@@ -423,7 +423,16 @@ class ProcessesController extends Controller
             'id_ot' => $workOrderId,
         ]);
 
-        return redirect()->to('cNominals')->with('success', 'Datos de ' . $request->input('process') . ' guardados correctamente.');
+        $successMessage = 'Datos de ' . $request->input('process') . ' guardados correctamente.';
+        
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMessage
+            ]);
+        }
+
+        return redirect()->to('cNominals')->with('success', $successMessage);
     }
 
         /**

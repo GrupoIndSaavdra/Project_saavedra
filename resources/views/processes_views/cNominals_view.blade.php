@@ -25,5 +25,8 @@
 </form>
 <script>
     window.workOrders = @json($workOrders);
+    @if (session('success'))
+        window.successSave = true;
+    @endif
 </script>
 @endsection
