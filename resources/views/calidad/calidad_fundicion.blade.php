@@ -1,4 +1,4 @@
-﻿@extends ("layouts.appMenu")
+@extends ("layouts.appMenu")
 
 @section ("head")
     @php
@@ -2853,8 +2853,7 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                                                                                         ? "Continuar con el proceso de liberación"
                                                                                         : "Iniciar el proceso de liberación");
                                                                             @endphp
-                                                                            <button class="btn-calidad-action btn-calidad-iniciar cal-opacity-0-55 cal-cursor-not-allowed"
-                                                                                @endif
+                                                                            <button class="btn-calidad-action btn-calidad-iniciar @if($btnDisabled) cal-opacity-0-55 cal-cursor-not-allowed @endif"
                                                                                 title="{{ $btnTitle }}"
                                                                                 onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})"
                                                                             >

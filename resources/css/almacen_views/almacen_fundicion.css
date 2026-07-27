@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 /* ====================================================
@@ -105,6 +105,7 @@ body.modal-open {
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5em;
     margin-bottom: 1.5em;
+    width: 100%;
 }
 
 @media (max-width: 640px) {
@@ -2763,8 +2764,7 @@ table.alm-table {
 .alm-text-danger { color: #dc2626; }
 .alm-cursor-pointer { cursor: pointer; }
 .alm-stat-title { font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family: 'Poppins', sans-serif; }
-.alm-stat-card { width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; }
-.alm-stat-icon { width: 28px; height: 28px; object-fit: contain; }
+.alm-legend-icon { width: 28px; height: 28px; object-fit: contain; }
 .alm-mb-20 { margin-bottom: 20px; }
 .alm-th-12 { padding: 12px 10px; width: 12%; font-family: 'Poppins', sans-serif; }
 .alm-th-8 { padding: 12px 10px; width: 8%; font-family: 'Poppins', sans-serif; }
@@ -2813,7 +2813,7 @@ table.alm-table {
 .alm-color-rgba-255-255-255-0-9 { color: rgba(255,255,255,0.9); }
 .alm-margin-top-8px { margin-top: 8px; }
 .alm-border-bottom-2px-solid-155724 { border-bottom: 2px solid #155724; }
-.alm-backdrop-filter-blur-10px { backdrop-filter: blur(10px); }
+.alm-backdrop-filter-blur-10px { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .alm-transition-transform-0-2s-ease-box-shadow-0-2s-ease { transition: transform 0.2s ease, box-shadow 0.2s ease; }
 .alm-margin-0 { margin: 0; }
 .alm-font-size-1-15em { font-size: 1.15em; }

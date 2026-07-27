@@ -587,16 +587,13 @@ if (window.pieces_Released) {
         headers.forEach((header, i) => {
             const th = document.createElement("th");
             th.textContent = header;
-            // Aplicar estilos a columnas específicas
-            if (header === "Orden de trabajo") {
-                th.style.width = "200px";
-            }
+            if (header === "Nombre del operador") th.classList.add("cell-long-text");
             tr.appendChild(th);
         });
 
         // Agregar columnas finales
         const moreHeaders = [
-            { name: "Errores", width: "300px" },
+            "Errores",
             "Observaciones",
             "Fecha de Maquinado",
             "Liberar",
@@ -606,12 +603,9 @@ if (window.pieces_Released) {
 
         moreHeaders.forEach((header) => {
             const th = document.createElement("th");
-            if (typeof header === "object") {
-                th.textContent = header.name;
-                th.style.width = header.width;
-            } else {
-                th.textContent = header;
-            }
+            const headerText = typeof header === "object" ? header.name : header;
+            th.textContent = headerText;
+            if (headerText === "Errores" || headerText === "Observaciones") th.classList.add("cell-long-text");
             tr.appendChild(th);
         });
 
@@ -655,8 +649,8 @@ function crearTabla(piezas, infoPiezas) {
                         break;
                     default:
                         td.textContent = pieza[key];
-                        if (key == "operator" || key == "observations" || key == "observacion_liberacion") {
-                            td.style.width = "600px";
+                        if (key === "operator" || key === "errors" || key === "observations" || key === "observacion_liberacion") {
+                            td.classList.add("cell-long-text");
                         }
                         break;
                 }
@@ -809,8 +803,8 @@ function create_ObservationsField(keys) {
     let submit = document.createElement("input");
     submit.type = "submit";
     submit.value = keys.liberar ? "Liberar" : "Rechazar";
-    submit.classList.add("btn-submit", "btn-liberation");
-    submit.style.backgroundColor = !keys.liberar ? "#f00000" : "#033966";
+    submit.classList.add("btn-liberation");
+    submit.classList.add(keys.liberar ? "btn-liberate" : "btn-reject");
 
     form.appendChild(textArea);
     form.appendChild(submit);
