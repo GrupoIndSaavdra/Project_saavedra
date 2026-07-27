@@ -1839,96 +1839,138 @@ function createHistoricalTable(history) {
         currentProcessName = "Soldadura y Soldadura PTA";
     }
 
-    // Fix for "Operacion Equipo" which might have suffixes like "_1 operacion" in the frontend
-    // but is keyed as "Operacion Equipo" in the backend history
     let lookupName = currentProcessName;
-
-    // Find the matching process in history
     let processData = history[lookupName];
 
-    if (processData) {
-        let processSection = document.createElement("div");
-        processSection.className = "process-section";
+    // Obtener el número de proceso buscando en las llaves del historial
+    let processIndex = Object.keys(history).indexOf(lookupName) + 1;
+    let processNumber = processIndex > 0 ? String(processIndex).padStart(2, '0') : '--';
 
-        let processTitle = document.createElement("h3");
-        processTitle.className = "process-title";
-        processTitle.innerText = currentProcessName; // Keep the specific name for the title
-        processSection.appendChild(processTitle);
+    // ── Construir la card con el diseño estándar del Dashboard ────────────────
+    let processSection = document.createElement("div");
+    processSection.className = "process-section";
+    processSection.style.position = "relative";
+    processSection.style.cursor = "default";
 
-        // Inject click access for Soldadura PTA temporal session
-        if (currentProcessName === "Soldadura y Soldadura PTA" && window.arrayData.process === "Soldadura PTA") {
-            processSection.classList.add("cursor-pointer");
-            processSection.title = "Añadir / Ver Resultados de Soldadura PTA";
-            processSection.addEventListener("click", function () {
-                let otId = window.arrayData.meta ? window.arrayData.meta.id_ot : null; // Fetch current OT ID
-                if (otId) {
-                    createPtaPasswordModal(otId);
-                } else {
-                    console.error("No se pudo obtener el OT ID de window.arrayData.meta");
-                }
-            });
-        }
-
-        let pieces = [processData.pieces.good, processData.pieces.bad];
-        for (let i = 0; i < pieces.length; i++) {
-            // Crear barra de progreso
-            let progressBar = document.createElement("div");
-            progressBar.className = "progress-bar";
-
-            let progress = document.createElement("div");
-            progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
-
-            let percentage = consignmentPieces > 0 ? (pieces[i] * 100) / consignmentPieces : 0;
-            progress.style.width = `${Math.min(percentage, 100)}%`;
-
-            let formattedPercentage = percentage != 0 ? percentage.toFixed(1) : 0;
-            let percentageLabel = document.createElement("div");
-            percentageLabel.className = "progress-percentage";
-            percentageLabel.innerText = pieces[i] == 1 ? `${formattedPercentage}% ${pieces[i]} pieza` : `${formattedPercentage}% ${pieces[i]} piezas`;
-
-            progressBar.appendChild(progress);
-            progressBar.appendChild(percentageLabel);
-            processSection.appendChild(progressBar);
-        }
-
-        container.appendChild(processSection);
-    } else {
-        let processSection = document.createElement("div");
-        processSection.className = "process-section";
-
-        let processTitle = document.createElement("h3");
-        processTitle.className = "process-title";
-        processTitle.innerText = currentProcessName;
-        processSection.appendChild(processTitle);
-
-        // Render empty bars
-        let pieces = [0, 0];
-        for (let i = 0; i < pieces.length; i++) {
-            // Crear barra de progreso
-            let progressBar = document.createElement("div");
-            progressBar.className = "progress-bar";
-
-            let progress = document.createElement("div");
-            progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
-            progress.style.width = `0%`;
-
-            let percentageLabel = document.createElement("div");
-            percentageLabel.className = "progress-percentage";
-            percentageLabel.innerText = `0% 0 piezas`;
-
-            progressBar.appendChild(progress);
-            progressBar.appendChild(percentageLabel);
-            processSection.appendChild(progressBar);
-        }
-        container.appendChild(processSection);
+    // Click para Soldadura PTA (manteniendo la lógica de acceso original)
+    if (currentProcessName === "Soldadura y Soldadura PTA" && window.arrayData.process === "Soldadura PTA") {
+        processSection.style.cursor = "pointer";
+        processSection.addEventListener("click", function () {
+            let otId = window.arrayData.meta ? window.arrayData.meta.id_ot : null;
+            if (otId) {
+                createPtaPasswordModal(otId);
+            } else {
+                console.error("No se pudo obtener el OT ID de window.arrayData.meta");
+            }
+        });
     }
 
-    // Insertar después de la tabla de metadatos (Código/Versión)
+    // 1. Badge numérico del proceso
+    let numberBadge = document.createElement("span");
+    numberBadge.className = "process-number-badge";
+    numberBadge.textContent = processNumber;
+    processSection.appendChild(numberBadge);
+
+    // 2. Título del proceso
+    let processTitle = document.createElement("h3");
+    processTitle.className = "process-title";
+    processTitle.innerHTML = currentProcessName;
+    processSection.appendChild(processTitle);
+
+    // 3. Label de límite (Total disponible)
+    let limitLabel = document.createElement("label");
+    limitLabel.className = "limit-label";
+    limitLabel.style.fontSize = "12px";
+    limitLabel.style.color = "#fff";
+    limitLabel.innerHTML = `Total de OT: ${consignmentPieces}`;
+    processSection.appendChild(limitLabel);
+
+    const goodCount = processData ? (processData.pieces.good || 0) : 0;
+    const badCount  = processData ? (processData.pieces.bad  || 0) : 0;
+
+    // Si no hay piezas procesadas, oscurecer
+    if (goodCount === 0 && badCount === 0) {
+        processSection.classList.add("inactive-process");
+    }
+
+    // Calcular porcentaje de piezas buenas
+    let goodPercentage = consignmentPieces == 0 ? (goodCount > 0 ? 100 : 0) : (goodCount * 100) / consignmentPieces;
+    goodPercentage = Math.min(100, goodPercentage);
+
+    // Aplicar Glow Hue dinámico
+    let hue = 30 + (goodPercentage * 0.9);
+    processSection.style.setProperty('--glow-hue', hue);
+
+    // Tooltip dinámico
+    if (goodPercentage === 0) {
+        processSection.title = "Proceso aún no iniciado. Esperando primeras piezas.";
+    } else if (goodPercentage < 50) {
+        processSection.title = `Progreso bajo (${goodPercentage.toFixed(1)}%). Se requiere atención.`;
+    } else if (goodPercentage < 100) {
+        processSection.title = `Progreso estable (${goodPercentage.toFixed(1)}%). Buen ritmo de trabajo.`;
+    } else {
+        processSection.title = "¡Proceso completado exitosamente al 100%!";
+    }
+
+    // Estilos dinámicos para el contorno de la sección y el badge numérico
+    if (goodPercentage >= 100) {
+        processSection.style.borderColor = '#4ade80';
+        processSection.style.boxShadow = 'none';
+        numberBadge.style.color = '#4ade80';
+        numberBadge.style.borderColor = 'rgba(74, 222, 128, 0.3)';
+        numberBadge.style.background = 'rgba(74, 222, 128, 0.1)';
+    } else if (goodPercentage > 0) {
+        processSection.style.borderColor = `hsl(${hue}, 100%, 50%)`;
+        processSection.style.boxShadow = 'none';
+        numberBadge.style.color = `hsl(${hue}, 100%, 50%)`;
+        numberBadge.style.borderColor = `hsla(${hue}, 100%, 50%, 0.3)`;
+        numberBadge.style.background = `hsla(${hue}, 100%, 50%, 0.1)`;
+    } else {
+        processSection.style.borderColor = '';
+        processSection.style.boxShadow = '';
+        numberBadge.style.color = '';
+        numberBadge.style.borderColor = '';
+        numberBadge.style.background = '';
+    }
+
+    // 4. Barras de progreso
+    let pieces = [goodCount, badCount];
+    for (let i = 0; i < pieces.length; i++) {
+        let progressBar = document.createElement("div");
+        progressBar.className = "progress-bar";
+        // Colores base estilo dashboard: Verde translúcido para buenas, Rojo translúcido para malas
+        progressBar.style.backgroundColor = i == 0 ? "rgba(12, 130, 1, 0.15)" : "rgba(157, 4, 2, 0.15)";
+
+        let progress = document.createElement("div");
+        progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
+        
+        let percentage = consignmentPieces > 0 ? (pieces[i] * 100) / consignmentPieces : 0;
+        progress.style.width = `${Math.min(percentage, 100)}%`;
+        
+        // Color de fill específico pedido por el usuario (solo para buenas, malas usa CSS global)
+        if (i === 0) {
+            progress.style.backgroundColor = "rgb(52, 163, 0)";
+        }
+
+        let formattedPercentage = percentage != 0 ? percentage.toFixed(1) : 0;
+        let percentageLabel = document.createElement("div");
+        percentageLabel.className = "progress-percentage";
+        percentageLabel.innerText = pieces[i] == 1 ? `${formattedPercentage}% ${pieces[i]} pieza` : `${formattedPercentage}% ${pieces[i]} piezas`;
+
+        progressBar.appendChild(progress);
+        progressBar.appendChild(percentageLabel);
+        processSection.appendChild(progressBar);
+    }
+
+    container.appendChild(processSection);
+
+    // Insertar después de la tabla de metadatos
     let targetContainer = document.querySelector(".div-table-code");
     if (targetContainer) {
         targetContainer.appendChild(container);
     }
 }
+
 
 //--------------------------------------------------------------------------------
 // LÓGICA TARJETA SOLDADURA PTA EN REPORTE DE PRODUCCIÓN
@@ -2101,8 +2143,12 @@ window.handleP2Checkbox = function (p2Id) {
 };
 
 window._setP2Rows = function (p2Id, show) {
-    const row = document.getElementById("row-p2-" + p2Id + "-0");
-    if (row) row.classList.toggle("hidden", !(show ));
+    // La fila de 2da pasada tiene style="display:none" inline; se manipula con style.display.
+    // También se busca el índice -0 que es el único que existe en modo captura.
+    [0, 1, 2].forEach(function (i) {
+        const row = document.getElementById("row-p2-" + p2Id + "-" + i);
+        if (row) row.style.display = show ? "" : "none";
+    });
 };
 
 // ────────────────────────────────────────────────────────────────────────────

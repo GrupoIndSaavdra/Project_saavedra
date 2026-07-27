@@ -1,4 +1,4 @@
-﻿{{--
+{{--
 PARTIAL: soldaduraPTA_table_partial.blade.php
 ===============================================================
 Tabla compleja de Soldadura PTA con estructura de 3 sub-filas por pieza:
@@ -215,7 +215,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                         {{-- ── Columna NÚMERO: solo en la primera sub-fila, rowspan=3 ── --}}
                         @if ($esPrimera)
-                            <td class="td-pieza sol-font-size-14px">
+                            <td class="td-pieza sol-font-size-14px" rowspan="3">
                                 {{ $nPieza }}
                             </td>
                         @endif
@@ -288,7 +288,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                     <br><small class="sol-color-888">°C</small>
                                 @endif
                             </td>
-                            <td class="td-precal sol-min-width-140px">
+                            <td class="td-precal sol-min-width-140px" rowspan="3">
                                 @if ($modo === 'captura')
                                     @php
                                         $idWidget = 'mat_sold_' . ($filaPrecal?->id ?? 'new_' . $nPieza . '_D_Conexion_pico');
@@ -795,7 +795,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                             {{-- Número pieza — rowspan=3, solo primera sub-fila --}}
                             @if ($esPrimeraA)
-                                <td class="td-pieza sol-font-size-14px sol-background-color-055a9e">
+                                <td class="td-pieza sol-font-size-14px sol-background-color-055a9e" rowspan="3">
                                     {{ $nPiezaA }}
                                 </td>
                             @endif
@@ -840,7 +840,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                         name="precalentamiento[{{ $filaPrecalA?->id ?? 'new_' . $nPiezaA . '_precal' }}]"
                                         value="{{ $dv_precal }}" class="pta-input input-pieceUsed" placeholder="°C" required>
                                 </td>
-                                <td class="td-precal sol-min-width-140px">
+                                <td class="td-precal sol-min-width-140px" rowspan="3">
                                     @php
                                         $idWidgetA = 'mat_sold_' . $keyA;
                                         $nameFieldA = 'material_soldadura[' . $keyA . ']';
@@ -1046,7 +1046,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         <td>
                             <select name="p2_tipo_preparacion[{{ $keyP2 }}]" class="pta-select input-pieceUsed">
                                 <option value="">—</option>
-                                @foreach ([1, 2, 3] as $optP2)
+                                @foreach ($optsPreparacion as $optP2)
                                     <option value="{{ $optP2 }}" {{ ($filaP2?->p2_tipo_preparacion ?? '') == $optP2 ? 'selected' : '' }}>{{ $optP2 }}</option>
                                 @endforeach
                             </select>
@@ -1157,32 +1157,10 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
     </table>
 </div>
 
-
 <script>
     /**
-     * Maneja el checkbox de "Aplicar 2da pasada".
-     * Toggle simple sin restriccion de contrasena: muestra u oculta las filas al instante.
-     */
-    window.handleP2Checkbox = function (p2Id) {
-        const chk = document.getElementById('chk-p2-' + p2Id);
-        const hdnAct = document.getElementById('inp-p2-activa-' + p2Id);
-
-        if (!chk) return;
-
-        const activate = chk.checked;
-        window._setP2Rows(p2Id, activate);
-        if (hdnAct) hdnAct.value = activate ? '1' : '0';
-    };
-
-    window._setP2Rows = function (p2Id, show) {
-        [0, 1, 2].forEach(function (i) {
-            const row = document.getElementById('row-p2-' + p2Id + '-' + i);
-            if (row) row.style.display = show ? '' : 'none';
-        });
-    };
-
-    /**
-     * Lógica de coloreado en vivo para filas (Especialmente Historial P2 editable y Captura P2)
+     * Lógica de coloreado en vivo para filas PTA
+     * (change en resultado/defecto → colorea la fila)
      */
     document.addEventListener('change', function (e) {
         if (e.target.name && (e.target.name.startsWith('p2_resultado') || e.target.name.startsWith('p2_defecto_pta') || e.target.name.startsWith('resultado') || e.target.name.startsWith('defecto_pta'))) {
@@ -1191,7 +1169,6 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
             tr.classList.remove('pta-row-ok', 'pta-row-error', 'pta-row-liberada', 'pta-row-rechazada', 'pta-row-buena', 'pta-row-mala', 'pta-row-incompleta');
 
-            // Determinar qué conjunto estamos evaluando
             let isP2 = e.target.name.startsWith('p2_');
             let resSelect = tr.querySelector(isP2 ? 'select[name^="p2_resultado"]' : 'select[name^="resultado"]');
             let defSelect = tr.querySelector(isP2 ? 'select[name^="p2_defecto_pta"]' : 'select[name^="defecto_pta"]');
@@ -1202,7 +1179,6 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
             if (resVal === 'Mal' || (defVal !== 'Ninguno' && defVal !== '')) {
                 tr.classList.add('pta-row-error');
 
-                // Si es parte del bloque tripartito (primera sub-fila activa), pintar las dos sub-filas de abajo
                 if (!isP2 && tr.classList.contains('fila-primera')) {
                     let current = tr.nextElementSibling;
                     for (let i = 0; i < 2; i++) {
@@ -1231,7 +1207,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
     });
 
     /**
-     * Revisar también cuando se teclean inputs normales para pasarlos a verde si ya se completó.
+     * Coloreado en vivo al teclear inputs
      */
     document.addEventListener('input', function (e) {
         if (e.target.tagName === 'INPUT' && !e.target.name.includes('observaciones')) {
@@ -1260,7 +1236,6 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                     tr.classList.add('pta-row-incompleta');
                 }
             }
-        }
         }
     });
 </script>
