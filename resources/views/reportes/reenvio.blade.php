@@ -76,10 +76,10 @@
 
         {{-- Envío automático --}}
         <div class="reenvio-card reenvio-card-secondary">
-            <h2>Envio Automatico (23:59 hrs)</h2>
+            <h2>Envio Automatico (23:50 hrs)</h2>
             <p class="reenvio-scheduler-text">
                 El sistema está configurado para enviar el reporte automáticamente todos los días
-                a las <strong>23:59 hrs</strong>. Los destinatarios son los configurados en el sistema.
+                a las <strong>23:50 hrs</strong>. Los destinatarios son los configurados en el sistema.
         </div>
 
     </div>
