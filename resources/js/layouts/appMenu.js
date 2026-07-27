@@ -37,7 +37,6 @@ nav.addEventListener("click", function (e) {
     }
 });
 
-//Funcion para crear La lista de rutas para el menu
 function createMenu(profile) {
     if (profile == 2) {
         let btn_open = document.querySelector(".open-menu"); //Obtenemos el elemento por su id.
@@ -47,6 +46,22 @@ function createMenu(profile) {
         let routes = getRoutes(profile);
         let ul = document.querySelector(".nav-list");
         ul.appendChild(createList(routes));
+
+        // Expandir todos los menús y submenús padres del enlace activo
+        const activeLinks = ul.querySelectorAll("a.active");
+        activeLinks.forEach(link => {
+            let parentEl = link.parentElement;
+            while (parentEl && parentEl.tagName !== "NAV" && parentEl !== document.body) {
+                if (parentEl.classList.contains("menu-section")) {
+                    parentEl.classList.add("active");
+                    const sub = parentEl.querySelector(":scope > .submenu") || parentEl.querySelector(".submenu");
+                    if (sub) {
+                        sub.classList.remove("hidden");
+                    }
+                }
+                parentEl = parentEl.parentElement;
+            }
+        });
     }
 }
 
@@ -124,19 +139,6 @@ function createList(sections, isNested = false) {
 
                     if (pathMatch && searchMatch) {
                         a.classList.add("active");
-
-                        // Expandir todos los menús y submenús padres
-                        let parentEl = liSection;
-                        while (parentEl && parentEl.tagName !== "NAV") {
-                            if (parentEl.classList.contains("menu-section")) {
-                                parentEl.classList.add("active");
-                                const sub = parentEl.querySelector(".submenu");
-                                if (sub) {
-                                    sub.classList.remove("hidden");
-                                }
-                            }
-                            parentEl = parentEl.parentElement;
-                        }
                     }
 
                     li.appendChild(a);
