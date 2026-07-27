@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>{{ $pageTitle ?? 'Gestión de Documentación' }}</title>
@@ -135,29 +135,29 @@
             </div> {{-- Fin Columna Izquierda --}}
 
             {{-- Columna Derecha (Visualización) --}}
-            <div class="dibujos-dashboard-main" @class(['dibujos-dashboard-main', 'grid-ready' => $isReady, 'grid-not-ready' => !$isReady])>
+            <div class="dibujos-dashboard-main d-flex d-flex-column" style="width: 100%; gap: 2em;">
 
-                {{-- Panel de archivos de la carpeta seleccionada --}}
-                @if($isReady)
-                    <div class="dibujos-files-panel active d-flex d-flex-column h-100">
-                        <div class="d-flex d-justify-between d-align-center mb-1-5 border-bottom pb-0-5">
-                            <h2 class="m-0 pb-0 border-none">Archivos en: <span>{!! $folderPathLabel !!}</span></h2>
-                            <div class="dibujos-files-breadcrumb m-0 bg-none p-0 border-none shrink-0">
-                                Carpeta activa: <strong>{!! $folderPathLabel !!}</strong>
+                <div class="panels-wrapper" style="display: {{ $isReady ? 'grid' : 'flex' }}; grid-template-columns: {{ $isReady ? '1fr 1fr' : '1fr' }}; gap: 2em; align-items: start; width: 100%;">
+                    {{-- Panel de archivos de la carpeta seleccionada --}}
+                    @if($isReady)
+                        <div class="dibujos-files-panel active d-flex d-flex-column h-100" style="margin-bottom: 0;">
+                            <div class="d-flex d-justify-between d-align-center mb-1-5 border-bottom pb-0-5">
+                                <h2 class="m-0 pb-0 border-none">Archivos en: <span>{!! $folderPathLabel !!}</span></h2>
+                                <div class="dibujos-files-breadcrumb m-0 bg-none p-0 border-none shrink-0">
+                                    Carpeta activa: <strong>{!! $folderPathLabel !!}</strong>
+                                </div>
+                            </div>
+
+                            <div id="archivos-grid" class="dibujos-files-grid flex-1 overflow-y-auto align-content-start" style="max-height: 50vh;">
+                                <p class="d-text-subtle d-text-center d-w-100">Cargando archivos...</p>
                             </div>
                         </div>
 
-                        <div class="dibujos-files-grid flex-1 max-h-none overflow-y-auto align-content-start">
-                            <p class="d-text-subtle d-text-center d-w-100">Cargando archivos...</p>
-                        </div>
-                    </div>
+                        {{-- Panel de Ayudas Visuales Manuales (Solo para aquellas que no son automáticas) --}}
+                        {{-- Sección de Ayudas Manuales Eliminada por Requerimiento --}}
+                    @endif
 
-                    {{-- Panel de Ayudas Visuales Manuales (Solo para aquellas que no son automáticas) --}}
-                    {{-- Sección de Ayudas Manuales Eliminada por Requerimiento --}}
-                @endif
-
-                <div @class(['position-relative h-100' => $isReady, 'd-flex d-flex-column h-100' => !$isReady])>
-                    <div class="dibujos-table-section" @class(['dibujos-table-section', 'd-flex d-flex-column', 'position-absolute-inset' => $isReady, 'flex-1' => !$isReady])>
+                    <div class="dibujos-table-section d-flex d-flex-column h-100" style="margin-bottom: 0;">
                         <div class="d-flex d-justify-between d-align-center gap-1 mb-1 flex-wrap">
                             <h2 class="m-0 p-0 border-none">Estructura Actual de Carpetas en el Servidor</h2>
                             <div class="position-relative min-w-240 max-w-360 flex-1">
@@ -173,7 +173,7 @@
                     <p>No hay carpetas creadas aun.</p>
                 </div>
             @else
-                <div class="dibujos-table-container" @class(['flex-1 overflow-y-auto', 'max-h-100' => $isReady, 'max-h-calc' => !$isReady])>
+                <div class="dibujos-table-container" style="max-height: 50vh; overflow-y: auto;">
                     <table class="dibujos-table" id="tabla-estructura">
                         <thead>
                             <tr>
@@ -212,12 +212,8 @@
                     </table>
                 </div>
             @endif
+                    </div>
                 </div>
-                @if($isReady)
-                    </div>
-                @else
-                    </div>
-                @endif
 
 
 
