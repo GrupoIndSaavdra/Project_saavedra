@@ -807,7 +807,7 @@ class PlaneacionChecklistCard {
             <div class="checklist-header">
                 <span class="checklist-title">Planeación</span>
             </div>
-            <div class="checklist-items" id="planeacion-items-${this.otId}-${this.claseId}" style="padding-top: 5px; display: none;">
+            <div class="checklist-items hidden" id="planeacion-items-${this.otId}-${this.claseId}" style="padding-top: 5px;">
                 <div class="checklist-item checklist-item--pendiente" title="Pendiente">
                     <div class="checklist-icon-col">
                         <span class="checklist-icon"><img src="${this._getIconFor('pendiente')}" alt="pendiente" class="checklist-state-icon"></span>
@@ -1029,9 +1029,9 @@ class TermicoChecklistCard {
     _renderContent() {
         const isTermicoComplete = (this.tPieces > 0 && this.tTratadas >= this.tPieces);
 
-        // Mantener estado abierto/cerrado si se está re-renderizando
         const tItems = this.root.querySelector('.checklist-items');
-        // displayStyle checked via classList
+        const isHidden = tItems ? tItems.classList.contains('hidden') : true;
+        const hiddenClass = isHidden ? 'hidden' : '';
         const isClosedClass = tItems ? (this.root.classList.contains('is-closed') ? 'is-closed' : '') : 'is-closed';
 
         this.root.className = isTermicoComplete
@@ -1049,7 +1049,7 @@ class TermicoChecklistCard {
             <div class="checklist-header">
                 <span class="checklist-title">Tratamiento Térmico</span>
             </div>
-            <div class="checklist-items" style="padding-top: 15px; display: ${displayStyle};">
+            <div class="checklist-items ${hiddenClass}" style="padding-top: 15px;">
                 <div class="checklist-item ${iconStateClass}" title="Piezas en tratamiento térmico" style="cursor: help;">
                     <div class="checklist-icon-col">
                         <span class="checklist-icon">
