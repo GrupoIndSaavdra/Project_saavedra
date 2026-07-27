@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     @vite(['resources/css/reportes/envio_pta.css'])
@@ -59,7 +59,7 @@
                                     data-ot="{{ $ot->id }}"
                                     data-nombre="{{ $clase->nombre }}"
                                     {{ (old('ot_id') == $ot->id && old('clase_id') == $clase->id) ? 'selected' : '' }}
-                                    style="display:none">
+                                    class="env-display-none">
                                     {{ $clase->nombre }}{{ $clase->tamanio ? ' (' . $clase->tamanio . ')' : '' }}
                                 </option>
                             @endforeach
@@ -74,7 +74,7 @@
             </div>
 
             {{-- Destinatarios --}}
-            <div class="envio-pta-field" style="flex:100%">
+            <div class="envio-pta-field env-flex-100pct">
                 <label>Destinatario fijo</label>
 
                 {{-- Correo fijo/obligatorio --}}
@@ -88,9 +88,7 @@
                 {{-- Correos adicionales --}}
                 <input type="text"
                     name="destinatarios_extra"
-                    id="destinatarios_extra"
-                    class="envio-pta-input"
-                    style="margin-top:8px"
+                    id="destinatarios_extra" class="envio-pta-input env-margin-top-8px"
                     placeholder="Correos adicionales separados por coma: otro@correo.com, otro2@correo.com"
                     value="{{ old('destinatarios_extra', '') }}">
                 <p class="envio-pta-hint">
@@ -178,10 +176,10 @@
                                 data-ot="{{ $log->ot_id }}"
                                 data-estado="{{ $log->estado }}">
                                 <td>{{ $log->id }}</td>
-                                <td style="white-space:nowrap">
+                                <td class="env-white-space-nowrap">
                                     {{ \Carbon\Carbon::parse($log->created_at)->format('d/m/Y') }}
                                 </td>
-                                <td style="white-space:nowrap;font-size:12px;color:#64748b;">
+                                <td class="env-white-space-nowrap env-font-size-12px env-color-64748b">
                                     {{ \Carbon\Carbon::parse($log->created_at)->format('H:i:s') }}
                                 </td>
                                 <td>{{ $log->ot_nombre ?? 'OT #' . $log->ot_id }}</td>
@@ -204,14 +202,14 @@
                                     @if($log->usuario)
                                         {{ trim($log->usuario->nombre . ' ' . $log->usuario->a_paterno . ' ' . $log->usuario->a_materno) }}
                                     @else
-                                        <span style="color:#94a3b8;font-style:italic;">Sin datos</span>
+                                        <span class="env-color-94a3b8 env-font-style-italic">Sin datos</span>
                                     @endif
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
-                <p class="envio-pta-no-logs" id="logs-sin-resultados" style="display:none;">
+                <p class="envio-pta-no-logs env-display-none">
                     Sin resultados para los filtros aplicados.
                 </p>
             </div>

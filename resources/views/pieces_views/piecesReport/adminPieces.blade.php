@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     <title>Reporte de piezas</title>
@@ -75,7 +75,7 @@
                             <th>Proceso</th>
                             <th>Errores</th>
                             <th>Observaciones</th>
-                            <th style="width:100px;">Inicio</th>
+                            <th class="adminp-w-100">Inicio</th>
                             <th>Término</th>
                             <th>Total Maquinado</th>
                             <th>Fecha de Maquinado</th>

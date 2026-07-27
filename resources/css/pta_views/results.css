@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ── Layout general ───────────────────────────────────────────────── */
 .pta-wrapper {
     width: 100%;
@@ -603,3 +606,14 @@
 .btn-img-thumb:hover {
     background: #c8ddf8;
 }
+
+/* Auto-generated utility classes */
+.res-font-weight-400 { font-weight: 400; }
+.res-font-size-8rem { font-size: .8rem; }
+.res-object-fit-contain { object-fit: contain; }
+.res-opacity-9 { opacity: .9; }
+.res-max-height-250px { max-height: 250px; }
+.res-max-width-100pct { max-width: 100%; }
+.res-border-radius-6px { border-radius: 6px; }
+.res-margin-top-0 { margin-top: 0; }
+.res-border-1px-solid-dce8f5 { border: 1px solid #dce8f5; }

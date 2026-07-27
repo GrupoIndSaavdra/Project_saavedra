@@ -1,6 +1,5 @@
-* {
-    box-sizing: border-box;
-}
+/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
 
 .main-layout {
     position: absolute;
@@ -22,13 +21,19 @@
     overflow-x: hidden;
     background: #ffffff;
     box-shadow: 0px 0px 8px #000000;
-    scrollbar-width: thin;
-    scrollbar-color: #033966 #f1f1f1;
+}
+/* Scrollbar webkit — Safari, Chrome antiguo */
+.wrapper::-webkit-scrollbar { width: 6px; }
+.wrapper::-webkit-scrollbar-track { background: #f1f1f1; }
+.wrapper::-webkit-scrollbar-thumb { background: var(--gis-blue); border-radius: 3px; }
+/* Scrollbar estándar — Firefox, Chrome 121+ */
+@supports (scrollbar-width: thin) {
+    .wrapper { scrollbar-width: thin; scrollbar-color: var(--gis-blue) #f1f1f1; }
 }
 h3 {
     text-align: center;
     font-size: 1.5em;
-    color: #404040;
+    color: var(--gis-gray);
     padding: 22px;
     font-weight: 100;
 }
@@ -53,8 +58,7 @@ h3 {
 }
 .form-control:disabled {
     background-color: #0339660c !important;
-    color: #333333 !important;
-    font-weight: 500;
+    color: var(--gis-blue);
     border: 1px solid #0339662b !important;
     cursor: not-allowed;
     opacity: 1;
@@ -64,7 +68,7 @@ h3 {
     transition: 0.2s;
 }
 label {
-    color: #033966;
+    color: var(--gis-blue);
     font-weight: bold;
     font-size: 1em;
 }
@@ -80,8 +84,14 @@ label {
     background-color: #00000033;
     overflow-y: auto;
     padding: 1rem;
-    scrollbar-width: thin;
-    scrollbar-color: #033966 #f1f1f1;
+}
+/* Scrollbar webkit — Safari, Chrome antiguo */
+.scrollabe-table::-webkit-scrollbar { width: 6px; height: 6px; }
+.scrollabe-table::-webkit-scrollbar-track { background: #f1f1f1; }
+.scrollabe-table::-webkit-scrollbar-thumb { background: var(--gis-blue); border-radius: 3px; }
+/* Scrollbar estándar — Firefox, Chrome 121+ */
+@supports (scrollbar-width: thin) {
+    .scrollabe-table { scrollbar-width: thin; scrollbar-color: var(--gis-blue) #f1f1f1; }
 }
 .table {
     width: 100%;
@@ -125,21 +135,21 @@ label {
 }
 
 .btn-deleteWO {
-    background-color: #a80f0f;
-    box-shadow: 0 2px 4px rgba(168, 15, 15, 0.25);
+    background-color: var(--gis-red);
+    box-shadow: 0 2px 4px var(--shadow-red);
 }
 .btn-deleteWO:hover {
-    background-color: #8c0c0c;
-    box-shadow: 0 4px 10px rgba(168, 15, 15, 0.35);
+    background-color: #7a0202;
+    box-shadow: 0 4px 10px var(--shadow-red);
 }
 
 .btn-pdfWO {
-    background-color: #033966;
-    box-shadow: 0 2px 4px rgba(3, 57, 102, 0.25);
+    background-color: var(--gis-blue);
+    box-shadow: 0 2px 4px var(--shadow-blue);
 }
 .btn-pdfWO:hover {
     background-color: #022b4d;
-    box-shadow: 0 4px 10px rgba(3, 57, 102, 0.35);
+    box-shadow: 0 4px 10px var(--shadow-blue);
 }
 
 /*Estilos para el checbox de agregar una clase*/
@@ -167,12 +177,17 @@ label {
     margin-left: 1em;
     padding: 1em;
     justify-content: flex-start;
-    
     max-height: 72vh;
     overflow: auto;
     box-shadow: 0px 0px 8px #000000;
-    scrollbar-width: thin;
-    scrollbar-color: #033966 #f1f1f1;
+}
+/* Scrollbar webkit — Safari, Chrome antiguo */
+.div-boxes::-webkit-scrollbar { width: 6px; }
+.div-boxes::-webkit-scrollbar-track { background: #f1f1f1; }
+.div-boxes::-webkit-scrollbar-thumb { background: var(--gis-blue); border-radius: 3px; }
+/* Scrollbar estándar — Firefox, Chrome 121+ */
+@supports (scrollbar-width: thin) {
+    .div-boxes { scrollbar-width: thin; scrollbar-color: var(--gis-blue) #f1f1f1; }
 }
 .div-boxes h3 {
     top: 20px;
@@ -248,41 +263,41 @@ label {
 }
 .btn {
     display: none;
-    background-color: #0a8504;
-    color: white;
+    background-color: var(--gis-green);
+    color: var(--gis-white);
     font-size: 0.95em;
     font-weight: bold;
     padding: 10px 24px;
     border-radius: 6px;
     border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(10, 133, 4, 0.25);
+    transition: all var(--trans);
+    box-shadow: 0 2px 4px var(--shadow-green);
 }
 .btn:hover {
     background-color: #086e03;
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(10, 133, 4, 0.35);
+    box-shadow: 0 4px 10px var(--shadow-green);
 }
 .btn:active {
     transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(10, 133, 4, 0.25);
+    box-shadow: 0 2px 4px var(--shadow-green);
 }
 .btn-deleteClass {
-    background-color: #a80f0f;
-    box-shadow: 0 2px 4px rgba(168, 15, 15, 0.25);
+    background-color: var(--gis-red);
+    box-shadow: 0 2px 4px var(--shadow-red);
 }
 .btn-deleteClass:hover {
-    background-color: #8c0c0c;
-    box-shadow: 0 4px 10px rgba(168, 15, 15, 0.35);
+    background-color: #7a0202;
+    box-shadow: 0 4px 10px var(--shadow-red);
 }
 .btn-editClass {
-    background-color: #033966;
-    box-shadow: 0 2px 4px rgba(3, 57, 102, 0.25);
+    background-color: var(--gis-blue);
+    box-shadow: 0 2px 4px var(--shadow-blue);
 }
 .btn-editClass:hover {
     background-color: #022b4d;
-    box-shadow: 0 4px 10px rgba(3, 57, 102, 0.35);
+    box-shadow: 0 4px 10px var(--shadow-blue);
 }
 .action-btns {
     color: white;
@@ -384,14 +399,15 @@ label {
 .chemical-composition-chip {
     display: block;
     text-align: center;
-    background-color: #03396610;
-    border: 1px solid #03396633;
+    background-color: rgba(3, 57, 102, 0.06);
+    border: 1px solid rgba(3, 57, 102, 0.2);
     border-radius: 8px;
     padding: 8px 4px;
     font-size: 0.85em;
     font-weight: bold;
-    color: #033966;
-    transition: all 0.2s ease;
+    color: var(--gis-blue);
+    transition: all var(--trans);
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -700,14 +716,14 @@ label {
         right: 96px;
         margin-top: 50px; /* ajusta según lo que necesites */
         z-index: 9999;
-        background-color: #0a8504;
-        color: white;
+        background-color: var(--gis-green);
+        color: var(--gis-white);
         font-size: 1em;
         padding: 10px;
         border-radius: 5px;
         margin-bottom: 2rem;
         border: none;
-        transition: 0.2s;
+        transition: var(--trans);
     }
     .div-delete {
         position: fixed;
@@ -753,6 +769,7 @@ label {
     font-weight: bold;
     display: inline-block;
     transition: all 0.2s ease;
+    -webkit-user-select: none;
     user-select: none;
 }
 .chemical-composition-tag:hover {

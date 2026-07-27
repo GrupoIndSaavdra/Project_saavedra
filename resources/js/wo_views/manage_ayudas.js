@@ -189,11 +189,11 @@ function updateAdminUI() {
         }
 
         // Visibilidad Alertas Izquierda
-        if (alertNotReady) alertNotReady.style.display = 'none';
-        if (alertReadyExists) alertReadyExists.style.display = existe ? 'block' : 'none';
-        if (alertReadyNotExists) alertReadyNotExists.style.display = existe ? 'none' : 'block';
+        if (alertNotReady) alertNotReady.classList.add("hidden");
+        if (alertReadyExists) alertReadyExists.classList.toggle("hidden", !existe);
+        if (alertReadyNotExists) alertReadyNotExists.classList.toggle("hidden", existe);
         if (btnCrear) {
-            btnCrear.style.display = existe ? 'none' : 'block';
+            btnCrear.classList.toggle("hidden", existe);
             if (module === 'dibujos' || module === 'fundicion') { btnCrear.dataset.otId = otSel.value; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
             // ayudas (maquinados) = 1 nivel solo proceso
             else if (module === 'manuales' || module === 'ayudas') { btnCrear.dataset.proceso = p1; btnCrear.dataset.folderParam1 = p1; delete btnCrear.dataset.clase; }
@@ -201,19 +201,19 @@ function updateAdminUI() {
         }
 
         // Visibilidad Panel Derecha (Subir)
-        if (uploadNotReadyContent) uploadNotReadyContent.style.display = 'none';
-        if (uploadReadyContent) uploadReadyContent.style.display = 'block';
-        if (alertUploadNoFolder) alertUploadNoFolder.style.display = existe ? 'none' : 'block';
+        if (uploadNotReadyContent) uploadNotReadyContent.classList.add("hidden");
+        if (uploadReadyContent) uploadReadyContent.classList.remove("hidden");
+        if (alertUploadNoFolder) alertUploadNoFolder.classList.toggle("hidden", existe);
         
         const fileFormGroup = uploadReadyContent ? uploadReadyContent.querySelector('.dibujos-form-group') : null;
-        if (fileFormGroup) fileFormGroup.style.display = existe ? 'block' : 'none';
+        if (fileFormGroup) fileFormGroup.classList.toggle("hidden", !existe);
         
         const fileInput = document.getElementById('d-upload-file');
         if (fileInput) fileInput.disabled = !existe;
 
         if (btnSubir) {
             btnSubir.disabled = !existe;
-            btnSubir.style.display = existe ? 'inline-block' : 'none';
+            btnSubir.classList.toggle("hidden", !existe);
             if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
             // ayudas (maquinados) = 1 nivel solo proceso
             else if (module === 'manuales' || module === 'ayudas') { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; delete btnSubir.dataset.clase; }
@@ -227,13 +227,13 @@ function updateAdminUI() {
         }
     } else {
         if (panelFiles) panelFiles.classList.remove('active');
-        if (alertNotReady) alertNotReady.style.display = 'block';
-        if (alertReadyExists) alertReadyExists.style.display = 'none';
-        if (alertReadyNotExists) alertReadyNotExists.style.display = 'none';
-        if (btnCrear) btnCrear.style.display = 'none';
+        if (alertNotReady) alertNotReady.classList.remove("hidden");
+        if (alertReadyExists) alertReadyExists.classList.add("hidden");
+        if (alertReadyNotExists) alertReadyNotExists.classList.add("hidden");
+        if (btnCrear) btnCrear.classList.add("hidden");
 
-        if (uploadNotReadyContent) uploadNotReadyContent.style.display = 'block';
-        if (uploadReadyContent) uploadReadyContent.style.display = 'none';
+        if (uploadNotReadyContent) uploadNotReadyContent.classList.remove("hidden");
+        if (uploadReadyContent) uploadReadyContent.classList.add("hidden");
     }
 }
 
@@ -448,7 +448,7 @@ window.prepararReemplazo = function(nombreArchivo, param1, param2, btnElement) {
     const hiddenInput = document.createElement('input');
     hiddenInput.type = 'file';
     hiddenInput.accept = '.pdf';
-    hiddenInput.style.display = 'none';
+    hiddenInput.classList.add("hidden");
     
     hiddenInput.addEventListener('change', () => {
         const file = hiddenInput.files[0];
@@ -894,7 +894,7 @@ window.confirmarEliminarCarpeta = function(p1, p2, label) {
         
         btnConfirm.textContent = isVaciar ? 'Vaciar Carpeta' : 'Eliminar Permanentemente';
         
-        modal.style.display = 'flex';
+        modal.classList.remove("hidden");
         
         btnConfirm.onclick = () => {
             eliminarCarpetaAJAX(folderToDelete);
@@ -905,7 +905,7 @@ window.confirmarEliminarCarpeta = function(p1, p2, label) {
 
 window.cerrarConfirmarEliminar = function() {
     const modal = document.getElementById('dibujos-confirm-modal');
-    if (modal) modal.style.display = 'none';
+    if (modal) modal.classList.add("hidden");
     folderToDelete = null;
 };
 
@@ -1057,10 +1057,10 @@ function poblarYFiltrarSelect(selectId, tableOrTbodySelector, defaultLabel) {
         rows.forEach(row => {
             if (row.children.length === 1 && row.querySelector('td[colspan]')) return;
             if (!val) {
-                row.style.display = '';
+                row.classList.remove("hidden");
             } else {
                 const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(val) ? '' : 'none';
+                row.classList.toggle("hidden", !text.includes(val));
             }
         });
     };

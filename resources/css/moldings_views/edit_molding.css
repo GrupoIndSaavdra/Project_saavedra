@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 
 * {
@@ -39,7 +42,7 @@ h2 {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
-    border-bottom: 3px solid #033966;
+    border-bottom: 3px solid var(--gis-blue);
     display: inline-block;
     padding-bottom: 0.2em;
     margin-bottom: 2rem;
@@ -89,7 +92,7 @@ table {
 }
 
 thead th {
-    background: #033966; /* Color sólido y plano */
+    background: var(--gis-blue); /* Color sólido y plano */
     color: #ffffff;
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -155,7 +158,7 @@ input[type="text"]:hover {
 
 input[type="text"]:focus {
     outline: none;
-    border-color: #033966;
+    border-color: var(--gis-blue);
     background-color: #ffffff;
     box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
 }
@@ -183,7 +186,7 @@ input[type="text"]:focus {
 }
 
 .btn.btn-edit {
-    background: #033966;
+    background: var(--gis-blue);
     border: 1px solid #022a4b;
 }
 .btn.btn-edit:hover {
@@ -204,7 +207,7 @@ input[type="text"]:focus {
     min-width: 220px;
     margin-top: 1rem;
     padding: 0.6rem 2rem;
-    background: linear-gradient(to bottom, #0c9c05 0%, #0a8504 100%);
+    background: linear-gradient(to bottom, #0c9c05 0%, var(--gis-green) 100%);
     color: #ffffff;
     border: 1px solid #086b03;
     border-radius: 8px;
@@ -234,6 +237,7 @@ input[type="text"]:focus {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
     z-index: 5;
 }

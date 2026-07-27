@@ -1,4 +1,4 @@
-{{-- _modal_scar.blade.php — Formato SCAR de Modelos --}}
+﻿{{-- _modal_scar.blade.php — Formato SCAR de Modelos --}}
 
 {{-- ── MODAL SCAR ── --}}
 <div id="modalScar" class="alm-modal" role="dialog" aria-modal="true">
@@ -54,20 +54,16 @@
                 {{-- DATOS COMPLEMENTARIOS --}}
                 <div class="lib-section-block"
                     style="margin-bottom: 16px; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px;">
-                    <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 8px;">Datos del
+                    <h5 class="modal-subtitle-2">Datos del
                         Solicitante</h5>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div>
                             <label class="lib-dato-label" for="scar-cliente-empresa">Cliente / Empresa:</label>
-                            <input type="text" id="scar-cliente-empresa" name="cliente_empresa" class="form-control"
-                                value="Industrial Saavedra" readonly
-                                style="background-color: #f8fafc; cursor: not-allowed; color: #64748b; border-color: #e2e8f0;">
+                            <input type="text" id="scar-cliente-empresa" name="cliente_empresa" class="form-control input-disabled-style">
                         </div>
                         <div>
                             <label class="lib-dato-label" for="scar-area-solicitante">Área Solicitante:</label>
-                            <input type="text" id="scar-area-solicitante" name="area_solicitante" class="form-control"
-                                value="Calidad" readonly
-                                style="background-color: #f8fafc; cursor: not-allowed; color: #64748b; border-color: #e2e8f0;">
+                            <input type="text" id="scar-area-solicitante" name="area_solicitante" class="form-control input-disabled-style">
                         </div>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -76,19 +72,17 @@
                             <input type="text" id="scar-nombre-solicitante" name="nombre_solicitante"
                                 class="form-control" value="{{ Auth::user() ? Auth::user()->name : '' }}"
                                 placeholder="Inspector de Calidad" readonly
-                                style="background-color: #f8fafc; cursor: not-allowed; color: #64748b; border-color: #e2e8f0;">
+                                class="input-disabled-style">
                         </div>
                         <div>
                             <label class="lib-dato-label" for="scar-nombre-moldura">Nombre de la Moldura:</label>
-                            <input type="text" id="scar-nombre-moldura" name="nombre_moldura" class="form-control"
-                                placeholder="Nombre de la moldura" readonly
-                                style="background-color: #f8fafc; cursor: not-allowed; color: #64748b; border-color: #e2e8f0;">
+                            <input type="text" id="scar-nombre-moldura" name="nombre_moldura" class="form-control input-disabled-style">
                         </div>
                     </div>
                 </div>
 
                 {{-- DESCRIPCIÓN DE LA NO CONFORMIDAD (pre-rellenado con motivo_rechazo) --}}
-                <div class="lib-section-block" style="margin-bottom: 16px;">
+                <div class="lib-section-block mb-16">
                     <h5 style="font-weight: 700; color: #9c0300; font-size: 1.05em; margin-bottom: 6px;">
                         Descripción de la No Conformidad
                     </h5>
@@ -101,59 +95,56 @@
                 </div>
 
                 {{-- PROVEEDOR --}}
-                <div class="lib-section-block" style="margin-bottom: 16px;">
+                <div class="lib-section-block mb-16">
                     <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 6px;">
                         Proveedor
                     </h5>
-                    <input type="text" id="scar-proveedor" name="proveedor" class="form-control"
-                        value="SS Metal Foundry, S. de R.L. de C.V." placeholder="Nombre del proveedor del modelo"
-                        readonly
-                        style="background-color: #f8fafc; cursor: not-allowed; color: #64748b; border-color: #e2e8f0;">
+                    <input type="text" id="scar-proveedor" name="proveedor" class="form-control input-disabled-style">
                 </div>
 
                 {{-- EVIDENCIA ADJUNTA --}}
                 <div class="lib-section-block"
                     style="margin-bottom: 16px; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding-top: 16px; padding-bottom: 16px;">
-                    <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 8px;">Evidencia
+                    <h5 class="modal-subtitle-2">Evidencia
                         Adjunta</h5>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div>
                             <label
-                                style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                class="checkbox-label">
                                 <input type="checkbox" id="scar-evidencia-reporte" name="evidencia_reporte" value="1"
-                                    checked onclick="return false;" style="width: 16px; height: 16px;">
+                                    checked onclick="return false;" class="w-16 h-16">
                                 <span>Reporte dimensional de Calidad (Obligatorio)</span>
                             </label>
                         </div>
                         <div>
                             <label
-                                style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                class="checkbox-label">
                                 <input type="checkbox" id="scar-evidencia-dibujos" name="evidencia_dibujos" value="1"
-                                    checked style="width: 16px; height: 16px;">
+                                    checked class="w-16 h-16">
                                 <span>Dibujos autorizados</span>
                             </label>
                         </div>
                         <div>
                             <label
-                                style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                class="checkbox-label">
                                 <input type="checkbox" id="scar-evidencia-ayudas" name="evidencia_ayudas" value="1"
-                                    checked style="width: 16px; height: 16px;">
+                                    checked class="w-16 h-16">
                                 <span>Ayudas visuales</span>
                             </label>
                         </div>
                         <div>
                             <label
-                                style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                class="checkbox-label">
                                 <input type="checkbox" id="scar-evidencia-fotos" name="evidencia_fotos" value="1"
-                                    style="width: 16px; height: 16px;" onchange="document.getElementById('scar-fotos-upload-group').style.display = this.checked ? 'block' : 'none'">
+                                    class="w-16 h-16" onchange="document.getElementById('scar-fotos-upload-group').style.display = this.checked ? 'block' : 'none'">
                                 <span>Fotografías</span>
                             </label>
                         </div>
                         <div style="grid-column: span 2;">
                             <label
-                                style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                class="checkbox-label">
                                 <input type="checkbox" id="scar-evidencia-otro" name="evidencia_otro" value="1"
-                                    style="width: 16px; height: 16px;" onchange="document.getElementById('scar-otro-upload-group').style.display = this.checked ? 'block' : 'none'">
+                                    class="w-16 h-16" onchange="document.getElementById('scar-otro-upload-group').style.display = this.checked ? 'block' : 'none'">
                                 <span>Otro / PDFs adicionales</span>
                             </label>
                         </div>
@@ -162,7 +153,7 @@
                     {{-- UPLOAD DE FOTOS --}}
                     <div class="form-group" id="scar-fotos-upload-group" style="margin-top: 16px; display: none;">
                         <label for="scar-fotos" style="font-weight:700; color:#334155; display:block; margin-bottom:6px; font-size:0.9em;">
-                            Subir Fotografías <span style="color:#9c0300;">*</span>
+                            Subir Fotografías <span class="text-danger">*</span>
                         </label>
                         <div class="custom-file-dropzone" style="border: 2px dashed #d97706; background: #fffbeb; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
                             <input type="file" id="scar-fotos" name="fotos[]" class="custom-file-input" multiple accept="image/*" style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
@@ -178,7 +169,7 @@
                     {{-- UPLOAD DE OTROS ARCHIVOS --}}
                     <div class="form-group" id="scar-otro-upload-group" style="margin-top: 16px; display: none;">
                         <label for="scar-otro-archivos" style="font-weight:700; color:#334155; display:block; margin-bottom:6px; font-size:0.9em;">
-                            Subir Otros Archivos / PDFs adicionales <span style="color:#9c0300;">*</span>
+                            Subir Otros Archivos / PDFs adicionales <span class="text-danger">*</span>
                         </label>
                         <div class="custom-file-dropzone" style="border: 2px dashed #0369a1; background: #f0f9ff; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
                             <input type="file" id="scar-otro-archivos" name="otros_archivos[]" class="custom-file-input" multiple accept="*/*" style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
@@ -198,23 +189,23 @@
                 </div>
 
                 {{-- ACCIÓN CORRECTIVA INMEDIATA REQUERIDA --}}
-                <div class="lib-section-block" style="margin-bottom: 16px;">
-                    <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 8px;">Acción
+                <div class="lib-section-block mb-16">
+                    <h5 class="modal-subtitle-2">Acción
                         Correctiva Inmediata Requerida</h5>
                     <div style="display: flex; flex-direction: column; gap: 10px;">
-                        <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                        <label class="checkbox-label">
                             <input type="checkbox" id="scar-accion-regreso" name="accion_regreso" value="1"
-                                style="width: 16px; height: 16px;">
+                                class="w-16 h-16">
                             <span>Regreso del modelo al proveedor para su corrección</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                        <label class="checkbox-label">
                             <input type="checkbox" id="scar-accion-fabricacion" name="accion_fabricacion" value="1"
-                                style="width: 16px; height: 16px;">
+                                class="w-16 h-16">
                             <span>Fabricación de un modelo nuevo</span>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                        <label class="checkbox-label">
                             <input type="checkbox" id="scar-accion-otro" name="accion_otro" value="1"
-                                style="width: 16px; height: 16px;"
+                                class="w-16 h-16"
                                 onchange="document.getElementById('scar-accion-otro-text-group').style.display = this.checked ? 'block' : 'none'">
                             <span>Otro</span>
                         </label>
@@ -238,7 +229,7 @@
                 </div>
 
                 {{-- ACCIONES CORRECTIVAS --}}
-                <div class="lib-section-block" style="margin-bottom: 16px;">
+                <div class="lib-section-block mb-16">
                     <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 6px;">
                         Acciones Correctivas a Futuro
                     </h5>
@@ -247,7 +238,7 @@
                 </div>
 
                 {{-- CÓDIGO DEL MODELO --}}
-                <div class="lib-section-block" style="margin-bottom: 16px;">
+                <div class="lib-section-block mb-16">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 16px;">
                         <div>
                             <label for="scar-codigo-modelo"

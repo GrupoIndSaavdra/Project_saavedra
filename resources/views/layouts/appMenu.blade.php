@@ -16,12 +16,6 @@
         :root {
             --triangulo-abajo: url('{{ asset("images/triangulo_abajo.png") }}');
         }
-        .open-menu {
-            padding: 4px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
     </style>
     <script>
         window.loading = "{{ asset('images/loading.gif') }}"

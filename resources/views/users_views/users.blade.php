@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
 
@@ -107,7 +107,7 @@
 
                     {{-- Matrícula + Nombre --}}
                     <td>
-                        <span class="user-matricula" style="font-size:.9rem;font-weight:600;color:#1e293b;">{{ $user->matricula }}</span>
+                        <span class="user-matricula use-font-size-9rem use-font-weight-600 use-color-1e293b">{{ $user->matricula }}</span>
                     </td>
                     <td>
                         <span class="user-name">{{ $user->name }}</span>
@@ -129,7 +129,7 @@
                     <td>
                         <div class="actions-cell">
                             {{-- Activar / Inactivar --}}
-                            <form action="{{ route($user->estatus ? 'baja_usuario' : 'alta_usuario', $user->id) }}" method="POST" style="display:inline;">
+                            <form action="{{ route($user->estatus ? 'baja_usuario' : 'alta_usuario', $user->id) }}" method="POST" class="use-display-inline">
                                 @csrf
                                 <button type="submit" class="btn-action {{ $user->estatus ? 'btn-inactivate' : 'btn-activate' }}">
                                     {{ $user->estatus ? '⏸ Inactivar' : '▶ Activar' }}
@@ -140,7 +140,7 @@
                             <form
                                 action="{{ route('eliminar_usuario', $user->id) }}"
                                 method="POST"
-                                style="display:inline;"
+                                class="use-display-inline"
                                 onsubmit="return confirm('¿Seguro que deseas eliminar al usuario {{ addslashes($user->name) }}? Esta acción no se puede deshacer.');"
                             >
                                 @csrf

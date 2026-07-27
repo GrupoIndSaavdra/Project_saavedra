@@ -63,7 +63,7 @@ function createTable(moldings, form) {
                         nextElementSibling &&
                         nextElementSibling.tagName === "BUTTON"
                     ) {
-                        nextElementSibling.style.display = "inline-block";
+                        nextElementSibling.classList.remove("hidden");
                     }
 
                     document
@@ -108,7 +108,7 @@ function createTable(moldings, form) {
                             nextElementSibling &&
                             nextElementSibling.tagName === "BUTTON"
                         ) {
-                            nextElementSibling.style.display = "none";
+                            nextElementSibling.classList.add("hidden");
                         }
 
                         document

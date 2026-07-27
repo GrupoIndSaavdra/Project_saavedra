@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     <title>Calidad — Dibujos y Ayudas de Maquinados | GIS</title>
@@ -19,7 +19,7 @@
         {{-- ── HEADER ─────────────────────────────────────────────── --}}
         <div class="alm-header">
             <div class="alm-header-icon">
-                <img src="{{ asset('images/Quality.png') }}" alt="Calidad" style="width: 90px;">
+                <img src="{{ asset('images/Quality.png') }}" alt="Calidad" class="cal-maq-width-90px">
             </div>
             <div class="alm-header-text">
                 <h1>Dibujos y Ayudas Visuales de Maquinados — Calidad</h1>
@@ -32,7 +32,7 @@
         <div class="alm-stats">
             <div class="alm-stat-card stat-dibujos">
                 <div class="alm-stat-icon">
-                    <img src="{{ asset('images/pdf-view.png') }}" alt="Dibujos" style="width: 60px;">
+                    <img src="{{ asset('images/pdf-view.png') }}" alt="Dibujos" class="cal-maq-width-60px">
                 </div>
                 <div>
                     <div class="alm-stat-value">{{ $totalDibujos }}</div>
@@ -41,7 +41,7 @@
             </div>
             <div class="alm-stat-card stat-ayudas">
                 <div class="alm-stat-icon">
-                    <img src="{{ asset('images/pdf-view.png') }}" alt="Ayudas" style="width: 60px;">
+                    <img src="{{ asset('images/pdf-view.png') }}" alt="Ayudas" class="cal-maq-width-60px">
                 </div>
                 <div>
                     <div class="alm-stat-value">{{ $totalAyudas }}</div>
@@ -50,7 +50,7 @@
             </div>
             <div class="alm-stat-card stat-inactivos">
                 <div class="alm-stat-icon">
-                    <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Inactivos" style="width: 60px;">
+                    <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Inactivos" class="cal-maq-width-60px">
                 </div>
                 <div>
                     <div class="alm-stat-value">{{ $totalInactivos }}</div>
@@ -127,9 +127,7 @@
 
                     <div class="filters-actions">
                         {{-- Botón limpiar (siempre visible, el JS lo activa solo si hay filtros) --}}
-                        <button type="button" id="calmaq-btn-limpiar"
-                                class="btns btn-clear-filters"
-                                style="display:none;">
+                        <button type="button" id="calmaq-btn-limpiar" class="btns btn-clear-filters cal-maq-display-none">
                             Limpiar Filtros
                         </button>
                     </div>
@@ -156,7 +154,7 @@
             @if ($dibujos->isEmpty())
                 <div class="alm-empty" id="calmaq-empty-dibujos">
                     <div class="alm-empty-icon">
-                        <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados" style="width: 64px; opacity: 0.5;">
+                        <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
                     </div>
                     <p>
                         @if ($desde || $hasta)
@@ -171,10 +169,10 @@
                     <table class="alm-table">
                         <thead>
                             <tr>
-                                <th style="width: 35%">OT</th>
-                                <th style="width: 30%">Clase</th>
-                                <th style="width: 15%" class="d-text-center">Archivos</th>
-                                <th style="width: 20%" class="d-text-center">Accion</th>
+                                <th class="cal-maq-width-35pct">OT</th>
+                                <th class="cal-maq-width-30pct">Clase</th>
+                                <th class="cal-maq-width-15pct d-text-center">Archivos</th>
+                                <th class="cal-maq-width-20pct d-text-center">Accion</th>
                             </tr>
                         </thead>
                         <tbody id="calmaq-tbody-dibujos">
@@ -204,16 +202,16 @@
                                 <tr class="alm-files-row" id="files-dibujo-{{ $loop->index }}">
                                     <td colspan="4">
                                         <div class="alm-files-inner">
-                                            <h4 style="margin-top: 15px; margin-bottom: 10px; color: #005194; border-bottom: 2px solid #005194; padding-bottom: 5px;">
+                                            <h4 class="cal-maq-margin-top-15px cal-maq-margin-bottom-10px cal-maq-color-005194 cal-maq-border-bottom-2px-solid-005194 cal-maq-padding-bottom-5px">
                                                 Dibujos de Maquinados</h4>
                                             <div class="alm-pdf-grid">
                                                 @foreach ($docs as $doc)
                                                     <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" style="cursor: pointer;" title="Abrir PDF">
+                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" class="cal-maq-cursor-pointer" title="Abrir PDF">
                                                             <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                             <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
                                                         </div>
-                                                        <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="calmaqVerArchivo({{ $doc->id }})">
+                                                        <div class="file-name cal-maq-cursor-pointer" title="Abrir PDF" onclick="calmaqVerArchivo({{ $doc->id }})">
                                                             {{ $doc->nombre_archivo }}
                                                         </div>
                                                         <div class="file-actions">
@@ -228,9 +226,9 @@
                             @endforeach
                         </tbody>
                     </table>
-                    <div class="alm-empty" id="calmaq-no-match-dibujos" style="display:none;">
+                    <div class="alm-empty cal-maq-display-none">
                         <div class="alm-empty-icon">
-                            <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados" style="width: 64px; opacity: 0.5;">
+                            <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
                         </div>
                         <p>Ningun dibujo coincide con los filtros seleccionados.</p>
                     </div>
@@ -245,7 +243,7 @@
             $ayudasAgrupadas = $ayudas->groupBy(fn($a) => ($a->clase ?? '—') . '|' . ($a->proceso ?? '—'));
         @endphp
 
-        <div class="alm-table-card" style="border-color: #027a3ad4;">
+        <div class="alm-table-card cal-maq-border-color-027a3ad4">
             <div class="alm-table-header header-ayudas">
                 <h2>Ayudas Visuales de Maquinados</h2>
                 <span class="alm-results-count" id="calmaq-count-ayudas">
@@ -256,7 +254,7 @@
             @if ($ayudas->isEmpty())
                 <div class="alm-empty" id="calmaq-empty-ayudas">
                     <div class="alm-empty-icon">
-                        <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados" style="width: 64px; opacity: 0.5;">
+                        <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
                     </div>
                     <p>
                         @if ($desde || $hasta)
@@ -271,10 +269,10 @@
                     <table class="alm-table table-ayudas">
                         <thead>
                             <tr>
-                                <th style="width: 35%">Clase</th>
-                                <th style="width: 30%">Proceso</th>
-                                <th style="width: 15%" class="d-text-center">Archivos</th>
-                                <th style="width: 20%" class="d-text-center">Accion</th>
+                                <th class="cal-maq-width-35pct">Clase</th>
+                                <th class="cal-maq-width-30pct">Proceso</th>
+                                <th class="cal-maq-width-15pct d-text-center">Archivos</th>
+                                <th class="cal-maq-width-20pct d-text-center">Accion</th>
                             </tr>
                         </thead>
                         <tbody id="calmaq-tbody-ayudas">
@@ -302,16 +300,16 @@
                                 <tr class="alm-files-row" id="files-ayuda-{{ $loop->index }}">
                                     <td colspan="4">
                                         <div class="alm-files-inner">
-                                            <h4 style="margin-top: 15px; margin-bottom: 10px; color: #027a3a; border-bottom: 2px solid #027a3a; padding-bottom: 5px;">
+                                            <h4 class="cal-maq-margin-top-15px cal-maq-margin-bottom-10px cal-maq-color-027a3a cal-maq-border-bottom-2px-solid-027a3a cal-maq-padding-bottom-5px">
                                                 Ayudas Visuales de Maquinados</h4>
                                             <div class="alm-pdf-grid">
                                                 @foreach ($docs as $doc)
                                                     <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" style="cursor: pointer;" title="Abrir PDF">
+                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" class="cal-maq-cursor-pointer" title="Abrir PDF">
                                                             <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                             <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
                                                         </div>
-                                                        <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="calmaqVerArchivo({{ $doc->id }})">
+                                                        <div class="file-name cal-maq-cursor-pointer" title="Abrir PDF" onclick="calmaqVerArchivo({{ $doc->id }})">
                                                             {{ $doc->nombre_archivo }}
                                                         </div>
                                                         <div class="file-actions">
@@ -326,9 +324,9 @@
                             @endforeach
                         </tbody>
                     </table>
-                    <div class="alm-empty" id="calmaq-no-match-ayudas" style="display:none;">
+                    <div class="alm-empty cal-maq-display-none">
                         <div class="alm-empty-icon">
-                            <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados" style="width: 64px; opacity: 0.5;">
+                            <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
                         </div>
                         <p>Ninguna ayuda coincide con los filtros seleccionados.</p>
                     </div>
@@ -343,7 +341,7 @@
             $inactivosAgrupados = $inactivos->groupBy(fn($i) => ($i->tipo ?? '—') . '|' . ($i->ot ?? '—') . '|' . ($i->clase ?? '—') . '|' . ($i->proceso ?? '—'));
         @endphp
 
-        <div class="alm-table-card" style="border-color: #6c757dd4;">
+        <div class="alm-table-card cal-maq-border-color-6c757dd4">
             <div class="alm-table-header header-inactivos">
                 <h2>Documentos Inactivos (Historico)</h2>
                 <span class="alm-results-count" id="calmaq-count-inactivos">
@@ -354,7 +352,7 @@
             @if ($inactivos->isEmpty())
                 <div class="alm-empty">
                     <div class="alm-empty-icon">
-                        <img src="{{ asset('images/ready.png') }}" alt="Sin inactivos" style="width: 64px; opacity: 0.5;">
+                        <img src="{{ asset('images/ready.png') }}" alt="Sin inactivos" class="cal-maq-width-64px cal-maq-opacity-0-5">
                     </div>
                     <p>No hay documentos inactivos. Todos los registros tienen su archivo de origen activo.</p>
                 </div>
@@ -363,12 +361,12 @@
                     <table class="alm-table table-inactivos">
                         <thead>
                             <tr>
-                                <th style="width: 12%" class="d-text-center">Tipo</th>
-                                <th style="width: 22%">OT</th>
-                                <th style="width: 22%">Clase</th>
-                                <th style="width: 18%">Proceso</th>
-                                <th style="width: 8%" class="d-text-center">Archivos</th>
-                                <th style="width: 18%" class="d-text-center">Accion</th>
+                                <th class="cal-maq-width-12pct d-text-center">Tipo</th>
+                                <th class="cal-maq-width-22pct">OT</th>
+                                <th class="cal-maq-width-22pct">Clase</th>
+                                <th class="cal-maq-width-18pct">Proceso</th>
+                                <th class="cal-maq-width-8pct d-text-center">Archivos</th>
+                                <th class="cal-maq-width-18pct d-text-center">Accion</th>
                             </tr>
                         </thead>
                         <tbody id="calmaq-tbody-inactivos">
@@ -415,18 +413,18 @@
                                         <div class="alm-files-inner" style="border-top-color: {{ $isAyuda ? '#027a3a' : '#033966' }};">
                                             <h4 style="margin-top: 15px; margin-bottom: 10px; color: {{ $isAyuda ? '#027a3a' : '#033966' }}; border-bottom: 2px solid {{ $isAyuda ? '#027a3a' : '#033966' }}; padding-bottom: 5px; display: flex; align-items: center; justify-content: space-between;">
                                                 <span>Documentos Inactivos — {{ $tipo === 'dibujo' ? 'Dibujos' : 'Ayudas' }} de Maquinados</span>
-                                                <div class="alm-inactiva-note" style="color: #6c757d; font-weight: normal;">
+                                                <div class="alm-inactiva-note cal-maq-color-6c757d cal-maq-font-weight-normal">
                                                     Carpeta eliminada - Backup conservado
                                                 </div>
                                             </h4>
                                             <div class="alm-pdf-grid">
                                                 @foreach ($docs as $doc)
                                                     <div class="dibujos-file-card {{ $isAyuda ? 'card-ayuda' : '' }}" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" style="cursor: pointer;" title="Abrir PDF">
+                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" class="cal-maq-cursor-pointer" title="Abrir PDF">
                                                             <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                             <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
                                                         </div>
-                                                        <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="calmaqVerArchivo({{ $doc->id }})">
+                                                        <div class="file-name cal-maq-cursor-pointer" title="Abrir PDF" onclick="calmaqVerArchivo({{ $doc->id }})">
                                                             {{ $doc->nombre_archivo }}
                                                         </div>
                                                         <div class="file-actions">
@@ -445,9 +443,9 @@
                             @endforeach
                         </tbody>
                     </table>
-                    <div class="alm-empty" id="calmaq-no-match-inactivos" style="display:none;">
+                    <div class="alm-empty cal-maq-display-none">
                         <div class="alm-empty-icon">
-                            <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados" style="width: 64px; opacity: 0.5;">
+                            <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
                         </div>
                         <p>Ningun documento inactivo coincide con los filtros seleccionados.</p>
                     </div>

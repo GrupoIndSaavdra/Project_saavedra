@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     <title>Prioridad de Órdenes de Trabajo</title>
@@ -47,21 +47,21 @@
             <line x1="12" y1="8" x2="12" y2="12"/>
             <line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
-        <div style="display: flex; flex-direction: column; gap: 14px; width: 100%;">
+        <div class="pm-flex-col-100">
             <span class="pm-info-text-main">
                 El orden definido aquí se reflejará en la vista <strong>Orden de Trabajo en Progreso</strong>
                 en el próximo refresco. Las OTs se ordenan de mayor a menor urgencia (de arriba hacia abajo).
             </span>
-            <div style="display: flex; flex-wrap: wrap; gap: 32px; align-items: center; justify-content: center; margin-top: 4px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1);">
-                <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="pm-stats-row">
+                <div class="pm-stat-item">
                     <img src="{{ asset('images/uno.png') }}" alt="Oro" class="pm-info-icon-small">
                     <span class="pm-info-text-small"><strong>1 al 5:</strong> Prioridad Máxima (Oro)</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="pm-stat-item">
                     <img src="{{ asset('images/plata.png') }}" alt="Plata" class="pm-info-icon-small">
                     <span class="pm-info-text-small"><strong>6 en adelante:</strong> Prioridad Normal (Plata)</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="pm-stat-item">
                     <svg xmlns="http://www.w3.org/2000/svg" class="pm-info-icon-small pm-svg-drag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"></circle>
                         <circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"></circle>

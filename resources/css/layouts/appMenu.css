@@ -1,11 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Kaushan+Script&family=Poppins&display=swap");
+﻿/* global.css ya incluye: reset, Poppins, variables GIS y utilidades */
+@import "../global.css";
 @import "../layouts/partials/messages.css";
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 header {
     box-sizing: border-box;
     width: 100%;
@@ -23,7 +18,7 @@ header {
 body {
     background-size: cover;
     background-repeat: no-repeat;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 .form-liberation {
     display: flex;
@@ -37,7 +32,7 @@ body {
     border: none;
     font-size: 1rem;
     font-weight: 400;
-    color: #033966;
+    color: var(--gis-blue);
     text-align: center;
     padding: 30px;
 }
@@ -45,7 +40,7 @@ body {
     margin: 20px;
     padding: 10px;
     border-radius: 10px;
-    color: #fff;
+    color: var(--gis-white);
     font-weight: 800;
     box-shadow: none;
     width: 150px;
@@ -181,7 +176,7 @@ body {
     font-weight: 700;
     font-size: 2em;
     letter-spacing: 0.5rem;
-    color: #033966;
+    color: var(--gis-blue);
 }
 .logo {
     width: 6em;
@@ -249,9 +244,9 @@ body {
 /* Opciones principales activas (Azul) - Incluyendo el Inicio y los Toggles desplegados */
 .nav-list > li > .nav-link.active,
 .menu-section.active > .submenu-toggle {
-    background: linear-gradient(90deg, #033966, #0a4f8c) !important;
-    color: white !important;
-    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.3);
+    background: linear-gradient(90deg, var(--gis-blue), #0a4f8c) !important;
+    color: var(--gis-white) !important;
+    box-shadow: 0 4px 15px var(--shadow-blue);
     border-left: none !important;
 }
 
@@ -270,7 +265,7 @@ body {
 .nav-link:hover,
 .submenu-toggle:hover {
     background: rgba(3, 57, 102, 0.1);
-    color: #033966;
+    color: var(--gis-blue);
     padding-left: 25px;
 }
 
@@ -282,8 +277,8 @@ body {
     position: absolute;
     bottom: 20px;
     right: 20px;
-    background-color: #9c0303;
-    color: #fff;
+    background-color: var(--gis-red);
+    color: var(--gis-white);
     text-align: center;
     padding: 1em;
     border-radius: 10px;
@@ -291,11 +286,11 @@ body {
     font-weight: 700;
     font-size: 1em;
     text-decoration: none;
-    transition: 0.2s;
+    transition: var(--trans);
 }
 .btn-close-session:hover {
-    background-color: #f00;
-    transition: 0.2s;
+    background-color: #c00404;
+    transition: var(--trans);
 }
 
 .submenu {
@@ -319,7 +314,7 @@ body {
 }
 
 .menu-section > .submenu-toggle {
-    border-left: 4px solid #033966;
+    border-left: 4px solid var(--gis-blue);
     background: transparent;
 }
 .submenu-toggle:hover {
@@ -410,3 +405,6 @@ body {
    SISTEMA DE MODALES PREMIUM (prod-viewer-*)
    Globalizado para alertas y visualizadores
    =========================== */
+
+/* Extracted from appMenu.blade.php */
+.open-menu { padding: 4px !important; display: flex !important; align-items: center !important; justify-content: center !important; }

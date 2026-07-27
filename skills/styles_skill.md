@@ -1,36 +1,137 @@
-# Guía de Estilos y Colores (Styles Skill) — Project Saavedra
+﻿# Guía de Estilos y Colores (Styles Skill) — Project Saavedra
 
-> ** Directorio de Referencia:** `public/css/ y resources/css/`
-> *`Project_saavedra` NO usa TailwindCSS ni Bootstrap. Todo es Vanilla CSS. El diseño debe ser absolutamente premium.*
+> **Directorio de Referencia:** `resources/css/`
+> *`Project_saavedra` NO usa TailwindCSS ni Bootstrap. Todo es Vanilla CSS con Poppins. El diseño debe ser absolutamente premium.*
 
 ---
 
-## 1. La Base del Diseño (CSS Reset y Variables)
+## 0. Protocolo Obligatorio — ANTES de Escribir Cualquier Estilo
+
+1. **NUNCA redefinas `*`, `box-sizing`, `font-family` o `:root`** en archivos de módulo — ya están en `resources/css/global.css`.
+2. **Importa `global.css` al inicio** de cada CSS de módulo nuevo:
+   ```css
+   @import "../global.css"; /* o la ruta relativa correcta */
+   ```
+3. **NUNCA escribas colores hardcoded** (`#0a8504`, `#033966`, etc.) — usa siempre variables CSS (`var(--gis-green)`).
+4. **NUNCA uses `style=` en Blade** para colores, fuentes o fondos estáticos — pon la clase en el CSS del módulo.
+5. **Para colores condicionales en JS**, usa `classList.add/remove` con clases CSS, NO `element.style.color`.
+6. **Excepción PDFs (DomPDF):** Las plantillas en `resources/views/pdf/` y en `piecesReport/*Pdf.blade.php` llevan CSS incrustado en `<style>` porque DomPDF no carga archivos externos.
+7. **Vendor prefixes — ORDEN OBLIGATORIO:** El prefijo `-webkit-` SIEMPRE va **antes** de la propiedad estándar, nunca después. Además, cuando uses `-webkit-background-clip`, agrega también `background-clip` sin prefijo:
+   ```css
+   /* ✅ CORRECTO */
+   -webkit-backdrop-filter: blur(12px);
+   backdrop-filter: blur(12px);
+
+   -webkit-background-clip: text;
+   background-clip: text;         /* ← siempre incluir ambos */
+   -webkit-text-fill-color: transparent;
+
+   -webkit-user-select: none;     /* ← Safari requiere el prefijo */
+   user-select: none;
+
+   /* ❌ INCORRECTO */
+   backdrop-filter: blur(12px);
+   -webkit-backdrop-filter: blur(12px); /* webkit DESPUÉS = warning */
+   user-select: none;                   /* sin -webkit- = error en Safari */
+   ```
+
+**Tabla de propiedades que SIEMPRE requieren `-webkit-` primero:**
+
+| Propiedad estándar | Prefijo requerido | Nota |
+|---|---|---|
+| `backdrop-filter` | `-webkit-backdrop-filter` | Antes del estándar |
+| `background-clip: text` | `-webkit-background-clip: text` | Incluir ambos + `background-clip` |
+| `user-select` | `-webkit-user-select` | Safari no soporta sin prefijo |
+| `appearance` | `-webkit-appearance` | Safari/iOS antiguo requiere prefijo |
+| `text-fill-color` | `-webkit-text-fill-color` | Solo existe con prefijo |
+| `scrollbar-width` + `scrollbar-color` | Pseudo-elementos `::-webkit-scrollbar*` | Ver patrón completo abajo |
+
+**Propiedades obsoletas que NUNCA deben usarse:**
+
+| Propiedad obsoleta | Razón / Alternativa |
+|---|---|
+| `-webkit-overflow-scrolling: touch;` | Ya no es soportado por navegadores modernos. Simplemente usa `overflow-y: auto;` o `overflow-x: auto;`. |
+| `min-height: auto;` | No es soportado por Firefox 22+. Usar `min-height: 0;` o omitirlo. |
+
+**Reglas Generales de Limpieza:**
+- **Bloques vacíos (Empty rulesets):** Nunca dejes selectores sin propiedades (ej. `.clase {}`). Elimínalos o coméntalos. El IDE marcará un warning "Do not use empty rulesets".
+
+**Patrón obligatorio para scrollbar cross-browser (con `@supports`):**
+
+`scrollbar-width` y `scrollbar-color` **no tienen equivalente `-webkit-`** — Safari usa pseudo-elementos, que es una API completamente distinta. El IDE marcará warning si se ponen dentro del selector directamente. La solución es usar `@supports` + webkit fallback:
 
 ```css
+/* ✅ PATRÓN CORRECTO — @supports elimina el warning del IDE */
+.mi-elemento {
+    overflow-y: auto;
+    /* NO poner scrollbar-width/color aquí directamente */
+}
+/* 1. Webkit fallback — Safari, Chrome < 121 (siempre primero como base) */
+.mi-elemento::-webkit-scrollbar        { width: 6px; height: 6px; }
+.mi-elemento::-webkit-scrollbar-track  { background: #f1f1f1; }
+.mi-elemento::-webkit-scrollbar-thumb  { background: var(--gis-blue); border-radius: 3px; }
+/* 2. Estándar moderno — Firefox, Chrome 121+ (dentro de @supports) */
+@supports (scrollbar-width: thin) {
+    .mi-elemento { scrollbar-width: thin; scrollbar-color: var(--gis-blue) #f1f1f1; }
+}
+
+/* ❌ INCORRECTO — genera warning en el IDE */
+.mi-elemento {
+    scrollbar-width: thin;              /* warning: Safari no lo soporta */
+    scrollbar-color: var(--gis-blue) #f1f1f1;
+}
+```
+
+> **Por qué `@supports`:** El IDE respeta que la propiedad está dentro de una feature query y no marca warning, porque el código ya expresa que es uso intencional/progresivo. Sin `@supports`, el warning persiste aunque agregues el fallback webkit.
+>
+> **Nota:** El scrollbar global ya está en `global.css`. Solo necesitas este patrón cuando el scrollbar del elemento tenga colores distintos al global.
+
+
+
+
+---
+
+## 1. La Base del Diseño (global.css)
+
+El archivo `resources/css/global.css` es la **única fuente de verdad** del sistema de diseño. Contiene:
+- Reset universal con `font-family: 'Poppins', sans-serif`
+- Variables CSS (`:root`) de toda la paleta GIS
+- Clases utilitarias globales (`.btns`, `.overlay-bg`, `.glass-panel`, `.data-table`, etc.)
+
+```css
+/* Fuente universal — POPPINS (cargada vía Google Fonts en global.css) */
 *, *::before, *::after {
- box-sizing: border-box;
- margin: 0;
- padding: 0;
- font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
 }
 
 :root {
- /* Paleta Oficial GIS */
- --color-primary-green: #0a8504;
- --color-primary-blue: #033966;
- --color-danger-red: #9c0303;
- --color-bg-light: #ffffff;
- --color-text-dark: #000000;
- --color-text-muted: #404040;
- --color-border: rgba(0, 0, 0, 0.1);
- --transition-speed: 0.25s;
- /* Espaciados estándar */
- --space-xs: 4px;
- --space-sm: 8px;
- --space-md: 16px;
- --space-lg: 24px;
- --space-xl: 32px;
+    /* Paleta Oficial GIS — NOMBRES DE VARIABLE ESTÁNDAR */
+    --gis-green:  #0a8504;   /* Verde principal */
+    --gis-blue:   #033966;   /* Azul marino */
+    --gis-red:    #9c0303;   /* Rojo peligro */
+    --gis-gray:   #404040;   /* Gris oscuro */
+    --gis-white:  #ffffff;
+    --gis-black:  #000000;
+
+    /* Sombras de color */
+    --shadow-green: rgba(10, 133, 4, 0.35);
+    --shadow-red:   rgba(156, 3, 3, 0.35);
+    --shadow-blue:  rgba(3, 57, 102, 0.35);
+
+    /* Glassmorphism */
+    --glass-bg:     rgba(3, 57, 102, 0.22);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+
+    /* Espaciados */
+    --sp-xs: 4px; --sp-sm: 8px; --sp-md: 16px; --sp-lg: 24px; --sp-xl: 32px;
+
+    /* Transiciones */
+    --trans:      0.2s ease;
+    --trans-slow: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 ```
 
@@ -40,16 +141,16 @@
 
 Los colores son la identidad corporativa del Grupo Industrial Saavedra (GIS):
 
-| Color | Hex | Uso |
-|---|---|---|
-| **Verde Principal** | `#0A8504` | Acciones de éxito, botones primarios, confirmaciones |
-| **Rojo Peligro** | `#9C0303` | Cerrar, scrap, paro de línea, eliminar |
-| **Azul Marino** | `#033966` | Paneles, headers, elementos corporativos |
-| **Gris Oscuro** | `#404040` | Texto secundario, acentos neutros |
-| **Blanco Puro** | `#FFFFFF` | Fondos principales |
-| **Negro Puro** | `#000000` | Texto principal, bordes en PDFs |
+| Color | Hex | Variable CSS | Uso |
+|---|---|---|---|
+| **Verde Principal** | `#0A8504` | `var(--gis-green)` | Acciones de éxito, botones primarios, confirmaciones |
+| **Rojo Peligro** | `#9C0303` | `var(--gis-red)` | Cerrar, scrap, paro de línea, eliminar |
+| **Azul Marino** | `#033966` | `var(--gis-blue)` | Paneles, headers, elementos corporativos |
+| **Gris Oscuro** | `#404040` | `var(--gis-gray)` | Texto secundario, acentos neutros |
+| **Blanco Puro** | `#FFFFFF` | `var(--gis-white)` | Fondos principales |
+| **Negro Puro** | `#000000` | `var(--gis-black)` | Texto principal, bordes en PDFs |
 
-> **NUNCA uses colores genéricos como `red`, `blue`, `green`, `#ff0000`** en vistas del proyecto.
+> **NUNCA uses colores genéricos como `red`, `blue`, `green`, `#ff0000`** ni hardcodes de la paleta directamente en el CSS — usa las variables `var(--gis-*)`.
 
 ---
 
@@ -349,3 +450,82 @@ O en línea cuando no hay clase disponible:
  vertical-align: middle;
 }
 ```
+
+---
+
+## 13. Clases de Estado (Reemplazando Estilos Inline y JS)
+
+En lugar de `style="color: #0a8504"` en Blade o `element.style.color = '#0a8504'` en JS, usa estas clases de `global.css`:
+
+| Clase CSS | Efecto | Variable interna |
+|---|---|---|
+| `.status-ok` | Color de texto verde | `var(--gis-green)` |
+| `.status-error` | Color de texto rojo | `var(--gis-red)` |
+| `.status-neutral` | Color de texto gris | `var(--gis-gray)` |
+| `.status-info` | Color de texto azul | `var(--gis-blue)` |
+| `.bg-status-ok` | Fondo verde suave | `rgba(gis-green, 0.12)` |
+| `.bg-status-error` | Fondo rojo suave | `rgba(gis-red, 0.12)` |
+| `.bg-status-info` | Fondo azul suave | `rgba(gis-blue, 0.08)` |
+
+**Ejemplo en Blade:**
+```blade
+{{-- ANTES (incorrecto) --}}
+<span style="color: #0a8504">Aprobado</span>
+
+{{-- AHORA (correcto) --}}
+<span class="status-ok">Aprobado</span>
+```
+
+**Ejemplo en JS:**
+```js
+// ANTES (incorrecto)
+element.style.color = '#9c0303';
+
+// AHORA (correcto)
+element.classList.add('status-error');
+element.classList.remove('status-ok');
+```
+
+---
+
+## 14. Clases Utilitarias de Visibilidad (para JS)
+
+Usa las clases de `global.css` en lugar de manipular `style.display` directamente:
+
+| Clase | Equivalente |
+|---|---|
+| `.hidden` | `display: none !important` |
+| `.visible` | `display: block !important` |
+| `.flex-visible` | `display: flex !important` |
+
+```js
+// ANTES
+element.style.display = 'none';
+
+// AHORA
+element.classList.add('hidden');
+element.classList.replace('hidden', 'flex-visible');
+```
+
+> **Excepción válida:** Si el `display` depende de un valor dinámico que no puede encapsularse en clase fija (ej. grids con columnas variables), puede usarse `style=` inline en ese caso específico.
+
+---
+
+## 15. Creación Dinámica de Componentes DOM en JavaScript
+
+Al construir interfaces o componentes de manera dinámica con document.createElement() en JavaScript (lmacen_fundicion.js, processProduction.js, etc.), sigue estas reglas:
+
+1. **Prohibido style.cssText o asignaciones masivas inline:** No inyectes cadenas largas de estilos ni redefinas propiedades estáticas (como bordes, sombras, fuentes o paddings) mediante código JavaScript.
+2. **Usar Clases Declarativas:** Asigna siempre clases CSS claras mediante element.className o element.classList.add(...). Si el componente no tiene clases existentes, define nuevas clases en esources/css/global.css o en el CSS del módulo respectivo.
+3. **Excepción Válida de Runtime:** Las únicas asignaciones mediante element.style.* permitidas son aquellas cuyos valores se calculan en tiempo de ejecución y cambian dinámicamente según los datos u operadores:
+   - Anchos de barras de progreso: element.style.width = \${pct}%\;`n   - Retardos de animación calculados en bucles: element.style.animationDelay = \${i * 0.05}s\;`n   - Colores o gradientes variables recibidos como parámetro de configuración o base de datos.
+
+`js
+// ❌ ANTES (incorrecto - estilo estático inyectado por JS)
+const card = document.createElement('div');
+card.style.cssText = 'border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 12px; background: #fff; border: 2px solid #d97706;';
+
+// ✅ AHORA (correcto - uso de clases atómicas o de componente)
+const card = document.createElement('div');
+card.classList.add('alm-card-base', 'alm-card-warning');
+``n

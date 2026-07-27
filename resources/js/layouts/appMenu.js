@@ -132,7 +132,7 @@ function createList(sections, isNested = false) {
                                 parentEl.classList.add("active");
                                 const sub = parentEl.querySelector(".submenu");
                                 if (sub) {
-                                    sub.style.display = "block";
+                                    sub.classList.remove("hidden");
                                 }
                             }
                             parentEl = parentEl.parentElement;
@@ -157,17 +157,17 @@ function createList(sections, isNested = false) {
                     if (sibling !== parent && sibling.classList.contains("menu-section")) {
                         sibling.classList.remove("active");
                         const submenu = sibling.querySelector(".submenu");
-                        if (submenu) submenu.style.display = "none";
+                        if (submenu) submenu.classList.add("hidden");
                     }
                 }
 
                 // Alternar el actual
                 if (isAlreadyActive) {
                     parent.classList.remove("active");
-                    ulSubmenu.style.display = "none";
+                    ulSubmenu.classList.add("hidden");
                 } else {
                     parent.classList.add("active");
-                    ulSubmenu.style.display = "block";
+                    ulSubmenu.classList.remove("hidden");
                 }
             });
 

@@ -192,11 +192,11 @@ function updateAdminUI() {
         }
 
         // Visibilidad Alertas Izquierda
-        if (alertNotReady) alertNotReady.style.display = 'none';
-        if (alertReadyExists) alertReadyExists.style.display = existe ? 'block' : 'none';
-        if (alertReadyNotExists) alertReadyNotExists.style.display = existe ? 'none' : 'block';
+        if (alertNotReady) alertNotReady.classList.add("hidden");
+        if (alertReadyExists) alertReadyExists.classList.toggle("hidden", !existe);
+        if (alertReadyNotExists) alertReadyNotExists.classList.toggle("hidden", existe);
         if (btnCrear) {
-            btnCrear.style.display = existe ? 'none' : 'block';
+            btnCrear.classList.toggle("hidden", existe);
             if (module === 'dibujos' || module === 'fundicion') { btnCrear.dataset.otId = otSel.value; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
             else if (module === 'manuales') { btnCrear.dataset.proceso = p1; btnCrear.dataset.folderParam1 = p1; }
             else if (module === 'ayudas') { btnCrear.dataset.proceso = p1; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
@@ -204,19 +204,19 @@ function updateAdminUI() {
         }
 
         // Visibilidad Panel Derecha (Subir)
-        if (uploadNotReadyContent) uploadNotReadyContent.style.display = 'none';
-        if (uploadReadyContent) uploadReadyContent.style.display = 'block';
-        if (alertUploadNoFolder) alertUploadNoFolder.style.display = existe ? 'none' : 'block';
+        if (uploadNotReadyContent) uploadNotReadyContent.classList.add("hidden");
+        if (uploadReadyContent) uploadReadyContent.classList.remove("hidden");
+        if (alertUploadNoFolder) alertUploadNoFolder.classList.toggle("hidden", existe);
 
         const fileFormGroup = uploadReadyContent ? uploadReadyContent.querySelector('.dibujos-form-group') : null;
-        if (fileFormGroup) fileFormGroup.style.display = existe ? 'block' : 'none';
+        if (fileFormGroup) fileFormGroup.classList.toggle("hidden", !existe);
 
         const fileInput = document.getElementById('d-upload-file');
         if (fileInput) fileInput.disabled = !existe;
 
         if (btnSubir) {
             btnSubir.disabled = !existe;
-            btnSubir.style.display = existe ? 'inline-block' : 'none';
+            btnSubir.classList.toggle("hidden", !existe);
             if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
             else if (module === 'manuales') { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; }
             else if (module === 'ayudas') { btnSubir.dataset.proceso = p1; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
@@ -230,13 +230,13 @@ function updateAdminUI() {
         }
     } else {
         if (panelFiles) panelFiles.classList.remove('active');
-        if (alertNotReady) alertNotReady.style.display = 'block';
-        if (alertReadyExists) alertReadyExists.style.display = 'none';
-        if (alertReadyNotExists) alertReadyNotExists.style.display = 'none';
-        if (btnCrear) btnCrear.style.display = 'none';
+        if (alertNotReady) alertNotReady.classList.remove("hidden");
+        if (alertReadyExists) alertReadyExists.classList.add("hidden");
+        if (alertReadyNotExists) alertReadyNotExists.classList.add("hidden");
+        if (btnCrear) btnCrear.classList.add("hidden");
 
-        if (uploadNotReadyContent) uploadNotReadyContent.style.display = 'block';
-        if (uploadReadyContent) uploadReadyContent.style.display = 'none';
+        if (uploadNotReadyContent) uploadNotReadyContent.classList.remove("hidden");
+        if (uploadReadyContent) uploadReadyContent.classList.add("hidden");
     }
 }
 
@@ -455,7 +455,7 @@ function renderArchivosGrid(data, param1, param2) {
     const grid = document.getElementById('archivos-grid');
     const ayudasSection = document.getElementById('fundicion-ayudas-section');
     if (module === 'fundicion' && ayudasSection) {
-        ayudasSection.style.display = (data.existe && data.archivos.length > 0) ? 'block' : 'none';
+        ayudasSection.classList.toggle("hidden", !(data.existe && data.archivos.length > 0));
     }
 
     if (!data.existe || data.archivos.length === 0) {
@@ -505,7 +505,7 @@ window.prepararReemplazo = function (nombreArchivo, param1, param2, btnElement) 
     const hiddenInput = document.createElement('input');
     hiddenInput.type = 'file';
     hiddenInput.accept = '.pdf';
-    hiddenInput.style.display = 'none';
+    hiddenInput.classList.add("hidden");
 
     hiddenInput.addEventListener('change', () => {
         const file = hiddenInput.files[0];
@@ -983,7 +983,7 @@ window.confirmarEliminarCarpeta = function (p1, p2, label) {
 
         btnConfirm.textContent = isVaciar ? 'Vaciar Carpeta' : 'Eliminar Permanentemente';
 
-        modal.style.display = 'flex';
+        modal.classList.remove("hidden");
 
         btnConfirm.onclick = () => {
             eliminarCarpetaAJAX(folderToDelete);
@@ -994,7 +994,7 @@ window.confirmarEliminarCarpeta = function (p1, p2, label) {
 
 window.cerrarConfirmarEliminar = function () {
     const modal = document.getElementById('dibujos-confirm-modal');
-    if (modal) modal.style.display = 'none';
+    if (modal) modal.classList.add("hidden");
     folderToDelete = null;
 };
 
@@ -1295,7 +1295,7 @@ class FundicionChecklistCard {
         badge.className = 'checklist-reproceso-badge';
         badge.id = `checklist-badge-${this.otId}`;
         badge.textContent = 'Reproceso';
-        badge.style.display = 'none';
+        badge.classList.add("hidden");
         header.appendChild(badge);
 
         card.appendChild(header);
@@ -1303,19 +1303,19 @@ class FundicionChecklistCard {
         const itemsContainer = document.createElement('div');
         itemsContainer.className = 'checklist-items';
         itemsContainer.id = `checklist-items-${this.otId}`;
-        itemsContainer.style.display = 'none';
+        itemsContainer.classList.add("hidden");
         card.appendChild(itemsContainer);
 
         card.classList.add('is-closed');
 
         // Toggle logic: make whole card clickable
-        card.style.cursor = 'pointer';
+        card.classList.add("cursor-pointer");
         card.addEventListener('click', () => {
-            if (itemsContainer.style.display === 'none') {
-                itemsContainer.style.display = '';
+            if (itemsContainer.classList.contains("hidden")) {
+                itemsContainer.classList.remove("hidden");
                 card.classList.remove('is-closed');
             } else {
-                itemsContainer.style.display = 'none';
+                itemsContainer.classList.add("hidden");
                 card.classList.add('is-closed');
             }
         });
@@ -1347,13 +1347,13 @@ class FundicionChecklistCard {
         if (!card) return;
 
         let colorHex = this._getBorderColor(data);
-        if (colorHex === '#9D0402') { card.style.borderColor = '#9D0402'; card.style.boxShadow = 'none'; }
-        else if (colorHex === '#0C8201') { card.style.borderColor = '#0C8201'; card.style.boxShadow = 'none'; }
-        else { card.style.borderColor = ''; card.style.boxShadow = ''; }
+        card.classList.remove("card-border-red", "card-border-green");
+                if (colorHex === "#9D0402") card.classList.add("card-border-red");
+                else if (colorHex === "#0C8201") card.classList.add("card-border-green");
 
         const badge = card.querySelector(`#checklist-badge-${this.otId}`);
         if (badge) {
-            badge.style.display = data.isBadgeVisible ? 'inline-flex' : 'none';
+            badge.classList.toggle("hidden", !data.isBadgeVisible);
             if (data.badgeText) badge.textContent = data.badgeText;
         }
 
@@ -1372,7 +1372,7 @@ class FundicionChecklistCard {
 
             const item = document.createElement('div');
             item.className = `checklist-item checklist-item--${paso.estado}`;
-            if (paso.tooltip) { item.title = paso.tooltip; item.style.cursor = 'help'; }
+            if (paso.tooltip) { item.title = paso.tooltip; item.classList.add("cursor-help"); }
 
             const iconSpan = document.createElement('span');
             iconSpan.className = 'checklist-icon';
@@ -1649,10 +1649,10 @@ function poblarYFiltrarSelect(selectId, tableOrTbodySelector, defaultLabel) {
         currentRows.forEach(row => {
             if (row.children.length === 1 && row.querySelector('td[colspan]')) return;
             if (!val) {
-                row.style.display = '';
+                row.classList.remove("hidden");
             } else {
                 const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(val) ? '' : 'none';
+                row.classList.toggle("hidden", !text.includes(val));
             }
         });
     };

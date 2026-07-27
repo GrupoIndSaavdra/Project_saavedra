@@ -59,7 +59,7 @@ function crearTabla(piezas, infoPiezas) {
         } else {
             applyAllFilters();
             const loading = document.querySelector('.loading');
-            if (loading) loading.style.display = 'none';
+            if (loading) loading.classList.add("hidden");
         }
     }
 
@@ -456,7 +456,7 @@ function createStatusPersonFilterUI() {
     let divPerson = document.createElement("div");
     divPerson.className = "filter";
     divPerson.id = "statusPersonFilterDiv";
-    divPerson.style.display = "none"; // Oculto por defecto
+    divPerson.classList.add("hidden"); // Oculto por defecto
 
     let selectPerson = document.createElement("select");
     selectPerson.className = "select-filter";
@@ -495,7 +495,7 @@ function updateStatusPersonFilter(statusValue) {
 
     if (!statusValue || statusValue === "Todos") {
         // Ocultar y resetear el filtro de persona
-        divPerson.style.display = "none";
+        divPerson.classList.add("hidden");
         selectPerson.value = "Todos";
         while (selectPerson.options.length > 1) selectPerson.remove(1);
         return;
@@ -553,7 +553,7 @@ function updateStatusPersonFilter(statusValue) {
     }
 
     // Mostrar el filtro
-    divPerson.style.display = "";
+    divPerson.classList.remove("hidden");
 }
 createFilters();
 
@@ -786,7 +786,7 @@ function applyAllFilters() {
             }
         }
 
-        row.style.display = show ? "" : "none";
+        row.classList.toggle("hidden", !(show ));
         if (show) visibleCount++;
     });
 
@@ -798,8 +798,7 @@ function applyAllFilters() {
         let explanation = document.querySelector(".filter-explanation");
         if (!explanation) {
             explanation = document.createElement("div");
-            explanation.className = "filter-explanation";
-            explanation.style.cssText = "font-size: 0.85rem; color: #555; margin-top: 5px; font-style: italic;";
+            explanation.className = "filter-explanation alm-explanation-text";
             explanation.textContent = "Nota: Los filtros se aplican en tiempo real de forma acumulativa (puedes combinar múltiples criterios).";
             totalLabel.insertAdjacentElement("afterend", explanation);
         }
@@ -810,7 +809,7 @@ function applyAllFilters() {
             if (!noDataMsg) {
                 noDataMsg = document.createElement("div");
                 noDataMsg.id = "no-data-alert";
-                noDataMsg.style.cssText = "background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin-top: 20px; text-align: center; font-weight: bold; border: 1px solid #f5c6cb;";
+                noDataMsg.className = "alm-no-data-msg";
                 noDataMsg.textContent = "No hay datos para ese filtro aplicado.";
                 explanation.insertAdjacentElement("afterend", noDataMsg);
             }
@@ -1187,7 +1186,7 @@ function setupGameFilterLogic() {
 
         if (otVal && otVal !== "Todos" && classVal && classVal !== "Todos") {
             // Mostrar y habilitar el filtro
-            if (gameContainer) gameContainer.style.display = "";
+            if (gameContainer) gameContainer.classList.remove("hidden");
             gameSelect.disabled = false;
             // Debounce: esperar 150ms para evitar múltiples requests al cambiar rápido
             clearTimeout(gameFilterDebounceTimer);
@@ -1197,7 +1196,7 @@ function setupGameFilterLogic() {
         } else {
             clearTimeout(gameFilterDebounceTimer);
             // Ocultar y deshabilitar el filtro
-            if (gameContainer) gameContainer.style.display = "none";
+            if (gameContainer) gameContainer.classList.add("hidden");
             gameSelect.disabled = true;
             gameSelect.value = "Todos";
             // Limpiar opciones extra (mantener solo "Todos")
@@ -1214,7 +1213,7 @@ function setupGameFilterLogic() {
 
     // Ocultar por defecto al inicializar
     const gameContainer = gameSelect?.closest('.filter');
-    if (gameContainer) gameContainer.style.display = "none";
+    if (gameContainer) gameContainer.classList.add("hidden");
 
     // Chequeo inicial: solo cargar juegos si OT y clase ya tienen valor seleccionado
     // (es decir, si el usuario ya había filtrado antes)

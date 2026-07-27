@@ -65,7 +65,7 @@ function initToggleFiles() {
             if (tbody) {
                 tbody.querySelectorAll('.alm-files-row.open').forEach(row => {
                     row.classList.remove('open');
-                    row.style.display = 'none';
+                    row.classList.add("hidden");
                 });
                 tbody.querySelectorAll('.btn-toggle-files.active').forEach(b => {
                     b.classList.remove('active');
@@ -77,13 +77,13 @@ function initToggleFiles() {
 
         if (isOpen) {
             filesRow.classList.remove('open');
-            filesRow.style.display = 'none';
+            filesRow.classList.add("hidden");
             btn.classList.remove('active');
             btn.setAttribute('aria-expanded', 'false');
             btn.innerHTML = 'Ver Archivos';
         } else {
             filesRow.classList.add('open');
-            filesRow.style.display = 'table-row';
+            filesRow.classList.remove("hidden");
             btn.classList.add('active');
             btn.setAttribute('aria-expanded', 'true');
             btn.innerHTML = 'Ocultar';
@@ -142,7 +142,7 @@ function aplicarFiltros() {
     // Mostrar / ocultar botón limpiar
     const btnLimpiar = document.getElementById('calmaq-btn-limpiar');
     if (btnLimpiar) {
-        btnLimpiar.style.display = (hayFiltros || hayFecha) ? 'inline-flex' : 'none';
+        btnLimpiar.classList.toggle("hidden", !(hayFiltros || hayFecha));
     }
 
     // Aplicar a cada tabla según su configuración
@@ -176,13 +176,13 @@ function filtrarTabla(tabla, ot, clase, proceso) {
         const matchProceso = !proceso || (ds.proceso ?? '') === proceso;
 
         const visible = matchOt && matchClase && matchProceso;
-        row.style.display = visible ? '' : 'none';
+        row.classList.toggle("hidden", !(visible ));
 
         // Si la fila se oculta, también ocultamos su detalle expandido si lo tuviera
         const nextRow = row.nextElementSibling;
         if (nextRow && nextRow.classList.contains('alm-files-row')) {
             if (!visible) {
-                nextRow.style.display = 'none';
+                nextRow.classList.add("hidden");
                 nextRow.classList.remove('open');
                 const btn = row.querySelector('.btn-toggle-files');
                 if (btn) {
@@ -204,7 +204,7 @@ function filtrarTabla(tabla, ot, clase, proceso) {
 
     // Mostrar panel vacío si todas las filas quedaron ocultas
     if (noMatch) {
-        noMatch.style.display = (rows.length > 0 && visibles === 0) ? 'block' : 'none';
+        noMatch.classList.toggle("hidden", !(rows.length > 0 && visibles === 0));
     }
 }
 

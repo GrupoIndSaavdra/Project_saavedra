@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
 <title>Datos de productividad</title>
@@ -16,7 +16,7 @@
         @csrf
         <div class="dashboard">
             <!-- Cuadro de OT -->
-            <div class="box ot" style="background-color: #fff">
+            <div class="box ot pro-background-color-fff">
                 <label for="ot-select">Orden de Trabajo:</label>
             </div>
 
@@ -47,7 +47,7 @@
         </div>
         <!-- Boton de buscar -->
         <div class="button-container">
-            <input type="submit" id="button" class="button" value="Buscar" style="display: none">
+            <input type="submit" id="button" class="button pro-display-none">
         </div>
     </form>
 
@@ -64,7 +64,7 @@
             <h3>Proceso</h3>
             <input class="filtros2" type="text" value="{{ $filtros['proceso'] }}" disabled>
             <h3>Operador</h3>
-            <input class="filtros2" type="text" value="{{ $filtros['operador'] }}" disabled style="width: 300px">
+            <input class="filtros2 pro-width-300px">
         </div>
         <div class="div-table">
             <script>

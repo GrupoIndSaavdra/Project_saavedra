@@ -1,8 +1,11 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 
 body {
@@ -59,7 +62,7 @@ body {
     text-align: center;
     font-size: 1em;
     letter-spacing: 1px;
-    background: #033966;
+    background: var(--gis-blue);
     border: 5px solid #033966d4;
     color: #ffffff;
     transition: all 0.3s ease;
@@ -76,7 +79,7 @@ td {
 .form-label {
     font-size: 1em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
 }
 
 .full-width {
@@ -106,7 +109,7 @@ td {
 .btn-submit {
     opacity: 0; /* Oculto por defecto */
     pointer-events: none; /* Inactivo por defecto */
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
     padding: 1em 7em;
     border: none;
@@ -154,7 +157,7 @@ td {
     border: none;
     border-radius: 8px;
     color: #ffffff;
-    background: #9c0300;
+    background: var(--gis-red);
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3);
@@ -253,10 +256,11 @@ p {
     position: absolute;
     right: 1em;
     cursor: pointer;
-    color: #033966;
+    color: var(--gis-blue);
     display: flex;
     align-items: center;
     justify-content: center;
+    -webkit-user-select: none;
     user-select: none;
     transition: all 0.2s ease;
     opacity: 0.7;
@@ -353,7 +357,7 @@ p {
 }
 
 .btn-submit-password {
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
     display: flex;
     justify-content: center;
@@ -540,7 +544,7 @@ p {
     font-weight: 900;
     font-size: 1.1em;
     text-transform: uppercase;
-    color: #033966;
+    color: var(--gis-blue);
 }
 
 .scrollable-table {
@@ -572,9 +576,8 @@ p {
     box-shadow: 0 0 10px rgba(0, 0, 0);
 }
 
-
 .table-title {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: #fff;
     padding: 10px 0;
     text-align: center;
@@ -612,16 +615,15 @@ p {
     left: 0;
     z-index: 1;
     background-color: #f8f9fa;
-    border-right: 4px solid #033966;
+    border-right: 4px solid var(--gis-blue);
 }
 
 .table tr th:first-child {
     z-index: 7;
     top: 0;
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: #fff;
 }
-
 
 .table input {
     height: 100%;
@@ -629,7 +631,7 @@ p {
     text-align: center;
     padding: 0.5em 0;
     font-size: 1.1em;
-    background: #03396610;
+    background: var(--gis-blue)10;
 }
 
 .table td {
@@ -638,7 +640,7 @@ p {
     text-align: center;
     font-size: 1.1em;
     font-weight: 700;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
     background-color: #fff;
 }
 
@@ -646,7 +648,6 @@ p {
 .table.table-compact {
     width: auto;
 }
-
 
 .table.table-compact th.table-title {
     width: 80px;
@@ -661,8 +662,6 @@ p {
 .table.table-compact td select {
     width: 100%;
 }
-
-
 
 .input-medio {
     width: 50%;
@@ -698,7 +697,7 @@ td select {
 
 /* Botón Ver Dibujos (operador) */
 .btn-dibujos-viewer {
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
     padding: 0.5em 1em;
     margin: 0.3em -1em 0 -1em;
@@ -719,7 +718,7 @@ td select {
 }
 
 .btn-savePiece {
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
     padding: 0.8em 1.5em;
     border: none;
@@ -766,7 +765,7 @@ td select {
     align-items: center;
     text-align: center;
     background: #0000003a;
-    -webkit-backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
     /* Safari */
     z-index: 10000;
@@ -818,7 +817,7 @@ td select {
 }
 
 .btn-acept {
-    background: #9c0300;
+    background: var(--gis-red);
     color: #ffffff;
     padding: 0.5em 1em;
     margin: 1em;
@@ -834,13 +833,13 @@ td select {
     justify-content: center;
     align-items: center;
     margin: auto;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 1.5em;
     font-weight: 700;
     font-style: oblique;
     text-transform: uppercase;
     padding: 1em;
-    border: 5px solid #033966;
+    border: 5px solid var(--gis-blue);
     border-radius: 5px;
     background: #fff;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
@@ -857,7 +856,7 @@ td select {
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-    border: 4px solid #033966;
+    border: 4px solid var(--gis-blue);
 }
 
 /* Estilo para la "X" de cierre en el modal de liberación */
@@ -894,7 +893,7 @@ td select {
 
 .modal-title {
     text-align: center;
-    color: #033966;
+    color: var(--gis-blue);
     margin-bottom: 1em;
     font-size: 1.5em;
 }
@@ -934,7 +933,7 @@ td select {
     max-height: 50vh;
     overflow-y: auto;
     margin-bottom: 1.5em;
-    border: 2px solid #033966;
+    border: 2px solid var(--gis-blue);
     border-radius: 8px;
 }
 
@@ -950,7 +949,7 @@ td select {
 }
 
 .release-table th {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     padding: 1em 0.5em;
     text-align: center;
@@ -982,7 +981,7 @@ td select {
 .action-select {
     padding: 0.5em;
     border-radius: 5px;
-    border: 2px solid #033966;
+    border: 2px solid var(--gis-blue);
     font-size: 0.9em;
     cursor: pointer;
     min-width: 120px;
@@ -992,7 +991,7 @@ td select {
     width: 100%;
     min-width: 150px;
     padding: 0.5em;
-    border: 2px solid #033966;
+    border: 2px solid var(--gis-blue);
     border-radius: 5px;
     font-size: 0.9em;
     resize: vertical;
@@ -1082,8 +1081,8 @@ td select {
 .historical-title {
     font-size: 1.2em;
     font-weight: bold;
-    color: #033966;
-    border: 5px solid #033966;
+    color: var(--gis-blue);
+    border: 5px solid var(--gis-blue);
     margin-bottom: 10px;
     text-align: center;
     background: #fff;
@@ -1110,7 +1109,7 @@ td select {
 }
 
 .process-section:hover {
-    background: #033966;
+    background: var(--gis-blue);
     transform: scale(1.02);
 }
 
@@ -1135,11 +1134,11 @@ td select {
 }
 
 .good-progress {
-    background: linear-gradient(to right, #9ff390, #0a8504);
+    background: linear-gradient(to right, #9ff390, var(--gis-green));
 }
 
 .bad-progress {
-    background: linear-gradient(to right, #f38080, #9c0303);
+    background: linear-gradient(to right, #f38080, var(--gis-red));
 }
 
 .progress-percentage {
@@ -1184,7 +1183,7 @@ td select {
 
 .pta-modal-title {
     margin-bottom: 0.5em;
-    color: #033966;
+    color: var(--gis-blue);
     font-weight: 700;
     font-size: 1.4em;
 }
@@ -1210,7 +1209,7 @@ td select {
 }
 
 .pta-modal-input:focus {
-    border-color: #033966;
+    border-color: var(--gis-blue);
 }
 
 .pta-modal-error {
@@ -1253,7 +1252,7 @@ td select {
 }
 
 .pta-modal-btn-submit {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: #ffffff;
 }
 
@@ -1312,7 +1311,7 @@ td select {
     margin-top: 0.7em;
     font-size: 0.85em;
     font-weight: 800;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -1401,7 +1400,7 @@ td select {
     max-height: 88vh;
     background: #ffffff;
     border-radius: 20px;
-    border: 4px solid #033966;
+    border: 4px solid var(--gis-blue);
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
@@ -1420,7 +1419,7 @@ td select {
 }
 
 .prod-viewer-header h3 {
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 1.4em;
     font-weight: 800;
     margin-bottom: 1em;
@@ -1436,9 +1435,9 @@ td select {
     justify-content: center;
     gap: 0.8em;
     font-size: 1em;
-    color: #033966;
+    color: var(--gis-blue);
     background: #f0f7ff;
-    border: 2px solid #033966;
+    border: 2px solid var(--gis-blue);
     border-radius: 50px;
     padding: 0.8em 2em;
     margin-bottom: 1.5em;
@@ -1455,13 +1454,13 @@ td select {
 
 .prod-viewer-breadcrumb .path-ot {
     font-weight: 800;
-    border-left: 2px solid #033966;
+    border-left: 2px solid var(--gis-blue);
     padding-left: 1em;
 }
 
 .prod-viewer-breadcrumb .path-clase {
     font-weight: 700;
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     padding: 0.15em 0.8em;
     border-radius: 6px;
@@ -1497,7 +1496,7 @@ td select {
     flex-direction: column;
     align-items: center;
     padding: 2em 1.5em;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
     border-radius: 16px;
     background: #ffffff;
     cursor: pointer;
@@ -1517,7 +1516,7 @@ td select {
     left: 0;
     width: 100%;
     height: 5px;
-    background: #033966;
+    background: var(--gis-blue);
     opacity: 0.1;
     transition: opacity 0.3s ease;
 }
@@ -1577,7 +1576,7 @@ td select {
 .prod-viewer-filename {
     font-size: 0.95em;
     font-weight: 800;
-    color: #033966;
+    color: var(--gis-blue);
     word-break: break-all;
     line-height: 1.3;
 }
@@ -1593,7 +1592,7 @@ td select {
 }
 
 .prod-viewer-card:hover .prod-viewer-action {
-    color: #033966;
+    color: var(--gis-blue);
     letter-spacing: 2px;
 }
 
@@ -1612,7 +1611,7 @@ td select {
     display: flex;
     flex-direction: column;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-    border: 4px solid #033966;
+    border: 4px solid var(--gis-blue);
     animation: modal-entry 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -1649,7 +1648,7 @@ td select {
     border: none;
     border-radius: 10px;
     background: transparent;
-    color: #033966;
+    color: var(--gis-blue);
     font-weight: 800;
     font-size: 1.1em;
     cursor: pointer;
@@ -1668,7 +1667,7 @@ td select {
 }
 
 .tech-tab-btn.active {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     box-shadow: 0 4px 15px rgba(3, 57, 102, 0.3);
     transform: scale(1.05);
@@ -1716,7 +1715,7 @@ td select {
     justify-content: center;
     height: 300px;
     gap: 1.5em;
-    color: #033966;
+    color: var(--gis-blue);
 }
 
 .tech-empty-state {
@@ -1739,7 +1738,7 @@ td select {
 
 .tech-doc-card:hover {
     background: #fff;
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 8px 20px rgba(3, 57, 102, 0.15);
 }
 
@@ -1774,6 +1773,4 @@ td select {
     transform: scale(1.15) rotate(3deg) translateY(-3px);
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
-
-
 

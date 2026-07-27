@@ -23,8 +23,8 @@ const aplicarAccionesToEvents = (habilitar, campos) => {
                     break;
                 case "boton":
                     let boton = document.getElementById("button");
-                    if (boton.style.display != "none") {
-                        boton.style.display = "none";
+                    if (!boton.classList.contains("hidden")) {
+                        boton.classList.add("hidden");
                     }
                     break;
                 default:
@@ -293,7 +293,7 @@ document.querySelector(".dashboard").addEventListener("change", (e) => {
         crearInputConValor(boxPedido, null, "pedido");
 
         let boton = document.getElementById("button");
-        if (boton) boton.style.display = "none";
+        if (boton) boton.classList.add("hidden");
     }
 
     else if (target.id === "operadores-select") {
@@ -318,7 +318,7 @@ document.querySelector(".dashboard").addEventListener("change", (e) => {
     else if (target.id === "procesos-select") {
         let boton = document.getElementById("button");
         if (boton) {
-            boton.style.display = target.value != 0 ? "block" : "none";
+            boton.classList.toggle("hidden", !(target.value != 0 ));
         }
     }
 });
@@ -351,7 +351,7 @@ function updateProcesos() {
     }
 
     let boton = document.getElementById("button");
-    if (boton) boton.style.display = "none";
+    if (boton) boton.classList.add("hidden");
 }
 
 const crearLeyendaProductividad = () => {

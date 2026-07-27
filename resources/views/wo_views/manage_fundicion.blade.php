@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     <title>{{ $pageTitle ?? 'Gestión de Documentación' }}</title>
@@ -81,7 +81,7 @@
 
                     if ($otSeleccionadaId && $claseSeleccionadaId) {
                         $isReady = true;
-                        
+
                         if ($otActiva) {
                             $otLabel = "OT " . $otActiva->id . ($otActiva->moldura ? " - " . $otActiva->moldura->nombre : "");
                             $normalizedOt = trim(preg_replace('/\s+/', ' ', mb_strtoupper(str_replace(['—', '–', "\xc2\xa0"], '-', $otLabel))));
@@ -91,7 +91,7 @@
                             $param1Name = $otSeleccionadaId; // Fallback al string crudo si no hay OT activa
                             $param2Name = $claseSeleccionadaId;
                         }
-                        
+
                         $folderPathLabel = "<span class='lvl-1'>" . htmlspecialchars($param1Name) . "</span> <span class='lvl-sep'>/</span> <span class='lvl-2'>" . htmlspecialchars($param2Name) . "</span>";
                         $carpetaExiste = isset($estructura[$param1Name]) && in_array($param2Name, $estructura[$param1Name]);
                         $folderProps = ['data-ot' => $param1Name, 'data-clase' => $param2Name, 'data-ot-id' => $otActiva ? $otActiva->id : ''];
@@ -99,26 +99,22 @@
                 @endphp
 
                 <div id="admin-status-container">
-                    <div id="alert-ready-exists" class="d-alert d-alert-success d-mt-2"
-                        style="display: {{ $isReady && $carpetaExiste ? 'block' : 'none' }};">
+                    <div id="alert-ready-exists" @class(['d-alert', 'd-alert-success', 'd-mt-2', 'hidden' => !($isReady && $carpetaExiste)])>
                         La carpeta <strong class="folder-label">{!! $folderPathLabel ?? '...' !!}</strong> ya existe en el
                         servidor.
                     </div>
-                    <div id="alert-ready-not-exists" class="d-alert d-alert-warning d-mt-2"
-                        style="display: {{ $isReady && !$carpetaExiste ? 'block' : 'none' }};">
+                    <div id="alert-ready-not-exists" @class(['d-alert', 'd-alert-warning', 'd-mt-2', 'hidden' => !($isReady && !$carpetaExiste)])>
                         La carpeta <strong class="folder-label">{!! $folderPathLabel ?? '...' !!}</strong> aun <strong>no
                             existe</strong>. Creala antes de
                         subir PDFs.
                     </div>
-                    <button class="btn-dibujos d-mt-2" id="btn-crear-carpeta"
-                        style="display: {{ $isReady && !$carpetaExiste ? 'block' : 'none' }};" @if(isset($folderProps))
+                    <button @class(['btn-dibujos', 'd-mt-2', 'hidden' => !($isReady && !$carpetaExiste)]) id="btn-crear-carpeta" @if(isset($folderProps))
                         @foreach($folderProps as $k => $v) {{ $k }}="{{ $v }}" @endforeach @else data-ot="" data-clase=""
                         data-proceso="" @endif data-folder-param1="{{ $param1Name ?? '' }}"
                         data-folder-param2="{{ $param2Name ?? '' }}">
                         Crear Carpeta
                     </button>
-                    <div id="alert-not-ready" class="d-alert d-alert-info d-mt-2"
-                        style="display: {{ $isReady ? 'none' : 'block' }};">
+                    <div id="alert-not-ready" @class(['d-alert', 'd-alert-info', 'd-mt-2', 'hidden' => $isReady])>
                         {{ $alertContext }}
                     </div>
                 </div>
@@ -129,15 +125,15 @@
                 <h2>Subir PDF</h2>
 
                 <div id="admin-upload-container">
-                    <div id="upload-ready-content" style="display:none;">
+                    <div id="upload-ready-content" class="hidden">
                         <p class="d-text-xs d-text-muted d-mb-2">
-                            Carpeta destino: <strong class="folder-label d-text-bold" style="color:#033966;">...</strong>
+                            Carpeta destino: <strong class="folder-label d-text-bold" class="text-primary">...</strong>
                         </p>
 
                         <div id="alert-upload-no-folder" class="d-alert d-alert-warning d-mb-3"
-                            style="display:none; font-size: 0.95em; border-left: 4px solid #f59e0b; background-color: #fffbeb; color: #b45309; padding: 12px 15px; border-radius: 6px;">
-                            <strong style="color:red;">ACCIÓN REQUERIDA:</strong> La carpeta de destino aun no existe.<br>
-                            Para habilitar la subida de archivos, primero <strong style="color:red;">Crea la Carpeta</strong> utilizando el
+                            class="d-alert d-alert-warning custom-alert-warning hidden">
+                            <strong class="text-danger">ACCIÓN REQUERIDA:</strong> La carpeta de destino aun no existe.<br>
+                            Para habilitar la subida de archivos, primero <strong class="text-danger">Crea la Carpeta</strong> utilizando el
                             botón correspondiente en el panel izquierdo.
                         </div>
 
@@ -165,19 +161,19 @@
             </div> {{-- Fin Columna Izquierda --}}
 
             {{-- Columna Derecha (Visualización) --}}
-            <div class="dibujos-dashboard-main" style="display: grid; grid-template-columns: {{ $isReady ? 'minmax(0, 1fr) minmax(0, 1fr)' : '1fr' }}; grid-template-rows: 1fr; min-height: calc(100vh - 180px); gap: 2em; align-items: stretch;">
+            <div class="dibujos-dashboard-main" @class(['dibujos-dashboard-main', 'grid-ready' => $isReady, 'grid-not-ready' => !$isReady])>
 
                 {{-- Panel de archivos de la carpeta seleccionada --}}
                 @if($isReady)
-                    <div class="dibujos-files-panel active" id="panel-archivos" style="display: flex; flex-direction: column; height: 100%;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
-                            <h2 style="margin: 0; padding-bottom: 0; border: none;">Archivos en: <span>{!! $folderPathLabel !!}</span></h2>
-                            <div class="dibujos-files-breadcrumb" style="margin: 0; background: none; padding: 0; border: none; flex-shrink: 0;">
+                    <div class="dibujos-files-panel active" id="panel-archivos" class="d-flex d-flex-column h-100">
+                        <div class="d-flex d-justify-between d-align-center mb-1-5 border-bottom pb-0-5">
+                            <h2 class="m-0 pb-0 border-none">Archivos en: <span>{!! $folderPathLabel !!}</span></h2>
+                            <div class="dibujos-files-breadcrumb" class="m-0 bg-none p-0 border-none shrink-0">
                                 Carpeta activa: <strong>{!! $folderPathLabel !!}</strong>
                             </div>
                         </div>
 
-                        <div class="dibujos-files-grid" id="archivos-grid" style="flex: 1; max-height: none; overflow-y: auto; align-content: start;">
+                        <div class="dibujos-files-grid" id="archivos-grid" class="flex-1 max-h-none overflow-y-auto align-content-start">
                             <p class="d-text-subtle d-text-center d-w-100">Cargando archivos...</p>
                         </div>
                     </div>
@@ -186,32 +182,32 @@
                     {{-- Sección de Ayudas Manuales Eliminada por Requerimiento --}}
                 @endif
 
-                <div style="{{ $isReady ? 'position: relative; height: 100%;' : 'display: flex; flex-direction: column; height: 100%;' }}">
-                    <div class="dibujos-table-section" style="{{ $isReady ? 'position: absolute; top: 0; left: 0; right: 0; bottom: 0;' : 'flex: 1;' }} display: flex; flex-direction: column;">
+                <div @class(['position-relative h-100' => $isReady, 'd-flex d-flex-column h-100' => !$isReady])>
+                    <div class="dibujos-table-section" @class(['dibujos-table-section', 'd-flex d-flex-column', 'position-absolute-inset' => $isReady, 'flex-1' => !$isReady])>
                         @if($isReady)
-                            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                                    <h2 style="margin: 0; padding: 0; border: none; flex: 1; min-width: 250px;">Estructura Actual de Carpetas en el Servidor</h2>
-                                    <div style="position: relative; min-width: 240px; max-width: 360px;">
+                            <div class="d-flex d-flex-column gap-0-5 mb-1">
+                                <div class="d-flex d-justify-between d-align-center flex-wrap gap-1">
+                                    <h2 class="m-0 p-0 border-none flex-1 min-w-250">Estructura Actual de Carpetas en el Servidor</h2>
+                                    <div class="position-relative min-w-240 max-w-360">
                                         <select id="filtro-tabla-estructura"
-                                                style="width: 100%; padding: 8px 14px; border-radius: 8px; border: 2px solid #033966; font-size: 0.9em; outline: none; background: #ffffff; color: #033966; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                                class="custom-select">
                                             <option value="">— Mostrar Todos —</option>
                                         </select>
                                     </div>
                                 </div>
-                                <div style="display: flex; align-items: center; justify-content: flex-start; gap: 0.8rem; flex-wrap: wrap;">
+                                <div class="d-flex d-align-center d-justify-start gap-0-8 flex-wrap">
                                 </div>
                             </div>
                         @else
-                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-                                <h2 style="margin: 0; padding: 0; border: none;">Estructura Actual de Carpetas en el Servidor</h2>
+                            <div class="d-flex d-justify-between d-align-center gap-1 mb-1 flex-wrap">
+                                <h2 class="m-0 p-0 border-none">Estructura Actual de Carpetas en el Servidor</h2>
 
-                                <div style="display: flex; align-items: center; justify-content: center; gap: 0.8rem; flex: 1; min-width: 250px;">
+                                <div class="d-flex d-align-center d-justify-center gap-0-8 flex-1 min-w-250">
                                 </div>
 
-                                <div style="position: relative; min-width: 240px; max-width: 360px;">
+                                <div class="position-relative min-w-240 max-w-360">
                                     <select id="filtro-tabla-estructura"
-                                            style="width: 100%; padding: 8px 14px; border-radius: 8px; border: 2px solid #033966; font-size: 0.9em; outline: none; background: #ffffff; color: #033966; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                            class="custom-select">
                                         <option value="">— Mostrar Todos —</option>
                                     </select>
                                 </div>
@@ -223,7 +219,7 @@
                     <p>No hay carpetas creadas aun.</p>
                 </div>
             @else
-                <div class="dibujos-table-container" style="flex: 1; {{ $isReady ? 'max-height: 100%;' : 'max-height: calc(100vh - 280px);' }} overflow-y: auto;">
+                <div class="dibujos-table-container" @class(['flex-1 overflow-y-auto', 'max-h-100' => $isReady, 'max-h-calc' => !$isReady])>
                     <table class="dibujos-table" id="tabla-estructura">
                         <thead>
                             <tr>
@@ -315,7 +311,7 @@
                                                     </div>
                                                 @else
                                                     <div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">
-                                                        <span class="badge-ayuda-tag alerta-sin-clases-tag" style="pointer-events: none;">Sin clases vinculadas</span>
+                                                        <span class="badge-ayuda-tag alerta-sin-clases-tag" class="pointer-events-none">Sin clases vinculadas</span>
                                                     </div>
                                                 @endif
                                             </td>
@@ -352,21 +348,21 @@
 
         {{-- NUEVA TABLA: Envío de Alertas por OT (Simplificada) --}}
         @if(count($estructura) > 0)
-            <div class="dibujos-table-section d-mt-3" style="grid-column: 1 / -1; {{ $isReady ? '' : 'display: flex; flex-direction: column;' }}">
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
-                    <h2 style="margin: 0; padding: 0; border: none;">Envío de Alertas a Producción</h2>
+            <div class="dibujos-table-section d-mt-3" @class(['grid-col-full', 'd-flex d-flex-column' => !$isReady])>
+                <div class="d-flex d-justify-between d-align-center gap-1 mb-1 flex-wrap">
+                    <h2 class="m-0 p-0 border-none">Envío de Alertas a Producción</h2>
 
-                    <div style="display: flex; align-items: center; justify-content: center; gap: 0.8rem; flex: 1; min-width: 250px;">
+                    <div class="d-flex d-align-center d-justify-center gap-0-8 flex-1 min-w-250">
                     </div>
 
-                    <div style="position: relative; min-width: 240px; max-width: 360px;">
+                    <div class="position-relative min-w-240 max-w-360">
                         <select id="filtro-tabla-alertas"
-                                style="width: 100%; padding: 8px 14px; border-radius: 8px; border: 2px solid #033966; font-size: 0.9em; outline: none; background: #ffffff; color: #033966; font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
+                                class="custom-select">
                             <option value="">— Mostrar Todas las OTs —</option>
                         </select>
                     </div>
                 </div>
-                <div class="dibujos-table-container d-log-scroll" style="flex: 1; {{ $isReady ? 'max-height: calc(40vh - 100px);' : 'max-height: calc(100vh - 280px);' }} overflow-y: auto;">
+                <div class="dibujos-table-container d-log-scroll" @class(['flex-1 overflow-y-auto', 'max-h-40vh' => $isReady, 'max-h-calc' => !$isReady])>
                     <table class="dibujos-table">
                         <thead>
                             <tr>
@@ -421,7 +417,7 @@
                                             </div>
                                         @else
                                             <div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">
-                                                <span class="badge-ayuda-tag alerta-sin-clases-tag" style="pointer-events: none;">Sin clases vinculadas</span>
+                                                <span class="badge-ayuda-tag alerta-sin-clases-tag" class="pointer-events-none">Sin clases vinculadas</span>
                                             </div>
                                         @endif
                                     </td>
@@ -448,7 +444,7 @@
         @endif
 
                 {{-- Log de auditoria --}}
-                <div class="dibujos-table-section" style="border: none; padding: 0; box-shadow: none; background: transparent; grid-column: 1 / -1;">
+                <div class="dibujos-table-section" class="dibujos-table-section-clean">
                     <details class="dibujos-log-details">
                         <summary>Registro de Auditoría (últimas acciones)</summary>
                         <div class="dibujos-table-container d-log-scroll">
@@ -464,7 +460,7 @@
                     </thead>
                     <tbody id="tbody-log">
                         <tr>
-                            <td colspan="5" class="d-text-center d-text-subtle" style="padding:1em;">Cargando registro...
+                            <td colspan="5" class="d-text-center d-text-subtle" class="p-1">Cargando registro...
                             </td>
                         </tr>
                     </tbody>
@@ -480,16 +476,16 @@
 
 
     {{-- Modal de Confirmación Estilo Premium (prod-viewer) --}}
-    <div id="dibujos-confirm-modal" class="confirm-portal" style="display: none;">
+    <div id="dibujos-confirm-modal" class="confirm-portal hidden">
         <div class="confirm-modal">
-            <div class="confirm-modal-header" style="justify-content: center;">
+            <div class="confirm-modal-header" class="d-justify-center">
                 <h3>Confirmar Eliminación</h3>
             </div>
             <div class="confirm-modal-body">
                 <div class="confirm-icon-wrapper">
                     <img id="confirm-modal-icon" src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
                 </div>
-                <p id="confirm-message-container" style="font-size: 1.1em; line-height: 1.6; text-align: center;">
+                <p id="confirm-message-container" class="fs-1-1 lh-1-6 text-center">
                 </p>
                 <div class="confirm-modal-actions">
                     <button class="btn-confirm-cancel" onclick="cerrarConfirmarEliminar()">Cancelar</button>
@@ -502,14 +498,14 @@
     <!-- Botón Flotante de Simbología -->
     <div class="floating-symbology-wrapper">
         <div class="floating-symbology-btn">
-            <span style="font-weight: bold; font-size: 1.1em; text-transform: uppercase;">Código de Colores</span>
+            <span class="fw-bold fs-1-1 text-uppercase">Código de Colores</span>
         </div>
         <div class="floating-symbology-panel">
-            <span class="badge-ayuda-tag alerta-vacia-tag" style="padding: 8px 16px; font-size: 0.85em; pointer-events: none; transform: none !important; width: 100%; text-align: center; box-sizing: border-box;">Vacía</span>
-            <span class="badge-ayuda-tag" style="padding: 8px 16px; font-size: 0.85em; pointer-events: none; width: 100%; text-align: center; box-sizing: border-box;">Pendiente</span>
-            <span class="badge-ayuda-tag alerta-enviada-tag" style="padding: 8px 16px; font-size: 0.85em; pointer-events: none; transform: none !important; width: 100%; text-align: center; box-sizing: border-box;">Enviada</span>
-            <span class="badge-ayuda-tag alerta-modificada-tag" style="padding: 8px 16px; font-size: 0.85em; pointer-events: none; transform: none !important; width: 100%; text-align: center; box-sizing: border-box;">Modificada</span>
-            <span class="badge-ayuda-tag alerta-sin-clases-tag" style="padding: 8px 16px; font-size: 0.85em; pointer-events: none; transform: none !important; width: 100%; text-align: center; box-sizing: border-box;">Sin Clases</span>
+            <span class="badge-ayuda-tag alerta-vacia-tag" class="badge-legend">Vacía</span>
+            <span class="badge-ayuda-tag" class="badge-legend">Pendiente</span>
+            <span class="badge-ayuda-tag alerta-enviada-tag" class="badge-legend">Enviada</span>
+            <span class="badge-ayuda-tag alerta-modificada-tag" class="badge-legend">Modificada</span>
+            <span class="badge-ayuda-tag alerta-sin-clases-tag" class="badge-legend">Sin Clases</span>
         </div>
     </div>
 

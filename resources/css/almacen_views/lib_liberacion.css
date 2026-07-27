@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ================================================================================
    LIBERACION DE MODELOS â F-CCL-LDM (Accesibilidad Extrema)
    Modulo: Calidad â Inspector de Modelos
@@ -5,32 +8,32 @@
 
 /* ââ Botones Calidad en tabla de OTs âââ */
 .btn-lib-aprobar {
-    background: #0a8504 !important;
+    background: var(--gis-green) !important;
     border: 2px solid #086d03 !important;
     color: #fff !important;
 }
 .btn-lib-aprobar:hover {
     background: #e6f9ed !important;
-    color: #0a8504 !important;
+    color: var(--gis-green) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(10, 133, 4, 0.3) !important;
 }
 .btn-lib-rechazar {
-    background: #9c0300 !important;
+    background: var(--gis-red) !important;
     border: 2px solid #7a0200 !important;
     color: #fff !important;
 }
 .btn-lib-rechazar:hover {
     background: #fdf2f2 !important;
-    color: #9c0300 !important;
+    color: var(--gis-red) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
 }
 
 .lib-calidad-actions {
     background: linear-gradient(135deg, #f0f6ff, #e8f2ff);
-    border: 2px solid #033966;
-    border-left: 5px solid #033966;
+    border: 2px solid var(--gis-blue);
+    border-left: 5px solid var(--gis-blue);
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 4px 12px rgba(3, 57, 102, 0.1);
@@ -41,7 +44,7 @@
     gap: 10px;
     font-size: 1em;
     font-weight: 800;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 15px;
@@ -64,8 +67,8 @@
 }
 .lib-estado-rechazado {
     background: #fdf2f2;
-    color: #9c0300;
-    border: 1px solid #9c0300;
+    color: var(--gis-red);
+    border: 1px solid var(--gis-red);
 }
 .lib-estado-info {
     background: #fff3cd;
@@ -137,7 +140,7 @@
     margin: 0;
 }
 .lib-modal-header-rechazo {
-    background: linear-gradient(135deg, #9c0300, #7a0200) !important;
+    background: linear-gradient(135deg, var(--gis-red), #7a0200) !important;
     border-bottom-color: #6a0100 !important;
 }
 
@@ -170,13 +173,13 @@
 .lib-dato-value {
     font-size: 1.35em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
 }
 .lib-select {
     border: 2px solid #cbd5e1;
     border-radius: 10px;
     padding: 12px 16px;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 1.3em;
     font-weight: 600;
     color: #334155;
@@ -189,7 +192,7 @@
 }
 .lib-select:focus {
     outline: none;
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.12);
 }
 
@@ -197,16 +200,16 @@
 .lib-section-title {
     font-size: 1.25em;
     font-weight: 800;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 1em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
 }
 .lib-section-title-danger {
-    color: #9c0300 !important;
-    border-bottom-color: #9c0300 !important;
+    color: var(--gis-red) !important;
+    border-bottom-color: var(--gis-red) !important;
 }
 .lib-section-hint {
     font-size: 1.1em;
@@ -255,11 +258,11 @@
     justify-content: center;
 }
 .lib-img-zoom-wrapper:hover {
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 8px 24px rgba(3, 57, 102, 0.25);
 }
 .lib-img-zoom-wrapper:focus-visible {
-    outline: 3px solid #033966;
+    outline: 3px solid var(--gis-blue);
     outline-offset: 2px;
 }
 .lib-ref-img {
@@ -309,7 +312,7 @@
     position: fixed;
     width: 450px;
     height: 450px;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
     border-radius: 12px;
     background-repeat: no-repeat;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
@@ -321,7 +324,7 @@
 /* ââ Tablas de reporte â ACCESIBLES âââ */
 .lib-table-wrapper {
     overflow-x: auto;
-    border: 2px solid #033966;
+    border: 2px solid var(--gis-blue);
     border-radius: 12px;
 }
 .lib-matrix-wrapper {
@@ -332,14 +335,14 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 1.2em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 .lib-matrix-table {
     min-width: 1350px;
 }
 
 .lib-report-table thead tr {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
 }
 .lib-report-table th {
@@ -404,7 +407,7 @@
 }
 .lib-th-main-col {
     font-size: 1em;
-    background: #033966;
+    background: var(--gis-blue);
     letter-spacing: 1px;
 }
 .lib-th-sub {
@@ -414,7 +417,7 @@
 .lib-td-tipo {
     font-weight: 800;
     font-size: 1.1em;
-    color: #033966;
+    color: var(--gis-blue);
     padding: 12px 14px !important;
     white-space: nowrap;
 }
@@ -427,7 +430,7 @@
 .lib-td-fondo-item {
     font-size: 1.25em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     padding: 12px 16px !important;
 }
 
@@ -438,13 +441,13 @@
     justify-content: center;
     min-width: 48px;
     height: 48px;
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     border-radius: 8px;
     font-size: 1.25em;
     font-weight: 800;
     padding: 0 8px;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     flex-shrink: 0;
 }
 .lib-item-desc-inline {
@@ -474,7 +477,7 @@
 }
 .lib-num-input:focus {
     outline: none !important;
-    border-color: #033966 !important;
+    border-color: var(--gis-blue) !important;
     box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.12) !important;
 }
 .lib-num-input-sm {
@@ -509,15 +512,15 @@
     font-size: 1.25em !important;
 }
 .lib-textarea-danger {
-    border-color: #9c0300 !important;
+    border-color: var(--gis-red) !important;
 }
 .lib-textarea-danger:focus {
     box-shadow: 0 0 0 4px rgba(156, 3, 0, 0.1) !important;
 }
 .lib-rechazo-block {
     background: linear-gradient(135deg, #fff5f5, #fdf2f2);
-    border: 2px solid #9c0300;
-    border-left: 5px solid #9c0300;
+    border: 2px solid var(--gis-red);
+    border-left: 5px solid var(--gis-red);
     border-radius: 12px;
     padding: 22px;
 }
@@ -548,7 +551,7 @@
     border: 2px solid rgba(0, 0, 0, 0.08);
     border-radius: 14px;
     font-weight: 800;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 0.85em;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -557,7 +560,7 @@
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .btn-lib-save {
-    background: #033966 !important;
+    background: var(--gis-blue) !important;
     color: #ffffff !important;
     box-shadow: 0 4px 15px rgba(3, 57, 102, 0.25) !important;
     border: 2px solid #022c50 !important;
@@ -567,7 +570,7 @@
 }
 .btn-lib-save:hover {
     background: #e6f0fa !important;
-    color: #033966 !important;
+    color: var(--gis-blue) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(3, 57, 102, 0.25) !important;
 }
@@ -576,7 +579,7 @@
 }
 
 .btn-lib-aprobar-send {
-    background: #0a8504 !important;
+    background: var(--gis-green) !important;
     color: #ffffff !important;
     box-shadow: 0 4px 15px rgba(10, 133, 4, 0.3) !important;
     border: 2px solid #086d03 !important;
@@ -586,7 +589,7 @@
 }
 .btn-lib-aprobar-send:hover {
     background: #e6f9ed !important;
-    color: #0a8504 !important;
+    color: var(--gis-green) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(10, 133, 4, 0.25) !important;
 }
@@ -595,7 +598,7 @@
 }
 
 .btn-lib-rechazar-send {
-    background: #9c0300 !important;
+    background: var(--gis-red) !important;
     color: #ffffff !important;
     box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3) !important;
     border: 2px solid #7a0200 !important;
@@ -605,7 +608,7 @@
 }
 .btn-lib-rechazar-send:hover {
     background: #fdf2f2 !important;
-    color: #9c0300 !important;
+    color: var(--gis-red) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
 }
@@ -741,7 +744,7 @@
     align-items: center;
     gap: 14px;
     padding: 16px 22px;
-    background: linear-gradient(135deg, #022847 0%, #033966 60%, #0a5a8e 100%);
+    background: linear-gradient(135deg, #022847 0%, var(--gis-blue) 60%, #0a5a8e 100%);
     border-bottom: 3px solid #1a7fc4;
 }
 .lib-calidad-card-header img {
@@ -805,7 +808,7 @@
 .lib-calidad-card-prompt {
     font-size: 1.25em;
     font-weight: 800;
-    color: #033966;
+    color: var(--gis-blue);
     margin: 0;
     flex: 1;
     min-width: 250px;
@@ -836,7 +839,7 @@
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     text-decoration: none;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     position: relative;
     overflow: hidden;
 }
@@ -857,7 +860,7 @@
     transition: all 0.3s ease;
 }
 .btn-calidad-aprobar {
-    background: #0a8504 !important;
+    background: var(--gis-green) !important;
     border: 2px solid #086d03 !important;
     color: #ffffff !important;
 }
@@ -866,7 +869,7 @@
 }
 .btn-calidad-aprobar:hover {
     background: #e6f9ed !important;
-    color: #0a8504 !important;
+    color: var(--gis-green) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(10, 133, 4, 0.25) !important;
 }
@@ -875,7 +878,7 @@
 }
 
 .btn-calidad-rechazar {
-    background: #9c0300 !important;
+    background: var(--gis-red) !important;
     border: 2px solid #7a0200 !important;
     color: #ffffff !important;
 }
@@ -884,7 +887,7 @@
 }
 .btn-calidad-rechazar:hover {
     background: #fdf2f2 !important;
-    color: #9c0300 !important;
+    color: var(--gis-red) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
 }
@@ -998,9 +1001,9 @@
 .btn-calidad-iniciar:hover img { filter: none !important; }
 .lib-decision-card { -webkit-user-select: none; user-select: none; }
 .lib-decision-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.1); }
-.btn-lib-aprobar { background: #0a8504 !important; color: #fff !important; border: 2px solid #086d03 !important; }
+.btn-lib-aprobar { background: var(--gis-green) !important; color: #fff !important; border: 2px solid #086d03 !important; }
 .btn-lib-aprobar img { filter: brightness(0) invert(1) !important; }
-.btn-lib-aprobar:hover { background: #e6f9ed !important; color: #0a8504 !important; }
-.btn-lib-rechazar { background: #9c0300 !important; color: #fff !important; border: 2px solid #7a0200 !important; }
+.btn-lib-aprobar:hover { background: #e6f9ed !important; color: var(--gis-green) !important; }
+.btn-lib-rechazar { background: var(--gis-red) !important; color: #fff !important; border: 2px solid #7a0200 !important; }
 .btn-lib-rechazar img { filter: brightness(0) invert(1) !important; }
-.btn-lib-rechazar:hover { background: #fdf2f2 !important; color: #9c0300 !important; }
+.btn-lib-rechazar:hover { background: #fdf2f2 !important; color: var(--gis-red) !important; }

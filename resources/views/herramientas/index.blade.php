@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     <title>Herramientas Tecamac | GIS</title>
@@ -53,7 +53,7 @@ function paletaProceso($proceso, &$paleta) {
     {{-- ── HEADER ──────────────────────────────────────────────────────── --}}
     <div class="ht-header">
         <div class="ht-header-icon">
-            <img src="{{ asset('images/herramientas.png') }}" alt="Herramientas" style="width:85px;">
+            <img src="{{ asset('images/herramientas.png') }}" alt="Herramientas" class="herr-width-85px">
         </div>
         <div class="ht-header-text">
             <h1>Herramientas Tecamac</h1>
@@ -314,7 +314,7 @@ function paletaProceso($proceso, &$paleta) {
                         @endforeach
                     </tbody>
                 </table>
-                <div class="ht-empty" id="ht-no-results" style="display:none;">
+                <div class="ht-empty herr-display-none">
                     <div class="ht-empty-icon">🔍</div>
                     <p>Ninguna herramienta coincide con la búsqueda.</p>
                 </div>
@@ -344,7 +344,7 @@ function paletaProceso($proceso, &$paleta) {
                      SECCIÓN: HERRAMIENTA
                 ═══════════════════════════════ --}}
                 <div class="ht-modal-section">
-                    <div class="ht-modal-section-header" style="background:linear-gradient(135deg,#033966,#0d5ca8);">
+                    <div class="ht-modal-section-header herr-background-linear-gradient-135deg-033966-0d5ca8">
                         <span>⚙️ Herramienta</span>
                     </div>
                     <div class="ht-modal-section-body">
@@ -380,7 +380,7 @@ function paletaProceso($proceso, &$paleta) {
                      SECCIÓN: ACCESORIO
                 ═══════════════════════════════ --}}
                 <div class="ht-modal-section">
-                    <div class="ht-modal-section-header" style="background:linear-gradient(135deg,#4a148c,#6a1b9a);">
+                    <div class="ht-modal-section-header herr-background-linear-gradient-135deg-4a148c-6a1b9a">
                         <span>🔩 Accesorio de Herramienta</span>
                     </div>
                     <div class="ht-modal-section-body">
@@ -398,7 +398,7 @@ function paletaProceso($proceso, &$paleta) {
                      SECCIÓN: TORNILLERÍA
                 ═══════════════════════════════ --}}
                 <div class="ht-modal-section">
-                    <div class="ht-modal-section-header" style="background:linear-gradient(135deg,#7a5200,#a06a00);">
+                    <div class="ht-modal-section-header herr-background-linear-gradient-135deg-7a5200-a06a00">
                         <span>🔩 Tornillería</span>
                     </div>
                     <div class="ht-modal-section-body">
@@ -416,7 +416,7 @@ function paletaProceso($proceso, &$paleta) {
                      SECCIÓN: IMAGEN FÍSICA
                 ═══════════════════════════════ --}}
                 <div class="ht-modal-section">
-                    <div class="ht-modal-section-header" style="background:linear-gradient(135deg,#1b5e20,#2e7d32);">
+                    <div class="ht-modal-section-header herr-background-linear-gradient-135deg-1b5e20-2e7d32">
                         <span>🖼️ Imagen Física</span>
                     </div>
                     <div class="ht-modal-section-body">
@@ -434,7 +434,7 @@ function paletaProceso($proceso, &$paleta) {
                      SECCIÓN: CONDICIONES DE CORTE
                 ═══════════════════════════════ --}}
                 <div class="ht-modal-section">
-                    <div class="ht-modal-section-header" style="background:linear-gradient(135deg,#9c0300,#c62828);">
+                    <div class="ht-modal-section-header herr-background-linear-gradient-135deg-9c0300-c62828">
                         <span>🔴 Condiciones de Corte (PULG.)</span>
                     </div>
                     <div class="ht-modal-section-body">
@@ -461,7 +461,7 @@ function paletaProceso($proceso, &$paleta) {
                      SECCIÓN: STOCK
                 ═══════════════════════════════ --}}
                 <div class="ht-modal-section">
-                    <div class="ht-modal-section-header" style="background:linear-gradient(135deg,#027a3a,#02903f);">
+                    <div class="ht-modal-section-header herr-background-linear-gradient-135deg-027a3a-02903f">
                         <span>📊 Control de Stock</span>
                     </div>
                     <div class="ht-modal-section-body">
@@ -506,7 +506,7 @@ function paletaProceso($proceso, &$paleta) {
 @if($esAdmin)
 <div class="ht-modal-overlay" id="ht-modal-stock-overlay" role="dialog" aria-modal="true" aria-labelledby="ht-stock-title">
     <div class="ht-modal ht-modal-stock">
-        <div class="ht-modal-header" style="background:linear-gradient(135deg,#027a3a,#02903f);">
+        <div class="ht-modal-header herr-background-linear-gradient-135deg-027a3a-02903f">
             <div>
                 <h3 id="ht-stock-title">📊 Editar Stock</h3>
                 <p class="ht-modal-subtitle" id="ht-stock-subtitle">Solo puede editar Mínimo y Máximo</p>
@@ -519,9 +519,9 @@ function paletaProceso($proceso, &$paleta) {
             <div class="ht-stock-readonly-card">
                 <div class="ht-stock-readonly-label">Herramienta</div>
                 <div class="ht-stock-readonly-value" id="ht-stock-nombre">—</div>
-                <div class="ht-stock-readonly-label" style="margin-top:0.6em;">Descripción / Inserto</div>
+                <div class="ht-stock-readonly-label herr-margin-top-0-6em">Descripción / Inserto</div>
                 <div class="ht-stock-readonly-value" id="ht-stock-desc">—</div>
-                <div class="ht-stock-readonly-label" style="margin-top:0.6em;">Cantidad en Planta</div>
+                <div class="ht-stock-readonly-label herr-margin-top-0-6em">Cantidad en Planta</div>
                 <div class="ht-stock-readonly-value" id="ht-stock-cantidad">—</div>
             </div>
 
@@ -529,7 +529,7 @@ function paletaProceso($proceso, &$paleta) {
             <div class="ht-stock-edit-grid">
                 <div class="ht-form-field">
                     <label for="ht-stock-minimo">
-                        <span class="ht-stock-field-icon" style="color:#9c0300;">▼</span>
+                        <span class="ht-stock-field-icon herr-color-9c0300">▼</span>
                         Mínimo en Stock
                     </label>
                     <input type="number" id="ht-stock-minimo" name="minimo" min="0"
@@ -537,7 +537,7 @@ function paletaProceso($proceso, &$paleta) {
                 </div>
                 <div class="ht-form-field">
                     <label for="ht-stock-maximo">
-                        <span class="ht-stock-field-icon" style="color:#027a3a;">▲</span>
+                        <span class="ht-stock-field-icon herr-color-027a3a">▲</span>
                         Máximo en Stock
                     </label>
                     <input type="number" id="ht-stock-maximo" name="maximo" min="0"

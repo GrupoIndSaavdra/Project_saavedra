@@ -1,10 +1,5 @@
-* {
-    padding: 0;
-    margin: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
-}
-
+/* global.css: reset, Poppins, variables GIS, .btns */
+@import "../global.css";
 body {
     background-size: cover;
     background-position: center;
@@ -24,8 +19,8 @@ body {
     align-items: center;
     padding: 3em 3.5em;
     background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15), 
@@ -53,7 +48,7 @@ body {
 h2 {
     font-size: 1.4em;
     margin: 0.5em 0 1em;
-    color: #2c3e50;
+    color: var(--gis-blue);
     font-weight: 700;
     text-align: center;
     letter-spacing: -0.5px;
@@ -62,7 +57,7 @@ h2 {
 h3 {
     font-size: 1em;
     margin: 0.5em 0 1em;
-    color: #556b82;
+    color: var(--gis-gray);
     font-weight: 500;
     text-align: center;
 }
@@ -92,17 +87,17 @@ form {
     color: #fff;
     border: none;
     border-radius: 50px;
-    background: linear-gradient(135deg, #033966, #055ba3);
+    background: linear-gradient(135deg, var(--gis-blue), #055ba3);
     cursor: pointer;
     letter-spacing: 0.5px;
-    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.3);
+    box-shadow: 0 4px 15px var(--shadow-blue);
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .bttns-add-select:hover {
     background: linear-gradient(135deg, #044b87, #0672cc);
     transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.4);
+    box-shadow: 0 8px 20px var(--shadow-blue);
 }
 
 .container-form {
@@ -122,7 +117,7 @@ form {
     width: 100%;
     border-radius: 6px;
     padding: 0.8em 1.2em;
-    background: #03396610;
+    background: rgba(3, 57, 102, 0.06);
     border: 1px solid #00000033;
     text-align: center;
     font-size: 1.2em;
@@ -133,19 +128,19 @@ form {
 
 .form-control:focus {
     outline: none;
-    border: 1px solid #033966;
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.1);
+    border: 1px solid var(--gis-blue);
+    background: var(--gis-white);
+    box-shadow: 0 0 0 3px var(--shadow-blue);
 }
 
 .form-control:hover {
-    border: 1px solid #033966;
+    border: 1px solid var(--gis-blue);
 }
 
 .form-label {
     display: block;
     font-size: 0.95em;
-    color: #033966;
+    color: var(--gis-blue);
     font-weight: 600;
     margin-bottom: 0.2em;
     text-align: left;
@@ -155,22 +150,22 @@ form {
 .btn.btn-block {
     margin: 0.5em auto 0 auto;
     border-radius: 20px;
-    background-color: #033966;
-    color: #fff;
+    background-color: var(--gis-blue);
+    color: var(--gis-white);
     border: none;
     width: 60%;
     font-size: 1.1em;
     padding: 0.7em;
     letter-spacing: 1px;
     transition: 0.2s;
-    font-family: 'Poppins', sans-serif;
+    font-family: 'Poppins', sans-serif; /* Explícito en inputs */
     cursor: pointer;
 }
 
 .btn.btn-block:hover {
     transform: scale(1.05);
-    background-color: #0a8504;
-    transition: 0.2s;
+    background-color: var(--gis-green);
+    transition: var(--trans);
 }
 
 /* Alertas */

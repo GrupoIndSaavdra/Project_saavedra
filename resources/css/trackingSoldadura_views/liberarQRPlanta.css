@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* Contenedor principal */
 .wrapper {
     max-width: 900px;
@@ -20,7 +23,7 @@
     font-size: 1.4rem;
     font-weight: 600;
     margin-bottom: 0.3rem;
-    color: #033966;
+    color: var(--gis-blue);
 }
 
 .subtitle {
@@ -69,7 +72,7 @@
     text-align: left;
     display: block;
     font-weight: 600;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 1.1rem;
     margin-bottom: -0.3rem;
 }
@@ -243,7 +246,7 @@ textarea.form-control {
 .table th {
     background-color: #f8f9fa;
     font-weight: 600;
-    color: #033966;
+    color: var(--gis-blue);
 }
 
 .table-hover tbody tr:hover {
@@ -290,18 +293,18 @@ textarea.form-control {
 }
 
 .btn-primary {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: #000000;
     border: none;
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: #ffffff;
 }
 .btn-success {
-     background-color: #0a8504;
+     background-color: var(--gis-green);
     color: white;
 }
 
@@ -311,30 +314,30 @@ textarea.form-control {
 }
 
 .btn-secondary {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
     color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
 }
 
 .btn-secondarys {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: white;
 }
 .btn-secondarys:hover {
-    background-color: #033966;
+    background-color: var(--gis-blue);
 }
 .btn-info {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: white;
     font-family: Poppins;
     font-size: 1rem;
 }
 
 .btn-info:hover {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: white;
 }
 

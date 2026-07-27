@@ -47,11 +47,11 @@ function aplicarFiltros() {
     rows.forEach(row => {
         const searchData = row.dataset.search ?? '';
         const show = !term || searchData.includes(term);
-        row.style.display = show ? '' : 'none';
+        row.classList.toggle("hidden", !(show ));
         if (show) visible++;
     });
     if (count) count.textContent = visible + ' resultado' + (visible !== 1 ? 's' : '');
-    if (noRes) noRes.style.display = visible === 0 ? 'block' : 'none';
+    if (noRes) noRes.classList.toggle("hidden", !(visible === 0 ));
 }
 
 // ── MODAL CRUD (solo Almacén) ─────────────────────────────────────────────────
@@ -199,10 +199,10 @@ window.htPreviewNuevaImg = function(input) {
     if (!preview) return;
     if (input.files?.[0]) {
         const reader = new FileReader();
-        reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; };
+        reader.onload = e => { preview.src = e.target.result; preview.classList.remove("hidden"); };
         reader.readAsDataURL(input.files[0]);
     } else {
-        preview.src = ''; preview.style.display = 'none';
+        preview.src = ''; preview.classList.add("hidden");
     }
 };
 

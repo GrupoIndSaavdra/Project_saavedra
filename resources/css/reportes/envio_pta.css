@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ═══════════════════════════════════════════════════════════════════
    reportes/envio_pta.css  —  Envío de Reportes PTA
    Paleta y tipografía unificada con reenvio.css
@@ -7,12 +10,12 @@
 
 /* ── Variables de paleta ──────────────────────────────────────── */
 :root {
-    --azul-primario:   #033966;
+    --azul-primario:   var(--gis-blue);
     --azul-borde:      #033966d4;
     --azul-claro:      #e8f0fe;
-    --rojo-accion:     #9c0303;
+    --rojo-accion:     var(--gis-red);
     --rojo-oscuro:     #7a0202;
-    --verde-ok:        #0a8504;
+    --verde-ok:        var(--gis-green);
     --verde-fondo:     #e6f4ea;
     --rojo-fondo:      #fce8e8;
     --gris-hint:       #64748b;
@@ -130,7 +133,7 @@
 .envio-pta-select {
     width: 100%;
     padding: 10px 14px;
-    border: 3px solid #03396690;
+    border: 3px solid var(--gis-blue)90;
     border-radius: 6px;
     font-size: 14px;
     font-family: var(--font);
@@ -261,7 +264,7 @@
     overflow-y: auto;
     max-height: 297px;   /* ~5 filas (aprox 55px/fila + 47px thead) */
     border-radius: 8px;
-    border: 2px solid #03396640;
+    border: 2px solid var(--gis-blue)40;
 }
 
 .envio-pta-table {
@@ -391,7 +394,7 @@
     margin-bottom: 18px;
     padding: 16px 18px;
     background: var(--azul-claro);
-    border: 2px solid #03396650;
+    border: 2px solid var(--gis-blue)50;
     border-radius: 8px;
 }
 
@@ -455,3 +458,13 @@
     align-self: flex-end;
     padding-bottom: 8px;
 }
+
+/* Auto-generated utility classes */
+.env-font-size-12px { font-size: 12px; }
+.env-white-space-nowrap { white-space: nowrap; }
+.env-display-none { display: none; }
+.env-flex-100pct { flex: 100%; }
+.env-font-style-italic { font-style: italic; }
+.env-color-64748b { color: #64748b; }
+.env-color-94a3b8 { color: #94a3b8; }
+.env-margin-top-8px { margin-top: 8px; }

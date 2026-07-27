@@ -5,6 +5,9 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
+                // Base global — Paleta GIS, Poppins, utilidades compartidas
+                "resources/css/global.css",
+
                 //Layout messages
                 "resources/css/layouts/partials/messages.css",
                 "resources/js/layouts/partials/messages.js",

@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ========================================
    VISTA DE VERIFICACIÓN
 ======================================== */
@@ -21,14 +24,14 @@
 }
 
 .icon-lock {
-    color: #033966;
+    color: var(--gis-blue);
     margin-bottom: 1rem;
 }
 
 .verificacion-card h2 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     margin-bottom: 0.5rem;
 }
 
@@ -50,7 +53,7 @@
 .input-group label {
     display: block;
     font-weight: 600;
-    color: #033966;
+    color: var(--gis-blue);
     margin-bottom: 0.5rem;
     font-size: 0.9rem;
 }
@@ -65,7 +68,7 @@
 }
 
 .input-group .form-control:focus {
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
     outline: none;
 }
@@ -112,7 +115,7 @@
 .header-info h2 {
     font-size: 1.3rem;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     margin: 0;
 }
 
@@ -146,7 +149,7 @@
 }
 
 .tabla-lotes thead {
-    background: linear-gradient(135deg, #033966 0%, #0a5a9c 100%);
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #0a5a9c 100%);
     font-family: Poppins;
 }
 
@@ -186,7 +189,7 @@
 
 .tabla-lotes .matricula {
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     font-family: Poppins;
     font-family: 'Courier New', monospace;
 }
@@ -201,7 +204,7 @@
 }
 
 .badge-success {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
     color: #000000;
 }
 
@@ -237,24 +240,24 @@
 }
 
 .btn-qr-lote {
-    background-color:  #033966;
+    background-color:  var(--gis-blue);
     color: white;
 }
 
 .btn-qr-lote:hover {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(64, 128, 180, 0.4);
     color: white;
 }
 
 .btn-qr-individuales {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
     color: white;
 }
 
 .btn-qr-individuales:hover {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
     color: white;
@@ -324,22 +327,22 @@
 }
 
 .btn-primary {
-    background-color:  #033966;
+    background-color:  var(--gis-blue);
     color: white;
 }
 
 .btn-primary:hover {
-    background-color:  #033966;
+    background-color:  var(--gis-blue);
     color: white;
 }
 
 .btn-secondary {
-    background: #9c0300;
+    background: var(--gis-red);
     color: white;
 }
 
 .btn-secondary:hover {
-    background: #9c0300;
+    background: var(--gis-red);
     color: white;
 }
 

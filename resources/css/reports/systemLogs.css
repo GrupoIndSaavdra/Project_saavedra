@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 body {
     background-repeat: no-repeat;
     background-size: cover;
@@ -45,7 +48,7 @@ input[type="date"],
     text-align: center;
     font-size: 1em;
     letter-spacing: 1px;
-    background: #033966;
+    background: var(--gis-blue);
     border: 5px solid #033966d4;
     color: #ffffff;
 }
@@ -55,7 +58,7 @@ input[type="date"],
 label {
     font-size: 1em;
     font-weight: 600;
-    color: #033966;
+    color: var(--gis-blue);
 }
 .btn-pza {
     display: inline-block;
@@ -80,8 +83,8 @@ label {
 }
 .btns {
     padding: 10px;
-    background-color: #0a8504;
-    box-shadow: 0 2px 5px #0a8504ff;
+    background-color: var(--gis-green);
+    box-shadow: 0 2px 5px var(--gis-green)ff;
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -92,7 +95,7 @@ label {
     transition: 0.2s;
 }
 .btns:hover {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
     transition: 0.2s;
     transform: scale(1.2); /* Realiza un pequeño zoom del 5% */
 }
@@ -156,7 +159,7 @@ td:nth-child(5) {
     max-width: 650px;
 }
 th {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     background-clip: padding-box;
     font-weight: 700;
     color: #fff;
@@ -182,7 +185,7 @@ tr:nth-child(even) {
 }
 /* Cuando se posiciona sobre una opción del select este cambia de color a negro*/
 .filter-select:focus {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
 }
 .search-input {
     flex-grow: 1;
@@ -192,7 +195,7 @@ tr:nth-child(even) {
     flex-basis: 150px;
 }
 .filter-select {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: #fdfefe;
 }
 .date-range {
@@ -220,7 +223,7 @@ tr:nth-child(even) {
 /* ADVERTENCE */
 .advertence {
     font-size: 3em;
-    color: #9c0300;
+    color: var(--gis-red);
 }
 .letrero {
     margin-top: 9%;
@@ -268,7 +271,7 @@ tr:nth-child(even) {
 .total-records-found {
     font-size: 1.2em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
 }
 .btn-back {
     position: absolute;
@@ -424,7 +427,7 @@ tr:nth-child(even) {
 .total-records-found {
     font-size: 1.1em;
     font-weight: bold;
-    color: #033966;
+    color: var(--gis-blue);
     text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
 }
 
@@ -468,3 +471,38 @@ tr:nth-child(even) {
     transform: scale(0.95);
 }
 
+
+/* Auto-generated utility classes */
+.sys-background-color-27AE60 { background-color: #27AE60; }
+.sys-background-color-1A8C5F { background-color: #1A8C5F; }
+.sys-background-color-CA6F1E { background-color: #CA6F1E; }
+.sys-background-color-D5F5E3 { background-color: #D5F5E3; }
+.sys-display-none { display: none; }
+.sys-background-color-512E5F { background-color: #512E5F; }
+.sys-background-color-FADBD8 { background-color: #FADBD8; }
+.sys-background-color-6C3483 { background-color: #6C3483; }
+.sys-color-black { color: black; }
+.sys-background-color-8E44AD { background-color: #8E44AD; }
+.sys-background-color-943126 { background-color: #943126; }
+.sys-background-color-186A3B { background-color: #186A3B; }
+.sys-background-color-3498DB { background-color: #3498DB; }
+.sys-background-color-E74C3C { background-color: #E74C3C; }
+.sys-color-21618C { color: #21618C; }
+.sys-background-color-5DADE2 { background-color: #5DADE2; }
+.sys-background-color-A569BD { background-color: #A569BD; }
+.sys-background-color-2874A6 { background-color: #2874A6; }
+.sys-background-color-F39C12 { background-color: #F39C12; }
+.sys-color-fff { color: #fff; }
+.sys-background-color-F1C40F { background-color: #F1C40F; }
+.sys-background-color-1E8449 { background-color: #1E8449; }
+.sys-cursor-pointer { cursor: pointer; }
+.sys-background-color-D7BDE2 { background-color: #D7BDE2; }
+.sys-background-color-E67E22 { background-color: #E67E22; }
+.sys-color-ffffff { color: #ffffff; }
+.sys-background-color-7D3C98 { background-color: #7D3C98; }
+.sys-background-color-82E0AA { background-color: #82E0AA; }
+.sys-background-color-F5B7B1 { background-color: #F5B7B1; }
+.sys-background-color-2E86C1 { background-color: #2E86C1; }
+.sys-color-white { color: white; }
+.sys-background-color-9A7D0A { background-color: #9A7D0A; }
+.sys-background-color-21618C { background-color: #21618C; }

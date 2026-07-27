@@ -219,7 +219,7 @@ function createRowsForm(formInputs) {
 
             let col = document.createElement("div");
             col.className = "column full-width-column";
-            col.style.width = "100%";
+            
 
             if (inputConfig.label != undefined) {
                 let label = document.createElement("label");
@@ -473,11 +473,9 @@ function createTableClasses(classes) {
             //Estilos de los botones de la tabla
             let buttons = document.querySelectorAll(".btnClass");
             buttons.forEach((buttonOne) => {
-                buttonOne.style.backgroundColor = "white";
-                buttonOne.style.color = "#000000";
+                buttonOne.classList.remove("swo-btn-selected"); buttonOne.classList.add("swo-btn-unselected");
             });
-            button.style.backgroundColor = "#033966";
-            button.style.color = "#ffffff";
+            button.classList.remove("swo-btn-unselected"); button.classList.add("swo-btn-selected");
 
             //Obtener el valor del boton y mostrar la información de la clase seleccionada
             setClassInfo(classes, button.value);
@@ -514,31 +512,31 @@ function setOrDelete_ClassButtons(idClass, action) {
     //Crear el boton de eliminar clase dirigiendolo a la ruta correspondiente con el id de la clase que se desea eliminar
     if (!action) {
         if (containerCheckbox) {
-            containerCheckbox.style.display = "block";
+            containerCheckbox.classList.remove("hidden");
         }
         if (idClass !== null) {
             let div_btns = document.querySelector(".div-btns"); //Obtener el div en donde se insertaran los botones de accion de la clase
             //Ocultar el boton de agregar clase
             let btn_addClass = document.querySelector(".btn-addClass");
-            btn_addClass.style.display = "none";
+            btn_addClass.classList.add("hidden");
 
             //Creacion del boton de eliminar clase
             createButtons(idClass).forEach((button) => {
                 if (window.profile == 5 && button.innerHTML == "Eliminar Clase") {
-                    button.style.display = "none";
+                    button.classList.add("hidden");
                 }
                 div_btns.appendChild(button);
             });
         } else {
             //Ocultar el boton de agregar clase
-            btn_addClass.style.display = "none";
+            btn_addClass.classList.add("hidden");
         }
     } else if (action == "edit") {
         if (containerCheckbox) {
-            containerCheckbox.style.display = "none";
+            containerCheckbox.classList.add("hidden");
         }
         //Ocultar el boton de agregar clase
-        btn_addClass.style.display = "none";
+        btn_addClass.classList.add("hidden");
 
         //Creacion del boton de editar clase
         let btn_saveClassEdition = document.createElement("button");
@@ -550,10 +548,10 @@ function setOrDelete_ClassButtons(idClass, action) {
         div_btns.appendChild(btn_saveClassEdition);
     } else {
         if (containerCheckbox) {
-            containerCheckbox.style.display = "block";
+            containerCheckbox.classList.remove("hidden");
         }
         //Mostrar el boton de agregar clase
-        btn_addClass.style.display = "block";
+        btn_addClass.classList.remove("hidden");
     }
 }
 
@@ -720,7 +718,7 @@ function createCheckboxAddClass() {
             let activeBtn = null;
             let buttons = document.querySelectorAll(".btnClass");
             buttons.forEach((btn) => {
-                if (btn.style.backgroundColor === "rgb(3, 57, 102)" || btn.style.backgroundColor === "#033966") {
+                if (btn.classList.contains("swo-btn-selected") || btn.style.backgroundColor === "rgb(3, 57, 102)" || btn.style.backgroundColor === "#033966") {
                     activeBtn = btn;
                 }
             });
@@ -732,8 +730,7 @@ function createCheckboxAddClass() {
 
             //Estilos de los botones de la tabla
             buttons.forEach((button) => {
-                button.style.backgroundColor = "white";
-                button.style.color = "#000000";
+                button.classList.remove("swo-btn-selected"); button.classList.add("swo-btn-unselected");
             });
 
             setOrDelete_ClassButtons(null, true);
@@ -770,11 +767,11 @@ function showformHidden(value) {
     let div_rowsHidden = document.querySelector(".div-rows-hidden");
     let div_boxes = document.querySelector(".div-boxes");
     if (value) {
-        div_boxes.style.display = "flex";
-        div_rowsHidden.style.display = "block";
+        div_boxes.classList.remove("hidden");
+        div_rowsHidden.classList.remove("hidden");
     } else {
-        div_boxes.style.display = "none";
-        div_rowsHidden.style.display = "none";
+        div_boxes.classList.add("hidden");
+        div_rowsHidden.classList.add("hidden");
     }
 }
 
@@ -972,14 +969,12 @@ function createCheckboxAll(value) {
             if (this.checked) {
                 machineInputs.forEach((input) => {
                     input.disabled = false;
-                    input.style.backgroundColor = "white";
-                    input.style.border = "1px solid #000000";
+                    input.classList.remove("swo-input-disabled"); input.classList.add("swo-input-enabled");
                 });
             } else {
                 machineInputs.forEach((input) => {
                     input.disabled = true;
-                    input.style.backgroundColor = "#ced4da";
-                    input.style.border = "none";
+                    input.classList.remove("swo-input-enabled"); input.classList.add("swo-input-disabled");
                     input.value = "";
                 });
             }
@@ -1042,8 +1037,7 @@ function automateCheckbox(checkbox, machineInput, operationName, markedProcesses
 
     //Agregar los estilos correspondientes a los inputs de las maquinas
     if (machineInput.disabled) {
-        machineInput.style.backgroundColor = "#ced4da";
-        machineInput.style.border = "none";
+        machineInput.classList.remove("swo-input-enabled"); machineInput.classList.add("swo-input-disabled");
     }
     return [checkbox, machineInput];
 }
@@ -1052,13 +1046,11 @@ function changeStatusCheckbox(checkbox, machineInput) {
     if (checkbox.checked) {
         //Si el checkbox se marca
         machineInput.disabled = false;
-        machineInput.style.backgroundColor = "white";
-        machineInput.style.border = "1px solid #000000";
+        machineInput.classList.remove("swo-input-disabled"); machineInput.classList.add("swo-input-enabled");
     } else {
         //Si el checkbox se desmarca
         machineInput.disabled = true;
-        machineInput.style.backgroundColor = "#ced4da";
-        machineInput.style.border = "none";
+        machineInput.classList.remove("swo-input-enabled"); machineInput.classList.add("swo-input-disabled");
         machineInput.value = "";
     }
 }
@@ -1081,12 +1073,10 @@ function changeStatusSoldaduras() {
             });
             machineInput.forEach((input) => {
                 if (input.disabled) {
-                    input.style.backgroundColor = "#ced4da";
-                    input.style.border = "none";
+                    input.classList.remove("swo-input-enabled"); input.classList.add("swo-input-disabled");
                     input.value = "";
                 } else {
-                    input.style.backgroundColor = "white";
-                    input.style.border = "1px solid #000000";
+                    input.classList.remove("swo-input-disabled"); input.classList.add("swo-input-enabled");
                 }
             });
         });
@@ -1222,29 +1212,23 @@ function createChemicalCompositionChips(attributesArray) {
     // Crear el campo "otro" + selector de Tipo de Soldadura en la misma fila
     let otroContainer = document.createElement("div");
     otroContainer.className = "otro-composition-container";
-    otroContainer.style.marginTop = "12px";
+    otroContainer.classList.add("swo-otro-container");
 
     let otroLabel = document.createElement("label");
     otroLabel.textContent = "Otro (Especificar composición):";
-    otroLabel.style.fontSize = "1em";
-    otroLabel.style.color = "#033966";
-    otroLabel.style.display = "block";
-    otroLabel.style.marginBottom = "5px";
-    otroLabel.style.fontWeight = "bold";
+    otroLabel.classList.add("swo-otro-label");
+    otroLabel.classList.remove("hidden");
 
     // Fila que contiene el input "otro" y el selector de tipo de soldadura lado a lado
     let otroInputRow = document.createElement("div");
-    otroInputRow.style.display = "flex";
-    otroInputRow.style.alignItems = "center";
-    otroInputRow.style.gap = "12px";
-    otroInputRow.style.flexWrap = "wrap";
+    otroInputRow.classList.remove("hidden");
+    otroInputRow.classList.add("swo-otro-row");
 
     let otroInput = document.createElement("input");
     otroInput.type = "text";
     otroInput.name = "composicion_quimica_otro";
     otroInput.className = "form-control";
-    otroInput.style.flex = "1";
-    otroInput.style.minWidth = "200px";
+    otroInput.classList.add("swo-otro-input");
     otroInput.placeholder = "Separar por comas (ej: COBRE, BRONCE) o con / para mezclas (ej: HG/MINOX)";
     otroInput.value = customValue ? normalizeChemicalInput(customValue) : customValue;
 
@@ -1269,24 +1253,17 @@ function createChemicalCompositionChips(attributesArray) {
     // Selector de Tipo de Soldadura (al lado del input "otro")
     let soldaduraWrapper = document.createElement("div");
     soldaduraWrapper.id = "welding-type-wrapper";
-    soldaduraWrapper.style.display = "flex";
-    soldaduraWrapper.style.alignItems = "center";
-    soldaduraWrapper.style.gap = "8px";
-    soldaduraWrapper.style.flexShrink = "0";
+    soldaduraWrapper.classList.remove("hidden");
+    soldaduraWrapper.classList.add("swo-sol-wrapper");
 
     let soldaduraLabel = document.createElement("label");
     soldaduraLabel.textContent = "Tipo de Soldadura:";
-    soldaduraLabel.style.fontWeight = "bold";
-    soldaduraLabel.style.color = "#033966";
-    soldaduraLabel.style.fontSize = "1em";
-    soldaduraLabel.style.whiteSpace = "nowrap";
-    soldaduraLabel.style.margin = "0";
+    soldaduraLabel.classList.add("swo-sol-label");
 
     let soldaduraSelect = document.createElement("select");
     soldaduraSelect.name = "tipo_soldadura";
     soldaduraSelect.className = "form-control";
-    soldaduraSelect.style.width = "auto";
-    soldaduraSelect.style.minWidth = "130px";
+    soldaduraSelect.classList.add("swo-sol-select");
 
     let defaultOption = document.createElement("option");
     defaultOption.value = "";
@@ -1333,7 +1310,7 @@ function createChemicalCompositionTags(valueString, tipoSoldadura) {
     if (!valueString || valueString === "-") {
         let noData = document.createElement("span");
         noData.textContent = "-";
-        noData.style.color = "#777777";
+        noData.classList.add("swo-no-data");
         container.appendChild(noData);
     } else {
         let activeCompositions = valueString.split(/\s*\/\s*/);
@@ -1348,20 +1325,16 @@ function createChemicalCompositionTags(valueString, tipoSoldadura) {
 
     // Separador siempre visible
     let sep = document.createElement("span");
-    sep.style.margin = "0 8px";
-    sep.style.color = "#aaa";
+    sep.classList.add("swo-sep");
     sep.textContent = "│";
     container.appendChild(sep);
 
     let soldaduraWrapper = document.createElement("span");
-    soldaduraWrapper.style.display = "inline-flex";
-    soldaduraWrapper.style.alignItems = "center";
-    soldaduraWrapper.style.gap = "6px";
+    soldaduraWrapper.classList.remove("hidden");
+    soldaduraWrapper.classList.add("swo-sol-wrapper-sm");
 
     let soldaduraLabelText = document.createElement("span");
-    soldaduraLabelText.style.fontWeight = "bold";
-    soldaduraLabelText.style.color = "#033966";
-    soldaduraLabelText.style.fontSize = "0.95em";
+    soldaduraLabelText.classList.add("swo-sol-label-sm");
     soldaduraLabelText.textContent = "Tipo de Soldadura:";
 
     let soldaduraBadge = document.createElement("span");
@@ -1370,13 +1343,11 @@ function createChemicalCompositionTags(valueString, tipoSoldadura) {
     const tiposSoldaduraMap = { "1": "P1 - 3", "2": "P2 - 2.5", "3": "P3 - 2", "4": "P4 - 1.5" };
     if (tipoSoldadura) {
         // Badge azul oscuro con el tipo registrado
-        soldaduraBadge.style.background = "#033966";
-        soldaduraBadge.style.color = "#fff";
+        soldaduraBadge.classList.add("swo-badge-active");
         soldaduraBadge.textContent = tiposSoldaduraMap[String(tipoSoldadura)] ?? ("Tipo " + tipoSoldadura);
     } else {
         // Badge gris indicando que no hay información
-        soldaduraBadge.style.background = "#c0c0c0";
-        soldaduraBadge.style.color = "#555";
+        soldaduraBadge.classList.add("swo-badge-inactive");
         soldaduraBadge.textContent = "Sin información";
     }
 
@@ -1415,9 +1386,9 @@ function toggleWeldingTypeVisibility(className) {
 
     let shouldShow = weldingClasses.includes(className);
     if (shouldShow) {
-        wrapper.style.display = "flex";
+        wrapper.classList.remove("hidden");
     } else {
-        wrapper.style.display = "none";
+        wrapper.classList.add("hidden");
         // Limpiar el selector para no enviar datos residuales
         let select = wrapper.querySelector('select[name="tipo_soldadura"]');
         if (select) {

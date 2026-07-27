@@ -1,4 +1,4 @@
-<div id="modalGestionVeredicto" class="alm-modal" role="dialog" aria-modal="true">
+﻿<div id="modalGestionVeredicto" class="alm-modal" role="dialog" aria-modal="true">
     <div class="alm-modal-content lib-modal-content"
         style="max-width: 1100px; width: 85vw; border-radius: 20px; overflow: hidden;">
         <div id="mgv-header" class="alm-modal-header lib-modal-header"

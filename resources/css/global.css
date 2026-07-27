@@ -1,0 +1,321 @@
+﻿/* =============================================================================
+   GLOBAL.CSS — Grupo Industrial Saavedra
+   Base universal: paleta GIS, fuente Poppins, reset y clases utilitarias.
+   IMPORTAR en appMenu.css (layout raíz). No modificar colores sin autorización.
+   ============================================================================= */
+
+/* ── Fuente Poppins ──────────────────────────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap");
+
+/* ── Reset universal ─────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ── Variables de diseño — Paleta Oficial GIS ────────────────────────────────── */
+:root {
+    /* Paleta GIS (NO CAMBIAR) */
+    --gis-green:  #0a8504;
+    --gis-blue:   #033966;
+    --gis-red:    #9c0303;
+    --gis-gray:   #404040;
+    --gis-white:  #ffffff;
+    --gis-black:  #000000;
+
+    /* Sombras de botón */
+    --shadow-green: rgba(10, 133, 4, 0.35);
+    --shadow-red:   rgba(156, 3, 3, 0.35);
+    --shadow-blue:  rgba(3, 57, 102, 0.35);
+
+    /* Glassmorphism */
+    --glass-bg:     rgba(3, 57, 102, 0.22);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --glass-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+
+    /* Espaciados */
+    --sp-xs: 4px;
+    --sp-sm: 8px;
+    --sp-md: 16px;
+    --sp-lg: 24px;
+    --sp-xl: 32px;
+
+    /* Transición estándar */
+    --trans: 0.2s ease;
+    --trans-slow: 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* ── Botón principal ─────────────────────────────────────────────────────────── */
+.btns {
+    background-color: var(--gis-green);
+    color: #fff;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 8px var(--shadow-green);
+    transition: transform var(--trans), box-shadow var(--trans), background-color var(--trans);
+}
+.btns:hover {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 8px 18px var(--shadow-green);
+}
+.btns:active {
+    transform: translateY(1px) scale(0.98);
+}
+
+/* Variante peligro (rojo) */
+.btns.danger {
+    background-color: var(--gis-red);
+    box-shadow: 0 4px 8px var(--shadow-red);
+}
+.btns.danger:hover {
+    box-shadow: 0 8px 18px var(--shadow-red);
+}
+
+/* Variante azul marino */
+.btns.blue {
+    background-color: var(--gis-blue);
+    box-shadow: 0 4px 8px var(--shadow-blue);
+}
+.btns.blue:hover {
+    box-shadow: 0 8px 18px var(--shadow-blue);
+}
+
+/* Deshabilitado */
+.btns:disabled,
+.btns[disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ── Overlay / fondo oscurecido ──────────────────────────────────────────────── */
+.overlay-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.38);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ── Panel glassmorphism ─────────────────────────────────────────────────────── */
+.glass-panel {
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    border-radius: 12px;
+    padding: var(--sp-lg);
+}
+
+/* ── Loading spinner ─────────────────────────────────────────────────────────── */
+.loading-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    pointer-events: none;
+}
+.loading-overlay img {
+    width: 80px;
+}
+
+/* ── Tabla de datos estándar ─────────────────────────────────────────────────── */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.data-table thead {
+    background-color: var(--gis-blue);
+    color: #fff;
+}
+.data-table thead th {
+    padding: 11px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+.data-table tbody tr {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+    transition: background-color 0.15s ease;
+}
+.data-table tbody tr:hover {
+    background-color: rgba(3, 57, 102, 0.04);
+}
+.data-table tbody td {
+    padding: 9px 16px;
+    vertical-align: middle;
+    font-size: 0.9rem;
+    color: var(--gis-black);
+}
+
+/* ── Clases de estado ────────────────────────────────────────────────────────── */
+/* Usar estas en lugar de style="color:#xxx" en Blade y JS */
+.status-ok      { color: var(--gis-green) !important; }
+.status-error   { color: var(--gis-red)   !important; }
+.status-neutral { color: var(--gis-gray)  !important; }
+.status-info    { color: var(--gis-blue)  !important; }
+
+.bg-status-ok      { background-color: rgba(10, 133, 4, 0.12) !important; }
+.bg-status-error   { background-color: rgba(156, 3, 3, 0.12)  !important; }
+.bg-status-neutral { background-color: rgba(64, 64, 64, 0.08)  !important; }
+.bg-status-info    { background-color: rgba(3, 57, 102, 0.08)  !important; }
+
+/* ── Animaciones estándar ────────────────────────────────────────────────────── */
+.fade-in {
+    animation: gis-fadeIn 0.45s ease-out forwards;
+}
+@keyframes gis-fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.slide-in-right {
+    animation: gis-slideRight 0.3s ease-out forwards;
+}
+@keyframes gis-slideRight {
+    from { opacity: 0; transform: translateX(24px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ── Scrollbar personalizado ─────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(3, 57, 102, 0.35); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(3, 57, 102, 0.6); }
+
+/* ── Utilidades de visibilidad (para JS) ─────────────────────────────────────── */
+.hidden { display: none !important; }
+.visible { display: block !important; }
+.flex-visible { display: flex !important; }
+
+/* Cursor Utilities */
+.cursor-pointer { cursor: pointer !important; }
+.cursor-help { cursor: help !important; }
+
+/* JS State Utilities */
+.opacity-70 { opacity: 0.7 !important; }
+.font-bold { font-weight: bold !important; }
+
+/* JS Message Utilities */
+.filter-explanation { font-size: 0.85rem !important; color: #555 !important; margin-top: 5px !important; font-style: italic !important; }
+.alm-no-data-msg { background-color: #f8d7da !important; color: #721c24 !important; padding: 15px !important; border-radius: 5px !important; margin-top: 20px !important; text-align: center !important; font-weight: bold !important; border: 1px solid #f5c6cb !important; }
+
+/* JS Process and Soldadura State Classes */
+.alm-input-focus { border-color: #80bdff !important; background-color: #fff !important; box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25) !important; }
+.alm-input-blur { border-color: #dee2e6 !important; background-color: #f8f9fa !important; box-shadow: inset 0 1px 2px rgba(0,0,0,.075) !important; }
+.sol-select-unselected { background-color: #03396610 !important; color: #000 !important; }
+.sol-select-selected { background-color: #033966 !important; color: #fff !important; }
+.sol-bg-yellow { background-color: #fff3cd !important; }
+.sol-bg-green { background-color: #d4edda !important; }
+.sol-bg-red { background-color: #f8d7da !important; }
+.overflow-hidden { overflow: hidden !important; }
+
+/* JS cNominals State Classes */
+.cnom-select-green { background-color: #d4edda !important; color: #155724 !important; }
+.cnom-select-white { background-color: #ffffff !important; color: #000000 !important; }
+.cnom-select-blue { background-color: #033966 !important; color: #ffffff !important; }
+.cnom-btn-disabled { background-color: #a5a5a5 !important; border-color: #999999 !important; color: #ffffff !important; cursor: not-allowed !important; }
+.cnom-wrapper-relative { position: relative !important; margin: 3.5em auto !important; left: 0 !important; transform: none !important; }
+.cnom-wrapper-absolute { position: absolute !important; margin: 0 auto !important; top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; }
+
+/* JS Almacen Form State Classes */
+.alm-form-disabled { opacity: 0.4 !important; pointer-events: none !important; }
+.alm-btn-disabled { opacity: 0.5 !important; cursor: not-allowed !important; }
+
+/* JS Show WO Classes */
+.swo-btn-selected { background-color: #033966 !important; color: #ffffff !important; }
+.swo-btn-unselected { background-color: white !important; color: #000000 !important; }
+.swo-input-disabled { background-color: #ced4da !important; border: none !important; }
+.swo-input-enabled { background-color: white !important; border: 1px solid #000000 !important; }
+.swo-otro-container { margin-top: 12px !important; }
+.swo-otro-label { font-size: 1em !important; color: #033966 !important; margin-bottom: 5px !important; font-weight: bold !important; }
+.swo-otro-row { align-items: center !important; gap: 12px !important; flex-wrap: wrap !important; }
+.swo-otro-input { flex: 1 !important; min-width: 200px !important; }
+.swo-sol-wrapper { align-items: center !important; gap: 8px !important; flex-shrink: 0 !important; }
+.swo-sol-wrapper-sm { align-items: center !important; gap: 6px !important; }
+.swo-sol-label { font-weight: bold !important; color: #033966 !important; font-size: 1em !important; white-space: nowrap !important; margin: 0 !important; }
+.swo-sol-label-sm { font-weight: bold !important; color: #033966 !important; font-size: 0.95em !important; }
+.swo-sol-select { width: auto !important; min-width: 130px !important; }
+.swo-no-data { color: #777777 !important; }
+.swo-sep { margin: 0 8px !important; color: #aaa !important; }
+.swo-badge-active { background: #033966 !important; color: #fff !important; }
+.swo-badge-inactive { background: #c0c0c0 !important; color: #555 !important; }
+
+.full-width-column { width: 100% !important; }
+
+/* JS Process Production Classes */
+.prod-nav-div { display: flex !important; gap: 0.8em !important; flex-wrap: wrap !important; align-items: flex-end !important; margin-bottom: 1.2em !important; }
+.prod-filter-wrap { display: flex !important; flex-direction: column !important; flex: 1 !important; min-width: 180px !important; }
+.prod-filter-label { font-size: 0.85em !important; margin-bottom: 0.3em !important; }
+.prod-filter-select { font-size: 0.9em !important; height: 42px !important; padding: 0 0.5em !important; }
+.prod-top-bar { display: flex !important; flex-direction: column !important; align-items: stretch !important; margin-bottom: 1.2em !important; }
+.prod-tabs-container { margin: 0 !important; padding: 0.4em !important; display: flex !important; gap: 0.5em !important; }
+.prod-nav-div-flex2 { display: flex !important; gap: 0.8em !important; flex-wrap: wrap !important; align-items: flex-end !important; flex: 2 !important; min-width: 300px !important; }
+.prod-stat-title { color: #a8c4e0 !important; font-size: 0.72em !important; font-weight: 600 !important; text-transform: uppercase !important; letter-spacing: 0.05em !important; }
+.prod-stat-val-white { color: #ffffff !important; font-size: 1.4em !important; font-weight: 800 !important; line-height: 1 !important; }
+.prod-stat-val-muted { color: #7a9dc0 !important; font-size: 1.4em !important; font-weight: 700 !important; line-height: 1 !important; }
+.prod-weld-box { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; background: #033966 !important; border: 2px solid #022a4d !important; border-radius: 8px !important; padding: 8px 14px !important; gap: 4px !important; min-width: 110px !important; }
+.prod-alert-div { display: flex !important; flex-direction: column !important; align-items: center !important; padding: 2em !important; background: #fff3cd !important; border: 2px solid #856404 !important; border-radius: 8px !important; text-align: center !important; }
+.label-alert { color: #856404 !important; font-weight: 700 !important; font-size: 1em !important; line-height: 1.5 !important; }
+.prod-submit-visible { opacity: 1 !important; pointer-events: auto !important; }
+.prod-submit-hidden { opacity: 0 !important; pointer-events: none !important; }
+.z-11000 { z-index: 11000 !important; }
+.prod-input-wrapper { position: relative !important; align-items: center !important; }
+.prod-col-center { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; }
+.prod-fish-gif { height: 20px !important; width: auto !important; position: absolute !important; right: -25px !important; bottom: 12px !important; }
+.prod-empty-td { text-align: center !important; padding: 2em !important; }
+.prod-img-container { position: relative !important; justify-content: center !important; }
+.prod-label-center { text-align: center !important; margin-top: 5px !important; }
+
+.pos-relative { position: relative !important; }
+.align-center { align-items: center !important; }
+.justify-center { justify-content: center !important; }
+
+/* JS Pieces In Progress Classes */
+.pip-card-div-1 { display: flex !important; flex-direction: column !important; align-items: stretch !important; justify-content: center !important; padding: 1.2rem 2rem !important; gap: 1.2rem !important; margin-top: 0px !important; flex: 1 !important; }
+.pip-card-title-1 { border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important; padding-bottom: 0.6rem !important; text-align: center !important; }
+.pip-title-span { font-size: 1.25rem !important; font-weight: 800 !important; letter-spacing: 0.03em !important; }
+.pip-items-container { display: flex !important; flex-direction: row !important; justify-content: space-around !important; align-items: center !important; gap: 30px !important; }
+.pip-card-div-2 { display: flex !important; flex-direction: column !important; justify-content: center !important; padding: 1.2rem 2rem !important; gap: 0.8rem !important; position: relative !important; }
+.pip-p-badge { position: absolute !important; top: 6px !important; left: 8px !important; align-items: center !important; gap: 8px !important; z-index: 5 !important; }
+.pip-card-title-2 { border-bottom: none !important; padding-bottom: 0.6rem !important; text-align: center !important; margin-bottom: 0.2rem !important; }
+.pip-ot-row { display: flex !important; flex-direction: row !important; justify-content: space-between !important; align-items: center !important; margin-bottom: 0.4rem !important; }
+.pip-ot-h3 { margin: 0 !important; font-size: 1.6rem !important; line-height: 1.2 !important; }
+.pip-class-h3 { margin: 0 !important; font-size: 1.4rem !important; margin-bottom: 0 !important; }
+.pip-cotas-badge { position: absolute !important; top: 12px !important; right: 12px !important; height: 40px !important; z-index: 5 !important; }
+.pointer-events-none { pointer-events: none !important; }
+.pointer-events-auto { pointer-events: auto !important; }
+
+/* Almacen & Calidad Utility Classes */
+.btn-lib-send-custom { flex: 1 !important; min-width: 200px !important; max-width: 380px !important; justify-content: center !important; display: flex !important; gap: 8px !important; align-items: center !important; font-size: 1.15em !important; padding: 14px 28px !important; border-radius: 10px !important; font-family: 'Poppins', sans-serif !important; font-weight: 700 !important; height: auto !important; }
+.alm-card-base { border-radius: 12px !important; box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important; padding: 12px !important; background: #fff !important; }
+.alm-card-warning { border: 2px solid #d97706 !important; }
+.alm-card-info { border: 2px solid #0369a1 !important; }
+.alm-card-success { border: 2px solid #10b981 !important; }
+.alm-row-base { background: #fff !important; border: 1px solid #e2e8f0 !important; border-radius: 8px !important; padding: 10px 15px !important; }
+.alm-badge-base { padding: 6px 12px !important; background: #fffbeb !important; border: 1.5px solid #fde047 !important; border-radius: 8px !important; color: #854d0e !important; font-size: 0.85em !important; }
+.alm-text-success { color: #10b981 !important; }
+.alm-text-warning { color: #d97706 !important; }
+.alm-text-danger { color: #ef4444 !important; }
