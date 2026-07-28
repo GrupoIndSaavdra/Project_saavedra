@@ -72,9 +72,7 @@ label {
     font-weight: bold;
     font-size: 1em;
 }
-.div-rows-hidden {
-    /* Oculto mediante la clase .hidden */
-}
+/* .div-rows-hidden: Oculto mediante la clase .hidden */
 
 /*Estilos para la tabla en donde se muestran las clases*/
 .scrollabe-table {

@@ -101,6 +101,7 @@
         productionData: @json(route('productionData')),
         panelProgreso: @json(route('panelProgreso')),
         machinesOccupied: @json(route('machinesOccupied')),
+        processProduction: @json(route('processProduction')),
         logout: @json(route('logout')),
         'soldadura.generarQRLote': @json(route('soldadura.generarQRLote')),
         'soldadura.generarQRIndividual': @json(route('soldadura.generarQRIndividual')),
