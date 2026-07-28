@@ -62,7 +62,7 @@ class EnvioPtaController extends Controller
         // Historial de envíos (más recientes primero, máximo 150 registros)
         $logs = PtaReporteLog::with('usuario')->orderBy('created_at', 'desc')->limit(150)->get();
 
-        return view('reportes.envio_pta', compact('otsConPTA', 'logs'));
+        return view('reports.pta_shipment', compact('otsConPTA', 'logs'));
     }
 
     // ════════════════════════════════════════════════════════════════════════

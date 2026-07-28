@@ -61,7 +61,7 @@ class EnviarReporteDiario extends Command
             mkdir($folderPath, 0755, true);
         }
         $fullPath = "{$folderPath}/{$fecha->toDateString()}.pdf";
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('emails.reporte_diario_pdf', [
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('emails.daily_report_pdf', [
             'reporte' => $reporte,
             'fecha' => $fecha
         ]);

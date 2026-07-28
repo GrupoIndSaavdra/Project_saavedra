@@ -114,7 +114,7 @@ class LiberarQRPlantaController extends Controller
         $botesEnPlanta = $botesDisponibles->count();
         $currentUser = auth()->user(); // Usuario autenticado actual
 
-        return view('trackingSoldadura_views.recepcionPlanta', compact('almacenistas', 'botesEnPlanta', 'currentUser'));
+        return view('welding_tracking_views.plant_reception', compact('almacenistas', 'botesEnPlanta', 'currentUser'));
     }
 
         /**
@@ -156,7 +156,7 @@ class LiberarQRPlantaController extends Controller
             $botesEnPlanta = SoldaduraBote::query()->where('estado', 'en_planta')->count();
             $currentUser = auth()->user(); // Usuario autenticado actual
 
-            return view('trackingSoldadura_views.recepcionPlanta', compact('bote', 'almacenistas', 'botesEnPlanta', 'currentUser'));
+            return view('welding_tracking_views.plant_reception', compact('bote', 'almacenistas', 'botesEnPlanta', 'currentUser'));
 
         } catch (\Exception $e) {
             return back()->withErrors(['qr_content' => 'Error al procesar el QR: ' . $e->getMessage()]);
@@ -216,7 +216,7 @@ class LiberarQRPlantaController extends Controller
         $botesEnPlanta = $botesDisponibles->count();
         $currentUser = auth()->user(); // Usuario autenticado actual
 
-        return view('trackingSoldadura_views.liberarQRPlanta', compact('operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles', 'currentUser'));
+        return view('welding_tracking_views.release_qr_plant', compact('operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles', 'currentUser'));
     }
 
         /**
@@ -266,7 +266,7 @@ class LiberarQRPlantaController extends Controller
             $botesEnPlanta = $botesDisponibles->count();
             $currentUser = auth()->user(); // Usuario autenticado actual
 
-            return view('trackingSoldadura_views.liberarQRPlanta', compact('bote', 'operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles', 'currentUser'));
+            return view('welding_tracking_views.release_qr_plant', compact('bote', 'operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles', 'currentUser'));
 
         } catch (\Exception $e) {
             return back()->withErrors(['qr_content' => 'Error al procesar el QR: ' . $e->getMessage()]);

@@ -99,7 +99,7 @@ class PzasLiberadasController extends Controller
         [$pieces_Released, $info_Pieces] = $this->piecesToBeReleased();
 
         if ($toView) {
-            return view('pieces_views.releasePieces.pzasLiberar', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'pieces_Released', 'info_Pieces'));
+            return view('pieces_views.releasePieces.pieces_to_release', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'pieces_Released', 'info_Pieces'));
         } else {
             // Configuración para generación de PDFs grandes
             @ini_set('max_execution_time', '300'); // 5 minutos

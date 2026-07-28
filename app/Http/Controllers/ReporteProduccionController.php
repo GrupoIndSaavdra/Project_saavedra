@@ -37,7 +37,7 @@ class ReporteProduccionController extends Controller
     public function showReenvio()
     {
         $backgroundImage = 'images/fondoadmin.jpg';
-        return view('reportes.reenvio', compact('backgroundImage'));
+        return view('reports.resend', compact('backgroundImage'));
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -89,7 +89,7 @@ class ReporteProduccionController extends Controller
         }
         $fullPath = "{$folderPath}/{$fecha->toDateString()}.pdf";
 
-        $pdf = FacadePdf::loadView('emails.reporte_diario_pdf', [
+        $pdf = FacadePdf::loadView('emails.daily_report_pdf', [
             'reporte' => $reporte,
             'fecha' => $fecha
         ]);
@@ -121,11 +121,11 @@ class ReporteProduccionController extends Controller
         }
 
         if ($enviados > 0) {
-            return redirect()->route('reportes.reenvio')
+            return redirect()->route('reports.resend')
                 ->with('success', "Reporte enviado a {$enviados} destinatario(s).");
         }
 
-        return redirect()->route('reportes.reenvio')
+        return redirect()->route('reports.resend')
             ->with('error', 'No se pudo enviar el correo: ' . implode(' | ', $errores));
     }
 
@@ -149,7 +149,7 @@ class ReporteProduccionController extends Controller
 
         $reporte = $this->agruparJerarquicamente($piezas);
 
-        $pdf = FacadePdf::loadView('emails.reporte_diario_pdf', [
+        $pdf = FacadePdf::loadView('emails.daily_report_pdf', [
             'reporte' => $reporte,
             'fecha' => $fecha
         ]);

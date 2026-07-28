@@ -55,7 +55,7 @@ class AyudasVisualesPdfController extends Controller
 
                 $procesoActivo = $procesoSeleccionadoId ? $todosLosProcesos->firstWhere('id', $procesoSeleccionadoId) : null;
 
-        return view('wo_views.manage_ayudas', array_merge(compact(
+        return view('wo_views.manage_visual_aids', array_merge(compact(
             'estructura',
             'todosLosProcesos',
                         'procesoSeleccionadoId',

@@ -1,12 +1,12 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>Herramientas Tecamac | GIS</title>
     <meta name="description"
         content="Catálogo de Herramientas y Tornillería Tecamac: descripción, inserto, condiciones de corte, imágenes y stock.">
     @vite([
-        'resources/css/herramientas_views/herramientas_tecamac.css',
-        'resources/js/herramientas_views/herramientas_tecamac.js',
+        'resources/css/tools_views/tools_tecamac.css',
+        'resources/js/tools_views/tools_tecamac.js',
     ])
 @endsection
 
@@ -250,8 +250,8 @@ function paletaProceso($proceso, &$paleta) {
                                     @endif
                                 </td>
 
-                                <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsHerramienta])</td>
-                                <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsAccesorio])</td>
+                                <td class="d-center">@include('tools._mini_gallery', ['imgs' => $imgsHerramienta])</td>
+                                <td class="d-center">@include('tools._mini_gallery', ['imgs' => $imgsAccesorio])</td>
 
                                 {{-- CONDICIONES DE CORTE --}}
                                 <td class="d-center">{{ $h->profundidad_corte !== null ? number_format($h->profundidad_corte, 3) : '—' }}</td>
@@ -259,10 +259,10 @@ function paletaProceso($proceso, &$paleta) {
                                 <td class="d-center">{{ $h->avances ?? '—' }}</td>
 
                                 {{-- TORNILLERÍA --}}
-                                <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsTornilleria])</td>
+                                <td class="d-center">@include('tools._mini_gallery', ['imgs' => $imgsTornilleria])</td>
 
                                 {{-- IMAGEN FÍSICA --}}
-                                <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsFisica])</td>
+                                <td class="d-center">@include('tools._mini_gallery', ['imgs' => $imgsFisica])</td>
 
                                 <td class="d-center">
                                     @if($h->minimo !== null)

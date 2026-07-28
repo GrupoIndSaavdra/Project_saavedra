@@ -110,7 +110,7 @@
         'pta.analysis': @json(route('pta.analysis')),
         'pta.segunda_pasada': @json(route('pta.segunda_pasada')),
         'pta.results.current': @json(session('pta_temp_ot_id') ? route('pta.results', ['ot_id' => session('pta_temp_ot_id')]) : '#'),
-        'reportes.reenvio': @json(route('reportes.reenvio')),
+        'reports.resend': @json(route('reports.resend')),
         'reportes.pta': @json(route('reportes.pta')),
         'dibujos.manage': @json(route('dibujos.manage')),
         'fundicion.manage': @json(route('fundicion.manage')),

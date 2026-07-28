@@ -1398,9 +1398,9 @@ class PzasGeneralesController extends Controller
     {
         if ($this->retornarOTs() != 0) {
             $arregloOT = $this->retornarOTs();
-            return view('machines_views.maquinas', compact('arregloOT'));
+            return view('machines_views.machines', compact('arregloOT'));
         } else {
-            return view('machines_views.maquinas');
+            return view('machines_views.machines');
         }
     }
     /**
@@ -2022,7 +2022,7 @@ class PzasGeneralesController extends Controller
             $contador++;
         }
         array_splice($procesos, 0, 2);
-        return view('machines_views.vistaProcesos', compact('procesos', 'ot', 'clase'));
+        return view('machines_views.process_view', compact('procesos', 'ot', 'clase'));
     }
         /**
      * @param mixed $proceso

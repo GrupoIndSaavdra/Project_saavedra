@@ -10,7 +10,7 @@ class GenerarQRLoteController extends Controller
 {
     public function index()
     {
-        return view('trackingSoldadura_views.generarQRLote');
+        return view('welding_tracking_views.generate_qr_batch');
     }
 
         /**
@@ -56,7 +56,7 @@ class GenerarQRLoteController extends Controller
             'numero_factura' => $lote->numero_factura,
         ]);
 
-        $pdf = Pdf::loadView('trackingSoldadura_views.qr_lote_pdf', compact('lote', 'qrContent'));
+        $pdf = Pdf::loadView('welding_tracking_views.qr_batch_pdf', compact('lote', 'qrContent'));
         
         return $pdf->download('QR_Lote_' . $lote->matricula . '.pdf');
     }

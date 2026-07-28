@@ -126,7 +126,7 @@ class HerramientasTecamacController extends Controller
 
         $procesos = self::PROCESOS;
 
-        return view('herramientas.index', compact(
+        return view('tools.index', compact(
             'herramientas', 'busqueda', 'modo', 'filtroProceso',
             'totalActivas', 'totalInactivas', 'totalStockBajo',
             'esCrud', 'esAlta', 'esAlmacen', 'esAdmin', 'procesos'

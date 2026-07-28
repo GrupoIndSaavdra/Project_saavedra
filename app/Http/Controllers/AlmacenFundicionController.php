@@ -98,7 +98,7 @@ class AlmacenFundicionController extends Controller
             ->orderBy('ot', 'asc')
             ->pluck('ot');
 
-        return view('almacen.almacen_fundicion', compact(
+        return view('warehouse.foundry_warehouse', compact(
             'registros',
             'listaOts',
             'busquedaOt',
@@ -2128,7 +2128,7 @@ class AlmacenFundicionController extends Controller
             $pages[] = $p2Data;
         }
 
-        $pdf = Pdf::loadView('almacen.pdf_pre_orden_casting', [
+        $pdf = Pdf::loadView('warehouse.pre_order_casting_pdf', [
             'pages' => $pages,
             'user' => $user
         ])->setPaper('a4', 'landscape');
@@ -2345,7 +2345,7 @@ class AlmacenFundicionController extends Controller
                 $firstPo = $preOrdenes->first();
                 $creator = \App\Models\User::where('id', '=', $firstPo->user_id, 'and')->first() ?: Auth::user();
 
-                $pdf = Pdf::loadView('almacen.pdf_pre_orden_casting', [
+                $pdf = Pdf::loadView('warehouse.pre_order_casting_pdf', [
                     'pages' => $pages,
                     'user' => $creator
                 ])->setPaper('a4', 'landscape');

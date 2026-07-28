@@ -99,7 +99,7 @@ class CalidadFundicionController extends Controller
             ->orderBy('ot', 'asc')
             ->pluck('ot');
 
-        return view('calidad.calidad_fundicion', compact(
+        return view('quality.foundry_quality', compact(
             'registros',
             'listaOts',
             'busquedaOt',
@@ -1149,7 +1149,7 @@ class CalidadFundicionController extends Controller
             ini_set('memory_limit', '2048M');
             $hasRechazo = ($nuevoEstado === 'rechazado') || 
                            ($nuevoEstado === 'pendiente' && $decision === 'rechazar');
-            $viewName = $hasRechazo ? 'almacen.pdf_rechazo' : 'almacen.pdf_liberacion';
+            $viewName = $hasRechazo ? 'warehouse.rejection_pdf' : 'warehouse.liberation_pdf';
             $pdf = Pdf::loadView($viewName, ['liberacion' => $liberacion])
                       ->setPaper('letter', 'landscape');
             $pdf->save("{$pdfPath}/{$pdfFilename}");
@@ -1365,7 +1365,7 @@ class CalidadFundicionController extends Controller
         }
         
         ini_set('memory_limit', '2048M');
-        $pdf = Pdf::loadView('almacen.pdf_scar', ['scar' => $scar])
+        $pdf = Pdf::loadView('warehouse.scar_pdf', ['scar' => $scar])
                   ->setPaper('letter', 'portrait');
                   
         $pdfFilename = "F-CCL-SCAR_" . $firstClassSuffix . "_{$otSanitizada}.pdf";
@@ -1507,7 +1507,7 @@ class CalidadFundicionController extends Controller
             }
 
             ini_set('memory_limit', '2048M');
-            $pdf = Pdf::loadView('almacen.pdf_scar', ['scar' => $scarData])
+            $pdf = Pdf::loadView('warehouse.scar_pdf', ['scar' => $scarData])
                       ->setPaper('letter', 'portrait');
 
             // Guardamos el primer PDF en el directorio temporal
@@ -1709,7 +1709,7 @@ class CalidadFundicionController extends Controller
         // 2.5 Regenerar el PDF digital del SCAR para que plasme la fecha de compromiso
         try {
             ini_set('memory_limit', '2048M');
-            $pdf = Pdf::loadView('almacen.pdf_scar', ['scar' => $scar])
+            $pdf = Pdf::loadView('warehouse.scar_pdf', ['scar' => $scar])
                       ->setPaper('letter', 'portrait');
             $pdf->save("{$pdfDir}/{$scar->pdf_filename}");
             

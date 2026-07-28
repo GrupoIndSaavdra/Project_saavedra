@@ -51,7 +51,7 @@ class DibujoFundicionAlertMail extends Mailable
     public function content()
     {
         return new Content(
-            view: 'emails.dibujo_fundicion_alert',
+            view: 'emails.foundry_drawing_alert',
         );
     }
 

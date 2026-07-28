@@ -40,7 +40,7 @@ class ReporteDiarioMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.reporte_diario',
+            view: 'emails.daily_report',
             with: [
                 'reporte' => $this->reporte,
                 'fecha' => $this->fecha,

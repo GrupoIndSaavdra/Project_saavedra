@@ -5,7 +5,7 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
-                // Base global — Paleta GIS, Poppins, utilidades compartidas
+                // Base global â€” Paleta GIS, Poppins, utilidades compartidas
                 "resources/css/global.css",
 
                 //Layout messages
@@ -77,17 +77,17 @@ export default defineConfig({
                 'resources/js/viewUsers.js',
 
                 //Generar QR individual
-                'resources/js/TrackingSoldadura/generarQRSoldadura.js',
-                'resources/js/TrackingSoldadura/registerSoldadura.js',
-                'resources/js/TrackingSoldadura/soldadura.js',
-                'resources/css/trackingSoldadura_views/generarQRIndividual.css',
-                'resources/css/trackingSoldadura_views/generarQRLote.css',
-                'resources/css/trackingSoldadura_views/recepcionPlanta.css',
+                'resources/js/welding_tracking_views/generate_welding_qr.js',
+                'resources/js/welding_tracking_views/register_welding.js',
+                'resources/js/welding_tracking_views/welding.js',
+                'resources/css/welding_tracking_views/generate_qr_individual.css',
+                'resources/css/welding_tracking_views/generate_qr_batch.css',
+                'resources/css/welding_tracking_views/plant_reception.css',
 
                 //Liberar soldadura
                 'resources/js/libs/html5-qrcode.min.js',
-                'resources/css/trackingSoldadura_views/liberarQRPlanta.css',
-                'resources/js/trackingSoldadura/liberarSoldadura.js',
+                'resources/css/welding_tracking_views/release_qr_plant.css',
+                'resources/js/welding_tracking_views/release_welding.js',
 
                 //Views PTA
                 'resources/css/processes_views/soldaduraPTA_table_partial.css',
@@ -99,11 +99,11 @@ export default defineConfig({
                 'resources/css/pieces_views/piecesReport/soldaduraPTAExtraInfoPdf.css',
 
                 //Views Reporte Diario
-                'resources/css/reportes/email.css',
-                'resources/css/reportes/reenvio.css',
-                'resources/css/reportes/envio_pta.css',
+                'resources/css/reports_views/email.css',
+                'resources/css/reports_views/resend.css',
+                'resources/css/reports_views/pta_shipment.css',
 
-                //Módulo Documentacion Técnica
+                //MÃ³dulo Documentacion TÃ©cnica
                 'resources/css/wo_views/manage_dibujos.css',
                 'resources/css/wo_views/manage_fundicion.css',
                 'resources/css/wo_views/manage_manuales.css',
@@ -115,23 +115,23 @@ export default defineConfig({
                 'resources/js/wo_views/manage_ayudas.js',
                 'resources/js/wo_views/manage_ayudas_fundicion.js',
 
-                //Vista Almacén/Calidad — Dibujos de Fundición
-                'resources/css/almacen_views/almacen_fundicion.css',
-                'resources/js/almacen_views/almacen_fundicion.js',
-                'resources/css/almacen_views/calidad_fundicion.css',
-                'resources/js/almacen_views/calidad_fundicion.js',
+                //Vista AlmacÃ©n/Calidad â€” Dibujos de FundiciÃ³n
+                'resources/css/warehouse_views/foundry_warehouse.css',
+                'resources/js/warehouse_views/foundry_warehouse.js',
+                'resources/css/warehouse_views/foundry_quality.css',
+                'resources/js/warehouse_views/foundry_quality.js',
 
-                //Vista Calidad — Dibujos y Ayudas de Maquinados
-                'resources/css/calidad_views/calidad_maquinados.css',
-                'resources/js/calidad_views/calidad_maquinados.js',
+                //Vista Calidad â€” Dibujos y Ayudas de Maquinados
+                'resources/css/quality_views/machined_quality.css',
+                'resources/js/quality_views/machined_quality.js',
 
                 // Views systemLogs
                 "resources/css/reports/systemLogs.css",
                 "resources/js/reports/systemLogs.js",
 
                 // Vista Herramientas Tecamac
-                'resources/css/herramientas_views/herramientas_tecamac.css',
-                'resources/js/herramientas_views/herramientas_tecamac.js',
+                'resources/css/tools_views/tools_tecamac.css',
+                'resources/js/tools_views/tools_tecamac.js',
             ],
             refresh: true,
         }),

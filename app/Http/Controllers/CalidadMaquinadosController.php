@@ -104,7 +104,7 @@ class CalidadMaquinadosController extends Controller
         $totalAyudas    = CalidadMaquinadoDoc::query()->where('tipo', 'ayuda')->where('estado', 'activo')->count();
         $totalInactivos = CalidadMaquinadoDoc::query()->where('estado', 'inactivo')->count();
 
-        return view('calidad.maquinados_index', compact(
+        return view('quality.machined_index', compact(
             'dibujos',
             'ayudas',
             'inactivos',

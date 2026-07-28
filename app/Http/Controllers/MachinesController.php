@@ -21,7 +21,7 @@ class MachinesController extends Controller
     public function show()
     {
         $machines = $this->machinesOccupied();
-        return view('machines_views.machinesOccupied', compact('machines'));
+        return view('machines_views.machines_occupied', compact('machines'));
     }
     public function machinesOccupied()
     {

@@ -18,7 +18,7 @@ class GenerarQRIndividualController extends Controller
                     ->orderBy('fecha_ingreso', 'desc')
                     ->get();
         
-        return view('trackingSoldadura_views.generarQRIndividual', compact('lotes'));
+        return view('welding_tracking_views.generate_qr_individual', compact('lotes'));
     }
 
         /**
@@ -82,7 +82,7 @@ class GenerarQRIndividualController extends Controller
             ];
         }
 
-        $pdf = Pdf::loadView('trackingSoldadura_views.qr_individuales_pdf', compact('qrCodes', 'lote'));
+        $pdf = Pdf::loadView('welding_tracking_views.qr_individual_pdf', compact('qrCodes', 'lote'));
         
         return $pdf->download('QR_Botes_' . $lote->matricula . '.pdf');
     }

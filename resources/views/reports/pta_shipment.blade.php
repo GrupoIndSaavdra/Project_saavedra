@@ -1,7 +1,7 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
-    @vite(['resources/css/reportes/envio_pta.css'])
+    @vite(['resources/css/reports_views/pta_shipment.css'])
     <title>Envío de Reportes PTA</title>
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 @endsection

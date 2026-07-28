@@ -48,7 +48,7 @@ class PreOrdenMailable extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.pre_orden',
+            view: 'emails.pre_order',
         );
     }
 
