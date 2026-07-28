@@ -74,6 +74,7 @@ Si la tarea te obligó a deducir algo que no estaba en ninguna skill, agrégalo 
 13. **[Dynamic UI](dynamic_ui_skill.md)** — State local con `window.*`, render sin recargar, pattern CRUD
 14. **[Emails](emails_skill.md)** — Mailables Laravel, plantillas Blade, configuración SMTP
 15. **[Rutas](routes_skill.md)** — Convenciones, grupos de rutas, naming, middlewares en rutas
+16. **[Testing](testing_skill.md)** — Validación estricta, sintaxis PHP, cachés, Vite, referencias rotas
 
 ---
 
