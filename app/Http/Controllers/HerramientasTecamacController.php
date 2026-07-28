@@ -110,9 +110,9 @@ class HerramientasTecamacController extends Controller
 
         $herramientas = $query->with('imagenes')->orderBy('nombre_herramienta')->get();
 
-        $totalActivas   = HerramientaTecamac::where('activo', true)->count();
-        $totalInactivas = HerramientaTecamac::where('activo', false)->count();
-        $totalStockBajo = HerramientaTecamac::where('activo', true)
+        $totalActivas   = HerramientaTecamac::where('activo', '=', true, 'and')->count();
+        $totalInactivas = HerramientaTecamac::where('activo', '=', false, 'and')->count();
+        $totalStockBajo = HerramientaTecamac::where('activo', '=', true, 'and')
             ->whereNotNull('minimo')
             ->whereColumn('cantidad_portaherramientas', '<', 'minimo')
             ->count();
@@ -230,8 +230,8 @@ class HerramientasTecamacController extends Controller
 
         $deleteIds = $request->input('delete_img_ids', []);
         if (!empty($deleteIds)) {
-            $toDelete = HerramientaImagen::whereIn('id', $deleteIds)
-                ->where('herramienta_id', $h->id)->get();
+            $toDelete = HerramientaImagen::whereIn('id', $deleteIds, 'and', false)
+                ->where('herramienta_id', '=', $h->id, 'and')->get();
             foreach ($toDelete as $img) {
                 $path = public_path($img->ruta);
                 if (file_exists($path)) @unlink($path);
@@ -342,8 +342,8 @@ class HerramientasTecamacController extends Controller
     {
         $ordenBase = [];
         foreach (self::TIPOS_IMAGEN as $tipo) {
-            $ordenBase[$tipo] = HerramientaImagen::where('herramienta_id', $h->id)
-                ->where('tipo', $tipo)->max('orden') ?? -1;
+            $ordenBase[$tipo] = HerramientaImagen::where('herramienta_id', '=', $h->id, 'and')
+                ->where('tipo', '=', $tipo, 'and')->max('orden') ?? -1;
         }
 
         foreach (self::TIPOS_IMAGEN as $tipo) {
@@ -369,6 +369,10 @@ class HerramientasTecamacController extends Controller
         }
     }
 
+    /**
+     * @param \Illuminate\Http\UploadedFile $file
+     * @return string
+     */
     private function guardarImagen($file): string
     {
         $nombre  = time() . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();

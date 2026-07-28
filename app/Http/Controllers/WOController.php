@@ -22,6 +22,11 @@ use App\Models\ScarModelo;
 use App\Models\PreOrdenFundicion;
 use App\Models\RemisionOt;
 use App\Models\ParcialidadOt;
+use App\Models\TratamientoTermico;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\DibujosFundicionPdfController;
 
 /**
  * @noinspection PhpUndefinedFieldInspection
@@ -50,12 +55,12 @@ class WOController extends Controller
     {
         // Obtener todas las molduras (incluyendo las nuevas), a excepción de aquellas cuyas clases tienen finalizada = 2
         $moldings = Moldura::whereNotExists(function ($query) {
-            $query->select(\Illuminate\Support\Facades\DB::raw(1))
-                  ->from('clases')
-                  ->join('orden_trabajo', 'clases.id_ot', '=', 'orden_trabajo.id')
-                  ->whereColumn('orden_trabajo.id_moldura', 'molduras.id')
-                  ->where('clases.finalizada', '=', 2);
-        })->get();
+            $query->select(DB::raw(1))
+                ->from('clases')
+                ->join('orden_trabajo', 'clases.id_ot', '=', 'orden_trabajo.id')
+                ->whereColumn('orden_trabajo.id_moldura', '=', 'molduras.id')
+                ->where('clases.finalizada', '=', 2, 'and');
+        }, 'and')->get();
         $workOrdersAll = Orden_trabajo::query()->with(['clases', 'moldura'])->get();
         $workOrders = null;
 
@@ -70,7 +75,7 @@ class WOController extends Controller
                     if ($clases->count() == 0)
                         continue;
                 } else {
-                    $clases = $clases->where('finalizada', 0);
+                    $clases = $clases->where('finalizada', '=', 0, 'and');
                     if ($clases->count() == 0)
                         continue;
                 }
@@ -132,9 +137,9 @@ class WOController extends Controller
         if (auth()->user()->perfil == 5) {
             // Cargar remisiones y parcialidades agrupadas por id_clase
             $claseIds = $classes ? $classes->pluck('id')->toArray() : [];
-            $remisiones   = RemisionOt::with('usuario')->whereIn('id_clase', $claseIds)->where('visible', 1)->orderByDesc('created_at')->get()->groupBy('id_clase');
-            $parcialidades = ParcialidadOt::with(['usuario', 'remision'])->whereIn('id_clase', $claseIds)->orderByDesc('fecha_recepcion')->get()->groupBy('id_clase');
-            $tratamientos = \App\Models\TratamientoTermico::whereIn('id_clase', $claseIds)->orderByDesc('created_at')->get()->groupBy('id_clase');
+            $remisiones = RemisionOt::with('usuario')->whereIn('id_clase', $claseIds, 'and', false)->where('visible', '=', 1, 'and')->orderByDesc('created_at')->get()->groupBy('id_clase');
+            $parcialidades = ParcialidadOt::with(['usuario', 'remision'])->whereIn('id_clase', $claseIds, 'and', false)->orderByDesc('fecha_recepcion')->get()->groupBy('id_clase');
+            $tratamientos = TratamientoTermico::whereIn('id_clase', $claseIds, 'and', false)->orderByDesc('created_at')->get()->groupBy('id_clase');
 
             return view('wo_views.show_wo_almacen', compact('workOrder', 'molding', 'classes', 'remisiones', 'parcialidades', 'tratamientos'));
         }
@@ -165,7 +170,7 @@ class WOController extends Controller
                         $pattern = '/^OT\s*' . preg_quote($idWOrder, '/') . '(?:\b|_R\d+|$)/i';
                         if (preg_match($pattern, $history->ot)) {
                             // Sincronizar y copiar dibujos a la carpeta protegida de Almacén antes de inactivar
-                            \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($history->ot);
+                            DibujosFundicionPdfController::copyToAlmacen($history->ot);
                             $history->update(['status' => 'inactiva']);
                         }
                     }
@@ -179,7 +184,7 @@ class WOController extends Controller
                         $suffix = $suffixMatch[0] ?? '';
                         if (!empty($suffix) && str_contains($history->ot, $suffix)) {
                             // Sincronizar y copiar dibujos a la carpeta protegida de Almacén antes de inactivar
-                            \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($history->ot);
+                            DibujosFundicionPdfController::copyToAlmacen($history->ot);
                             $history->update(['status' => 'inactiva']);
                         }
                     }
@@ -229,6 +234,7 @@ class WOController extends Controller
         $molding = Moldura::query()->find($moldingId, ['*']);
         return $molding ? $molding->nombre : null;
     }
+
     /**
      * @param array $array
      * @param mixed $class
@@ -241,8 +247,8 @@ class WOController extends Controller
         $array[$class->nombre]["order"] = $class->pedido;
         $array[$class->nombre]["startDate"] = $this->getStringDate($class->fecha_inicio, $class->hora_inicio);
         $array[$class->nombre]["endDate"] = $class->fecha_termino ? $this->getStringDate($class->fecha_termino, $class->hora_termino) : "-";
-        $array[$class->nombre]["entregadas"] = ParcialidadOt::query()->where('id_clase', $class->id)->sum('cantidad');
-        $array[$class->nombre]["tratadas"] = \App\Models\TratamientoTermico::query()->where('id_clase', $class->id)->sum('cantidad');
+        $array[$class->nombre]["entregadas"] = ParcialidadOt::query()->where('id_clase', '=', $class->id, 'and')->sum('cantidad');
+        $array[$class->nombre]["tratadas"] = TratamientoTermico::query()->where('id_clase', '=', $class->id, 'and')->sum('cantidad');
         $array[$class->nombre]["processes"] = $this->insertProcessesData($class);
 
         // Flag para indicar si la clase lleva el proceso Soldadura PTA activo.
@@ -253,6 +259,7 @@ class WOController extends Controller
         }
         $array[$class->nombre]["hasPTA"] = $hasPTA;
     }
+
     /**
      * @param mixed $class
      */
@@ -337,7 +344,7 @@ class WOController extends Controller
                         $processes[$processName]['pieces'] = $pieces;
                         $processes[$processName]['piecesBadData'] = $piecesBadData; //Informacion de las piezas malas
                         $processes[$processName]['endDate'] = $this->getDateEndFromProcess($field, $class); //Fecha de termino del proceso
-                        
+
                         // Check if cotas are uploaded for this process
                         $searchProcess = explode('_', $processName)[0];
                         if (in_array($processName, ['Soldadura y Soldadura PTA', 'Asentado', 'Rectificado'])) {
@@ -346,10 +353,10 @@ class WOController extends Controller
                         $hasCotas = false;
                         $requiresCotas = ($searchProcess !== 'none');
                         if ($requiresCotas) {
-                            $hasCotas = SystemLog::query()->where('id_ot', $class->id_ot)
-                                ->where('clase', $class->nombre)
-                                ->where('action', 'Cargo/Modificación Cotas Nominales')
-                                ->where('proceso', $searchProcess)
+                            $hasCotas = SystemLog::query()->where('id_ot', '=', $class->id_ot, 'and')
+                                ->where('clase', '=', $class->nombre, 'and')
+                                ->where('action', '=', 'Cargo/Modificación Cotas Nominales', 'and')
+                                ->where('proceso', '=', $searchProcess, 'and')
                                 ->exists();
                         }
                         $processes[$processName]['requiresCotas'] = $requiresCotas;
@@ -374,7 +381,7 @@ class WOController extends Controller
                     return in_array($fp->proceso, $processesArray);
                 });
         } else {
-            $dateEnd = Fecha_proceso::query()->where('clase', $class)->where('proceso', $process)->first();
+            $dateEnd = Fecha_proceso::query()->where('clase', '=', $class, 'and')->where('proceso', '=', $process, 'and')->first();
         }
         if ($dateEnd) {
             $formattedDate = new DateTime($dateEnd->fecha_fin);
@@ -413,14 +420,14 @@ class WOController extends Controller
             foreach ($histories as $h) {
                 $otKey = $h->ot;
                 $history = $h;
-                
+
                 // Si la clase tiene un SCAR en esta iteración, significa que fue rechazada
                 // y su flujo continúa en el siguiente Reproceso (_R).
                 $hasScar = ScarModelo::query()
                     ->where('ot', $otKey)
                     ->where('tipo_modelo', $className)
                     ->exists();
-                    
+
                 if (!$hasScar) {
                     // Si no tiene SCAR, su flujo de revisión se detuvo en este nivel (aprobada o pendiente).
                     break;
@@ -447,7 +454,7 @@ class WOController extends Controller
         } else {
             $preOrdenReprocesoQ->where('ot', 'LIKE', "{$otKey}_R%");
         }
-        
+
         $preOrdenList = $preOrdenReprocesoQ->get();
         $preOrdenReproceso = null;
         foreach ($preOrdenList as $po) {
@@ -512,7 +519,7 @@ class WOController extends Controller
                     ->orWhere('pdf_filename', 'LIKE', '%Casting%');
             })
             ->get();
-            
+
         foreach ($castingList as $po) {
             if (!$className) {
                 $castingPreordenExists = true;
@@ -913,9 +920,9 @@ class WOController extends Controller
         // Transformar a array plano para el frontend
         $otPriorities = $workOrders->map(function ($ot, $index) {
             return [
-                'ot_id'    => $ot->id,
-                'moldura'  => $ot->moldura ? $ot->moldura->nombre : '—',
-                'clases'   => $ot->clases->pluck('nombre')->toArray(),
+                'ot_id' => $ot->id,
+                'moldura' => $ot->moldura ? $ot->moldura->nombre : '—',
+                'clases' => $ot->clases->pluck('nombre')->toArray(),
                 'prioridad' => $ot->prioridad ?? ($index + 1),
             ];
         })->values()->toArray();
@@ -944,21 +951,21 @@ class WOController extends Controller
         }
 
         try {
-            \Illuminate\Support\Facades\DB::transaction(function () use ($priorities) {
+            DB::transaction(function () use ($priorities) {
                 foreach ($priorities as $item) {
                     // Validar que los campos necesarios existen
                     if (!isset($item['ot_id']) || !isset($item['prioridad'])) {
                         continue;
                     }
-                    Orden_trabajo::query()->where('id', $item['ot_id'])
+                    Orden_trabajo::query()->where('id', '=', $item['ot_id'], 'and')
                         ->update(['prioridad' => (int) $item['prioridad']]);
                 }
             });
 
             return response()->json(['success' => true, 'message' => 'Prioridades guardadas correctamente.']);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error al guardar prioridades OT', [
-                'error'   => $e->getMessage(),
+            Log::error('Error al guardar prioridades OT', [
+                'error' => $e->getMessage(),
                 'payload' => $priorities,
             ]);
             return response()->json(['success' => false, 'message' => 'Error al guardar prioridades.'], 500);
@@ -1011,7 +1018,7 @@ class WOController extends Controller
         $termicoData = [];
         foreach ($ot->clases as $clase) {
             if ($clase->finalizada == 0) {
-                $tratadas = \App\Models\TratamientoTermico::where('id_clase', $clase->id)->sum('cantidad');
+                $tratadas = TratamientoTermico::where('id_clase', '=', $clase->id, 'and')->sum('cantidad');
                 $termicoData[$clase->nombre] = [
                     'tratadas' => (int) $tratadas,
                     'pieces' => (int) $clase->piezas
@@ -1080,17 +1087,19 @@ class WOController extends Controller
             $procesosActivosParaCotas = 0;
             $procesosTotalesAsignados = 0;
             $cotasGuardadas = 0;
-            
+
             $procesosFounded = Procesos::query()->where('id_clase', $clase->id)->first();
             $processesInOrder = [];
             switch ($clase->nombre) {
-                case "Bombillo": case "Molde":
+                case "Bombillo":
+                case "Molde":
                     $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
                     break;
                 case 'Corona':
                     $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
                     break;
-                case "Obturador": case "Fondo":
+                case "Obturador":
+                case "Fondo":
                     $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
                     break;
                 case "Candado Obturador":
@@ -1120,15 +1129,15 @@ class WOController extends Controller
                 foreach ($processesInOrder as $process) {
                     $isActive = $anyActive ? ($procesosFounded[$process] != 0) : true;
                     if ($isActive) {
-                        if (str_contains($process, "soldadura") && $soldaduraBand) { 
+                        if (str_contains($process, "soldadura") && $soldaduraBand) {
                             continue;
                         }
                         $soldaduraBand = str_contains($process, "soldadura") ? true : false;
                         $field = $process == "operacionEquipo" ? ["1 operacion", "2 operacion"] : [$process];
-                        
+
                         foreach ($field as $processField) {
                             $procesosTotalesAsignados++;
-                            
+
                             $processName = "";
                             if (count($field) > 1) {
                                 $processName = "Operacion Equipo_" . $processField;
@@ -1139,15 +1148,15 @@ class WOController extends Controller
                                     $processName = $this->nombreProceso($processField);
                                 }
                             }
-                            
+
                             if (!in_array($processName, ['Soldadura y Soldadura PTA', 'Asentado', 'Rectificado'])) {
                                 $procesosActivosParaCotas++;
-                                
+
                                 $searchProcess = explode('_', $processName)[0];
-                                $hasCota = SystemLog::query()->where('id_ot', $ot->id)
-                                    ->where('clase', $clase->nombre)
-                                    ->where('action', 'Cargo/Modificación Cotas Nominales')
-                                    ->where('proceso', $searchProcess)
+                                $hasCota = SystemLog::query()->where('id_ot', '=', $ot->id, 'and')
+                                    ->where('clase', '=', $clase->nombre, 'and')
+                                    ->where('action', '=', 'Cargo/Modificación Cotas Nominales', 'and')
+                                    ->where('proceso', '=', $searchProcess, 'and')
                                     ->exists();
                                 if ($hasCota) {
                                     $cotasGuardadas++;
@@ -1162,23 +1171,23 @@ class WOController extends Controller
             $newPath = $dibujosDir . '/' . $claseNameClean;
             $oldPath = $oldDibujosDir . '/' . $claseNameClean;
 
-            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($newPath)) {
-                $files = \Illuminate\Support\Facades\Storage::disk('local')->files($newPath);
+            if (Storage::disk('local')->exists($newPath)) {
+                $files = Storage::disk('local')->files($newPath);
                 $dibujosSubidosCount = count(array_filter($files, fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf'));
             }
-            if ($dibujosSubidosCount === 0 && \Illuminate\Support\Facades\Storage::disk('local')->exists($oldPath)) {
-                $files = \Illuminate\Support\Facades\Storage::disk('local')->files($oldPath);
+            if ($dibujosSubidosCount === 0 && Storage::disk('local')->exists($oldPath)) {
+                $files = Storage::disk('local')->files($oldPath);
                 $dibujosSubidosCount = count(array_filter($files, fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf'));
             }
             $hasDibujos = $dibujosSubidosCount > 0;
-            
+
             // Obtener fecha del primer dibujo subido
             $fechaPrimerDibujo = null;
             if ($dibujosSubidosCount > 0 && isset($files) && is_array($files)) {
                 $earliestTime = null;
                 foreach ($files as $f) {
                     if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
-                        $mtime = \Illuminate\Support\Facades\Storage::disk('local')->lastModified($f);
+                        $mtime = Storage::disk('local')->lastModified($f);
                         if ($earliestTime === null || $mtime < $earliestTime) {
                             $earliestTime = $mtime;
                         }
@@ -1192,10 +1201,10 @@ class WOController extends Controller
             // Obtener fecha de la primera cota registrada
             $fechaPrimeraCota = null;
             if ($cotasGuardadas > 0) {
-                $logCota = SystemLog::query()->where('id_ot', $ot->id)
-                    ->where('clase', $clase->nombre)
-                    ->where('action', 'Cargo/Modificación Cotas Nominales')
-                    ->where('proceso', '!=', 'none')
+                $logCota = SystemLog::query()->where('id_ot', '=', $ot->id, 'and')
+                    ->where('clase', '=', $clase->nombre, 'and')
+                    ->where('action', '=', 'Cargo/Modificación Cotas Nominales', 'and')
+                    ->where('proceso', '!=', 'none', 'and')
                     ->orderBy('created_at', 'asc')
                     ->first();
                 if ($logCota) {
@@ -1209,7 +1218,7 @@ class WOController extends Controller
             } elseif ($fechaPrimeraCota && !$fechaPrimerDibujo) {
                 $cotasVaPrimero = true;
             }
-            
+
             // 2. Cotas finalizadas
             $hasCotas = $procesosActivosParaCotas > 0 ? ($cotasGuardadas >= $procesosActivosParaCotas) : true;
 
@@ -1226,7 +1235,7 @@ class WOController extends Controller
             $pasoDibujos = [
                 'label' => $dibujosSubidosCount > 0 ? "Dibujos de maquinados subidos ({$dibujosSubidosCount})" : 'Dibujos de maquinados subidos',
             ];
-            
+
             $pasoCotas = [
                 'label' => $procesosActivosParaCotas > 0 ? "Cotas de OT/Clase subidas (Admin) ({$cotasGuardadas}/{$procesosActivosParaCotas})" : "Cotas de OT/Clase subidas (Admin) (N/A)",
             ];
@@ -1402,7 +1411,7 @@ class WOController extends Controller
     function finishOrder(Request $request)
     {
         // Algoritmo para finalizar el pedido de una clase
-        $class = Clase::query()->where('id_ot', $request->wOrderName)->where('nombre', $request->className)->first();
+        $class = Clase::query()->where('id_ot', '=', $request->input('wOrderName'), 'and')->where('nombre', '=', $request->input('className'), 'and')->first();
         $arrayProcesses = $this->insertProcessesData($class);
 
         $counterRejected = 0;

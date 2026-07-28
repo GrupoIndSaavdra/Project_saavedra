@@ -14,7 +14,7 @@ class GenerarQRLoteController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function store(Request $request)
     {
@@ -42,7 +42,7 @@ class GenerarQRLoteController extends Controller
     }
 
     /**
-     * @param \App\Models\SoldaduraLote $lote
+     * @param SoldaduraLote $lote
      */
     private function generarPDF($lote)
     {

@@ -68,12 +68,23 @@ class DesbasteExteriorController extends Controller
         $piece->save();
     }
 
-
+    /**
+     * @param float $value
+     * @param float $nominal
+     * @param float $tolerancePlus
+     * @param float $toleranceMinus
+     * @return bool
+     */
     private function outOfTolerance($value, $nominal, $tolerancePlus, $toleranceMinus)
     {
         return round($value, 4) > round($nominal + $tolerancePlus, 4) || round($value, 4) < round($nominal - $toleranceMinus, 4);
     }
-
+    /**
+     * @param mixed $pieza
+     * @param mixed $cNominal
+     * @param mixed $tolerancia
+     * @return int
+     */
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
         if (

@@ -262,7 +262,6 @@ label {
     align-items: center;
 }
 .btn {
-    display: none;
     background-color: var(--gis-green);
     color: var(--gis-white);
     font-size: 0.95em;

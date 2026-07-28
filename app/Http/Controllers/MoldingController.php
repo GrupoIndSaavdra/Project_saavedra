@@ -19,7 +19,7 @@ class MoldingController extends Controller
         return view('moldings_views.create_molding');
     }
         /**
-     * @param \Illuminate\Http\Request MoldingRequest $request
+     * @param MoldingRequest $request
      */
     public function store(MoldingRequest $request)
     {
@@ -34,7 +34,7 @@ class MoldingController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function update(Request $request)
     {

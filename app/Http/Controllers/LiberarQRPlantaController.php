@@ -118,7 +118,7 @@ class LiberarQRPlantaController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function escanearRecepcion(Request $request)
     {
@@ -164,7 +164,7 @@ class LiberarQRPlantaController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function confirmarRecepcion(Request $request)
     {
@@ -220,7 +220,7 @@ class LiberarQRPlantaController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function escanear(Request $request)
     {
@@ -274,7 +274,7 @@ class LiberarQRPlantaController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function liberar(Request $request)
     {

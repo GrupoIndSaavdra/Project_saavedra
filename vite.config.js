@@ -83,6 +83,8 @@ export default defineConfig({
                 'resources/css/trackingSoldadura_views/generarQRIndividual.css',
                 'resources/css/trackingSoldadura_views/generarQRLote.css',
                 'resources/css/trackingSoldadura_views/recepcionPlanta.css',
+                'resources/css/trackingSoldadura_views/regenerarQR.css',
+                'resources/css/trackingSoldadura/trackingSoldadura.css',
 
                 //Liberar soldadura
                 'resources/js/libs/html5-qrcode.min.js',

@@ -75,7 +75,7 @@ class EmbudoCMController extends Controller
         return view('processes.embudoCM');
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function storeheaderTable(Request $request)
     {
@@ -355,7 +355,7 @@ class EmbudoCMController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function edit(Request $request)
     {

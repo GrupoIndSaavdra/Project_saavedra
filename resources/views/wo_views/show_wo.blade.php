@@ -42,7 +42,7 @@
     </div>
 </form>
 <div class="div-btns">
-    <button type="submit" class="btn-addClass btn" form="form">Guardar</button>
+    <button type="submit" class="btn-addClass btn hidden" form="form">Guardar</button>
 </div>
 <script>
     window.workOrder = @json($workOrder);

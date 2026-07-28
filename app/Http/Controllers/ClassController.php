@@ -58,7 +58,7 @@ class ClassController extends Controller
         return null;
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function saveClass(Request $request)
     {

@@ -79,7 +79,7 @@ class DatosProduccionController extends Controller
         }
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function show(Request $request)
     {
@@ -174,7 +174,7 @@ class DatosProduccionController extends Controller
 
     /** @deprecated Reemplazado por el pre-cargado en obtenerDatos() */
     /**
-     * @param \App\Models\Orden_trabajo $ot
+     * @param Orden_trabajo $ot
      * @param string &$array
      */
     public function insertarMoldura($ot, &$array)
