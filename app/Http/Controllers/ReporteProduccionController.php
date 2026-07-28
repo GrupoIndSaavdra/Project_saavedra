@@ -121,11 +121,11 @@ class ReporteProduccionController extends Controller
         }
 
         if ($enviados > 0) {
-            return redirect()->route('reports.resend')
+            return redirect()->route('reportes.reenvio')
                 ->with('success', "Reporte enviado a {$enviados} destinatario(s).");
         }
 
-        return redirect()->route('reports.resend')
+        return redirect()->route('reportes.reenvio')
             ->with('error', 'No se pudo enviar el correo: ' . implode(' | ', $errores));
     }
 
