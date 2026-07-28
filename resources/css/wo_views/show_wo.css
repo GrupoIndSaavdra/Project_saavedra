@@ -73,7 +73,7 @@ label {
     font-size: 1em;
 }
 .div-rows-hidden {
-    display: none;
+    /* Oculto mediante la clase .hidden */
 }
 
 /*Estilos para la tabla en donde se muestran las clases*/
@@ -171,7 +171,7 @@ label {
 /*Estilos para la seccion de las casillas*/
 .div-boxes {
     position: relative;
-    display: none;
+    /* Oculto mediante la clase .hidden */
     flex-direction: column;
     background-color: #fff;
     margin-left: 1em;

@@ -29,7 +29,7 @@ function createForm() {
     let div_rows = document.querySelector(".div-rows"); //Obtención del div en donde se insertará el formulario
     div_rows.appendChild(createRowsForm(get_inputAttributes(window.workOrder.id, window.molding.nombre)[0])); //Creación del formulario de la clase
     let div_rowsHidden = document.createElement("div");
-    div_rowsHidden.className = "div-rows-hidden";
+    div_rowsHidden.className = "div-rows-hidden hidden";
     div_rows.appendChild(div_rowsHidden);
 }
 

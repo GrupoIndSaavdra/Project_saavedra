@@ -33,7 +33,7 @@
         </div>
 
         <!--Segunda parte del formulario-->
-        <div class="div-boxes" id="casillas">
+        <div class="div-boxes hidden" id="casillas">
             <h3>Procesos y numero de máquinas disponibles</h3>
             <div class="sections">
                 <!--Se inserta el algoritmos para generar las casillas atraves de JavaScript-->
