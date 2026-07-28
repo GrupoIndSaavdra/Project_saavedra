@@ -18,8 +18,8 @@
         content="Consulta histórica de dibujos de fundición enviados a Almacén y Calidad. Vista de solo lectura."
     />
     @vite ([
-        "resources/css/almacen_views/calidad_fundicion.css",
-        "resources/js/almacen_views/calidad_fundicion.js"
+        "resources/css/warehouse_views/quality_casting.css",
+        "resources/js/warehouse_views/quality_casting.js"
     ])
 @endsection
 

@@ -21,7 +21,7 @@ class RegenerarQRController extends Controller
      */
     public function index()
     {
-        return view('trackingSoldadura_views.regenerarQR_verificacion');
+        return view('welding_tracking_views.regenerate_qr_verification');
     }
 
     /**
@@ -56,7 +56,7 @@ class RegenerarQRController extends Controller
             ->orderBy('fecha_ingreso', 'desc')
             ->get();
 
-        return view('trackingSoldadura_views.regenerarQR_lista', compact('lotes'));
+        return view('welding_tracking_views.regenerate_qr_list', compact('lotes'));
     }
 
     /**

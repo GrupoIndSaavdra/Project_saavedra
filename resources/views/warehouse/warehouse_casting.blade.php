@@ -8,7 +8,7 @@
     <title>Almacén — Dibujos de Fundición | GIS</title>
     <meta name="description"
         content="Consulta histórica de dibujos de fundición enviados a Almacén y Calidad. Vista de solo lectura.">
-    @vite(['resources/css/almacen_views/almacen_fundicion.css', 'resources/js/almacen_views/almacen_fundicion.js'])
+    @vite(['resources/css/warehouse_views/warehouse_casting.css', 'resources/js/warehouse_views/warehouse_casting.js'])
 @endsection
 
 @section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
@@ -2844,7 +2844,7 @@
 
 
 
-    @include('almacen.partials._modal_iniciar_casting')
+    @include('warehouse.partials._modal_iniciar_casting')
 
     <script>
         window.almacenRoutes = {

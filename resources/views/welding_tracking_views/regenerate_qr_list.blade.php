@@ -3,7 +3,7 @@
 @section('head')
     <title>Regenerar QRs - Lista de Lotes</title>
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
-    @vite(['resources/css/trackingSoldadura_views/regenerarQR.css'])
+    @vite(['resources/css/welding_tracking_views/regenerate_qr.css'])
 @endsection
 
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')

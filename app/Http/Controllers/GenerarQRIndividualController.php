@@ -18,7 +18,7 @@ class GenerarQRIndividualController extends Controller
                     ->orderBy('fecha_ingreso', 'desc')
                     ->get();
         
-        return view('trackingSoldadura_views.generarQRIndividual', compact('lotes'));
+        return view('welding_tracking_views.generate_individual_qr', compact('lotes'));
     }
 
         /**

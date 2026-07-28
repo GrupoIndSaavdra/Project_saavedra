@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
 
@@ -10,7 +10,7 @@
     <title>Gestión de Usuarios</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    @vite(['resources/css/viewUsers.css', 'resources/js/viewUsers.js'])
+    @vite(['resources/css/view_users.css', 'resources/js/view_users.js'])
 </head>
 
 <div class="container1">

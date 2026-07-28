@@ -9,7 +9,7 @@ class TrackingSoldaduraController extends Controller
 {
     public function index()
     {
-        return view('trackingSoldadura_views.trackingSoldadura');
+        return view('welding_tracking_views.welding_tracking');
     }
 
         /**

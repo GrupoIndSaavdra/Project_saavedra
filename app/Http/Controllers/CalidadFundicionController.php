@@ -99,7 +99,7 @@ class CalidadFundicionController extends Controller
             ->orderBy('ot', 'asc')
             ->pluck('ot');
 
-        return view('calidad.calidad_fundicion', compact(
+        return view('quality.quality_casting', compact(
             'registros',
             'listaOts',
             'busquedaOt',

@@ -98,7 +98,7 @@ class AlmacenFundicionController extends Controller
             ->orderBy('ot', 'asc')
             ->pluck('ot');
 
-        return view('almacen.almacen_fundicion', compact(
+        return view('warehouse.warehouse_casting', compact(
             'registros',
             'listaOts',
             'busquedaOt',

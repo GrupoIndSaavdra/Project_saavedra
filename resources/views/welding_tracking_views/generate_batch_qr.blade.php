@@ -3,7 +3,7 @@
 @section('head')
     <title>QR por Lote</title>
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
-    @vite(['resources/css/trackingSoldadura_views/generarQRLote.css'])
+    @vite(['resources/css/welding_tracking_views/generate_batch_qr.css'])
 @endsection
 
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')

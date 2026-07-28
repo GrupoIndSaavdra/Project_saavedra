@@ -16,7 +16,7 @@ class RegistrarSoldaduraController extends Controller
 
     public function create()
     {
-        return view('trackingSoldadura_views.registrar');
+        return view('welding_tracking_views.registrar');
     }
 
         /**

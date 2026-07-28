@@ -10,7 +10,7 @@ class GenerarQRLoteController extends Controller
 {
     public function index()
     {
-        return view('trackingSoldadura_views.generarQRLote');
+        return view('welding_tracking_views.generate_batch_qr');
     }
 
         /**

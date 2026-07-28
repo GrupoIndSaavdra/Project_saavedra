@@ -3,7 +3,7 @@
 @section('head')
     <title>Tracking de Soldadura</title>
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
-    @vite(['resources/css/trackingSoldadura/trackingSoldadura.css', 'resources/js/TrackingSoldadura/registerSoldadura.js'])
+    @vite(['resources/css/welding_tracking/trackingSoldadura.css', 'resources/js/welding_tracking/register_welding.js'])
 @endsection
 
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')

@@ -1,7 +1,7 @@
 @extends('layouts.appMenu')
 
 @section('head')
-    @vite(['resources/css/reportes/reenvio.css'])
+    @vite(['resources/css/reports/resend.css'])
     <title>Enviar Reporte por Correo</title>
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
 @endsection

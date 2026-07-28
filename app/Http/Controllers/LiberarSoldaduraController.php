@@ -31,7 +31,7 @@ class LiberarSoldaduraController extends Controller
             ->having('kilos_totales', '>', 0)
             ->get();
 
-        return view('trackingSoldadura_views.liberar', compact('operadores', 'soldaduras'));
+        return view('welding_tracking_views.liberar', compact('operadores', 'soldaduras'));
     }
 
     /**

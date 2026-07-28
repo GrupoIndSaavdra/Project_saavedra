@@ -1,12 +1,12 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>Calidad — Dibujos y Ayudas de Maquinados | GIS</title>
     <meta name="description"
         content="Vista de solo lectura para Calidad: Dibujos de Maquinados y Ayudas Visuales de Maquinados sincronizados automáticamente.">
     @vite([
-        'resources/css/calidad_views/calidad_maquinados.css',
-        'resources/js/calidad_views/calidad_maquinados.js',
+        'resources/css/quality_views/quality_machining.css',
+        'resources/js/quality_views/quality_machining.js',
     ])
 @endsection
 
