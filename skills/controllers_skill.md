@@ -256,3 +256,30 @@ private function responder(Request $request, bool $success, string $message, arr
  return redirect()->back()->with($flashKey, $message);
 }
 ```
+---
+
+## 12. Regla del IDE — `where()` con 4 argumentos siempre
+
+> ⚠️ **Específico de este proyecto.** El `_ide_helper.php` generado fuerza que el análisis estático espere los 4 argumentos de `where()` en cualquier encadenamiento.
+
+**SIEMPRE usa la forma de 4 argumentos** para evitar warnings "Not enough arguments. Expected 4":
+
+```php
+// ❌ MAL: El IDE se queja aunque Laravel funcione bien en runtime
+Model::where('columna', $valor)->get();
+Model::where('columna', '=', $valor)->get();
+
+// ✅ BIEN: Forma canónica de este proyecto (4 args explícitos)
+Model::where('columna', '=', $valor, 'and')->get();
+
+// ✅ BIEN: En cadenas, TODOS los where() deben llevar 4 args
+Model::where('col1', '=', $val1, 'and')
+    ->where('col2', '!=', $val2, 'and')
+    ->get();
+```
+
+// ✅ BIEN: whereIn() también necesita los 4 argumentos
+Model::whereIn('columna', [1, 2, 3], 'and', false)->get();
+
+El 4° argumento `'and'` es el valor por defecto de Laravel — no cambia el comportamiento en runtime.
+El `whereIn()` también necesita `$boolean = 'and'` y `$not = false` explícitos.
