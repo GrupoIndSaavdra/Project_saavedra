@@ -111,11 +111,14 @@ Project_saavedra/
  css/ ← CSS por módulo, mirrors de views/ (ver styles_skill)
  js/ ← JS por módulo, mirrors de views/ (ver javascript_skill)
  views/ ← Blade por módulo (ver views_skill)
- almacen/ ← Almacén Fundición
- calidad/ ← Calidad Fundición
- wo_views/ ← Órdenes de Trabajo
- pta_views/ ← PTA (Procedimiento de Trabajo Autorizado)
- processes_views/ ← Procesos de maquinado
+    warehouse/ ← Almacén Fundición (Antes almacen/)
+    quality/ ← Calidad Fundición (Antes calidad/)
+    tools/ ← Herramientas Tecamac (Antes herramientas/)
+    reports/ ← Reportes (Antes reportes/)
+    welding_tracking_views/ ← Tracking Soldadura (Antes trackingSoldadura_views/)
+    wo_views/ ← Órdenes de Trabajo
+    pta_views/ ← PTA (Procedimiento de Trabajo Autorizado)
+    processes_views/ ← Procesos de maquinado
  pdf/ ← Plantillas PDF (ver pdf_skill)
  emails/ ← Plantillas de correo (ver emails_skill)
  layouts/ ← appMenu.blade.php (layout base)
@@ -125,11 +128,14 @@ Project_saavedra/
  public/
  css/ ← CSS compilado/legacy
  images/ ← Logos, íconos de PDF, íconos de reproceso
- storage/
- app/DOCUMENTACION_GIS/ ← Archivos de OTs en disco
- logs/laravel.log ← Logs técnicos (ver error_logging_skill)
- skills/ ← Este directorio de skills (¡SIEMPRE CONSULTAR!)
+    storage/
+        app/DOCUMENTACION_GIS/ ← Archivos de OTs en disco
+        logs/laravel.log ← Logs técnicos (ver error_logging_skill)
+    skills/ ← Este directorio de skills (¡SIEMPRE CONSULTAR!)
 ```
+
+### Regla Estricta de Nomenclatura (Resources)
+A partir de la migración a la nueva arquitectura, **absolutamente todos** los nuevos archivos y carpetas dentro de `resources/views`, `resources/css` y `resources/js` deben usar **`snake_case` en INGLÉS** (ej. `warehouse_casting.blade.php`, `generate_individual_qr.css`). Queda prohibido el uso de Spanglish (ej. `trackingSoldadura_views`) o camelCase (ej. `viewUsers.blade.php`).
 
 ---
 

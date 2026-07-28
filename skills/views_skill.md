@@ -201,8 +201,11 @@ Las vistas están organizadas por módulo. Nunca mezcles CSS de diferentes módu
 
 | Carpeta en `resources/views/` | Descripción |
 |---|---|
-| `almacen/` | Vistas de Almacén Fundición (recepción, liberación, reprocesos) |
-| `calidad/` | Vistas de Calidad Fundición (revisión, SCARs, liberación de modelos) |
+| `warehouse/` | Vistas de Almacén Fundición (recepción, liberación, reprocesos) |
+| `quality/` | Vistas de Calidad Fundición (revisión, SCARs, liberación de modelos) |
+| `tools/` | Vistas del catálogo de Herramientas Tecamac |
+| `reports/` | Reportes generales del sistema |
+| `welding_tracking_views/` | Vistas del sistema de rastreo de soldadura |
 | `wo_views/` | Vistas de Órdenes de Trabajo (listado, detalle, maquinado) |
 | `pdf/` | Plantillas exclusivas para generación PDF con DomPDF |
 | `layouts/` | Layout base `appMenu.blade.php` del que extienden todas las vistas |
@@ -212,16 +215,16 @@ Las vistas están organizadas por módulo. Nunca mezcles CSS de diferentes módu
 
 ### CSS y JS por Módulo
 Cada módulo tiene su propio archivo CSS y JS en `resources/css/` y `resources/js/`:
-- **Almacén Fundición:** `almacen_views/almacen_fundicion.css` + `almacen_views/almacen_fundicion.js`
-- **Calidad Fundición:** `calidad_views/calidad_fundicion.css` + `calidad_views/calidad_fundicion.js`
-- **Liberación:** `almacen_views/lib_liberacion.css`
+- **Almacén Fundición:** `warehouse_views/warehouse_casting.css` + `warehouse_views/warehouse_casting.js`
+- **Calidad Fundición:** `warehouse_views/quality_casting.css` + `warehouse_views/quality_casting.js`
+- **Liberación:** `warehouse_views/lib_release.css`
 
 Siempre cárgalos con `@vite` en el `@section('head')` de la vista:
 ```blade
 @section('head')
  <title>Almacén Fundición</title>
- @vite(['resources/css/almacen_views/almacen_fundicion.css',
- 'resources/js/almacen_views/almacen_fundicion.js'])
+ @vite(['resources/css/warehouse_views/warehouse_casting.css',
+ 'resources/js/warehouse_views/warehouse_casting.js'])
 @endsection
 ```
 
