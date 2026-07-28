@@ -107,7 +107,9 @@ class WOController extends Controller
         $workOrder = Orden_trabajo::query()->find(isset($request->workOrderAdded) ? $request->input('workOrderAdded') : $request->input('workOrderSelected'), ['*']);
 
         $redirectParams = ['workOrder' => $workOrder];
-        if ($request->input('profile') == 5 || $request->input('almacen_only') == 1 || request('almacen_only') == 1) {
+        // ÚNICAMENTE el perfil 5 (Almacén) debe usar el modo almacén
+        // Admin (1) y Master (3) siempre necesitan la vista completa para editar todos los procesos
+        if (auth()->user()->perfil == 5) {
             $redirectParams['almacen_only'] = 1;
         }
 
@@ -126,8 +128,8 @@ class WOController extends Controller
         $classes = $this->classController->getClasses($workOrder);
         $classes = $classes->count() == 0 ? null : $classes;
 
-        // Vista especial para Almacén (perfil 5) o cuando se solicita modo Almacén (almacen_only)
-        if (auth()->user()->perfil == 5 || request('almacen_only') == 1) {
+        // Vista especial para Almacén (perfil 5). Admin y Master van a la vista normal para poder editar todo.
+        if (auth()->user()->perfil == 5) {
             // Cargar remisiones y parcialidades agrupadas por id_clase
             $claseIds = $classes ? $classes->pluck('id')->toArray() : [];
             $remisiones   = RemisionOt::with('usuario')->whereIn('id_clase', $claseIds)->where('visible', 1)->orderByDesc('created_at')->get()->groupBy('id_clase');
