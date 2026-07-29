@@ -172,7 +172,7 @@
                 </style>
 
                 <!-- Zoom Tooltip Flotante (Mercado Libre / Amazon Style) -->
-                <div id="legend-zoom-tooltip" class="alm-position-fixed alm-display-none alm-pointer-events-none alm-z-index-99999 alm-background-rgba-255-255-255-0-98 alm-backdrop-filter-blur-10px alm-border-radius-12px alm-box-shadow-0-10px-25px-rgba-0-0-0-0-15 alm-border-3px-solid-cbd5e1 alm-padding-16px alm-width-170px alm-height-180px alm-flex-direction-column alm-align-items-center alm-justify-content-center alm-box-sizing-border-box alm-transition-transform-0-15s-cubic-bezier-0-175-0-885-0-32-1-25-opacity-0-15s-ease alm-opacity-0 alm-transform-scale-0-9 alm-font-family-Poppins-sans-serif">
+                <div id="legend-zoom-tooltip" class="alm-position-fixed hidden alm-pointer-events-none alm-z-index-99999 alm-background-rgba-255-255-255-0-98 alm-backdrop-filter-blur-10px alm-border-radius-12px alm-box-shadow-0-10px-25px-rgba-0-0-0-0-15 alm-border-3px-solid-cbd5e1 alm-padding-16px alm-width-170px alm-height-180px alm-flex-direction-column alm-align-items-center alm-justify-content-center alm-box-sizing-border-box alm-transition-transform-0-15s-cubic-bezier-0-175-0-885-0-32-1-25-opacity-0-15s-ease alm-opacity-0 alm-transform-scale-0-9 alm-font-family-Poppins-sans-serif">
                     <span id="legend-zoom-circle" class="alm-display-flex alm-align-items-center alm-justify-content-center alm-width-90px alm-height-90px alm-border-radius-50pct alm-box-shadow-0-4px-8px-rgba-0-0-0-0-06 alm-flex-shrink-0 alm-border-3px-solid-transparent">
                         <img id="legend-zoom-img" src="" class="alm-width-55px alm-height-55px alm-object-fit-contain">
                     </span>
@@ -2430,7 +2430,7 @@
                             </div>
                         </div>
                         <div id="cm-archivos-list"
-                            class="alm-margin-top-15px alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-max-height-420px alm-overflow-y-auto alm-display-none alm-grid-template-columns-repeat-auto-fill-minmax-200px-1fr alm-gap-12px alm-justify-items-center">
+                            class="alm-margin-top-15px alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-max-height-420px alm-overflow-y-auto hidden alm-display-grid alm-grid-template-columns-repeat-auto-fill-minmax-200px-1fr alm-gap-12px alm-justify-items-center">
                         </div>
                     </div>
 
@@ -2514,7 +2514,7 @@
 
                         <div class="form-group alm-margin-top-20px">
                             <div id="po-observaciones-cycle-prefix"
-                                class="alm-display-none alm-padding-8px-12px alm-background-color-fee2e2 alm-border-left-4px-solid-ef4444 alm-color-991b1b alm-font-weight-bold alm-margin-bottom-8px alm-border-radius-4px alm-font-family-Poppins-sans-serif">
+                                class="hidden alm-padding-8px-12px alm-background-color-fee2e2 alm-border-left-4px-solid-ef4444 alm-color-991b1b alm-font-weight-bold alm-margin-bottom-8px alm-border-radius-4px alm-font-family-Poppins-sans-serif">
                             </div>
                             <label for="po-observaciones">Observaciones:</label>
                             <textarea id="po-observaciones" name="observaciones" class="form-control" rows="3"></textarea>
@@ -2551,7 +2551,7 @@
                     <button type="button" id="tab-poc-page-1" class="btn-po-tab active alm-border-none alm-padding-12px-25px alm-border-top-left-radius-12px alm-border-top-right-radius-12px alm-font-family-Poppins-sans-serif alm-font-weight-600 alm-font-size-1-05em alm-cursor-pointer alm-transition-all-0-2s-ease">
                         Proveedor 1
                     </button>
-                    <button type="button" id="tab-poc-page-2" class="btn-po-tab alm-display-none alm-border-none alm-padding-12px-25px alm-border-top-left-radius-12px alm-border-top-right-radius-12px alm-font-family-Poppins-sans-serif alm-font-weight-600 alm-font-size-1-05em alm-cursor-pointer alm-transition-all-0-2s-ease">
+                    <button type="button" id="tab-poc-page-2" class="btn-po-tab hidden alm-border-none alm-padding-12px-25px alm-border-top-left-radius-12px alm-border-top-right-radius-12px alm-font-family-Poppins-sans-serif alm-font-weight-600 alm-font-size-1-05em alm-cursor-pointer alm-transition-all-0-2s-ease">
                         Proveedor 2
                     </button>
 
@@ -2559,7 +2559,7 @@
                         <img src="{{ asset('images/anadir.png') }}"
                             class="alm-width-14px alm-height-14px alm-filter-brightness-0-invert-1" alt=""> Agregar Proveedor 2
                     </button>
-                    <button type="button" id="btn-remove-poc-page-2" class="btns btn-remove-tab alm-display-none alm-align-items-center alm-gap-6px alm-padding-8px-16px alm-background-dc2626 alm-border-1-5px-solid-b91c1c alm-border-radius-8px alm-color-ffffff alm-cursor-pointer alm-font-family-Poppins-sans-serif alm-font-size-0-9em alm-font-weight-500 alm-transition-all-0-2s-ease alm-margin-left-15px alm-height-auto">
+                    <button type="button" id="btn-remove-poc-page-2" class="btns btn-remove-tab hidden alm-align-items-center alm-gap-6px alm-padding-8px-16px alm-background-dc2626 alm-border-1-5px-solid-b91c1c alm-border-radius-8px alm-color-ffffff alm-cursor-pointer alm-font-family-Poppins-sans-serif alm-font-size-0-9em alm-font-weight-500 alm-transition-all-0-2s-ease alm-margin-left-15px alm-height-auto">
                         Remover Proveedor 2
                     </button>
                 </div>
@@ -2659,7 +2659,7 @@
                     </div>
 
 
-                    <div id="poc-page-2" class="poc-page alm-display-none">
+                    <div id="poc-page-2" class="poc-page hidden">
                         <div class="form-grid alm-display-grid alm-grid-template-columns-repeat-auto-fit-minmax-220px-1fr alm-gap-20px alm-margin-bottom-25px">
                             <div class="form-group">
                                 <label for="poc-p2-proveedor"

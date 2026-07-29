@@ -2538,15 +2538,16 @@ document.getElementById('formEnviarPreOrden').addEventListener('submit', functio
 
 
 
-    const btn = document.getElementById('btn-submit-envio');
+    const btn = document.getElementById('btn-submit-envio') || this.querySelector('button[type="submit"]');
 
-    const originalText = btn.innerText;
+    const originalText = btn ? btn.innerText : 'Enviando correo...';
 
 
 
-    btn.disabled = true;
-
-    btn.innerText = 'Enviando correo...';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = 'Enviando correo...';
+    }
 
 
 
@@ -4115,11 +4116,8 @@ window.libCambiarTipo = function (tipo) {
 
 
     const decisionSelector = document.getElementById('lib-decision-selector');
-
     if (decisionSelector) {
-
-        decisionSelector.classList.toggle("hidden", !(tipo));
-
+        decisionSelector.style.display = tipo ? 'flex' : 'none';
     }
 
 

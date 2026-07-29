@@ -256,7 +256,7 @@
                                 class="cal-display-flex cal-background-ecfdf5 cal-border-2px-solid-10b981 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
                             >
                                 <img
-                                    src="{{ asset('images/Aprobado.png') }}"
+                                    src="{{ asset('images/aprobado.png') }}"
                                     class="cal-width-28px cal-height-28px cal-object-fit-contain"
                                 />
                             </span>
@@ -305,7 +305,7 @@
                 <!-- Zoom Tooltip Flotante (Mercado Libre / Amazon Style) -->
                 <div
                     id="legend-zoom-tooltip"
-                    class="cal-position-fixed cal-display-none cal-pointer-events-none cal-z-index-99999 cal-background-rgba-255-255-255-0-98 cal-backdrop-filter-blur-10px cal-border-radius-12px cal-box-shadow-0-10px-25px-rgba-0-0-0-0-15 cal-border-3px-solid-cbd5e1 cal-padding-16px cal-width-170px cal-height-180px cal-flex-direction-column cal-align-items-center cal-justify-content-center cal-box-sizing-border-box cal-transition-transform-0-15s-cubic-bezier-0-175-0-885-0-32-1-25-opacity-0-15s-ease cal-opacity-0 cal-transform-scale-0-9 cal-font-family-quot"
+                    class="cal-position-fixed hidden cal-pointer-events-none cal-z-index-99999 cal-background-rgba-255-255-255-0-98 cal-backdrop-filter-blur-10px cal-border-radius-12px cal-box-shadow-0-10px-25px-rgba-0-0-0-0-15 cal-border-3px-solid-cbd5e1 cal-padding-16px cal-width-170px cal-height-180px cal-flex-direction-column cal-align-items-center cal-justify-content-center cal-box-sizing-border-box cal-transition-transform-0-15s-cubic-bezier-0-175-0-885-0-32-1-25-opacity-0-15s-ease cal-opacity-0 cal-transform-scale-0-9 cal-font-family-quot"
                 >
                     <span
                         id="legend-zoom-circle"
@@ -3029,7 +3029,7 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
             <div class="alm-modal-header cal-padding-2-5em-3em-2-2em cal-border-top-left-radius-18px cal-border-top-right-radius-18px"
             >
                 <div class="div-cerrar">
-                    @include ("almacen.partials._btn_cerrar",
+                    @include ("warehouse.partials._btn_cerrar",
                         ["onclick" => "cerrarModalEnviarAlertaLiberacion()"])
                 </div>
                 <h3
@@ -3090,7 +3090,7 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                         {{-- ── COLUMNA APROBADOS ── --}}
                         <div
                             id="al-col-aprobados"
-                            class="cal-flex-1 cal-width-100pct cal-display-none"
+                            class="cal-flex-1 cal-width-100pct hidden"
                         >
                             <div
                                 class="cal-border-2-5px-solid-059669 cal-border-radius-18px cal-overflow-hidden cal-box-shadow-0-8px-25px-rgba-5-150-105-0-12"
@@ -3101,7 +3101,7 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                                     class="cal-background-linear-gradient-135deg-059669-047857 cal-padding-20px-24px cal-display-flex cal-align-items-center cal-gap-14px"
                                 >
                                     <img
-                                        src="{{ asset('images/Aprobado.png') }}"
+                                        src="{{ asset('images/aprobado.png') }}"
                                         class="cal-width-36px cal-height-36px cal-object-fit-contain"
                                         alt=""
                                     />
@@ -3162,7 +3162,7 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                         {{-- ── COLUMNA RECHAZADOS ── --}}
                         <div
                             id="al-col-rechazados"
-                            class="cal-flex-1 cal-width-100pct cal-display-none"
+                            class="cal-flex-1 cal-width-100pct hidden"
                         >
                             <div
                                 class="cal-border-2-5px-solid-dc2626 cal-border-radius-18px cal-overflow-hidden cal-box-shadow-0-8px-25px-rgba-220-38-38-0-12"
@@ -3565,10 +3565,10 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
     </div>
 
     {{-- ── MODAL: LIBERACIÁ“N DE MODELOS (Calidad) ──────────────────── --}}
-    @include ("almacen.partials._modal_liberacion_modelos")
+    @include ("warehouse.partials._modal_liberacion_modelos")
 
     {{-- ── MODAL: SCAR (Solicitud de Acción Correctiva de Rechazo) ─── --}}
-    @include ("almacen.partials._modal_scar")
+    @include ("warehouse.partials._modal_scar")
 
     {{-- ── MODAL: INICIAR CASTING / GESTION VEREDICTO (Almacén) ────── --}}
     <script>
@@ -3672,7 +3672,7 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
         }}",
             aprobado: "{{
             asset(
-                "images/Aprobado.png",
+                "images/aprobado.png",
             )
         }}",
             rechazado: "{{

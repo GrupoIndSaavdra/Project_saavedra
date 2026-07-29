@@ -249,7 +249,7 @@ class AlmacenFundicionController extends Controller
 
         $user = Auth::user();
         $isQuality = ($user->perfil == 4);
-        $isAdmin = ($user->perfil == 1 || $user->perfil == 2);
+        $isAdmin = ($user->perfil == 1 || $user->perfil == 2 || $user->perfil == 3);
         $soloPreorden = $request->query('solo_preorden', '0') === '1';
 
         $dibujos = collect([]);
@@ -600,7 +600,7 @@ class AlmacenFundicionController extends Controller
 
         // Aplicar filtros de visibilidad según perfil de usuario
         $user = Auth::user();
-        if ($user->perfil != 1 && $user->perfil != 2) { // 1 o 2 = Admin (ve todo)
+        if ($user->perfil != 1 && $user->perfil != 2 && $user->perfil != 3) { // 1, 2 = Admin, 3 = Master (ve todo)
             $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
             if (!$history) {
                 $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
@@ -609,8 +609,8 @@ class AlmacenFundicionController extends Controller
                 abort(404, 'Historial de OT no encontrado.');
             }
 
-            if ($user->perfil == 4 || $user->perfil == 3) { // 4 = Calidad, 3 = Master
-                // Calidad/Master solo ve preordenes si pre_orden_email_sent es true
+            if ($user->perfil == 4) { // 4 = Calidad
+                // Calidad solo ve preordenes si pre_orden_email_sent es true
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isAllowedBeforeAlert = str_contains(strtolower($archivo), 'documentos_aprobados') || str_contains(strtolower($archivo), 'documentos_rechazados') || str_contains(strtolower($archivo), 'confirmacion') || str_contains($archivo, 'F-CCL-LDM') || str_contains($archivo, 'SCAR');
                 if ($isPreorden && !$isAllowedBeforeAlert && !$history->pre_orden_email_sent) {
@@ -827,7 +827,7 @@ class AlmacenFundicionController extends Controller
 
         // Aplicar filtros de visibilidad según perfil de usuario
         $user = Auth::user();
-        if ($user->perfil != 1 && $user->perfil != 2) { // 1 o 2 = Admin (ve todo)
+        if ($user->perfil != 1 && $user->perfil != 2 && $user->perfil != 3) { // 1, 2 = Admin, 3 = Master (ve todo)
             $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
             if (!$history) {
                 $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
@@ -836,8 +836,8 @@ class AlmacenFundicionController extends Controller
                 return response()->json(['success' => false, 'error' => 'Historial de OT no encontrado.'], 404);
             }
 
-            if ($user->perfil == 4 || $user->perfil == 3) { // 4 = Calidad, 3 = Master
-                // Calidad/Master solo ve preordenes si pre_orden_email_sent es true
+            if ($user->perfil == 4) { // 4 = Calidad
+                // Calidad solo ve preordenes si pre_orden_email_sent es true
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isAllowedBeforeAlert = str_contains(strtolower($archivo), 'documentos_aprobados') || str_contains(strtolower($archivo), 'documentos_rechazados') || str_contains(strtolower($archivo), 'confirmacion') || str_contains($archivo, 'F-CCL-LDM') || str_contains($archivo, 'SCAR');
                 if ($isPreorden && !$isAllowedBeforeAlert && !$history->pre_orden_email_sent) {
@@ -2128,7 +2128,7 @@ class AlmacenFundicionController extends Controller
             $pages[] = $p2Data;
         }
 
-        $pdf = Pdf::loadView('almacen.pdf_pre_orden_casting', [
+        $pdf = Pdf::loadView('warehouse.pdf_pre_order_casting', [
             'pages' => $pages,
             'user' => $user
         ])->setPaper('a4', 'landscape');
@@ -2345,7 +2345,7 @@ class AlmacenFundicionController extends Controller
                 $firstPo = $preOrdenes->first();
                 $creator = \App\Models\User::where('id', '=', $firstPo->user_id, 'and')->first() ?: Auth::user();
 
-                $pdf = Pdf::loadView('almacen.pdf_pre_orden_casting', [
+                $pdf = Pdf::loadView('warehouse.pdf_pre_order_casting', [
                     'pages' => $pages,
                     'user' => $creator
                 ])->setPaper('a4', 'landscape');

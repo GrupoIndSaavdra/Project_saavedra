@@ -1,4 +1,4 @@
-﻿{{-- _modal_liberacion_modelos.blade.php — F-CCL-LDM v2 --}}
+{{-- _modal_liberacion_modelos.blade.php — F-CCL-LDM v2 --}}
 @php
     $itemsModelo = ['A'=>'Altura de la ceja','A1'=>'Altura de sufridera','B'=>'Altura total',
                     'C'=>'Diam. de ceja','D1'=>'Diam. de mordaza','D2'=>'Laterales',
@@ -115,7 +115,7 @@
              TABLA 1 — Macho y Hembra (Bombillo + Molde)
              Columnas: MEDIDA DEL DIBUJO | ITEM | MACHO | HEMBRA
              ──────────────────────────────────────────────────────────────────── --}}
-        <div class="lib-tabla-section hidden">
+        <div id="lib-tabla-1" class="lib-tabla-section hidden">
           <h4 class="lib-section-title">Dimensiones del Modelo — Macho y Hembra</h4>
           <div class="lib-table-wrapper">
             <table class="lib-report-table">
@@ -175,7 +175,7 @@
         {{-- ────────────────────────────────────────────────────────────────────
              TABLA 2 — Plantilla y Templadera (Bombillo + Molde)
              ──────────────────────────────────────────────────────────────────── --}}
-        <div class="lib-tabla-section hidden">
+        <div id="lib-tabla-2" class="lib-tabla-section hidden">
           <h4 class="lib-section-title">Plantilla y Templadera de Madera</h4>
           <div class="lib-table-wrapper lib-matrix-wrapper">
 
@@ -280,7 +280,7 @@
         {{-- ────────────────────────────────────────────────────────────────────
              TABLA 3 — Fondo (solo Fondo)
              ──────────────────────────────────────────────────────────────────── --}}
-        <div class="lib-tabla-section hidden">
+        <div id="lib-tabla-fondo" class="lib-tabla-section hidden">
           <h4 class="lib-section-title" id="lib-tabla-fondo-title">Dimensiones de Fondo</h4>
           <div class="lib-table-wrapper">
             <table class="lib-report-table">
@@ -328,7 +328,7 @@
         {{-- ────────────────────────────────────────────────────────────────────
              TABLA 4 — Obturador (solo Obturador)
              ──────────────────────────────────────────────────────────────────── --}}
-        <div class="lib-tabla-section hidden">
+        <div id="lib-tabla-obturador" class="lib-tabla-section hidden">
           <h4 class="lib-section-title">Dimensiones de Obturador</h4>
           <div class="lib-table-wrapper">
             <table class="lib-report-table">
@@ -379,11 +379,11 @@
         </div>
 
         {{-- BLOQUE 5b: SELECTOR VISUAL APROBAR / RECHAZAR --}}
-        <div class="lib-decision-selector" id="lib-decision-selector" style="display:none; gap:14px; margin-bottom:22px; padding:16px; background:linear-gradient(135deg,rgba(3,0,65,0.04),rgba(10,133,4,0.04)); border-radius:12px; border:1.5px solid #e2e8f0;">
+        <div class="lib-decision-selector hidden" id="lib-decision-selector" style="display:flex; gap:14px; margin-bottom:22px; padding:16px; background:linear-gradient(135deg,rgba(3,0,65,0.04),rgba(10,133,4,0.04)); border-radius:12px; border:1.5px solid #e2e8f0;">
           <div class="lib-decision-card lib-decision-aprobar active" id="lib-dec-aprobar"
                onclick="libSeleccionarDecision('aprobar')"
                style="flex:1; padding:14px 10px; border-radius:10px; cursor:pointer; text-align:center; border:2px solid #0a8504; background:rgba(10,133,4,0.08); transition:all 0.25s;">
-             <img src="{{ asset('images/Aprobado.png') }}" alt="" style="width:32px; margin-bottom:6px;">
+             <img src="{{ asset('images/aprobado.png') }}" alt="" style="width:32px; margin-bottom:6px;">
              <div style="font-weight:700; color:#0a8504; font-size:0.95em;">Aprobar</div>
              <div style="font-size:0.8em; color:#64748b; margin-top:2px;">El modelo cumple con las especificaciones</div>
            </div>
@@ -397,7 +397,7 @@
         </div>
 
         {{-- MOTIVO DE RECHAZO (condicional) --}}
-        <div class="lib-section-block lib-rechazo-block hidden">
+        <div id="lib-rechazo-block" class="lib-section-block lib-rechazo-block hidden">
           <h4 class="lib-section-title lib-section-title-danger">Motivo de Rechazo</h4>
           <p class="lib-section-hint text-danger">
             Describe el incumplimiento que impide la liberacion del modelo.

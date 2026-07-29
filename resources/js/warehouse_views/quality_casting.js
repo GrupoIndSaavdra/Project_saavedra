@@ -1902,13 +1902,14 @@ document.getElementById("formEnviarPreOrden")?.addEventListener("submit", functi
 
     }
 
-    const btn = document.getElementById("btn-submit-envio");
+    const btn = document.getElementById("btn-submit-envio") || this.querySelector('button[type="submit"]');
 
-    const originalText = btn.innerText;
+    const originalText = btn ? btn.innerText : 'Enviando correo...';
 
-    btn.disabled = true;
-
-    btn.innerText = "Enviando correo...";
+    if (btn) {
+        btn.disabled = true;
+        btn.innerText = "Enviando correo...";
+    }
 
     const formData = new FormData(this);
 
@@ -3308,6 +3309,16 @@ window.libCambiarTipo = function (tipo) {
 
     if (document.getElementById("lib-ot")) document.getElementById("lib-ot").value = currOt;
 
+    const decisionSelector = document.getElementById("lib-decision-selector");
+
+    if (decisionSelector) {
+
+        decisionSelector.style.display = tipo ? "flex" : "none";
+
+        decisionSelector.classList.toggle("hidden", !(tipo));
+
+    }
+
     if (document.getElementById("lib-accion")) document.getElementById("lib-accion").value = currAcc;
 
     if (document.getElementById("lib-tipo")) document.getElementById("lib-tipo").value = tipo;
@@ -3345,14 +3356,6 @@ window.libCambiarTipo = function (tipo) {
     }
 
 
-
-    const decisionSelector = document.getElementById("lib-decision-selector");
-
-    if (decisionSelector) {
-
-        decisionSelector.classList.toggle("hidden", !(tipo));
-
-    }
 
     if (typeof _libActualizarColorSelectPropio === "function") {
 

@@ -1,4 +1,4 @@
-﻿{{-- _modal_scar.blade.php — Formato SCAR de Modelos --}}
+{{-- _modal_scar.blade.php — Formato SCAR de Modelos --}}
 
 {{-- ── MODAL SCAR ── --}}
 <div id="modalScar" class="alm-modal" role="dialog" aria-modal="true">
@@ -151,7 +151,7 @@
                     </div>
 
                     {{-- UPLOAD DE FOTOS --}}
-                    <div class="form-group" id="scar-fotos-upload-group" style="margin-top: 16px; display: none;">
+                    <div class="form-group hidden" id="scar-fotos-upload-group" style="margin-top: 16px;">
                         <label for="scar-fotos" style="font-weight:700; color:#334155; display:block; margin-bottom:6px; font-size:0.9em;">
                             Subir Fotografías <span class="text-danger">*</span>
                         </label>
@@ -163,11 +163,11 @@
                                 <span style="font-size: 0.7em; color: #64748b; margin-top: 2px;">Solo archivos de imagen</span>
                             </div>
                         </div>
-                        <div id="scar-fotos-list" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
+                        <div id="scar-fotos-list" class="hidden" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
                     </div>
 
                     {{-- UPLOAD DE OTROS ARCHIVOS --}}
-                    <div class="form-group" id="scar-otro-upload-group" style="margin-top: 16px; display: none;">
+                    <div class="form-group hidden" id="scar-otro-upload-group" style="margin-top: 16px;">
                         <label for="scar-otro-archivos" style="font-weight:700; color:#334155; display:block; margin-bottom:6px; font-size:0.9em;">
                             Subir Otros Archivos / PDFs adicionales <span class="text-danger">*</span>
                         </label>
@@ -179,7 +179,7 @@
                                 <span style="font-size: 0.7em; color: #64748b; margin-top: 2px;">Cualquier tipo de archivo</span>
                             </div>
                         </div>
-                        <div id="scar-otro-archivos-list" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
+                        <div id="scar-otro-archivos-list" class="hidden" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
                     </div>
 
                     {{-- ARCHIVOS EVIDENCIA DEL SERVIDOR --}}
@@ -210,8 +210,8 @@
                             <span>Otro</span>
                         </label>
 
-                        <div id="scar-accion-otro-text-group"
-                            style="display: none; margin-top: 4px; padding-left: 24px;">
+                        <div id="scar-accion-otro-text-group" class="hidden"
+                            style="margin-top: 4px; padding-left: 24px;">
                             <input type="text" id="scar-accion-otro-texto" name="accion_otro_texto" class="form-control"
                                 placeholder="Escriba la acción correctiva inmediata requerida...">
                         </div>
