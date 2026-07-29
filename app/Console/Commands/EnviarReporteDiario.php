@@ -35,6 +35,13 @@ class EnviarReporteDiario extends Command
 
         $this->info("Generando reporte para: {$fecha->toDateString()}");
 
+        // Validar si el reporte de esta fecha ya fue enviado (evitar duplicados por doble ejecución)
+        $cacheKey = 'reporte_diario_enviado_' . $fecha->toDateString();
+        if (!$this->option('test') && \Illuminate\Support\Facades\Cache::has($cacheKey)) {
+            $this->warn("El reporte del día {$fecha->toDateString()} ya fue enviado. Abortando para evitar duplicados.");
+            return self::SUCCESS;
+        }
+
         // ── 2. Consultar piezas del día ───────────────────────────────────
         $piezasDelDia = Pieza::with(['clase', 'operador', 'ordenTrabajo'])
             ->whereDate('created_at', $fecha)
@@ -91,6 +98,11 @@ class EnviarReporteDiario extends Command
             }
         }
 
+        // Marcar como enviado si se enviaron correos (y no es modo de prueba)
+        if (!$this->option('test') && $enviados > 0) {
+            \Illuminate\Support\Facades\Cache::put($cacheKey, true, now()->addHours(12));
+        }
+
         $this->info("Reporte diario completado. Enviados: {$enviados}/" . count($destinatarios));
         return self::SUCCESS;
     }
@@ -99,7 +111,8 @@ class EnviarReporteDiario extends Command
      * Agrupa los registros en la jerarquía:
      * OT → Clase → Proceso → [ filas de operadores ]
      *
-     * @param \Illuminate\Support\Collection|\App\Models\Pieza[] $piezas
+     * @param \Illuminate\Support\Collection|Pieza[] $piezas
+     * @return array<string, array<string, array<int, array<string, mixed>>>>
      */
     private function agruparJerarquicamente($piezas): array
     {
@@ -383,10 +396,10 @@ class EnviarReporteDiario extends Command
         // 1. Limpiar comillas y espacios externos
         $raw = trim($raw, '"\' ');
         
-        // 2. Separar y limpiar cada correo de caracteres invisibles (\r, \n, \t)
-        return array_filter(array_map(function($correo) {
+        // 2. Separar y limpiar cada correo de caracteres invisibles (\r, \n, \t), y asegurar que sean únicos
+        return array_unique(array_filter(array_map(function($correo) {
             return preg_replace('/[^a-zA-Z0-9@._+-]/', '', trim($correo));
-        }, explode(',', $raw)));
+        }, explode(',', $raw))));
     }
 
     /**
@@ -537,7 +550,7 @@ class EnviarReporteDiario extends Command
     }
 
     /**
-     * @param \App\Models\Pieza|null $piece
+     * @param Pieza|null $piece
      * @return bool
      */
     private function verifyPiece($piece): bool

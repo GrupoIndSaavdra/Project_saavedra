@@ -247,8 +247,13 @@ class PzasGeneralesController extends Controller
         $molduras = \Illuminate\Support\Facades\Cache::remember('molduras_all', 60, function () {
             return Moldura::all()->keyBy('id');
         });
-        $orders = \Illuminate\Support\Facades\Cache::remember('ot_all', 60, function () {
-            return Orden_trabajo::all();
+        $orders = \Illuminate\Support\Facades\Cache::remember('ot_active_all', 30, function () {
+            return Orden_trabajo::query()
+                ->whereHas('clases', function ($q) {
+                    $q->where('finalizada', 0);
+                })
+                ->orderBy('id', 'desc')
+                ->get();
         });
         $users = \Illuminate\Support\Facades\Cache::remember('users_all', 60, function () {
             return User::all();
@@ -290,32 +295,27 @@ class PzasGeneralesController extends Controller
     public function getPiecesRequest(Request $request)
     {
         $datosPiezas = array(
-            "workOrder" => $request->workOrder,
-            "class" => $request->class,
-            "operator" => $request->operator,
-            "machine" => $request->machine,
-            "process" => $request->process,
-            "error" => $request->error,
-            "dateFrom" => $request->dateFrom,
-            "dateTo" => $request->dateTo,
-            "n_juego" => $request->n_juego,
-            "status" => $request->status,
-            "action" => $request->input("action"),
+            "workOrder" => $request->input("workOrder"),
+            "class"     => $request->input("class"),
+            "operator"  => $request->input("operator"),
+            "machine"   => $request->input("machine"),
+            "process"   => $request->input("process"),
+            "error"     => $request->input("error"),
+            "dateFrom"  => $request->input("dateFrom"),
+            "dateTo"    => $request->input("dateTo"),
+            "n_juego"   => $request->input("n_juego"),
+            "status"    => $request->input("status"),
+            "action"    => $request->input("action"),
         );
         return $this->search($datosPiezas, 'admin');
     }
-        /**
-     * @param mixed $piecesData
-     * @param mixed &$itemElegidos
-     * @param mixed bool $includeObservations
-     */
     public function buscarPiezas($piecesData, &$itemElegidos, bool $includeObservations = false)
     {
-        // ── OPTIMIZACIÓN: filtrar directamente en SQL en lugar de cargar Pieza::all() ──
-        $finishedClassIds = Clase::query()->where('finalizada', '!=', 0)->pluck('id')->toArray();
+        // ── OPTIMIZACIÓN: usar IDs de clases ACTIVAS (~40 IDs) en lugar de NOT IN con miles de IDs ──
+        $activeClassIds = Clase::query()->where('finalizada', 0)->pluck('id')->toArray();
         $query = Pieza::query();
-        if (!empty($finishedClassIds)) {
-            $query->whereNotIn('id_clase', $finishedClassIds, 'and');
+        if (!empty($activeClassIds)) {
+            $query->whereIn('id_clase', $activeClassIds, 'and', false);
         }
 
         foreach ($piecesData as $key => $value) {
@@ -1410,8 +1410,8 @@ class PzasGeneralesController extends Controller
     public function showMachinesProcess(Request $request)
     {
         /** @var mixed $ot */
-        $ot = Orden_trabajo::query()->find($request->ot);
-        $clase = Clase::query()->find($request->clase);
+        $ot = Orden_trabajo::query()->find($request->input('ot'));
+        $clase = Clase::query()->find($request->input('clase'));
         $procesos = array();
 
         $proceso = Procesos::query()->where('id_clase', $clase->id)->first();

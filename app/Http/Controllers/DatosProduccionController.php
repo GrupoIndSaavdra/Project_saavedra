@@ -126,8 +126,14 @@ class DatosProduccionController extends Controller
         $usersCache  = User::all()->keyBy('matricula');
         $clasesCache = Clase::all()->keyBy('id');
 
-        // 1 query: todas las piezas de todas las OTs activas
-        $todasPiezas = Pieza::query()->whereIn('id_ot', $otIds, 'and', false)->get()->groupBy('id_ot');
+        // OPTIMIZACIÓN EXTREMA: Solo traer las combinaciones únicas (OT, Clase, Operador, Proceso)
+        // Evita cargar en memoria decenas de miles de modelos completos, reduciéndolos a tuplas ligeras (de 55k a <2k)
+        $todasPiezas = \Illuminate\Support\Facades\DB::table('piezas')
+            ->select('id_ot', 'id_clase', 'id_operador', 'proceso')
+            ->whereIn('id_ot', $otIds)
+            ->distinct()
+            ->get()
+            ->groupBy('id_ot');
 
         $datos = [];
         foreach ($OTs as $ot) {
@@ -164,7 +170,15 @@ class DatosProduccionController extends Controller
                 if (!array_key_exists($clase->nombre, $datos[$ot->id]['operadores'][$operator->matricula]['clases'])) {
                     $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre] = [];
                     $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre]['pedido']   = $clase->pedido;
-                    $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre]['procesos'] = $this->asignarProcesosOperador($clase->id, $operator->matricula);
+                    
+                    // OPTIMIZACIÓN: Extraer procesos únicos en memoria en lugar de hacer una consulta SQL adicional (N+1 resuelto)
+                    $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre]['procesos'] = $piezasDeOT
+                        ->where('id_clase', $clase->id)
+                        ->where('id_operador', $operator->matricula)
+                        ->pluck('proceso')
+                        ->unique()
+                        ->values()
+                        ->toArray();
                 }
             }
         }

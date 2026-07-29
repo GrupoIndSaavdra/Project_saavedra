@@ -25,6 +25,7 @@ class Kernel extends ConsoleKernel
         // ── Reporte Diario de Producción — 23:59 todos los días ────────
         $schedule->command('reporte:enviar-diario')
             ->dailyAt('23:50')
+            ->timezone('America/Guatemala') // Fija la hora a UTC-6 sin importar el Horario de Verano (DST) del SO
             ->withoutOverlapping()       // evita ejecuciones duplicadas
             ->appendOutputTo(storage_path('logs/reporte_diario.log'));
 

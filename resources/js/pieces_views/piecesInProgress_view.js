@@ -268,9 +268,15 @@ class PTACardComponent {
             `Juegos Totales: ${this.liberadas}/${terminadas} liberados`;
     }
 
-    // ── Polling AJAX cada 10 s ───────────────────────────────
+    // ── Polling AJAX escalonado (desfasado para evitar ráfagas) ──────
     _startPolling() {
-        this._pollTimer = setInterval(() => this._poll(), 10_000);
+        const initialDelay = 15_000 + Math.floor(Math.random() * 15_000);
+        setTimeout(() => {
+            if (this.root && this.root.isConnected) {
+                this._poll();
+            }
+            this._pollTimer = setInterval(() => this._poll(), 25_000);
+        }, initialDelay);
     }
 
     async _poll() {
@@ -699,10 +705,15 @@ class FundicionChecklistCard {
         });
     }
 
-    // ── Polling AJAX cada 30s ──────────────────────────────
+    // ── Polling AJAX escalonado ────────────────────────────
     _startPolling() {
-        // 30_000ms = 30 segundos; suficiente para un checklist de bajo cambio
-        this._pollTimer = setInterval(() => this._poll(), 30_000);
+        const initialDelay = 20_000 + Math.floor(Math.random() * 20_000);
+        setTimeout(() => {
+            if (this.root && this.root.isConnected) {
+                this._poll();
+            }
+            this._pollTimer = setInterval(() => this._poll(), 35_000);
+        }, initialDelay);
     }
 
     async _poll() {
@@ -962,8 +973,13 @@ class PlaneacionChecklistCard {
     }
 
     _startPolling() {
-        this._poll();
-        this._pollTimer = setInterval(() => this._poll(), 5_000);
+        const initialDelay = 10_000 + Math.floor(Math.random() * 15_000);
+        setTimeout(() => {
+            if (this.root && this.root.isConnected) {
+                this._poll();
+            }
+            this._pollTimer = setInterval(() => this._poll(), 30_000);
+        }, initialDelay);
     }
 
     async _poll() {
@@ -998,8 +1014,13 @@ class TermicoChecklistCard {
         this.tPieces = initialData.pieces || 0;
         this.tTratadas = initialData.tratadas || 0;
         this._build();
-        this._poll();
-        this._pollTimer = setInterval(() => this._poll(), 30_000);
+        const initialDelay = 25_000 + Math.floor(Math.random() * 20_000);
+        setTimeout(() => {
+            if (this.root && this.root.isConnected) {
+                this._poll();
+            }
+            this._pollTimer = setInterval(() => this._poll(), 35_000);
+        }, initialDelay);
     }
 
     _build() {
@@ -1130,6 +1151,8 @@ class Dashboard {
             ? window.orderedOtIds
             : Object.keys(this.wOrderArray);
 
+        const fragment = document.createDocumentFragment();
+
         otIds.forEach((wOrderName) => {
             let workOrder = this.wOrderArray[wOrderName];
             if (!workOrder) return;
@@ -1254,9 +1277,11 @@ class Dashboard {
                 // ─────────────────────────────────────────────────────────────
 
                 section.appendChild(processesSection);
-                body.appendChild(section);
+                fragment.appendChild(section);
             });
         });
+
+        body.appendChild(fragment);
     }
     generateHeaderofWorkOrder(wOrderName, moldingName, className, classArray) {
         let valueText = [

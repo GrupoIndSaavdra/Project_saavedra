@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     const contextMenu = document.getElementById('context-menu');
+    
+    if (!contextMenu) return;
+
     const tableRows = document.querySelectorAll('table tbody tr');
 
     // Mostrar el menú contextual cuando se hace clic derecho sobre una fila

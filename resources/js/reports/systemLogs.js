@@ -13,6 +13,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const style = document.createElement('style');
         style.textContent = '.col-operador-only { display: none !important; } .col-operador-only-td { display: none !important; }';
         document.head.appendChild(style);
+
+        const normalTable = document.querySelector('.table-colors:not(.table-colors-admin)');
+        const adminTable = document.querySelector('.table-colors-admin');
+        if (normalTable) normalTable.classList.add('sys-display-none');
+        if (adminTable) adminTable.classList.remove('sys-display-none');
     }
 
     // Lógica para colapsar/expandir niveles en la tabla de colores
@@ -21,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const level = header.getAttribute("data-level");
             const targetRows = document.querySelectorAll(`.level-row.level-${level}`);
             const targetArrow = header.querySelector(".arrow");
+            if (targetRows.length === 0) return;
             const isExpanding = targetRows[0].classList.contains("hidden");
 
             // Cerrar todos los niveles de la misma tabla primero
@@ -381,14 +387,29 @@ function createFilters() {
                 }
             }
 
-            select.addEventListener("change", () => document.getElementById("filters-form").submit());
+            select.addEventListener("change", (e) => {
+                let opt = e.target.options[e.target.selectedIndex];
+                e.target.style.backgroundColor = opt.style.backgroundColor || "#ffffff";
+                e.target.style.color = opt.style.color || "#1e293b";
+                
+                document.getElementById("filters-form").submit();
+            });
+            // Initial color application
+            setTimeout(() => {
+                let opt = select.options[select.selectedIndex];
+                if(opt) {
+                    select.style.backgroundColor = opt.style.backgroundColor || "#ffffff";
+                    select.style.color = opt.style.color || "#1e293b";
+                }
+            }, 100);
+            
             div.appendChild(select);
         }
 
         let label = document.createElement("label");
         // En modo admin, el filtro de operador se llama "Administrador"
         label.textContent = (key === 'operador' && window.isAdminOnly ? 'Administrador' : titles[key]) + ": ";
-        div.appendChild(label);
+        div.prepend(label);
 
         container.appendChild(div);
     });

@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
 <title>Datos de productividad</title>
@@ -47,7 +47,7 @@
         </div>
         <!-- Boton de buscar -->
         <div class="button-container">
-            <input type="submit" id="button" class="button pro-display-none">
+            <input type="submit" id="button" class="button hidden">
         </div>
     </form>
 
@@ -64,7 +64,7 @@
             <h3>Proceso</h3>
             <input class="filtros2" type="text" value="{{ $filtros['proceso'] }}" disabled>
             <h3>Operador</h3>
-            <input class="filtros2 pro-width-300px">
+            <input class="filtros2 pro-width-300px" type="text" value="{{ $filtros['operador'] }}" disabled>
         </div>
         <div class="div-table">
             <script>

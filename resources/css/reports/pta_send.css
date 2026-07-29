@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -133,7 +133,7 @@
 .envio-pta-select {
     width: 100%;
     padding: 10px 14px;
-    border: 3px solid var(--gis-blue)90;
+    border: 3px solid var(--azul-primario);
     border-radius: 6px;
     font-size: 14px;
     font-family: var(--font);

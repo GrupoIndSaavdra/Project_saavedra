@@ -1,300 +1,523 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
+
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+
+.sys-display-none,
+.hidden {
+    display: none !important;
+}
 
 body {
     background-repeat: no-repeat;
     background-size: cover;
+    font-family:
+        "Poppins",
+        system-ui,
+        -apple-system,
+        sans-serif;
 }
+
 .form-search {
     position: absolute;
     text-align: center;
-    width: 77%;
-    height: 90vh;
-    left: 90%;
+    width: 98%;
+    height: min(90vh, 90%);
+    left: 50%;
     top: 53%;
-    transform: translate(-90%, -50%);
-    background-color: #ffffff;
-    border: 1px solid #ebe8e8;
+    transform: translate(-50%, -50%);
+
+    /* Estética moderna (Glassmorphism idéntica a adminPieces) */
+    background: rgba(255, 255, 255, 0.35);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    overflow-x: auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
+
 h1 {
-    font-size: 2em;
+    font-size: clamp(1.2rem, 3vh, 2rem);
+    color: #1e293b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 3px solid var(--gis-blue);
+    display: inline-block;
+    padding-bottom: 0.2em;
+    align-self: center;
+    flex-shrink: 0;
+    margin-top: 0;
 }
+
 .filters {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1em;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 0.5rem;
     flex-wrap: wrap;
-    margin: 1em 0;
+    margin: clamp(0.3rem, 1vh, 1rem) 0;
+    padding: clamp(0.5rem, 1.5vh, 1rem);
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    width: 100%;
+    box-sizing: border-box;
+    flex-shrink: 0;
 }
+
 .filter {
-    width: 120px;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.2em;
+    flex: 1 1 120px;
+    min-width: 100px;
 }
-.filter-ot,
-.filter-operador {
-    width: 200px;
-}
+
 select,
 input[type="date"],
 .input-filter-text {
     width: 100%;
-    border-radius: 5px;
-    padding: 0.8em 0.2em;
-    border: 1px solid #00000033;
-    text-align: center;
-    font-size: 1em;
-    letter-spacing: 1px;
-    background: var(--gis-blue);
-    border: 5px solid #033966d4;
-    color: #ffffff;
-}
-.input-filter-text::placeholder {
-    color: #ffffff99;
-}
-label {
-    font-size: 1em;
-    font-weight: 600;
-    color: var(--gis-blue);
-}
-.btn-pza {
-    display: inline-block;
-    width: 60px;
-    transition: 0.2s;
-}
-.btn-pza:hover {
-    transform: scale(1.4);
-    transition: 0.2s;
-}
-.ver {
-    width: 100%;
-}
-.btn-liberar {
-    display: inline-block;
-    width: 40px;
-    transition: 0.2s;
-}
-.btn-liberar:hover {
-    transform: scale(1.4);
-    transition: 0.2s;
-}
-.btns {
-    padding: 10px;
-    background-color: var(--gis-green);
-    box-shadow: 0 2px 5px var(--gis-green)ff;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
+    border-radius: 6px;
+    padding: clamp(0.4rem, 1vh, 0.6rem) clamp(0.8rem, 2vw, 1.5rem) clamp(0.4rem, 1vh, 0.6rem) clamp(0.4rem, 1vw, 0.8rem);
+    border: 1px solid rgba(3, 57, 102, 0.2);
+    background-color: #ffffff;
+    color: #1e293b;
+    font-size: clamp(0.75rem, 1.5vh, 0.88rem);
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
     cursor: pointer;
-    font-size: 1em;
+}
+
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23033966%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8em top 50%;
+    background-size: 0.65em auto;
+}
+
+select:hover,
+input[type="date"]:hover,
+.input-filter-text:hover {
+    box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.15);
+    border-color: rgba(3, 57, 102, 0.3);
+}
+
+select:focus,
+input[type="date"]:focus,
+.input-filter-text:focus {
+    outline: none;
+    border-color: var(--gis-blue);
+    box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.15);
+    transform: scale(1.03);
+}
+
+label {
+    font-size: clamp(0.65rem, 1.2vh, 0.75rem);
     font-weight: 700;
-    margin: 0 10px;
-    transition: 0.2s;
-}
-.btns:hover {
-    background-color: var(--gis-green);
-    transition: 0.2s;
-    transform: scale(1.2); /* Realiza un pequeño zoom del 5% */
+    color: var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 2px;
+    transition: color 0.3s ease;
 }
 
-.title_ot {
-    font-size: 1.5em; /* Tamaño de fuente */
-    font-family: Verdana, Geneva, Tahoma, sans-serif; /* Tipo de fuente */
-    margin: 10px; /* Espaciado interno */
-    display: block; /* Para que ocupe todo el ancho disponible */
-}
-.date-label {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 2em;
-}
-/* ESTILOS PARA LA TABLA */
-.div-table {
-    margin-top: 2em;
-    height: 69%;
-    overflow-x: auto;
-}
-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    border-top: 3px solid #000;
-    border-left: 3px solid #000;
-    background: #fff;
-    width: max-content;
-    box-shadow: 0 0 10px rgba(0, 0, 0);
-}
-th,
-td {
-    text-align: center;
-    font-size: 1em;
-    border-right: 3px solid #000;
-    border-bottom: 3px solid #000;
-    padding: 0.5em;
+.filter:hover label {
+    color: #065494;
 }
 
-/* Columnas Dinámicas (Detalles, OT, Clase y Proceso) */
-th:nth-child(5),
-td:nth-child(5),
-th:nth-child(6),
-td:nth-child(6),
-th:nth-child(11),
-td:nth-child(11),
-th:nth-child(12),
-td:nth-child(12) {
-    min-width: 150px;
-    max-width: 500px;
-    white-space: normal;
-    word-wrap: break-word;
-    text-align: center;
-    vertical-align: middle;
-}
-
-/* Detalles puede ser un poco más ancha por las alertas */
-th:nth-child(5),
-td:nth-child(5) {
-    min-width: 250px;
-    max-width: 650px;
-}
-th {
-    background-color: var(--gis-blue);
-    background-clip: padding-box;
-    font-weight: 700;
-    color: #fff;
-    position: sticky;
-    top: 0;
-    z-index: 20;
-}
-tr:nth-child(even) {
-    background-color: #eee;
-}
-.background-white {
-    background-color: #fff;
-}
-
-/* FILTROS DE BUSQUEDA */
-.search-input,
-.filter-select,
-.date-range {
-    padding: 10px;
-    border-radius: 10px;
-    margin: 0 10px;
-    font-size: 1.2em;
-}
-/* Cuando se posiciona sobre una opción del select este cambia de color a negro*/
-.filter-select:focus {
-    background-color: var(--gis-green);
-}
-.search-input {
-    flex-grow: 1;
-}
-.filter-select,
-.date-range {
-    flex-basis: 150px;
-}
-.filter-select {
-    background-color: var(--gis-blue);
-    color: #fdfefe;
-}
-.date-range {
-    background-color: #6c757d;
-    color: #fff;
-}
 .btn-PDF {
     position: absolute;
-    width: 60px;
+    width: clamp(40px, 5vw, 60px);
     top: 10px;
     right: 5px;
     background-color: transparent;
     border: none;
     transition: 0.2s;
+    cursor: pointer;
+    z-index: 50;
 }
-/* IMAGEN DE PDF */
+
+/* BOTÓN LIMPIAR FILTROS */
+.btn-clear-filters {
+    margin: 0 10px;
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 1em;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(100, 116, 139, 0.3);
+}
+
+.btn-clear-filters:enabled {
+    cursor: pointer;
+}
+
+.btn-clear-filters:disabled {
+    cursor: not-allowed;
+    background: #cbd5e1;
+    box-shadow: none;
+    color: #94a3b8;
+}
+
+.btn-clear-filters:hover:enabled {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px -1px rgba(100, 116, 139, 0.4);
+}
+
 .generar_pdf {
     width: 100%;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
 }
+
 .btn-PDF:hover {
     transform: scale(1.1);
     transition: 0.2s;
 }
 
-/* ADVERTENCE */
 .advertence {
     font-size: 3em;
-    color: var(--gis-red);
+    color: #dc2626;
+    font-weight: 600;
 }
 .letrero {
     margin-top: 9%;
+    flex-shrink: 0;
 }
 
-.colors {
-    position: absolute;
-    text-align: center;
-    width: 20%;
-    top: 50%;
-    transform: translateY(-50%);
-    background-color: #ffffff00;
-    padding: 20px;
-    margin: 1px;
-    border-radius: 10px;
+/* ══════════════════════════════════════════════════════════
+   ESTILOS PARA LA TABLA PRINCIPAL DE LOGS
+   ══════════════════════════════════════════════════════════ */
+.div-table {
+    margin-top: 1em;
+    flex-grow: 1;
+    min-height: 0;
     overflow-x: auto;
-    display: flex;
-    justify-content: left;
-    align-items: left;
+    overflow-y: auto;
+    border-radius: 12px;
+    border: 4px solid var(--gis-blue);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.6);
 }
-.level-toggle:hover th {
-    background-color: #044a85 !important;
-    transition: background-color 0.2s;
+
+.div-table::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
 }
-.arrow {
-    display: inline-block;
-    width: 15px;
-    margin-left: 10px;
-    font-size: 0.8em;
+.div-table::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
 }
-.loading {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 10%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
+.div-table::-webkit-scrollbar-thumb {
+    background: rgba(3, 57, 102, 0.3);
+    border-radius: 8px;
 }
-.img-loading {
+.div-table::-webkit-scrollbar-thumb:hover {
+    background: rgba(3, 57, 102, 0.6);
+}
+
+table {
     width: 100%;
+    border-collapse: collapse;
+    background: transparent;
+    width: max-content;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
+
+th,
+td {
+    text-align: center;
+    font-size: 0.95em;
+    padding: 4px 10px;
+    border: 1px solid rgba(3, 57, 102, 0.2);
+    white-space: nowrap;
+}
+
+.wide-cell {
+    white-space: normal;
+    min-width: 250px;
+    max-width: 350px;
+    word-break: break-word;
+}
+
+th {
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #065494 100%);
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 1px solid #065494;
+}
+
+th:first-child {
+    border-top-left-radius: 8px;
+}
+th:last-child {
+    border-top-right-radius: 8px;
+}
+
+tr {
+    transition: background-color 0.2s ease;
+}
+
+tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+tr:hover {
+    background-color: rgba(3, 57, 102, 0.05);
+}
+
+/* ══════════════════════════════════════════════════════════
+   LEYENDA DE COLORES COLAPSABLE LATERAL (POR FUERA DE LA TABLA)
+   ══════════════════════════════════════════════════════════ */
+.colors-legend-container {
+    position: fixed;
+    top: 62%;
+    left: -6px;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+}
+
+.colors-toggle-btn {
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #065494 100%);
+    color: white;
+    border: none;
+    padding: 100px 10px;
+    border-radius: 0 10px 10px 0;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.3s ease;
+}
+
+.colors-toggle-btn:hover {
+    background: linear-gradient(135deg, #065494 0%, var(--gis-blue) 100%);
+}
+
+.colors-content {
+    background: transparent;
+    padding: 0;
+    width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateX(-15px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.colors-legend-container:hover .colors-content {
+    width: clamp(320px, 30vw, 440px);
+    opacity: 1;
+    transform: translateX(0);
+    padding: 15px;
+}
+
+.table-colors {
+    font-size: 0.9em;
+    width: 100%;
+    background: rgba(230, 230, 230, 0.9) !important;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    border: 4px solid var(--gis-blue);
+    border-collapse: collapse;
+}
+
+.table-colors th {
+    background: var(--gis-blue);
+    color: white !important;
+    padding: 8px !important;
+    border-radius: 4px;
+    font-weight: 700 !important;
+    text-align: center;
+    border: 1px solid #065494 !important;
+}
+
+.level-toggle th {
+    color: #ffffff !important;
+    padding: 8px 10px !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    cursor: pointer;
+    text-align: left !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+    transition: filter 0.2s ease;
+}
+
+.level-toggle:hover th {
+    filter: brightness(0.85);
+}
+
+.level-row td {
+    padding: 6px 10px !important;
+    font-size: 0.85rem !important;
+    line-height: 1.35;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.level-row td:first-child {
+    font-weight: 700 !important;
+    text-align: center !important;
+    border-radius: 4px !important;
+    min-width: 120px !important;
+}
+
+.level-row td:last-child {
+    text-align: left !important;
+    background: transparent !important;
+    color: #1e293b !important;
+    font-weight: 600 !important;
+}
+
+.arrow {
+    float: right;
+    font-size: 0.75em;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ══════════════════════════════════════════════════════════
+   CLASES ÚTILES DE COLORES PARA LA LEYENDA (EXPLICITAS)
+   ══════════════════════════════════════════════════════════ */
+.sys-background-color-21618C { background-color: #21618C !important; }
+.sys-background-color-3498DB { background-color: #3498DB !important; }
+.sys-background-color-186A3B { background-color: #186A3B !important; }
+.sys-background-color-D5F5E3 { background-color: #D5F5E3 !important; }
+.sys-background-color-27AE60 { background-color: #27AE60 !important; }
+.sys-background-color-9A7D0A { background-color: #9A7D0A !important; }
+.sys-background-color-F1C40F { background-color: #F1C40F !important; }
+.sys-background-color-512E5F { background-color: #512E5F !important; }
+.sys-background-color-D7BDE2 { background-color: #D7BDE2 !important; }
+.sys-background-color-8E44AD { background-color: #8E44AD !important; }
+.sys-background-color-943126 { background-color: #943126 !important; }
+.sys-background-color-FADBD8 { background-color: #FADBD8 !important; }
+.sys-background-color-F5B7B1 { background-color: #F5B7B1 !important; }
+.sys-background-color-E74C3C { background-color: #E74C3C !important; }
+.sys-background-color-1A8C5F { background-color: #1A8C5F !important; }
+.sys-background-color-CA6F1E { background-color: #CA6F1E !important; }
+.sys-background-color-E67E22 { background-color: #E67E22 !important; }
+.sys-background-color-F39C12 { background-color: #F39C12 !important; }
+.sys-background-color-5DADE2 { background-color: #5DADE2 !important; }
+.sys-background-color-2874A6 { background-color: #2874A6 !important; }
+.sys-background-color-2E86C1 { background-color: #2E86C1 !important; }
+.sys-background-color-A569BD { background-color: #A569BD !important; }
+.sys-background-color-6C3483 { background-color: #6C3483 !important; }
+.sys-background-color-7D3C98 { background-color: #7D3C98 !important; }
+.sys-background-color-82E0AA { background-color: #82E0AA !important; }
+.sys-background-color-1E8449 { background-color: #1E8449 !important; }
+
+.sys-color-white,
+.sys-color-ffffff,
+.sys-color-fff { color: #ffffff !important; }
+.sys-color-black { color: #000000 !important; }
+
+/* ══════════════════════════════════════════════════════════
+   FOOTER CONTAINER & PAGINATION
+   ══════════════════════════════════════════════════════════ */
+.log-footer-container {
+    width: 100%;
+    margin-top: clamp(4px, 1vh, 10px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+}
+
 .total-records-found {
-    font-size: 1.2em;
+    font-size: clamp(0.9rem, 2vh, 1.2rem);
     font-weight: 700;
     color: var(--gis-blue);
+    flex-shrink: 0;
+    margin-top: clamp(4px, 1vh, 10px);
 }
-.btn-back {
+
+.filter-explanation {
+    font-size: 0.8rem;
+    color: #64748b;
+    font-style: italic;
+    margin-top: 2px;
+}
+
+#load-more-container {
     position: absolute;
-    width: 50px;
+    right: 10px;
+    bottom: 0;
 }
+
+.btn-load-more-premium {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--gis-green) 0%, #0c9c05 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9em;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 6px -1px rgba(10, 133, 4, 0.3);
+    transition: all 0.2s ease;
+}
+
+.btn-load-more-premium:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 8px -1px rgba(10, 133, 4, 0.4);
+}
+
+#manual-purge-container {
+    position: absolute;
+    left: 10px;
+    bottom: 0;
+}
+
+.btn-manual-purge-premium {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-manual-purge-premium:hover {
+    background: #dc2626;
+    transform: scale(1.08);
+}
+
 @media (max-width: 991.98px) {
     body {
         height: 100vh;
     }
-    form {
+    form.form-search {
         width: 90%;
         padding: 10px;
-    }
-    .btn-back {
-        margin-top: 0;
-        font-size: 0.8em;
-        top: 10px;
-    }
-    .title_ot {
-        font-size: 1.5em;
-        margin: 5px;
-        font-family: poppins;
-        padding: 2px;
     }
     h1 {
         font-size: 2em;
@@ -305,204 +528,9 @@ tr:nth-child(even) {
         width: 44%;
         float: right;
     }
-    .filter-select {
-        width: 28%;
-        font-size: 0.9em;
-        font-family: poppins;
-        margin: 0.5em;
-    }
-    .btns {
-        width: 30%;
-        font-size: 1em;
-        padding: 10px;
-        font-family: poppins;
-        margin: 0.7em 0;
-    }
-    .date-label {
-        font-size: 1.2em;
-    }
-    .advertence {
-        font-size: 1.9em;
-        font-family: poppins;
-        text-align: center;
-    }
-    th {
-        font-size: 0.6em;
-        padding: 5px;
-        height: 100%;
-    }
-    td {
-        font-size: 0.6em;
-        padding: 5px;
-        height: 100%;
-    }
-    .ver {
-        width: 70%;
-        margin: 0 auto;
-    }
     .div-table {
         margin: 0;
         height: auto;
         overflow-x: auto;
     }
 }
-
-/* BOTÓN LIMPIAR FILTROS */
-.btn-clear-filters {
-    margin: 0 10px;
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    padding: 10px;
-    border-radius: 10px;
-    font-size: 1em;
-    font-weight: 700;
-    transition: 0.2s;
-}
-
-.btn-clear-filters:enabled {
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(108, 117, 125, 0.6);
-    opacity: 1;
-    transform: scale(1);
-}
-
-.btn-clear-filters:disabled {
-    cursor: not-allowed;
-    box-shadow: none;
-    opacity: 0.4;
-    transform: scale(0.95);
-}
-
-.btn-clear-filters:hover:enabled {
-    background-color: #28a745;
-    transform: scale(1.2);
-    box-shadow: 0 2px 10px rgba(40, 167, 69, 0.6);
-}
-
-/* PIE DE PÁGINA DE LOGS (CONTADOR Y CARGA) */
-.log-footer-container {
-    width: 100%;
-    margin-top: 1.5em;
-    border-top: 1px solid #eee;
-    padding-top: 1em;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    min-height: 80px;
-}
-
-#load-more-container {
-    position: absolute;
-    right: 10px;
-    bottom: 5px;
-}
-
-.btn-load-more-premium {
-    padding: 0.8em 2em;
-    background-color: #186a3b; /* Verde Oscuro Base */
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 1em;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    transition: 0.2s;
-    outline: none;
-}
-
-.btn-load-more-premium:hover {
-    background-color: #28a745; /* Verde Normal del sistema */
-    transform: scale(1.2); /* Zoom pronunciado igual al de filtros */
-    box-shadow: 0 2px 10px rgba(40, 167, 69, 0.6);
-}
-
-.btn-load-more-premium:active {
-    transform: scale(0.95);
-}
-
-.total-records-found {
-    font-size: 1.1em;
-    font-weight: bold;
-    color: var(--gis-blue);
-    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-}
-
-.filter-explanation {
-    font-size: 0.85rem;
-    color: #555;
-    margin-top: 5px;
-    font-style: italic;
-    text-align: center;
-    letter-spacing: 0.5px;
-}
-
-/* BOTÓN DE DEPURACIÓN MANUAL */
-#manual-purge-container {
-    position: absolute;
-    left: 10px;
-    bottom: 5px;
-}
-
-.btn-manual-purge-premium {
-    padding: 0.8em 2em;
-    background-color: #A6ACAF; /* Gris Mas Claro (antes #626567) */
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 1em;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-    outline: none;
-}
-
-.btn-manual-purge-premium:hover {
-    background-color: #943126; /* Rojo Oscuro en Hover */
-    transform: scale(1.1);
-    box-shadow: 0 2px 10px rgba(148, 49, 38, 0.5);
-}
-
-.btn-manual-purge-premium:active {
-    transform: scale(0.95);
-}
-
-
-/* Auto-generated utility classes */
-.sys-background-color-27AE60 { background-color: #27AE60; }
-.sys-background-color-1A8C5F { background-color: #1A8C5F; }
-.sys-background-color-CA6F1E { background-color: #CA6F1E; }
-.sys-background-color-D5F5E3 { background-color: #D5F5E3; }
-.sys-display-none { display: none; }
-.sys-background-color-512E5F { background-color: #512E5F; }
-.sys-background-color-FADBD8 { background-color: #FADBD8; }
-.sys-background-color-6C3483 { background-color: #6C3483; }
-.sys-color-black { color: black; }
-.sys-background-color-8E44AD { background-color: #8E44AD; }
-.sys-background-color-943126 { background-color: #943126; }
-.sys-background-color-186A3B { background-color: #186A3B; }
-.sys-background-color-3498DB { background-color: #3498DB; }
-.sys-background-color-E74C3C { background-color: #E74C3C; }
-.sys-color-21618C { color: #21618C; }
-.sys-background-color-5DADE2 { background-color: #5DADE2; }
-.sys-background-color-A569BD { background-color: #A569BD; }
-.sys-background-color-2874A6 { background-color: #2874A6; }
-.sys-background-color-F39C12 { background-color: #F39C12; }
-.sys-color-fff { color: #fff; }
-.sys-background-color-F1C40F { background-color: #F1C40F; }
-.sys-background-color-1E8449 { background-color: #1E8449; }
-.sys-cursor-pointer { cursor: pointer; }
-.sys-background-color-D7BDE2 { background-color: #D7BDE2; }
-.sys-background-color-E67E22 { background-color: #E67E22; }
-.sys-color-ffffff { color: #ffffff; }
-.sys-background-color-7D3C98 { background-color: #7D3C98; }
-.sys-background-color-82E0AA { background-color: #82E0AA; }
-.sys-background-color-F5B7B1 { background-color: #F5B7B1; }
-.sys-background-color-2E86C1 { background-color: #2E86C1; }
-.sys-color-white { color: white; }
-.sys-background-color-9A7D0A { background-color: #9A7D0A; }
-.sys-background-color-21618C { background-color: #21618C; }

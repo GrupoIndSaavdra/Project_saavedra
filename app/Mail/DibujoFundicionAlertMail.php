@@ -16,7 +16,7 @@ class DibujoFundicionAlertMail extends Mailable
     use Queueable, SerializesModels;
 
     public string $otName;
-    public string $fileName;
+    public ?string $fileName;
     public array $ayudas;
 
     /**
@@ -24,7 +24,7 @@ class DibujoFundicionAlertMail extends Mailable
      *
      * @return void
      */
-    public function __construct(string $otName, string $fileName, array $ayudas = [])
+    public function __construct(string $otName, ?string $fileName = null, array $ayudas = [])
     {
         $this->otName = $otName;
         $this->fileName = $fileName;

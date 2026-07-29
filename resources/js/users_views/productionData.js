@@ -402,6 +402,6 @@ if (window.filtros !== undefined) {
     let dashboard2 = document.querySelector(".dashboard2");
     let div_table = document.querySelector(".div-table");
 
-    div_table.appendChild(crearTabla(datosOperadores));
+    div_table.appendChild(crearTabla(window.datosOperadores));
     dashboard2.appendChild(crearLeyendaProductividad());
 }

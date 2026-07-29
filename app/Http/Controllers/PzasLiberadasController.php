@@ -693,14 +693,13 @@ class PzasLiberadasController extends Controller
      */
     public function piecesToBeReleased()
     {
-        // ── OPTIMIZACIÓN: query directa sin pasar por saveInArray completo ──
-        // Solo necesitamos piezas con error pendientes de liberar, de clases activas
-        $finishedClassIds = Clase::query()->where('finalizada', '!=', 0)->pluck('id')->toArray();
+        // ── OPTIMIZACIÓN: query directa filtrando por clases activas (~40 IDs) ──
+        $activeClassIds = Clase::query()->where('finalizada', 0)->pluck('id')->toArray();
 
-        // 1 query: solo las piezas que realmente necesitamos
+        // 1 query: solo las piezas que realmente necesitamos de clases activas
         $piezasRaw = Pieza::query()->where('error', '!=', 'Ninguno')
             ->where('liberacion', 0)
-            ->when(!empty($finishedClassIds), fn($q) => $q->whereNotIn('id_clase', $finishedClassIds))
+            ->when(!empty($activeClassIds), fn($q) => $q->whereIn('id_clase', $activeClassIds, 'and', false))
             ->get();
 
         if ($piezasRaw->isEmpty()) {

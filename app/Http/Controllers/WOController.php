@@ -23,6 +23,7 @@ use App\Models\PreOrdenFundicion;
 use App\Models\RemisionOt;
 use App\Models\ParcialidadOt;
 use App\Models\TratamientoTermico;
+use App\Models\SoldaduraPTA_pza;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -239,7 +240,7 @@ class WOController extends Controller
      * @param array $array
      * @param mixed $class
      */
-    public function insertClassesData(&$array, $class)
+    public function insertClassesData(&$array, $class, $entregadasMap = null, $tratadasMap = null, $cotasMap = null)
     {
         $array[$class->nombre] = array();
         $array[$class->nombre]["id"] = $class->id;
@@ -247,9 +248,13 @@ class WOController extends Controller
         $array[$class->nombre]["order"] = $class->pedido;
         $array[$class->nombre]["startDate"] = $this->getStringDate($class->fecha_inicio, $class->hora_inicio);
         $array[$class->nombre]["endDate"] = $class->fecha_termino ? $this->getStringDate($class->fecha_termino, $class->hora_termino) : "-";
-        $array[$class->nombre]["entregadas"] = ParcialidadOt::query()->where('id_clase', '=', $class->id, 'and')->sum('cantidad');
-        $array[$class->nombre]["tratadas"] = TratamientoTermico::query()->where('id_clase', '=', $class->id, 'and')->sum('cantidad');
-        $array[$class->nombre]["processes"] = $this->insertProcessesData($class);
+        $array[$class->nombre]["entregadas"] = ($entregadasMap !== null)
+            ? (int) ($entregadasMap[$class->id] ?? 0)
+            : (int) ParcialidadOt::query()->where('id_clase', '=', $class->id, 'and')->sum('cantidad');
+        $array[$class->nombre]["tratadas"] = ($tratadasMap !== null)
+            ? (int) ($tratadasMap[$class->id] ?? 0)
+            : (int) TratamientoTermico::query()->where('id_clase', '=', $class->id, 'and')->sum('cantidad');
+        $array[$class->nombre]["processes"] = $this->insertProcessesData($class, $cotasMap);
 
         // Flag para indicar si la clase lleva el proceso Soldadura PTA activo.
         // Se usa en el frontend para decidir si montar la PTACardComponent.
@@ -263,7 +268,7 @@ class WOController extends Controller
     /**
      * @param mixed $class
      */
-    public function insertProcessesData($class)
+    public function insertProcessesData($class, $cotasMap = null)
     {
         $processes = array();
         $processesFounded = $class->procesos;
@@ -353,11 +358,15 @@ class WOController extends Controller
                         $hasCotas = false;
                         $requiresCotas = ($searchProcess !== 'none');
                         if ($requiresCotas) {
-                            $hasCotas = SystemLog::query()->where('id_ot', '=', $class->id_ot, 'and')
-                                ->where('clase', '=', $class->nombre, 'and')
-                                ->where('action', '=', 'Cargo/Modificación Cotas Nominales', 'and')
-                                ->where('proceso', '=', $searchProcess, 'and')
-                                ->exists();
+                            if ($cotasMap !== null) {
+                                $hasCotas = isset($cotasMap[$class->id_ot][$class->nombre][$searchProcess]);
+                            } else {
+                                $hasCotas = SystemLog::query()->where('id_ot', '=', $class->id_ot, 'and')
+                                    ->where('clase', '=', $class->nombre, 'and')
+                                    ->where('action', '=', 'Cargo/Modificación Cotas Nominales', 'and')
+                                    ->where('proceso', '=', $searchProcess, 'and')
+                                    ->exists();
+                            }
                         }
                         $processes[$processName]['requiresCotas'] = $requiresCotas;
                         $processes[$processName]['hasCotas'] = $hasCotas;
@@ -817,6 +826,44 @@ class WOController extends Controller
             ->orderBy('id')
             ->get();
 
+        // ── OPTIMIZACIÓN EN BLOQUE: recolectar IDs de clases y OTs para consultas masivas ──
+        $allClasses = $workOrders->pluck('clases')->flatten();
+        $allClassIds = $allClasses->pluck('id')->filter()->toArray();
+        $allOtIds = $workOrders->pluck('id')->filter()->toArray();
+
+        // 1. Bulk query para parcialidades entregadas
+        $entregadasMap = !empty($allClassIds)
+            ? ParcialidadOt::query()
+                ->whereIn('id_clase', $allClassIds)
+                ->groupBy('id_clase')
+                ->selectRaw('id_clase, SUM(cantidad) as total')
+                ->pluck('total', 'id_clase')
+                ->toArray()
+            : [];
+
+        // 2. Bulk query para piezas tratadas térmicamente
+        $tratadasMap = !empty($allClassIds)
+            ? TratamientoTermico::query()
+                ->whereIn('id_clase', $allClassIds)
+                ->groupBy('id_clase')
+                ->selectRaw('id_clase, SUM(cantidad) as total')
+                ->pluck('total', 'id_clase')
+                ->toArray()
+            : [];
+
+        // 3. Bulk query para registros de Cotas Nominales en SystemLog
+        $cotasLogs = !empty($allOtIds)
+            ? SystemLog::query()
+                ->whereIn('id_ot', $allOtIds)
+                ->where('action', '=', 'Cargo/Modificación Cotas Nominales', 'and')
+                ->get(['id_ot', 'clase', 'proceso'])
+            : collect();
+
+        $cotasMap = [];
+        foreach ($cotasLogs as $log) {
+            $cotasMap[$log->id_ot][$log->clase][$log->proceso] = true;
+        }
+
         foreach ($workOrders as $workOrder) {
             $classes = $workOrder->clases; // Ya están filtradas en la query del database
             if ($classes->count() > 0) {
@@ -828,20 +875,31 @@ class WOController extends Controller
                             $wOInProgress[$workOrder->id]['molding'] = $workOrder->moldura ? $workOrder->moldura->nombre : '?';
                             $wOInProgress[$workOrder->id]['classes'] = array();
                         }
-                        $this->insertClassesData($wOInProgress[$workOrder->id]['classes'], $class);
+                        $this->insertClassesData($wOInProgress[$workOrder->id]['classes'], $class, $entregadasMap, $tratadasMap, $cotasMap);
                     }
                 }
             }
         }
 
-        // ── Datos de cards PTA (para las OTs actualmente en progreso) ────────
-        // buildCardData devuelve null si la clase no tiene registros en PTA.
+        // 4. Pre-filtro masivo para PTA: solo consultar buildCardData para clases con registros reales en PTA
+        $ptaClassIds = !empty($allClassIds)
+            ? Pieza::query()
+                ->whereIn('id_clase', $allClassIds)
+                ->where('proceso', 'LIKE', '%PTA%')
+                ->pluck('id_clase')
+                ->unique()
+                ->toArray()
+            : [];
+
         $ptaCardsData = [];
         foreach (array_keys($wOInProgress) as $otId) {
             foreach ($wOInProgress[$otId]['classes'] as $className => $classData) {
                 if (!isset($classData['id']))
                     continue;
                 $claseId = $classData['id'];
+                if (!in_array($claseId, $ptaClassIds)) {
+                    continue;
+                }
                 $cardData = PtaResultsController::buildCardData((string) $otId, $claseId);
                 if ($cardData !== null) {
                     if (!isset($ptaCardsData[$otId])) {
@@ -852,10 +910,25 @@ class WOController extends Controller
             }
         }
 
-        // ── Checklist de Fundición (solo OTs con flujo activo en fundicion_history) ──
-        // Se construye en bloque; OTs sin flujo de fundición retornan null y se omiten.
+        // 5. Pre-filtro masivo para Fundición: solo consultar buildFundicionChecklistForOt para OTs activas en fundición
+        $activeFundicionOts = FundicionHistory::query()
+            ->where('status', '!=', 'inactiva')
+            ->pluck('ot')
+            ->toArray();
+
         $fundicionChecklist = [];
         foreach (array_keys($wOInProgress) as $otId) {
+            $hasFundicion = false;
+            foreach ($activeFundicionOts as $fOt) {
+                if ($fOt === "OT {$otId}" || str_starts_with($fOt, "OT {$otId} - ") || str_starts_with($fOt, "OT {$otId}_R")) {
+                    $hasFundicion = true;
+                    break;
+                }
+            }
+            if (!$hasFundicion) {
+                continue;
+            }
+
             $fundicionChecklist[$otId] = [];
             foreach ($wOInProgress[$otId]['classes'] as $className => $classData) {
                 $checklistData = $this->buildFundicionChecklistForOt((string) $otId, $className);
