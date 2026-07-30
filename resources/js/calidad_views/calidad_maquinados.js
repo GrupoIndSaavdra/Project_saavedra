@@ -65,7 +65,7 @@ function initToggleFiles() {
             if (tbody) {
                 tbody.querySelectorAll('.alm-files-row.open').forEach(row => {
                     row.classList.remove('open');
-                    row.classList.add("hidden");
+                    row.classList.add("cal-maq-display-none");
                 });
                 tbody.querySelectorAll('.btn-toggle-files.active').forEach(b => {
                     b.classList.remove('active');
@@ -77,13 +77,13 @@ function initToggleFiles() {
 
         if (isOpen) {
             filesRow.classList.remove('open');
-            filesRow.classList.add("hidden");
+            filesRow.classList.add("cal-maq-display-none");
             btn.classList.remove('active');
             btn.setAttribute('aria-expanded', 'false');
             btn.innerHTML = 'Ver Archivos';
         } else {
             filesRow.classList.add('open');
-            filesRow.classList.remove("hidden");
+            filesRow.classList.remove("cal-maq-display-none");
             btn.classList.add('active');
             btn.setAttribute('aria-expanded', 'true');
             btn.innerHTML = 'Ocultar';
@@ -142,7 +142,7 @@ function aplicarFiltros() {
     // Mostrar / ocultar botón limpiar
     const btnLimpiar = document.getElementById('calmaq-btn-limpiar');
     if (btnLimpiar) {
-        btnLimpiar.classList.toggle("hidden", !(hayFiltros || hayFecha));
+        btnLimpiar.classList.toggle("cal-maq-display-none", !(hayFiltros || hayFecha));
     }
 
     // Aplicar a cada tabla según su configuración
@@ -176,13 +176,13 @@ function filtrarTabla(tabla, ot, clase, proceso) {
         const matchProceso = !proceso || (ds.proceso ?? '') === proceso;
 
         const visible = matchOt && matchClase && matchProceso;
-        row.classList.toggle("hidden", !(visible ));
+        row.classList.toggle("cal-maq-display-none", !(visible ));
 
         // Si la fila se oculta, también ocultamos su detalle expandido si lo tuviera
         const nextRow = row.nextElementSibling;
         if (nextRow && nextRow.classList.contains('alm-files-row')) {
             if (!visible) {
-                nextRow.classList.add("hidden");
+                nextRow.classList.add("cal-maq-display-none");
                 nextRow.classList.remove('open');
                 const btn = row.querySelector('.btn-toggle-files');
                 if (btn) {
@@ -204,7 +204,7 @@ function filtrarTabla(tabla, ot, clase, proceso) {
 
     // Mostrar panel vacío si todas las filas quedaron ocultas
     if (noMatch) {
-        noMatch.classList.toggle("hidden", !(rows.length > 0 && visibles === 0));
+        noMatch.classList.toggle("cal-maq-display-none", !(rows.length > 0 && visibles === 0));
     }
 }
 

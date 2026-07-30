@@ -47,11 +47,11 @@ function aplicarFiltros() {
     rows.forEach(row => {
         const searchData = row.dataset.search ?? '';
         const show = !term || searchData.includes(term);
-        row.classList.toggle("hidden", !(show ));
+        row.classList.toggle("herr-display-none", !(show ));
         if (show) visible++;
     });
     if (count) count.textContent = visible + ' resultado' + (visible !== 1 ? 's' : '');
-    if (noRes) noRes.classList.toggle("hidden", !(visible === 0 ));
+    if (noRes) noRes.classList.toggle("herr-display-none", !(visible === 0 ));
 }
 
 // ── MODAL CRUD (solo Almacén) ─────────────────────────────────────────────────
@@ -199,10 +199,10 @@ window.htPreviewNuevaImg = function(input) {
     if (!preview) return;
     if (input.files?.[0]) {
         const reader = new FileReader();
-        reader.onload = e => { preview.src = e.target.result; preview.classList.remove("hidden"); };
+        reader.onload = e => { preview.src = e.target.result; preview.classList.remove("herr-display-none"); };
         reader.readAsDataURL(input.files[0]);
     } else {
-        preview.src = ''; preview.classList.add("hidden");
+        preview.src = ''; preview.classList.add("herr-display-none");
     }
 };
 

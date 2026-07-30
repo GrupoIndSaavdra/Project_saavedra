@@ -542,7 +542,7 @@ window.abrirModalPreOrden = function (ot, clasesYaProcesadas = []) {
 
     if (prefixDiv) {
 
-        prefixDiv.classList.add("hidden");
+        prefixDiv.classList.add("alm-display-none");
 
         prefixDiv.textContent = '';
 
@@ -568,11 +568,11 @@ window.abrirModalPreOrden = function (ot, clasesYaProcesadas = []) {
 
             cycleBadge.textContent = `Ciclo: R${cycleMatch[1]}`;
 
-            cycleBadge.classList.remove("hidden");
+            cycleBadge.classList.remove("alm-display-none");
 
         } else {
 
-            cycleBadge.classList.add("hidden");
+            cycleBadge.classList.add("alm-display-none");
 
         }
 
@@ -728,7 +728,7 @@ window.abrirModalPreOrden = function (ot, clasesYaProcesadas = []) {
 
                                 prefixDiv.textContent = window.predefinedCycleObs;
 
-                                prefixDiv.classList.remove("hidden");
+                                prefixDiv.classList.remove("alm-display-none");
 
                             }
 
@@ -810,7 +810,7 @@ window.abrirModalPreOrden = function (ot, clasesYaProcesadas = []) {
 
                             prefixDiv.textContent = window.predefinedCycleObs;
 
-                            prefixDiv.classList.remove("hidden");
+                            prefixDiv.classList.remove("alm-display-none");
 
                         }
 
@@ -2038,11 +2038,11 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
 
         if (tipo === 'casting') {
 
-            divDestinatarioCalidad.classList.add("hidden");
+            divDestinatarioCalidad.classList.add("alm-display-none");
 
         } else {
 
-            divDestinatarioCalidad.classList.remove("hidden");
+            divDestinatarioCalidad.classList.remove("alm-display-none");
 
             inputDestinatarioCalidad.value = form.getAttribute('data-email-calidad');
 
@@ -2972,7 +2972,7 @@ function renderMicAdicionalesBadges() {
 
         row.className = 'select-file-card';
 
-        row.classList.remove("hidden");
+        row.classList.remove("alm-display-none");
 
         row.style.alignItems = 'center';
 
@@ -3082,13 +3082,13 @@ function renderScarFotosBadges() {
 
     if (scarFotosSelectedFiles.length === 0) {
 
-        listContainer.classList.add("hidden");
+        listContainer.classList.add("alm-display-none");
 
         return;
 
     }
 
-    listContainer.classList.remove("hidden");
+    listContainer.classList.remove("alm-display-none");
 
 
 
@@ -3104,7 +3104,7 @@ function renderScarFotosBadges() {
 
         card.style.maxWidth = '220px';
 
-        card.classList.remove("hidden");
+        card.classList.remove("alm-display-none");
 
         card.style.flexDirection = 'column';
 
@@ -3194,13 +3194,13 @@ function renderScarOtrosBadges() {
 
     if (scarOtrosSelectedFiles.length === 0) {
 
-        listContainer.classList.add("hidden");
+        listContainer.classList.add("alm-display-none");
 
         return;
 
     }
 
-    listContainer.classList.remove("hidden");
+    listContainer.classList.remove("alm-display-none");
 
 
 
@@ -3216,7 +3216,7 @@ function renderScarOtrosBadges() {
 
         card.style.maxWidth = '220px';
 
-        card.classList.remove("hidden");
+        card.classList.remove("alm-display-none");
 
         card.style.flexDirection = 'column';
 
@@ -3332,13 +3332,13 @@ function renderCmConfirmarBadges() {
 
     if (cmConfirmarSelectedFiles.length === 0) {
 
-        listContainer.classList.add("hidden");
+        listContainer.classList.add("alm-display-none");
 
         return;
 
     }
 
-    listContainer.classList.remove("hidden");
+    listContainer.classList.remove("alm-display-none");
 
 
 
@@ -3354,7 +3354,7 @@ function renderCmConfirmarBadges() {
 
         card.style.maxWidth = '220px';
 
-        card.classList.remove("hidden");
+        card.classList.remove("alm-display-none");
 
         card.style.flexDirection = 'column';
 
@@ -3480,7 +3480,7 @@ function renderSelectedFilesBadges() {
 
         badge.className = 'file-badge';
 
-        badge.classList.remove("hidden");
+        badge.classList.remove("alm-display-none");
 
         badge.style.alignItems = 'center';
 
@@ -3542,7 +3542,7 @@ function renderAlFotosBadges() {
 
             badge.className = 'file-badge';
 
-            badge.classList.remove("hidden");
+            badge.classList.remove("alm-display-none");
 
             badge.style.alignItems = 'center';
 
@@ -3606,7 +3606,7 @@ function renderEnvScarBadges() {
 
         badge.className = 'file-badge';
 
-        badge.classList.remove("hidden");
+        badge.classList.remove("alm-display-none");
 
         badge.style.alignItems = 'center';
 
@@ -3668,7 +3668,7 @@ function renderAlAdicionalesBadges() {
 
         badge.className = 'file-badge';
 
-        badge.classList.remove("hidden");
+        badge.classList.remove("alm-display-none");
 
         badge.style.alignItems = 'center';
 
@@ -3826,7 +3826,7 @@ window.abrirModalLiberacion = function (ot, tipo) {
 
         if (subtitle) subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, '')}  |  Modo: Rechazo`;
 
-        if (rechazoBlock) rechazoBlock.classList.remove('hidden');
+        if (rechazoBlock) rechazoBlock.classList.remove("alm-display-none");
 
     } else {
 
@@ -3836,7 +3836,7 @@ window.abrirModalLiberacion = function (ot, tipo) {
 
         if (subtitle) subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, '')}  |  Modo: Aprobacion`;
 
-        if (rechazoBlock) rechazoBlock.classList.add("hidden");
+        if (rechazoBlock) rechazoBlock.classList.add("alm-display-none");
 
     }
 
@@ -3926,7 +3926,7 @@ window.cerrarModalLiberacion = function () {
 
     const zoomEl = document.getElementById('lib-zoom-result');
 
-    if (zoomEl) zoomEl.classList.add("hidden");
+    if (zoomEl) zoomEl.classList.add("alm-display-none");
 
 };
 
@@ -4084,7 +4084,7 @@ window.libCambiarTipo = function (tipo) {
 
         const activo = visibles.includes(id);
 
-        el.classList.toggle("hidden", !(activo ));
+        el.classList.toggle("alm-display-none", !(activo ));
 
         // Marcar inputs ocultos para el zero-fill en submit
 
@@ -4098,7 +4098,7 @@ window.libCambiarTipo = function (tipo) {
 
 
 
-    if (aviso) aviso.classList.toggle('hidden', visibles.length > 0);
+    if (aviso) aviso.classList.toggle("alm-display-none", visibles.length > 0);
 
     
 
@@ -4118,7 +4118,7 @@ window.libCambiarTipo = function (tipo) {
 
     if (decisionSelector) {
 
-        decisionSelector.classList.toggle("hidden", !(tipo));
+        decisionSelector.classList.toggle("alm-display-none", !(tipo));
 
     }
 
@@ -4298,7 +4298,7 @@ function _libInicializarZoom() {
 
         if (!wrapper) {
 
-            zoomResult.classList.add("hidden");
+            zoomResult.classList.add("alm-display-none");
 
             return;
 
@@ -4312,7 +4312,7 @@ function _libInicializarZoom() {
 
         if (!modal || !modal.classList.contains('open')) {
 
-            zoomResult.classList.add("hidden");
+            zoomResult.classList.add("alm-display-none");
 
             return;
 
@@ -4338,7 +4338,7 @@ function _libInicializarZoom() {
 
         if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
 
-            zoomResult.classList.add("hidden");
+            zoomResult.classList.add("alm-display-none");
 
             return;
 
@@ -4354,7 +4354,7 @@ function _libInicializarZoom() {
 
 
 
-        zoomResult.classList.remove("hidden");
+        zoomResult.classList.remove("alm-display-none");
 
         zoomResult.style.backgroundImage = `url(${img.src})`;
 
@@ -4398,7 +4398,7 @@ function _libInicializarZoom() {
 
     document.addEventListener('mouseleave', () => {
 
-        zoomResult.classList.add("hidden");
+        zoomResult.classList.add("alm-display-none");
 
     }, true);
 
@@ -4858,7 +4858,7 @@ function _libZeroFillOcultos() {
 
     const t1 = document.getElementById('lib-tabla-1');
 
-    if (t1 && t1.classList.contains("hidden")) {
+    if (t1 && t1.classList.contains("alm-display-none")) {
 
         const obs = document.getElementById('lib-obs-modelo');
 
@@ -4868,7 +4868,7 @@ function _libZeroFillOcultos() {
 
     const t2 = document.getElementById('lib-tabla-2');
 
-    if (t2 && t2.classList.contains("hidden")) {
+    if (t2 && t2.classList.contains("alm-display-none")) {
 
         const obs = document.getElementById('lib-obs-plantilla');
 
@@ -4878,7 +4878,7 @@ function _libZeroFillOcultos() {
 
     const tf = document.getElementById('lib-tabla-fondo');
 
-    if (tf && tf.classList.contains("hidden")) {
+    if (tf && tf.classList.contains("alm-display-none")) {
 
         const obs = document.getElementById('lib-obs-fondo');
 
@@ -4888,7 +4888,7 @@ function _libZeroFillOcultos() {
 
     const to = document.getElementById('lib-tabla-obturador');
 
-    if (to && to.classList.contains("hidden")) {
+    if (to && to.classList.contains("alm-display-none")) {
 
         const obs = document.getElementById('lib-obs-obturador');
 
@@ -5078,7 +5078,7 @@ async function _libSubmit(accion) {
 
                 enlace.download = data.pdf_filename ?? 'Liberacion_Modelos.pdf';
 
-                enlace.classList.add("hidden");
+                enlace.classList.add("alm-display-none");
 
                 document.body.appendChild(enlace);
 
@@ -6360,7 +6360,7 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
 
                         const group = document.getElementById('scar-fotos-upload-group');
 
-                        if (group) group.classList.toggle("hidden", !(chkFotos.checked));
+                        if (group) group.classList.toggle("alm-display-none", !(chkFotos.checked));
 
                     }
 
@@ -6374,7 +6374,7 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
 
                         const group = document.getElementById('scar-otro-upload-group');
 
-                        if (group) group.classList.toggle("hidden", !(chkOtro.checked));
+                        if (group) group.classList.toggle("alm-display-none", !(chkOtro.checked));
 
                     }
 
@@ -6400,7 +6400,7 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
 
                         const group = document.getElementById('scar-accion-otro-text-group');
 
-                        if (group) group.classList.toggle("hidden", !(chkAccionOtro.checked));
+                        if (group) group.classList.toggle("alm-display-none", !(chkAccionOtro.checked));
 
                     }
 
@@ -8050,7 +8050,7 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
 
             opt.disabled = false;
 
-            opt.classList.remove("hidden");
+            opt.classList.remove("alm-display-none");
 
             return;
 
@@ -8084,7 +8084,7 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
 
         opt.disabled = shouldHide;
 
-        opt.classList.toggle("hidden", shouldHide);
+        opt.classList.toggle("alm-display-none", shouldHide);
 
 
 
@@ -8154,7 +8154,7 @@ function _libSetDecisionUI(decision) {
 
         if (cardRechazar) { cardRechazar.style.border = '2px solid #e2e8f0'; cardRechazar.style.background = '#fff'; }
 
-        if (bloqueRechazo) bloqueRechazo.classList.add("hidden");
+        if (bloqueRechazo) bloqueRechazo.classList.add("alm-display-none");
 
     } else {
 
@@ -8162,7 +8162,7 @@ function _libSetDecisionUI(decision) {
 
         if (cardAprobar) { cardAprobar.style.border = '2px solid #e2e8f0'; cardAprobar.style.background = '#fff'; }
 
-        if (bloqueRechazo) bloqueRechazo.classList.remove("hidden");
+        if (bloqueRechazo) bloqueRechazo.classList.remove("alm-display-none");
 
     }
 
@@ -8582,7 +8582,7 @@ window._alFileChanged = function (inputId, textId, labelId) {
 
         `;
 
-        prv.classList.remove("hidden");
+        prv.classList.remove("alm-display-none");
 
     }
 
@@ -8608,7 +8608,7 @@ window._alClearFile = function (inputId) {
 
     }
 
-    const prv = document.getElementById(inputId + '-preview'); if (prv) { prv.innerHTML = ''; prv.classList.add("hidden"); }
+    const prv = document.getElementById(inputId + '-preview'); if (prv) { prv.innerHTML = ''; prv.classList.add("alm-display-none"); }
 
     const lbl = document.getElementById(inputId + '-label'); if (lbl) lbl.style.borderStyle = 'dashed';
 
@@ -8748,7 +8748,7 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
 
         const destGroup = document.getElementById('al-destinatario')?.closest('.form-group');
 
-        if (destGroup) destGroup.classList.add("hidden");
+        if (destGroup) destGroup.classList.add("alm-display-none");
 
         // default value so validation passes
 
@@ -8760,7 +8760,7 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
 
         const destGroup = document.getElementById('al-destinatario')?.closest('.form-group');
 
-        if (destGroup) destGroup.classList.remove("hidden");
+        if (destGroup) destGroup.classList.remove("alm-display-none");
 
 
 
@@ -8832,9 +8832,9 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
 
     // Columnas visibilidad
 
-    const colA = document.getElementById('al-col-aprobados'); if (colA) colA.classList.toggle("hidden", !(hasAprobado));
+    const colA = document.getElementById('al-col-aprobados'); if (colA) colA.classList.toggle("alm-display-none", !(hasAprobado));
 
-    const colR = document.getElementById('al-col-rechazados'); if (colR) colR.classList.toggle("hidden", !(hasRechazado));
+    const colR = document.getElementById('al-col-rechazados'); if (colR) colR.classList.toggle("alm-display-none", !(hasRechazado));
 
     const dl = document.getElementById('al-dual-layout'); if (dl) { dl.style.flexDirection = esMixto ? 'row' : 'column'; dl.style.alignItems = 'stretch'; }
 
@@ -9740,7 +9740,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             const prompt = card.querySelector('.lib-calidad-card-prompt');
 
-                            if (prompt) prompt.classList.add("hidden");
+                            if (prompt) prompt.classList.add("alm-display-none");
 
                         }
 
@@ -9950,15 +9950,15 @@ window.abrirModalPreOrdenCasting = async function (ot) {
 
     // Ocultar tab/sección de página 2, mostrar página 1
 
-    document.getElementById('tab-poc-page-2').classList.add("hidden");
+    document.getElementById('tab-poc-page-2').classList.add("alm-display-none");
 
-    document.getElementById('btn-remove-poc-page-2').classList.add("hidden");
+    document.getElementById('btn-remove-poc-page-2').classList.add("alm-display-none");
 
-    document.getElementById('btn-add-poc-page-2').classList.remove("hidden");
+    document.getElementById('btn-add-poc-page-2').classList.remove("alm-display-none");
 
-    document.getElementById('poc-page-2').classList.add("hidden");
+    document.getElementById('poc-page-2').classList.add("alm-display-none");
 
-    document.getElementById('poc-page-1').classList.remove("hidden");
+    document.getElementById('poc-page-1').classList.remove("alm-display-none");
 
     setPocPage2Required(false);
 
@@ -10110,11 +10110,11 @@ window.abrirModalPreOrdenCasting = async function (ot) {
 
                     document.getElementById('poc-has-page2').value = '1';
 
-                    document.getElementById('tab-poc-page-2').classList.remove("hidden");
+                    document.getElementById('tab-poc-page-2').classList.remove("alm-display-none");
 
-                    document.getElementById('btn-remove-poc-page-2').classList.remove("hidden");
+                    document.getElementById('btn-remove-poc-page-2').classList.remove("alm-display-none");
 
-                    document.getElementById('btn-add-poc-page-2').classList.add("hidden");
+                    document.getElementById('btn-add-poc-page-2').classList.add("alm-display-none");
 
                     setPocPage2Required(true);
 
@@ -10258,9 +10258,9 @@ window.switchPocPage = function (pageNum) {
 
 
 
-        document.getElementById('poc-page-2').classList.add("hidden");
+        document.getElementById('poc-page-2').classList.add("alm-display-none");
 
-        document.getElementById('poc-page-1').classList.remove("hidden");
+        document.getElementById('poc-page-1').classList.remove("alm-display-none");
 
         setPocPage2Required(false);
 
@@ -10286,9 +10286,9 @@ window.switchPocPage = function (pageNum) {
 
 
 
-        document.getElementById('poc-page-1').classList.add("hidden");
+        document.getElementById('poc-page-1').classList.add("alm-display-none");
 
-        document.getElementById('poc-page-2').classList.remove("hidden");
+        document.getElementById('poc-page-2').classList.remove("alm-display-none");
 
         setPocPage2Required(true);
 
@@ -10312,11 +10312,11 @@ window.agregarPocPagina2 = function () {
 
     document.getElementById('poc-has-page2').value = '1';
 
-    document.getElementById('tab-poc-page-2').classList.remove("hidden");
+    document.getElementById('tab-poc-page-2').classList.remove("alm-display-none");
 
-    document.getElementById('btn-add-poc-page-2').classList.add("hidden");
+    document.getElementById('btn-add-poc-page-2').classList.add("alm-display-none");
 
-    document.getElementById('btn-remove-poc-page-2').classList.remove("hidden");
+    document.getElementById('btn-remove-poc-page-2').classList.remove("alm-display-none");
 
 
 
@@ -10366,11 +10366,11 @@ window.removerPocPagina2 = function () {
 
         document.getElementById('poc-has-page2').value = '0';
 
-        document.getElementById('tab-poc-page-2').classList.add("hidden");
+        document.getElementById('tab-poc-page-2').classList.add("alm-display-none");
 
-        document.getElementById('btn-remove-poc-page-2').classList.add("hidden");
+        document.getElementById('btn-remove-poc-page-2').classList.add("alm-display-none");
 
-        document.getElementById('btn-add-poc-page-2').classList.remove("hidden");
+        document.getElementById('btn-add-poc-page-2').classList.remove("alm-display-none");
 
         setPocPage2Required(false);
 
@@ -10844,7 +10844,7 @@ window.handlePocMaterialChange = function (pageNum, idx, selectEl) {
 
         if (customInput) {
 
-            customInput.classList.remove("hidden");
+            customInput.classList.remove("alm-display-none");
 
             customInput.value = '';
 
@@ -10852,7 +10852,7 @@ window.handlePocMaterialChange = function (pageNum, idx, selectEl) {
 
         }
 
-        selectEl.classList.add("hidden");
+        selectEl.classList.add("alm-display-none");
 
         return;
 
@@ -10912,9 +10912,9 @@ function confirmPocMaterialCustom(pageNum, idx, inputEl) {
 
         // Cancelar y restaurar select
 
-        inputEl.classList.add("hidden");
+        inputEl.classList.add("alm-display-none");
 
-        if (selectEl) selectEl.classList.remove("hidden");
+        if (selectEl) selectEl.classList.remove("alm-display-none");
 
         return;
 
@@ -10938,9 +10938,9 @@ function confirmPocMaterialCustom(pageNum, idx, inputEl) {
 
             almacenToast('Límite de 7 materiales en el selector alcanzado.', 'error');
 
-            inputEl.classList.add("hidden");
+            inputEl.classList.add("alm-display-none");
 
-            if (selectEl) selectEl.classList.remove("hidden");
+            if (selectEl) selectEl.classList.remove("alm-display-none");
 
             loadPocPage(pageNum);
 
@@ -10956,9 +10956,9 @@ function confirmPocMaterialCustom(pageNum, idx, inputEl) {
 
     row.material = val;
 
-    inputEl.classList.add("hidden");
+    inputEl.classList.add("alm-display-none");
 
-    if (selectEl) selectEl.classList.remove("hidden");
+    if (selectEl) selectEl.classList.remove("alm-display-none");
 
 
 
@@ -11678,7 +11678,7 @@ function renderMadcSelectedFilesBadges() {
 
         badge.className = 'file-badge';
 
-        badge.classList.remove("hidden");
+        badge.classList.remove("alm-display-none");
 
         badge.style.alignItems = 'center';
 
@@ -12558,11 +12558,11 @@ window.cargarInputsCasting = function (ot, files) {
 
         if (allLoaded) {
 
-            btnSubmit.classList.add("hidden");
+            btnSubmit.classList.add("alm-display-none");
 
         } else {
 
-            btnSubmit.classList.remove("hidden");
+            btnSubmit.classList.remove("alm-display-none");
 
             btnSubmit.disabled = false;
 
@@ -12580,7 +12580,7 @@ window.cargarInputsCasting = function (ot, files) {
 
     if (btnIr) {
 
-        btnIr.classList.toggle("hidden", !(allLoaded));
+        btnIr.classList.toggle("alm-display-none", !(allLoaded));
 
     }
 
@@ -12678,11 +12678,11 @@ window.quitarArchivoAprobado = function (ot, archivo, buttonEl) {
 
                             if (data.casting_pdf_generated) {
 
-                                downloadBtn.classList.remove("hidden");
+                                downloadBtn.classList.remove("alm-display-none");
 
                             } else {
 
-                                downloadBtn.classList.add("hidden");
+                                downloadBtn.classList.add("alm-display-none");
 
                             }
 
@@ -13144,13 +13144,13 @@ window.quitarArchivoRechazo = function (ot, archivo, buttonEl) {
 
 window.switchMgvTab = function (tabName) {
 
-    document.querySelectorAll('.mgv-view').forEach(v => v.classList.add("hidden"));
+    document.querySelectorAll('.mgv-view').forEach(v => v.classList.add("alm-display-none"));
 
     document.querySelectorAll('.mgv-tab').forEach(t => t.classList.remove('active'));
 
 
 
-    document.getElementById('mgv-view-' + tabName).classList.remove("hidden");
+    document.getElementById('mgv-view-' + tabName).classList.remove("alm-display-none");
 
     const activeTab = document.getElementById('tab-' + tabName);
 
@@ -13254,9 +13254,9 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
 
 
 
-    if (tabAprobados) tabAprobados.classList.toggle("hidden", !(hasAprobados));
+    if (tabAprobados) tabAprobados.classList.toggle("alm-display-none", !(hasAprobados));
 
-    if (tabRechazados) tabRechazados.classList.toggle("hidden", !(hasRechazados));
+    if (tabRechazados) tabRechazados.classList.toggle("alm-display-none", !(hasRechazados));
 
 
 
@@ -13314,7 +13314,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
 
                 if (hasPreordenCasting && hasRechazados) {
 
-                    if (tabAprobados) tabAprobados.classList.add("hidden");
+                    if (tabAprobados) tabAprobados.classList.add("alm-display-none");
 
                     switchMgvTab('rechazados');
 
@@ -13952,7 +13952,7 @@ class FundicionChecklistCard {
 
         badge.textContent = 'Reproceso';
 
-        badge.classList.add("hidden");
+        badge.classList.add("alm-display-none");
 
         header.appendChild(badge);
 
@@ -13968,7 +13968,7 @@ class FundicionChecklistCard {
 
         itemsContainer.id = `checklist-items-${this.otId}`;
 
-        itemsContainer.classList.add("hidden");
+        itemsContainer.classList.add("alm-display-none");
 
         card.appendChild(itemsContainer);
 
@@ -13984,15 +13984,15 @@ class FundicionChecklistCard {
 
         card.addEventListener('click', () => {
 
-            if (itemsContainer.classList.contains("hidden")) {
+            if (itemsContainer.classList.contains("alm-display-none")) {
 
-                itemsContainer.classList.remove('hidden');
+                itemsContainer.classList.remove("alm-display-none");
 
                 card.classList.remove('is-closed');
 
             } else {
 
-                itemsContainer.classList.add("hidden");
+                itemsContainer.classList.add("alm-display-none");
 
                 card.classList.add('is-closed');
 
@@ -14068,7 +14068,7 @@ class FundicionChecklistCard {
 
         if (badge) {
 
-            badge.classList.toggle("hidden", !(data.isBadgeVisible));
+            badge.classList.toggle("alm-display-none", !(data.isBadgeVisible));
 
             if (data.badgeText) badge.textContent = data.badgeText;
 

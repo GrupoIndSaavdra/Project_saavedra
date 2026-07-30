@@ -470,7 +470,7 @@ window.abrirModalPreOrden = function (ot) {
 
     if (prefixDiv) {
 
-        prefixDiv.classList.add("hidden");
+        prefixDiv.classList.add("cal-display-none");
 
         prefixDiv.textContent = "";
 
@@ -488,11 +488,11 @@ window.abrirModalPreOrden = function (ot) {
 
             cycleBadge.textContent = `Ciclo: R${cycleMatch[1]}`;
 
-            cycleBadge.classList.remove("hidden");
+            cycleBadge.classList.remove("cal-display-none");
 
         } else {
 
-            cycleBadge.classList.add("hidden");
+            cycleBadge.classList.add("cal-display-none");
 
         }
 
@@ -634,7 +634,7 @@ window.abrirModalPreOrden = function (ot) {
 
                                 prefixDiv.textContent = window.predefinedCycleObs;
 
-                                prefixDiv.classList.remove("hidden");
+                                prefixDiv.classList.remove("cal-display-none");
 
                             }
 
@@ -710,7 +710,7 @@ window.abrirModalPreOrden = function (ot) {
 
                             prefixDiv.textContent = window.predefinedCycleObs;
 
-                            prefixDiv.classList.remove("hidden");
+                            prefixDiv.classList.remove("cal-display-none");
 
                         }
 
@@ -2306,7 +2306,7 @@ function renderMicAdicionalesBadges() {
 
         row.className = "select-file-card";
 
-        row.classList.remove("hidden");
+        row.classList.remove("cal-display-none");
 
         row.style.alignItems = "center";
 
@@ -2408,13 +2408,13 @@ function renderScarFotosBadges() {
 
     if (scarFotosSelectedFiles.length === 0) {
 
-        listContainer.classList.add("hidden");
+        listContainer.classList.add("cal-display-none");
 
         return;
 
     }
 
-    listContainer.classList.remove("hidden");
+    listContainer.classList.remove("cal-display-none");
 
     scarFotosSelectedFiles.forEach((file, index) => {
 
@@ -2428,7 +2428,7 @@ function renderScarFotosBadges() {
 
         card.style.maxWidth = "220px";
 
-        card.classList.remove("hidden");
+        card.classList.remove("cal-display-none");
 
         card.style.flexDirection = "column";
 
@@ -2508,13 +2508,13 @@ function renderScarOtrosBadges() {
 
     if (scarOtrosSelectedFiles.length === 0) {
 
-        listContainer.classList.add("hidden");
+        listContainer.classList.add("cal-display-none");
 
         return;
 
     }
 
-    listContainer.classList.remove("hidden");
+    listContainer.classList.remove("cal-display-none");
 
     scarOtrosSelectedFiles.forEach((file, index) => {
 
@@ -2528,7 +2528,7 @@ function renderScarOtrosBadges() {
 
         card.style.maxWidth = "220px";
 
-        card.classList.remove("hidden");
+        card.classList.remove("cal-display-none");
 
         card.style.flexDirection = "column";
 
@@ -2632,13 +2632,13 @@ function renderCmConfirmarBadges() {
 
     if (cmConfirmarSelectedFiles.length === 0) {
 
-        listContainer.classList.add("hidden");
+        listContainer.classList.add("cal-display-none");
 
         return;
 
     }
 
-    listContainer.classList.remove("hidden");
+    listContainer.classList.remove("cal-display-none");
 
     cmConfirmarSelectedFiles.forEach((file, index) => {
 
@@ -2652,7 +2652,7 @@ function renderCmConfirmarBadges() {
 
         card.style.maxWidth = "220px";
 
-        card.classList.remove("hidden");
+        card.classList.remove("cal-display-none");
 
         card.style.flexDirection = "column";
 
@@ -2764,7 +2764,7 @@ function renderSelectedFilesBadges() {
 
         badge.className = "file-badge";
 
-        badge.classList.remove("hidden");
+        badge.classList.remove("cal-display-none");
 
         badge.style.alignItems = "center";
 
@@ -2818,7 +2818,7 @@ function renderAlFotosBadges() {
 
             badge.className = "file-badge";
 
-            badge.classList.remove("hidden");
+            badge.classList.remove("cal-display-none");
 
             badge.style.alignItems = "center";
 
@@ -2886,7 +2886,7 @@ function renderEnvScarBadges() {
 
         badge.className = "file-badge";
 
-        badge.classList.remove("hidden");
+        badge.classList.remove("cal-display-none");
 
         badge.style.alignItems = "center";
 
@@ -2942,7 +2942,7 @@ function renderAlAdicionalesBadges() {
 
         badge.className = "file-badge";
 
-        badge.classList.remove("hidden");
+        badge.classList.remove("cal-display-none");
 
         badge.style.alignItems = "center";
 
@@ -3074,7 +3074,7 @@ window.abrirModalLiberacion = function (ot, tipo) {
 
         if (subtitle) subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, "")}  |  Modo: Rechazo`;
 
-        if (rechazoBlock) rechazoBlock.classList.remove("hidden");
+        if (rechazoBlock) rechazoBlock.classList.remove("cal-display-none");
 
     } else {
 
@@ -3084,7 +3084,7 @@ window.abrirModalLiberacion = function (ot, tipo) {
 
         if (subtitle) subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, "")}  |  Modo: Aprobacion`;
 
-        if (rechazoBlock) rechazoBlock.classList.add("hidden");
+        if (rechazoBlock) rechazoBlock.classList.add("cal-display-none");
 
     }
 
@@ -3154,7 +3154,7 @@ window.cerrarModalLiberacion = function () {
 
     const zoomEl = document.getElementById("lib-zoom-result");
 
-    if (zoomEl) zoomEl.classList.add("hidden");
+    if (zoomEl) zoomEl.classList.add("cal-display-none");
 
 };
 
@@ -3320,7 +3320,7 @@ window.libCambiarTipo = function (tipo) {
 
         const activo = visibles.includes(id);
 
-        el.classList.toggle("hidden", !(activo ));
+        el.classList.toggle("cal-display-none", !(activo ));
 
         // Marcar inputs ocultos para el zero-fill en submit
 
@@ -3332,7 +3332,7 @@ window.libCambiarTipo = function (tipo) {
 
     });
 
-    if (aviso) aviso.classList.toggle("hidden", visibles.length > 0);
+    if (aviso) aviso.classList.toggle("cal-display-none", visibles.length > 0);
 
     const tituloFondo = document.getElementById("lib-tabla-fondo-title");
 
@@ -3350,7 +3350,7 @@ window.libCambiarTipo = function (tipo) {
 
     if (decisionSelector) {
 
-        decisionSelector.classList.toggle("hidden", !(tipo));
+        decisionSelector.classList.toggle("cal-display-none", !(tipo));
 
     }
 
@@ -3496,7 +3496,7 @@ function _libInicializarZoom() {
 
         if (!wrapper) {
 
-            zoomResult.classList.add("hidden");
+            zoomResult.classList.add("cal-display-none");
 
             return;
 
@@ -3508,7 +3508,7 @@ function _libInicializarZoom() {
 
         if (!modal || !modal.classList.contains("open")) {
 
-            zoomResult.classList.add("hidden");
+            zoomResult.classList.add("cal-display-none");
 
             return;
 
@@ -3528,7 +3528,7 @@ function _libInicializarZoom() {
 
         if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
 
-            zoomResult.classList.add("hidden");
+            zoomResult.classList.add("cal-display-none");
 
             return;
 
@@ -3540,7 +3540,7 @@ function _libInicializarZoom() {
 
         const bgY = -(y * ZOOM_RATIO - ZOOM_SIZE / 2);
 
-        zoomResult.classList.remove("hidden");
+        zoomResult.classList.remove("cal-display-none");
 
         zoomResult.style.backgroundImage = `url(${img.src})`;
 
@@ -3580,7 +3580,7 @@ function _libInicializarZoom() {
 
         () => {
 
-            zoomResult.classList.add("hidden");
+            zoomResult.classList.add("cal-display-none");
 
         },
 
@@ -4006,7 +4006,7 @@ function _libZeroFillOcultos() {
 
     const t1 = document.getElementById("lib-tabla-1");
 
-    if (t1 && t1.classList.contains("hidden")) {
+    if (t1 && t1.classList.contains("cal-display-none")) {
 
         const obs = document.getElementById("lib-obs-modelo");
 
@@ -4016,7 +4016,7 @@ function _libZeroFillOcultos() {
 
     const t2 = document.getElementById("lib-tabla-2");
 
-    if (t2 && t2.classList.contains("hidden")) {
+    if (t2 && t2.classList.contains("cal-display-none")) {
 
         const obs = document.getElementById("lib-obs-plantilla");
 
@@ -4026,7 +4026,7 @@ function _libZeroFillOcultos() {
 
     const tf = document.getElementById("lib-tabla-fondo");
 
-    if (tf && tf.classList.contains("hidden")) {
+    if (tf && tf.classList.contains("cal-display-none")) {
 
         const obs = document.getElementById("lib-obs-fondo");
 
@@ -4036,7 +4036,7 @@ function _libZeroFillOcultos() {
 
     const to = document.getElementById("lib-tabla-obturador");
 
-    if (to && to.classList.contains("hidden")) {
+    if (to && to.classList.contains("cal-display-none")) {
 
         const obs = document.getElementById("lib-obs-obturador");
 
@@ -4198,7 +4198,7 @@ async function _libSubmit(accion) {
 
                 enlace.download = data.pdf_filename ?? "Liberacion_Modelos.pdf";
 
-                enlace.classList.add("hidden");
+                enlace.classList.add("cal-display-none");
 
                 document.body.appendChild(enlace);
 
@@ -5552,7 +5552,7 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
 
                         const group = document.getElementById("scar-fotos-upload-group");
 
-                        if (group) group.classList.toggle("hidden", !(chkFotos.checked));
+                        if (group) group.classList.toggle("cal-display-none", !(chkFotos.checked));
 
                     }
 
@@ -5564,7 +5564,7 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
 
                         const group = document.getElementById("scar-otro-upload-group");
 
-                        if (group) group.classList.toggle("hidden", !(chkOtro.checked));
+                        if (group) group.classList.toggle("cal-display-none", !(chkOtro.checked));
 
                     }
 
@@ -5584,7 +5584,7 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
 
                         const group = document.getElementById("scar-accion-otro-text-group");
 
-                        if (group) group.classList.toggle("hidden", !(chkAccionOtro.checked));
+                        if (group) group.classList.toggle("cal-display-none", !(chkAccionOtro.checked));
 
                     }
 
@@ -6966,7 +6966,7 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
 
             opt.disabled = false;
 
-            opt.classList.remove("hidden");
+            opt.classList.remove("cal-display-none");
 
             return;
 
@@ -7000,7 +7000,7 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
 
         opt.disabled = shouldHide;
 
-        opt.classList.toggle("hidden", shouldHide);
+        opt.classList.toggle("cal-display-none", shouldHide);
 
 
 
@@ -7076,7 +7076,7 @@ function _libSetDecisionUI(decision) {
 
         }
 
-        if (bloqueRechazo) bloqueRechazo.classList.add("hidden");
+        if (bloqueRechazo) bloqueRechazo.classList.add("cal-display-none");
 
     } else {
 
@@ -7098,7 +7098,7 @@ function _libSetDecisionUI(decision) {
 
         }
 
-        if (bloqueRechazo) bloqueRechazo.classList.remove("hidden");
+        if (bloqueRechazo) bloqueRechazo.classList.remove("cal-display-none");
 
     }
 
@@ -7492,7 +7492,7 @@ ${iconHtml}
 
 `;
 
-        prv.classList.remove("hidden");
+        prv.classList.remove("cal-display-none");
 
     }
 
@@ -7522,7 +7522,7 @@ window._alClearFile = function (inputId) {
 
         prv.innerHTML = "";
 
-        prv.classList.add("hidden");
+        prv.classList.add("cal-display-none");
 
     }
 
@@ -7642,7 +7642,7 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
 
         const destGroup = document.getElementById("al-destinatario")?.closest(".form-group");
 
-        if (destGroup) destGroup.classList.add("hidden");
+        if (destGroup) destGroup.classList.add("cal-display-none");
 
         // default value so validation passes
 
@@ -7654,7 +7654,7 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
 
         const destGroup = document.getElementById("al-destinatario")?.closest(".form-group");
 
-        if (destGroup) destGroup.classList.remove("hidden");
+        if (destGroup) destGroup.classList.remove("cal-display-none");
 
         if (esMixto) {
 
@@ -7764,11 +7764,11 @@ window.abrirModalEnviarAlertaLiberacion = function (ot, decision, tiposAprobados
 
     const colA = document.getElementById("al-col-aprobados");
 
-    if (colA) colA.classList.toggle("hidden", !(hasAprobado));
+    if (colA) colA.classList.toggle("cal-display-none", !(hasAprobado));
 
     const colR = document.getElementById("al-col-rechazados");
 
-    if (colR) colR.classList.toggle("hidden", !(hasRechazado));
+    if (colR) colR.classList.toggle("cal-display-none", !(hasRechazado));
 
     const dl = document.getElementById("al-dual-layout");
 
@@ -8660,7 +8660,7 @@ La alerta ha sido enviada exitosamente.
 
                             const prompt = card.querySelector(".lib-calidad-card-prompt");
 
-                            if (prompt) prompt.classList.add("hidden");
+                            if (prompt) prompt.classList.add("cal-display-none");
 
                         }
 
@@ -8872,15 +8872,15 @@ window.abrirModalPreOrdenCasting = async function (ot) {
 
     // Ocultar tab/sección de página 2, mostrar página 1
 
-    document.getElementById("tab-poc-page-2").classList.add("hidden");
+    document.getElementById("tab-poc-page-2").classList.add("cal-display-none");
 
-    document.getElementById("btn-remove-poc-page-2").classList.add("hidden");
+    document.getElementById("btn-remove-poc-page-2").classList.add("cal-display-none");
 
-    document.getElementById("btn-add-poc-page-2").classList.remove("hidden");
+    document.getElementById("btn-add-poc-page-2").classList.remove("cal-display-none");
 
-    document.getElementById("poc-page-2").classList.add("hidden");
+    document.getElementById("poc-page-2").classList.add("cal-display-none");
 
-    document.getElementById("poc-page-1").classList.remove("hidden");
+    document.getElementById("poc-page-1").classList.remove("cal-display-none");
 
     setPocPage2Required(false);
 
@@ -9028,11 +9028,11 @@ window.abrirModalPreOrdenCasting = async function (ot) {
 
                     document.getElementById("poc-has-page2").value = "1";
 
-                    document.getElementById("tab-poc-page-2").classList.remove("hidden");
+                    document.getElementById("tab-poc-page-2").classList.remove("cal-display-none");
 
-                    document.getElementById("btn-add-poc-page-2").classList.add("hidden");
+                    document.getElementById("btn-add-poc-page-2").classList.add("cal-display-none");
 
-                    document.getElementById("btn-remove-poc-page-2").classList.remove("hidden");
+                    document.getElementById("btn-remove-poc-page-2").classList.remove("cal-display-none");
 
                 } else {
 
@@ -9212,9 +9212,9 @@ window.switchPocPage = function (pageNum) {
 
         tab2.style.borderColor = "#cbd5e1";
 
-        document.getElementById("poc-page-2").classList.add("hidden");
+        document.getElementById("poc-page-2").classList.add("cal-display-none");
 
-        document.getElementById("poc-page-1").classList.remove("hidden");
+        document.getElementById("poc-page-1").classList.remove("cal-display-none");
 
         setPocPage2Required(false);
 
@@ -9236,9 +9236,9 @@ window.switchPocPage = function (pageNum) {
 
         tab1.style.borderColor = "#cbd5e1";
 
-        document.getElementById("poc-page-1").classList.add("hidden");
+        document.getElementById("poc-page-1").classList.add("cal-display-none");
 
-        document.getElementById("poc-page-2").classList.remove("hidden");
+        document.getElementById("poc-page-2").classList.remove("cal-display-none");
 
         setPocPage2Required(true);
 
@@ -9256,11 +9256,11 @@ window.agregarPocPagina2 = function () {
 
     document.getElementById("poc-has-page2").value = "1";
 
-    document.getElementById("tab-poc-page-2").classList.remove("hidden");
+    document.getElementById("tab-poc-page-2").classList.remove("cal-display-none");
 
-    document.getElementById("btn-add-poc-page-2").classList.add("hidden");
+    document.getElementById("btn-add-poc-page-2").classList.add("cal-display-none");
 
-    document.getElementById("btn-remove-poc-page-2").classList.remove("hidden");
+    document.getElementById("btn-remove-poc-page-2").classList.remove("cal-display-none");
 
     if (pocState.page2.filas.length === 0) {
 
@@ -9304,11 +9304,11 @@ window.removerPocPagina2 = function () {
 
         document.getElementById("poc-has-page2").value = "0";
 
-        document.getElementById("tab-poc-page-2").classList.add("hidden");
+        document.getElementById("tab-poc-page-2").classList.add("cal-display-none");
 
-        document.getElementById("btn-remove-poc-page-2").classList.add("hidden");
+        document.getElementById("btn-remove-poc-page-2").classList.add("cal-display-none");
 
-        document.getElementById("btn-add-poc-page-2").classList.remove("hidden");
+        document.getElementById("btn-add-poc-page-2").classList.remove("cal-display-none");
 
         setPocPage2Required(false);
 
@@ -9734,7 +9734,7 @@ window.handlePocMaterialChange = function (pageNum, idx, selectEl) {
 
         if (customInput) {
 
-            customInput.classList.remove("hidden");
+            customInput.classList.remove("cal-display-none");
 
             customInput.value = "";
 
@@ -9742,7 +9742,7 @@ window.handlePocMaterialChange = function (pageNum, idx, selectEl) {
 
         }
 
-        selectEl.classList.add("hidden");
+        selectEl.classList.add("cal-display-none");
 
         return;
 
@@ -9790,9 +9790,9 @@ function confirmPocMaterialCustom(pageNum, idx, inputEl) {
 
         // Cancelar y restaurar select
 
-        inputEl.classList.add("hidden");
+        inputEl.classList.add("cal-display-none");
 
-        if (selectEl) selectEl.classList.remove("hidden");
+        if (selectEl) selectEl.classList.remove("cal-display-none");
 
         return;
 
@@ -9810,9 +9810,9 @@ function confirmPocMaterialCustom(pageNum, idx, inputEl) {
 
             almacenToast("Límite de 7 materiales en el selector alcanzado.", "error");
 
-            inputEl.classList.add("hidden");
+            inputEl.classList.add("cal-display-none");
 
-            if (selectEl) selectEl.classList.remove("hidden");
+            if (selectEl) selectEl.classList.remove("cal-display-none");
 
             loadPocPage(pageNum);
 
@@ -9826,9 +9826,9 @@ function confirmPocMaterialCustom(pageNum, idx, inputEl) {
 
     row.material = val;
 
-    inputEl.classList.add("hidden");
+    inputEl.classList.add("cal-display-none");
 
-    if (selectEl) selectEl.classList.remove("hidden");
+    if (selectEl) selectEl.classList.remove("cal-display-none");
 
     // Recargar vista para actualizar todos los dropdowns
 
@@ -10498,7 +10498,7 @@ function renderMadcSelectedFilesBadges() {
 
         badge.className = "file-badge";
 
-        badge.classList.remove("hidden");
+        badge.classList.remove("cal-display-none");
 
         badge.style.alignItems = "center";
 
@@ -11302,11 +11302,11 @@ window.cargarInputsCasting = function (ot, files) {
 
         if (allLoaded) {
 
-            btnSubmit.classList.add("hidden");
+            btnSubmit.classList.add("cal-display-none");
 
         } else {
 
-            btnSubmit.classList.remove("hidden");
+            btnSubmit.classList.remove("cal-display-none");
 
             btnSubmit.disabled = false;
 
@@ -11324,7 +11324,7 @@ window.cargarInputsCasting = function (ot, files) {
 
     if (btnIr) {
 
-        btnIr.classList.toggle("hidden", !(allLoaded));
+        btnIr.classList.toggle("cal-display-none", !(allLoaded));
 
     }
 
@@ -11420,11 +11420,11 @@ No se encontraron archivos en el servidor para esta OT.
 
                             if (data.casting_pdf_generated) {
 
-                                downloadBtn.classList.remove("hidden");
+                                downloadBtn.classList.remove("cal-display-none");
 
                             } else {
 
-                                downloadBtn.classList.add("hidden");
+                                downloadBtn.classList.add("cal-display-none");
 
                             }
 
@@ -11870,11 +11870,11 @@ No se encontraron archivos en el servidor para esta OT.
 
 window.switchMgvTab = function (tabName) {
 
-    document.querySelectorAll(".mgv-view").forEach((v) => v.classList.add("hidden"));
+    document.querySelectorAll(".mgv-view").forEach((v) => v.classList.add("cal-display-none"));
 
     document.querySelectorAll(".mgv-tab").forEach((t) => t.classList.remove("active"));
 
-    document.getElementById("mgv-view-" + tabName).classList.remove("hidden");
+    document.getElementById("mgv-view-" + tabName).classList.remove("cal-display-none");
 
     const activeTab = document.getElementById("tab-" + tabName);
 
@@ -11954,9 +11954,9 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
 
     const tabRechazados = document.getElementById("tab-rechazados");
 
-    if (tabAprobados) tabAprobados.classList.toggle("hidden", !(hasAprobados));
+    if (tabAprobados) tabAprobados.classList.toggle("cal-display-none", !(hasAprobados));
 
-    if (tabRechazados) tabRechazados.classList.toggle("hidden", !(hasRechazados));
+    if (tabRechazados) tabRechazados.classList.toggle("cal-display-none", !(hasRechazados));
 
     const filesContainerA = document.getElementById("mgv-aprobados-files");
 
@@ -12006,7 +12006,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
 
                 if (hasPreordenCasting && hasRechazados) {
 
-                    if (tabAprobados) tabAprobados.classList.add("hidden");
+                    if (tabAprobados) tabAprobados.classList.add("cal-display-none");
 
                     switchMgvTab("rechazados");
 
@@ -12582,7 +12582,7 @@ class FundicionChecklistCard {
 
         badge.textContent = "Reproceso";
 
-        badge.classList.add("hidden");
+        badge.classList.add("cal-display-none");
 
         header.appendChild(badge);
 
@@ -12594,7 +12594,7 @@ class FundicionChecklistCard {
 
         itemsContainer.id = `checklist-items-${this.otId}`;
 
-        itemsContainer.classList.add("hidden");
+        itemsContainer.classList.add("cal-display-none");
 
         card.appendChild(itemsContainer);
 
@@ -12606,15 +12606,15 @@ class FundicionChecklistCard {
 
         card.addEventListener("click", () => {
 
-            if (itemsContainer.classList.contains("hidden")) {
+            if (itemsContainer.classList.contains("cal-display-none")) {
 
-                itemsContainer.classList.remove("hidden");
+                itemsContainer.classList.remove("cal-display-none");
 
                 card.classList.remove("is-closed");
 
             } else {
 
-                itemsContainer.classList.add("hidden");
+                itemsContainer.classList.add("cal-display-none");
 
                 card.classList.add("is-closed");
 
@@ -12710,7 +12710,7 @@ class FundicionChecklistCard {
 
         if (badge) {
 
-            badge.classList.toggle("hidden", !(data.isBadgeVisible));
+            badge.classList.toggle("cal-display-none", !(data.isBadgeVisible));
 
             if (data.badgeText) badge.textContent = data.badgeText;
 

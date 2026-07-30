@@ -23,8 +23,8 @@ const aplicarAccionesToEvents = (habilitar, campos) => {
                     break;
                 case "boton":
                     let boton = document.getElementById("button");
-                    if (!boton.classList.contains("hidden")) {
-                        boton.classList.add("hidden");
+                    if (!boton.classList.contains("pro-display-none")) {
+                        boton.classList.add("pro-display-none");
                     }
                     break;
                 default:
@@ -292,8 +292,7 @@ document.querySelector(".dashboard").addEventListener("change", (e) => {
         let boxPedido = document.querySelector(".pedido");
         crearInputConValor(boxPedido, null, "pedido");
 
-        let boton = document.getElementById("button");
-        if (boton) boton.classList.add("hidden");
+        if (boton) boton.classList.add("pro-display-none");
     }
 
     else if (target.id === "operadores-select") {
@@ -316,9 +315,8 @@ document.querySelector(".dashboard").addEventListener("change", (e) => {
     }
 
     else if (target.id === "procesos-select") {
-        let boton = document.getElementById("button");
         if (boton) {
-            boton.classList.toggle("hidden", !(target.value != 0 ));
+            boton.classList.toggle("pro-display-none", !(target.value != 0 ));
         }
     }
 });
@@ -350,8 +348,7 @@ function updateProcesos() {
         boxProcesos.appendChild(inputProcesos);
     }
 
-    let boton = document.getElementById("button");
-    if (boton) boton.classList.add("hidden");
+    if (boton) boton.classList.add("pro-display-none");
 }
 
 const crearLeyendaProductividad = () => {

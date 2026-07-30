@@ -21,13 +21,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const level = header.getAttribute("data-level");
             const targetRows = document.querySelectorAll(`.level-row.level-${level}`);
             const targetArrow = header.querySelector(".arrow");
-            const isExpanding = targetRows[0].classList.contains("hidden");
+            const isExpanding = targetRows[0].classList.contains("sys-display-none");
 
             // Cerrar todos los niveles de la misma tabla primero
             const parentTable = header.closest('table');
             if (parentTable) {
                 parentTable.querySelectorAll(".level-row").forEach(row => {
-                    row.classList.add("hidden");
+                    row.classList.add("sys-display-none");
                 });
                 parentTable.querySelectorAll(".arrow").forEach(arrow => {
                     arrow.textContent = "▶";
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Si estábamos expandiendo, abrir solo el objetivo
             if (isExpanding) {
                 targetRows.forEach(row => {
-                    row.classList.remove("hidden");
+                    row.classList.remove("sys-display-none");
                 });
                 targetArrow.textContent = "▼";
             }
@@ -48,8 +48,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.isAdminOnly) {
         const tableNormal = document.querySelector('.table-colors:not(.table-colors-admin)');
         const tableAdmin  = document.querySelector('.table-colors-admin');
-        if (tableNormal) tableNormal.classList.add("hidden");
-        if (tableAdmin)  tableAdmin.classList.remove('hidden');
+        if (tableNormal) tableNormal.classList.add("sys-display-none");
+        if (tableAdmin)  tableAdmin.classList.remove('sys-display-none');
     }
 
     // ---------------------------------------------------------
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     // Mostrar/Ocultar botón según disponibilidad
                     if (!window.hasMorePages || !window.nextPageUrl) {
-                        loadMoreContainer.classList.add("hidden");
+                        loadMoreContainer.classList.add("sys-display-none");
                     }
                 }
             } catch (error) {
