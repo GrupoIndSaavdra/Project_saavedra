@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const btnHabilitar = document.getElementById('btn-habilitar-edicion');
             const btnGuardar = document.getElementById('btn-guardar-clase');
-            if (btnHabilitar) btnHabilitar.classList.remove('hidden');
-            if (btnGuardar) btnGuardar.classList.add("hidden");
+            if (btnHabilitar) btnHabilitar.hidden = false;
+            if (btnGuardar) btnGuardar.hidden = true;
 
             document.getElementById('hidden-idClase').value        = idClase;
             document.getElementById('hidden-clase-nombre').value   = nombre;
@@ -60,17 +60,17 @@ document.addEventListener('DOMContentLoaded', () => {
             // ── Formulario parcialidad y tratamiento: mostrar directamente ──
             document.getElementById('hidden-idOtParcialidad').value    = idOt;
             document.getElementById('hidden-idClaseParcialidad').value = idClase;
-            placeholderParcialidad.classList.add("hidden");
-            formParcialidad.classList.remove('hidden');
-            if (avisoSinRemision) avisoSinRemision.classList.add("hidden");
+            placeholderParcialidad.hidden = true;
+            formParcialidad.hidden = false;
+            if (avisoSinRemision) avisoSinRemision.hidden = true;
 
             const placeholderTratamiento = document.getElementById('placeholder-tratamiento');
             const formTratamiento        = document.getElementById('form-tratamiento');
-            if (placeholderTratamiento) placeholderTratamiento.classList.add("hidden");
+            if (placeholderTratamiento) placeholderTratamiento.hidden = true;
             if (formTratamiento) {
                 document.getElementById('hidden-idOtTratamiento').value    = idOt;
                 document.getElementById('hidden-idClaseTratamiento').value = idClase;
-                formTratamiento.classList.remove('hidden');
+                formTratamiento.hidden = false;
             }
 
             // ── Filtrar listas de remisiones, parcialidades y tratamientos por clase ──
@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function updateResumen(idClase, pedido, piezas) {
         if (!resumenEl) return;
-        resumenEl.classList.remove("hidden");
+        resumenEl.hidden = false;
 
         let total = 0;
         document.querySelectorAll('.grupo-parcialidad').forEach(g => {
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function updateResumenTratamiento(idClase, pedido, piezas) {
         if (!resumenTratamientoEl) return;
-        resumenTratamientoEl.classList.remove("hidden");
+        resumenTratamientoEl.hidden = false;
 
         let total = 0;
         document.querySelectorAll('.grupo-tratamiento').forEach(g => {
@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (modal && passwordInput) {
                     passwordInput.value = '';
-                    modal.classList.remove("hidden");
+                    modal.hidden = false;
                     passwordInput.focus();
                 }
             } else {
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (pendingDeleteForm) {
                 pendingDeleteForm.querySelector('.input-confirm-password').value = password;
-                if (modalDelete) modalDelete.classList.add("hidden");
+                if (modalDelete) modalDelete.hidden = true;
                 pendingDeleteForm.submit();
                 pendingDeleteForm = null;
             }
@@ -287,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnModalCancel) {
         btnModalCancel.addEventListener('click', () => {
-            if (modalDelete) modalDelete.classList.add("hidden");
+            if (modalDelete) modalDelete.hidden = true;
             pendingDeleteForm = null;
         });
     }
@@ -417,9 +417,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnHabilitar.addEventListener('click', () => {
             document.getElementById('input-pedido').disabled = false;
             document.getElementById('input-piezas').disabled = false;
-            btnHabilitar.classList.add("hidden");
+            btnHabilitar.hidden = true;
             const btnGuardar = document.getElementById('btn-guardar-clase');
-            if (btnGuardar) btnGuardar.classList.remove('hidden');
+            if (btnGuardar) btnGuardar.hidden = false;
         });
     }
 

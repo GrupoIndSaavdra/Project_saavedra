@@ -511,7 +511,7 @@ function createInputPassword(name = "passwordAdmin", placeholderText = "Password
     let inputWrapper = document.createElement("div");
     inputWrapper.className = "password-input-wrapper";
     inputWrapper.classList.add("pos-relative");
-    inputWrapper.classList.remove("hidden");
+    inputWrapper.hidden = false;
     inputWrapper.classList.add("align-center");
 
     // Iconos SVG Premium
@@ -1065,13 +1065,13 @@ function createBtnMetaEdit() {
 function createBtnTechDocs() {
     let wrapper = document.createElement("div");
     wrapper.className = "tech-docs-wrapper";
-    wrapper.classList.remove("hidden");
+    wrapper.hidden = false;
     wrapper.classList.add("prod-col-center");
 
     // Contenedor relativo para posicionar el pez sin afectar el centrado del logo
     let imgContainer = document.createElement("div");
     imgContainer.classList.add("pos-relative");
-    imgContainer.classList.remove("hidden");
+    imgContainer.hidden = false;
     imgContainer.classList.add("justify-center");
 
     let btn_docs = document.createElement("img");
@@ -1085,7 +1085,7 @@ function createBtnTechDocs() {
     fish_gif.src = window.baseUrl + "/images/fish.gif";
     fish_gif.alt = "Pez";
     fish_gif.classList.add("prod-fish-gif");
-    fish_gif.classList.add("hidden"); // Ocultado
+    fish_gif.hidden = true; // Ocultado
 
     let label = document.createElement("div");
     label.className = "action-label";
@@ -2070,7 +2070,7 @@ function createPtaPasswordModal(otId) {
 
         btnSubmit.disabled = true;
         btnSubmit.textContent = "Verificando...";
-        errorMsg.classList.add("hidden");
+        errorMsg.hidden = true;
 
         let formData = new FormData(this);
         formData.append("ot_id", otId);
@@ -2092,7 +2092,7 @@ function createPtaPasswordModal(otId) {
                 } else {
                     // Contraseña incorrecta u otro error
                     errorMsg.textContent = result.body.message || "Error de verificación.";
-                    errorMsg.classList.remove("hidden");
+                    errorMsg.hidden = false;
                     btnSubmit.disabled = false;
                     btnSubmit.textContent = "Ingresar";
                     inputPassword.value = "";
@@ -2102,7 +2102,7 @@ function createPtaPasswordModal(otId) {
             .catch(error => {
                 console.error("Error en petición PTA:", error);
                 errorMsg.textContent = "Ocurrió un error. Intente nuevamente.";
-                errorMsg.classList.remove("hidden");
+                errorMsg.hidden = false;
                 btnSubmit.disabled = false;
                 btnSubmit.textContent = "Ingresar";
             });
@@ -2810,10 +2810,10 @@ window.openTechDocsModal = function () {
                 activeTab = tab.dataset.tab;
 
                 // Ocultar todos (ya solo queda proceso)
-                selProcesoWrap.classList.add("hidden");
+                selProcesoWrap.hidden = true;
 
                 if (activeTab === 'manuales') {
-                    selProcesoWrap.classList.remove("hidden");
+                    selProcesoWrap.hidden = false;
                     let matchedProc = activeProcess;
                     let found = manualEstructura.find(p => window.eq(p, matchedProc));
                     if (!found && activeProcess && activeProcess.includes('_')) {
@@ -2827,7 +2827,7 @@ window.openTechDocsModal = function () {
                     if (found) matchedProc = found;
                     updateManualesSelect(matchedProc);
                 } else if (activeTab === 'ayudas') {
-                    selProcesoWrap.classList.remove("hidden");
+                    selProcesoWrap.hidden = false;
                     let matchedProc = activeProcess;
                     let ayuProcs = [...new Set(Object.values(ayudasEstructura).flat())];
                     
@@ -2956,9 +2956,9 @@ window.handlePTAMaterialSelectChange = function(idWidget) {
     if (selectEl.value === '__otro__') {
         const name = selectEl.name;
         selectEl.name = '';
-        selectEl.classList.add("hidden");
+        selectEl.hidden = true;
 
-        otroWrap.classList.remove("hidden");
+        otroWrap.hidden = false;
         otroWrap.classList.add('visible');
         inputEl.name = name;
         inputEl.disabled = false; // ← Asegurar habilitado en JS al alternar
@@ -2974,11 +2974,11 @@ window.handlePTAMaterialBackClick = function(idWidget, originalName) {
     inputEl.name = '';
     inputEl.value = '';
     inputEl.disabled = true; // ← Deshabilitar para que no interfiera ni se envíe vacío
-    otroWrap.classList.add("hidden");
+    otroWrap.hidden = true;
     otroWrap.classList.remove('visible');
 
     selectEl.name = originalName;
     selectEl.value = '';
-    selectEl.classList.remove("hidden");
+    selectEl.hidden = false;
 };
 

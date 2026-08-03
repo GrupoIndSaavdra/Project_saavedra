@@ -242,7 +242,7 @@ function procesarQRIndividual(qrId) {
 // ===============================
 function iniciarEscaneo() {
     const qrModal = document.getElementById("qrModal");
-    qrModal.classList.remove("hidden");
+    qrModal.hidden = false;
 
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start(

@@ -463,7 +463,7 @@ class FundicionChecklistCard {
         const itemsContainer = document.createElement('div');
         itemsContainer.className = 'checklist-items';
         itemsContainer.id = `checklist-items-${this._instanceId}`;
-        itemsContainer.classList.add("hidden");
+        itemsContainer.hidden = true;
         card.appendChild(itemsContainer);
 
         card.classList.add('is-closed');
@@ -472,10 +472,10 @@ class FundicionChecklistCard {
         card.style.cursor = 'pointer';
         card.addEventListener('click', () => {
             if (itemsContainer.classList.contains("hidden")) {
-                itemsContainer.classList.remove('hidden');
+                itemsContainer.hidden = false;
                 card.classList.remove('is-closed');
             } else {
-                itemsContainer.classList.add("hidden");
+                itemsContainer.hidden = true;
                 card.classList.add('is-closed');
             }
         });
@@ -603,7 +603,7 @@ class FundicionChecklistCard {
             if (activeSubPasos.length > 0) {
                 const subPasosContainer = document.createElement('div');
                 subPasosContainer.className = 'checklist-subpasos-container';
-                subPasosContainer.classList.add("hidden");
+                subPasosContainer.hidden = true;
 
                 activeSubPasos.forEach((subPaso, spIdx) => {
                     const spEstado = subPaso.estado.toLowerCase().replace(/\s+/g, '_');
@@ -671,7 +671,7 @@ class FundicionChecklistCard {
                             expandedItem.classList.remove('is-expanded');
                             const relatedContainer = expandedItem.nextElementSibling;
                             if (relatedContainer && relatedContainer.classList.contains('checklist-subpasos-container')) {
-                                relatedContainer.classList.add("hidden");
+                                relatedContainer.hidden = true;
                             }
                             const relatedIcon = expandedItem.querySelector('.checklist-expand-icon');
                             if (relatedIcon) {
@@ -681,11 +681,11 @@ class FundicionChecklistCard {
                     });
 
                     if (subPasosContainer.classList.contains("hidden")) {
-                        subPasosContainer.classList.remove("hidden");
+                        subPasosContainer.hidden = false;
                         item.classList.add('is-expanded');
                         expandIcon.innerHTML = '▲';
                     } else {
-                        subPasosContainer.classList.add("hidden");
+                        subPasosContainer.hidden = true;
                         item.classList.remove('is-expanded');
                         expandIcon.innerHTML = '▼';
                     }
@@ -851,10 +851,10 @@ class PlaneacionChecklistCard {
         card.style.cursor = 'pointer';
         card.addEventListener('click', () => {
             if (itemsContainer.classList.contains("hidden")) {
-                itemsContainer.classList.remove('hidden');
+                itemsContainer.hidden = false;
                 card.classList.remove('is-closed');
             } else {
-                itemsContainer.classList.add("hidden");
+                itemsContainer.hidden = true;
                 card.classList.add('is-closed');
             }
         });
@@ -1016,10 +1016,10 @@ class TermicoChecklistCard {
             const tItems = this.root.querySelector('.checklist-items');
             if (tItems) {
                 if (tItems.classList.contains("hidden")) {
-                    tItems.classList.remove('hidden');
+                    tItems.hidden = false;
                     this.root.classList.remove('is-closed');
                 } else {
-                    tItems.classList.add("hidden");
+                    tItems.hidden = true;
                     this.root.classList.add('is-closed');
                 }
             }
@@ -1191,7 +1191,7 @@ class Dashboard {
                     section.classList.add('section--has-checklist');
                     const checklistWrapper = document.createElement('div');
                     checklistWrapper.className = 'fundicion-checklist-wrapper';
-                    checklistWrapper.classList.remove("hidden");
+                    checklistWrapper.hidden = false;
                     checklistWrapper.style.gap = '20px';
                     checklistWrapper.style.flexWrap = 'nowrap';
                     checklistWrapper.style.alignItems = 'flex-start';
@@ -1338,7 +1338,7 @@ class Dashboard {
                 titleSpan.style.color = "#fff";
                 titleSpan.style.fontSize = "1.25rem";
                 titleSpan.style.fontWeight = "800";
-                titleSpan.classList.remove("hidden");
+                titleSpan.hidden = false;
                 titleSpan.style.textTransform = "uppercase";
                 titleSpan.style.letterSpacing = "0.03em";
                 titleSpan.textContent = "Recepción de Material";
@@ -1347,7 +1347,7 @@ class Dashboard {
 
                 // Contenedor interno para los valores (abajo, distribuidos horizontalmente)
                 let itemsContainer = document.createElement("div");
-                itemsContainer.classList.remove("hidden");
+                itemsContainer.hidden = false;
                 itemsContainer.classList.add("pip-items-container");
                 itemsContainer.style.width = "100%";
 
@@ -1355,7 +1355,7 @@ class Dashboard {
                     let h3 = document.createElement("h3");
                     h3.className = classText[i][j];
                     h3.style.margin = "0";
-                    h3.classList.remove("hidden");
+                    h3.hidden = false;
                     h3.style.flexDirection = "column";
                     h3.style.alignItems = "center";
                     h3.style.justifyContent = "center";
@@ -1379,7 +1379,7 @@ class Dashboard {
                     pBadge.style.position = "absolute";
                     pBadge.style.top = "6px";
                     pBadge.style.left = "8px";
-                    pBadge.classList.remove("hidden");
+                    pBadge.hidden = false;
                     pBadge.style.alignItems = "center";
                     pBadge.style.gap = "8px";
                     pBadge.style.zIndex = "5";
@@ -1433,7 +1433,7 @@ class Dashboard {
                 titleSpan.style.color = "#fff";
                 titleSpan.style.fontSize = "1.25rem";
                 titleSpan.style.fontWeight = "800";
-                titleSpan.classList.remove("hidden");
+                titleSpan.hidden = false;
                 titleSpan.style.textTransform = "uppercase";
                 titleSpan.style.letterSpacing = "0.03em";
                 titleSpan.textContent = "Información de la OT";
@@ -1442,7 +1442,7 @@ class Dashboard {
 
                 // Fila de datos: OT (izquierda) y Clase (derecha) - sin líneas de separación
                 let otClassRow = document.createElement("div");
-                otClassRow.classList.remove("hidden");
+                otClassRow.hidden = false;
                 otClassRow.style.flexDirection = "row";
                 otClassRow.style.justifyContent = "space-between";
                 otClassRow.style.alignItems = "center";
@@ -1952,7 +1952,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.querySelectorAll('.fundicion-checklist-card:not(.is-closed)').forEach(card => {
                 const itemsContainer = card.querySelector('.checklist-items');
                 if (itemsContainer && !itemsContainer.classList.contains("hidden")) {
-                    itemsContainer.classList.add("hidden");
+                    itemsContainer.hidden = true;
                     card.classList.add('is-closed');
                 }
             });

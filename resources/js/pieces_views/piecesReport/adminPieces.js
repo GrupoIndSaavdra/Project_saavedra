@@ -59,7 +59,7 @@ function crearTabla(piezas, infoPiezas) {
         } else {
             applyAllFilters();
             const loading = document.querySelector('.loading');
-            if (loading) loading.classList.add("hidden");
+            if (loading) loading.hidden = true;
         }
     }
 
@@ -456,7 +456,7 @@ function createStatusPersonFilterUI() {
     let divPerson = document.createElement("div");
     divPerson.className = "filter";
     divPerson.id = "statusPersonFilterDiv";
-    divPerson.classList.add("hidden"); // Oculto por defecto
+    divPerson.hidden = true; // Oculto por defecto
 
     let selectPerson = document.createElement("select");
     selectPerson.className = "select-filter";
@@ -495,7 +495,7 @@ function updateStatusPersonFilter(statusValue) {
 
     if (!statusValue || statusValue === "Todos") {
         // Ocultar y resetear el filtro de persona
-        divPerson.classList.add("hidden");
+        divPerson.hidden = true;
         selectPerson.value = "Todos";
         while (selectPerson.options.length > 1) selectPerson.remove(1);
         return;
@@ -553,7 +553,7 @@ function updateStatusPersonFilter(statusValue) {
     }
 
     // Mostrar el filtro
-    divPerson.classList.remove("hidden");
+    divPerson.hidden = false;
 }
 createFilters();
 
@@ -1186,7 +1186,7 @@ function setupGameFilterLogic() {
 
         if (otVal && otVal !== "Todos" && classVal && classVal !== "Todos") {
             // Mostrar y habilitar el filtro
-            if (gameContainer) gameContainer.classList.remove("hidden");
+            if (gameContainer) gameContainer.hidden = false;
             gameSelect.disabled = false;
             // Debounce: esperar 150ms para evitar múltiples requests al cambiar rápido
             clearTimeout(gameFilterDebounceTimer);
@@ -1196,7 +1196,7 @@ function setupGameFilterLogic() {
         } else {
             clearTimeout(gameFilterDebounceTimer);
             // Ocultar y deshabilitar el filtro
-            if (gameContainer) gameContainer.classList.add("hidden");
+            if (gameContainer) gameContainer.hidden = true;
             gameSelect.disabled = true;
             gameSelect.value = "Todos";
             // Limpiar opciones extra (mantener solo "Todos")
@@ -1213,7 +1213,7 @@ function setupGameFilterLogic() {
 
     // Ocultar por defecto al inicializar
     const gameContainer = gameSelect?.closest('.filter');
-    if (gameContainer) gameContainer.classList.add("hidden");
+    if (gameContainer) gameContainer.hidden = true;
 
     // Chequeo inicial: solo cargar juegos si OT y clase ya tienen valor seleccionado
     // (es decir, si el usuario ya había filtrado antes)

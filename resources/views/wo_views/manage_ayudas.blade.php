@@ -99,12 +99,12 @@
                 <h2>Subir PDF</h2>
 
                 <div id="admin-upload-container">
-                    <div id="upload-ready-content" class="hidden">
+                    <div id="upload-ready-content" hidden>
                         <p class="d-text-xs d-text-muted d-mb-2">
                             Carpeta destino: <strong class="folder-label d-text-bold text-primary">...</strong>
                         </p>
 
-                        <div id="alert-upload-no-folder" class="d-alert d-alert-warning d-mb-3 d-alert d-alert-warning custom-alert-warning hidden">
+                        <div id="alert-upload-no-folder" class="d-alert d-alert-warning d-mb-3 d-alert d-alert-warning custom-alert-warning" hidden>
                             <strong class="text-danger">ACCIÓN REQUERIDA:</strong> La carpeta de destino aun no existe.<br>
                             Para habilitar la subida de archivos, primero <strong class="text-danger">Crea la Carpeta</strong> utilizando el
                             botón correspondiente en el panel izquierdo.
@@ -248,7 +248,7 @@
 
 
     {{-- Modal de Confirmación Estilo Premium (prod-viewer) --}}
-    <div id="dibujos-confirm-modal" class="confirm-portal hidden">
+    <div id="dibujos-confirm-modal" class="confirm-portal" hidden>
         <div class="confirm-modal">
             <div class="confirm-modal-header d-justify-center">
                 <h3>Confirmar Eliminación</h3>

@@ -134,7 +134,7 @@
                     <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar" class="icon-48">
                 </button>
 
-                <button type="submit" class="btn-guardar" id="btn-guardar-clase" class="hidden">Guardar cambios</button>
+                <button type="submit" class="btn-guardar" id="btn-guardar-clase" hidden>Guardar cambios</button>
             </form>
         </div>
     </div>
@@ -146,7 +146,7 @@
     <div class="panel-actividad">
 
         {{-- ── CARD REMISIONES (Ocultado ya que ahora se sube junto con la parcialidad) ── --}}
-        <div class="card-actividad" id="remisiones-panel" class="hidden">
+        <div class="card-actividad" id="remisiones-panel" hidden>
             <h3>
                 Remisiones
             </h3>
@@ -158,7 +158,7 @@
 
             {{-- Formulario de subida (único, rellenado por JS) --}}
             <form action="{{ route('wo.remision.store') }}" method="POST" enctype="multipart/form-data"
-                  class="form-remision" id="form-remision" class="hidden">
+                  class="form-remision" id="form-remision" hidden>
                 @csrf
                 <input type="hidden" name="id_ot"    id="hidden-idOtRemision"    value="">
                 <input type="hidden" name="id_clase" id="hidden-idClaseRemision"  value="">
@@ -180,7 +180,7 @@
             <div id="lista-remisiones-container">
                 @foreach($classes ?? [] as $clase)
                 @php /** @var \App\Models\Clase $clase */ @endphp
-                <div class="grupo-remision" data-id-clase="{{ $clase->id }}" class="hidden">
+                <div class="grupo-remision" data-id-clase="{{ $clase->id }}" hidden>
                     @if(isset($remisiones[$clase->id]) && $remisiones[$clase->id]->count() > 0)
                     <div class="lista-remisiones">
                         @foreach($remisiones[$clase->id] as $rem)
@@ -229,12 +229,12 @@
             </div>
 
             {{-- Aviso de bloqueo: se muestra hasta que exista al menos una remisión --}}
-            <div class="placeholder-msg" id="aviso-sin-remision" class="alert-warning-custom hidden">
+            <div class="placeholder-msg" id="aviso-sin-remision" class="alert-warning-custom" hidden>
                 Debes subir al menos una remisión antes de poder registrar parcialidades.
             </div>
 
             {{-- Resumen (se actualiza por JS) --}}
-            <div class="resumen-parcialidades" id="resumen-parcialidades" class="hidden">
+            <div class="resumen-parcialidades" id="resumen-parcialidades" hidden>
                 <div class="resumen-item">
                     <div class="resumen-valor val-recibido">0</div>
                     <div class="resumen-label">Pzas recibidas</div>
@@ -261,7 +261,7 @@
 
             {{-- Formulario nueva parcialidad (único, rellenado por JS) --}}
             <form action="{{ route('wo.parcialidad.store') }}" method="POST" enctype="multipart/form-data"
-                  class="form-parcialidad" id="form-parcialidad" class="hidden">
+                  class="form-parcialidad" id="form-parcialidad" hidden>
                 @csrf
                 <input type="hidden" name="id_ot"    id="hidden-idOtParcialidad"    value="">
                 <input type="hidden" name="id_clase" id="hidden-idClaseParcialidad"  value="">
@@ -294,8 +294,7 @@
                 {{-- data-tiene-remision: 1 si ya hay remisiones, 0 si no --}}
                 <div class="grupo-parcialidad" data-id-clase="{{ $clase->id }}"
                      data-pedido="{{ $clase->pedido }}"
-                     data-tiene-remision="{{ (isset($remisiones[$clase->id]) && $remisiones[$clase->id]->count() > 0) ? '1' : '0' }}"
-                     class="hidden">
+                     data-tiene-remision="{{ (isset($remisiones[$clase->id]) && $remisiones[$clase->id]->count() > 0) ? '1' : '0' }}" hidden>
                     @if(isset($parcialidades[$clase->id]) && $parcialidades[$clase->id]->count() > 0)
                     <div class="tabla-parcialidades-wrap">
                         <p class="log-label">Log de Parcialidades</p>
@@ -388,7 +387,7 @@
             </div>
 
             {{-- Resumen Tratamientos --}}
-            <div class="resumen-tratamientos" id="resumen-tratamientos" class="hidden">
+            <div class="resumen-tratamientos" id="resumen-tratamientos" hidden>
                 <div class="resumen-item">
                     <div class="resumen-valor val-tratadas">0</div>
                     <div class="resumen-label">PZAS EN TT</div>
@@ -414,7 +413,7 @@
             </div>
 
             {{-- Formulario nueva --}}
-            <form action="{{ route('wo.tratamiento.store') }}" method="POST" enctype="multipart/form-data" class="form-tratamiento" id="form-tratamiento" class="hidden">
+            <form action="{{ route('wo.tratamiento.store') }}" method="POST" enctype="multipart/form-data" class="form-tratamiento" id="form-tratamiento" hidden>
                 @csrf
                 <input type="hidden" name="id_ot" id="hidden-idOtTratamiento" value="">
                 <input type="hidden" name="id_clase" id="hidden-idClaseTratamiento" value="">
@@ -438,7 +437,7 @@
             <div id="historial-tratamiento-container">
                 @foreach($classes ?? [] as $clase)
                 @php /** @var \App\Models\Clase $clase */ @endphp
-                <div class="grupo-tratamiento" data-id-clase="{{ $clase->id }}" class="hidden">
+                <div class="grupo-tratamiento" data-id-clase="{{ $clase->id }}" hidden>
                     @if(isset($tratamientos[$clase->id]) && $tratamientos[$clase->id]->count() > 0)
                     <div class="lista-tratamientos">
                         <table class="tabla-parcialidades">
@@ -511,7 +510,7 @@
 </div>{{-- /almacen-layout --}}
 
 {{-- Formulario oculto global para actualizar parcialidades --}}
-<form id="form-update-parcialidad" method="POST" class="hidden">
+<form id="form-update-parcialidad" method="POST" hidden>
     @csrf
     @method('PUT')
     <input type="hidden" name="cantidad" id="update-cantidad">
@@ -521,7 +520,7 @@
 </form>
 
 {{-- Formulario oculto global para actualizar tratamientos --}}
-<form id="form-update-tratamiento" method="POST" class="hidden" enctype="multipart/form-data">
+<form id="form-update-tratamiento" method="POST" hidden enctype="multipart/form-data">
     @csrf
     @method('PUT')
     <input type="hidden" name="cantidad" id="update-tratamiento-cantidad">
@@ -530,7 +529,7 @@
 </form>
 
 {{-- Modal de Confirmación con Contraseña Encriptada --}}
-<div id="modal-confirm-delete" class="modal-overlay hidden">
+<div id="modal-confirm-delete" class="modal-overlay" hidden>
     <div class="modal-content-box-v2">
         <h4 class="modal-title">Autorizar Eliminación</h4>
         <p class="modal-text">Ingresa la contraseña de un Administrador o Master para eliminar esta parcialidad:</p>

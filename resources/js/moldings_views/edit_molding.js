@@ -63,7 +63,7 @@ function createTable(moldings, form) {
                         nextElementSibling &&
                         nextElementSibling.tagName === "BUTTON"
                     ) {
-                        nextElementSibling.classList.remove("hidden");
+                        nextElementSibling.hidden = false;
                     }
 
                     document
@@ -108,7 +108,7 @@ function createTable(moldings, form) {
                             nextElementSibling &&
                             nextElementSibling.tagName === "BUTTON"
                         ) {
-                            nextElementSibling.classList.add("hidden");
+                            nextElementSibling.hidden = true;
                         }
 
                         document

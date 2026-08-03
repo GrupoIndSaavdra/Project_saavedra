@@ -189,7 +189,7 @@ function updateAdminUI() {
         }
 
         // Visibilidad Alertas Izquierda
-        if (alertNotReady) alertNotReady.classList.add("hidden");
+        if (alertNotReady) alertNotReady.hidden = true;
         if (alertReadyExists) alertReadyExists.classList.toggle("hidden", !existe);
         if (alertReadyNotExists) alertReadyNotExists.classList.toggle("hidden", existe);
         if (btnCrear) {
@@ -201,8 +201,8 @@ function updateAdminUI() {
         }
 
         // Visibilidad Panel Derecha (Subir)
-        if (uploadNotReadyContent) uploadNotReadyContent.classList.add("hidden");
-        if (uploadReadyContent) uploadReadyContent.classList.remove("hidden");
+        if (uploadNotReadyContent) uploadNotReadyContent.hidden = true;
+        if (uploadReadyContent) uploadReadyContent.hidden = false;
         if (alertUploadNoFolder) alertUploadNoFolder.classList.toggle("hidden", existe);
         
         const fileFormGroup = uploadReadyContent ? uploadReadyContent.querySelector('.dibujos-form-group') : null;
@@ -227,13 +227,13 @@ function updateAdminUI() {
         }
     } else {
         if (panelFiles) panelFiles.classList.remove('active');
-        if (alertNotReady) alertNotReady.classList.remove("hidden");
-        if (alertReadyExists) alertReadyExists.classList.add("hidden");
-        if (alertReadyNotExists) alertReadyNotExists.classList.add("hidden");
-        if (btnCrear) btnCrear.classList.add("hidden");
+        if (alertNotReady) alertNotReady.hidden = false;
+        if (alertReadyExists) alertReadyExists.hidden = true;
+        if (alertReadyNotExists) alertReadyNotExists.hidden = true;
+        if (btnCrear) btnCrear.hidden = true;
 
-        if (uploadNotReadyContent) uploadNotReadyContent.classList.remove("hidden");
-        if (uploadReadyContent) uploadReadyContent.classList.add("hidden");
+        if (uploadNotReadyContent) uploadNotReadyContent.hidden = false;
+        if (uploadReadyContent) uploadReadyContent.hidden = true;
     }
 }
 
@@ -448,7 +448,7 @@ window.prepararReemplazo = function(nombreArchivo, param1, param2, btnElement) {
     const hiddenInput = document.createElement('input');
     hiddenInput.type = 'file';
     hiddenInput.accept = '.pdf';
-    hiddenInput.classList.add("hidden");
+    hiddenInput.hidden = true;
     
     hiddenInput.addEventListener('change', () => {
         const file = hiddenInput.files[0];
@@ -894,7 +894,7 @@ window.confirmarEliminarCarpeta = function(p1, p2, label) {
         
         btnConfirm.textContent = isVaciar ? 'Vaciar Carpeta' : 'Eliminar Permanentemente';
         
-        modal.classList.remove("hidden");
+        modal.hidden = false;
         
         btnConfirm.onclick = () => {
             eliminarCarpetaAJAX(folderToDelete);
@@ -905,7 +905,7 @@ window.confirmarEliminarCarpeta = function(p1, p2, label) {
 
 window.cerrarConfirmarEliminar = function() {
     const modal = document.getElementById('dibujos-confirm-modal');
-    if (modal) modal.classList.add("hidden");
+    if (modal) modal.hidden = true;
     folderToDelete = null;
 };
 
@@ -1057,7 +1057,7 @@ function poblarYFiltrarSelect(selectId, tableOrTbodySelector, defaultLabel) {
         rows.forEach(row => {
             if (row.children.length === 1 && row.querySelector('td[colspan]')) return;
             if (!val) {
-                row.classList.remove("hidden");
+                row.hidden = false;
             } else {
                 const text = row.textContent.toLowerCase();
                 row.classList.toggle("hidden", !text.includes(val));

@@ -1046,7 +1046,7 @@ export class Process {
 
         /* ── Lógica: mostrar select o bloque "otro" ── */
         const showSelect = () => {
-            select.classList.remove("hidden");          // visible
+            select.hidden = false;          // visible
             select.name = isEdit ? `${name}[]` : name;
             otroWrap.classList.remove("visible");
             inputOtro.name = isEdit ? `${name}_otro[]` : `${name}_otro`;
@@ -1056,7 +1056,7 @@ export class Process {
         };
 
         const showOtro = (existingValue = "") => {
-            select.classList.add("hidden");      // ocultar select
+            select.hidden = true;      // ocultar select
             select.name = isEdit ? `${name}_select[]` : `${name}_select`; // nombre auxiliar
             otroWrap.classList.add("visible");
             inputOtro.name = isEdit ? `${name}[]` : name; // este lleva el valor real

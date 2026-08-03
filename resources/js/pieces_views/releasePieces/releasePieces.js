@@ -8,7 +8,7 @@ function crearTabla(piezas, infoPiezas) {
 
     const tbody = document.createElement("tbody");
     // Ocultar el tbody mientras se renderizan los chunks para evitar que se vean piezas no filtradas
-    tbody.classList.add("hidden");
+    tbody.hidden = true;
     table.appendChild(tbody);
 
     // Delegación de eventos para los botones de liberar/rechazar
@@ -106,9 +106,9 @@ function crearTabla(piezas, infoPiezas) {
         } else {
             // Solo aplicamos filtros al terminar TODO el renderizado para evitar carga O(N^2)
             applyAllFilters();
-            tbody.classList.remove("hidden"); // Mostrar el tbody una vez que los filtros están aplicados
+            tbody.hidden = false; // Mostrar el tbody una vez que los filtros están aplicados
             const loading = document.querySelector('.loading');
-            if (loading) loading.classList.add("hidden");
+            if (loading) loading.hidden = true;
         }
     }
 
@@ -702,7 +702,7 @@ function createStatusPersonFilterUI() {
     let divPerson = document.createElement("div");
     divPerson.className = "filter";
     divPerson.id = "statusPersonFilterDiv";
-    divPerson.classList.add("hidden"); // Oculto por defecto
+    divPerson.hidden = true; // Oculto por defecto
 
     let selectPerson = document.createElement("select");
     selectPerson.className = "select-filter";
@@ -740,7 +740,7 @@ function updateStatusPersonFilter(statusValue) {
     if (!divPerson || !selectPerson) return;
 
     if (!statusValue || statusValue === "Todos") {
-        divPerson.classList.add("hidden");
+        divPerson.hidden = true;
         selectPerson.value = "Todos";
         while (selectPerson.options.length > 1) selectPerson.remove(1);
         return;
@@ -788,7 +788,7 @@ function updateStatusPersonFilter(statusValue) {
         selectPerson.value = "Todos";
     }
 
-    divPerson.classList.remove("hidden");
+    divPerson.hidden = false;
 }
 
 function applyAllFilters() {
@@ -1026,13 +1026,13 @@ function setupGameFilterLogic() {
 
         if (otVal && otVal !== "Todos" && classVal && classVal !== "Todos") {
             // Mostrar y habilitar el filtro
-            if (gameContainer) gameContainer.classList.remove("hidden");
+            if (gameContainer) gameContainer.hidden = false;
             gameSelect.disabled = false;
             // Cargar juegos
             loadAvailableGames(otVal, classVal, gameSelect);
         } else {
             // Ocultar y deshabilitar el filtro
-            if (gameContainer) gameContainer.classList.add("hidden");
+            if (gameContainer) gameContainer.hidden = true;
             gameSelect.disabled = true;
             gameSelect.value = "Todos";
             while (gameSelect.options.length > 1) {
@@ -1047,7 +1047,7 @@ function setupGameFilterLogic() {
 
     // Ocultar por defecto al inicializar
     const gameContainer = gameSelect?.closest('.filter');
-    if (gameContainer) gameContainer.classList.add("hidden");
+    if (gameContainer) gameContainer.hidden = true;
 
     // Chequeo inicial
     checkEnableGameFilter();

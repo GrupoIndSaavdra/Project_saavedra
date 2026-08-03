@@ -407,3 +407,27 @@ if (!window.estructura[ot].includes(clase)) {
  window.estructura[ot].push(clase);
 }
 ```
+
+---
+
+## 13. Validación Defensiva de Elementos del DOM en Event Listeners
+
+Cuando captures eventos globales (como un `submit` en un formulario específico que puede no existir o botones que pueden no estar renderizados en el DOM en ese momento), **SIEMPRE valida la existencia de los elementos antes de acceder a sus propiedades** (como `innerText` o `disabled`). Esto evita que un TypeError rompa el script en páginas donde ese componente no se carga.
+
+```javascript
+document
+    .getElementById("formPreOrden")
+    ?.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        // VALIDACIÓN OBLIGATORIA
+        const btn = document.getElementById("btn-submit-preorden");
+        if (!btn) return; // <-- Evita TypeError: Cannot read properties of null (reading 'innerText')
+
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = "Procesando...";
+        
+        // ... Lógica de subida ...
+    });
+```

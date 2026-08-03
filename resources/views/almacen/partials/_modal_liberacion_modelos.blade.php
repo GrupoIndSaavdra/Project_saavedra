@@ -115,7 +115,7 @@
              TABLA 1 — Macho y Hembra (Bombillo + Molde)
              Columnas: MEDIDA DEL DIBUJO | ITEM | MACHO | HEMBRA
              ──────────────────────────────────────────────────────────────────── --}}
-        <div class="lib-tabla-section hidden">
+        <div class="lib-tabla-section" hidden>
           <h4 class="lib-section-title">Dimensiones del Modelo — Macho y Hembra</h4>
           <div class="lib-table-wrapper">
             <table class="lib-report-table">
@@ -175,7 +175,7 @@
         {{-- ────────────────────────────────────────────────────────────────────
              TABLA 2 — Plantilla y Templadera (Bombillo + Molde)
              ──────────────────────────────────────────────────────────────────── --}}
-        <div class="lib-tabla-section hidden">
+        <div class="lib-tabla-section" hidden>
           <h4 class="lib-section-title">Plantilla y Templadera de Madera</h4>
           <div class="lib-table-wrapper lib-matrix-wrapper">
 
@@ -280,7 +280,7 @@
         {{-- ────────────────────────────────────────────────────────────────────
              TABLA 3 — Fondo (solo Fondo)
              ──────────────────────────────────────────────────────────────────── --}}
-        <div class="lib-tabla-section hidden">
+        <div class="lib-tabla-section" hidden>
           <h4 class="lib-section-title" id="lib-tabla-fondo-title">Dimensiones de Fondo</h4>
           <div class="lib-table-wrapper">
             <table class="lib-report-table">
@@ -328,7 +328,7 @@
         {{-- ────────────────────────────────────────────────────────────────────
              TABLA 4 — Obturador (solo Obturador)
              ──────────────────────────────────────────────────────────────────── --}}
-        <div class="lib-tabla-section hidden">
+        <div class="lib-tabla-section" hidden>
           <h4 class="lib-section-title">Dimensiones de Obturador</h4>
           <div class="lib-table-wrapper">
             <table class="lib-report-table">
@@ -397,7 +397,7 @@
         </div>
 
         {{-- MOTIVO DE RECHAZO (condicional) --}}
-        <div class="lib-section-block lib-rechazo-block hidden">
+        <div class="lib-section-block lib-rechazo-block" hidden>
           <h4 class="lib-section-title lib-section-title-danger">Motivo de Rechazo</h4>
           <p class="lib-section-hint text-danger">
             Describe el incumplimiento que impide la liberacion del modelo.

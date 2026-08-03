@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Muestra el menú contextual en la posición ajustada
-            contextMenu.classList.remove("hidden");
+            contextMenu.hidden = false;
             contextMenu.style.left = `${left}px`;
             contextMenu.style.top = `${top}px`;
         });
@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cerrar el menú contextual si se hace clic fuera de él
     document.addEventListener('click', function(event) {
         if (!contextMenu.contains(event.target)) {
-            contextMenu.classList.add("hidden");
+            contextMenu.hidden = true;
         }
     });
 });

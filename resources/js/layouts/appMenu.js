@@ -90,7 +90,7 @@ function createMenu(profile) {
                     parentEl.classList.add("active");
                     const directSubmenu = Array.from(parentEl.children).find(c => c.classList && c.classList.contains("submenu"));
                     if (directSubmenu) {
-                        directSubmenu.classList.remove("hidden");
+                        directSubmenu.hidden = false;
                     }
                     if (parentEl.parentElement && parentEl.parentElement.classList.contains("nav-list")) {
                         const toggleBtn = parentEl.querySelector(":scope > .submenu-toggle");
@@ -240,17 +240,17 @@ function createList(sections, isNested = false) {
                     if (sibling !== parent && sibling.classList.contains("menu-section")) {
                         sibling.classList.remove("active");
                         const submenu = sibling.querySelector(".submenu");
-                        if (submenu) submenu.classList.add("hidden");
+                        if (submenu) submenu.hidden = true;
                     }
                 }
 
                 // Alternar el actual
                 if (isAlreadyActive) {
                     parent.classList.remove("active");
-                    ulSubmenu.classList.add("hidden");
+                    ulSubmenu.hidden = true;
                 } else {
                     parent.classList.add("active");
-                    ulSubmenu.classList.remove("hidden");
+                    ulSubmenu.hidden = false;
                 }
             });
 

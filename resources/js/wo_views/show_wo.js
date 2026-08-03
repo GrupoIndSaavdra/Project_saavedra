@@ -512,31 +512,31 @@ function setOrDelete_ClassButtons(idClass, action) {
     //Crear el boton de eliminar clase dirigiendolo a la ruta correspondiente con el id de la clase que se desea eliminar
     if (!action) {
         if (containerCheckbox) {
-            containerCheckbox.classList.remove("hidden");
+            containerCheckbox.hidden = false;
         }
         if (idClass !== null) {
             let div_btns = document.querySelector(".div-btns"); //Obtener el div en donde se insertaran los botones de accion de la clase
             //Ocultar el boton de agregar clase
             let btn_addClass = document.querySelector(".btn-addClass");
-            btn_addClass.classList.add("hidden");
+            btn_addClass.hidden = true;
 
             //Creacion del boton de eliminar clase
             createButtons(idClass).forEach((button) => {
                 if (window.profile == 5 && button.innerHTML == "Eliminar Clase") {
-                    button.classList.add("hidden");
+                    button.hidden = true;
                 }
                 div_btns.appendChild(button);
             });
         } else {
             //Ocultar el boton de agregar clase
-            btn_addClass.classList.add("hidden");
+            btn_addClass.hidden = true;
         }
     } else if (action == "edit") {
         if (containerCheckbox) {
-            containerCheckbox.classList.add("hidden");
+            containerCheckbox.hidden = true;
         }
         //Ocultar el boton de agregar clase
-        btn_addClass.classList.add("hidden");
+        btn_addClass.hidden = true;
 
         //Creacion del boton de editar clase
         let btn_saveClassEdition = document.createElement("button");
@@ -548,10 +548,10 @@ function setOrDelete_ClassButtons(idClass, action) {
         div_btns.appendChild(btn_saveClassEdition);
     } else {
         if (containerCheckbox) {
-            containerCheckbox.classList.remove("hidden");
+            containerCheckbox.hidden = false;
         }
         //Mostrar el boton de agregar clase
-        btn_addClass.classList.remove("hidden");
+        btn_addClass.hidden = false;
     }
 }
 
@@ -767,11 +767,11 @@ function showformHidden(value) {
     let div_rowsHidden = document.querySelector(".div-rows-hidden");
     let div_boxes = document.querySelector(".div-boxes");
     if (value) {
-        div_boxes.classList.remove("hidden");
-        div_rowsHidden.classList.remove("hidden");
+        div_boxes.hidden = false;
+        div_rowsHidden.hidden = false;
     } else {
-        div_boxes.classList.add("hidden");
-        div_rowsHidden.classList.add("hidden");
+        div_boxes.hidden = true;
+        div_rowsHidden.hidden = true;
     }
 }
 
@@ -1217,11 +1217,11 @@ function createChemicalCompositionChips(attributesArray) {
     let otroLabel = document.createElement("label");
     otroLabel.textContent = "Otro (Especificar composición):";
     otroLabel.classList.add("swo-otro-label");
-    otroLabel.classList.remove("hidden");
+    otroLabel.hidden = false;
 
     // Fila que contiene el input "otro" y el selector de tipo de soldadura lado a lado
     let otroInputRow = document.createElement("div");
-    otroInputRow.classList.remove("hidden");
+    otroInputRow.hidden = false;
     otroInputRow.classList.add("swo-otro-row");
 
     let otroInput = document.createElement("input");
@@ -1253,7 +1253,7 @@ function createChemicalCompositionChips(attributesArray) {
     // Selector de Tipo de Soldadura (al lado del input "otro")
     let soldaduraWrapper = document.createElement("div");
     soldaduraWrapper.id = "welding-type-wrapper";
-    soldaduraWrapper.classList.remove("hidden");
+    soldaduraWrapper.hidden = false;
     soldaduraWrapper.classList.add("swo-sol-wrapper");
 
     let soldaduraLabel = document.createElement("label");
@@ -1330,7 +1330,7 @@ function createChemicalCompositionTags(valueString, tipoSoldadura) {
     container.appendChild(sep);
 
     let soldaduraWrapper = document.createElement("span");
-    soldaduraWrapper.classList.remove("hidden");
+    soldaduraWrapper.hidden = false;
     soldaduraWrapper.classList.add("swo-sol-wrapper-sm");
 
     let soldaduraLabelText = document.createElement("span");
@@ -1386,9 +1386,9 @@ function toggleWeldingTypeVisibility(className) {
 
     let shouldShow = weldingClasses.includes(className);
     if (shouldShow) {
-        wrapper.classList.remove("hidden");
+        wrapper.hidden = false;
     } else {
-        wrapper.classList.add("hidden");
+        wrapper.hidden = true;
         // Limpiar el selector para no enviar datos residuales
         let select = wrapper.querySelector('select[name="tipo_soldadura"]');
         if (select) {
