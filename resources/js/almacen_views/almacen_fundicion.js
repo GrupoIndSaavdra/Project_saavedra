@@ -2228,6 +2228,11 @@ window.libCambiarTipo = function (tipo) {
         if (!el) return;
         const activo = visibles.includes(id);
         el.classList.toggle("alm-display-none", !activo);
+        if (activo) {
+            el.removeAttribute("hidden");
+        } else {
+            el.setAttribute("hidden", "");
+        }
         // Marcar inputs ocultos para el zero-fill en submit
         el.querySelectorAll('input[type="number"]').forEach((inp) => {
             inp.dataset.libHidden = activo ? "0" : "1";

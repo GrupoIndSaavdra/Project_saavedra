@@ -3235,7 +3235,7 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                     <div class="form-actions cal-text-align-center cal-margin-top-40px cal-margin-bottom-12px"
                     >
                         <button
-                            type="submit" class="btn-save-preorden cal-font-size-1-2em cal-padding-15px-32px cal-border-radius-10px cal-font-family-quot cal-font-weight-700 cal-height-auto"
+                            type="submit" id="btn-submit-alerta-liberacion" class="btn-save-preorden cal-font-size-1-2em cal-padding-15px-32px cal-border-radius-10px cal-font-family-quot cal-font-weight-700 cal-height-auto"
                         >
                             Enviar Alerta de Liberación
                         </button>
@@ -3389,7 +3389,7 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                     <div class="form-actions cal-text-align-center cal-margin-top-30px cal-margin-bottom-10px"
                     >
                         <button
-                            type="submit" class="btn-save-preorden cal-font-size-1-15em cal-padding-14px-30px cal-border-radius-10px cal-font-family-quot cal-font-weight-700 cal-height-auto"
+                            type="submit" id="btn-submit-finalizar-calidad" class="btn-save-preorden cal-font-size-1-15em cal-padding-14px-30px cal-border-radius-10px cal-font-family-quot cal-font-weight-700 cal-height-auto"
                         >
                             Finalizar y Enviar Correo
                         </button>
