@@ -135,6 +135,10 @@ class ProcessesController extends Controller
                                     }
                                 }
                             }
+                        } else {
+                            // Clase sin entrada en tabla procesos — la agregamos vacía
+                            // para que el fallback la procese y pueda cargar datos existentes
+                            $workOrders[$workOrderTxt][$class->nombre] = [];
                         }
                     }
                 }
@@ -142,22 +146,65 @@ class ProcessesController extends Controller
         }
         $workOrders = count($workOrders) > 0 ? $workOrders : null;
 
-        // Fallback: if a class has empty processes (legacy data saved with wrong JS keys),
-        // populate the expected default list so the user can at least access the form.
+        // Fallback: si una clase no tiene procesos registrados o los tiene en formato legacy,
+        // se añade la estructura por defecto Y se cargan los datos existentes de BD.
         if ($workOrders) {
             foreach ($workOrders as $wot => $classes) {
                 foreach ($classes as $className => $procs) {
                     if (empty($procs)) {
                         $defaultProcesses = $this->getDefaultProcessesByClass($className);
                         if ($defaultProcesses) {
+                            // Extraer ID usando Regex para ignorar cualquier símbolo (-, /, \, etc.)
+                            preg_match('/^(\d+)/', $wot, $matches);
+                            $otId = $matches[1] ?? $wot;
+                            $claseObj = Clase::query()
+                                ->where('nombre', '=', $className)
+                                ->where('id_ot', '=', $otId)
+                                ->where('finalizada', '=', 0)
+                                ->first();
+
                             foreach ($defaultProcesses as $proc) {
                                 if ($proc === 'Operacion Equipo') {
                                     $workOrders[$wot][$className][$proc] = [
                                         '1 operacion' => [],
                                         '2 operacion' => [],
                                     ];
+                                    // Cargar datos existentes si los hay
+                                    if ($claseObj) {
+                                        for ($i = 1; $i <= 2; $i++) {
+                                            $data = $this->searchCNominals($claseObj, $proc, $i . ' operacion');
+                                            if ($data) {
+                                                foreach ($data as $key => $value) {
+                                                    $workOrders[$wot][$className][$proc][$i . ' operacion'][$key] = $value;
+                                                }
+                                            }
+                                        }
+                                    }
+                                } elseif ($proc === 'Copiado') {
+                                    $workOrders[$wot][$className][$proc] = [
+                                        'Cilindrado' => [],
+                                        'Cavidades'  => [],
+                                    ];
+                                    if ($claseObj) {
+                                        foreach (['Cilindrado', 'Cavidades'] as $sub) {
+                                            $data = $this->searchCNominals($claseObj, $proc, $sub);
+                                            if ($data) {
+                                                foreach ($data as $key => $value) {
+                                                    $workOrders[$wot][$className][$proc][$sub][$key] = $value;
+                                                }
+                                            }
+                                        }
+                                    }
                                 } else {
                                     $workOrders[$wot][$className][$proc] = [];
+                                    if ($claseObj) {
+                                        $data = $this->searchCNominals($claseObj, $proc);
+                                        if ($data) {
+                                            foreach ($data as $key => $value) {
+                                                $workOrders[$wot][$className][$proc][$key] = $value;
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -165,6 +212,7 @@ class ProcessesController extends Controller
                 }
             }
         }
+
 
         [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
         return view('processes_views.cNominals_view', compact('workOrders', 'pieces_Released', 'info_Pieces'));
@@ -350,7 +398,11 @@ class ProcessesController extends Controller
      */
     public function updatePieces($workOrder, $class, $process, $subprocess = null, $operation = null)
     {
-        $workOrder = explode(" - ", $workOrder)[0];
+        // Si por alguna razón llega el texto completo, extraemos solo el ID numérico con Regex
+        if (!is_numeric($workOrder)) {
+            preg_match('/^(\d+)/', $workOrder, $matches);
+            $workOrder = $matches[1] ?? $workOrder;
+        }
         $class = Clase::query()->where('nombre', '=', $class)->where('id_ot', '=', $workOrder)->first(); // Obtener clase
 
         if (!$class) {
@@ -376,7 +428,9 @@ class ProcessesController extends Controller
     public function storeCNominalsData(Request $request)
     {
         $processModified = str_replace(' ', '_', $request->input('process'));
-        $workOrderId = explode(" - ", $request->input('workOrder'))[0];
+        // Extraemos el ID numérico usando Regex para ser robustos ante cualquier símbolo (-, /, \)
+        preg_match('/^(\d+)/', $request->input('workOrder'), $matches);
+        $workOrderId = $matches[1] ?? $request->input('workOrder');
         if ($request->input('subProcess')) {
             if ($request->input('process') == "Copiado") {
                 $id_process = $processModified . '_' . $request->input('class') . "_" . $workOrderId;

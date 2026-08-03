@@ -343,19 +343,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function restorePath(path, currentIndex) {
     if (currentIndex >= path.length) return;
-    
-    // Select actual por ID (empiezan en 1)
-    let select = document.getElementById((currentIndex + 1).toString());
-    if (select) {
-        select.value = path[currentIndex];
-        select.dispatchEvent(new Event("change"));
-        
-        // Esperamos a que el DOM se actualice para el siguiente select
-        setTimeout(() => {
-            restorePath(path, currentIndex + 1);
-        }, 50);
+
+    const expectedSelectId = (currentIndex + 1).toString();
+
+    // Esperar a que el select aparezca en el DOM (polling con rAF, max ~2s)
+    let attempts = 0;
+    const maxAttempts = 120; // ~2s a 60fps
+
+    function trySet() {
+        let select = document.getElementById(expectedSelectId);
+        if (select) {
+            // El select existe — asignamos el valor
+            select.value = path[currentIndex];
+            // Solo disparamos change si el valor quedó asignado
+            if (select.value === path[currentIndex]) {
+                select.dispatchEvent(new Event("change"));
+                // Avanzar al siguiente nivel
+                setTimeout(() => {
+                    restorePath(path, currentIndex + 1);
+                }, 80); // 80ms para dar tiempo al DOM después del change
+            } else {
+                // Valor no encontrado en las opciones del select, abortar restauración
+                console.warn("[restorePath] Valor no encontrado en select:", path[currentIndex]);
+            }
+        } else if (attempts < maxAttempts) {
+            attempts++;
+            requestAnimationFrame(trySet);
+        } else {
+            console.warn("[restorePath] Timeout esperando select id=" + expectedSelectId);
+        }
     }
+
+    requestAnimationFrame(trySet);
 }
+
 
 function getCurrentFilterPath() {
     let selects = document.querySelectorAll(".animated-div select");
