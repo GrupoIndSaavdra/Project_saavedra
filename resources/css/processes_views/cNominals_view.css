@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* Estilos del div buscador */
 .wrapper {
     position: absolute;
@@ -49,16 +52,16 @@ h1 {
     font-size: 1em;
     margin: 0.5em;
     letter-spacing: 1px;
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
 }
 .form-control:hover {
-    border: 1px solid #033966;
+    border: 1px solid var(--gis-blue);
 }
 .title {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
 }
 .form-search {
     width: 100%;
@@ -94,7 +97,7 @@ h1 {
 
 .table-title {
     border: 3px solid #000;
-    background-color: #033966;
+    background-color: var(--gis-blue);
     text-align: center;
     color: #fff;
     padding: 10px;
@@ -104,13 +107,13 @@ h1 {
     text-align: center;
     padding: 0.5em 0;
     font-size: 1.2em;
-    background: #03396610;
+    background: var(--gis-blue)10;
     
 }
 .table td{
     text-align: center;
     font-weight: 700;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
 }
 .input-medio {
     width: 50%;
@@ -122,7 +125,7 @@ h1 {
     display: flex;
     margin: auto;
     opacity: 0;
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
     width: 8em;
     box-sizing: border-box;
@@ -228,7 +231,7 @@ h1 {
 
     .table-title {
         border: 2px solid #000;
-        background-color: #033966;
+        background-color: var(--gis-blue);
         padding: 5px 0;
         min-width: 150px;
         text-align: center;
@@ -242,27 +245,27 @@ h1 {
 
         padding: 0.3em 0;
         font-size: 0.9em;
-        background: #03396610;
+        background: var(--gis-blue)10;
     }
 
     .table td {
         text-align: center;
         font-size: 1em;
         font-weight: 600;
-        border: 2px solid #033966;
+        border: 2px solid var(--gis-blue);
     }
     .btn-submit {
     opacity: 0;
     left: 36vw;
     bottom: 1vh;
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
     width: 8w;
     font-size: 1em;
 
 }
 .btn-submit:hover {
-    background: #0a8504;
+    background: var(--gis-green);
     transform: scale(1.05);
     transition: 0.3s ease;
 }

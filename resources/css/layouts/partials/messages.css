@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../../global.css";
+
 /* ==========================================================================
    SISTEMA DE MENSAJES Y ALERTAS - ESTILO SAAVEDRA PREMIUM (CENTRALIZADO)
    ========================================================================== */
@@ -25,7 +28,7 @@
 
 .custom-alert-saavedra {
     background: linear-gradient(to bottom, #ffffff, #fcfcfc) !important;
-    border: 3.5px solid #033966 !important;
+    border: 3.5px solid var(--gis-blue) !important;
     border-radius: 12px;
     padding: 0.8rem 1.2rem;
     display: flex;
@@ -50,7 +53,7 @@
 }
 
 .custom-alert-saavedra.error {
-    border-color: #9c0300 !important;
+    border-color: var(--gis-red) !important;
     box-shadow: 0 10px 25px -5px rgba(156, 3, 0, 0.2);
 }
 
@@ -103,8 +106,8 @@
     width: 100vw;
     height: 100vh;
     background: rgba(15, 23, 42, 0.85); /* Slate oscuro */
-    backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -118,7 +121,7 @@
     max-width: 600px;
     padding: 0;
     border-radius: 24px;
-    border: 6px solid #033966; /* Azul default */
+    border: 6px solid var(--gis-blue); /* Azul default */
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     text-align: center;
     overflow: hidden;
@@ -166,16 +169,16 @@
 
 /* Variante: ERROR / BLOQUEO CRÍTICO (Rojo) */
 .productivity-premium-modal.error {
-    border-color: #9c0300;
+    border-color: var(--gis-red);
 }
 .productivity-premium-modal.error:hover { 
     box-shadow: 0 0 40px rgba(156, 3, 0, 0.5); 
     transform: scale(1.02);
 }
-.productivity-premium-modal.error .lock-title { color: #9c0300; }
+.productivity-premium-modal.error .lock-title { color: var(--gis-red); }
 .productivity-premium-modal.error .lock-icon { filter: drop-shadow(0 4px 6px rgba(156, 3, 0, 0.4)); }
 .productivity-premium-modal.error .btn-lock-understood { background: #640200; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
-.productivity-premium-modal.error .btn-lock-understood:hover { background: #9c0300; transform: scale(1.05) translateY(-2px); box-shadow: 0 10px 20px rgba(156, 3, 0, 0.4); }
+.productivity-premium-modal.error .btn-lock-understood:hover { background: var(--gis-red); transform: scale(1.05) translateY(-2px); box-shadow: 0 10px 20px rgba(156, 3, 0, 0.4); }
 
 .lock-icon-container {
     margin: 1.5em 0;
@@ -205,7 +208,7 @@
 }
 
 .btn-lock-understood {
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
     padding: 1.2em 3.5em;
     border: none;

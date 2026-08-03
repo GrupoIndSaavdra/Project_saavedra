@@ -162,7 +162,7 @@ class tiemposProduccionController extends Controller
         }
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function store(Request $request)
     {

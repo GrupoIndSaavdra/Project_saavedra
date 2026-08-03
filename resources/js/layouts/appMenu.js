@@ -37,7 +37,6 @@ nav.addEventListener("click", function (e) {
     }
 });
 
-//Funcion para crear La lista de rutas para el menu
 function createMenu(profile) {
     if (profile == 2) {
         let btn_open = document.querySelector(".open-menu"); //Obtenemos el elemento por su id.
@@ -46,13 +45,116 @@ function createMenu(profile) {
     } else {
         let routes = getRoutes(profile);
         let ul = document.querySelector(".nav-list");
-        ul.appendChild(createList(routes));
+        ul.appendChild(createList(routes, false));
+
+        // Determinar la sección principal preferida (Administración, Calidad, Almacén)
+        let preferredTopSection = null;
+        if (window.location.search.includes('almacen_only=1') || window.location.search.includes('sec=almacen')) {
+            preferredTopSection = "Almacén";
+        } else if (window.location.search.includes('sec=calidad')) {
+            preferredTopSection = "Calidad";
+        } else if (window.location.search.includes('admin_only=1') || window.location.search.includes('sec=admin')) {
+            preferredTopSection = "Administración";
+        } else {
+            preferredTopSection = sessionStorage.getItem("active_top_section");
+        }
+
+        const currentPath = window.location.pathname;
+        const allLinks = Array.from(ul.querySelectorAll("a.nav-link"));
+        let targetLink = null;
+
+        // 1. Si hay una sección preferida, buscar un enlace coincidente dentro de esa sección primero
+        if (preferredTopSection) {
+            const topSections = Array.from(ul.querySelectorAll(":scope > li.menu-section"));
+            const prefLi = topSections.find(li => {
+                const toggle = li.querySelector(":scope > .submenu-toggle");
+                return toggle && toggle.textContent.trim() === preferredTopSection;
+            });
+            if (prefLi) {
+                const prefLinks = Array.from(prefLi.querySelectorAll("a.nav-link"));
+                targetLink = prefLinks.find(a => isLinkMatching(a, currentPath));
+            }
+        }
+
+        // 2. Si no hay sección preferida o no hubo coincidencia en ella, buscar la primera coincidencia en todo el menú
+        if (!targetLink) {
+            targetLink = allLinks.find(a => isLinkMatching(a, currentPath));
+        }
+
+        // Expandir solo la rama del enlace activo seleccionado
+        if (targetLink) {
+            targetLink.classList.add("active");
+            let parentEl = targetLink.parentElement;
+            while (parentEl && parentEl.tagName !== "NAV" && parentEl !== document.body) {
+                if (parentEl.classList.contains("menu-section")) {
+                    parentEl.classList.add("active");
+                    const directSubmenu = Array.from(parentEl.children).find(c => c.classList && c.classList.contains("submenu"));
+                    if (directSubmenu) {
+                        directSubmenu.classList.remove("hidden");
+                    }
+                    if (parentEl.parentElement && parentEl.parentElement.classList.contains("nav-list")) {
+                        const toggleBtn = parentEl.querySelector(":scope > .submenu-toggle");
+                        if (toggleBtn) {
+                            sessionStorage.setItem("active_top_section", toggleBtn.textContent.trim());
+                        }
+                    }
+                }
+                parentEl = parentEl.parentElement;
+            }
+        }
+    }
+}
+
+function isLinkMatching(a, currentPath) {
+    const linkUrl = new URL(a.href, window.location.origin);
+    const linkSearch = linkUrl.search;
+
+    const pathMatch = isPathMatching(currentPath, a.href);
+    let searchMatch = false;
+    if (linkSearch) {
+        searchMatch = window.location.search.includes(linkSearch.substring(1));
+    } else {
+        searchMatch = window.location.search === '' || (
+            !window.location.search.includes('admin_only=1') &&
+            !window.location.search.includes('almacen_only=1') &&
+            !window.location.search.includes('sec=almacen') &&
+            !window.location.search.includes('sec=calidad')
+        );
+    }
+
+    return pathMatch && searchMatch;
+}
+
+function isPathMatching(currentPath, aHref) {
+    if (!aHref) return false;
+    try {
+        const linkUrl = new URL(aHref, window.location.origin);
+        const linkPath = linkUrl.pathname;
+
+        if (currentPath === linkPath) return true;
+
+        // Sub-rutas derivadas o parametrizadas de Orden de Trabajo (ej: /showWO/5468 -> /manageWO)
+        if ((currentPath.startsWith('/showWO') || currentPath.startsWith('/show_wo_almacen')) && window.routes && window.routes.manageWO) {
+            const managePath = new URL(window.routes.manageWO, window.location.origin).pathname;
+            if (linkPath === managePath) return true;
+        }
+
+        // Sub-rutas de usuarios (ej: /users/1/edit -> /users)
+        if (currentPath.startsWith('/users/') && !currentPath.includes('/create') && !currentPath.includes('/recoverPassword')) {
+            if (window.routes && window.routes.users) {
+                const usersPath = new URL(window.routes.users, window.location.origin).pathname;
+                if (linkPath === usersPath) return true;
+            }
+        }
+
+        return false;
+    } catch (e) {
+        return false;
     }
 }
 
 function createList(sections, isNested = false) {
     const fragment = document.createDocumentFragment();
-    const currentPath = window.location.pathname;
 
     sections.forEach((section) => {
         // Sección con título (submenú)
@@ -92,6 +194,16 @@ function createList(sections, isNested = false) {
 
                     a.addEventListener("click", (e) => {
                         e.preventDefault();
+
+                        // Guardar en sessionStorage el menú principal donde hizo clic el usuario
+                        const topLi = li.closest(".nav-list > .menu-section");
+                        if (topLi) {
+                            const toggleBtn = topLi.querySelector(":scope > .submenu-toggle");
+                            if (toggleBtn) {
+                                sessionStorage.setItem("active_top_section", toggleBtn.textContent.trim());
+                            }
+                        }
+
                         let div_opacity = document.createElement("div");
                         div_opacity.classList.add("div-opacity");
 
@@ -109,35 +221,6 @@ function createList(sections, isNested = false) {
 
                         window.location.href = a.href;
                     });
-
-                    const linkUrl  = new URL(a.href, window.location.origin);
-                    const linkPath = linkUrl.pathname;
-                    const linkSearch = linkUrl.search;
-
-                    const pathMatch   = currentPath === linkPath;
-                    let searchMatch = false;
-                    if (linkSearch) {
-                        searchMatch = window.location.search.includes(linkSearch.substring(1));
-                    } else {
-                        searchMatch = window.location.search === '' || (!window.location.search.includes('admin_only=1') && !window.location.search.includes('almacen_only=1'));
-                    }
-
-                    if (pathMatch && searchMatch) {
-                        a.classList.add("active");
-
-                        // Expandir todos los menús y submenús padres
-                        let parentEl = liSection;
-                        while (parentEl && parentEl.tagName !== "NAV") {
-                            if (parentEl.classList.contains("menu-section")) {
-                                parentEl.classList.add("active");
-                                const sub = parentEl.querySelector(".submenu");
-                                if (sub) {
-                                    sub.style.display = "block";
-                                }
-                            }
-                            parentEl = parentEl.parentElement;
-                        }
-                    }
 
                     li.appendChild(a);
                     ulSubmenu.appendChild(li);
@@ -157,17 +240,17 @@ function createList(sections, isNested = false) {
                     if (sibling !== parent && sibling.classList.contains("menu-section")) {
                         sibling.classList.remove("active");
                         const submenu = sibling.querySelector(".submenu");
-                        if (submenu) submenu.style.display = "none";
+                        if (submenu) submenu.classList.add("hidden");
                     }
                 }
 
                 // Alternar el actual
                 if (isAlreadyActive) {
                     parent.classList.remove("active");
-                    ulSubmenu.style.display = "none";
+                    ulSubmenu.classList.add("hidden");
                 } else {
                     parent.classList.add("active");
-                    ulSubmenu.style.display = "block";
+                    ulSubmenu.classList.remove("hidden");
                 }
             });
 
@@ -193,6 +276,7 @@ function createList(sections, isNested = false) {
 
                 a.addEventListener("click", (e) => {
                     e.preventDefault();
+                    sessionStorage.removeItem("active_top_section");
                     let div_opacity = document.createElement("div");
                     div_opacity.classList.add("div-opacity");
 
@@ -210,22 +294,6 @@ function createList(sections, isNested = false) {
 
                     window.location.href = a.href;
                 });
-
-                const linkUrl2   = new URL(a.href, window.location.origin);
-                const linkPath2  = linkUrl2.pathname;
-                const linkSearch2 = linkUrl2.search;
-
-                const pathMatch2   = currentPath === linkPath2;
-                let searchMatch2 = false;
-                if (linkSearch2) {
-                    searchMatch2 = window.location.search.includes(linkSearch2.substring(1));
-                } else {
-                    searchMatch2 = window.location.search === '' || (!window.location.search.includes('admin_only=1') && !window.location.search.includes('almacen_only=1'));
-                }
-
-                if (pathMatch2 && searchMatch2) {
-                    a.classList.add("active");
-                }
 
                 li.appendChild(a);
                 fragment.appendChild(li);
@@ -417,13 +485,13 @@ function getRoutes(profile) {
                     routes: [
                         {
                             title: "Liberación de Piezas",
-                            routes: [["showReleasePieces_view", "Liberación de piezas"]],
+                            routes: [["showReleasePieces_view", "Liberación de piezas", "sec=calidad"]],
                         },
                         {
                             title: "Producción",
                             routes: [
-                                ["piecesInProgress", "Orden de Trabajo en Progreso"],
-                                ["cNominals", "Editar C.Nominales y Tolerancias"],
+                                ["piecesInProgress", "Orden de Trabajo en Progreso", "sec=calidad"],
+                                ["cNominals", "Editar C.Nominales y Tolerancias", "sec=calidad"],
                             ],
                         },
                         {
@@ -442,7 +510,7 @@ function getRoutes(profile) {
                             title: "Orden de Trabajo",
                             routes: [
                                 ["manageWO", "Modificar O.T", "almacen_only=1"],
-                                ["piecesInProgress", "Orden de Trabajo en Progreso"],
+                                ["piecesInProgress", "Orden de Trabajo en Progreso", "sec=almacen"],
                             ],
                         },
                         {
@@ -464,7 +532,7 @@ function getRoutes(profile) {
                         {
                             title: "Herramientas",
                             routes: [
-                                ["herramientas.tecamac.index", "Herramientas Tecamac"],
+                                ["herramientas.tecamac.index", "Herramientas Tecamac", "sec=almacen"],
                             ],
                         },
                     ],
@@ -587,16 +655,13 @@ if (window.pieces_Released) {
         headers.forEach((header, i) => {
             const th = document.createElement("th");
             th.textContent = header;
-            // Aplicar estilos a columnas específicas
-            if (header === "Orden de trabajo") {
-                th.style.width = "200px";
-            }
+            if (header === "Nombre del operador") th.classList.add("cell-long-text");
             tr.appendChild(th);
         });
 
         // Agregar columnas finales
         const moreHeaders = [
-            { name: "Errores", width: "300px" },
+            "Errores",
             "Observaciones",
             "Fecha de Maquinado",
             "Liberar",
@@ -606,12 +671,9 @@ if (window.pieces_Released) {
 
         moreHeaders.forEach((header) => {
             const th = document.createElement("th");
-            if (typeof header === "object") {
-                th.textContent = header.name;
-                th.style.width = header.width;
-            } else {
-                th.textContent = header;
-            }
+            const headerText = typeof header === "object" ? header.name : header;
+            th.textContent = headerText;
+            if (headerText === "Errores" || headerText === "Observaciones") th.classList.add("cell-long-text");
             tr.appendChild(th);
         });
 
@@ -655,8 +717,8 @@ function crearTabla(piezas, infoPiezas) {
                         break;
                     default:
                         td.textContent = pieza[key];
-                        if (key == "operator" || key == "observations" || key == "observacion_liberacion") {
-                            td.style.width = "600px";
+                        if (key === "operator" || key === "errors" || key === "observations" || key === "observacion_liberacion") {
+                            td.classList.add("cell-long-text");
                         }
                         break;
                 }
@@ -809,8 +871,8 @@ function create_ObservationsField(keys) {
     let submit = document.createElement("input");
     submit.type = "submit";
     submit.value = keys.liberar ? "Liberar" : "Rechazar";
-    submit.classList.add("btn-submit", "btn-liberation");
-    submit.style.backgroundColor = !keys.liberar ? "#f00000" : "#033966";
+    submit.classList.add("btn-liberation");
+    submit.classList.add(keys.liberar ? "btn-liberate" : "btn-reject");
 
     form.appendChild(textArea);
     form.appendChild(submit);

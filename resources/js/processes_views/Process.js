@@ -537,14 +537,12 @@ export class Process {
 
                                     // Eventos de Interacción
                                     input.onfocus = () => {
-                                        input.style.borderColor = "#80bdff";
-                                        input.style.backgroundColor = "#fff";
-                                        input.style.boxShadow = "0 0 0 0.2rem rgba(0,123,255,.25)";
+                                        input.classList.remove("alm-input-blur");
+                                        input.classList.add("alm-input-focus");
                                     };
                                     input.onblur = () => {
-                                        input.style.borderColor = "#dee2e6";
-                                        input.style.backgroundColor = "#f8f9fa";
-                                        input.style.boxShadow = "inset 0 1px 2px rgba(0,0,0,0.075)";
+                                        input.classList.remove("alm-input-focus");
+                                        input.classList.add("alm-input-blur");
                                     };
 
                                     // Persistencia de datos
@@ -1048,7 +1046,7 @@ export class Process {
 
         /* ── Lógica: mostrar select o bloque "otro" ── */
         const showSelect = () => {
-            select.style.display = "";          // visible
+            select.classList.remove("hidden");          // visible
             select.name = isEdit ? `${name}[]` : name;
             otroWrap.classList.remove("visible");
             inputOtro.name = isEdit ? `${name}_otro[]` : `${name}_otro`;
@@ -1058,7 +1056,7 @@ export class Process {
         };
 
         const showOtro = (existingValue = "") => {
-            select.style.display = "none";      // ocultar select
+            select.classList.add("hidden");      // ocultar select
             select.name = isEdit ? `${name}_select[]` : `${name}_select`; // nombre auxiliar
             otroWrap.classList.add("visible");
             inputOtro.name = isEdit ? `${name}[]` : name; // este lleva el valor real

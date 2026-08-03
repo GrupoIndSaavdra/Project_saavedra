@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     <title>Resultados Sold. PTA — OT {{ $ot->id }}</title>
@@ -108,7 +108,7 @@
                     Resultados Técnicos — {{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'Pieza' }}:
                     <strong>{{ $piezaSeleccionada->n_pieza }}</strong>
                     @if(isset($todosResultados[$piezaSeleccionada->id]))
-                        <span style="font-size:.8rem;font-weight:400;opacity:.9;"> (editando resultado existente)</span>
+                        <span class="res-font-size-8rem res-font-weight-400 res-opacity-9"> (editando resultado existente)</span>
                     @endif
                 </div>
                 <div class="pta-form-card-body">
@@ -143,7 +143,7 @@
                         {{-- Evidencia Pico Soldadura --}}
                         <div class="pta-field">
                             <label>Evidencia Pico Soldadura</label>
-                            <div class="pta-img-wrapper" style="margin-top: 0;">
+                            <div class="pta-img-wrapper res-margin-top-0">
                                 @php $imgPs = $resultado->imagen_pico_soldadura ?? null; @endphp
                                 <label class="pta-img-btn-label" for="img_pico_sold">Subir imagen</label>
                                 <input type="file" id="img_pico_sold" name="imagen_pico_soldadura" accept="image/*"
@@ -155,7 +155,7 @@
                                 <div
                                     style="margin-top: 10px; display: {{ $imgPs ? 'flex' : 'none' }}; justify-content: center; align-items: center;">
                                     <img id="preview_pico_sold" src="{{ $imgPs ? asset($imgPs) : '#' }}" alt="Vista Previa"
-                                        style="max-width: 100%; max-height: 250px; border-radius: 6px; border: 1px solid #dce8f5; object-fit: contain;">
+                                        class="res-max-width-100pct res-max-height-250px res-border-radius-6px res-border-1px-solid-dce8f5 res-object-fit-contain">
                                 </div>
                             </div>
                         </div>
@@ -189,7 +189,7 @@
                         {{-- Evidencia Conexion Soldadura --}}
                         <div class="pta-field">
                             <label>Evidencia Conexion Soldadura</label>
-                            <div class="pta-img-wrapper" style="margin-top: 0;">
+                            <div class="pta-img-wrapper res-margin-top-0">
                                 @php $imgCs = $resultado->imagen_conexion_soldadura ?? null; @endphp
                                 <label class="pta-img-btn-label" for="img_con_sold">Subir imagen</label>
                                 <input type="file" id="img_con_sold" name="imagen_conexion_soldadura" accept="image/*"
@@ -200,7 +200,7 @@
                                 <div
                                     style="margin-top: 10px; display: {{ $imgCs ? 'flex' : 'none' }}; justify-content: center; align-items: center;">
                                     <img id="preview_con_sold" src="{{ $imgCs ? asset($imgCs) : '#' }}" alt="Vista Previa"
-                                        style="max-width: 100%; max-height: 250px; border-radius: 6px; border: 1px solid #dce8f5; object-fit: contain;">
+                                        class="res-max-width-100pct res-max-height-250px res-border-radius-6px res-border-1px-solid-dce8f5 res-object-fit-contain">
                                 </div>
                             </div>
                         </div>
@@ -234,7 +234,7 @@
                         {{-- Evidencia Perfilado Soldadura --}}
                         <div class="pta-field">
                             <label>Evidencia Perfilado Soldadura</label>
-                            <div class="pta-img-wrapper" style="margin-top: 0;">
+                            <div class="pta-img-wrapper res-margin-top-0">
                                 @php $imgPs2 = $resultado->imagen_perfilado_soldadura ?? null; @endphp
                                 <label class="pta-img-btn-label" for="img_perf_sold">Subir imagen</label>
                                 <input type="file" id="img_perf_sold" name="imagen_perfilado_soldadura" accept="image/*"
@@ -247,7 +247,7 @@
                                     style="margin-top: 10px; display: {{ $imgPs2 ? 'flex' : 'none' }}; justify-content: center; align-items: center;">
                                     <img id="preview_perf_sold" src="{{ $imgPs2 ? asset($imgPs2) : '#' }}"
                                         alt="Vista Previa"
-                                        style="max-width: 100%; max-height: 250px; border-radius: 6px; border: 1px solid #dce8f5; object-fit: contain;">
+                                        class="res-max-width-100pct res-max-height-250px res-border-radius-6px res-border-1px-solid-dce8f5 res-object-fit-contain">
                                 </div>
                             </div>
                         </div>

@@ -285,7 +285,7 @@ class PzasGeneralesController extends Controller
         return $array;
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function getPiecesRequest(Request $request)
     {
@@ -802,7 +802,7 @@ class PzasGeneralesController extends Controller
         }
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function getGamesFromOT(Request $request)
     {
@@ -2160,7 +2160,7 @@ class PzasGeneralesController extends Controller
         if ($password) {
             $users = User::all();
             foreach ($users as $user) {
-                if ($user->perfil == 1) { // Solo verificar usuarios administradores
+                if (in_array($user->perfil, [1, 3])) { // Verificar usuarios administradores (Admin 1 y Master 3)
                     if (Hash::check($password, $user->contrasena)) {
                         return response()->json([
                             'success' => true,

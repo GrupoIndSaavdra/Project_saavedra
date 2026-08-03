@@ -1,3 +1,6 @@
+/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 /* ══════════════════════════════════════════════════════════
@@ -54,7 +57,7 @@ body {
 
 header {
     position: fixed;
-    z-index: 10;
+    z-index: 996;
 }
 
 /* ── Snap scroll target sections ── */

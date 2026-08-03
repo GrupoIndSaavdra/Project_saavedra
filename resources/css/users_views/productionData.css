@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ══════════════════════════════════════════════════════
    productionData.css
    ══════════════════════════════════════════════════════ */
@@ -587,3 +590,8 @@ tbody tr:hover {
         padding: 10px 24px;
     }
 }
+
+/* Auto-generated utility classes */
+.pro-display-none { display: none; }
+.pro-background-color-fff { background-color: #fff; }
+.pro-width-300px { width: 300px; }

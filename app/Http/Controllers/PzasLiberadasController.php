@@ -30,6 +30,7 @@ use App\Models\SegundaOperacionCabezaSoplo_pza;
 use App\Models\Soldadura_pza;
 use App\Models\SoldaduraPTA_pza;
 use App\Models\SystemLog;
+use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
@@ -64,7 +65,7 @@ class PzasLiberadasController extends Controller
         return $this->getPiecesRequest(new Request());
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function getPiecesRequest(Request $request)
     {
@@ -114,7 +115,7 @@ class PzasLiberadasController extends Controller
         }
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function liberar_rechazar(Request $request) //Función para liberar o rechazar piezas
     {
@@ -134,7 +135,7 @@ class PzasLiberadasController extends Controller
         $operator = $extraRequest[2] ?? "Todos";
 
         if ($operator !== "Todos") {
-            $operatorObj = \App\Models\User::query()->where('matricula', $operator)->first();
+            $operatorObj = User::query()->where('matricula', '=', $operator, 'and')->first();
             if ($operatorObj) {
                 $operator = $operatorObj;
             }

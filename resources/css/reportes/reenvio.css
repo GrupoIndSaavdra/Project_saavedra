@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ═══════════════════════════════════════════════════════════════════
    reportes/reenvio.css
    Estilos de la vista de reenvío con la paleta de colores del proyecto
@@ -23,7 +26,7 @@
 
 .reenvio-header h1 {
     font-size: 26px;
-    color: #033966;
+    color: var(--gis-blue);
     margin: 0 0 8px 0;
     font-weight: 800;
 }
@@ -47,13 +50,13 @@
 
 .reenvio-alert-success {
     background: #e6f4ea;
-    color: #0a8504;
-    border-color: #0a8504;
+    color: var(--gis-green);
+    border-color: var(--gis-green);
 }
 .reenvio-alert-error {
     background: #fce8e8;
-    color: #9c0303;
-    border-color: #9c0303;
+    color: var(--gis-red);
+    border-color: var(--gis-red);
 }
 
 .reenvio-alert.fade-out {
@@ -64,7 +67,7 @@
 /* ── Info box ─────────────────────────────────────────────────── */
 .reenvio-info {
     background: #e8f0fe;
-    border: 2px solid #033966;
+    border: 2px solid var(--gis-blue);
     border-radius: 8px;
     padding: 16px 20px;
     font-size: 13px;
@@ -75,7 +78,7 @@
 }
 
 .reenvio-info strong {
-    color: #033966;
+    color: var(--gis-blue);
     display: inline-block;
     margin-bottom: 4px;
     font-weight: 800;
@@ -84,14 +87,14 @@
 /* ── Tarjeta principal form ───────────────────────────────────── */
 .reenvio-card {
     background: #fff;
-    border: 2px solid #033966;
+    border: 2px solid var(--gis-blue);
     border-radius: 8px;
     padding: 24px;
 }
 
 .reenvio-card h2 {
     font-size: 18px;
-    color: #033966;
+    color: var(--gis-blue);
     margin: 0 0 20px 0;
     padding-bottom: 12px;
     border-bottom: 2px solid #e2e8f0;
@@ -108,7 +111,7 @@
     display: block;
     font-size: 13px;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     margin-bottom: 8px;
     text-transform: uppercase;
 }
@@ -116,7 +119,7 @@
 .reenvio-input {
     width: 100%;
     padding: 10px 14px;
-    border: 3px solid #03396690;
+    border: 3px solid var(--gis-blue)90;
     border-radius: 6px;
     font-size: 14px;
     font-family: inherit;
@@ -127,7 +130,7 @@
 
 .reenvio-input:focus {
     outline: none;
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.2);
 }
 
@@ -158,7 +161,7 @@
 }
 
 .reenvio-btn-primary {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
 }
 .reenvio-btn-primary:hover {
@@ -167,7 +170,7 @@
 }
 
 .reenvio-btn-secondary {
-    background: #9c0303;
+    background: var(--gis-red);
     color: #fff;
     flex: 0 0 auto;
 }
@@ -183,12 +186,12 @@
     padding: 24px;
     margin-top: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    border: 2px dashed #033966;
+    border: 2px dashed var(--gis-blue);
 }
 .reenvio-card-secondary h2 {
     font-size: 15px;
     font-weight: 800;
-    color: #033966;
+    color: var(--gis-blue);
     margin: 0 0 14px;
     padding-bottom: 10px;
     border-bottom: 2px solid #e8ecf5;

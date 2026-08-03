@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* Contenedor principal */
 .wrapper {
     max-width: 700px;
@@ -20,7 +23,7 @@
     font-size: 1.3rem;
     font-weight: 600;
     margin-bottom: 1.2rem;
-    color: #033966;
+    color: var(--gis-blue);
 }
 
 /* Botones */

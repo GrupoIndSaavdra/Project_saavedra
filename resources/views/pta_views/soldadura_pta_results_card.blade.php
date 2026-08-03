@@ -1,4 +1,4 @@
-{{--
+﻿{{--
 Partial: soldadura_pta_results_card.blade.php
 Variables esperadas:
 - $ot_id (string) – ID de la OT

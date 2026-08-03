@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-
 use App\Models\TratamientoTermico;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 class TratamientoTermicoController extends Controller
@@ -33,7 +34,7 @@ class TratamientoTermicoController extends Controller
         return back()->with('success', 'Tratamiento térmico registrado correctamente.');
     }
 
-    public function download($id)
+    public function download(int|string $id)
     {
         $tratamiento = TratamientoTermico::findOrFail($id);
         $path = storage_path('app/public/' . $tratamiento->archivo);
@@ -46,7 +47,7 @@ class TratamientoTermicoController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, $id)
+    public function destroy(Request $request, int|string $id)
     {
         $password = $request->input('password');
         $authorized = false;
@@ -56,9 +57,9 @@ class TratamientoTermicoController extends Controller
             $authorized = true;
         } elseif ($password) {
             // Verificar si el password corresponde a algún admin (1) o master (3)
-            $users = \App\Models\User::whereIn('perfil', [1, 3])->get();
+            $users = User::whereIn('perfil', [1, 3], 'and', false)->get();
             foreach ($users as $user) {
-                if (\Illuminate\Support\Facades\Hash::check($password, $user->contrasena)) {
+                if (Hash::check($password, $user->contrasena)) {
                     $authorized = true;
                     break;
                 }
@@ -81,7 +82,7 @@ class TratamientoTermicoController extends Controller
         return back()->with('success', 'Tratamiento térmico eliminado.');
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, int|string $id)
     {
         $request->validate([
             'descripcion' => 'nullable|string|max:255',
@@ -110,3 +111,4 @@ class TratamientoTermicoController extends Controller
         return back()->with('success', 'Tratamiento térmico actualizado correctamente.');
     }
 }
+

@@ -1,16 +1,11 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ====================================================
    manage_dibujos.css — Módulo Gestión de Planos PDF
-   Paleta de diseño: #033966 (azul), #9c0300 (rojo),
+   Paleta de diseño: var(--gis-blue) (azul), var(--gis-red) (rojo),
    siguiendo los patrones de processProduction.css
    ==================================================== */
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
-    transition: all 0.3s ease-in-out;
-}
 
 body {
     background-size: cover;
@@ -31,7 +26,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     padding: 1em 1.5em;
     border-radius: 10px;
@@ -120,12 +115,12 @@ body {
 }
 
 .dibujos-card h2 {
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 1.1em;
     font-weight: 700;
     margin-bottom: 1em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -140,7 +135,7 @@ body {
 .dibujos-form-group label {
     font-size: 0.9em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     margin-bottom: 0.3em;
 }
 
@@ -153,7 +148,7 @@ body {
     text-align: center;
     font-size: 1em;
     letter-spacing: 1px;
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
     cursor: pointer;
 }
@@ -181,10 +176,10 @@ body {
     justify-content: center;
     width: 100%;
     padding: 0.7em;
-    border: 3px dashed #033966;
+    border: 3px dashed var(--gis-blue);
     border-radius: 8px;
     background: #f0f6ff;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 0.9em;
     font-weight: 600;
     cursor: pointer;
@@ -195,7 +190,7 @@ body {
 }
 
 .dibujos-file-label:hover {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
 }
 
@@ -240,7 +235,7 @@ body {
 }
 
 .btn-dibujos-danger {
-    background: #9c0300;
+    background: var(--gis-red);
 }
 
 .btn-dibujos-danger:hover {
@@ -265,12 +260,12 @@ body {
 }
 
 .dibujos-table-section h2 {
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 1.1em;
     font-weight: 700;
     margin-bottom: 1em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -278,7 +273,7 @@ body {
 .dibujos-table-container {
     max-height: 25vh; /* Reducido para evitar scroll global */
     overflow-y: auto;
-    border: 2px solid #033966;
+    border: 2px solid var(--gis-blue);
     border-radius: 8px;
 }
 
@@ -295,7 +290,7 @@ body {
 }
 
 .dibujos-table th {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     padding: 0.9em 1em;
     text-align: left; /* Default alignment */
@@ -356,7 +351,7 @@ body {
 /* Badge de cantidad de archivos */
 .badge-count {
     display: inline-block;
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     border-radius: 20px;
     padding: 0.2em 0.7em;
@@ -386,12 +381,12 @@ body {
 }
 
 .dibujos-files-panel h2 {
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 1.1em;
     font-weight: 700;
     margin-bottom: 1em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -407,7 +402,7 @@ body {
 }
 
 .dibujos-files-breadcrumb strong {
-    color: #033966;
+    color: var(--gis-blue);
 }
 
 .dibujos-files-grid {
@@ -440,7 +435,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 1.2em;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
     border-radius: 12px;
     background: #f5f9ff;
     transition:
@@ -456,7 +451,7 @@ body {
 }
 
 .dibujos-file-card:hover {
-    background: #033966;
+    background: var(--gis-blue);
     transform: translateY(-5px);
     box-shadow: 0 8px 18px rgba(3, 57, 102, 0.4);
 }
@@ -464,7 +459,7 @@ body {
 .dibujos-file-card .file-name {
     font-size: 0.95em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     word-break: break-all;
     text-align: center;
     margin-bottom: 1em;
@@ -531,7 +526,7 @@ body {
     text-align: center;
     border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    background: #033966 !important; /* Color base uniforme */
+    background: var(--gis-blue) !important; /* Color base uniforme */
     color: #fff !important;
 }
 
@@ -554,7 +549,7 @@ body {
 .dibujos-file-card:hover .btn-eliminar,
 .dibujos-file-card:hover .btn-dibujos-danger {
     border: 2px solid #dc2626;
-    background: #9c0300 !important;
+    background: var(--gis-red) !important;
 }
 
 /* Estilización Estándar (Basada en btn-cancel / btn-submit-password) */
@@ -685,7 +680,7 @@ body {
     font-size: 1.1em;
     font-weight: 700;
     margin-top: 1em;
-    color: #033966;
+    color: var(--gis-blue);
     line-height: 1.5;
 }
 
@@ -694,7 +689,7 @@ body {
     position: fixed;
     bottom: 2em;
     right: 2em;
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     padding: 1em 1.5em;
     border-radius: 8px;
@@ -708,7 +703,7 @@ body {
 }
 
 .dibujos-toast.error {
-    background: #9c0300;
+    background: var(--gis-red);
 }
 
 .dibujos-toast.fade-out {
@@ -760,7 +755,7 @@ body {
 }
 
 .dibujos-log-table th {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     font-weight: 700;
     padding: 0.8em;
@@ -833,9 +828,9 @@ body {
 .dibujos-log-details summary {
     cursor: pointer;
     background: #f5f9ff;
-    color: #033966;
+    color: var(--gis-blue);
     padding: 0.8em 1.2em;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
     border-radius: 8px;
     font-weight: 700;
     list-style: none;
@@ -848,7 +843,7 @@ body {
     letter-spacing: 1px;
 }
 .dibujos-log-details summary:hover {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
 }
 .dibujos-log-details summary::-webkit-details-marker {
@@ -873,10 +868,10 @@ body {
     color: #999;
 }
 .d-text-primary {
-    color: #033966 !important;
+    color: var(--gis-blue) !important;
 }
 .d-text-danger {
-    color: #9c0300 !important;
+    color: var(--gis-red) !important;
 }
 .d-text-success {
     color: #28a745 !important;
@@ -947,7 +942,7 @@ body {
 .d-alert-info {
     background: #f0f6ff;
     border-color: #a0c4e4;
-    color: #033966;
+    color: var(--gis-blue);
 }
 
 .d-card-placeholder {
@@ -1086,7 +1081,7 @@ body {
     width: 95%;
     background: #fff;
     border-radius: 20px;
-    border: 4px solid #033966;
+    border: 4px solid var(--gis-blue);
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
@@ -1115,7 +1110,7 @@ body {
 }
 
 .confirm-modal-header h3 {
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 1.3em;
     font-weight: 800;
     margin: 0;
@@ -1178,12 +1173,12 @@ body {
 }
 
 .btn-confirm-cancel:hover {
-    background: #033966;
+    background: var(--gis-blue);
     transform: scale(1.05);
 }
 
 .btn-confirm-danger {
-    background: #9c0300;
+    background: var(--gis-red);
     color: #000;
     padding: 1em 2em;
     border-radius: 8px;
@@ -1230,9 +1225,9 @@ body {
     gap: 10px;
     padding: 10px 20px;
     background: #f0f6ff;
-    border: 2px solid #033966;
+    border: 2px solid var(--gis-blue);
     border-radius: 50px;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 0.9em;
     font-weight: 600;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1246,9 +1241,9 @@ body {
 }
 
 .ayuda-chip input:checked ~ .ayuda-chip-content {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 4px 12px rgba(3, 57, 102, 0.3);
 }
 
@@ -1260,7 +1255,7 @@ body {
     justify-content: center;
     border-radius: 50%;
     background: #fff;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 10px;
     font-weight: 900;
     opacity: 0;
@@ -1282,7 +1277,7 @@ body {
 
 .badge-ayuda-tag {
     display: inline-block;
-    background: linear-gradient(135deg, #033966 0%, #045491 100%);
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #045491 100%);
     color: white;
     padding: 7px 18px;
     border-radius: 20px;
@@ -1463,7 +1458,7 @@ body {
 }
 
 .floating-symbology-btn {
-    background: #033966;
+    background: var(--gis-blue);
     color: white;
     padding: 12px 16px;
     border-radius: 12px 0 0 12px;
@@ -1491,7 +1486,7 @@ body {
 }
 
 .floating-symbology-wrapper:hover .floating-symbology-btn {
-    background: #033966;
+    background: var(--gis-blue);
     border: 3px solid hsla(195, 100%, 80%, 1);
     box-shadow:
         0 0 8px hsla(195, 100%, 75%, 1),
@@ -1532,3 +1527,58 @@ body {
     transform: translateY(-50%) translateX(0);
     pointer-events: auto;
 }
+
+/* Extracted utility classes */
+.grid-ready { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: 1fr; min-height: calc(100vh - 180px); gap: 2em; align-items: stretch; }
+.grid-not-ready { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; min-height: calc(100vh - 180px); gap: 2em; align-items: stretch; }
+.d-flex-column { flex-direction: column; }
+.h-100 { height: 100%; }
+.d-justify-between { justify-content: space-between; }
+.d-align-center { align-items: center; }
+.mb-1-5 { margin-bottom: 1.5rem; }
+.border-bottom { border-bottom: 1px solid #e2e8f0; }
+.pb-0-5 { padding-bottom: 0.5rem; }
+.m-0 { margin: 0; }
+.pb-0 { padding-bottom: 0; }
+.border-none { border: none; }
+.bg-none { background: none; }
+.p-0 { padding: 0; }
+.flex-shrink-0 { flex-shrink: 0; }
+.flex-1 { flex: 1; }
+.max-h-none { max-height: none; }
+.overflow-y-auto { overflow-y: auto; }
+.align-content-start { align-content: flex-start; }
+.position-relative { position: relative; }
+.position-absolute-inset { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+.gap-0-5 { gap: 0.5rem; }
+.mb-1 { margin-bottom: 1rem; }
+.flex-wrap { flex-wrap: wrap; }
+.gap-1 { gap: 1rem; }
+.min-w-250 { min-width: 250px; }
+.min-w-240 { min-width: 240px; }
+.max-w-360 { max-width: 360px; }
+.custom-select { width: 100%; padding: 8px 14px; border-radius: 8px; border: 2px solid var(--gis-blue); font-size: 0.9em; outline: none; background: #ffffff; color: var(--gis-blue); font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+.badge-legend { padding: 8px 16px; font-size: 0.85em; pointer-events: none; transform: none !important; width: 100%; text-align: center; box-sizing: border-box; }
+.d-justify-center { justify-content: center; }
+.d-justify-start { justify-content: flex-start; }
+.pointer-events-none { pointer-events: none; }
+.text-danger { color: var(--gis-red); }
+.text-primary { color: var(--gis-blue); }
+.p-1 { padding: 1em; }
+.fs-1-1 { font-size: 1.1em; }
+.lh-1-6 { line-height: 1.6; }
+.text-center { text-align: center; }
+.fw-bold { font-weight: bold; }
+.text-uppercase { text-transform: uppercase; }
+.dibujos-table-section-clean { border: none; padding: 0; box-shadow: none; background: transparent; grid-column: 1 / -1; }
+.custom-alert-warning { font-size: 0.95em; border-left: 4px solid #f59e0b; background-color: #fffbeb; color: #b45309; padding: 12px 15px; border-radius: 6px; }
+.max-h-100 { max-height: 100%; }
+.max-h-calc { max-height: calc(100vh - 280px); }
+.max-h-40vh { max-height: calc(40vh - 100px); }
+.grid-col-full { grid-column: 1 / -1; }
+.gap-0-8 { gap: 0.8rem; }
+
+/* JS state classes */
+.card-border-red { border-color: #9D0402 !important; box-shadow: none !important; }
+.card-border-green { border-color: #0C8201 !important; box-shadow: none !important; }

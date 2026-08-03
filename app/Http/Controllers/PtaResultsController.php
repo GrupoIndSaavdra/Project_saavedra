@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePtaResultadoRequest;
+use App\Models\Clase;
+use App\Models\Metas;
 use App\Models\Orden_trabajo;
 use App\Models\Pieza;
 use App\Models\PtaResultado;
 use App\Models\SoldaduraPTA;
 use App\Models\SoldaduraPTA_pza;
+use App\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -25,7 +28,7 @@ class PtaResultsController extends Controller
     // ═══════════════════════════════════════════════════════════════════════
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function verifyTempPassword(Request $request)
     {
@@ -195,7 +198,7 @@ class PtaResultsController extends Controller
         $ot = Orden_trabajo::findOrFail($ot_id);
         $clase_id = $request->get('clase_id');
 
-        $clasesConPTA = \App\Models\Clase::query()->where('id_ot', $ot_id)
+        $clasesConPTA = Clase::query()->where('id_ot', $ot_id)
             ->whereHas('piezas', function ($q) {
                 $q->where('proceso', 'Soldadura PTA');
             })->get();
@@ -276,14 +279,14 @@ class PtaResultsController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request StorePtaResultadoRequest $request
-     * @param mixed string $ot_id
+     * @param StorePtaResultadoRequest $request
+     * @param string $ot_id
      */
     public function store(StorePtaResultadoRequest $request, string $ot_id)
     {
         $ot = Orden_trabajo::findOrFail($ot_id);
         $clase_id = $request->get('clase_id');
-        $clase = \App\Models\Clase::query()->find($clase_id);
+        $clase = Clase::query()->find($clase_id, ['*']);
         $clase_nombre = $clase ? $clase->nombre : 'Clase_' . $clase_id;
 
         $resultado = PtaResultado::firstOrNew([
@@ -339,15 +342,15 @@ class PtaResultsController extends Controller
             $user = Auth::user();
             if (!$user) return; // Omitir log si no hay sesión
 
-            $meta = \App\Models\Metas::query()->where('id_ot', $ot_id)->where('id_usuario', $user->matricula)->orderBy('created_at', 'desc')->first();
-            $clase = \App\Models\Clase::query()->find($clase_id);
+            $meta = Metas::query()->where('id_ot', '=', $ot_id, 'and')->where('id_usuario', '=', $user->matricula, 'and')->orderBy('created_at', 'desc')->first();
+            $clase = Clase::query()->find($clase_id, ['*']);
             $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : $ot_id;
             
             $baseNum = preg_replace('/[HMJ]$/i', '', $nPiezaRef);
             $h_termino_log = now()->format('H:i:s');
 
             // ── LÓGICA DE AUDITORÍA (RESTRICTIVA) ──
-            $lastLog = \App\Models\SystemLog::query()->where('user_matricula', Auth::user()->matricula)
+            $lastLog = SystemLog::query()->where('user_matricula', '=', Auth::user()->matricula, 'and')
                 ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'], 'and', false)
                 ->orderBy('created_at', 'desc')
                 ->first();
@@ -369,7 +372,7 @@ class PtaResultsController extends Controller
                 $details .= "\nALERTA: Tiempo insuficiente entre juegos diferentes ({$diffMins} min)";
             }
 
-            \App\Models\SystemLog::create([
+            SystemLog::create([
                 'user_matricula' => Auth::user()->matricula,
                 'action' => $action,
                 'details' => $details,
@@ -486,8 +489,8 @@ class PtaResultsController extends Controller
         $claseSeleccionada = null;
 
         if ($otSeleccionadaId && $claseSeleccionadaId) {
-            $ot = Orden_trabajo::query()->find($otSeleccionadaId);
-            $claseSeleccionada = \App\Models\Clase::query()->find($claseSeleccionadaId);
+            $ot = Orden_trabajo::query()->find($otSeleccionadaId, ['*']);
+            $claseSeleccionada = Clase::query()->find($claseSeleccionadaId, ['*']);
             // En el análisis queremos VER TODAS, incluso las que tienen errores o están rechazadas
             $piezasPTA = $this->getPiezasPTA($otSeleccionadaId, $claseSeleccionadaId, false, true);
 
@@ -541,7 +544,7 @@ class PtaResultsController extends Controller
         }
 
         $ot = Orden_trabajo::findOrFail($otId);
-        $claseSeleccionada = \App\Models\Clase::findOrFail($claseId);
+        $claseSeleccionada = Clase::findOrFail($claseId);
 
         // 1. Obtener piezas PTA (incluyendo rechazadas para el reporte completo)
         $piezasPTA = $this->getPiezasPTA($otId, $claseId, false, true);
@@ -623,8 +626,8 @@ class PtaResultsController extends Controller
         $procesoPTA = null;
 
         if ($otSeleccionadaId && $claseSeleccionadaId) {
-            $ot = Orden_trabajo::query()->find($otSeleccionadaId);
-            $claseSeleccionada = \App\Models\Clase::query()->find($claseSeleccionadaId);
+            $ot = Orden_trabajo::query()->find($otSeleccionadaId, ['*']);
+            $claseSeleccionada = Clase::query()->find($claseSeleccionadaId, ['*']);
 
             $nombreClaseLimpio = str_replace(' ', '_', $claseSeleccionada->nombre ?? '');
             $procesoStringId = "Soldadura_PTA_{$nombreClaseLimpio}_{$otSeleccionadaId}";
@@ -785,7 +788,7 @@ class PtaResultsController extends Controller
 
             // Registrar log de auditoría para 2da pasada PTA
             $baseNum = preg_replace('/[HMJ]$/i', '', $nPieza);
-            \App\Models\SystemLog::create([
+            SystemLog::create([
                 'user_matricula' => Auth::user()->matricula,
                 'action' => 'Segunda Pasada PTA',
                 'details' => "El operador registró una Segunda Pasada para el juego {$baseNum}.",

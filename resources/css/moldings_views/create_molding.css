@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 
 * {
@@ -40,7 +43,7 @@ h2 {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
-    border-bottom: 3px solid #033966;
+    border-bottom: 3px solid var(--gis-blue);
     display: inline-block;
     padding-bottom: 0.2em;
     margin-bottom: 2rem;
@@ -76,7 +79,7 @@ form {
 
 .input-field:focus {
     outline: none;
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.15);
 }
 
@@ -85,7 +88,7 @@ form {
     min-width: 220px;
     margin-top: 0.5rem;
     padding: 0.6rem 2rem;
-    background: linear-gradient(to bottom, #0c9c05 0%, #0a8504 100%);
+    background: linear-gradient(to bottom, #0c9c05 0%, var(--gis-green) 100%);
     color: #ffffff;
     border: 1px solid #086b03;
     border-radius: 8px;

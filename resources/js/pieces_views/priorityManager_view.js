@@ -275,19 +275,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (state === 'saving') {
             saveBtn.className = 'pm-save-btn pm-status-saving';
-            if (spinner) spinner.style.display = 'block';
+            if (spinner) spinner.classList.remove("hidden");
             if (textSpan) textSpan.textContent = 'Guardando...';
         } else if (state === 'saved') {
             saveBtn.className = 'pm-save-btn pm-status-saved';
-            if (spinner) spinner.style.display = 'none';
+            if (spinner) spinner.classList.add("hidden");
             if (textSpan) textSpan.textContent = '✓ Guardado';
         } else if (state === 'error') {
             saveBtn.className = 'pm-save-btn pm-status-error';
-            if (spinner) spinner.style.display = 'none';
+            if (spinner) spinner.classList.add("hidden");
             if (textSpan) textSpan.textContent = '⚠ Error al guardar';
         } else {
             saveBtn.className = 'pm-save-btn';
-            if (spinner) spinner.style.display = 'none';
+            if (spinner) spinner.classList.add("hidden");
             if (textSpan) textSpan.textContent = 'Autoguardado Activo';
         }
     }

@@ -22,7 +22,7 @@ class GenerarQRIndividualController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function store(Request $request)
     {
@@ -61,7 +61,7 @@ class GenerarQRIndividualController extends Controller
 
     /**
      * @param array $botes
-     * @param \App\Models\SoldaduraLote $lote
+     * @param SoldaduraLote $lote
      */
     private function generarPDF($botes, $lote)
     {

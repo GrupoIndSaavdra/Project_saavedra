@@ -17,7 +17,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class SystemLogController extends Controller
 {
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function store(Request $request)
     {
@@ -245,7 +245,7 @@ class SystemLogController extends Controller
     }
 
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function index(Request $request)
     {
@@ -325,7 +325,7 @@ class SystemLogController extends Controller
         $filtrosDisponibles['operador'] = SystemLog::query()->select(['system_logs.user_matricula', 'users.nombre', 'users.a_paterno', 'users.perfil'])
             ->leftJoin('users', 'system_logs.user_matricula', '=', 'users.matricula')
             ->whereNotNull('system_logs.user_matricula')
-            ->when($request->filled('admin_only') && $request->admin_only == 1, fn($q) => $q->where('users.perfil', 1))
+            ->when($request->filled('admin_only') && $request->admin_only == 1, fn($q) => $q->whereIn('users.perfil', [1, 3]))
             ->distinct()
             ->get()
             ->map(fn($o) => (object)[
@@ -387,7 +387,7 @@ class SystemLogController extends Controller
                 $subQ->select(DB::raw(1))
                     ->from('users')
                     ->whereColumn('users.matricula', 'system_logs.user_matricula')
-                    ->where('users.perfil', 1);
+                    ->whereIn('users.perfil', [1, 3]);
             });
 
             // Filtrar solo acciones propias de administradores
@@ -608,8 +608,8 @@ class SystemLogController extends Controller
     public function purge(Request $request)
     {
         try {
-            // Solo administradores (perfil 1) o sistemas
-            if (Auth::user()->perfil != 1) {
+            // Solo administradores (perfil 1) o Master (perfil 3)
+            if (!in_array(Auth::user()->perfil, [1, 3])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No tiene permisos para realizar esta acción.'

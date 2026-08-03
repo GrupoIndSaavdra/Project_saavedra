@@ -69,7 +69,7 @@ class RegenerarQRController extends Controller
         if ($passwordEntered) {
             $users = User::all();
             foreach ($users as $user) {
-                if ($user->perfil == 1 || $user->perfil == 4) { // Verificar si el usuario es admin o superadmin
+                if (in_array($user->perfil, [1, 3, 4])) { // Verificar si el usuario es admin, master o calidad
                     if (Hash::check($passwordEntered, $user->contrasena)) {
                         return true; // Contraseña correcta
                     }
@@ -125,7 +125,7 @@ class RegenerarQRController extends Controller
 
     /**
      * Genera el PDF del QR de lote
-     * @param \App\Models\SoldaduraLote $lote
+     * @param SoldaduraLote $lote
      */
     private function generarPDFLote($lote)
     {
@@ -147,7 +147,7 @@ class RegenerarQRController extends Controller
     /**
      * Genera el PDF de los QRs individuales
      * @param \Illuminate\Support\Collection $botes
-     * @param \App\Models\SoldaduraLote $lote
+     * @param SoldaduraLote $lote
      */
     private function generarPDFIndividuales($botes, $lote)
     {

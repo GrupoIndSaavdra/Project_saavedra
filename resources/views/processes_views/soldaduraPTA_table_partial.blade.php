@@ -26,7 +26,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                 <th rowspan="2">Número<br>({{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'M/H' }})</th>
 
                 {{-- Bloque Concepto --}}
-                <th colspan="2" style="background:#055a9e;">Concepto</th>
+                <th colspan="2" class="sol-background-055a9e">Concepto</th>
 
                 <th rowspan="2">VL</th>
                 <th rowspan="2">T. de P.</th>
@@ -34,10 +34,10 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                 <th rowspan="2">Soldadura</th>
 
                 {{-- Bloque Soldadura --}}
-                <th colspan="3" style="background:#055a9e;">Soldadura</th>
+                <th colspan="3" class="sol-background-055a9e">Soldadura</th>
 
                 {{-- Bloque Corriente --}}
-                <th colspan="3" style="background:#055a9e;">Corriente</th>
+                <th colspan="3" class="sol-background-055a9e">Corriente</th>
 
                 <th rowspan="2">Gas<br>Argón<br><small>(75-80 PSI)</small></th>
                 <th rowspan="2">Vel.<br>Calc.</th>
@@ -47,8 +47,8 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
             </tr>
             <tr>
                 {{-- Sub-cabeceras Concepto --}}
-                <th style="width: 60px;">Medida</th>
-                <th style="width: 25px;">Valor</th>
+                <th class="sol-width-60px">Medida</th>
+                <th class="sol-width-25px">Valor</th>
 
                 {{-- Sub-cabeceras Soldadura --}}
                 <th>Inicial (POLI)</th>
@@ -215,7 +215,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                         {{-- ── Columna NÚMERO: solo en la primera sub-fila, rowspan=3 ── --}}
                         @if ($esPrimera)
-                            <td class="td-pieza" rowspan="3" style="font-size:14px;">
+                            <td class="td-pieza sol-font-size-14px" rowspan="3">
                                 {{ $nPieza }}
                             </td>
                         @endif
@@ -281,14 +281,14 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                 @if ($modo === 'captura')
                                     <input type="number" step="0.01"
                                         name="precalentamiento[{{ $filaPrecal?->id ?? 'new_' . $nPieza . '_precal' }}]"
-                                        value="{{ $filaPrecal?->precalentamiento ?? '' }}" class="pta-input" style="min-width:60px;"
+                                        value="{{ $filaPrecal?->precalentamiento ?? '' }}" class="pta-input" class="sol-min-width-60px"
                                         placeholder="°C" required>
                                 @else
                                     <strong>{{ $filaPrecal?->precalentamiento ?? '—' }}</strong>
-                                    <br><small style="color:#888;">°C</small>
+                                    <br><small class="sol-color-888">°C</small>
                                 @endif
                             </td>
-                            <td class="td-precal" rowspan="3" style="min-width: 140px;">
+                            <td class="td-precal sol-min-width-140px" rowspan="3">
                                 @if ($modo === 'captura')
                                     @php
                                         $idWidget = 'mat_sold_' . ($filaPrecal?->id ?? 'new_' . $nPieza . '_D_Conexion_pico');
@@ -317,9 +317,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                         <div id="otro_wrap_{{ $idWidget }}" 
                                              class="mat-sold-otro-wrap {{ $isOtro ? 'visible' : '' }}" 
                                              style="display: {{ $isOtro ? 'flex' : 'none' }}; gap: 4px; width: 100%;">
-                                            <button type="button" 
-                                                    class="mat-sold-btn-back" 
-                                                    style="cursor: pointer;"
+                                            <button type="button" class="mat-sold-btn-back sol-cursor-pointer"
                                                     onclick="handlePTAMaterialBackClick('{{ $idWidget }}', '{{ $nameField }}')">
                                                 ←
                                             </button>
@@ -465,10 +463,10 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                         {{-- ── Observaciones — solo en primera sub-fila, rowspan=3 ── --}}
                         @if ($esPrimera)
-                            <td rowspan="3" style="min-width:120px; text-align:left; padding: 6px;">
+                            <td rowspan="3" class="sol-min-width-120px sol-text-align-left sol-padding-6px">
                                 @if ($modo === 'captura')
                                     <textarea name="observaciones[{{ $filaPrecal?->id ?? 'new_' . $nPieza . '_obs' }}]"
-                                        class="pta-input" rows="3" style="resize:vertical; min-width:110px;"
+                                        class="pta-input" rows="3" class="sol-resize-vertical sol-min-width-110px"
                                         placeholder="Observaciones...">{{ $filaPrecal?->observaciones ?? '' }}</textarea>
                                 @else
                                     {{ $filaPrecal?->observaciones ?? '—' }}
@@ -511,13 +509,13 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                     @endphp
                     {{-- Opcional fila de control checkbox para habilitar edición extra en historial --}}
                     @if ($modo === 'captura')
-                        <tr style="background:#055a9e; border-top:2px solid #034a87;">
-                            <td colspan="18" style="padding:.4rem .8rem;">
+                        <tr class="sol-background-055a9e sol-border-top-2px-solid-034a87">
+                            <td colspan="18" class="sol-padding-4rem-8rem">
                                 <label
-                                    style="display:flex; align-items:center; gap:.5rem; cursor:pointer; font-size:.82rem; color:#fff;">
+                                    class="sol-display-flex sol-align-items-center sol-gap-5rem sol-cursor-pointer sol-font-size-82rem sol-color-fff">
                                     <input type="checkbox" checked onchange="handleP2Checkbox('{{ $p2IdUniqH }}')"
                                         id="chk-p2-{{ $p2IdUniqH }}"
-                                        style="width:15px; height:15px; cursor:pointer; accent-color:#fff;">
+                                        class="sol-width-15px sol-height-15px sol-cursor-pointer sol-accent-color-fff">
                                     <strong>2da Pasada (registrada)</strong>
                                 </label>
                                 <input type="hidden" name="p2_activa[{{ $keyP2H }}]" id="inp-p2-activa-{{ $p2IdUniqH }}" value="1">
@@ -525,18 +523,16 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         </tr>
                     @endif
 
-                    <tr id="row-p2-{{ $p2IdUniqH }}-0" class="fila-p2 {{ $claseColor }}"
-                        style="border-bottom:1px solid #90b8e0;">
-                        <td class="td-pieza" style="font-size:12px; background-color:#055a9e; color:#fff; font-weight:700;">
-                            <div style="display:flex; flex-direction:column; align-items:center;">
+                    <tr id="row-p2-{{ $p2IdUniqH }}-0" class="fila-p2 {{ $claseColor }} sol-border-bottom-1px-solid-90b8e0">
+                        <td class="td-pieza sol-font-size-12px sol-background-color-055a9e sol-color-fff sol-font-weight-700">
+                            <div class="sol-display-flex sol-flex-direction-column sol-align-items-center">
                                 <span>{{ $nPieza }}</span>
-                                <span style="font-size:0.7rem; color:#ffeb3b; margin-top:2px;">(2da Pasada)</span>
+                                <span class="sol-font-size-0-7rem sol-color-ffeb3b sol-margin-top-2px">(2da Pasada)</span>
                             </div>
                         </td>
-                        <td class="td-tipo-medida" style="min-width:130px;">
+                        <td class="td-tipo-medida sol-min-width-130px">
                             @if ($modo === 'captura')
-                                <select name="p2_tipo_medida[{{ $keyP2H }}]" class="pta-select"
-                                    style="font-size:.78rem; color:#034a87; font-weight:600; width:100%;">
+                                <select name="p2_tipo_medida[{{ $keyP2H }}]" class="pta-select sol-font-size-78rem sol-color-034a87 sol-font-weight-600 sol-width-100pct">
                                     <option value="">— Medida —</option>
                                     <option value="D_Conexion_pico" {{ $tipoP2GuardadoH === 'D_Conexion_pico' ? 'selected' : '' }}>D.
                                         Conexión Pico</option>
@@ -583,7 +579,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                     value="{{ $filaP2H?->p2_precalentamiento ?? '' }}" class="pta-input" placeholder="°C">
                             @else
                                 <strong>{{ $filaP2H?->p2_precalentamiento ?? '—' }}</strong><br><small
-                                    style="color:#888;">°C</small>
+                                    class="sol-color-888">°C</small>
                             @endif
                         </td>
                         <td class="td-precal">
@@ -615,9 +611,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                     <div id="otro_wrap_{{ $idWidgetP2H }}" 
                                          class="mat-sold-otro-wrap {{ $isOtroP2H ? 'visible' : '' }}" 
                                          style="display: {{ $isOtroP2H ? 'flex' : 'none' }}; gap: 4px; width: 100%;">
-                                        <button type="button" 
-                                                class="mat-sold-btn-back" 
-                                                style="cursor: pointer;"
+                                        <button type="button" class="mat-sold-btn-back sol-cursor-pointer"
                                                 onclick="handlePTAMaterialBackClick('{{ $idWidgetP2H }}', '{{ $nameFieldP2H }}')">
                                             ←
                                         </button>
@@ -726,10 +720,9 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                 </span>
                             @endif
                         </td>
-                        <td style="min-width:120px; text-align:left; padding:6px;">
+                        <td class="sol-min-width-120px sol-text-align-left sol-padding-6px">
                             @if ($modo === 'captura')
-                                <textarea name="p2_observaciones[{{ $keyP2H }}]" class="pta-input" rows="2"
-                                    style="resize:vertical; min-width:110px;"
+                                <textarea name="p2_observaciones[{{ $keyP2H }}]" class="pta-input sol-resize-vertical sol-min-width-110px"
                                     placeholder="Obs. 2da pasada...">{{ $filaP2H?->p2_observaciones ?? '' }}</textarea>
                             @else
                                 {{ $filaP2H?->p2_observaciones ?? '—' }}
@@ -741,7 +734,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
             @empty
                 @if (!isset($piezasGroupActivas) || $piezasGroupActivas->isEmpty())
                     <tr>
-                        <td colspan="17" style="text-align:center; padding:20px; color:#888; font-style:italic;">
+                        <td colspan="17" class="sol-text-align-center sol-padding-20px sol-color-888 sol-font-style-italic">
                             No hay registros de Soldadura PTA para esta pieza / OT.
                         </td>
                     </tr>
@@ -802,7 +795,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                             {{-- Número pieza — rowspan=3, solo primera sub-fila --}}
                             @if ($esPrimeraA)
-                                <td class="td-pieza" rowspan="3" style="font-size:14px; background-color:#055a9e;">
+                                <td class="td-pieza sol-font-size-14px sol-background-color-055a9e" rowspan="3">
                                     {{ $nPiezaA }}
                                 </td>
                             @endif
@@ -847,7 +840,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                         name="precalentamiento[{{ $filaPrecalA?->id ?? 'new_' . $nPiezaA . '_precal' }}]"
                                         value="{{ $dv_precal }}" class="pta-input input-pieceUsed" placeholder="°C" required>
                                 </td>
-                                <td class="td-precal" rowspan="3" style="min-width: 140px;">
+                                <td class="td-precal sol-min-width-140px" rowspan="3">
                                     @php
                                         $idWidgetA = 'mat_sold_' . $keyA;
                                         $nameFieldA = 'material_soldadura[' . $keyA . ']';
@@ -875,9 +868,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                         <div id="otro_wrap_{{ $idWidgetA }}" 
                                              class="mat-sold-otro-wrap {{ $isOtroA ? 'visible' : '' }}" 
                                              style="display: {{ $isOtroA ? 'flex' : 'none' }}; gap: 4px; width: 100%;">
-                                            <button type="button" 
-                                                    class="mat-sold-btn-back" 
-                                                    style="cursor: pointer;"
+                                            <button type="button" class="mat-sold-btn-back sol-cursor-pointer"
                                                     onclick="handlePTAMaterialBackClick('{{ $idWidgetA }}', '{{ $nameFieldA }}')">
                                                 ←
                                             </button>
@@ -939,9 +930,9 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
                             {{-- Observaciones — rowspan=3 --}}
                             @if ($esPrimeraA)
-                                <td rowspan="3" style="min-width:120px; text-align:left; padding:6px;">
+                                <td rowspan="3" class="sol-min-width-120px sol-text-align-left sol-padding-6px">
                                     <textarea name="observaciones[{{ $filaPrecalA?->id ?? 'new_' . $nPiezaA . '_obs' }}]"
-                                        class="pta-input input-pieceUsed" rows="3" style="resize:vertical; min-width:110px;"
+                                        class="pta-input input-pieceUsed" rows="3" class="sol-resize-vertical sol-min-width-110px"
                                         placeholder="Observaciones...">{{ $filaPrecalA?->observaciones ?? '' }}</textarea>
                                 </td>
                             @endif
@@ -967,17 +958,15 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                     @endphp
 
                     {{-- Fila de control: checkbox --}}
-                    <tr id="row-p2-ctrl-{{ $p2IdUniq }}" style="background:#055a9e; border-top:2px solid #034a87;">
-                        <td colspan="18" style="padding:.4rem .8rem;">
+                    <tr id="row-p2-ctrl-{{ $p2IdUniq }}" class="sol-background-055a9e sol-border-top-2px-solid-034a87">
+                        <td colspan="18" class="sol-padding-4rem-8rem">
                             <label
-                                style="display:flex; align-items:center; gap:1rem; cursor:pointer; font-size:1rem; color:#fff;">
+                                class="sol-display-flex sol-align-items-center sol-gap-1rem sol-cursor-pointer sol-font-size-1rem sol-color-fff">
                                 <input type="checkbox" id="chk-p2-{{ $p2IdUniq }}" {{ $p2YaActiva ? 'checked' : '' }}
-                                    onchange="handleP2Checkbox('{{ $p2IdUniq }}')"
-                                    class="input-pieceUsed"
-                                    style="width:20px; height:20px; cursor:pointer; margin-left: 5rem; accent-color:#fff;">
+                                    onchange="handleP2Checkbox('{{ $p2IdUniq }}')" class="input-pieceUsed sol-width-20px sol-height-20px sol-cursor-pointer sol-margin-left-5rem sol-accent-color-fff">
                                 <strong>Aplicar 2da pasada</strong>
                                 @if($p2YaActiva)
-                                    <span style="color:#b3d4f5; font-size:.78rem;">(ya registrada — puedes editar los datos)</span>
+                                    <span class="sol-color-b3d4f5 sol-font-size-78rem">(ya registrada — puedes editar los datos)</span>
                                 @endif
                             </label>
                             {{-- Input oculto que envía '1' cuando se activa (se habilita por JS) --}}
@@ -985,7 +974,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                 value="{{ $p2YaActiva ? '1' : '0' }}">
                             {{-- Mensaje de error de contraseña (oculto por defecto) --}}
                             <span id="p2-err-{{ $p2IdUniq }}"
-                                style="color:#ffcdd2; font-size:.78rem; display:none; margin-left:.5rem;">
+                                class="sol-color-ffcdd2 sol-font-size-78rem sol-display-none sol-margin-left-5rem">
                                 Contraseña incorrecta.
                             </span>
                         </td>
@@ -1026,14 +1015,13 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         style="{{ !$p2YaActiva ? 'display:none;' : '' }} background:#e8f1fa; border-bottom:1px solid #90b8e0;">
 
                         {{-- Columna pieza --}}
-                        <td class="td-pieza" style="font-size:15px; background-color:#055a9e; color:#fff; font-weight:700;">
-                            {{ $nPiezaA }}<br><span style="font-size:10px;">2da P.</span>
+                        <td class="td-pieza sol-font-size-15px sol-background-color-055a9e sol-color-fff sol-font-weight-700">
+                            {{ $nPiezaA }}<br><span class="sol-font-size-10px">2da P.</span>
                         </td>
 
                         {{-- SELECT: tipo de medida --}}
-                        <td class="td-tipo-medida" style="min-width:130px;">
-                            <select name="p2_tipo_medida[{{ $keyP2 }}]" class="pta-select input-pieceUsed"
-                                style="font-size:1.2rem; color:#034a87; font-weight:600; width:100%;">
+                        <td class="td-tipo-medida sol-min-width-130px">
+                            <select name="p2_tipo_medida[{{ $keyP2 }}]" class="pta-select input-pieceUsed sol-font-size-1-2rem sol-color-034a87 sol-font-weight-600 sol-width-100pct">
                                 <option value="">— Medida —</option>
                                 <option value="D_Conexion_pico" {{ $tipoP2Guardado === 'D_Conexion_pico' ? 'selected' : '' }}>D.
                                     Conexión Pico</option>
@@ -1058,7 +1046,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         <td>
                             <select name="p2_tipo_preparacion[{{ $keyP2 }}]" class="pta-select input-pieceUsed">
                                 <option value="">—</option>
-                                @foreach ([1, 2, 3] as $optP2)
+                                @foreach ($optsPreparacion as $optP2)
                                     <option value="{{ $optP2 }}" {{ ($filaP2?->p2_tipo_preparacion ?? '') == $optP2 ? 'selected' : '' }}>{{ $optP2 }}</option>
                                 @endforeach
                             </select>
@@ -1097,9 +1085,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                                 <div id="otro_wrap_{{ $idWidgetP2A }}" 
                                      class="mat-sold-otro-wrap {{ $isOtroP2A ? 'visible' : '' }}" 
                                      style="display: {{ $isOtroP2A ? 'flex' : 'none' }}; gap: 4px; width: 100%;">
-                                    <button type="button" 
-                                            class="mat-sold-btn-back" 
-                                            style="cursor: pointer;"
+                                    <button type="button" class="mat-sold-btn-back sol-cursor-pointer"
                                             onclick="handlePTAMaterialBackClick('{{ $idWidgetP2A }}', '{{ $nameFieldP2A }}')">
                                         ←
                                     </button>
@@ -1157,9 +1143,8 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                         </td>
 
                         {{-- Observaciones --}}
-                        <td style="min-width:120px; text-align:left; padding:6px;">
-                            <textarea name="p2_observaciones[{{ $keyP2 }}]" class="pta-input input-pieceUsed" rows="2"
-                                style="resize:vertical; min-width:110px;"
+                        <td class="sol-min-width-120px sol-text-align-left sol-padding-6px">
+                            <textarea name="p2_observaciones[{{ $keyP2 }}]" class="pta-input input-pieceUsed sol-resize-vertical sol-min-width-110px"
                                 placeholder="Obs. 2da pasada...">{{ $filaP2?->p2_observaciones ?? '' }}</textarea>
                         </td>
                     </tr>
@@ -1172,32 +1157,10 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
     </table>
 </div>
 
-
 <script>
     /**
-     * Maneja el checkbox de "Aplicar 2da pasada".
-     * Toggle simple sin restriccion de contrasena: muestra u oculta las filas al instante.
-     */
-    window.handleP2Checkbox = function (p2Id) {
-        const chk = document.getElementById('chk-p2-' + p2Id);
-        const hdnAct = document.getElementById('inp-p2-activa-' + p2Id);
-
-        if (!chk) return;
-
-        const activate = chk.checked;
-        window._setP2Rows(p2Id, activate);
-        if (hdnAct) hdnAct.value = activate ? '1' : '0';
-    };
-
-    window._setP2Rows = function (p2Id, show) {
-        [0, 1, 2].forEach(function (i) {
-            const row = document.getElementById('row-p2-' + p2Id + '-' + i);
-            if (row) row.style.display = show ? '' : 'none';
-        });
-    };
-
-    /**
-     * Lógica de coloreado en vivo para filas (Especialmente Historial P2 editable y Captura P2)
+     * Lógica de coloreado en vivo para filas PTA
+     * (change en resultado/defecto → colorea la fila)
      */
     document.addEventListener('change', function (e) {
         if (e.target.name && (e.target.name.startsWith('p2_resultado') || e.target.name.startsWith('p2_defecto_pta') || e.target.name.startsWith('resultado') || e.target.name.startsWith('defecto_pta'))) {
@@ -1206,7 +1169,6 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
 
             tr.classList.remove('pta-row-ok', 'pta-row-error', 'pta-row-liberada', 'pta-row-rechazada', 'pta-row-buena', 'pta-row-mala', 'pta-row-incompleta');
 
-            // Determinar qué conjunto estamos evaluando
             let isP2 = e.target.name.startsWith('p2_');
             let resSelect = tr.querySelector(isP2 ? 'select[name^="p2_resultado"]' : 'select[name^="resultado"]');
             let defSelect = tr.querySelector(isP2 ? 'select[name^="p2_defecto_pta"]' : 'select[name^="defecto_pta"]');
@@ -1217,7 +1179,6 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
             if (resVal === 'Mal' || (defVal !== 'Ninguno' && defVal !== '')) {
                 tr.classList.add('pta-row-error');
 
-                // Si es parte del bloque tripartito (primera sub-fila activa), pintar las dos sub-filas de abajo
                 if (!isP2 && tr.classList.contains('fila-primera')) {
                     let current = tr.nextElementSibling;
                     for (let i = 0; i < 2; i++) {
@@ -1246,7 +1207,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
     });
 
     /**
-     * Revisar también cuando se teclean inputs normales para pasarlos a verde si ya se completó.
+     * Coloreado en vivo al teclear inputs
      */
     document.addEventListener('input', function (e) {
         if (e.target.tagName === 'INPUT' && !e.target.name.includes('observaciones')) {
@@ -1275,7 +1236,6 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                     tr.classList.add('pta-row-incompleta');
                 }
             }
-        }
         }
     });
 </script>

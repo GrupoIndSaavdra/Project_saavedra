@@ -42,11 +42,11 @@ function mostrarAlertaTemporal(mensaje, tipo = 'success') {
 // ===============================
 function changeColorSelect(selectElement) {
     if (selectElement.value) {
-        selectElement.style.backgroundColor = "#03396610";
-        selectElement.style.color = "#000";
+        selectElement.classList.remove("sol-select-selected");
+        selectElement.classList.add("sol-select-unselected");
     } else {
-        selectElement.style.backgroundColor = "#033966";
-        selectElement.style.color = "#fff";
+        selectElement.classList.remove("sol-select-unselected");
+        selectElement.classList.add("sol-select-selected");
     }
 }
 
@@ -172,7 +172,7 @@ function procesarQRSoldadura(lines) {
     if (html5QrCode) {
         html5QrCode.stop().then(() => html5QrCode.clear()).catch(() => {});
     }
-    document.getElementById("qrModal").style.display = "none";
+    document.getElementById("qrModal").classList.add("hidden");
 
     // Mostrar alerta temporal de éxito
     mostrarAlertaTemporal(`Soldadura "${nombre}" - Lote "${lote}" seleccionada correctamente`, 'success');
@@ -184,7 +184,7 @@ function procesarQRSoldadura(lines) {
 function procesarQRIndividual(qrId) {
     // Mostrar estado de procesamiento
     document.getElementById("estado_qr").value = "PROCESANDO...";
-    document.getElementById("estado_qr").style.backgroundColor = "#fff3cd";
+    document.getElementById("estado_qr").classList.remove("sol-bg-green", "sol-bg-red"); document.getElementById("estado_qr").classList.add("sol-bg-yellow");
     
     // Enviar QR ID al servidor para validación y procesamiento
     fetch('/soldadura/liberar/validar-qr', {
@@ -211,7 +211,7 @@ function procesarQRIndividual(qrId) {
     .then(data => {
         if (data.success) {
             document.getElementById("estado_qr").value = "LIBERADO";
-            document.getElementById("estado_qr").style.backgroundColor = "#d4edda";
+            document.getElementById("estado_qr").classList.remove("sol-bg-yellow", "sol-bg-red"); document.getElementById("estado_qr").classList.add("sol-bg-green");
             mostrarAlertaTemporal(data.message, 'success');
             // Limpiar campos después de 3 segundos
             setTimeout(() => {
@@ -219,21 +219,21 @@ function procesarQRIndividual(qrId) {
             }, 3000);
         } else {
             document.getElementById("estado_qr").value = "ERROR";
-            document.getElementById("estado_qr").style.backgroundColor = "#f8d7da";
+            document.getElementById("estado_qr").classList.remove("sol-bg-yellow", "sol-bg-green"); document.getElementById("estado_qr").classList.add("sol-bg-red");
             mostrarAlertaTemporal(data.message || 'Error procesando QR', 'danger');
         }
     })
     .catch(error => {
         console.error('Error:', error);
         document.getElementById("estado_qr").value = "ERROR";
-        document.getElementById("estado_qr").style.backgroundColor = "#f8d7da";
+        document.getElementById("estado_qr").classList.remove("sol-bg-yellow", "sol-bg-green"); document.getElementById("estado_qr").classList.add("sol-bg-red");
         mostrarAlertaTemporal(error.message || 'Error de conexión con el servidor', 'danger');
     })
     .finally(() => {
         if (html5QrCode && html5QrCode.getState() === Html5QrcodeScannerState.SCANNING) {
             html5QrCode.stop().then(() => html5QrCode.clear()).catch(() => {});
         }
-        document.getElementById("qrModal").style.display = "none";
+        document.getElementById("qrModal").classList.add("hidden");
     });
 }
 
@@ -242,7 +242,7 @@ function procesarQRIndividual(qrId) {
 // ===============================
 function iniciarEscaneo() {
     const qrModal = document.getElementById("qrModal");
-    qrModal.style.display = "flex";
+    qrModal.classList.remove("hidden");
 
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start(
@@ -287,14 +287,14 @@ document.addEventListener("DOMContentLoaded", () => {
 // Control modal QR
 // ===============================
 function abrirQR() {
-    document.body.style.overflow = "hidden";
-    document.getElementById("qrModal").style.display = "flex";
+    document.body.classList.add("overflow-hidden");
+    document.getElementById("qrModal").classList.remove("hidden");
 }
 
 window.cerrarQR = function () {
     if (window.html5QrCode) {
         window.html5QrCode.stop().then(() => window.html5QrCode.clear()).catch(() => {});
     }
-    document.body.style.overflow = "";
-    document.getElementById("qrModal").style.display = "none";
+    document.body.classList.remove("overflow-hidden");
+    document.getElementById("qrModal").classList.add("hidden");
 };

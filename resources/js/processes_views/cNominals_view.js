@@ -30,11 +30,9 @@ function updateSelectColors() {
         let hasDraft = hasUnsavedDraft(currentPath);
         
         if (isComplete && !hasDraft) {
-            select.style.backgroundColor = "#d4edda";
-            select.style.color = "#155724";
+            select.classList.remove("cnom-select-white", "cnom-select-blue"); select.classList.add("cnom-select-green");
         } else {
-            select.style.backgroundColor = "#ffffff";
-            select.style.color = "#000000";
+            select.classList.remove("cnom-select-green", "cnom-select-blue"); select.classList.add("cnom-select-white");
         }
     });
     
@@ -68,17 +66,11 @@ function updateSubmitButton() {
     // Si ya está completo en BD y NO tiene cambios locales, se bloquea el botón
     if (isComplete && !isDifferent) {
         btn.disabled = true;
-        btn.style.backgroundColor = "#a5a5a5"; 
-        btn.style.borderColor = "#999999";
-        btn.style.color = "#ffffff";
-        btn.style.cursor = "not-allowed";
+        btn.classList.add("cnom-btn-disabled");
         btn.value = "Sin Cambios";
     } else {
         btn.disabled = false;
-        btn.style.backgroundColor = ""; 
-        btn.style.borderColor = "";
-        btn.style.color = "";
-        btn.style.cursor = "";
+        btn.classList.remove("cnom-btn-disabled");
         btn.value = "Guardar";
     }
 }
@@ -148,8 +140,7 @@ function createSelect(options, name, id, parentArray) {
     let option = document.createElement("option");
     option.value = "";
     option.innerHTML = " Selecciona una opcion ";
-    option.style.backgroundColor = "#ffffff";
-    option.style.color = "#000000";
+    option.classList.add("cnom-select-white");
     select.appendChild(option);
 
     //Agregar opciones al select
@@ -164,12 +155,10 @@ function createSelect(options, name, id, parentArray) {
 
         // Si está completo en BD y NO tiene borrador local, va verde. Si tiene borrador, va blanco.
         if (isComplete && !hasDraft) {
-            option.style.backgroundColor = "#d4edda";
-            option.style.color = "#155724";
+            option.classList.remove("cnom-select-white"); option.classList.add("cnom-select-green");
             option.innerHTML = options[i] + " ✔"; 
         } else {
-            option.style.backgroundColor = "#ffffff";
-            option.style.color = "#000000";
+            option.classList.remove("cnom-select-green"); option.classList.add("cnom-select-white");
             option.innerHTML = options[i];
         }
         select.appendChild(option);
@@ -185,19 +174,16 @@ function createSelect(options, name, id, parentArray) {
             let hasDraft = hasUnsavedDraft(selectedPath);
 
             if (isComplete && !hasDraft) {
-                select.style.backgroundColor = "#d4edda";
-                select.style.color = "#155724";
+                select.classList.remove("cnom-select-white", "cnom-select-blue"); select.classList.add("cnom-select-green");
             } else {
-                select.style.backgroundColor = "#ffffff";
-                select.style.color = "#000000";
+                select.classList.remove("cnom-select-green", "cnom-select-blue"); select.classList.add("cnom-select-white");
             }
             
             hideTable();
             addSelect(select);
         } else {
             // Se cambia el color del select
-            select.style.backgroundColor = "#033966";
-            select.style.color = "#ffffff";
+            select.classList.remove("cnom-select-green", "cnom-select-white"); select.classList.add("cnom-select-blue");
             hideTable();
         }
     });
@@ -289,10 +275,8 @@ function insertTable(array, processSelected, subProcessSelected = null) {
 
     //Posicionar el foormulario de busqueda
     let wrapper = document.querySelector(".wrapper");
-    wrapper.style.position = "relative";
-    wrapper.style.margin = "3.5em auto";
-    wrapper.style.left = "0";
-    wrapper.style.setProperty("transform", "none", "important");
+    wrapper.classList.remove("cnom-wrapper-absolute");
+    wrapper.classList.add("cnom-wrapper-relative");
 
     //Crear la tabla
     if (array.length === 0) {
@@ -308,15 +292,8 @@ function insertTable(array, processSelected, subProcessSelected = null) {
 function hideTable() {
     //Posicionar el formulario de busqueda
     let wrapper = document.querySelector(".wrapper");
-    wrapper.style.position = "absolute";
-    wrapper.style.margin = "0 auto";
-    wrapper.style.top = "50%";
-    wrapper.style.left = "50%";
-    wrapper.style.setProperty(
-        "transform",
-        "translate(-50%, -50%)",
-        "important"
-    );
+    wrapper.classList.remove("cnom-wrapper-relative");
+    wrapper.classList.add("cnom-wrapper-absolute");
 
     //Ocultar la tabla
     let scrollable_table = document.querySelector(".scrollable-table");

@@ -1,6 +1,9 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ──────────────────────────────────────────────────────────────
    Tabla Soldadura PTA — alineada al CSS de processProduction.css
-   Usa Poppins, colores #033966, bordes system-style.
+   Usa Poppins, colores var(--gis-blue), bordes system-style.
 ────────────────────────────────────────────────────────────── */
 
 .pta-table-wrapper {
@@ -16,17 +19,17 @@
     background: #fff;
     width: max-content;
     min-width: 200%;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 
 /* — Cabecera — */
 .pta-table thead tr th {
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
     font-weight: 700;
     padding: 10px 8px;
     text-align: center;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
     white-space: nowrap;
     vertical-align: middle;
     font-size: 1em;
@@ -39,24 +42,24 @@
     text-align: center;
     font-size: 1.2em;
     font-weight: 700;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
     vertical-align: middle;
     padding: 5px;
 }
 
 /* Primer fila del grupo (D.Conn pico): separador grueso entre piezas */
 .pta-table tbody tr.fila-primera td {
-    border-top: 4px solid #033966;
+    border-top: 4px solid var(--gis-blue);
 }
 
 /* Filas alternas por pieza completa */
 .pta-table tbody tr.grupo-par td {
-    background-color: #03396610;
+    background-color: var(--gis-blue)10;
 }
 
 /* Columna N° pieza */
 .td-pieza {
-    background-color: #033966 !important;
+    background-color: var(--gis-blue) !important;
     color: #ffffff !important;
     font-weight: 900;
     font-size: 1.1em;
@@ -75,7 +78,7 @@
 /* Columna tipo_medida */
 .td-tipo-medida {
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     text-align: left;
     white-space: nowrap;
     background-color: #e8f1fb;
@@ -93,8 +96,8 @@
     text-align: center;
     padding: 0.4em 0;
     font-size: 1.1em;
-    font-family: "Poppins", sans-serif;
-    background: #03396610;
+    /* font-family heredado de global.css */
+    background: var(--gis-blue)10;
     border: none;
     box-sizing: border-box;
 }
@@ -187,20 +190,20 @@ textarea.pta-input {
 }
 /* Sin información de liberación — celda pieza con el azul original */
 .pta-table tbody tr.pta-row-sin-lib td.td-pieza {
-    background-color: #033966 !important;
+    background-color: var(--gis-blue) !important;
     color: #fff !important;
 }
 
 /* Separador "CAPTURA EN CURSO" */
 .pta-captura-header td {
-    background: #033966 !important;
+    background: var(--gis-blue) !important;
     color: #fff !important;
     font-weight: 700 !important;
     text-align: center !important;
     padding: 5px !important;
     font-size: 0.95em !important;
     letter-spacing: 1px !important;
-    border: 3px solid #033966 !important;
+    border: 3px solid var(--gis-blue) !important;
 }
 
 /* Filas de captura activa */
@@ -215,13 +218,13 @@ textarea.pta-input {
 
 /* Botón guardar PTA — igual que .btn-savePiece del sistema */
 .btn-guardar-pta {
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
     padding: 0.8em 2em;
     border: none;
     border-radius: 5px;
     font-size: 1.1em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     cursor: pointer;
     transition: 0.3s ease;
     margin: 2em 0;
@@ -250,15 +253,15 @@ textarea.pta-input {
     height: 38px;
     padding: 6px 28px 6px 12px;
     font-size: 0.88em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-weight: 600;
-    color: #033966;
+    color: var(--gis-blue);
     background-color: #ffffff;
-    border: 1.5px solid #033966a0;
+    border: 1.5px solid var(--gis-blue)a0;
     border-radius: 6px;
     cursor: pointer;
-    appearance: none;
     -webkit-appearance: none;
+    appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23033966' d='M6 8.5L2 4.5h8z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
@@ -268,7 +271,7 @@ textarea.pta-input {
     box-sizing: border-box;
 }
 .mat-sold-select:hover {
-    border-color: #033966;
+    border-color: var(--gis-blue);
     background-color: #f4f8fc;
     box-shadow: 0 3px 6px rgba(3, 57, 102, 0.15);
 }
@@ -278,7 +281,7 @@ textarea.pta-input {
     box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
 }
 .mat-sold-select option {
-    color: #033966;
+    color: var(--gis-blue);
     font-weight: 500;
     background: #fff;
     text-align: left;
@@ -303,10 +306,10 @@ textarea.pta-input {
     flex-shrink: 0;
     width: 28px;
     height: 28px;
-    border: 1.5px solid #033966a0;
+    border: 1.5px solid var(--gis-blue)a0;
     border-radius: 6px;
     background-color: #ffffff;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 1em;
     font-weight: 700;
     cursor: pointer;
@@ -318,7 +321,7 @@ textarea.pta-input {
 }
 .mat-sold-btn-back:hover {
     background-color: #f4f8fc;
-    border-color: #033966;
+    border-color: var(--gis-blue);
 }
 
 .mat-sold-input {
@@ -327,11 +330,11 @@ textarea.pta-input {
     height: 100%;
     padding: 6px 12px;
     font-size: 0.88em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-weight: 600;
-    color: #033966;
+    color: var(--gis-blue);
     background-color: #ffffff;
-    border: 1.5px dashed #033966a0;
+    border: 1.5px dashed var(--gis-blue)a0;
     border-radius: 6px;
     box-sizing: border-box;
     box-shadow: 0 2px 4px rgba(3, 57, 102, 0.05);
@@ -339,10 +342,62 @@ textarea.pta-input {
 }
 .mat-sold-input:focus {
     outline: none;
-    border: 1.5px solid #033966;
+    border: 1.5px solid var(--gis-blue);
     box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
 }
 @keyframes mat-fade-in {
     from { opacity:0; transform:translateX(-4px); }
     to   { opacity:1; transform:translateX(0); }
 }
+
+/* Auto-generated utility classes */
+.sol-color-ffcdd2 { color: #ffcdd2; }
+.sol-border-top-2px-solid-034a87 { border-top: 2px solid #034a87; }
+.sol-padding-20px { padding: 20px; }
+.sol-gap-1rem { gap: 1rem; }
+.sol-background-055a9e { background: #055a9e; }
+.sol-color-034a87 { color: #034a87; }
+.sol-width-20px { width: 20px; }
+.sol-font-weight-600 { font-weight: 600; }
+.sol-min-width-140px { min-width: 140px; }
+.sol-display-flex { display: flex; }
+.sol-min-width-110px { min-width: 110px; }
+.sol-font-size-1rem { font-size: 1rem; }
+.sol-min-width-60px { min-width: 60px; }
+.sol-padding-6px { padding: 6px; }
+.sol-align-items-center { align-items: center; }
+.sol-font-size-82rem { font-size: .82rem; }
+.sol-cursor-pointer { cursor: pointer; }
+.sol-min-width-120px { min-width: 120px; }
+.sol-font-weight-700 { font-weight: 700; }
+.sol-gap-5rem { gap: .5rem; }
+.sol-background-color-055a9e { background-color: #055a9e; }
+.sol-text-align-center { text-align: center; }
+.sol-text-align-left { text-align: left; }
+.sol-margin-top-2px { margin-top: 2px; }
+.sol-display-none { display: none; }
+.sol-height-15px { height: 15px; }
+.sol-resize-vertical { resize: vertical; }
+.sol-width-100pct { width: 100%; }
+.sol-height-20px { height: 20px; }
+.sol-flex-direction-column { flex-direction: column; }
+.sol-border-bottom-1px-solid-90b8e0 { border-bottom: 1px solid #90b8e0; }
+.sol-color-ffeb3b { color: #ffeb3b; }
+.sol-font-size-78rem { font-size: .78rem; }
+.sol-font-size-14px { font-size: 14px; }
+.sol-font-style-italic { font-style: italic; }
+.sol-font-size-10px { font-size: 10px; }
+.sol-width-15px { width: 15px; }
+.sol-font-size-0-7rem { font-size: 0.7rem; }
+.sol-font-size-1-2rem { font-size: 1.2rem; }
+.sol-font-size-12px { font-size: 12px; }
+.sol-color-888 { color: #888; }
+.sol-font-size-15px { font-size: 15px; }
+.sol-color-fff { color: #fff; }
+.sol-min-width-130px { min-width: 130px; }
+.sol-color-b3d4f5 { color: #b3d4f5; }
+.sol-padding-4rem-8rem { padding: .4rem .8rem; }
+.sol-accent-color-fff { accent-color: #fff; }
+.sol-width-25px { width: 25px; }
+.sol-width-60px { width: 60px; }
+.sol-margin-left-5rem { margin-left: 5rem; }

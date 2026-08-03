@@ -1,33 +1,10 @@
-/* General reset */
+/* global.css proporciona: reset, Poppins, .btns, variables GIS */
+@import "global.css";
+
+/* ── Reset específico para home (bloquea scroll en pantalla completa) ── */
 html, body {
     overflow: hidden !important;
     height: 100% !important;
-}
-
-*,
-*::before,
-*::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-.btns {
-    padding: 10px 30px;
-    background-color: #0a8504;
-    box-shadow: 0 2px 5px #0a8504ff;
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 1.5em;
-    font-weight: 700;
-    margin: 0 10px;
-    transition: 0.2s;
-}
-.btns:hover {
-    background-color: #0a8504;
-    transition: 0.2s;
-    transform: scale(1.2); /* Realiza un pequeño zoom del 5% */
 }
 .filter-blur {
     position: fixed;
@@ -74,17 +51,17 @@ html, body {
     position: absolute;
     bottom: 5%;
     left: 50%;
-    transform: translate(-50%, -50%); /* Centrado real */
-    background-color: #b30404;
-    color: white;
+    transform: translate(-50%, -50%);
+    background-color: var(--gis-red);
+    color: var(--gis-white);
     padding: 1em;
     border: none;
     border-radius: 10px;
     cursor: pointer;
     text-decoration: none;
     font-size: 1.3em;
-    box-shadow: 0 0 10px 0px #000000;
-    transition: all 0.2s ease;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    transition: all var(--trans);
 }
 .btn-close-session-home:hover {
     transform: translate(-50%, -50%) scale(1.1);
@@ -98,8 +75,8 @@ html, body {
     overflow: hidden;
     /* Premium Industrial Glassmorphism - Neutral Dark */
     background: linear-gradient(135deg, rgba(40, 40, 40, 0.5), rgba(0, 0, 0, 0.7));
-    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     border-left: 2px solid rgba(255, 255, 255, 0.15);
     box-shadow: -5px 0 15px rgba(0, 0, 0, 0.4);
     will-change: width, background, box-shadow;
@@ -117,9 +94,9 @@ html, body {
 
 .div-new-report:hover {
     background: linear-gradient(135deg, rgba(60, 60, 60, 0.8), rgba(20, 20, 20, 0.9));
-    color: #0a8504; /* Verde Saavedra */
+    color: var(--gis-green); /* Verde GIS */
     width: 85px;
-    box-shadow: -10px 0 30px rgba(10, 133, 4, 0.3);
+    box-shadow: -10px 0 30px var(--shadow-green);
     border-left: 2px solid rgba(255, 255, 255, 0.3);
     text-shadow: 0 0 10px rgba(10, 133, 4, 0.5);
 }
@@ -185,7 +162,7 @@ html, body {
     z-index: 1;
     box-sizing: border-box;
     padding: 90px 3% 40px;
-    font-family: 'Poppins', sans-serif;
+    /* font-family heredado de global.css */
     overflow: hidden;
 }
 
@@ -199,8 +176,8 @@ html, body {
     height: fit-content;
     max-height: calc(100vh - 150px);
     overflow: hidden;
-    backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
 }
 
 .home-priorities-header {
@@ -226,6 +203,7 @@ html, body {
     letter-spacing: 1.2px;
     background: linear-gradient(90deg, #ffffff 40%, #38bdf8 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 2px 8px rgba(56, 189, 248, 0.3));
 }
@@ -388,8 +366,8 @@ html, body {
     padding: 3px 9px;
     border-radius: 20px;
     text-transform: uppercase;
-    backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
     transition: all 0.2s ease;
 }
 
@@ -411,8 +389,8 @@ html, body {
 .intro-text-operator {
     max-width: 32rem;
     background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
     padding: 2.5em;
     border-radius: 16px;
@@ -426,14 +404,14 @@ html, body {
 .operator-name {
     font-size: 1.8rem;
     font-weight: 800;
-    color: #033966;
+    color: var(--gis-blue);
     margin: 0;
 }
 
 .btn-close-session-operator {
     margin-top: 2rem;
-    background: #dc2626;
-    color: white;
+    background: var(--gis-red);
+    color: var(--gis-white);
     padding: 12px 30px;
     border: none;
     border-radius: 10px;
@@ -441,14 +419,14 @@ html, body {
     text-decoration: none;
     font-size: 1.2rem;
     font-weight: 700;
-    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.35);
-    transition: all 0.2s ease;
+    box-shadow: 0 8px 20px var(--shadow-red);
+    transition: all var(--trans);
 }
 
 .btn-close-session-operator:hover {
     transform: translateY(-2px);
-    background: #ef4444;
-    box-shadow: 0 12px 25px rgba(239, 68, 68, 0.5);
+    background: #c00404;
+    box-shadow: 0 12px 25px var(--shadow-red);
 }
 
 @media screen and (max-width: 900px) {

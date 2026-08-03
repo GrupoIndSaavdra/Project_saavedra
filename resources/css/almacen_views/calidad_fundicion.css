@@ -1,6 +1,9 @@
+/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ====================================================
    almacen_fundicion.css — Vista Almacén/Calidad: Dibujos de Fundición
-   Paleta: #033966 (azul GIS), #9c0300 (rojo GIS), #0a8504 (verde acción)
+   Paleta: var(--gis-blue) (azul GIS), var(--gis-red) (rojo GIS), var(--gis-green) (verde acción)
    Fuente: Poppins (igual que manage_documentation.css y toda la app)
    ==================================================== */
 
@@ -11,7 +14,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 
 body {
@@ -44,7 +47,7 @@ body.modal-open {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     padding: 1em 1.5em;
     border-radius: 10px;
@@ -102,6 +105,7 @@ body.modal-open {
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5em;
     margin-bottom: 1.5em;
+    width: 100%;
 }
 
 @media (max-width: 640px) {
@@ -158,10 +162,10 @@ body.modal-open {
 }
 
 .stat-total .alm-stat-value {
-    color: #033966;
+    color: var(--gis-blue);
 }
 .stat-activas .alm-stat-value {
-    color: #0a8504;
+    color: var(--gis-green);
 }
 .stat-inactivas .alm-stat-value {
     color: #888;
@@ -189,12 +193,12 @@ body.modal-open {
 }
 
 .alm-filters-card h2 {
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 1.2em;
     font-weight: 700;
     margin-bottom: 1em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -227,10 +231,10 @@ body.modal-open {
     border-radius: 5px;
     padding: 0.8em 0.5em;
     text-align: center;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 1em;
     letter-spacing: 1px;
-    background: #033966;
+    background: var(--gis-blue);
     border: 5px solid #033966d4;
     color: #ffffff;
     outline: none;
@@ -251,20 +255,20 @@ body.modal-open {
 .filter label {
     font-size: 1em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .btns {
     padding: 12px 24px;
-    background-color: #0a8504;
-    box-shadow: 0 2px 5px #0a8504ff;
+    background-color: var(--gis-green);
+    box-shadow: 0 2px 5px var(--gis-green)ff;
     color: #fff;
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 1em;
     font-weight: 700;
     transition:
@@ -278,7 +282,7 @@ body.modal-open {
 }
 
 .btns:hover {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
     transform: scale(1.1);
     box-shadow: 0 4px 12px rgba(10, 133, 4, 0.4);
 }
@@ -313,7 +317,7 @@ body.modal-open {
 }
 
 .alm-btn-ver:hover {
-    background: #0a8504;
+    background: var(--gis-green);
     transform: scale(1.05) translateY(-1px);
     box-shadow: 0 6px 18px rgba(10, 133, 4, 0.35);
 }
@@ -334,8 +338,8 @@ body.modal-open {
     align-items: center;
     justify-content: space-between;
     padding: 1em 1.5em;
-    border-bottom: 2px solid #033966;
-    background: #033966;
+    border-bottom: 2px solid var(--gis-blue);
+    background: var(--gis-blue);
     color: #fff;
 }
 
@@ -367,7 +371,7 @@ table.alm-table {
 }
 
 .alm-table thead th {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     padding: 0.85em 1em;
     text-align: left;
@@ -407,7 +411,7 @@ table.alm-table {
 /* OT label */
 .alm-ot-label {
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 0.95em;
 }
 
@@ -449,8 +453,8 @@ table.alm-table {
     align-items: center;
     gap: 5px;
     background: #e8f2ff;
-    color: #033966;
-    border: 1px solid #033966;
+    color: var(--gis-blue);
+    border: 1px solid var(--gis-blue);
     padding: 0.2em 0.7em;
     border-radius: 20px;
     font-size: 0.85em;
@@ -465,7 +469,7 @@ table.alm-table {
     color: #fff;
     border: 2px solid transparent;
     cursor: pointer;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 1.05em;
     font-weight: 700;
     padding: 0.6em 1em;
@@ -481,15 +485,15 @@ table.alm-table {
 }
 
 .btn-toggle-files:hover {
-    background: #033966;
+    background: var(--gis-blue);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 81, 148, 0.3);
 }
 
 .btn-toggle-files.active {
     background: #fff;
-    color: #033966;
-    border-color: #033966;
+    color: var(--gis-blue);
+    border-color: var(--gis-blue);
     box-shadow: none;
 }
 
@@ -513,19 +517,19 @@ table.alm-table {
 .alm-files-inner {
     padding: 1.5em;
     background: #f8fbff;
-    border-top: 2px solid #033966;
+    border-top: 2px solid var(--gis-blue);
     box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .alm-files-inner h4 {
     font-size: 1em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 1.5em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -563,7 +567,7 @@ table.alm-table {
     align-items: center;
     justify-content: center;
     padding: 1.5em;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
     border-radius: 12px;
     background: #f5f9ff;
     transition:
@@ -579,7 +583,7 @@ table.alm-table {
 }
 
 .dibujos-file-card:hover {
-    background: #033966;
+    background: var(--gis-blue);
     transform: translateY(-5px);
     box-shadow: 0 8px 18px rgba(3, 57, 102, 0.4);
 }
@@ -587,7 +591,7 @@ table.alm-table {
 .dibujos-file-card .file-name {
     font-size: 0.95em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     word-break: break-all;
     text-align: center;
     margin-bottom: 1em;
@@ -652,7 +656,7 @@ table.alm-table {
     text-align: center;
     border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    background: #033966 !important;
+    background: var(--gis-blue) !important;
     color: #fff !important;
     border: none;
     font-weight: 800;
@@ -791,7 +795,7 @@ table.alm-table {
     bottom: 2em;
     right: 2em;
     background: linear-gradient(to bottom, #ffffff, #fcfcfc) !important;
-    border: 3.5px solid #033966 !important;
+    border: 3.5px solid var(--gis-blue) !important;
     border-radius: 12px;
     padding: 0.8rem 1.2rem;
     display: flex;
@@ -813,7 +817,7 @@ table.alm-table {
 }
 
 .alm-toast.error {
-    border-color: #9c0300 !important;
+    border-color: var(--gis-red) !important;
     box-shadow: 0 10px 25px -5px rgba(156, 3, 0, 0.2);
 }
 
@@ -940,13 +944,13 @@ table.alm-table {
 
 .alm-inner-table thead th {
     background: #e8f2ff;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 0.85em;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 1px;
     padding: 12px;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
 }
 
 .alm-inner-table tbody tr {
@@ -966,12 +970,12 @@ table.alm-table {
 /* Estilo para tabla de ayudas (Color Rojo GIS) */
 .table-ayudas thead th {
     background: #fff0f0;
-    color: #9c0300;
-    border-bottom-color: #9c0300;
+    color: var(--gis-red);
+    border-bottom-color: var(--gis-red);
 }
 
 .btn-ayuda-color {
-    background: #9c0300 !important;
+    background: var(--gis-red) !important;
 }
 
 .btn-ayuda-color:hover {
@@ -1016,7 +1020,7 @@ table.alm-table {
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 
 .btn-modelo img {
@@ -1161,7 +1165,7 @@ table.alm-table {
     justify-content: center;
     gap: 10px;
     padding: 12px 2.5em 0;
-    background: #033966;
+    background: var(--gis-blue);
 }
 
 .po-tab-btn {
@@ -1170,7 +1174,7 @@ table.alm-table {
     border: 2px solid rgba(255, 255, 255, 0.2);
     padding: 8px 24px;
     border-radius: 10px 10px 0 0;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 1.05em;
     font-weight: 700;
     cursor: pointer;
@@ -1185,7 +1189,7 @@ table.alm-table {
 
 .po-tab-btn.active {
     background: #fdfdfd;
-    color: #033966;
+    color: var(--gis-blue);
     border-color: #fdfdfd;
 }
 
@@ -1269,7 +1273,7 @@ table.alm-table {
     max-width: 1800px;
     max-height: 98vh;
     border-radius: 20px;
-    border: 4px solid #033966;
+    border: 4px solid var(--gis-blue);
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
@@ -1280,7 +1284,7 @@ table.alm-table {
 
 .alm-modal-header {
     padding: 2em 2.5em 1.2em;
-    background: #033966;
+    background: var(--gis-blue);
     border-bottom: 2px solid #f0f0f0;
     position: relative;
     z-index: 10;
@@ -1410,7 +1414,7 @@ table.alm-table {
 }
 
 .form-control:focus {
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.1);
 }
 
@@ -1482,7 +1486,7 @@ table.alm-table {
 
 .modal-table .form-control:focus {
     background: #fff;
-    border-color: #033966;
+    border-color: var(--gis-blue);
 }
 
 .modal-table input[type="number"],
@@ -1537,7 +1541,7 @@ table.alm-table {
 }
 
 .btn-save-preorden {
-    background: #0a8504;
+    background: var(--gis-green);
     color: white;
     border: none;
     padding: 16px 45px;
@@ -1579,7 +1583,7 @@ table.alm-table {
     border-radius: 14px;
     font-weight: 800;
     cursor: pointer;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     text-transform: uppercase;
     letter-spacing: 1px;
     font-size: 0.85em;
@@ -1631,7 +1635,7 @@ table.alm-table {
 
 .select-file-card.checked-card {
     opacity: 1;
-    border-color: #033966 !important;
+    border-color: var(--gis-blue) !important;
     background: #f0f6ff !important; /* Premium light blue background when selected */
     box-shadow: 0 4px 12px rgba(3, 57, 102, 0.08) !important;
 }
@@ -1687,7 +1691,7 @@ table.alm-table {
     padding: 6px 12px !important;
     font-size: 0.78em !important;
     border-radius: 8px !important;
-    background: #033966 !important;
+    background: var(--gis-blue) !important;
     color: #ffffff !important;
     border: 2px solid transparent !important;
     transition: all 0.2s ease !important;
@@ -1718,7 +1722,7 @@ table.alm-table {
 /* ── Custom File Dropzone ── */
 .custom-file-dropzone {
     position: relative;
-    border: 2px dashed #033966;
+    border: 2px dashed var(--gis-blue);
     border-radius: 12px;
     background: #f8fafc;
     padding: 12px 15px !important;
@@ -1758,16 +1762,16 @@ table.alm-table {
 
 .dropzone-text {
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 0.9em !important;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 
 .dropzone-subtext {
     color: #64748b;
     font-size: 0.75em !important;
     margin-top: 2px;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 
 /* Selected files badges list */
@@ -1782,7 +1786,7 @@ table.alm-table {
     align-items: center;
     gap: 6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     border: 1px solid #cbd5e1;
     animation: selectCardFadeIn 0.25s ease-out both;
 }
@@ -1805,32 +1809,32 @@ table.alm-table {
 
 /* ── Botones Calidad en tabla de OTs ─── */
 .btn-lib-aprobar {
-    background: #0a8504 !important;
+    background: var(--gis-green) !important;
     border: 2px solid #086d03 !important;
     color: #fff !important;
 }
 .btn-lib-aprobar:hover {
     background: #e6f9ed !important;
-    color: #0a8504 !important;
+    color: var(--gis-green) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(10, 133, 4, 0.3) !important;
 }
 .btn-lib-rechazar {
-    background: #9c0300 !important;
+    background: var(--gis-red) !important;
     border: 2px solid #7a0200 !important;
     color: #fff !important;
 }
 .btn-lib-rechazar:hover {
     background: #fdf2f2 !important;
-    color: #9c0300 !important;
+    color: var(--gis-red) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
 }
 
 .lib-calidad-actions {
     background: linear-gradient(135deg, #f0f6ff, #e8f2ff);
-    border: 2px solid #033966;
-    border-left: 5px solid #033966;
+    border: 2px solid var(--gis-blue);
+    border-left: 5px solid var(--gis-blue);
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 4px 12px rgba(3, 57, 102, 0.1);
@@ -1841,7 +1845,7 @@ table.alm-table {
     gap: 10px;
     font-size: 1em;
     font-weight: 800;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 15px;
@@ -1864,8 +1868,8 @@ table.alm-table {
 }
 .lib-estado-rechazado {
     background: #fdf2f2;
-    color: #9c0300;
-    border: 1px solid #9c0300;
+    color: var(--gis-red);
+    border: 1px solid var(--gis-red);
 }
 .lib-estado-info {
     background: #fff3cd;
@@ -1937,7 +1941,7 @@ table.alm-table {
     margin: 0;
 }
 .lib-modal-header-rechazo {
-    background: linear-gradient(135deg, #9c0300, #7a0200) !important;
+    background: linear-gradient(135deg, var(--gis-red), #7a0200) !important;
     border-bottom-color: #6a0100 !important;
 }
 
@@ -1970,13 +1974,13 @@ table.alm-table {
 .lib-dato-value {
     font-size: 1.35em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
 }
 .lib-select {
     border: 2px solid #cbd5e1;
     border-radius: 10px;
     padding: 12px 16px;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 1.3em;
     font-weight: 600;
     color: #334155;
@@ -1989,7 +1993,7 @@ table.alm-table {
 }
 .lib-select:focus {
     outline: none;
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.12);
 }
 
@@ -1997,16 +2001,16 @@ table.alm-table {
 .lib-section-title {
     font-size: 1.25em;
     font-weight: 800;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 1em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
 }
 .lib-section-title-danger {
-    color: #9c0300 !important;
-    border-bottom-color: #9c0300 !important;
+    color: var(--gis-red) !important;
+    border-bottom-color: var(--gis-red) !important;
 }
 .lib-section-hint {
     font-size: 1.1em;
@@ -2055,11 +2059,11 @@ table.alm-table {
     justify-content: center;
 }
 .lib-img-zoom-wrapper:hover {
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 8px 24px rgba(3, 57, 102, 0.25);
 }
 .lib-img-zoom-wrapper:focus-visible {
-    outline: 3px solid #033966;
+    outline: 3px solid var(--gis-blue);
     outline-offset: 2px;
 }
 .lib-ref-img {
@@ -2109,7 +2113,7 @@ table.alm-table {
     position: fixed;
     width: 450px;
     height: 450px;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
     border-radius: 12px;
     background-repeat: no-repeat;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
@@ -2121,7 +2125,7 @@ table.alm-table {
 /* ── Tablas de reporte — ACCESIBLES ─── */
 .lib-table-wrapper {
     overflow-x: auto;
-    border: 2px solid #033966;
+    border: 2px solid var(--gis-blue);
     border-radius: 12px;
 }
 .lib-matrix-wrapper {
@@ -2132,14 +2136,14 @@ table.alm-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 1.2em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 .lib-matrix-table {
     min-width: 1350px;
 }
 
 .lib-report-table thead tr {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
 }
 .lib-report-table th {
@@ -2204,7 +2208,7 @@ table.alm-table {
 }
 .lib-th-main-col {
     font-size: 1em;
-    background: #033966;
+    background: var(--gis-blue);
     letter-spacing: 1px;
 }
 .lib-th-sub {
@@ -2214,7 +2218,7 @@ table.alm-table {
 .lib-td-tipo {
     font-weight: 800;
     font-size: 1.1em;
-    color: #033966;
+    color: var(--gis-blue);
     padding: 12px 14px !important;
     white-space: nowrap;
 }
@@ -2227,7 +2231,7 @@ table.alm-table {
 .lib-td-fondo-item {
     font-size: 1.25em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     padding: 12px 16px !important;
 }
 
@@ -2238,13 +2242,13 @@ table.alm-table {
     justify-content: center;
     min-width: 48px;
     height: 48px;
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     border-radius: 8px;
     font-size: 1.25em;
     font-weight: 800;
     padding: 0 8px;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     flex-shrink: 0;
 }
 .lib-item-desc-inline {
@@ -2274,7 +2278,7 @@ table.alm-table {
 }
 .lib-num-input:focus {
     outline: none !important;
-    border-color: #033966 !important;
+    border-color: var(--gis-blue) !important;
     box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.12) !important;
 }
 .lib-num-input-sm {
@@ -2309,15 +2313,15 @@ table.alm-table {
     font-size: 1.25em !important;
 }
 .lib-textarea-danger {
-    border-color: #9c0300 !important;
+    border-color: var(--gis-red) !important;
 }
 .lib-textarea-danger:focus {
     box-shadow: 0 0 0 4px rgba(156, 3, 0, 0.1) !important;
 }
 .lib-rechazo-block {
     background: linear-gradient(135deg, #fff5f5, #fdf2f2);
-    border: 2px solid #9c0300;
-    border-left: 5px solid #9c0300;
+    border: 2px solid var(--gis-red);
+    border-left: 5px solid var(--gis-red);
     border-radius: 12px;
     padding: 22px;
 }
@@ -2347,7 +2351,7 @@ table.alm-table {
     border: 2px solid rgba(0, 0, 0, 0.08);
     border-radius: 14px;
     font-weight: 800;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 0.85em;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -2356,7 +2360,7 @@ table.alm-table {
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .btn-lib-save {
-    background: #033966 !important;
+    background: var(--gis-blue) !important;
     color: #ffffff !important;
     box-shadow: 0 4px 15px rgba(3, 57, 102, 0.25) !important;
     border: 2px solid #022c50 !important;
@@ -2366,7 +2370,7 @@ table.alm-table {
 }
 .btn-lib-save:hover {
     background: #e6f0fa !important;
-    color: #033966 !important;
+    color: var(--gis-blue) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(3, 57, 102, 0.25) !important;
 }
@@ -2375,7 +2379,7 @@ table.alm-table {
 }
 
 .btn-lib-aprobar-send {
-    background: #0a8504 !important;
+    background: var(--gis-green) !important;
     color: #ffffff !important;
     box-shadow: 0 4px 15px rgba(10, 133, 4, 0.3) !important;
     border: 2px solid #086d03 !important;
@@ -2385,7 +2389,7 @@ table.alm-table {
 }
 .btn-lib-aprobar-send:hover {
     background: #e6f9ed !important;
-    color: #0a8504 !important;
+    color: var(--gis-green) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(10, 133, 4, 0.25) !important;
 }
@@ -2394,7 +2398,7 @@ table.alm-table {
 }
 
 .btn-lib-rechazar-send {
-    background: #9c0300 !important;
+    background: var(--gis-red) !important;
     color: #ffffff !important;
     box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3) !important;
     border: 2px solid #7a0200 !important;
@@ -2404,7 +2408,7 @@ table.alm-table {
 }
 .btn-lib-rechazar-send:hover {
     background: #fdf2f2 !important;
-    color: #9c0300 !important;
+    color: var(--gis-red) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
 }
@@ -2502,7 +2506,7 @@ table.alm-table {
 
 /* Form control custom overrides for this modal */
 #modalEnviarAlertaLiberacion .form-control {
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     border: 1.5px solid #cbd5e1;
     border-radius: 10px;
     font-size: 0.95em;
@@ -2526,7 +2530,7 @@ table.alm-table {
     border-radius: 10px;
     font-weight: 700;
     font-size: 0.9em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -2545,7 +2549,7 @@ table.alm-table {
     border-radius: 10px;
     font-weight: 700;
     font-size: 0.9em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
@@ -2739,3 +2743,424 @@ table.alm-table {
     }
 }
 
+
+/* Auto-generated utility classes */
+.cal-filter-brightness-0-invert-1 { filter: brightness(0) invert(1); }
+.cal-opacity-0-55 { opacity: 0.55; }
+.cal-border-none { border: none; }
+.cal-padding-left-8px { padding-left: 8px; }
+.cal-border-radius-50pct { border-radius: 50%; }
+.cal-font-size-2-2em { font-size: 2.2em; }
+.cal-margin-bottom-24px { margin-bottom: 24px; }
+.cal-font-size-1-35em { font-size: 1.35em; }
+.cal-padding-6px { padding: 6px; }
+.cal-border-top-right-radius-18px { border-top-right-radius: 18px; }
+.cal-transition-all-0-2s-ease { transition: all 0.2s ease; }
+.cal-gap-6px { gap: 6px; }
+.cal-color-dc2626 { color: #dc2626; }
+.cal-background-f8fafc { background: #f8fafc; }
+.cal-transform-scale-0-9 { transform: scale(0.9); }
+.cal-letter-spacing-0-5px { letter-spacing: 0.5px; }
+.cal-line-height-1-5 { line-height: 1.5; }
+.cal-color-475569 { color: #475569; }
+.cal-margin-10px-auto { margin: 10px auto; }
+.cal-margin-top-2px { margin-top: 2px; }
+.cal-background-linear-gradient-135deg-f0f9ff-0-e0f2fe-100pct { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); }
+.cal-max-height-420px { max-height: 420px; }
+.cal-font-size-0-82rem { font-size: 0.82rem; }
+.cal-padding-1-6em { padding: 1.6em; }
+.cal-background-linear-gradient-135deg-dc2626-b91c1c { background: linear-gradient(
+
+
+                                            135deg,
+
+
+                                            #dc2626,
+
+
+                                            #b91c1c
+
+
+                                        ); }
+.cal-border-radius-20px { border-radius: 20px; }
+.cal-grid-template-columns-repeat-auto-fill-minmax-180px-1fr { grid-template-columns: repeat(
+
+
+                                                auto-fill,
+
+
+                                                minmax(180px, 1fr)
+
+
+                                            ); }
+.cal-border-2px-solid-9333ea { border: 2px solid #9333ea; }
+.cal-border-radius-18px { border-radius: 18px; }
+.cal-font-weight-800 { font-weight: 800; }
+.cal-margin-bottom-12px { margin-bottom: 12px; }
+.cal-border-2-5px-solid-059669 { border: 2.5px solid #059669; }
+.cal-background-fdf2f8 { background: #fdf2f8; }
+.cal-padding-7px-18px { padding: 7px 18px; }
+.cal-padding-15px-32px { padding: 15px 32px; }
+.cal-box-sizing-border-box { box-sizing: border-box; }
+.cal-box-shadow-0-8px-25px-rgba-5-150-105-0-12 { box-shadow: 0 8px 25px
+
+
+                                        rgba(5, 150, 105, 0.12); }
+.cal-position-absolute { position: absolute; }
+.cal-height-18px { height: 18px; }
+.cal-background-fffbeb { background: #fffbeb; }
+.cal-margin-top-4px { margin-top: 4px; }
+.cal-text-transform-uppercase { text-transform: uppercase; }
+.cal-font-size-0-85em { font-size: 0.85em; }
+.cal-font-size-0-7em { font-size: 0.7em; }
+.cal-border-left-1px-solid-e2e8f0 { border-left: 1px
+
+
+                                                                            solid
+
+
+                                                                            #e2e8f0; }
+.cal-font-weight-700 { font-weight: 700; }
+.cal-border-top-color-9c0300 { border-top-color: #9c0300; }
+.cal-background-color-dc2626 { background-color: #dc2626; }
+.cal-font-size-0-65em { font-size: 0.65em; }
+.cal-width-64px { width: 64px; }
+.cal-background-rgba-255-255-255-0-18 { background: rgba(255, 255, 255, 0.18); }
+.cal-font-size-1-5em { font-size: 1.5em; }
+.cal-height-90px { height: 90px; }
+.cal-border-bottom-2px-solid-005194 { border-bottom: 2px
+
+
+                                                                    solid
+
+
+                                                                    #005194; }
+.cal-padding-14px-20px { padding: 14px 20px; }
+.cal-box-shadow-0-4px-15px-rgba-0-0-0-0-08 { box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
+.cal-padding-12px-18px { padding: 12px 18px; }
+.cal-margin-bottom-2em { margin-bottom: 2em; }
+.cal-width-28px { width: 28px; }
+.cal-color-ffffff { color: #ffffff; }
+.cal-color-ffd1d1 { color: #ffd1d1; }
+.cal-padding-2-2em-2-5em { padding: 2.2em 2.5em; }
+.cal-background-eff6ff { background: #eff6ff; }
+.cal-background-rgba-255-255-255-0-98 { background: rgba(255, 255, 255, 0.98); }
+.cal-box-shadow-0-4px-8px-rgba-0-0-0-0-06 { box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06); }
+.cal-transition-transform-0-15s-cubic-bezier-0-175-0-885-0-32-1-25-opacity-0-15s-ease { transition: transform 0.15s
+
+
+                                cubic-bezier(0.175, 0.885, 0.32, 1.25),
+
+
+                            opacity 0.15s ease; }
+.cal-right-22px { right: 22px; }
+.cal-padding-12px-16px { padding: 12px
+
+
+                                                                                16px; }
+.cal-padding-24px { padding: 24px; }
+.cal-height-80px { height: 80px; }
+.cal-background-linear-gradient-135deg-0369a1-0-0284c7-100pct { background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); }
+.cal-color-rgba-255-255-255-0-9 { color: rgba(255,255,255,0.9); }
+.cal-cursor-not-allowed { cursor: not-allowed; }
+.cal-border-2px-solid-f59e0b { border: 2px solid #f59e0b; }
+.cal-margin-top-5px { margin-top: 5px; }
+.cal-border-radius-12px { border-radius: 12px; }
+.cal-background-f3e8ff { background: #f3e8ff; }
+.cal-width-18px { width: 18px; }
+.cal-overflow-y-auto { overflow-y: auto; }
+.cal-margin-top-8px { margin-top: 8px; }
+.cal-margin-top-24px { margin-top: 24px; }
+.cal-flex-1 { flex: 1; }
+.cal-font-size-0-92rem { font-size: 0.92rem; }
+.cal-margin-0-0-5px-0 { margin: 0 0 5px 0; }
+.cal-font-size-1-08rem { font-size: 1.08rem; }
+.cal-color-a7f3d0 { color: #a7f3d0; }
+.cal-padding-14px-30px { padding: 14px 30px; }
+.cal-height-36px { height: 36px; }
+.cal-opacity-0-9 { opacity: 0.9; }
+.cal-white-space-nowrap { white-space: nowrap; }
+.cal-flex-direction-column { flex-direction: column; }
+.cal-font-style-italic { font-style: italic; }
+.cal-background-linear-gradient-135deg-059669-047857 { background: linear-gradient(135deg, #059669, #047857); }
+.cal-background-f0fdf4 { background: #f0fdf4; }
+.cal-border-bottom-2px-solid-e2e8f0 { border-bottom: 2px solid #e2e8f0; }
+.cal-color-334155 { color: #334155; }
+.cal-background-color-f0fdf4 { background-color: #f0fdf4; }
+.cal-gap-10px { gap: 10px; }
+.cal-background-rgba-0-81-148-0-06 { background: rgba(
+
+
+                                                                    0,
+
+
+                                                                    81,
+
+
+                                                                    148,
+
+
+                                                                    0.06
+
+
+                                                                ); }
+.cal-margin-bottom-14px { margin-bottom: 14px; }
+.cal-border-2px-solid-ef4444 { border: 2px solid #ef4444; }
+.cal-width-96vw { width: 96vw; }
+.cal-padding-left-10px { padding-left: 10px; }
+.cal-gap-7px { gap: 7px; }
+.cal-background-fef2f2 { background: #fef2f2; }
+.cal-padding-20px-24px { padding: 20px 24px; }
+.cal-opacity-0 { opacity: 0; }
+.cal-color-64748b { color: #64748b; }
+.cal-background-color-155724 { background-color: #155724; }
+.cal-color-9c0300 { color: #9c0300; }
+.cal-border-radius-6px { border-radius: 6px; }
+.cal-margin-0 { margin: 0; }
+.cal-height-34px { height: 34px; }
+.cal-border-1px-solid-feb2b2 { border: 1px
+
+
+                                                                    solid
+
+
+                                                                    #feb2b2; }
+.cal-border-left-4px-solid-94a3b8 { border-left: 4px solid #94a3b8; }
+.cal-justify-items-center { justify-items: center; }
+.cal-align-items-stretch { align-items: stretch; }
+.cal-gap-5px { gap: 5px; }
+.cal-align-items-center { align-items: center; }
+.cal-color-9333ea { color: #9333ea; }
+.cal-margin-bottom-0 { margin-bottom: 0; }
+.cal-margin-bottom-10px { margin-bottom: 10px; }
+.cal-gap-8px { gap: 8px; }
+.cal-background-rgba-255-255-255-0-95 { background: rgba(255, 255, 255, 0.95); }
+.cal-color-155724 { color: #155724; }
+.cal-box-shadow-0-8px-25px-rgba-220-38-38-0-12 { box-shadow: 0 8px 25px
+
+
+                                        rgba(220, 38, 38, 0.12); }
+.cal-color-fecaca { color: #fecaca; }
+.cal-margin-0-0-10px-0 { margin: 0 0 10px 0; }
+.cal-margin-top-7px { margin-top: 7px; }
+.cal-box-shadow-0-10px-25px-rgba-0-0-0-0-15 { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
+.cal-color-b91c1c { color: #b91c1c; }
+.cal-margin-bottom-16px { margin-bottom: 16px; }
+.cal-height-180px { height: 180px; }
+.cal-height-28px { height: 28px; }
+.cal-font-size-1-1em { font-size: 1.1em; }
+.cal-margin-bottom-8px { margin-bottom: 8px; }
+.cal-min-height-102px { min-height: 102px; }
+.cal-width-14px { width: 14px; }
+.cal-flex-wrap-wrap { flex-wrap: wrap; }
+.cal-border-2px-solid-0ea5e9 { border: 2px solid #0ea5e9; }
+.cal-margin-top-15px { margin-top: 15px; }
+.cal-font-size-1-15em { font-size: 1.15em; }
+.cal-color-064e3b { color: #064e3b; }
+.cal-border-radius-10px { border-radius: 10px; }
+.cal-line-height-1-2 { line-height: 1.2; }
+.cal-padding-16px { padding: 16px; }
+.cal-padding-12px { padding: 12px; }
+.cal-margin-bottom-30px { margin-bottom: 30px; }
+.cal-color-0f172a { color: #0f172a; }
+.cal-color-bae6fd { color: #bae6fd; }
+.cal-height-auto { height: auto; }
+.cal-background-fef9c3 { background: #fef9c3; }
+.cal-margin-bottom-4px { margin-bottom: 4px; }
+.cal-border-2px-solid-059669 { border: 2px solid #059669; }
+.cal-gap-32px { gap: 32px; }
+.cal-border-2px-solid-10b981 { border: 2px solid #10b981; }
+.cal-width-34px { width: 34px; }
+.cal-padding-2-5em-3em-2-2em { padding: 2.5em 3em 2.2em; }
+.cal-box-shadow-0-4px-15px-rgba-156-3-0-0-3 { box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3); }
+.cal-border-1px-solid-bae6fd { border: 1px
+
+
+                                                                                        solid
+
+
+                                                                                        #bae6fd; }
+.cal-margin-top-25px { margin-top: 25px; }
+.cal-width-60px { width: 60px; }
+.cal-line-height-1-6 { line-height: 1.6; }
+.cal-margin-top-30px { margin-top: 30px; }
+.cal-cursor-pointer { cursor: pointer; }
+.cal-z-index-99999 { z-index: 99999; }
+.cal-height-54px { height: 54px; }
+.cal-margin-top-32px { margin-top: 32px; }
+.cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 { box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04); }
+.cal-border-2px-solid-eab308 { border: 2px solid #eab308; }
+.cal-width-36px { width: 36px; }
+.cal-height-100pct { height: 100%; }
+.cal-font-family-quot { font-family: 'Poppins', sans-serif; }
+.cal-border-2px-dashed-dc2626 { border: 2px dashed #dc2626; }
+.cal-margin-top-20px { margin-top: 20px; }
+.cal-background-f1f5f9 { background: #f1f5f9; }
+.cal-position-relative { position: relative; }
+.cal-text-align-center { text-align: center; }
+.cal-padding-3em-3-5em { padding: 3em 3.5em; }
+.cal-font-size-0-93em { font-size: 0.93em; }
+.cal-height-12px { height: 12px; }
+.cal-padding-1-5em-5-5em-1-2em-2-2em { padding: 1.5em 5.5em 1.2em 2.2em; }
+.cal-padding-10px-6px { padding: 10px 6px; }
+.cal-width-30px { width: 30px; }
+.cal-color-059669 { color: #059669; }
+.cal-margin-left-auto { margin-left: auto; }
+.cal-color-fff { color: #fff; }
+.cal-background-f0f9ff { background: #f0f9ff; }
+.cal-border-2px-solid-cbd5e1 { border: 2px solid #cbd5e1; }
+.cal-font-size-0-95em { font-size: 0.95em; }
+.cal-border-radius-8px { border-radius: 8px; }
+.cal-width-48px { width: 48px; }
+.cal-color-047857 { color: #047857; }
+.cal-width-12px { width: 12px; }
+.cal-background-ecfdf5 { background: #ecfdf5; }
+.cal-color-2563eb { color: #2563eb; }
+.cal-width-100pct { width: 100%; }
+.cal-color-b45309 { color: #b45309; }
+.cal-border-1px-solid-e2e8f0 { border: 1px solid #e2e8f0; }
+.cal-display-block { display: block; }
+.cal-color-065f46 { color: #065f46; }
+.cal-background-color-fef2f2 { background-color: #fef2f2; }
+.cal-line-height-1-1 { line-height: 1.1; }
+.cal-color-854d0e { color: #854d0e; }
+.cal-background-fff5f5 { background: #fff5f5; }
+.cal-padding-10px-20px { padding: 10px 20px; }
+.cal-justify-content-center { justify-content: center; }
+.cal-border-2px-dashed-9c0300 { border: 2px dashed #9c0300; }
+.cal-height-30px { height: 30px; }
+.cal-backdrop-filter-blur-10px { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.cal-border-bottom-1px-solid-bae6fd { border-bottom: 1px solid #bae6fd; }
+.cal-border-1-8px-solid-fecaca { border: 1.8px solid #fecaca; }
+.cal-min-height-80px { min-height: 80px; }
+.cal-border-3px-solid-cbd5e1 { border: 3px solid #cbd5e1; }
+.cal-width-38px { width: 38px; }
+.cal-pointer-events-none { pointer-events: none; }
+.cal-background-color-dc3545 { background-color: #dc3545; }
+.cal-box-shadow-0-3px-10px-rgba-3-105-161-0-25 { box-shadow: 0 3px 10px rgba(3,105,161,0.25); }
+.cal-object-fit-contain { object-fit: contain; }
+.cal-gap-2px { gap: 2px; }
+.cal-background-linear-gradient-135deg-9c0300-7a0200 { background: linear-gradient(
+
+
+                                    135deg,
+
+
+                                    #9c0300,
+
+
+                                    #7a0200
+
+
+                                ); }
+.cal-width-54px { width: 54px; }
+.cal-margin-bottom-28px { margin-bottom: 28px; }
+.cal-border-1-5px-dashed-005194 { border: 1.5px
+
+
+                                                                    dashed
+
+
+                                                                    #005194; }
+.cal-font-size-1-2em { font-size: 1.2em; }
+.cal-display-inline-flex { display: inline-flex; }
+.cal-object-fit-cover { object-fit: cover; }
+.cal-width-24px { width: 24px; }
+.cal-height-48px { height: 48px; }
+.cal-gap-14px { gap: 14px; }
+.cal-position-fixed { position: fixed; }
+.cal-border-top-color-0284c7 { border-top-color: #0284c7; }
+.cal-flex-shrink-0 { flex-shrink: 0; }
+.cal-border-2px-solid-dc2626 { border: 2px solid #dc2626; }
+.cal-border-2-5px-solid-dc2626 { border: 2.5px solid #dc2626; }
+.cal-display-flex { display: flex; }
+.cal-border-1-5px-solid-rgba-255-255-255-0-45 { border: 1.5px solid rgba(255, 255, 255, 0.45); }
+.cal-border-top-none { border-top: none; }
+.cal-width-170px { width: 170px; }
+.cal-border-2px-solid-60a5fa { border: 2px solid #60a5fa; }
+.cal-overflow-hidden { overflow: hidden; }
+.cal-font-size-0-85rem { font-size: 0.85rem; }
+.cal-color-15803d { color: #15803d; }
+.cal-justify-content-space-between { justify-content: space-between; }
+.cal-display-grid { display: grid; }
+.cal-width-calc-33-33-6pxpct { width: calc(33.33% - 6px); }
+.cal-color-be185d { color: #be185d; }
+.cal-font-size-0-9em { font-size: 0.9em; }
+.cal-line-height-1-3 { line-height: 1.3; }
+.cal-padding-bottom-5px { padding-bottom: 5px; }
+.cal-height-14px { height: 14px; }
+.cal-max-width-1500px { max-width: 1500px; }
+.cal-color-white { color: white; }
+.cal-grid-column-1-1 { grid-column: 1/-1; }
+.cal-height-24px { height: 24px; }
+.cal-gap-12px { gap: 12px; }
+.cal-color-005194 { color: #005194; }
+.cal-max-width-1100px { max-width: 1100px; }
+.cal-border-bottom-2px-solid-9c0300 { border-bottom: 2px
+
+
+                                                                    solid
+
+
+                                                                    #9c0300; }
+.cal-background-fff8f8 { background: #fff8f8; }
+.cal-font-size-1-3em { font-size: 1.3em; }
+.cal-border-1-5px-solid-e2e8f0 { border: 1.5px solid #e2e8f0; }
+.cal-border-3px-solid-transparent { border: 3px solid transparent; }
+.cal-height-55px { height: 55px; }
+.cal-background-fafafa { background: #fafafa; }
+.cal-opacity-0-5 { opacity: 0.5; }
+.cal-width-95vw { width: 95vw; }
+.cal-padding-15px { padding: 15px; }
+.cal-font-weight-600 { font-weight: 600; }
+.cal-height-38px { height: 38px; }
+.cal-border-top-left-radius-18px { border-top-left-radius: 18px; }
+.cal-background-color-9c0300 { background-color: #9c0300; }
+.cal-border-1px-solid-bbf7d0 { border: 1px
+
+
+                                                                    solid
+
+
+                                                                    #bbf7d0; }
+.cal-font-size-0-8rem { font-size: 0.8rem; }
+.cal-font-size-1-3rem { font-size: 1.3rem; }
+.cal-border-1px-solid-fecaca { border: 1px
+
+
+                                                                    solid
+
+
+                                                                    #fecaca; }
+.cal-color-0369a1 { color: #0369a1; }
+.cal-border-bottom-2px-solid-rgba-5-150-105-0-5 { border-bottom: 2px solid rgba(5, 150, 105, 0.5); }
+.cal-top-18px { top: 18px; }
+.cal-width-55px { width: 55px; }
+.cal-max-height-280px { max-height: 280px; }
+.cal-padding-14px-18px { padding: 14px
+
+
+                                                                    18px; }
+.cal-width-90px { width: 90px; }
+.cal-background-color-0369a1 { background-color: #0369a1; }
+.cal-margin-bottom-20px { margin-bottom: 20px; }
+.cal-margin-top-40px { margin-top: 40px; }
+.cal-padding-bottom-12px { padding-bottom: 12px; }
+.cal-border-left-4px-solid-3b82f6 { border-left: 4px solid #3b82f6; }
+.cal-border-2px-solid-ec4899 { border: 2px solid #ec4899; }
+.cal-border-1-8px-solid-bbf7d0 { border: 1.8px solid #bbf7d0; }
+.cal-padding-20px { padding: 20px; }
+.cal-font-weight-500 { font-weight: 500; }
+.cal-display-none { display: none; }
+.cal-border-radius-14px { border-radius: 14px; }
+.cal-border-bottom-2px-solid-155724 { border-bottom: 2px
+
+
+                                                                    solid
+
+
+                                                                    #155724; }
+.cal-font-family-Poppins-sans-serif { font-family: 'Poppins', sans-serif; }
+.cal-margin-top-10px { margin-top: 10px; }
+.cal-gap-15px { gap: 15px; }
+.cal-background-color-059669 { background-color: #059669; }

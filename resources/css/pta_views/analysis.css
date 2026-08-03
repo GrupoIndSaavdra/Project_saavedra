@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ── Layout ──────────────────────────────────────────────── */
 .pta-analysis-wrapper {
     width: 100%;
@@ -458,3 +461,30 @@
     background-color: #efefef;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
+
+/* Auto-generated utility classes */
+.ana-text-align-center { text-align: center; }
+.ana-margin-left-auto { margin-left: auto; }
+.ana-margin-top-1-5rem { margin-top: 1.5rem; }
+.ana-background-f7f7f7 { background: #f7f7f7; }
+.ana-font-size-9rem { font-size: .9rem; }
+.ana-border-radius-8px { border-radius: 8px; }
+.ana-margin-0-2rem-0-0 { margin: 0.2rem 0 0; }
+.ana-border-radius-0 { border-radius: 0; }
+.ana-margin-bottom-2rem { margin-bottom: 2rem; }
+.ana-padding-0-1-5rem { padding: 0 1.5rem; }
+.ana-margin-bottom-2-5rem { margin-bottom: 2.5rem; }
+.ana-border-1px-dashed-ccc { border: 1px dashed #ccc; }
+.ana-font-size-0-95rem { font-size: 0.95rem; }
+.ana-background-fbfbfb { background: #fbfbfb; }
+.ana-border-bottom-2px-solid-ddd { border-bottom: 2px solid #ddd; }
+.ana-color-d32f2f { color: #d32f2f; }
+.ana-box-shadow-none { box-shadow: none; }
+.ana-color-888 { color: #888; }
+.ana-padding-1-5rem { padding: 1.5rem; }
+.ana-margin-bottom-1-5rem { margin-bottom: 1.5rem; }
+.ana-padding-1rem-1-5rem { padding: 1rem 1.5rem; }
+.ana-border-radius-10px { border-radius: 10px; }
+.ana-margin-0 { margin: 0; }
+.ana-opacity-8 { opacity: .8; }
+.ana-margin-top-2rem { margin-top: 2rem; }

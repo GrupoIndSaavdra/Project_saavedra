@@ -1,4 +1,4 @@
-{{-- _modal_liberacion_modelos.blade.php — F-CCL-LDM v2 --}}
+﻿{{-- _modal_liberacion_modelos.blade.php — F-CCL-LDM v2 --}}
 @php
     $itemsModelo = ['A'=>'Altura de la ceja','A1'=>'Altura de sufridera','B'=>'Altura total',
                     'C'=>'Diam. de ceja','D1'=>'Diam. de mordaza','D2'=>'Laterales',
@@ -115,7 +115,7 @@
              TABLA 1 — Macho y Hembra (Bombillo + Molde)
              Columnas: MEDIDA DEL DIBUJO | ITEM | MACHO | HEMBRA
              ──────────────────────────────────────────────────────────────────── --}}
-        <div class="lib-tabla-section" id="lib-tabla-1" style="display:none;">
+        <div class="lib-tabla-section hidden">
           <h4 class="lib-section-title">Dimensiones del Modelo — Macho y Hembra</h4>
           <div class="lib-table-wrapper">
             <table class="lib-report-table">
@@ -164,8 +164,8 @@
             </table>
           </div>
           {{-- OBSERVACIONES TABLA 1 --}}
-          <div class="lib-section-block" style="margin-top: 1.5em;">
-            <h5 style="font-weight: 700; color: #033966; font-size: 1.1em; margin-bottom: 8px;">Observaciones de Dimensiones del Modelo</h5>
+          <div class="lib-section-block mt-1-5em">
+            <h5 class="modal-subtitle">Observaciones de Dimensiones del Modelo</h5>
             <textarea id="lib-obs-modelo" name="observaciones_modelo"
                       class="form-control lib-textarea" rows="3"
                       placeholder="Observaciones de dimensiones del modelo Macho y Hembra..."></textarea>
@@ -175,7 +175,7 @@
         {{-- ────────────────────────────────────────────────────────────────────
              TABLA 2 — Plantilla y Templadera (Bombillo + Molde)
              ──────────────────────────────────────────────────────────────────── --}}
-        <div class="lib-tabla-section" id="lib-tabla-2" style="display:none;">
+        <div class="lib-tabla-section hidden">
           <h4 class="lib-section-title">Plantilla y Templadera de Madera</h4>
           <div class="lib-table-wrapper lib-matrix-wrapper">
 
@@ -184,13 +184,13 @@
                 <tr>
                   <th rowspan="2" class="lib-th-tipo" style="vertical-align: middle;">MEDIDA DE<br>PLANTILLA</th>
                   @foreach ($matrixCols as $mainCol => $subCols)
-                    <th colspan="{{ count($subCols) }}" class="lib-th-main-col" style="text-align: center;">{{ $mainCol }}</th>
+                    <th colspan="{{ count($subCols) }}" class="lib-th-main-col text-center">{{ $mainCol }}</th>
                   @endforeach
                 </tr>
                 <tr>
                   @foreach ($matrixCols as $mainCol => $subCols)
                     @foreach ($subCols as $sub)
-                      <th class="lib-th-sub" style="text-align: center;">{{ $sub }}</th>
+                      <th class="lib-th-sub text-center">{{ $sub }}</th>
                     @endforeach
                   @endforeach
                 </tr>
@@ -228,13 +228,13 @@
                 <tr>
                   <th rowspan="2" class="lib-th-tipo" style="vertical-align: middle;">MEDIDA DE<br>TEMPLADERA DE MADERA</th>
                   @foreach ($matrixCols as $mainCol => $subCols)
-                    <th colspan="{{ count($subCols) }}" class="lib-th-main-col" style="text-align: center;">{{ $mainCol }}</th>
+                    <th colspan="{{ count($subCols) }}" class="lib-th-main-col text-center">{{ $mainCol }}</th>
                   @endforeach
                 </tr>
                 <tr>
                   @foreach ($matrixCols as $mainCol => $subCols)
                     @foreach ($subCols as $sub)
-                      <th class="lib-th-sub" style="text-align: center;">{{ $sub }}</th>
+                      <th class="lib-th-sub text-center">{{ $sub }}</th>
                     @endforeach
                   @endforeach
                 </tr>
@@ -269,8 +269,8 @@
 
           </div>
           {{-- OBSERVACIONES TABLA 2 --}}
-          <div class="lib-section-block" style="margin-top: 1.5em;">
-            <h5 style="font-weight: 700; color: #033966; font-size: 1.1em; margin-bottom: 8px;">Observaciones de Plantilla y Templadera</h5>
+          <div class="lib-section-block mt-1-5em">
+            <h5 class="modal-subtitle">Observaciones de Plantilla y Templadera</h5>
             <textarea id="lib-obs-plantilla" name="observaciones_plantilla"
                       class="form-control lib-textarea" rows="3"
                       placeholder="Observaciones de plantilla y templadera de madera..."></textarea>
@@ -280,7 +280,7 @@
         {{-- ────────────────────────────────────────────────────────────────────
              TABLA 3 — Fondo (solo Fondo)
              ──────────────────────────────────────────────────────────────────── --}}
-        <div class="lib-tabla-section" id="lib-tabla-fondo" style="display:none;">
+        <div class="lib-tabla-section hidden">
           <h4 class="lib-section-title" id="lib-tabla-fondo-title">Dimensiones de Fondo</h4>
           <div class="lib-table-wrapper">
             <table class="lib-report-table">
@@ -317,8 +317,8 @@
             </table>
           </div>
           {{-- OBSERVACIONES TABLA 3 --}}
-          <div class="lib-section-block" style="margin-top: 1.5em;">
-            <h5 style="font-weight: 700; color: #033966; font-size: 1.1em; margin-bottom: 8px;">Observaciones de Fondo</h5>
+          <div class="lib-section-block mt-1-5em">
+            <h5 class="modal-subtitle">Observaciones de Fondo</h5>
             <textarea id="lib-obs-fondo" name="observaciones_fondo"
                       class="form-control lib-textarea" rows="3"
                       placeholder="Observaciones de dimensiones de fondo..."></textarea>
@@ -328,7 +328,7 @@
         {{-- ────────────────────────────────────────────────────────────────────
              TABLA 4 — Obturador (solo Obturador)
              ──────────────────────────────────────────────────────────────────── --}}
-        <div class="lib-tabla-section" id="lib-tabla-obturador" style="display:none;">
+        <div class="lib-tabla-section hidden">
           <h4 class="lib-section-title">Dimensiones de Obturador</h4>
           <div class="lib-table-wrapper">
             <table class="lib-report-table">
@@ -365,8 +365,8 @@
             </table>
           </div>
           {{-- OBSERVACIONES TABLA 4 --}}
-          <div class="lib-section-block" style="margin-top: 1.5em;">
-            <h5 style="font-weight: 700; color: #033966; font-size: 1.1em; margin-bottom: 8px;">Observaciones de Obturador</h5>
+          <div class="lib-section-block mt-1-5em">
+            <h5 class="modal-subtitle">Observaciones de Obturador</h5>
             <textarea id="lib-obs-obturador" name="observaciones_obturador"
                       class="form-control lib-textarea" rows="3"
                       placeholder="Observaciones de dimensiones de obturador..."></textarea>
@@ -397,9 +397,9 @@
         </div>
 
         {{-- MOTIVO DE RECHAZO (condicional) --}}
-        <div class="lib-section-block lib-rechazo-block" id="lib-rechazo-block" style="display:none;">
+        <div class="lib-section-block lib-rechazo-block hidden">
           <h4 class="lib-section-title lib-section-title-danger">Motivo de Rechazo</h4>
-          <p class="lib-section-hint" style="color:#9c0300;">
+          <p class="lib-section-hint text-danger">
             Describe el incumplimiento que impide la liberacion del modelo.
           </p>
           <textarea id="lib-motivo-rechazo" name="motivo_rechazo"

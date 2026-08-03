@@ -37,7 +37,7 @@ class MachinesController extends Controller
         return $occupiedMachines;
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function freeUp(Request $request)
     {

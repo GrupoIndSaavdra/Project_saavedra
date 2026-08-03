@@ -16,12 +16,6 @@
         :root {
             --triangulo-abajo: url('{{ asset("images/triangulo_abajo.png") }}');
         }
-        .open-menu {
-            padding: 4px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
     </style>
     <script>
         window.loading = "{{ asset('images/loading.gif') }}"
@@ -107,6 +101,7 @@
         productionData: @json(route('productionData')),
         panelProgreso: @json(route('panelProgreso')),
         machinesOccupied: @json(route('machinesOccupied')),
+        processProduction: @json(route('processProduction')),
         logout: @json(route('logout')),
         'soldadura.generarQRLote': @json(route('soldadura.generarQRLote')),
         'soldadura.generarQRIndividual': @json(route('soldadura.generarQRIndividual')),

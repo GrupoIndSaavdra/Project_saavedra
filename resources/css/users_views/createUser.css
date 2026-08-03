@@ -1,10 +1,13 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 @import "../layouts/partials/messages.css";
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+    /* font-family heredado de global.css */
 }
 
 /* Contenedor centrado */
@@ -22,12 +25,12 @@
 .cascading-right {
     box-sizing: border-box;
     background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
     width: 100%;
     max-width: 520px;
     border-radius: 10px;
-    border: 5px solid #033966;
+    border: 5px solid var(--gis-blue);
     box-shadow: 0 8px 32px rgba(3, 57, 102, 0.2);
     padding: 2.5rem;
     display: flex;
@@ -47,7 +50,7 @@
 .sub-title {
     text-align: center;
     font-size: 1.5rem;
-    color: #033966;
+    color: var(--gis-blue);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 1.5px;
@@ -95,25 +98,25 @@
     text-align: center;
     border: 2px solid rgba(3, 57, 102, 0.25);
     background: #ffffff;
-    color: #033966;
+    color: var(--gis-blue);
     transition: all 0.3s ease;
 }
 
 .form-control:focus,
 .form-select:focus {
-    border-color: #033966;
+    border-color: var(--gis-blue);
     background: #f0f6fc;
     box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
 }
 
 .form-control:hover,
 .form-select:hover {
-    border-color: #033966;
+    border-color: var(--gis-blue);
 }
 
 .form-label {
     font-size: 0.82rem;
-    color: #033966;
+    color: var(--gis-blue);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -123,7 +126,7 @@
 /* Botón de envío */
 .custom-btn {
     width: 100%;
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: #fff;
     padding: 0.8rem;
     border-radius: 6px;
@@ -199,3 +202,9 @@
         padding: 0.7rem;
     }
 }
+
+/* Auto-generated utility classes */
+.use-font-size-9rem { font-size: .9rem; }
+.use-color-1e293b { color: #1e293b; }
+.use-font-weight-600 { font-weight: 600; }
+.use-display-inline { display: inline; }

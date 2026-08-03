@@ -17,7 +17,7 @@ class LoginController extends Controller
         return view('auth.login');
     }
         /**
-     * @param \Illuminate\Http\Request LoginRequest $request
+     * @param LoginRequest $request
      */
     public function login(LoginRequest $request)
     {
@@ -46,7 +46,7 @@ class LoginController extends Controller
         return $this->authenticated($request, $user);
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      * @param mixed $user
      */
     public function authenticated(Request $request, $user)

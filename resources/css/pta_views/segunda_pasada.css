@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ═══════════════════════════════════════════════════════════════
    resources/css/pta_views/segunda_pasada.css
    ─────── Enhanced Segunda Pasada — Soldadura PTA ──────────────
@@ -53,6 +56,7 @@
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.55);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     z-index: 9999;
     align-items: center;
@@ -376,3 +380,23 @@
     pointer-events: none;
     animation: fadeIn 0.5s ease-out 0.5s both;
 }
+
+/* Auto-generated utility classes */
+.seg-color-f9a825 { color: #f9a825; }
+.seg-width-60px { width: 60px; }
+.seg-cursor-pointer { cursor: pointer; }
+.seg-background-transparent { background: transparent; }
+.seg-border-radius-8px { border-radius: 8px; }
+.seg-background-055a9e { background: #055a9e; }
+.seg-color-388e3c { color: #388e3c; }
+.seg-background-fff8e1 { background: #fff8e1; }
+.seg-padding-1-2rem { padding: 1.2rem; }
+.seg-text-align-center { text-align: center; }
+.seg-padding-0 { padding: 0; }
+.seg-padding-0-important { padding: 0 !important; }
+.seg-color-1565c0 { color: #1565c0; }
+.seg-font-weight-bold { font-weight: bold; }
+.seg-margin-bottom-1-5rem { margin-bottom: 1.5rem; }
+.seg-background-e3f2fd { background: #e3f2fd; }
+.seg-width-25px { width: 25px; }
+.seg-background-e8f5e9 { background: #e8f5e9; }

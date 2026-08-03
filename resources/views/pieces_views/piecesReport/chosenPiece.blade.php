@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     <title>Visualizacion de pieza</title>
@@ -913,13 +913,13 @@
             </div>
             <div class="scrollabe-table" id="scrollabe-table">
                 @if ($process == 'Asentado')
-                    <table border="1" class="tabla3" style="width: 100%;">
+                    <table border="1" class="tabla3 cp-width-100pct">
                         <tr>
-                            <th class="t-title" style="width:150px">#PZ</th>
+                            <th class="t-title cp-width-150px">#PZ</th>
                             <th class="t-title">Sin juego</th>
                             <th class="t-title">Sin luz</th>
                             <th class="t-title">Error</th>
-                            <th class="t-title" style="width:700px">Observaciones</th>
+                            <th class="t-title cp-width-700px">Observaciones</th>
                         </tr>
                         @foreach ($piecesInfo as $piece)
                             <tr>
@@ -940,40 +940,20 @@
                 @elseif ($process == 'Cavidades')
                     <table class="tabla3">
                         <tr>
-                            <th class="t-title" style="width:150px;">#PZ</th>
+                            <th class="t-title cp-width-150px">#PZ</th>
                             <th class="t-title" colspan="2">
                                 Altura 1
                                 @if (isset($cNominal->altura1) && !isset($cNominal->profundidad1))
-                                    <div style="margin-top: 6px;">
-                                        <span style="
-                                                                                                display: inline-flex;
-                                                                                                align-items: center;
-                                                                                                padding: 2px 12px;
-                                                                                                background: #f1f3f5;
-                                                                                                border-radius: 50px;
-                                                                                                font-size: 11px;
-                                                                                                color: #495057;
-                                                                                                border: 1px solid #dee2e6;
-                                                                                                font-weight: 500;
-                                                                                            ">
-                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                    <div class="cp-margin-top-6px">
+                                        <span class="cp-display-inline-flex cp-align-items-center cp-padding-2px-12px cp-background-f1f3f5 cp-border-radius-50px cp-font-size-11px cp-color-495057 cp-border-1px-solid-dee2e6 cp-font-weight-500">
+                                            <strong class="cp-color-007bff cp-margin-right-5px">REF</strong>
                                             {{ $cNominal->altura1 }} mm
                                         </span>
                                     </div>
                                 @elseif (isset($cNominal->profundidad1))
-                                    <div style="margin-top: 6px;">
-                                        <span style="
-                                                                                                display: inline-flex;
-                                                                                                align-items: center;
-                                                                                                padding: 2px 12px;
-                                                                                                background: #f1f3f5;
-                                                                                                border-radius: 50px;
-                                                                                                font-size: 11px;
-                                                                                                color: #495057;
-                                                                                                border: 1px solid #dee2e6;
-                                                                                                font-weight: 500;
-                                                                                            ">
-                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                    <div class="cp-margin-top-6px">
+                                        <span class="cp-display-inline-flex cp-align-items-center cp-padding-2px-12px cp-background-f1f3f5 cp-border-radius-50px cp-font-size-11px cp-color-495057 cp-border-1px-solid-dee2e6 cp-font-weight-500">
+                                            <strong class="cp-color-007bff cp-margin-right-5px">REF</strong>
                                             {{ $cNominal->profundidad1 }} mm
                                         </span>
                                     </div>
@@ -982,36 +962,16 @@
                             <th class="t-title" colspan="2">
                                 Altura 2
                                 @if (isset($cNominal->altura2) && !isset($cNominal->profundidad1))
-                                    <div style="margin-top: 6px;">
-                                        <span style="
-                                                                                                display: inline-flex;
-                                                                                                align-items: center;
-                                                                                                padding: 2px 12px;
-                                                                                                background: #f1f3f5;
-                                                                                                border-radius: 50px;
-                                                                                                font-size: 11px;
-                                                                                                color: #495057;
-                                                                                                border: 1px solid #dee2e6;
-                                                                                                font-weight: 500;
-                                                                                            ">
-                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                    <div class="cp-margin-top-6px">
+                                        <span class="cp-display-inline-flex cp-align-items-center cp-padding-2px-12px cp-background-f1f3f5 cp-border-radius-50px cp-font-size-11px cp-color-495057 cp-border-1px-solid-dee2e6 cp-font-weight-500">
+                                            <strong class="cp-color-007bff cp-margin-right-5px">REF</strong>
                                             {{ $cNominal->altura2 }} mm
                                         </span>
                                     </div>
                                 @elseif (isset($cNominal->profundidad2))
-                                    <div style="margin-top: 6px;">
-                                        <span style="
-                                                                                                display: inline-flex;
-                                                                                                align-items: center;
-                                                                                                padding: 2px 12px;
-                                                                                                background: #f1f3f5;
-                                                                                                border-radius: 50px;
-                                                                                                font-size: 11px;
-                                                                                                color: #495057;
-                                                                                                border: 1px solid #dee2e6;
-                                                                                                font-weight: 500;
-                                                                                            ">
-                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                    <div class="cp-margin-top-6px">
+                                        <span class="cp-display-inline-flex cp-align-items-center cp-padding-2px-12px cp-background-f1f3f5 cp-border-radius-50px cp-font-size-11px cp-color-495057 cp-border-1px-solid-dee2e6 cp-font-weight-500">
+                                            <strong class="cp-color-007bff cp-margin-right-5px">REF</strong>
                                             {{ $cNominal->profundidad2 }} mm
                                         </span>
                                     </div>
@@ -1020,36 +980,16 @@
                             <th class="t-title" colspan="2">
                                 Altura 3
                                 @if (isset($cNominal->altura3) && !isset($cNominal->profundidad1))
-                                    <div style="margin-top: 6px;">
-                                        <span style="
-                                                                                                display: inline-flex;
-                                                                                                align-items: center;
-                                                                                                padding: 2px 12px;
-                                                                                                background: #f1f3f5;
-                                                                                                border-radius: 50px;
-                                                                                                font-size: 11px;
-                                                                                                color: #495057;
-                                                                                                border: 1px solid #dee2e6;
-                                                                                                font-weight: 500;
-                                                                                            ">
-                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                    <div class="cp-margin-top-6px">
+                                        <span class="cp-display-inline-flex cp-align-items-center cp-padding-2px-12px cp-background-f1f3f5 cp-border-radius-50px cp-font-size-11px cp-color-495057 cp-border-1px-solid-dee2e6 cp-font-weight-500">
+                                            <strong class="cp-color-007bff cp-margin-right-5px">REF</strong>
                                             {{ $cNominal->altura3 }} mm
                                         </span>
                                     </div>
                                 @elseif (isset($cNominal->profundidad3))
-                                    <div style="margin-top: 6px;">
-                                        <span style="
-                                                                                                display: inline-flex;
-                                                                                                align-items: center;
-                                                                                                padding: 2px 12px;
-                                                                                                background: #f1f3f5;
-                                                                                                border-radius: 50px;
-                                                                                                font-size: 11px;
-                                                                                                color: #495057;
-                                                                                                border: 1px solid #dee2e6;
-                                                                                                font-weight: 500;
-                                                                                            ">
-                                            <strong style="color: #007bff; margin-right: 5px;">REF</strong>
+                                    <div class="cp-margin-top-6px">
+                                        <span class="cp-display-inline-flex cp-align-items-center cp-padding-2px-12px cp-background-f1f3f5 cp-border-radius-50px cp-font-size-11px cp-color-495057 cp-border-1px-solid-dee2e6 cp-font-weight-500">
+                                            <strong class="cp-color-007bff cp-margin-right-5px">REF</strong>
                                             {{ $cNominal->profundidad3 }} mm
                                         </span>
                                     </div>
@@ -1074,7 +1014,7 @@
                             @endif
                             <th>Acetato B/M</th>
                             <th>Error</th>
-                            <th style="width: 1000px;">Observaciones</th>
+                            <th class="cp-width-1000px">Observaciones</th>
                         </tr>
                         <tr>
                             <td>C.Nominal</td>
@@ -1304,7 +1244,7 @@
                     <table border="1" class="tabla3">
                         <label class="title-subproceso"> C I L I N D R A D O</label>
                         <tr>
-                            <th class="t-title" style="width:150px">#PZ</th>
+                            <th class="t-title cp-width-150px">#PZ</th>
                             <th class="t-title">Diametro 1</th>
                             <th class="t-title">Profundidad 1</th>
                             <th class="t-title">Diametro 2</th>
@@ -1314,8 +1254,8 @@
                             <th class="t-title">Profundidad de ranura</th>
                             <th class="t-title">Profundidad de sufridera</th>
                             <th class="t-title">Altura total</th>
-                            <th class="t-title" style="width:200px">Error</th><br>
-                            <th class="t-title" style="width:700px">Observaciones</th>
+                            <th class="t-title cp-width-200px">Error</th><br>
+                            <th class="t-title cp-width-700px">Observaciones</th>
                         </tr>
                         <tr>
                             <td>C.Nominal.</td>
@@ -1404,35 +1344,35 @@
                     <table border="1" class="tabla3">
                         <>
                             <tr>
-                                <th class="t-title" style="width:150px;">#PZ</th>
-                                <th class="t-title" colspan="1" style="width:200px; border-bottom:none;">Ancho de
+                                <th class="t-title cp-width-150px">#PZ</th>
+                                <th class="t-title cp-width-200px cp-border-bottom-none">Ancho de
                                     altura</th>
                                 <th class="t-title" colspan="2">Profundidad de tacon</th>
                                 <th class="t-title" colspan="2">Simetría</th>
-                                <th class="t-title" colspan="1" style="width:200px; border-bottom:none;">Ancho del
+                                <th class="t-title cp-width-200px cp-border-bottom-none">Ancho del
                                     tacon</th>
                                 <th class="t-title" colspan="2">Barreno Lateral</th>
-                                <th class="t-title" colspan="1" style="width:200px; border-bottom:none;">Altura tacon
+                                <th class="t-title cp-width-200px cp-border-bottom-none">Altura tacon
                                     inicial</th>
-                                <th class="t-title" colspan="1" style="width:200px; border-bottom:none;">Altura tacon
+                                <th class="t-title cp-width-200px cp-border-bottom-none">Altura tacon
                                     intermedia</th>
-                                <th class="t-title" style="width:200px; border-bottom:none;">Error</th>
-                                <th class="t-title" style="width:700px; border-bottom:none;">Observaciones</th>
+                                <th class="t-title cp-width-200px cp-border-bottom-none">Error</th>
+                                <th class="t-title cp-width-700px cp-border-bottom-none">Observaciones</th>
                             </tr>
                             <tr>
                                 <th class="t-title"></th>
-                                <th style="border-bottom:none; border-top:none;"></th>
+                                <th class="cp-border-bottom-none cp-border-top-none"></th>
                                 <th>Hembra</th>
                                 <th>Macho</th>
                                 <th>Hembra</th>
                                 <th>Macho</th>
-                                <th style="border-bottom:none; border-top:none;"></th>
+                                <th class="cp-border-bottom-none cp-border-top-none"></th>
                                 <th>Hembra</th>
                                 <th>Macho</th>
-                                <th style="border-bottom:none; border-top:none;"></th>
-                                <th style="border-bottom:none; border-top:none;"></th>
-                                <th style="border-bottom:none; border-top:none;"></th>
-                                <th style="border-bottom:none; border-top:none;"></th>
+                                <th class="cp-border-bottom-none cp-border-top-none"></th>
+                                <th class="cp-border-bottom-none cp-border-top-none"></th>
+                                <th class="cp-border-bottom-none cp-border-top-none"></th>
+                                <th class="cp-border-bottom-none cp-border-top-none"></th>
                             </tr>
                             <tr>
                                 <td>C.Nominal</td>
@@ -1524,30 +1464,27 @@
                                 @endphp
                                 <tr>
                                     <td><input type="text" class="input" value="{{ $pieceInfo['n_pieza'] }}" disabled></td>
-                                    <td><input type="number" class="input" {!! $errorsInfo['anchoRanura'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['anchoRanura'] }}" step="any"
+                                    <td><input type="number" class="input cp-border-3px-solid-red"' : '' !!} value="{{ $pieceInfo['anchoRanura'] }}" step="any"
                                             inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" {!! $errorsInfo['profuTaconHembra'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['profuTaconHembra'] }}" step="any"
+                                    <td><input type="number" class="input cp-border-3px-solid-red"' : '' !!} value="{{ $pieceInfo['profuTaconHembra'] }}" step="any"
                                             inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" {!! $errorsInfo['profuTaconMacho'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['profuTaconMacho'] }}" step="any"
+                                    <td><input type="number" class="input cp-border-3px-solid-red"' : '' !!} value="{{ $pieceInfo['profuTaconMacho'] }}" step="any"
                                             inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" {!! $errorsInfo['simetriaHembra'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['simetriaHembra'] }}" step="any"
+                                    <td><input type="number" class="input cp-border-3px-solid-red"' : '' !!} value="{{ $pieceInfo['simetriaHembra'] }}" step="any"
                                             inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" {!! $errorsInfo['simetriaMacho'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['simetriaMacho'] }}" step="any"
+                                    <td><input type="number" class="input cp-border-3px-solid-red"' : '' !!} value="{{ $pieceInfo['simetriaMacho'] }}" step="any"
                                             inputmode="decimal" disabled></td>
-                                    <td><input type="number" class="input" {!! $errorsInfo['anchoTacon'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['anchoTacon'] }}" step="any" inputmode="decimal"
+                                    <td><input type="number" class="input cp-border-3px-solid-red"' : '' !!} value="{{ $pieceInfo['anchoTacon'] }}" step="any" inputmode="decimal"
                                             disabled></td>
-                                    <td><input type="number" class="input" {!! $errorsInfo['barrenoLateralHembra'] ? 'style="border: 3px solid red;"' : '' !!} value="{{ $pieceInfo['barrenoLateralHembra'] }}" step="any"
+                                    <td><input type="number" class="input cp-border-3px-solid-red"' : '' !!} value="{{ $pieceInfo['barrenoLateralHembra'] }}" step="any"
                                             inputmode="decimal" disabled></td>
-                                    <td><input type="number"
-                                            class="input" {!! $errorsInfo['barrenoLateralMacho'] ? 'style="border: 3px solid red;"' : '' !!}
+                                    <td><input type="number" class="input cp-border-3px-solid-red"' : '' !!}
                                             value="{{ $pieceInfo['barrenoLateralMacho'] }}" step="any" inputmode="decimal" disabled>
                                     </td>
-                                    <td><input type="number"
-                                            class="input" {!! $errorsInfo['alturaTaconInicial'] ? 'style="border: 3px solid red;"' : '' !!}
+                                    <td><input type="number" class="input cp-border-3px-solid-red"' : '' !!}
                                             value="{{ (isset($pieceInfo['alturaTaconInicial']) && $pieceInfo['alturaTaconInicial'] !== '') ? number_format($pieceInfo['alturaTaconInicial'], 3) : '' }}"
                                             step="any" inputmode="decimal" disabled></td>
-                                    <td><input type="number"
-                                            class="input" {!! $errorsInfo['alturaTaconIntermedia'] ? 'style="border: 3px solid red;"' : '' !!}
+                                    <td><input type="number" class="input cp-border-3px-solid-red"' : '' !!}
                                             value="{{ (isset($pieceInfo['alturaTaconIntermedia']) && $pieceInfo['alturaTaconIntermedia'] !== '') ? number_format($pieceInfo['alturaTaconIntermedia'], 3) : '' }}"
                                             step="any" inputmode="decimal" disabled></td>
                                     <td><input type="text" class="input" value="{{ $pieceInfo['error'] }}" disabled></td>

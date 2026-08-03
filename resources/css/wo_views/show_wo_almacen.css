@@ -1,4 +1,5 @@
-* { box-sizing: border-box; }
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
 
 /* ── Layout principal ── */
 .almacen-layout {
@@ -26,7 +27,7 @@
 .panel-ot h3 {
     font-size: 1.3rem;
     font-weight: 600;
-    color: #033966;
+    color: var(--gis-blue);
     text-align: center;
     margin-bottom: 1.4rem;
     border-bottom: 2px solid #e8f0f8;
@@ -45,7 +46,7 @@
     display: block;
     font-size: 0.85rem;
     font-weight: 600;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 4px;
@@ -70,8 +71,8 @@
 
 .field input:focus, .field select:focus {
     outline: none;
-    border-color: #033966;
-    box-shadow: 0 0 0 3px rgba(3,57,102,.1);
+    border-color: var(--gis-blue);
+    box-shadow: 0 0 0 3px var(--shadow-blue);
 }
 
 /* Tabla de clases */
@@ -92,8 +93,8 @@
     position: sticky;
     top: 0;
     z-index: 1;
-    background: #033966;
-    color: #fff;
+    background: var(--gis-blue);
+    color: var(--gis-white);
     padding: 0.55rem 0.5rem;
     text-align: center;
     font-weight: 600;
@@ -128,8 +129,8 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background: #033966;
-    color: #fff;
+    background: var(--gis-blue);
+    color: var(--gis-white);
     border: none;
     border-radius: 8px;
     padding: 0.55rem 1.2rem;
@@ -167,7 +168,7 @@
 .btn-guardar {
     width: 100%;
     padding: 0.65rem;
-    background: linear-gradient(135deg, #0a8504, #06a500);
+    background: linear-gradient(135deg, var(--gis-green), #06a500);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -180,7 +181,7 @@
 
 .btn-guardar:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(10,133,4,.35);
+    box-shadow: 0 4px 12px var(--shadow-green);
 }
 
 /* ── Panel derecho (remisiones + parcialidades) ── */
@@ -346,7 +347,7 @@
     font-size: 0.88rem;
     padding: 0.35rem 0.75rem;
     background: #fde8e8;
-    color: #9c0303;
+    color: var(--gis-red);
     border: none;
     border-radius: 6px;
     cursor: pointer;
@@ -408,7 +409,7 @@
     top: 0;
     z-index: 1;
     background: #f0f4fa;
-    color: #033966;
+    color: var(--gis-blue);
     font-weight: 700;
     padding: 0.55rem 0.8rem;
     text-align: left;
@@ -428,7 +429,7 @@
 .badge-cantidad {
     display: inline-block;
     background: #e6f9e6;
-    color: #0a8504;
+    color: var(--gis-green);
     font-weight: 700;
     font-size: 0.92rem;
     padding: 0.2rem 0.6rem;
@@ -480,8 +481,8 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    color: #033966;
-    background: #e8f0fb;
+    color: var(--gis-blue);
+    background: rgba(3, 57, 102, 0.08);
     border: none;
     border-radius: 8px;
     padding: 0.5rem 1rem;
@@ -611,7 +612,7 @@
     align-items: center;
     gap: 6px;
     background: #fdf2f2;
-    color: #9c0303;
+    color: var(--gis-red);
     padding: 4px 8px;
     border-radius: 6px;
     font-size: 0.72rem;
@@ -619,6 +620,7 @@
     cursor: pointer;
     border: 1px solid #f8d7d7;
     transition: all 0.2s;
+    -webkit-user-select: none;
     user-select: none;
     margin-top: 4px;
 }
@@ -772,3 +774,45 @@
         grid-template-columns: 1fr 1fr;
     }
 }
+
+/* Extracted utility classes from Blade */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
+.modal-content-box { background: var(--gis-white, #fff); padding: 1.8rem; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; position: relative; }
+.modal-title { margin-top: 0; color: var(--gis-blue, #033966); font-size: 1.15rem; font-weight: 700; }
+.modal-text { font-size: 0.9rem; color: #555; margin-bottom: 1rem; }
+.modal-input { width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 1.2rem; text-align: center; font-family: var(--font-data, sans-serif); font-size: 1rem; }
+.modal-actions { display: flex; gap: 0.8rem; justify-content: center; }
+.modal-btn-cancel { background: #e8f0fb; color: var(--gis-blue, #033966); border: none; padding: 0.5rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
+.modal-btn-confirm { background: var(--gis-red, #9c0303); color: #fff; border: none; padding: 0.5rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
+.btn-small { font-size: .8rem; padding: .35rem; }
+.d-inline { display: inline; }
+.ws-nowrap { white-space: nowrap; }
+.icon-16 { width: 16px; height: 16px; object-fit: contain; }
+.icon-48 { width: 48px; height: 48px; object-fit: contain; }
+.progress-track { background: #e8eef6; border-radius: 10px; height: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--gis-blue, #033966); border-radius: 10px; transition: width .4s; }
+.w-0 { width: 0%; }
+.flex-1 { flex: 1; }
+.self-center { align-self: center; }
+.px-0-5 { padding: 0 0.5rem; }
+.link-action { font-size: 0.82rem; color: var(--gis-blue, #033966); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; transition: background 0.2s; }
+.link-action:hover { background: #e8f0fb; }
+.p-0-55-0-4 { padding: 0.55rem 0.4rem; }
+.text-center { text-align: center; }
+.badge-blue { font-size: 0.85rem; font-weight: bold; color: var(--gis-blue, #033966); background: #e8f0fb; padding: 3px 6px; border-radius: 4px; }
+.mb-0-8 { margin-bottom: 0.8rem; }
+.btn-reset { background: none; border: none; cursor: pointer; padding: 0; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+.d-block { display: block; }
+.mt-1 { margin-top: 1rem; }
+.text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.max-w-120 { max-width: 120px; }
+.text-muted-sm { font-size: 0.85rem; color: #a0a8c0; }
+.alert-warning-custom { background: #fff8e1; border-color: #f0c040; color: #7a5c00; }
+.mb-1 { margin-bottom: 1rem; }
+.d-justify-start { justify-content: flex-start; }
+
+.link-action-modal { font-size: 0.82rem; color: var(--gis-blue, #033966); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+.modal-content-box-v2 { background: #fff; padding: 1.8rem; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.25); text-align: center; }
+.modal-input-v2 { width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 1.2rem; text-align: center; font-size: 1rem; }
+

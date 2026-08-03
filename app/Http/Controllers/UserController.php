@@ -34,13 +34,17 @@ class UserController extends Controller
         return view("users_views.create_user", compact("layout"));
     }
         /**
-     * @param \Illuminate\Http\Request CreateUserRequest $request
+     * @param CreateUserRequest $request
      */
     public function store(CreateUserRequest $request){
         $user = User::create($request->validated());
         return redirect()->route('createUser')->with('success', 'Usuario registrado correctamente');
     }
 
+    /**
+     * @param HttpRequest $request
+     * @param int|string $id
+     */
     public function altaUsuario(HttpRequest $request, $id){
         $user = User::findOrFail($id);
         $user->estatus = 1;
@@ -48,6 +52,10 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'Usuario marcado como activo.');
     }
 
+    /**
+     * @param HttpRequest $request
+     * @param int|string $id
+     */
     public function bajaUsuario(HttpRequest $request, $id){
         $user = User::findOrFail($id);
         $user->estatus = 0;
@@ -55,6 +63,10 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'Usuario marcado como inactivo.');
     }
 
+    /**
+     * @param HttpRequest $request
+     * @param int|string $id
+     */
     public function eliminarUsuario(HttpRequest $request, $id){
         try {
             $user = User::findOrFail($id);
@@ -68,6 +80,10 @@ class UserController extends Controller
         }
     }
 
+    /**
+     * @param HttpRequest $request
+     * @param int|string $id
+     */
     public function updateUsuario(HttpRequest $request, $id){
         $user = User::findOrFail($id);
         $data = $request->validate([
@@ -83,7 +99,7 @@ class UserController extends Controller
         return view('users_views.recoverPassword');
     }
         /**
-     * @param \Illuminate\Http\Request HttpRequest $request
+     * @param HttpRequest $request
      */
     public function recoverPassword(HttpRequest $request){
         $request->validate([

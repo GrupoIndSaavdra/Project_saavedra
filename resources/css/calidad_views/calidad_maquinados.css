@@ -1,18 +1,13 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ====================================================
    calidad_maquinados.css — Vista Calidad: Dibujos y Ayudas de Maquinados
-   Paleta: #033966 (azul GIS), #9c0300 (rojo GIS), #0a8504 (verde acción)
+   Paleta: var(--gis-blue) (azul GIS), var(--gis-red) (rojo GIS), var(--gis-green) (verde acción)
    Fuente: Poppins (misma que el resto de la app)
    ==================================================== */
 
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap");
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
-    transition: all 0.3s ease-in-out;
-}
 
 body {
     background-size: cover;
@@ -36,7 +31,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     padding: 1em 1.5em;
     border-radius: 10px;
@@ -150,7 +145,7 @@ body {
 }
 
 .stat-dibujos .alm-stat-value {
-    color: #033966;
+    color: var(--gis-blue);
 }
 .stat-ayudas .alm-stat-value {
     color: #027a3a;
@@ -181,12 +176,12 @@ body {
 }
 
 .alm-filters-card h2 {
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 1.2em;
     font-weight: 700;
     margin-bottom: 1em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -229,9 +224,9 @@ body {
     border-radius: 5px;
     padding: 0.8em 0.5em;
     text-align: center;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 0.8em;
-    background: #033966;
+    background: var(--gis-blue);
     border: 5px solid #033966d4;
     color: #ffffff;
     outline: none;
@@ -249,7 +244,7 @@ body {
 .filter label {
     font-size: 1em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     display: flex;
@@ -272,8 +267,8 @@ body {
 
 .filter-scope-dibujo {
     background: #e8f2ff;
-    color: #033966;
-    border: 1px solid #033966;
+    color: var(--gis-blue);
+    border: 1px solid var(--gis-blue);
 }
 
 .filter-scope-ayuda {
@@ -290,13 +285,13 @@ body {
 
 .btns {
     padding: 12px 24px;
-    background-color: #0a8504;
-    box-shadow: 0 2px 5px #0a8504ff;
+    background-color: var(--gis-green);
+    box-shadow: 0 2px 5px var(--gis-green)ff;
     color: #fff;
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 1em;
     font-weight: 700;
     transition: all 0.3s ease;
@@ -307,7 +302,7 @@ body {
 }
 
 .btns:hover {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
     transform: scale(1.1);
     box-shadow: 0 4px 12px rgba(10, 133, 4, 0.4);
 }
@@ -340,8 +335,8 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 1em 1.5em;
-    border-bottom: 2px solid #033966;
-    background: #033966;
+    border-bottom: 2px solid var(--gis-blue);
+    background: var(--gis-blue);
     color: #fff;
 }
 
@@ -385,7 +380,7 @@ table.alm-table {
 }
 
 .alm-table thead th {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     padding: 0.85em 1em;
     text-align: left;
@@ -445,7 +440,7 @@ table.alm-table {
 /* OT label */
 .alm-ot-label {
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 0.95em;
 }
 
@@ -483,8 +478,8 @@ table.alm-table {
 
 .badge-tipo-dibujo {
     background: #e8f2ff;
-    color: #033966;
-    border: 1px solid #033966;
+    color: var(--gis-blue);
+    border: 1px solid var(--gis-blue);
     padding: 0.2em 0.7em;
     border-radius: 20px;
     font-size: 0.8em;
@@ -527,7 +522,7 @@ table.alm-table {
 }
 
 .alm-btn-ver:hover {
-    background: #0a8504;
+    background: var(--gis-green);
     transform: scale(1.05) translateY(-1px);
     box-shadow: 0 6px 18px rgba(10, 133, 4, 0.35);
 }
@@ -580,7 +575,7 @@ table.alm-table {
 
 /* Tema Azul (Ver Dibujos) */
 .btn-ver-dibujos {
-    background: #033966;
+    background: var(--gis-blue);
     border-color: #022847;
     color: #fff;
 }
@@ -591,7 +586,7 @@ table.alm-table {
 
 .btn-ver-dibujos:hover {
     background: #e8f2ff;
-    color: #033966;
+    color: var(--gis-blue);
     transform: scale(1.1);
     box-shadow: 0 8px 20px rgba(3, 57, 102, 0.15);
 }
@@ -718,7 +713,7 @@ table.alm-table {
     position: fixed;
     bottom: 2em;
     right: 2em;
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     padding: 1em 1.5em;
     border-radius: 8px;
@@ -732,7 +727,7 @@ table.alm-table {
 }
 
 .alm-toast.error {
-    background: #9c0300;
+    background: var(--gis-red);
 }
 
 .alm-toast.fade-out {
@@ -818,7 +813,7 @@ table.alm-table {
     color: #fff;
     border: 2px solid transparent;
     cursor: pointer;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 0.85em;
     font-weight: 700;
     padding: 0.6em 1em;
@@ -834,15 +829,15 @@ table.alm-table {
 }
 
 .btn-toggle-files:hover {
-    background: #033966;
+    background: var(--gis-blue);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 81, 148, 0.3);
 }
 
 .btn-toggle-files.active {
     background: #fff;
-    color: #033966;
-    border-color: #033966;
+    color: var(--gis-blue);
+    border-color: var(--gis-blue);
     box-shadow: none;
 }
 
@@ -872,12 +867,12 @@ table.alm-table {
 .alm-files-inner h4 {
     font-size: 1em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 1.5em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -911,7 +906,7 @@ table.alm-table {
     align-items: center;
     justify-content: center;
     padding: 1.5em;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
     border-radius: 12px;
     background: #f5f9ff;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -927,7 +922,7 @@ table.alm-table {
 }
 
 .dibujos-file-card:hover {
-    background: #033966;
+    background: var(--gis-blue);
     transform: translateY(-5px);
     box-shadow: 0 8px 18px rgba(3, 57, 102, 0.4);
 }
@@ -940,7 +935,7 @@ table.alm-table {
 .dibujos-file-card .file-name {
     font-size: 0.95em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     word-break: break-all;
     text-align: center;
     margin-bottom: 1em;
@@ -1005,7 +1000,7 @@ table.alm-table {
     flex: 1;
     text-align: center;
     border-radius: 6px;
-    background: #033966 !important;
+    background: var(--gis-blue) !important;
     color: #fff !important;
     border: none;
     font-weight: 800;
@@ -1024,7 +1019,7 @@ table.alm-table {
 }
 
 .dibujos-file-card.card-ayuda:hover .btn-ayuda-color {
-    background: #033966 !important;
+    background: var(--gis-blue) !important;
     border: 2px solid #00aaff !important;
 }
 
@@ -1046,8 +1041,8 @@ table.alm-table {
     align-items: center;
     gap: 5px;
     background: #e8f2ff;
-    color: #033966;
-    border: 1px solid #033966;
+    color: var(--gis-blue);
+    border: 1px solid var(--gis-blue);
     padding: 0.2em 0.7em;
     border-radius: 20px;
     font-size: 0.85em;
@@ -1100,20 +1095,47 @@ table.alm-table {
 /* ── Etiquetas de Texto en Tablas ── */
 .alm-ot-label {
     font-weight: 700;
-    color: #033966;
-    font-family: "Poppins", sans-serif;
+    color: var(--gis-blue);
+    /* font-family heredado de global.css */
     letter-spacing: 0.5px;
 }
 
 .alm-clase-label {
     font-weight: 700;
     color: #027a3a;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     letter-spacing: 0.5px;
 }
 
 .alm-proceso-label {
     font-weight: 700;
     color: #333;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
+
+/* Auto-generated utility classes */
+.cal-maq-width-90px { width: 90px; }
+.cal-maq-width-35pct { width: 35%; }
+.cal-maq-width-64px { width: 64px; }
+.cal-maq-width-18pct { width: 18%; }
+.cal-maq-width-8pct { width: 8%; }
+.cal-maq-width-15pct { width: 15%; }
+.cal-maq-width-30pct { width: 30%; }
+.cal-maq-border-bottom-2px-solid-027a3a { border-bottom: 2px solid #027a3a; }
+.cal-maq-margin-bottom-10px { margin-bottom: 10px; }
+.cal-maq-color-6c757d { color: #6c757d; }
+.cal-maq-padding-bottom-5px { padding-bottom: 5px; }
+.cal-maq-width-60px { width: 60px; }
+.cal-maq-display-none { display: none; }
+.cal-maq-color-027a3a { color: #027a3a; }
+.cal-maq-width-22pct { width: 22%; }
+.cal-maq-border-color-027a3ad4 { border-color: #027a3ad4; }
+.cal-maq-width-12pct { width: 12%; }
+.cal-maq-width-20pct { width: 20%; }
+.cal-maq-font-weight-normal { font-weight: normal; }
+.cal-maq-border-color-6c757dd4 { border-color: #6c757dd4; }
+.cal-maq-border-bottom-2px-solid-005194 { border-bottom: 2px solid #005194; }
+.cal-maq-opacity-0-5 { opacity: 0.5; }
+.cal-maq-color-005194 { color: #005194; }
+.cal-maq-cursor-pointer { cursor: pointer; }
+.cal-maq-margin-top-15px { margin-top: 15px; }

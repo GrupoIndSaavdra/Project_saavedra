@@ -513,7 +513,7 @@ class ProcessProductionController extends Controller
         return false;
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function verifiedPasswordAdmin(Request $request)
     {
@@ -568,7 +568,7 @@ class ProcessProductionController extends Controller
         return $piecesCount;
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function storePiece(Request $request)
     {
@@ -736,7 +736,7 @@ class ProcessProductionController extends Controller
         $pieceInPiezas->save();
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function selectAssembly(Request $request)
     {
@@ -977,7 +977,7 @@ class ProcessProductionController extends Controller
         return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->input('process'), "edit" => 0])->with($param, $message);
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function editPieces(Request $request)
     {
@@ -1016,7 +1016,7 @@ class ProcessProductionController extends Controller
         return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->input('process'), "edit" => 0])->with('success', 'Piezas editadas correctamente.');
     }
         /**
-     * @param \Illuminate\Http\Request Request $request
+     * @param Request $request
      */
     public function editMeta(Request $request)
     {
@@ -1091,7 +1091,7 @@ class ProcessProductionController extends Controller
         return redirect()->route('processProduction')->with('error', 'La clase ingresada no existe.'); // Si la clase no existe, retornar error
     }
         /**
-     * @param \Illuminate\Http\Request StoreHeaderProcessRequest $request
+     * @param StoreHeaderProcessRequest $request
      */
     public function storeHeaderdata(StoreHeaderProcessRequest $request)
     {
@@ -3039,8 +3039,8 @@ class ProcessProductionController extends Controller
                             if (!in_array($noSet, $setStoredParts)) {
                                 array_push($setStoredParts, $noSet);
 
-                                $pFemale = Pieza::query()->where("n_pieza", $noSet . "H")->where('id_clase', $class->id)->where('proceso', $processName)->first();
-                                $pMale = Pieza::query()->where("n_pieza", $noSet . "M")->where('id_clase', $class->id)->where('proceso', $processName)->first();
+                                $pFemale = Pieza::query()->where("n_pieza", $noSet . "H")->where('id_clase', $class->id)->where('proceso', $pName)->first();
+                                $pMale = Pieza::query()->where("n_pieza", $noSet . "M")->where('id_clase', $class->id)->where('proceso', $pName)->first();
 
                                 if ($pFemale && $pMale) {
                                     if ($pFemale->liberacion == 0) {

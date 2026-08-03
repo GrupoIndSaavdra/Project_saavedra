@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     <title>Panel de OT's</title>
@@ -11,7 +11,7 @@
     <div class="tablas">
         <!-- A Tiempo tabla-->
         <div class="tabla-box">
-            <h2 style="color: #000000; font-weight: bold;">P O R - D E F I N I R </h2>
+            <h2 class="text-black fw-bold">P O R - D E F I N I R </h2>
             <div class="fila header">
                 <div class="tex-center" id="header">OT</div>
                 <div class="tex-center" id="header">NOMBRE</div>
@@ -29,7 +29,7 @@
                 <div class="tex-center">VIERNES 11 JULIO</div>
                 <div class="tex-center">LUNES 14 JULIO</div>
                 <div class="barra">
-                    <div class="progreso" style="width: 95%"></div>
+                    <div class="progreso" class="w-95"></div>
                 </div>
             </div>
             <!-- Fila 2 -->
@@ -41,7 +41,7 @@
                 <div class="tex-center">JUEVES 17 JULIO</div>
                 <div class="tex-center">VIERNES 18 JULIO</div>
                 <div class="barra">
-                    <div class="progreso" style="width: 10%"></div>
+                    <div class="progreso" class="w-10"></div>
                 </div>
             </div>
             <!-- Fila 3 -->
@@ -53,7 +53,7 @@
                 <div class="tex-center">JUEVES 24 JULIO</div>
                 <div class="tex-center">VIERNES 25 JULIO</div>
                 <div class="barra">
-                    <div class="progreso" style="width: 88%"></div>
+                    <div class="progreso" class="w-88"></div>
                 </div>
             </div>
             <!-- Fila 4 -->
@@ -65,7 +65,7 @@
                 <div class="tex-center">MIERCOLES 30 JULIO</div>
                 <div class="tex-center">JUEVES 31 JULIO</div>
                 <div class="barra">
-                    <div class="progreso" style="width: 70%"></div>
+                    <div class="progreso" class="w-70"></div>
                 </div>
             </div>
             <!-- Fila 5 -->
@@ -77,7 +77,7 @@
                 <div class="tex-center">VIERNES 11 JULIO</div>
                 <div class="tex-center">LUNES 14 JULIO</div>
                 <div class="barra">
-                    <div class="progreso" style="width: 20%"></div>
+                    <div class="progreso" class="w-20"></div>
                 </div>
             </div>
         </div>

@@ -68,19 +68,17 @@ function createSelects(labelText, className) {
         if (select.value) {
             if (className === "subprocess") {
                 let submit = document.querySelector(".btn-submit");
-                submit.style.opacity = "1";
+                submit.classList.remove("prod-submit-hidden"); submit.classList.add("prod-submit-visible");
             }
-            select.style.backgroundColor = "#ffffff";
-            select.style.color = "#000000";
+            select.classList.remove("cnom-select-blue"); select.classList.add("cnom-select-white");
         } else {
             if (className === "subprocess") {
                 let submit = document.querySelector(".btn-submit");
                 if (submit) {
-                    submit.style.opacity = "0";
+                    submit.classList.remove("prod-submit-visible"); submit.classList.add("prod-submit-hidden");
                 }
             }
-            select.style.backgroundColor = "#033966";
-            select.style.color = "#ffffff";
+            select.classList.remove("cnom-select-white"); select.classList.add("cnom-select-blue");
         }
     });
 
@@ -118,11 +116,9 @@ function validateProductionForm() {
 
     // Cambiar estado del botón
     if (allFilled) {
-        submit.style.opacity = "1";
-        submit.style.pointerEvents = "auto";
+        submit.classList.remove("prod-submit-hidden"); submit.classList.add("prod-submit-visible");
     } else {
-        submit.style.opacity = "0";
-        submit.style.pointerEvents = "none";
+        submit.classList.remove("prod-submit-visible"); submit.classList.add("prod-submit-hidden");
     }
 }
 
@@ -165,8 +161,7 @@ function disabledSelects(className) {
         let select = document.querySelector(`.${array[i]}`);
         if (select) {
             if (array[i] !== "subprocess") {
-                select.style.backgroundColor = "#033966";
-                select.style.color = "#ffffff";
+                select.classList.remove("cnom-select-white"); select.classList.add("cnom-select-blue");
                 select.disabled = true;
                 select.innerHTML = ""; // Limpiar las opciones existentes
                 let optionEmpty = document.createElement("option");
@@ -176,7 +171,7 @@ function disabledSelects(className) {
 
                 let submit = document.querySelector(".btn-submit");
                 if (submit) {
-                    submit.style.opacity = "0";
+                    submit.classList.remove("prod-submit-visible"); submit.classList.add("prod-submit-hidden");
                 }
             } else {
                 let parent = select.parentElement;
@@ -321,8 +316,7 @@ function createInputsWithValue(values, valuesEnabled = []) {
                 input.className = "form-control normal-input";
                 input.required = true;
                 input.name = key;
-                input.style.backgroundColor = "#033966dd";
-                input.style.color = "#ffffff";
+                input.classList.add("cnom-select-blue");
             } else {
                 if (key == "machine") {
                     let input_hidden = document.createElement("input");
@@ -371,8 +365,7 @@ function createBtnSubmit_editMeta() {
     let submit = document.createElement("button");
     submit.type = "submit";
     submit.className = "btn-submit";
-    submit.style.opacity = "1";
-    submit.style.pointerEvents = "auto";
+    submit.classList.remove("prod-submit-hidden"); submit.classList.add("prod-submit-visible");
     submit.textContent = "Editar";
     return submit;
 }
@@ -412,30 +405,19 @@ function insertWeldingTypeBox() {
     let box = document.createElement("div");
     box.id = "weld-type-box";
     box.className = "form-group";
-    box.style.cssText = [
-        "display: flex",
-        "flex-direction: column",
-        "align-items: center",
-        "justify-content: center",
-        "background: #033966",
-        "border: 2px solid #022a4d",
-        "border-radius: 8px",
-        "padding: 8px 14px",
-        "gap: 4px",
-        "min-width: 110px",
-    ].join(";");
+    box.classList.add("prod-weld-box");
 
     let labelTitle = document.createElement("span");
     labelTitle.textContent = "tipo de soldadura";
-    labelTitle.style.cssText = "color: #a8c4e0; font-size: 0.72em; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; text-align: center;";
+    labelTitle.classList.add("prod-stat-title");
 
     let valueSpan = document.createElement("span");
     if (tipoSoldadura) {
         valueSpan.textContent = tipoSoldadura;
-        valueSpan.style.cssText = "color: #ffffff; font-size: 1.4em; font-weight: 800; line-height: 1; text-align: center;";
+        valueSpan.classList.add("prod-stat-val-white");
     } else {
         valueSpan.textContent = "-";
-        valueSpan.style.cssText = "color: #7a9dc0; font-size: 1.4em; font-weight: 700; line-height: 1;";
+        valueSpan.classList.add("prod-stat-val-muted");
     }
 
     box.appendChild(labelTitle);
@@ -503,7 +485,7 @@ function createInputPassword(name = "passwordAdmin", placeholderText = "Password
     // Creación de contenedor
     let form_group = document.createElement("div");
     form_group.className = "form-group-password";
-    form_group.style.zIndex = "11000";
+    form_group.classList.add("z-11000");
 
     // Input de contraseña
     let inputPassword = document.createElement("input");
@@ -528,9 +510,9 @@ function createInputPassword(name = "passwordAdmin", placeholderText = "Password
     // Contenedor del input para el ojo
     let inputWrapper = document.createElement("div");
     inputWrapper.className = "password-input-wrapper";
-    inputWrapper.style.position = "relative";
-    inputWrapper.style.display = "flex";
-    inputWrapper.style.alignItems = "center";
+    inputWrapper.classList.add("pos-relative");
+    inputWrapper.classList.remove("hidden");
+    inputWrapper.classList.add("align-center");
 
     // Iconos SVG Premium
     const eyeOpen = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
@@ -1021,7 +1003,7 @@ function disabledInputsTable(table) {
                 } else {
                     input.disabled = false;
                     if (input.tagName === "INPUT") {
-                        input.style.backgroundColor = "#fff";
+                        input.classList.add("cnom-select-white");
                     }
                 }
             });
@@ -1056,7 +1038,7 @@ function createBtnMetaEdit() {
     btn_edit.src = window.edit;
     btn_edit.alt = "Editar";
     btn_edit.title = "Editar Datos Generales del Reporte";
-    btn_edit.style.zIndex = ""; // Asegurar que inicie limpio (herede del contenedor)
+    btn_edit.classList.remove("z-11000"); // Asegurar que inicie limpio (herede del contenedor)
 
     let label = document.createElement("div");
     label.className = "action-label";
@@ -1083,16 +1065,14 @@ function createBtnMetaEdit() {
 function createBtnTechDocs() {
     let wrapper = document.createElement("div");
     wrapper.className = "tech-docs-wrapper";
-    wrapper.style.display = "flex";
-    wrapper.style.flexDirection = "column";
-    wrapper.style.alignItems = "center";
-    wrapper.style.justifyContent = "center";
+    wrapper.classList.remove("hidden");
+    wrapper.classList.add("prod-col-center");
 
     // Contenedor relativo para posicionar el pez sin afectar el centrado del logo
     let imgContainer = document.createElement("div");
-    imgContainer.style.position = "relative";
-    imgContainer.style.display = "flex";
-    imgContainer.style.justifyContent = "center";
+    imgContainer.classList.add("pos-relative");
+    imgContainer.classList.remove("hidden");
+    imgContainer.classList.add("justify-center");
 
     let btn_docs = document.createElement("img");
     btn_docs.className = "img-edit";
@@ -1104,18 +1084,13 @@ function createBtnTechDocs() {
     let fish_gif = document.createElement("img");
     fish_gif.src = window.baseUrl + "/images/fish.gif";
     fish_gif.alt = "Pez";
-    fish_gif.style.height = "20px";
-    fish_gif.style.width = "auto";
-    fish_gif.style.position = "absolute";
-    fish_gif.style.right = "-25px";
-    fish_gif.style.bottom = "12px";
-    fish_gif.style.display = "none"; // Ocultado
+    fish_gif.classList.add("prod-fish-gif");
+    fish_gif.classList.add("hidden"); // Ocultado
 
     let label = document.createElement("div");
     label.className = "action-label";
     label.textContent = "Documentos";
-    label.style.textAlign = "center";
-    label.style.marginTop = "5px";
+    label.classList.add("prod-label-center");
 
     // Asignar el clic a todo el contenedor para mayor facilidad de uso
     wrapper.addEventListener("click", function () {
@@ -1202,14 +1177,14 @@ function showInlinePasswordForm(type, imgElement = null) {
     // 6. Cambiar icono a "Back" (La capa superior la hereda del contenedor wrapper)
     if (imgElement) {
         imgElement.src = window.back;
-        imgElement.style.zIndex = "";
+        imgElement.classList.remove("z-11000");
     }
 }
 
 function toggleFinishReportButton(show) {
     let btn_finishReport = document.querySelector(".btn-finishReport");
     if (btn_finishReport) {
-        btn_finishReport.style.display = show ? "flex" : "none";
+        btn_finishReport.classList.toggle("hidden", !(show));
     }
 }
 
@@ -1218,7 +1193,7 @@ function addEventToFinishReport() {
     let reporteTerminado = false; // control de estado
 
     // Mostrar botón y manejar clic
-    btn_finishReport.style.opacity = "1";
+    btn_finishReport.classList.remove("opacity-0");
     btn_finishReport.addEventListener("click", function () {
         if (confirm("¿Estás seguro de que deseas terminar el reporte?")) {
             window.logUserAction("Terminar Reporte", "El usuario finalizó su turno");
@@ -1417,15 +1392,15 @@ function removePasswordForms() {
 
     if (imgQuality) {
         imgQuality.src = window.imgQualityCheck;
-        imgQuality.style.zIndex = "";
+        imgQuality.classList.remove("z-11000");
     }
     if (imgEditPieces) {
         imgEditPieces.src = window.imgEditPieces;
-        imgEditPieces.style.zIndex = "";
+        imgEditPieces.classList.remove("z-11000");
     }
     if (imgEditMeta) {
         imgEditMeta.src = window.edit;
-        imgEditMeta.style.zIndex = "";
+        imgEditMeta.classList.remove("z-11000");
     }
 }
 
@@ -1680,13 +1655,9 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
                 let selectedOption = this.options[this.selectedIndex];
                 let color = selectedOption.getAttribute("data-color");
                 if (color) {
-                    this.style.backgroundColor = color;
-                    this.style.color = "#000";
-                    this.style.fontWeight = "bold";
+                    this.classList.add("row-hovered"); this.style.backgroundColor = color;
                 } else {
-                    this.style.backgroundColor = "";
-                    this.style.color = "";
-                    this.style.fontWeight = "";
+                    this.classList.remove("row-hovered"); this.style.backgroundColor = "";
                 }
             });
 
@@ -1710,8 +1681,7 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
         let td = document.createElement("td");
         td.colSpan = 6;
         td.textContent = "No hay juegos completos disponibles para liberar en este reporte.";
-        td.style.textAlign = "center";
-        td.style.padding = "2em";
+        td.className = "prod-empty-td";
         row.appendChild(td);
         tbody.appendChild(row);
     }
@@ -1869,96 +1839,138 @@ function createHistoricalTable(history) {
         currentProcessName = "Soldadura y Soldadura PTA";
     }
 
-    // Fix for "Operacion Equipo" which might have suffixes like "_1 operacion" in the frontend
-    // but is keyed as "Operacion Equipo" in the backend history
     let lookupName = currentProcessName;
-
-    // Find the matching process in history
     let processData = history[lookupName];
 
-    if (processData) {
-        let processSection = document.createElement("div");
-        processSection.className = "process-section";
+    // Obtener el número de proceso buscando en las llaves del historial
+    let processIndex = Object.keys(history).indexOf(lookupName) + 1;
+    let processNumber = processIndex > 0 ? String(processIndex).padStart(2, '0') : '--';
 
-        let processTitle = document.createElement("h3");
-        processTitle.className = "process-title";
-        processTitle.innerText = currentProcessName; // Keep the specific name for the title
-        processSection.appendChild(processTitle);
+    // ── Construir la card con el diseño estándar del Dashboard ────────────────
+    let processSection = document.createElement("div");
+    processSection.className = "process-section";
+    processSection.style.position = "relative";
+    processSection.style.cursor = "default";
 
-        // Inject click access for Soldadura PTA temporal session
-        if (currentProcessName === "Soldadura y Soldadura PTA" && window.arrayData.process === "Soldadura PTA") {
-            processSection.style.cursor = "pointer";
-            processSection.title = "Añadir / Ver Resultados de Soldadura PTA";
-            processSection.addEventListener("click", function () {
-                let otId = window.arrayData.meta ? window.arrayData.meta.id_ot : null; // Fetch current OT ID
-                if (otId) {
-                    createPtaPasswordModal(otId);
-                } else {
-                    console.error("No se pudo obtener el OT ID de window.arrayData.meta");
-                }
-            });
-        }
-
-        let pieces = [processData.pieces.good, processData.pieces.bad];
-        for (let i = 0; i < pieces.length; i++) {
-            // Crear barra de progreso
-            let progressBar = document.createElement("div");
-            progressBar.className = "progress-bar";
-
-            let progress = document.createElement("div");
-            progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
-
-            let percentage = consignmentPieces > 0 ? (pieces[i] * 100) / consignmentPieces : 0;
-            progress.style.width = `${Math.min(percentage, 100)}%`;
-
-            let formattedPercentage = percentage != 0 ? percentage.toFixed(1) : 0;
-            let percentageLabel = document.createElement("div");
-            percentageLabel.className = "progress-percentage";
-            percentageLabel.innerText = pieces[i] == 1 ? `${formattedPercentage}% ${pieces[i]} pieza` : `${formattedPercentage}% ${pieces[i]} piezas`;
-
-            progressBar.appendChild(progress);
-            progressBar.appendChild(percentageLabel);
-            processSection.appendChild(progressBar);
-        }
-
-        container.appendChild(processSection);
-    } else {
-        let processSection = document.createElement("div");
-        processSection.className = "process-section";
-
-        let processTitle = document.createElement("h3");
-        processTitle.className = "process-title";
-        processTitle.innerText = currentProcessName;
-        processSection.appendChild(processTitle);
-
-        // Render empty bars
-        let pieces = [0, 0];
-        for (let i = 0; i < pieces.length; i++) {
-            // Crear barra de progreso
-            let progressBar = document.createElement("div");
-            progressBar.className = "progress-bar";
-
-            let progress = document.createElement("div");
-            progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
-            progress.style.width = `0%`;
-
-            let percentageLabel = document.createElement("div");
-            percentageLabel.className = "progress-percentage";
-            percentageLabel.innerText = `0% 0 piezas`;
-
-            progressBar.appendChild(progress);
-            progressBar.appendChild(percentageLabel);
-            processSection.appendChild(progressBar);
-        }
-        container.appendChild(processSection);
+    // Click para Soldadura PTA (manteniendo la lógica de acceso original)
+    if (currentProcessName === "Soldadura y Soldadura PTA" && window.arrayData.process === "Soldadura PTA") {
+        processSection.style.cursor = "pointer";
+        processSection.addEventListener("click", function () {
+            let otId = window.arrayData.meta ? window.arrayData.meta.id_ot : null;
+            if (otId) {
+                createPtaPasswordModal(otId);
+            } else {
+                console.error("No se pudo obtener el OT ID de window.arrayData.meta");
+            }
+        });
     }
 
-    // Insertar después de la tabla de metadatos (Código/Versión)
+    // 1. Badge numérico del proceso
+    let numberBadge = document.createElement("span");
+    numberBadge.className = "process-number-badge";
+    numberBadge.textContent = processNumber;
+    processSection.appendChild(numberBadge);
+
+    // 2. Título del proceso
+    let processTitle = document.createElement("h3");
+    processTitle.className = "process-title";
+    processTitle.innerHTML = currentProcessName;
+    processSection.appendChild(processTitle);
+
+    // 3. Label de límite (Total disponible)
+    let limitLabel = document.createElement("label");
+    limitLabel.className = "limit-label";
+    limitLabel.style.fontSize = "12px";
+    limitLabel.style.color = "#fff";
+    limitLabel.innerHTML = `Total de OT: ${consignmentPieces}`;
+    processSection.appendChild(limitLabel);
+
+    const goodCount = processData ? (processData.pieces.good || 0) : 0;
+    const badCount  = processData ? (processData.pieces.bad  || 0) : 0;
+
+    // Si no hay piezas procesadas, oscurecer
+    if (goodCount === 0 && badCount === 0) {
+        processSection.classList.add("inactive-process");
+    }
+
+    // Calcular porcentaje de piezas buenas
+    let goodPercentage = consignmentPieces == 0 ? (goodCount > 0 ? 100 : 0) : (goodCount * 100) / consignmentPieces;
+    goodPercentage = Math.min(100, goodPercentage);
+
+    // Aplicar Glow Hue dinámico
+    let hue = 30 + (goodPercentage * 0.9);
+    processSection.style.setProperty('--glow-hue', hue);
+
+    // Tooltip dinámico
+    if (goodPercentage === 0) {
+        processSection.title = "Proceso aún no iniciado. Esperando primeras piezas.";
+    } else if (goodPercentage < 50) {
+        processSection.title = `Progreso bajo (${goodPercentage.toFixed(1)}%). Se requiere atención.`;
+    } else if (goodPercentage < 100) {
+        processSection.title = `Progreso estable (${goodPercentage.toFixed(1)}%). Buen ritmo de trabajo.`;
+    } else {
+        processSection.title = "¡Proceso completado exitosamente al 100%!";
+    }
+
+    // Estilos dinámicos para el contorno de la sección y el badge numérico
+    if (goodPercentage >= 100) {
+        processSection.style.borderColor = '#4ade80';
+        processSection.style.boxShadow = 'none';
+        numberBadge.style.color = '#4ade80';
+        numberBadge.style.borderColor = 'rgba(74, 222, 128, 0.3)';
+        numberBadge.style.background = 'rgba(74, 222, 128, 0.1)';
+    } else if (goodPercentage > 0) {
+        processSection.style.borderColor = `hsl(${hue}, 100%, 50%)`;
+        processSection.style.boxShadow = 'none';
+        numberBadge.style.color = `hsl(${hue}, 100%, 50%)`;
+        numberBadge.style.borderColor = `hsla(${hue}, 100%, 50%, 0.3)`;
+        numberBadge.style.background = `hsla(${hue}, 100%, 50%, 0.1)`;
+    } else {
+        processSection.style.borderColor = '';
+        processSection.style.boxShadow = '';
+        numberBadge.style.color = '';
+        numberBadge.style.borderColor = '';
+        numberBadge.style.background = '';
+    }
+
+    // 4. Barras de progreso
+    let pieces = [goodCount, badCount];
+    for (let i = 0; i < pieces.length; i++) {
+        let progressBar = document.createElement("div");
+        progressBar.className = "progress-bar";
+        // Colores base estilo dashboard: Verde translúcido para buenas, Rojo translúcido para malas
+        progressBar.style.backgroundColor = i == 0 ? "rgba(12, 130, 1, 0.15)" : "rgba(157, 4, 2, 0.15)";
+
+        let progress = document.createElement("div");
+        progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
+        
+        let percentage = consignmentPieces > 0 ? (pieces[i] * 100) / consignmentPieces : 0;
+        progress.style.width = `${Math.min(percentage, 100)}%`;
+        
+        // Color de fill específico pedido por el usuario (solo para buenas, malas usa CSS global)
+        if (i === 0) {
+            progress.style.backgroundColor = "rgb(52, 163, 0)";
+        }
+
+        let formattedPercentage = percentage != 0 ? percentage.toFixed(1) : 0;
+        let percentageLabel = document.createElement("div");
+        percentageLabel.className = "progress-percentage";
+        percentageLabel.innerText = pieces[i] == 1 ? `${formattedPercentage}% ${pieces[i]} pieza` : `${formattedPercentage}% ${pieces[i]} piezas`;
+
+        progressBar.appendChild(progress);
+        progressBar.appendChild(percentageLabel);
+        processSection.appendChild(progressBar);
+    }
+
+    container.appendChild(processSection);
+
+    // Insertar después de la tabla de metadatos
     let targetContainer = document.querySelector(".div-table-code");
     if (targetContainer) {
         targetContainer.appendChild(container);
     }
 }
+
 
 //--------------------------------------------------------------------------------
 // LÓGICA TARJETA SOLDADURA PTA EN REPORTE DE PRODUCCIÓN
@@ -2058,7 +2070,7 @@ function createPtaPasswordModal(otId) {
 
         btnSubmit.disabled = true;
         btnSubmit.textContent = "Verificando...";
-        errorMsg.style.display = "none";
+        errorMsg.classList.add("hidden");
 
         let formData = new FormData(this);
         formData.append("ot_id", otId);
@@ -2080,7 +2092,7 @@ function createPtaPasswordModal(otId) {
                 } else {
                     // Contraseña incorrecta u otro error
                     errorMsg.textContent = result.body.message || "Error de verificación.";
-                    errorMsg.style.display = "block";
+                    errorMsg.classList.remove("hidden");
                     btnSubmit.disabled = false;
                     btnSubmit.textContent = "Ingresar";
                     inputPassword.value = "";
@@ -2090,7 +2102,7 @@ function createPtaPasswordModal(otId) {
             .catch(error => {
                 console.error("Error en petición PTA:", error);
                 errorMsg.textContent = "Ocurrió un error. Intente nuevamente.";
-                errorMsg.style.display = "block";
+                errorMsg.classList.remove("hidden");
                 btnSubmit.disabled = false;
                 btnSubmit.textContent = "Ingresar";
             });
@@ -2131,8 +2143,12 @@ window.handleP2Checkbox = function (p2Id) {
 };
 
 window._setP2Rows = function (p2Id, show) {
-    const row = document.getElementById("row-p2-" + p2Id + "-0");
-    if (row) row.style.display = show ? "" : "none";
+    // La fila de 2da pasada tiene style="display:none" inline; se manipula con style.display.
+    // También se busca el índice -0 que es el único que existe en modo captura.
+    [0, 1, 2].forEach(function (i) {
+        const row = document.getElementById("row-p2-" + p2Id + "-" + i);
+        if (row) row.style.display = show ? "" : "none";
+    });
 };
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -2184,7 +2200,7 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
     titulo.textContent = 'Visor de Planos / Dibujos';
 
     const navDiv = document.createElement('div');
-    navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.2em;';
+    navDiv.classList.add("prod-nav-div");
 
     const selOTWrap = _dibujosSelectGroup('Orden de Trabajo', 'd-viewer-ot');
     const selClaseWrap = _dibujosSelectGroup('Clase', 'd-viewer-clase');
@@ -2296,18 +2312,18 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
 /** Crea un grupo de select con label para el visor */
 function _dibujosSelectGroup(labelText, selectId) {
     const wrap = document.createElement('div');
-    wrap.style.cssText = 'display:flex;flex-direction:column;flex:1;min-width:180px;';
+    wrap.classList.add("prod-filter-wrap");
 
     const label = document.createElement('label');
     label.htmlFor = selectId;
     label.textContent = labelText;
     label.className = 'form-label';
-    label.style.cssText = 'font-size:0.85em;margin-bottom:0.3em;';
+    label.classList.add("prod-filter-label");
 
     const select = document.createElement('select');
     select.id = selectId;
     select.className = 'form-control';
-    select.style.cssText = 'font-size:0.9em; height:42px; padding:0 0.5em;';
+    select.classList.add("prod-filter-select");
     select.innerHTML = `<option value="">— ${labelText} —</option>`;
     if (selectId === 'd-viewer-clase') select.disabled = true;
 
@@ -2442,7 +2458,7 @@ window.openManualesViewer = function () {
     titulo.textContent = 'Visor de Manuales de Procesos';
 
     const navDiv = document.createElement('div');
-    navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.2em;';
+    navDiv.classList.add("prod-nav-div");
 
     const selProcesoWrap = _dibujosSelectGroup('Proceso', 'd-viewer-manuales-proceso');
 
@@ -2551,7 +2567,7 @@ window.openAyudasViewer = function () {
     titulo.textContent = 'Visor de Ayudas Visuales';
 
     const navDiv = document.createElement('div');
-    navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.2em;';
+    navDiv.classList.add("prod-nav-div");
 
     const selProcesoWrap = _dibujosSelectGroup('Proceso', 'd-viewer-ayudas-proceso');
 
@@ -2668,18 +2684,18 @@ window.openTechDocsModal = function () {
     titulo.textContent = 'Documentación Técnica';
 
     const topBar = document.createElement('div');
-    topBar.style.cssText = 'display:flex; flex-direction:column; align-items:stretch; margin-bottom:1.2em; gap: 0.8em;';
+    topBar.classList.add("prod-top-bar");
 
     const tabsContainer = document.createElement('div');
     tabsContainer.className = 'tech-docs-tabs';
-    tabsContainer.style.cssText = 'margin:0; padding:0.4em; display:flex; gap: 0.5em;';
+    tabsContainer.classList.add("prod-tabs-container");
     tabsContainer.innerHTML = `
         <button class="tech-tab-btn active" data-tab="manuales" style="flex:1; padding: 0.8em; font-size: 0.9em;">Manuales</button>
         <button class="tech-tab-btn" data-tab="ayudas" style="flex:1; padding: 0.8em; font-size: 0.9em;">Ayudas Visuales</button>
     `;
 
     const navDiv = document.createElement('div');
-    navDiv.style.cssText = 'display:flex;gap:0.8em;flex-wrap:wrap;align-items:flex-end; flex:2; min-width: 400px;';
+    navDiv.classList.add("prod-nav-div-flex2");
 
     // Solo necesitamos Proceso
     const selProcesoWrap = _dibujosSelectGroup('Proceso', 'tech-doc-proceso');
@@ -2794,10 +2810,10 @@ window.openTechDocsModal = function () {
                 activeTab = tab.dataset.tab;
 
                 // Ocultar todos (ya solo queda proceso)
-                selProcesoWrap.style.display = 'none';
+                selProcesoWrap.classList.add("hidden");
 
                 if (activeTab === 'manuales') {
-                    selProcesoWrap.style.display = 'flex';
+                    selProcesoWrap.classList.remove("hidden");
                     let matchedProc = activeProcess;
                     let found = manualEstructura.find(p => window.eq(p, matchedProc));
                     if (!found && activeProcess && activeProcess.includes('_')) {
@@ -2811,7 +2827,7 @@ window.openTechDocsModal = function () {
                     if (found) matchedProc = found;
                     updateManualesSelect(matchedProc);
                 } else if (activeTab === 'ayudas') {
-                    selProcesoWrap.style.display = 'flex';
+                    selProcesoWrap.classList.remove("hidden");
                     let matchedProc = activeProcess;
                     let ayuProcs = [...new Set(Object.values(ayudasEstructura).flat())];
                     
@@ -2838,14 +2854,10 @@ window.openTechDocsModal = function () {
     function _techDocsShowEmpty(containerDiv, msg) {
         containerDiv.innerHTML = '';
         const alertDiv = document.createElement('div');
-        alertDiv.style.cssText = `
-            display:flex;flex-direction:column;align-items:center;
-            padding:2em;background:#fff3cd;border:2px solid #856404;
-            border-radius:8px;text-align:center;
-        `;
+        alertDiv.classList.add("prod-alert-div");
         const msgLbl = document.createElement('label');
         msgLbl.className = 'label-alert';
-        msgLbl.style.cssText = 'color:#856404;font-weight:700;font-size:1em;line-height:1.5;';
+        msgLbl.classList.add("label-alert");
         msgLbl.textContent = msg || 'No hay documentos disponibles en esta ubicación.';
         alertDiv.appendChild(msgLbl);
         containerDiv.appendChild(alertDiv);
@@ -2944,9 +2956,9 @@ window.handlePTAMaterialSelectChange = function(idWidget) {
     if (selectEl.value === '__otro__') {
         const name = selectEl.name;
         selectEl.name = '';
-        selectEl.style.display = 'none';
+        selectEl.classList.add("hidden");
 
-        otroWrap.style.display = 'flex';
+        otroWrap.classList.remove("hidden");
         otroWrap.classList.add('visible');
         inputEl.name = name;
         inputEl.disabled = false; // ← Asegurar habilitado en JS al alternar
@@ -2962,11 +2974,11 @@ window.handlePTAMaterialBackClick = function(idWidget, originalName) {
     inputEl.name = '';
     inputEl.value = '';
     inputEl.disabled = true; // ← Deshabilitar para que no interfiera ni se envíe vacío
-    otroWrap.style.display = 'none';
+    otroWrap.classList.add("hidden");
     otroWrap.classList.remove('visible');
 
     selectEl.name = originalName;
     selectEl.value = '';
-    selectEl.style.display = 'block';
+    selectEl.classList.remove("hidden");
 };
 

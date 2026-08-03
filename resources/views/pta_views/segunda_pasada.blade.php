@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     <title>2da Pasada — Soldadura PTA</title>
@@ -101,7 +101,7 @@
             {{-- ────────────────────────────────────────────────────────────────
             1RA PASADA Y 2DA PASADA UNIFICADAS
             ──────────────────────────────────────────────────────────────────── --}}
-            <div style="margin-bottom:1.5rem;">
+            <div class="seg-margin-bottom-1-5rem">
                 <div class="pta-section-header">
                     <h3 class="pta-section-title">
                         Resultados de Soldadura PTA (Pieza {{ $nPiezaSel }})
@@ -128,13 +128,13 @@
                             <thead>
                                 <tr>
                                     <th rowspan="2">Número<br>(M/H)</th>
-                                    <th colspan="2" style="background:#055a9e;">Concepto</th>
+                                    <th colspan="2" class="seg-background-055a9e">Concepto</th>
                                     <th rowspan="2">VL</th>
                                     <th rowspan="2">T. de P.</th>
                                     <th rowspan="2">Precal.<br>(°C)</th>
                                     <th rowspan="2">Soldadura</th>
-                                    <th colspan="3" style="background:#055a9e;">Soldadura</th>
-                                    <th colspan="3" style="background:#055a9e;">Corriente</th>
+                                    <th colspan="3" class="seg-background-055a9e">Soldadura</th>
+                                    <th colspan="3" class="seg-background-055a9e">Corriente</th>
                                     <th rowspan="2">Gas<br>Argón<br><small>(75-80 PSI)</small></th>
                                     <th rowspan="2">Vel.<br>Calc.</th>
                                     <th rowspan="2">Resultado</th>
@@ -142,8 +142,8 @@
                                     <th rowspan="2">Observaciones</th>
                                 </tr>
                                 <tr>
-                                    <th style="width: 60px;">Medida</th>
-                                    <th style="width: 25px;">Valor</th>
+                                    <th class="seg-width-60px">Medida</th>
+                                    <th class="seg-width-25px">Valor</th>
                                     <th>Inicial (POLI)</th>
                                     <th>Aplicada (POLS)</th>
                                     <th>Final (POLF)</th>
@@ -240,7 +240,7 @@
                                             <span class="pta-p2-label-small">(2da)</span>
                                         </div>
                                     </td>
-                                    <td class="td-tipo-medida" style="padding:0 !important;">
+                                    <td class="td-tipo-medida seg-padding-0-important">
                                         <select name="p2_tipo_medida" id="p2TipoMedida" required onchange="onTipoMedidaChange()"
                                             class="pta-select">
                                             <option value="">— Medida —</option>
@@ -250,13 +250,13 @@
                                                 Perfilado</option>
                                         </select>
                                     </td>
-                                    <td style="padding:0;"><input type="number" step="0.001" name="p2_valor_principal"
+                                    <td class="seg-padding-0"><input type="number" step="0.001" name="p2_valor_principal"
                                             id="p2ValorPrincipal"
                                             value="{{ $p2Row?->p2_d_conexion_pico ?? $p2Row?->p2_d_conexion_obt ?? $p2Row?->p2_perfilado ?? '' }}"
                                             class="pta-input" placeholder="0.000" required></td>
-                                    <td style="padding:0;"><input type="number" step="0.001" name="p2_vl"
+                                    <td class="seg-padding-0"><input type="number" step="0.001" name="p2_vl"
                                             value="{{ $p2Row?->p2_vl ?? '' }}" class="pta-input" placeholder="0.000"></td>
-                                     <td style="padding:0;">
+                                     <td class="seg-padding-0">
                                          <select name="p2_tipo_preparacion" class="pta-select">
                                              <option value="">—</option>
                                              @foreach ($optsPreparacion as $optP2)
@@ -264,11 +264,11 @@
                                              @endforeach
                                          </select>
                                      </td>
-                                     <td style="padding:0;" class="td-precal"><input type="number" step="0.01"
+                                     <td class="seg-padding-0 td-precal"><input type="number" step="0.01"
                                              name="p2_precalentamiento" value="{{ $p2Row?->p2_precalentamiento ?? '' }}"
-                                             class="pta-input" style="background:transparent; font-weight:bold;"
+                                             class="pta-input" class="seg-background-transparent seg-font-weight-bold"
                                              placeholder="0.00"></td>
-                                     <td style="padding:0;">
+                                     <td class="seg-padding-0">
                                          @php
                                              $idWidgetP2S = 'mat_sold_p2_diferida';
                                              $nameFieldP2S = 'p2_material_soldadura';
@@ -296,9 +296,7 @@
                                              <div id="otro_wrap_{{ $idWidgetP2S }}"
                                                   class="mat-sold-otro-wrap {{ $isOtroP2S ? 'visible' : '' }}"
                                                   style="display: {{ $isOtroP2S ? 'flex' : 'none' }}; gap: 4px; width: 100%;">
-                                                 <button type="button"
-                                                         class="mat-sold-btn-back"
-                                                         style="cursor: pointer;"
+                                                 <button type="button" class="mat-sold-btn-back seg-cursor-pointer"
                                                          onclick="handlePTAMaterialBackClick('{{ $idWidgetP2S }}', '{{ $nameFieldP2S }}')">
                                                      ←
                                                  </button>
@@ -312,31 +310,31 @@
                                              </div>
                                          </div>
                                      </td>
-                                    <td style="padding:0;"><input type="number" step="0.001" name="p2_sold_inicial"
+                                    <td class="seg-padding-0"><input type="number" step="0.001" name="p2_sold_inicial"
                                             value="{{ $p2Row?->p2_sold_inicial ?? '' }}" class="pta-input" placeholder="0.000">
                                     </td>
-                                    <td style="padding:0;"><input type="number" step="0.001" name="p2_sold_aplicada"
+                                    <td class="seg-padding-0"><input type="number" step="0.001" name="p2_sold_aplicada"
                                             value="{{ $p2Row?->p2_sold_aplicada ?? '' }}" class="pta-input" placeholder="0.000">
                                     </td>
-                                    <td style="padding:0;"><input type="number" step="0.001" name="p2_sold_final"
+                                    <td class="seg-padding-0"><input type="number" step="0.001" name="p2_sold_final"
                                             value="{{ $p2Row?->p2_sold_final ?? '' }}" class="pta-input" placeholder="0.000">
                                     </td>
-                                    <td style="padding:0;"><input type="number" step="0.001" name="p2_corr_inicial"
+                                    <td class="seg-padding-0"><input type="number" step="0.001" name="p2_corr_inicial"
                                             value="{{ $p2Row?->p2_corr_inicial ?? '' }}" class="pta-input" placeholder="0.000">
                                     </td>
-                                    <td style="padding:0;"><input type="number" step="0.001" name="p2_corr_aplicada"
+                                    <td class="seg-padding-0"><input type="number" step="0.001" name="p2_corr_aplicada"
                                             value="{{ $p2Row?->p2_corr_aplicada ?? '' }}" class="pta-input" placeholder="0.000">
                                     </td>
-                                    <td style="padding:0;"><input type="number" step="0.001" name="p2_corr_final"
+                                    <td class="seg-padding-0"><input type="number" step="0.001" name="p2_corr_final"
                                             value="{{ $p2Row?->p2_corr_final ?? '' }}" class="pta-input" placeholder="0.000">
                                     </td>
-                                    <td style="padding:0;"><input type="number" step="0.001" name="p2_gas_argon"
+                                    <td class="seg-padding-0"><input type="number" step="0.001" name="p2_gas_argon"
                                             value="{{ $p2Row?->p2_gas_argon ?? '' }}" class="pta-input" placeholder="0.000">
                                     </td>
-                                    <td style="padding:0;"><input type="number" step="0.001" name="p2_velocidad_calculada"
+                                    <td class="seg-padding-0"><input type="number" step="0.001" name="p2_velocidad_calculada"
                                             value="{{ $p2Row?->p2_velocidad_calculada ?? '' }}" class="pta-input"
                                             placeholder="0.000"></td>
-                                    <td style="padding:0;">
+                                    <td class="seg-padding-0">
                                         <select name="p2_resultado"
                                             class="pta-select {{ $p2Row?->p2_resultado === 'Mal' ? 'resultado-NOK' : ($p2Row?->p2_resultado === 'Bien' ? 'resultado-OK' : '') }}">
                                             <option value="">—</option>
@@ -346,7 +344,7 @@
                                             </option>
                                         </select>
                                     </td>
-                                    <td style="padding:0;">
+                                    <td class="seg-padding-0">
                                         <select name="p2_defecto_pta"
                                             class="pta-select {{ ($p2Row?->p2_defecto_pta && $p2Row?->p2_defecto_pta !== 'Ninguno') ? 'defecto-fund' : '' }}">
                                             <option value="Ninguno" {{ ($p2Row?->p2_defecto_pta ?? 'Ninguno') === 'Ninguno' ? 'selected' : '' }}>Ninguno</option>
@@ -365,7 +363,7 @@
                                                 }}>Rechupe</option> --}}
                                         </select>
                                     </td>
-                                    <td style="padding:0;">
+                                    <td class="seg-padding-0">
                                         <textarea name="p2_observaciones" class="pta-input"
                                             placeholder="Obs...">{{ $p2Row?->p2_observaciones ?? '' }}</textarea>
                                     </td>
@@ -381,15 +379,15 @@
             </div>
 
         @elseif ($claseSeleccionadaId && $nPiezaSel)
-            <div style="background:#fff8e1; border-radius:8px; padding:1.2rem; text-align:center; color:#f9a825;">
+            <div class="seg-background-fff8e1 seg-border-radius-8px seg-padding-1-2rem seg-text-align-center seg-color-f9a825">
                 No se encontraron datos para la pieza <strong>{{ $nPiezaSel }}</strong> en el proceso seleccionado.
             </div>
         @elseif ($claseSeleccionadaId)
-            <div style="background:#e8f5e9; border-radius:8px; padding:1.2rem; text-align:center; color:#388e3c;">
+            <div class="seg-background-e8f5e9 seg-border-radius-8px seg-padding-1-2rem seg-text-align-center seg-color-388e3c">
                 Selecciona una pieza para ver / editar la 2da pasada.
             </div>
         @else
-            <div style="background:#e3f2fd; border-radius:8px; padding:1.2rem; text-align:center; color:#1565c0;">
+            <div class="seg-background-e3f2fd seg-border-radius-8px seg-padding-1-2rem seg-text-align-center seg-color-1565c0">
                 Selecciona OT y Clase para continuar.
             </div>
         @endif

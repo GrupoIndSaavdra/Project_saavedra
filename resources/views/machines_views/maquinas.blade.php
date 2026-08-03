@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Piezas en máquinas</title>
     <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
-    @vite('resources/css/maquinas.css')
+    @vite('resources/css/maquinas2.css')
     <link rel="stylesheet" href="{{asset('bootstrap/css/bootstrap.min.css')}}">
     <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
 </head>

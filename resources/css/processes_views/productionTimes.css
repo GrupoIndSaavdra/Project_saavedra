@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* Estilos del formulario de busqueda */
 form {
     display: flex;
@@ -39,13 +42,13 @@ h2 {
     font-size: 1.3em;
     margin: 0.5em;
     letter-spacing: 1px;
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
 }
 .form-label {
     font-size: 1.3rem;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
 }
 
 /* Estilos de la tabla de los tiempos de producción */
@@ -91,7 +94,7 @@ th {
 }
 th {
     color: #fff;
-    background: #033966;
+    background: var(--gis-blue);
 }
 td {
     color: #404040;
@@ -192,7 +195,7 @@ td {
     .table th {
         position: sticky;
         top: 0;
-        background: #033966;
+        background: var(--gis-blue);
         color: white;
         z-index: 10;
         padding: 0.6em;

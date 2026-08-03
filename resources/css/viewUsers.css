@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "global.css";
+
 /* =============================================================
    Gestión de Usuarios — Estilos
    Basado en el sistema de diseño de processProduction.css
@@ -7,22 +10,22 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 
 /* ── Variables de diseño (mismo sistema que processProduction) ── */
 :root {
-    --color-primary:       #033966;
-    --color-primary-dim:   #033966;
-    --color-primary-light: #03396610;
+    --color-primary:       var(--gis-blue);
+    --color-primary-dim:   var(--gis-blue);
+    --color-primary-light: var(--gis-blue)10;
     --color-primary-hover: #022847;
     --color-success:       #28a745;
     --color-success-bg:    rgba(40, 167, 69, 0.12);
-    --color-danger:        #9c0300;
+    --color-danger:        var(--gis-red);
     --color-danger-hover:  #d30400;
     --color-danger-bg:     rgba(156, 3, 0, 0.10);
-    --color-border:        #033966;
-    --color-text:          #033966;
+    --color-border:        var(--gis-blue);
+    --color-text:          var(--gis-blue);
     --color-muted:         #5a7a99;
     --color-row-even:      #f0f6fc;
     --radius-card:         10px;
@@ -145,7 +148,7 @@ body {
     width: 100%;
     padding: 8px 14px 8px 40px;
     font-size: 1em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-weight: 500;
     letter-spacing: 0.5px;
     border: 5px solid var(--color-border);
@@ -166,7 +169,7 @@ body {
 .role-select-toolbar {
     padding: 8px 14px;
     font-size: 1em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-weight: 500;
     letter-spacing: 0.5px;
     border: 5px solid var(--color-border);
@@ -188,7 +191,7 @@ body {
 .btn-clear-filters {
     padding: 8px 16px;
     font-size: 0.9em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-weight: 700;
     letter-spacing: 0.5px;
     border: 5px solid var(--color-primary);
@@ -226,7 +229,7 @@ body {
 table {
     width: 100%;
     border-collapse: collapse;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     background: #ffffff;
 }
 
@@ -297,7 +300,7 @@ table td:last-child {
     letter-spacing: 0.06em;
 }
 
-.badge-admin    { background: #033966; color: #ffffff; }
+.badge-admin    { background: var(--gis-blue); color: #ffffff; }
 .badge-operador { background: #0e6db5; color: #ffffff; }
 .badge-master   { background: #6d1a5e; color: #ffffff; }
 .badge-calidad  { background: #057a55; color: #ffffff; }
@@ -335,10 +338,10 @@ table td:last-child {
 
 .badge-inactivo {
     background: rgba(156, 3, 0, 0.12);
-    color: #9c0300;
-    border: 2px solid #9c0300;
+    color: var(--gis-red);
+    border: 2px solid var(--gis-red);
 }
-.badge-inactivo::before { background: #9c0300; }
+.badge-inactivo::before { background: var(--gis-red); }
 
 /* ── Botones de acción (mismo sistema que processProduction) ── */
 .actions-cell {
@@ -360,7 +363,7 @@ table td:last-child {
     border-radius: var(--radius-btn);
     font-size: 0.82rem;
     font-weight: 800;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     text-transform: uppercase;
     letter-spacing: 1px;
     cursor: pointer;

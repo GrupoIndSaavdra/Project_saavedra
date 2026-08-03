@@ -28,16 +28,16 @@ class AlmacenWOController extends Controller
 
         $file = $request->file('archivo');
         
-        $otReal = \App\Models\Orden_trabajo::find($request->id_ot);
-        $molding = $otReal ? \App\Models\Moldura::find($otReal->id_moldura) : null;
-        $claseReal = \App\Models\Clase::find($request->id_clase);
+        $otReal = \App\Models\Orden_trabajo::find($request->input('id_ot'), ['*']);
+        $molding = $otReal ? \App\Models\Moldura::find($otReal->id_moldura, ['*']) : null;
+        $claseReal = \App\Models\Clase::find($request->input('id_clase'), ['*']);
 
-        $otFolderName = 'OT ' . $request->id_ot;
+        $otFolderName = 'OT ' . $request->input('id_ot');
         if ($molding && $molding->nombre) {
             $otFolderName .= ' - ' . $molding->nombre;
         }
 
-        $claseFolderName = $claseReal ? $claseReal->nombre : 'Clase_' . $request->id_clase;
+        $claseFolderName = $claseReal ? $claseReal->nombre : 'Clase_' . $request->input('id_clase');
 
         $folder = 'DOCUMENTACION_GIS/REMISIONES/' . $otFolderName . '/' . $claseFolderName;
         $otNameClean = $molding && $molding->nombre ? $molding->nombre : '';
@@ -45,15 +45,15 @@ class AlmacenWOController extends Controller
         $cleanClaseName = str_replace(['/', '\\', ' ', ':', '*', '?', '"', '<', '>', '|'], '_', $claseFolderName);
         $cleanOriginalName = str_replace(['/', '\\', ' ', ':', '*', '?', '"', '<', '>', '|'], '_', $file->getClientOriginalName());
 
-        $filename = 'OT_' . $request->id_ot . '_' . $cleanClaseName . '_Remision_' . ($cleanOtName ? $cleanOtName . '_' : '') . $cleanOriginalName;
+        $filename = 'OT_' . $request->input('id_ot') . '_' . $cleanClaseName . '_Remision_' . ($cleanOtName ? $cleanOtName . '_' : '') . $cleanOriginalName;
         $path = $file->storeAs($folder, $filename);
 
         RemisionOt::create([
-            'id_ot'       => $request->id_ot,
-            'id_clase'    => $request->id_clase,
+            'id_ot'       => $request->input('id_ot'),
+            'id_clase'    => $request->input('id_clase'),
             'filename'    => $filename,
             'path'        => $path,
-            'descripcion' => $request->descripcion,
+            'descripcion' => $request->input('descripcion'),
             'uploaded_by' => auth()->user()->matricula ?? auth()->user()->name,
         ]);
 
@@ -63,7 +63,7 @@ class AlmacenWOController extends Controller
     /**
      * Elimina un archivo de remisión.
      */
-    public function destroyRemision($id)
+    public function destroyRemision(int|string $id)
     {
         $remision = RemisionOt::findOrFail($id);
         // No borramos la fila de la base de datos para no desvincular las parcialidades ya registradas.
@@ -76,7 +76,7 @@ class AlmacenWOController extends Controller
     /**
      * Sirve el archivo de remisión protegido.
      */
-    public function serveRemision($id)
+    public function serveRemision(int|string $id)
     {
         $remision = RemisionOt::findOrFail($id);
 
@@ -109,22 +109,22 @@ class AlmacenWOController extends Controller
 
         $file = $request->file('archivo');
 
-        $otReal = \App\Models\Orden_trabajo::find($request->id_ot);
-        $molding = $otReal ? \App\Models\Moldura::find($otReal->id_moldura) : null;
-        $claseReal = \App\Models\Clase::find($request->id_clase);
+        $otReal = \App\Models\Orden_trabajo::find($request->input('id_ot'), ['*']);
+        $molding = $otReal ? \App\Models\Moldura::find($otReal->id_moldura, ['*']) : null;
+        $claseReal = \App\Models\Clase::find($request->input('id_clase'), ['*']);
         if ($claseReal) {
-            $currentSum = ParcialidadOt::where('id_clase', $request->id_clase)->sum('cantidad');
-            if ($currentSum + $request->cantidad > $claseReal->piezas) {
+            $currentSum = ParcialidadOt::where('id_clase', '=', $request->input('id_clase'), 'and')->sum('cantidad');
+            if ($currentSum + $request->input('cantidad') > $claseReal->piezas) {
                 return back()->with('error', "No se pueden recibir más piezas de las que hay en Consignación ({$claseReal->piezas}). Actualmente recibidas: {$currentSum}.");
             }
         }
 
-        $otFolderName = 'OT ' . $request->id_ot;
+        $otFolderName = 'OT ' . $request->input('id_ot');
         if ($molding && $molding->nombre) {
             $otFolderName .= ' - ' . $molding->nombre;
         }
 
-        $claseFolderName = $claseReal ? $claseReal->nombre : 'Clase_' . $request->id_clase;
+        $claseFolderName = $claseReal ? $claseReal->nombre : 'Clase_' . $request->input('id_clase');
 
         $folder = 'DOCUMENTACION_GIS/REMISIONES/' . $otFolderName . '/' . $claseFolderName;
 
@@ -133,12 +133,12 @@ class AlmacenWOController extends Controller
         $cleanClaseName = str_replace(['/', '\\', ' ', ':', '*', '?', '"', '<', '>', '|'], '_', $claseFolderName);
         $cleanOriginalName = str_replace(['/', '\\', ' ', ':', '*', '?', '"', '<', '>', '|'], '_', $file->getClientOriginalName());
 
-        $filename = 'OT_' . $request->id_ot . '_' . $cleanClaseName . '_Remision_' . ($cleanOtName ? $cleanOtName . '_' : '') . $cleanOriginalName;
+        $filename = 'OT_' . $request->input('id_ot') . '_' . $cleanClaseName . '_Remision_' . ($cleanOtName ? $cleanOtName . '_' : '') . $cleanOriginalName;
         $path = $file->storeAs($folder, $filename, 'local');
 
         $remision = RemisionOt::create([
-            'id_ot'       => $request->id_ot,
-            'id_clase'    => $request->id_clase,
+            'id_ot'       => $request->input('id_ot'),
+            'id_clase'    => $request->input('id_clase'),
             'filename'    => $filename,
             'path'        => $path,
             'descripcion' => 'Adjunto a parcialidad',
@@ -147,19 +147,19 @@ class AlmacenWOController extends Controller
         ]);
 
         ParcialidadOt::create([
-            'id_ot'           => $request->id_ot,
-            'id_clase'        => $request->id_clase,
+            'id_ot'           => $request->input('id_ot'),
+            'id_clase'        => $request->input('id_clase'),
             'id_remision'     => $remision->id,
-            'cantidad'        => $request->cantidad,
-            'descripcion'     => $request->descripcion,
-            'fecha_recepcion' => $request->fecha_recepcion,
+            'cantidad'        => $request->input('cantidad'),
+            'descripcion'     => $request->input('descripcion'),
+            'fecha_recepcion' => $request->input('fecha_recepcion'),
             'registrado_por'  => auth()->user()->matricula ?? auth()->user()->name,
         ]);
 
         return back()->with('success', 'Parcialidad y remisión registradas correctamente.');
     }
 
-    public function destroyParcialidad(Request $request, $id)
+    public function destroyParcialidad(Request $request, int|string $id)
     {
         $password = $request->input('password');
         $authorized = false;
@@ -169,7 +169,7 @@ class AlmacenWOController extends Controller
             $authorized = true;
         } elseif ($password) {
             // Verificar si el password corresponde a algún admin (1) o master (3)
-            $users = \App\Models\User::whereIn('perfil', [1, 3])->get();
+            $users = \App\Models\User::whereIn('perfil', [1, 3], 'and', false)->get();
             foreach ($users as $user) {
                 if (\Illuminate\Support\Facades\Hash::check($password, $user->contrasena)) {
                     $authorized = true;
@@ -191,7 +191,7 @@ class AlmacenWOController extends Controller
     /**
      * Actualiza una parcialidad registrada.
      */
-    public function updateParcialidad(Request $request, $id)
+    public function updateParcialidad(Request $request, int|string $id)
     {
         $request->validate([
             'cantidad'        => 'required|integer|min:1',
@@ -202,12 +202,12 @@ class AlmacenWOController extends Controller
 
         $parcialidad = ParcialidadOt::findOrFail($id);
         
-        $claseReal = \App\Models\Clase::find($parcialidad->id_clase);
+        $claseReal = \App\Models\Clase::find($parcialidad->id_clase, ['*']);
         if ($claseReal) {
-            $currentSum = ParcialidadOt::where('id_clase', $parcialidad->id_clase)
-                ->where('id', '!=', $id)
+            $currentSum = ParcialidadOt::where('id_clase', '=', $parcialidad->id_clase, 'and')
+                ->where('id', '!=', $id, 'and')
                 ->sum('cantidad');
-            if ($currentSum + $request->cantidad > $claseReal->piezas) {
+            if ($currentSum + $request->input('cantidad') > $claseReal->piezas) {
                 return response()->json([
                     'message' => "No se pueden recibir más piezas de las que hay en Consignación ({$claseReal->piezas}). Las otras parcialidades suman {$currentSum}."
                 ], 422);
@@ -219,9 +219,9 @@ class AlmacenWOController extends Controller
         if ($request->hasFile('archivo')) {
             $file = $request->file('archivo');
             
-            $otReal = \App\Models\Orden_trabajo::find($parcialidad->id_ot);
-            $molding = $otReal ? \App\Models\Moldura::find($otReal->id_moldura) : null;
-            $claseReal = \App\Models\Clase::find($parcialidad->id_clase);
+            $otReal = \App\Models\Orden_trabajo::find($parcialidad->id_ot, ['*']);
+            $molding = $otReal ? \App\Models\Moldura::find($otReal->id_moldura, ['*']) : null;
+            $claseReal = \App\Models\Clase::find($parcialidad->id_clase, ['*']);
 
             $otFolderName = 'OT ' . $parcialidad->id_ot;
             if ($molding && $molding->nombre) {
@@ -253,9 +253,9 @@ class AlmacenWOController extends Controller
         }
 
         $parcialidad->update([
-            'cantidad'        => $request->cantidad,
-            'descripcion'     => $request->descripcion,
-            'fecha_recepcion' => $request->fecha_recepcion,
+            'cantidad'        => $request->input('cantidad'),
+            'descripcion'     => $request->input('descripcion'),
+            'fecha_recepcion' => $request->input('fecha_recepcion'),
             'id_remision'     => $id_remision,
         ]);
 

@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Clase;
+use App\Models\Metas;
 use App\Models\SoldaduraPTA_pza;
+use App\Models\SystemLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SoldaduraPTAController extends Controller
 {
@@ -56,7 +60,7 @@ class SoldaduraPTAController extends Controller
      *   - p2_gas_argon[id], p2_velocidad_calculada[id]
      *   - p2_resultado[id], p2_defecto_pta[id]
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      * @param  int|null  $index  — no se usa en PTA (legacy param)
      */
     public function storePiece($request, $index = null)
@@ -131,8 +135,8 @@ class SoldaduraPTAController extends Controller
 
             // ── REGISTRO DE LOG OFICIAL (Consolidado por Juego: Solo en Hembra) ──
             $nPiezaRef = $request->n_pieza_ref[$key] ?? $piece->n_pieza;
-            $meta = \App\Models\Metas::query()->where('id', '=', $piece->id_meta, 'and')->first();
-            $clase = \App\Models\Clase::query()->where('id', '=', $meta->id_clase, 'and')->first();
+            $meta = Metas::query()->where('id', '=', $piece->id_meta, 'and')->first();
+            $clase = Clase::query()->where('id', '=', $meta->id_clase, 'and')->first();
             $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : ($meta->id_ot ?? 'N/A');
 
             if ($tipo === 'D_Conexion_pico' && (str_ends_with(strtoupper($nPiezaRef), 'H') || str_ends_with(strtoupper($nPiezaRef), 'J'))) {
@@ -141,7 +145,7 @@ class SoldaduraPTAController extends Controller
                 
                 // ── LÓGICA DE AUDITORÍA (RESTRICTIVA) ──
                 // Replicamos la lógica de SystemLogController para detectar tiempos sospechosos
-                $lastLog = \App\Models\SystemLog::query()->where('user_matricula', '=', \Illuminate\Support\Facades\Auth::user()->matricula, 'and')
+                $lastLog = SystemLog::query()->where('user_matricula', '=', Auth::user()->matricula, 'and')
                     ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'], 'and', false)
                     ->orderBy('created_at', 'desc')
                     ->first();
@@ -164,8 +168,8 @@ class SoldaduraPTAController extends Controller
                     $details .= "\nALERTA: Tiempo insuficiente entre juegos diferentes ({$diffMins} min)";
                 }
 
-                \App\Models\SystemLog::create([
-                    'user_matricula' => \Illuminate\Support\Facades\Auth::user()->matricula,
+                SystemLog::create([
+                    'user_matricula' => Auth::user()->matricula,
                     'action' => $action,
                     'details' => $details,
                     'ot' => $otFull,
@@ -260,8 +264,8 @@ class SoldaduraPTAController extends Controller
 
                 // ── LOG DE SEGUNDA PASADA (Audit Trail) ──
                 $baseNum = preg_replace('/[HMJ]$/i', '', $nPiezaRef);
-                \App\Models\SystemLog::create([
-                    'user_matricula' => \Illuminate\Support\Facades\Auth::user()->matricula,
+                SystemLog::create([
+                    'user_matricula' => Auth::user()->matricula,
                     'action' => 'Segunda Pasada PTA',
                     'details' => "El operador registró una SEGUNDA PASADA para el juego {$baseNum}.",
                     'ot' => $otFull,
@@ -380,3 +384,4 @@ class SoldaduraPTAController extends Controller
         }
     }
 }
+

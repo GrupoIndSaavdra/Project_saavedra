@@ -1,3 +1,6 @@
+/* global.css: reset, Poppins, variables GIS */
+@import "../../global.css";
+
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 
 body {
@@ -39,7 +42,7 @@ h1 {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
-    border-bottom: 3px solid #033966;
+    border-bottom: 3px solid var(--gis-blue);
     display: inline-block;
     padding-bottom: 0.2em;
     align-self: center;
@@ -106,7 +109,7 @@ input[type="date"]:hover {
 select:focus,
 input[type="date"]:focus {
     outline: none;
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.15);
     transform: scale(1.03);
 }
@@ -114,7 +117,7 @@ input[type="date"]:focus {
 label {
     font-size: clamp(0.65rem, 1.2vh, 0.75rem);
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-left: 2px;
@@ -157,7 +160,7 @@ label {
 
 .btns {
     padding: 10px;
-    background: linear-gradient(135deg, #0a8504 0%, #0c9c05 100%);
+    background: linear-gradient(135deg, var(--gis-green) 0%, #0c9c05 100%);
     box-shadow: 0 4px 6px -1px rgba(10, 133, 4, 0.3);
     color: #fff;
     border: none;
@@ -185,7 +188,7 @@ label {
 .date-label {
     font-family: Arial, Helvetica, sans-serif;
     font-size: 2em;
-    color: #033966;
+    color: var(--gis-blue);
 }
 
 /* ESTILOS PARA LA TABLA */
@@ -196,7 +199,7 @@ label {
     overflow-x: auto;
     overflow-y: auto;
     border-radius: 12px;
-    border: 4px solid #033966;
+    border: 4px solid var(--gis-blue);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
     background: rgba(255, 255, 255, 0.6);
 }
@@ -217,32 +220,36 @@ label {
     background: rgba(3, 57, 102, 0.6);
 }
 
-table {
+.div-table table {
     width: 100%;
     border-collapse: collapse;
     background: transparent;
-    width: max-content;
+    table-layout: auto;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
-th,
-td {
+.div-table th,
+.div-table td {
     text-align: center;
-    font-size: 0.95em;
-    padding: 4px 10px;
+    font-size: 0.84rem;
+    padding: 8px 6px;
     border: 1px solid rgba(3, 57, 102, 0.2);
-    white-space: nowrap;
-}
-
-.wide-cell {
     white-space: normal;
-    min-width: 250px;
-    max-width: 350px;
-    word-break: break-word;
+    word-break: normal;
+    overflow-wrap: normal;
+    line-height: 1.3;
 }
 
-th {
-    background: linear-gradient(135deg, #033966 0%, #065494 100%);
+.div-table .wide-cell {
+    white-space: normal;
+    min-width: 120px;
+    max-width: 280px;
+    word-break: normal;
+    overflow-wrap: normal;
+}
+
+.div-table th {
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #065494 100%);
     color: #fff;
     font-weight: 600;
     letter-spacing: 0.5px;
@@ -253,22 +260,22 @@ th {
     border: 1px solid #065494;
 }
 
-th:first-child {
+.div-table th:first-child {
     border-top-left-radius: 8px;
 }
-th:last-child {
+.div-table th:last-child {
     border-top-right-radius: 8px;
 }
 
-tr {
+.div-table tr {
     transition: background-color 0.2s ease;
 }
 
-tr:nth-child(even) {
+.div-table tr:nth-child(even) {
     background-color: rgba(0, 0, 0, 0.02);
 }
 
-tr:hover {
+.div-table tr:hover {
     background-color: rgba(3, 57, 102, 0.05);
 }
 
@@ -291,7 +298,7 @@ tr:hover {
 .filter-select:focus,
 .search-input:focus,
 .date-range:focus {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
     color: white;
     outline: none;
     box-shadow: 0 0 0 3px rgba(10, 133, 4, 0.3);
@@ -307,7 +314,7 @@ tr:hover {
 }
 
 .filter-select {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: #fdfefe;
 }
 
@@ -361,7 +368,7 @@ tr:hover {
 }
 
 .colors-toggle-btn {
-    background: linear-gradient(135deg, #033966 0%, #065494 100%);
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #065494 100%);
     color: white;
     border: none;
     padding: 100px 10px;
@@ -379,7 +386,7 @@ tr:hover {
 }
 
 .colors-toggle-btn:hover {
-    background: linear-gradient(135deg, #065494 0%, #033966 100%);
+    background: linear-gradient(135deg, #065494 0%, var(--gis-blue) 100%);
 }
 
 .colors-content {
@@ -405,11 +412,11 @@ tr:hover {
     background: rgba(230, 230, 230, 0.9);
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-    border: 4px solid #033966;
+    border: 4px solid var(--gis-blue);
 }
 
 .table-colors th {
-    background: #033966;
+    background: var(--gis-blue);
     color: white;
     padding: 6px;
     border-radius: 4px;
@@ -439,7 +446,7 @@ tr:hover {
 .total-records-found {
     font-size: clamp(0.9rem, 2vh, 1.2rem);
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     flex-shrink: 0;
     margin-top: clamp(4px, 1vh, 10px);
 }
@@ -567,7 +574,7 @@ tr:hover {
 }
 
 .textArea-liberation:focus {
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.1);
 }
 
@@ -588,7 +595,7 @@ tr:hover {
 }
 
 .btn-liberate {
-    background-color: #033966;
+    background-color: var(--gis-blue);
 }
 
 .btn-reject {

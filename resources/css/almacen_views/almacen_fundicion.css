@@ -1,6 +1,9 @@
+/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* ====================================================
    almacen_fundicion.css — Vista Almacén/Calidad: Dibujos de Fundición
-   Paleta: #033966 (azul GIS), #9c0300 (rojo GIS), #0a8504 (verde acción)
+   Paleta: var(--gis-blue) (azul GIS), var(--gis-red) (rojo GIS), var(--gis-green) (verde acción)
    Fuente: Poppins (igual que manage_documentation.css y toda la app)
    ==================================================== */
 
@@ -11,7 +14,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 
 body {
@@ -44,7 +47,7 @@ body.modal-open {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     padding: 1em 1.5em;
     border-radius: 10px;
@@ -102,6 +105,7 @@ body.modal-open {
     grid-template-columns: repeat(3, 1fr);
     gap: 1.5em;
     margin-bottom: 1.5em;
+    width: 100%;
 }
 
 @media (max-width: 640px) {
@@ -158,10 +162,10 @@ body.modal-open {
 }
 
 .stat-total .alm-stat-value {
-    color: #033966;
+    color: var(--gis-blue);
 }
 .stat-activas .alm-stat-value {
-    color: #0a8504;
+    color: var(--gis-green);
 }
 .stat-inactivas .alm-stat-value {
     color: #888;
@@ -189,12 +193,12 @@ body.modal-open {
 }
 
 .alm-filters-card h2 {
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 1.2em;
     font-weight: 700;
     margin-bottom: 1em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
@@ -227,10 +231,10 @@ body.modal-open {
     border-radius: 5px;
     padding: 0.8em 0.5em;
     text-align: center;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 1em;
     letter-spacing: 1px;
-    background: #033966;
+    background: var(--gis-blue);
     border: 5px solid #033966d4;
     color: #ffffff;
     outline: none;
@@ -251,20 +255,20 @@ body.modal-open {
 .filter label {
     font-size: 1em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .btns {
     padding: 12px 24px;
-    background-color: #0a8504;
-    box-shadow: 0 2px 5px #0a8504ff;
+    background-color: var(--gis-green);
+    box-shadow: 0 2px 5px var(--gis-green)ff;
     color: #fff;
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 1em;
     font-weight: 700;
     transition:
@@ -278,7 +282,7 @@ body.modal-open {
 }
 
 .btns:hover {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
     transform: scale(1.1);
     box-shadow: 0 4px 12px rgba(10, 133, 4, 0.4);
 }
@@ -313,7 +317,7 @@ body.modal-open {
 }
 
 .alm-btn-ver:hover {
-    background: #0a8504;
+    background: var(--gis-green);
     transform: scale(1.05) translateY(-1px);
     box-shadow: 0 6px 18px rgba(10, 133, 4, 0.35);
 }
@@ -334,8 +338,8 @@ body.modal-open {
     align-items: center;
     justify-content: space-between;
     padding: 1em 1.5em;
-    border-bottom: 2px solid #033966;
-    background: #033966;
+    border-bottom: 2px solid var(--gis-blue);
+    background: var(--gis-blue);
     color: #fff;
 }
 
@@ -367,7 +371,7 @@ table.alm-table {
 }
 
 .alm-table thead th {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     padding: 0.85em 1em;
     text-align: left;
@@ -407,7 +411,7 @@ table.alm-table {
 /* OT label */
 .alm-ot-label {
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 0.95em;
 }
 
@@ -449,8 +453,8 @@ table.alm-table {
     align-items: center;
     gap: 5px;
     background: #e8f2ff;
-    color: #033966;
-    border: 1px solid #033966;
+    color: var(--gis-blue);
+    border: 1px solid var(--gis-blue);
     padding: 0.2em 0.7em;
     border-radius: 20px;
     font-size: 0.85em;
@@ -465,7 +469,7 @@ table.alm-table {
     color: #fff;
     border: 2px solid transparent;
     cursor: pointer;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 1.05em;
     font-weight: 700;
     padding: 0.6em 1em;
@@ -481,15 +485,15 @@ table.alm-table {
 }
 
 .btn-toggle-files:hover {
-    background: #033966;
+    background: var(--gis-blue);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 81, 148, 0.3);
 }
 
 .btn-toggle-files.active {
     background: #fff;
-    color: #033966;
-    border-color: #033966;
+    color: var(--gis-blue);
+    border-color: var(--gis-blue);
     box-shadow: none;
 }
 
@@ -513,19 +517,19 @@ table.alm-table {
 .alm-files-inner {
     padding: 1.5em;
     background: #f8fbff;
-    border-top: 2px solid #033966;
+    border-top: 2px solid var(--gis-blue);
     box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .alm-files-inner h4 {
     font-size: 1em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 1.5em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -563,7 +567,7 @@ table.alm-table {
     align-items: center;
     justify-content: center;
     padding: 1.5em;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
     border-radius: 12px;
     background: #f5f9ff;
     transition:
@@ -579,7 +583,7 @@ table.alm-table {
 }
 
 .dibujos-file-card:hover {
-    background: #033966;
+    background: var(--gis-blue);
     transform: translateY(-5px);
     box-shadow: 0 8px 18px rgba(3, 57, 102, 0.4);
 }
@@ -587,7 +591,7 @@ table.alm-table {
 .dibujos-file-card .file-name {
     font-size: 0.95em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     word-break: break-all;
     text-align: center;
     margin-bottom: 1em;
@@ -652,7 +656,7 @@ table.alm-table {
     text-align: center;
     border-radius: 6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    background: #033966 !important;
+    background: var(--gis-blue) !important;
     color: #fff !important;
     border: none;
     font-weight: 800;
@@ -791,7 +795,7 @@ table.alm-table {
     bottom: 2em;
     right: 2em;
     background: linear-gradient(to bottom, #ffffff, #fcfcfc) !important;
-    border: 3.5px solid #033966 !important;
+    border: 3.5px solid var(--gis-blue) !important;
     border-radius: 12px;
     padding: 0.8rem 1.2rem;
     display: flex;
@@ -813,7 +817,7 @@ table.alm-table {
 }
 
 .alm-toast.error {
-    border-color: #9c0300 !important;
+    border-color: var(--gis-red) !important;
     box-shadow: 0 10px 25px -5px rgba(156, 3, 0, 0.2);
 }
 
@@ -940,13 +944,13 @@ table.alm-table {
 
 .alm-inner-table thead th {
     background: #e8f2ff;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 0.85em;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 1px;
     padding: 12px;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
 }
 
 .alm-inner-table tbody tr {
@@ -966,12 +970,12 @@ table.alm-table {
 /* Estilo para tabla de ayudas (Color Rojo GIS) */
 .table-ayudas thead th {
     background: #fff0f0;
-    color: #9c0300;
-    border-bottom-color: #9c0300;
+    color: var(--gis-red);
+    border-bottom-color: var(--gis-red);
 }
 
 .btn-ayuda-color {
-    background: #9c0300 !important;
+    background: var(--gis-red) !important;
 }
 
 .btn-ayuda-color:hover {
@@ -1016,7 +1020,7 @@ table.alm-table {
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 
 .btn-modelo img {
@@ -1161,7 +1165,7 @@ table.alm-table {
     justify-content: center;
     gap: 10px;
     padding: 12px 2.5em 0;
-    background: #033966;
+    background: var(--gis-blue);
 }
 
 .po-tab-btn {
@@ -1170,7 +1174,7 @@ table.alm-table {
     border: 2px solid rgba(255, 255, 255, 0.2);
     padding: 8px 24px;
     border-radius: 10px 10px 0 0;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 1.05em;
     font-weight: 700;
     cursor: pointer;
@@ -1185,7 +1189,7 @@ table.alm-table {
 
 .po-tab-btn.active {
     background: #fdfdfd;
-    color: #033966;
+    color: var(--gis-blue);
     border-color: #fdfdfd;
 }
 
@@ -1269,7 +1273,7 @@ table.alm-table {
     max-width: 1800px;
     max-height: 98vh;
     border-radius: 20px;
-    border: 4px solid #033966;
+    border: 4px solid var(--gis-blue);
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
     display: flex;
     flex-direction: column;
@@ -1280,7 +1284,7 @@ table.alm-table {
 
 .alm-modal-header {
     padding: 2em 2.5em 1.2em;
-    background: #033966;
+    background: var(--gis-blue);
     border-bottom: 2px solid #f0f0f0;
     position: relative;
     z-index: 10;
@@ -1410,7 +1414,7 @@ table.alm-table {
 }
 
 .form-control:focus {
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.1);
 }
 
@@ -1482,7 +1486,7 @@ table.alm-table {
 
 .modal-table .form-control:focus {
     background: #fff;
-    border-color: #033966;
+    border-color: var(--gis-blue);
 }
 
 .modal-table input[type="number"],
@@ -1537,7 +1541,7 @@ table.alm-table {
 }
 
 .btn-save-preorden {
-    background: #0a8504;
+    background: var(--gis-green);
     color: white;
     border: none;
     padding: 16px 45px;
@@ -1579,7 +1583,7 @@ table.alm-table {
     border-radius: 14px;
     font-weight: 800;
     cursor: pointer;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     text-transform: uppercase;
     letter-spacing: 1px;
     font-size: 0.85em;
@@ -1631,7 +1635,7 @@ table.alm-table {
 
 .select-file-card.checked-card {
     opacity: 1;
-    border-color: #033966 !important;
+    border-color: var(--gis-blue) !important;
     background: #f0f6ff !important; /* Premium light blue background when selected */
     box-shadow: 0 4px 12px rgba(3, 57, 102, 0.08) !important;
 }
@@ -1687,7 +1691,7 @@ table.alm-table {
     padding: 6px 12px !important;
     font-size: 0.78em !important;
     border-radius: 8px !important;
-    background: #033966 !important;
+    background: var(--gis-blue) !important;
     color: #ffffff !important;
     border: 2px solid transparent !important;
     transition: all 0.2s ease !important;
@@ -1718,7 +1722,7 @@ table.alm-table {
 /* ── Custom File Dropzone ── */
 .custom-file-dropzone {
     position: relative;
-    border: 2px dashed #033966;
+    border: 2px dashed var(--gis-blue);
     border-radius: 12px;
     background: #f8fafc;
     padding: 12px 15px !important;
@@ -1758,16 +1762,16 @@ table.alm-table {
 
 .dropzone-text {
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 0.9em !important;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 
 .dropzone-subtext {
     color: #64748b;
     font-size: 0.75em !important;
     margin-top: 2px;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 
 /* Selected files badges list */
@@ -1782,7 +1786,7 @@ table.alm-table {
     align-items: center;
     gap: 6px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     border: 1px solid #cbd5e1;
     animation: selectCardFadeIn 0.25s ease-out both;
 }
@@ -1805,32 +1809,32 @@ table.alm-table {
 
 /* ── Botones Calidad en tabla de OTs ─── */
 .btn-lib-aprobar {
-    background: #0a8504 !important;
+    background: var(--gis-green) !important;
     border: 2px solid #086d03 !important;
     color: #fff !important;
 }
 .btn-lib-aprobar:hover {
     background: #e6f9ed !important;
-    color: #0a8504 !important;
+    color: var(--gis-green) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(10, 133, 4, 0.3) !important;
 }
 .btn-lib-rechazar {
-    background: #9c0300 !important;
+    background: var(--gis-red) !important;
     border: 2px solid #7a0200 !important;
     color: #fff !important;
 }
 .btn-lib-rechazar:hover {
     background: #fdf2f2 !important;
-    color: #9c0300 !important;
+    color: var(--gis-red) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
 }
 
 .lib-calidad-actions {
     background: linear-gradient(135deg, #f0f6ff, #e8f2ff);
-    border: 2px solid #033966;
-    border-left: 5px solid #033966;
+    border: 2px solid var(--gis-blue);
+    border-left: 5px solid var(--gis-blue);
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 4px 12px rgba(3, 57, 102, 0.1);
@@ -1841,7 +1845,7 @@ table.alm-table {
     gap: 10px;
     font-size: 1em;
     font-weight: 800;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 15px;
@@ -1864,8 +1868,8 @@ table.alm-table {
 }
 .lib-estado-rechazado {
     background: #fdf2f2;
-    color: #9c0300;
-    border: 1px solid #9c0300;
+    color: var(--gis-red);
+    border: 1px solid var(--gis-red);
 }
 .lib-estado-info {
     background: #fff3cd;
@@ -1937,7 +1941,7 @@ table.alm-table {
     margin: 0;
 }
 .lib-modal-header-rechazo {
-    background: linear-gradient(135deg, #9c0300, #7a0200) !important;
+    background: linear-gradient(135deg, var(--gis-red), #7a0200) !important;
     border-bottom-color: #6a0100 !important;
 }
 
@@ -1970,13 +1974,13 @@ table.alm-table {
 .lib-dato-value {
     font-size: 1.35em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
 }
 .lib-select {
     border: 2px solid #cbd5e1;
     border-radius: 10px;
     padding: 12px 16px;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 1.3em;
     font-weight: 600;
     color: #334155;
@@ -1989,7 +1993,7 @@ table.alm-table {
 }
 .lib-select:focus {
     outline: none;
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.12);
 }
 
@@ -1997,16 +2001,16 @@ table.alm-table {
 .lib-section-title {
     font-size: 1.25em;
     font-weight: 800;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 1em;
     padding-bottom: 0.5em;
-    border-bottom: 2px solid #033966;
+    border-bottom: 2px solid var(--gis-blue);
 }
 .lib-section-title-danger {
-    color: #9c0300 !important;
-    border-bottom-color: #9c0300 !important;
+    color: var(--gis-red) !important;
+    border-bottom-color: var(--gis-red) !important;
 }
 .lib-section-hint {
     font-size: 1.1em;
@@ -2055,11 +2059,11 @@ table.alm-table {
     justify-content: center;
 }
 .lib-img-zoom-wrapper:hover {
-    border-color: #033966;
+    border-color: var(--gis-blue);
     box-shadow: 0 8px 24px rgba(3, 57, 102, 0.25);
 }
 .lib-img-zoom-wrapper:focus-visible {
-    outline: 3px solid #033966;
+    outline: 3px solid var(--gis-blue);
     outline-offset: 2px;
 }
 .lib-ref-img {
@@ -2109,7 +2113,7 @@ table.alm-table {
     position: fixed;
     width: 450px;
     height: 450px;
-    border: 3px solid #033966;
+    border: 3px solid var(--gis-blue);
     border-radius: 12px;
     background-repeat: no-repeat;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
@@ -2121,7 +2125,7 @@ table.alm-table {
 /* ── Tablas de reporte — ACCESIBLES ─── */
 .lib-table-wrapper {
     overflow-x: auto;
-    border: 2px solid #033966;
+    border: 2px solid var(--gis-blue);
     border-radius: 12px;
 }
 .lib-matrix-wrapper {
@@ -2132,14 +2136,14 @@ table.alm-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 1.2em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
 }
 .lib-matrix-table {
     min-width: 1350px;
 }
 
 .lib-report-table thead tr {
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
 }
 .lib-report-table th {
@@ -2204,7 +2208,7 @@ table.alm-table {
 }
 .lib-th-main-col {
     font-size: 1em;
-    background: #033966;
+    background: var(--gis-blue);
     letter-spacing: 1px;
 }
 .lib-th-sub {
@@ -2214,7 +2218,7 @@ table.alm-table {
 .lib-td-tipo {
     font-weight: 800;
     font-size: 1.1em;
-    color: #033966;
+    color: var(--gis-blue);
     padding: 12px 14px !important;
     white-space: nowrap;
 }
@@ -2227,7 +2231,7 @@ table.alm-table {
 .lib-td-fondo-item {
     font-size: 1.25em;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     padding: 12px 16px !important;
 }
 
@@ -2238,13 +2242,13 @@ table.alm-table {
     justify-content: center;
     min-width: 48px;
     height: 48px;
-    background: #033966;
+    background: var(--gis-blue);
     color: #fff;
     border-radius: 8px;
     font-size: 1.25em;
     font-weight: 800;
     padding: 0 8px;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     flex-shrink: 0;
 }
 .lib-item-desc-inline {
@@ -2274,7 +2278,7 @@ table.alm-table {
 }
 .lib-num-input:focus {
     outline: none !important;
-    border-color: #033966 !important;
+    border-color: var(--gis-blue) !important;
     box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.12) !important;
 }
 .lib-num-input-sm {
@@ -2309,15 +2313,15 @@ table.alm-table {
     font-size: 1.25em !important;
 }
 .lib-textarea-danger {
-    border-color: #9c0300 !important;
+    border-color: var(--gis-red) !important;
 }
 .lib-textarea-danger:focus {
     box-shadow: 0 0 0 4px rgba(156, 3, 0, 0.1) !important;
 }
 .lib-rechazo-block {
     background: linear-gradient(135deg, #fff5f5, #fdf2f2);
-    border: 2px solid #9c0300;
-    border-left: 5px solid #9c0300;
+    border: 2px solid var(--gis-red);
+    border-left: 5px solid var(--gis-red);
     border-radius: 12px;
     padding: 22px;
 }
@@ -2347,7 +2351,7 @@ table.alm-table {
     border: 2px solid rgba(0, 0, 0, 0.08);
     border-radius: 14px;
     font-weight: 800;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     font-size: 0.85em;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -2356,7 +2360,7 @@ table.alm-table {
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .btn-lib-save {
-    background: #033966 !important;
+    background: var(--gis-blue) !important;
     color: #ffffff !important;
     box-shadow: 0 4px 15px rgba(3, 57, 102, 0.25) !important;
     border: 2px solid #022c50 !important;
@@ -2366,7 +2370,7 @@ table.alm-table {
 }
 .btn-lib-save:hover {
     background: #e6f0fa !important;
-    color: #033966 !important;
+    color: var(--gis-blue) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(3, 57, 102, 0.25) !important;
 }
@@ -2375,7 +2379,7 @@ table.alm-table {
 }
 
 .btn-lib-aprobar-send {
-    background: #0a8504 !important;
+    background: var(--gis-green) !important;
     color: #ffffff !important;
     box-shadow: 0 4px 15px rgba(10, 133, 4, 0.3) !important;
     border: 2px solid #086d03 !important;
@@ -2385,7 +2389,7 @@ table.alm-table {
 }
 .btn-lib-aprobar-send:hover {
     background: #e6f9ed !important;
-    color: #0a8504 !important;
+    color: var(--gis-green) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(10, 133, 4, 0.25) !important;
 }
@@ -2394,7 +2398,7 @@ table.alm-table {
 }
 
 .btn-lib-rechazar-send {
-    background: #9c0300 !important;
+    background: var(--gis-red) !important;
     color: #ffffff !important;
     box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3) !important;
     border: 2px solid #7a0200 !important;
@@ -2404,7 +2408,7 @@ table.alm-table {
 }
 .btn-lib-rechazar-send:hover {
     background: #fdf2f2 !important;
-    color: #9c0300 !important;
+    color: var(--gis-red) !important;
     transform: scale(1.08) translateY(-2px) !important;
     box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
 }
@@ -2502,7 +2506,7 @@ table.alm-table {
 
 /* Form control custom overrides for this modal */
 #modalEnviarAlertaLiberacion .form-control {
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     border: 1.5px solid #cbd5e1;
     border-radius: 10px;
     font-size: 0.95em;
@@ -2526,7 +2530,7 @@ table.alm-table {
     border-radius: 10px;
     font-weight: 700;
     font-size: 0.9em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     cursor: pointer;
     transition: all 0.2s ease;
 }
@@ -2545,7 +2549,7 @@ table.alm-table {
     border-radius: 10px;
     font-weight: 700;
     font-size: 0.9em;
-    font-family: "Poppins", sans-serif;
+    /* font-family heredado de global.css */
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
@@ -2739,3 +2743,373 @@ table.alm-table {
     }
 }
 
+
+/* Extracted from _btn_cerrar */
+.btn-cerrar-icon { width: 30px; margin-right: 5px; }
+.btn-cerrar-container { text-align: center; margin-top: 20px; }
+
+/* Extracted from modals */
+.mb-16 { margin-bottom: 16px; }
+.text-center { text-align: center; }
+.w-16 { width: 16px; }
+.h-16 { height: 16px; }
+.mt-1-5em { margin-top: 1.5em; }
+.text-danger { color: #9c0300; }
+.checkbox-label { display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; }
+.modal-subtitle { font-weight: 700; color: #033966; font-size: 1.1em; margin-bottom: 8px; }
+.modal-subtitle-2 { font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 8px; }
+.input-disabled-style { background-color: #f8fafc; cursor: not-allowed; color: #64748b; border-color: #e2e8f0; }
+
+/* Extracted from almacen_fundicion.blade.php */
+.alm-text-danger { color: #dc2626; }
+.alm-cursor-pointer { cursor: pointer; }
+.alm-stat-title { font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family: 'Poppins', sans-serif; }
+.alm-legend-icon { width: 28px; height: 28px; object-fit: contain; }
+.alm-mb-20 { margin-bottom: 20px; }
+.alm-th-12 { padding: 12px 10px; width: 12%; font-family: 'Poppins', sans-serif; }
+.alm-th-8 { padding: 12px 10px; width: 8%; font-family: 'Poppins', sans-serif; }
+.alm-th-7 { padding: 12px 10px; width: 7%; font-family: 'Poppins', sans-serif; }
+.alm-btn-primary { height: auto; padding: 12px 16px; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 1.1em; color: #fff; }
+.alm-btn-secondary { height: auto; padding: 12px 16px; border-radius: 10px; font-family: 'Poppins', sans-serif; font-size: 1.1em; }
+.alm-flex-gap-5 { display: flex; gap: 5px; }
+.alm-section-title { font-weight: 700; color: #334155; display: block; margin-bottom: 10px; font-family: 'Poppins', sans-serif; font-size: 1.1em; }
+.alm-success-box { background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0; }
+.alm-w-12 { width: 12%; }
+.alm-bg-danger-white { background-color: #dc3545; color: white; }
+.alm-text-dark-red { color: #9c0300; }
+.alm-icon-lg { width: 38px; height: 38px; object-fit: contain; flex-shrink: 0; }
+.alm-btn-dark { font-family: 'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: none; color: white; }
+.alm-bg-success-white { display: flex; background-color: #15803d; color: white; }
+.alm-mb-22 { margin-bottom: 22px; }
+.alm-icon-md { width: 20px; height: 20px; vertical-align: middle; }
+.alm-w-60 { width: 60px; }
+.alm-text-sm-gray { font-size: 0.8em; color: #64748b; margin-top: 4px; }
+
+/* Auto-generated utility classes */
+.alm-margin-0-0-10px-0 { margin: 0 0 10px 0; }
+.alm-margin-top-4px { margin-top: 4px; }
+.alm-border-left-4px-solid-0284c7 { border-left: 4px solid #0284c7; }
+.alm-border-bottom-2px-solid-9c0300 { border-bottom: 2px solid #9c0300; }
+.alm-background-linear-gradient-135deg-f0f9ff-0-e0f2fe-100pct { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); }
+.alm-background-linear-gradient-135deg-16a34a-15803d { background: linear-gradient(135deg, #16a34a, #15803d); }
+.alm-font-weight-800 { font-weight: 800; }
+.alm-width-5pct { width: 5%; }
+.alm-border-2px-solid-818cf8 { border: 2px solid #818cf8; }
+.alm-border-top-color-0284c7 { border-top-color: #0284c7; }
+.alm-background-fee2e2 { background: #fee2e2; }
+.alm-border-1px-solid-e2e8f0 { border: 1px solid #e2e8f0; }
+.alm-margin-bottom-0 { margin-bottom: 0; }
+.alm-height-24px { height: 24px; }
+.alm-min-height-80px { min-height: 80px; }
+.alm-background-rgba-0-81-148-0-06 { background: rgba(0,81,148,0.06); }
+.alm-background-f0f9ff { background: #f0f9ff; }
+.alm-display-inline-flex { display: inline-flex; }
+.alm-border-radius-10px { border-radius: 10px; }
+.alm-border-1-5px-solid-0284c7 { border: 1.5px solid #0284c7; }
+.alm-overflow-y-auto { overflow-y: auto; }
+.alm-box-shadow-0-4px-12px-rgba-2-132-199-0-35 { box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35); }
+.alm-background-e0f2fe { background: #e0f2fe; }
+.alm-gap-10px { gap: 10px; }
+.alm-color-rgba-255-255-255-0-9 { color: rgba(255,255,255,0.9); }
+.alm-margin-top-8px { margin-top: 8px; }
+.alm-border-bottom-2px-solid-155724 { border-bottom: 2px solid #155724; }
+.alm-backdrop-filter-blur-10px { -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.alm-transition-transform-0-2s-ease-box-shadow-0-2s-ease { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.alm-margin-0 { margin: 0; }
+.alm-font-size-1-15em { font-size: 1.15em; }
+.alm-text-transform-uppercase { text-transform: uppercase; }
+.alm-box-shadow-0-4px-15px-rgba-10-133-4-0-35 { box-shadow: 0 4px 15px rgba(10,133,4,0.35); }
+.alm-justify-content-center { justify-content: center; }
+.alm-width-18px { width: 18px; }
+.alm-margin-bottom-16px { margin-bottom: 16px; }
+.alm-padding-15px { padding: 15px; }
+.alm-max-width-1800px { max-width: 1800px; }
+.alm-border-radius-50pct { border-radius: 50%; }
+.alm-font-size-2em { font-size: 2em; }
+.alm-line-height-1-2 { line-height: 1.2; }
+.alm-box-shadow-0-4px-15px-rgba-0-81-148-0-3 { box-shadow: 0 4px 15px rgba(0, 81, 148, 0.3); }
+.alm-border-2px-dashed-0a8504 { border: 2px dashed #0a8504; }
+.alm-padding-6px { padding: 6px; }
+.alm-border-2px-solid-9333ea { border: 2px solid #9333ea; }
+.alm-gap-18px { gap: 18px; }
+.alm-width-38px { width: 38px; }
+.alm-width-40px { width: 40px; }
+.alm-height-30px { height: 30px; }
+.alm-background-fff { background: #fff; }
+.alm-margin-top-30px { margin-top: 30px; }
+.alm-padding-2px-6px { padding: 2px 6px; }
+.alm-box-shadow-0-4px-15px-rgba-3-105-161-0-3 { box-shadow: 0 4px 15px rgba(3, 105, 161, 0.3); }
+.alm-display-flex { display: flex; }
+.alm-border-3px-solid-cbd5e1 { border: 3px solid #cbd5e1; }
+.alm-align-items-center { align-items: center; }
+.alm-width-90px { width: 90px; }
+.alm-line-height-1-45 { line-height: 1.45; }
+.alm-background-f8fafc { background: #f8fafc; }
+.alm-background-ecfdf5 { background: #ecfdf5; }
+.alm-grid-template-columns-repeat-auto-fit-minmax-220px-1fr { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.alm-margin-top-10px { margin-top: 10px; }
+.alm-padding-12px-10px { padding: 12px 10px; }
+.alm-gap-6px { gap: 6px; }
+.alm-padding-bottom-12px { padding-bottom: 12px; }
+.alm-border-2px-solid-059669 { border: 2px solid #059669; }
+.alm-border-radius-20px { border-radius: 20px; }
+.alm-gap-15px { gap: 15px; }
+.alm-padding-12px { padding: 12px; }
+.alm-background-rgba-255-255-255-0-95 { background: rgba(255, 255, 255, 0.95); }
+.alm-color-1e293b { color: #1e293b; }
+.alm-box-shadow-0-3px-10px-rgba-3-105-161-0-25 { box-shadow: 0 3px 10px rgba(3,105,161,0.25); }
+.alm-border-radius-6px { border-radius: 6px; }
+.alm-width-calc-33-33-6pxpct { width: calc(33.33% - 6px); }
+.alm-max-height-200px { max-height: 200px; }
+.alm-color-047857 { color: #047857; }
+.alm-height-90px { height: 90px; }
+.alm-line-height-1-1 { line-height: 1.1; }
+.alm-border-bottom-2px-solid-rgba-220-38-38-0-5 { border-bottom: 2px solid rgba(220, 38, 38, 0.5); }
+.alm-padding-0-0-14px { padding: 0 0 14px; }
+.alm-background-f1f5f9 { background: #f1f5f9; }
+.alm-width-16px { width: 16px; }
+.alm-background-fef9c3 { background: #fef9c3; }
+.alm-object-fit-contain { object-fit: contain; }
+.alm-background-color-155724 { background-color: #155724; }
+.alm-grid-column-1-1 { grid-column: 1/-1; }
+.alm-pointer-events-none { pointer-events: none; }
+.alm-border-left-4px-solid-ef4444 { border-left: 4px solid #ef4444; }
+.alm-opacity-0-5 { opacity: 0.5; }
+.alm-display-block { display: block; }
+.alm-position-absolute { position: absolute; }
+.alm-border-collapse-collapse { border-collapse: collapse; }
+.alm-color-005194 { color: #005194; }
+.alm-flex-shrink-0 { flex-shrink: 0; }
+.alm-color-b45309 { color: #b45309; }
+.alm-background-e0e7ff { background: #e0e7ff; }
+.alm-outline-none { outline: none; }
+.alm-object-fit-cover { object-fit: cover; }
+.alm-height-18px { height: 18px; }
+.alm-padding-bottom-5px { padding-bottom: 5px; }
+.alm-font-size-1-45em { font-size: 1.45em; }
+.alm-line-height-1-5 { line-height: 1.5; }
+.alm-background-f0fdf4 { background: #f0fdf4; }
+.alm-font-size-0-7em { font-size: 0.7em; }
+.alm-max-height-420px { max-height: 420px; }
+.alm-filter-drop-shadow-0-4px-8px-rgba-0-0-0-0-15 { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15)); }
+.alm-color-fff { color: #fff; }
+.alm-border-1-5px-solid-e2e8f0 { border: 1.5px solid #e2e8f0; }
+.alm-height-80px { height: 80px; }
+.alm-font-size-0-85em { font-size: 0.85em; }
+.alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 { box-shadow: 0 2px 4px rgba(0,0,0,0.04); }
+.alm-background-fafafa { background: #fafafa; }
+.alm-width-95vw { width: 95vw; }
+.alm-background-rgba-255-255-255-0-15 { background: rgba(255,255,255,0.15); }
+.alm-background-color-fef2f2 { background-color: #fef2f2; }
+.alm-height-22px { height: 22px; }
+.alm-border-2px-solid-10b981 { border: 2px solid #10b981; }
+.alm-margin-top-35px { margin-top: 35px; }
+.alm-height-34px { height: 34px; }
+.alm-box-shadow-0-2px-6px-rgba-0-0-0-0-06 { box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+.alm-width-54px { width: 54px; }
+.alm-border-radius-12px { border-radius: 12px; }
+.alm-border-2px-solid-eab308 { border: 2px solid #eab308; }
+.alm-margin-bottom-25px { margin-bottom: 25px; }
+.alm-border-2-5px-solid-0a8504 { border: 2.5px solid #0a8504; }
+.alm-border-2px-solid-cbd5e1 { border: 2px solid #cbd5e1; }
+.alm-color-0369a1 { color: #0369a1; }
+.alm-border-2px-solid-ef4444 { border: 2px solid #ef4444; }
+.alm-font-weight-500 { font-weight: 500; }
+.alm-color-0f172a { color: #0f172a; }
+.alm-margin-top-2px { margin-top: 2px; }
+.alm-border-top-left-radius-12px { border-top-left-radius: 12px; }
+.alm-flex-wrap-wrap { flex-wrap: wrap; }
+.alm-height-180px { height: 180px; }
+.alm-border-1px-solid-fde047 { border: 1px solid #fde047; }
+.alm-background-linear-gradient-135deg-dc2626-b91c1c { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+.alm-width-55px { width: 55px; }
+.alm-box-sizing-border-box { box-sizing: border-box; }
+.alm-border-1-5px-solid-b91c1c { border: 1.5px solid #b91c1c; }
+.alm-width-100pct { width: 100%; }
+.alm-margin-top-15px { margin-top: 15px; }
+.alm-color-white { color: white; }
+.alm-z-index-99999 { z-index: 99999; }
+.alm-font-weight-600 { font-weight: 600; }
+.alm-margin-top-25px { margin-top: 25px; }
+.alm-background-color-b91c1c { background-color: #b91c1c; }
+.alm-display-inline-block { display: inline-block; }
+.alm-margin-bottom-20px { margin-bottom: 20px; }
+.alm-height-40px { height: 40px; }
+.alm-transition-transform-0-2s-ease { transition: transform 0.2s ease; }
+.alm-width-170px { width: 170px; }
+.alm-background-linear-gradient-135deg-0369a1-0284c7 { background: linear-gradient(135deg, #0369a1, #0284c7); }
+.alm-border-1-5px-solid-cbd5e1 { border: 1.5px solid #cbd5e1; }
+.alm-filter-brightness-0-invert-1 { filter: brightness(0) invert(1); }
+.alm-border-1px-solid-bae6fd { border: 1px solid #bae6fd; }
+.alm-color-475569 { color: #475569; }
+.alm-font-size-1-2em { font-size: 1.2em; }
+.alm-border-bottom-2px-solid-rgba-255-255-255-0-2 { border-bottom: 2px solid rgba(255,255,255,0.2); }
+.alm-border-bottom-2px-solid-064e03 { border-bottom: 2px solid #064e03; }
+.alm-padding-2-2em-2-5em-2em { padding: 2.2em 2.5em 2em; }
+.alm-padding-15px-35px { padding: 15px 35px; }
+.alm-width-16pct { width: 16%; }
+.alm-width-15pct { width: 15%; }
+.alm-min-height-52px { min-height: 52px; }
+.alm-margin-bottom-8px { margin-bottom: 8px; }
+.alm-width-14px { width: 14px; }
+.alm-padding-12px-35px { padding: 12px 35px; }
+.alm-margin-left-15px { margin-left: 15px; }
+.alm-font-size-0-80rem { font-size: 0.80rem; }
+.alm-color-d1fae5 { color: #d1fae5; }
+.alm-border-1-5px-dashed-005194 { border: 1.5px dashed #005194; }
+.alm-grid-template-columns-repeat-auto-fill-minmax-200px-1fr { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.alm-background-dc2626 { background: #dc2626; }
+.alm-padding-12px-16px { padding: 12px 16px; }
+.alm-font-size-0-82rem { font-size: 0.82rem; }
+.alm-font-weight-700 { font-weight: 700; }
+.alm-color-854d0e { color: #854d0e; }
+.alm-border-3px-solid-transparent { border: 3px solid transparent; }
+.alm-font-size-0-95em { font-size: 0.95em; }
+.alm-padding-left-8px { padding-left: 8px; }
+.alm-height-46px { height: 46px; }
+.alm-width-30px { width: 30px; }
+.alm-color-033966 { color: #033966; }
+.alm-color-rgba-255-255-255-0-75 { color: rgba(255,255,255,0.75); }
+.alm-filter-invert-36-sepia-87-saturate-1514-hue-rotate-176deg-brightness-94-contrast-101pct { filter: invert(36%) sepia(87%) saturate(1514%) hue-rotate(176deg) brightness(94%) contrast(101%); }
+.alm-padding-10px-6px { padding: 10px 6px; }
+.alm-margin-top-24px { margin-top: 24px; }
+.alm-margin-bottom-10px { margin-bottom: 10px; }
+.alm-overflow-x-auto { overflow-x: auto; }
+.alm-font-size-0-9rem { font-size: 0.9rem; }
+.alm-overflow-hidden { overflow: hidden; }
+.alm-border-2px-solid-ec4899 { border: 2px solid #ec4899; }
+.alm-background-dcfce7 { background: #dcfce7; }
+.alm-border-2px-solid-dc2626 { border: 2px solid #dc2626; }
+.alm-width-14pct { width: 14%; }
+.alm-height-100pct { height: 100%; }
+.alm-border-1-5px-dashed-rgba-255-255-255-0-5 { border: 1.5px dashed rgba(255,255,255,0.5); }
+.alm-padding-14px-18px { padding: 14px 18px; }
+.alm-color-dc2626 { color: #dc2626; }
+.alm-width-6pct { width: 6%; }
+.alm-font-size-0-85rem { font-size: 0.85rem; }
+.alm-width-22pct { width: 22%; }
+.alm-color-64748b { color: #64748b; }
+.alm-padding-16px { padding: 16px; }
+.alm-width-64px { width: 64px; }
+.alm-color-9333ea { color: #9333ea; }
+.alm-color-15803d { color: #15803d; }
+.alm-font-size-1-1em { font-size: 1.1em; }
+.alm-width-24px { width: 24px; }
+.alm-color-9c0300 { color: #9c0300; }
+.alm-max-width-1100px { max-width: 1100px; }
+.alm-background-color-15803d { background-color: #15803d; }
+.alm-font-size-1-08rem { font-size: 1.08rem; }
+.alm-padding-12px-18px { padding: 12px 18px; }
+.alm-background-fef2f2 { background: #fef2f2; }
+.alm-background-color-033966 { background-color: #033966; }
+.alm-position-relative { position: relative; }
+.alm-border-left-4px-solid-94a3b8 { border-left: 4px solid #94a3b8; }
+.alm-background-linear-gradient-to-right-f8fafc-f1f5f9 { background: linear-gradient(to right, #f8fafc, #f1f5f9); }
+.alm-gap-7px { gap: 7px; }
+.alm-border-radius-14px { border-radius: 14px; }
+.alm-white-space-nowrap { white-space: nowrap; }
+.alm-font-size-1em { font-size: 1em; }
+.alm-padding-7px-18px { padding: 7px 18px; }
+.alm-flex-direction-column { flex-direction: column; }
+.alm-background-fdf2f8 { background: #fdf2f8; }
+.alm-background-linear-gradient-135deg-0284c7-0369a1 { background: linear-gradient(135deg, #0284c7, #0369a1); }
+.alm-background-005194 { background: #005194; }
+.alm-gap-8px { gap: 8px; }
+.alm-font-size-0-65em { font-size: 0.65em; }
+.alm-transition-all-0-2s-ease { transition: all 0.2s ease; }
+.alm-text-align-center { text-align: center; }
+.alm-height-14px { height: 14px; }
+.alm-display-grid { display: grid; }
+.alm-margin-top-7px { margin-top: 7px; }
+.alm-transition-transform-0-15s-cubic-bezier-0-175-0-885-0-32-1-25-opacity-0-15s-ease { transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.25), opacity 0.15s ease; }
+.alm-border-2px-solid-60a5fa { border: 2px solid #60a5fa; }
+.alm-width-22px { width: 22px; }
+.alm-justify-items-center { justify-items: center; }
+.alm-padding-8px-16px { padding: 8px 16px; }
+.alm-background-none { background: none; }
+.alm-border-bottom-2px-solid-cbd5e1 { border-bottom: 2px solid #cbd5e1; }
+.alm-padding-5px { padding: 5px; }
+.alm-letter-spacing-0-5px { letter-spacing: 0.5px; }
+.alm-border-top-right-radius-12px { border-top-right-radius: 12px; }
+.alm-padding-12px-25px { padding: 12px 25px; }
+.alm-font-weight-bold { font-weight: bold; }
+.alm-padding-1-6em { padding: 1.6em; }
+.alm-border-bottom-1px-solid-bae6fd { border-bottom: 1px solid #bae6fd; }
+.alm-border-radius-4px { border-radius: 4px; }
+.alm-margin-5px-auto { margin: 5px auto; }
+.alm-color-b91c1c { color: #b91c1c; }
+.alm-color-2563eb { color: #2563eb; }
+.alm-font-family-Poppins-sans-serif { font-family: 'Poppins', sans-serif; }
+.alm-font-size-0-92rem { font-size: 0.92rem; }
+.alm-color-155724 { color: #155724; }
+.alm-padding-2-2em-2-5em-1-5em { padding: 2.2em 2.5em 1.5em; }
+.alm-font-size-1-05em { font-size: 1.05em; }
+.alm-color-bae6fd { color: #bae6fd; }
+.alm-background-f3e8ff { background: #f3e8ff; }
+.alm-background-fffbeb { background: #fffbeb; }
+.alm-border-2px-solid-f59e0b { border: 2px solid #f59e0b; }
+.alm-margin-bottom-5px { margin-bottom: 5px; }
+.alm-padding-2-2em-2-5em { padding: 2.2em 2.5em; }
+.alm-gap-20px { gap: 20px; }
+.alm-gap-12px { gap: 12px; }
+.alm-box-shadow-0-4px-8px-rgba-0-0-0-0-06 { box-shadow: 0 4px 8px rgba(0,0,0,0.06); }
+.alm-margin-top-20px { margin-top: 20px; }
+.alm-border-left-4px-solid-3b82f6 { border-left: 4px solid #3b82f6; }
+.alm-background-linear-gradient-135deg-0369a1-0-0284c7-100pct { background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); }
+.alm-height-16px { height: 16px; }
+.alm-color-713f12 { color: #713f12; }
+.alm-background-color-9c0300 { background-color: #9c0300; }
+.alm-background-eff6ff { background: #eff6ff; }
+.alm-border-bottom-2px-solid-rgba-22-163-74-0-5 { border-bottom: 2px solid rgba(22, 163, 74, 0.5); }
+.alm-min-height-102px { min-height: 102px; }
+.alm-flex-1 { flex: 1; }
+.alm-border-radius-8px { border-radius: 8px; }
+.alm-font-size-0-97em { font-size: 0.97em; }
+.alm-gap-2px { gap: 2px; }
+.alm-border-none { border: none; }
+.alm-box-shadow-0-10px-25px-rgba-0-0-0-0-15 { box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); }
+.alm-justify-content-space-between { justify-content: space-between; }
+.alm-padding-8px-12px { padding: 8px 12px; }
+.alm-position-fixed { position: fixed; }
+.alm-width-34px { width: 34px; }
+.alm-padding-10px-20px { padding: 10px 20px; }
+.alm-background-rgba-255-255-255-0-98 { background: rgba(255, 255, 255, 0.98); }
+.alm-margin-10px-auto { margin: 10px auto; }
+.alm-border-1px-solid-fecaca { border: 1px solid #fecaca; }
+.alm-background-linear-gradient-135deg-0a8504-064e03 { background: linear-gradient(135deg, #0a8504, #064e03); }
+.alm-color-4f46e5 { color: #4f46e5; }
+.alm-margin-bottom-30px { margin-bottom: 30px; }
+.alm-height-55px { height: 55px; }
+.alm-display-none { display: none; }
+.alm-color-334155 { color: #334155; }
+.alm-box-shadow-0-4px-15px-rgba-0-0-0-0-08 { box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+.alm-font-size-0-93em { font-size: 0.93em; }
+.alm-opacity-0 { opacity: 0; }
+.alm-color-ffffff { color: #ffffff; }
+.alm-height-54px { height: 54px; }
+.alm-color-991b1b { color: #991b1b; }
+.alm-padding-2-5em { padding: 2.5em; }
+.alm-padding-14px { padding: 14px; }
+.alm-box-shadow-0-1px-3px-rgba-0-0-0-0-05 { box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.alm-font-size-1-05rem { font-size: 1.05rem; }
+.alm-border-2px-solid-0ea5e9 { border: 2px solid #0ea5e9; }
+.alm-color-0a8504 { color: #0a8504; }
+.alm-background-color-fee2e2 { background-color: #fee2e2; }
+.alm-border-bottom-2px-solid-15803d { border-bottom: 2px solid #15803d; }
+.alm-font-size-1-30rem { font-size: 1.30rem; }
+.alm-padding-12px-32px { padding: 12px 32px; }
+.alm-height-38px { height: 38px; }
+.alm-border-top-color-033966 { border-top-color: #033966; }
+.alm-text-align-left { text-align: left; }
+.alm-background-color-0369a1 { background-color: #0369a1; }
+.alm-margin-bottom-12px { margin-bottom: 12px; }
+.alm-height-auto { height: auto; }
+.alm-transform-scale-0-9 { transform: scale(0.9); }
+.alm-font-size-0-9em { font-size: 0.9em; }
+.alm-width-46px { width: 46px; }
+.alm-border-bottom-2px-solid-e2e8f0 { border-bottom: 2px solid #e2e8f0; }
+.alm-margin-bottom-2em { margin-bottom: 2em; }
+.alm-color-be185d { color: #be185d; }
+.alm-padding-20px { padding: 20px; }
+.alm-padding-bottom-0 { padding-bottom: 0; }
+.alm-color-fee2e2 { color: #fee2e2; }

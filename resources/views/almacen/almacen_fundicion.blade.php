@@ -24,7 +24,7 @@
 
         <div class="alm-header">
             <div class="alm-header-icon">
-                <img src="{{ asset('images/' . $deptIcon) }}" alt="{{ $deptName }}" style="width: 90px;">
+                <img src="{{ asset('images/' . $deptIcon) }}" alt="{{ $deptName }}" class="alm-width-90px">
             </div>
             <div class="alm-header-text">
                 <h1>Almacén — Dibujos y Ayudas Visuales de Fundición</h1>
@@ -40,110 +40,110 @@
             <aside class="alm-sidebar">
 
 
-                <div class="alm-filters-card" style="margin-bottom: 2em; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); position: relative; padding: 1.6em;">
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px;">
-                        <img src="{{ asset('images/Quality.png') }}" alt="Leyenda" style="width: 30px; height: 30px; object-fit: contain;">
-                        <h2 style="margin: 0; font-size: 1.30rem; color: #0f172a; font-weight: 700;">Guía de Estados de Modelo</h2>
+                <div class="alm-filters-card alm-margin-bottom-2em alm-background-rgba-255-255-255-0-95 alm-backdrop-filter-blur-10px alm-border-radius-12px alm-box-shadow-0-4px-15px-rgba-0-0-0-0-08 alm-position-relative alm-padding-1-6em">
+                    <div class="alm-display-flex alm-align-items-center alm-gap-12px alm-margin-bottom-16px alm-border-bottom-2px-solid-e2e8f0 alm-padding-bottom-12px">
+                        <img src="{{ asset('images/Quality.png') }}" alt="Leyenda" class="alm-width-30px alm-height-30px alm-object-fit-contain">
+                        <h2 class="alm-margin-0 alm-font-size-1-30rem alm-color-0f172a alm-font-weight-700">Guía de Estados de Modelo</h2>
                     </div>
 
-                    <h3 style="font-size: 0.92rem; color: #475569; font-weight: 700; margin: 0 0 10px 0; border-left: 4px solid #94a3b8; padding-left: 8px;">Estados de Transición</h3>
-                    <div class="legend-grid-compact" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px;">
+                    <h3 class="alm-font-size-0-92rem alm-color-475569 alm-font-weight-700 alm-margin-0-0-10px-0 alm-border-left-4px-solid-94a3b8 alm-padding-left-8px">Estados de Transición</h3>
+                    <div class="legend-grid-compact alm-display-flex alm-flex-wrap-wrap alm-justify-content-center alm-gap-8px alm-margin-bottom-20px">
 
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #f1f5f9; border: 2px solid #cbd5e1; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Recibido.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-f1f5f9 alm-border-2px-solid-cbd5e1 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/Recibido.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #475569; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Nuevo</span>
+                            <span class="alm-font-size-0-80rem alm-color-475569 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Nuevo</span>
                         </div>
 
                         @if (Auth::user()->perfil != 4)
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #e0e7ff; border: 2px solid #818cf8; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/enviando.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-e0e7ff alm-border-2px-solid-818cf8 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/enviando.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #4f46e5; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Correo Enviado</span>
+                            <span class="alm-font-size-0-80rem alm-color-4f46e5 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Correo Enviado</span>
                         </div>
                         @endif
 
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #fffbeb; border: 2px solid #f59e0b; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Revisando.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-fffbeb alm-border-2px-solid-f59e0b alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/Revisando.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #b45309; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">En Revisión</span>
+                            <span class="alm-font-size-0-80rem alm-color-b45309 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">En Revisión</span>
                         </div>
                     </div>
 
-                    <h3 style="font-size: 0.92rem; color: #0f172a; font-weight: 700; margin: 0 0 10px 0; border-left: 4px solid #3b82f6; padding-left: 8px;">Estados Prioritarios</h3>
-                    <div class="legend-grid-compact" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
+                    <h3 class="alm-font-size-0-92rem alm-color-0f172a alm-font-weight-700 alm-margin-0-0-10px-0 alm-border-left-4px-solid-3b82f6 alm-padding-left-8px">Estados Prioritarios</h3>
+                    <div class="legend-grid-compact alm-display-flex alm-flex-wrap-wrap alm-justify-content-center alm-gap-8px">
 
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #eff6ff; border: 2px solid #60a5fa; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/pdf-view.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-eff6ff alm-border-2px-solid-60a5fa alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/pdf-view.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #2563eb; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Pre-Orden</span>
+                            <span class="alm-font-size-0-80rem alm-color-2563eb alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Pre-Orden</span>
                         </div>
 
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #f0f9ff; border: 2px solid #0ea5e9; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Espera.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-f0f9ff alm-border-2px-solid-0ea5e9 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/Espera.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #0369a1; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Tengo Modelo</span>
+                            <span class="alm-font-size-0-80rem alm-color-0369a1 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Tengo Modelo</span>
                         </div>
 
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #ecfdf5; border: 2px solid #10b981; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Quality.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-ecfdf5 alm-border-2px-solid-10b981 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/Quality.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #047857; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Aprobado</span>
+                            <span class="alm-font-size-0-80rem alm-color-047857 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Aprobado</span>
                         </div>
 
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #fef2f2; border: 2px solid #ef4444; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Quality.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-fef2f2 alm-border-2px-solid-ef4444 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/Quality.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #b91c1c; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Rechazado</span>
+                            <span class="alm-font-size-0-80rem alm-color-b91c1c alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Rechazado</span>
                         </div>
 
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #fef9c3; border: 2px solid #eab308; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Quality.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-fef9c3 alm-border-2px-solid-eab308 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/Quality.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #854d0e; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Mixto</span>
+                            <span class="alm-font-size-0-80rem alm-color-854d0e alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Mixto</span>
                         </div>
 
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #f0fdf4; border: 2px solid #059669; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/pdf-view.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-f0fdf4 alm-border-2px-solid-059669 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/pdf-view.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #15803d; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Casting</span>
+                            <span class="alm-font-size-0-80rem alm-color-15803d alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Casting</span>
                         </div>
 
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #fdf2f8; border: 2px solid #ec4899; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Reproceso.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-fdf2f8 alm-border-2px-solid-ec4899 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/Reproceso.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #be185d; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Reproceso</span>
+                            <span class="alm-font-size-0-80rem alm-color-be185d alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Reproceso</span>
                         </div>
 
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #f3e8ff; border: 2px solid #9333ea; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Proveedor.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-f3e8ff alm-border-2px-solid-9333ea alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/Proveedor.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #9333ea; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Enviado a Proveedor</span>
+                            <span class="alm-font-size-0-80rem alm-color-9333ea alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Enviado a Proveedor</span>
                         </div>
 
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #ecfdf5; border: 2px solid #10b981; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Aprobado.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-ecfdf5 alm-border-2px-solid-10b981 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/Aprobado.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #047857; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Aprobado Final</span>
+                            <span class="alm-font-size-0-80rem alm-color-047857 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Aprobado Final</span>
                         </div>
 
-                        <div class="legend-compact-item" style="width: calc(33.33% - 6px); display: flex; flex-direction: column; align-items: center; padding: 10px 6px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; min-height: 102px; justify-content: center;">
-                            <span style="display: flex; background: #fef2f2; border: 2px solid #dc2626; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.04); flex-shrink: 0;">
-                                <img src="{{ asset('images/Rechazado.png') }}" style="width: 28px; height: 28px; object-fit: contain;">
+                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span class="alm-display-flex alm-background-fef2f2 alm-border-2px-solid-dc2626 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                <img src="{{ asset('images/Rechazado.png') }}" class="alm-legend-icon">
                             </span>
-                            <span style="font-size: 0.80rem; color: #b91c1c; font-weight: 700; margin-top: 7px; text-align: center; line-height: 1.1;">Rechazado Final</span>
+                            <span class="alm-font-size-0-80rem alm-color-b91c1c alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Rechazado Final</span>
                         </div>
                     </div>
                 </div>
@@ -172,11 +172,11 @@
                 </style>
 
                 <!-- Zoom Tooltip Flotante (Mercado Libre / Amazon Style) -->
-                <div id="legend-zoom-tooltip" style="position: fixed; display: none; pointer-events: none; z-index: 99999; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); border-radius: 12px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15); border: 3px solid #cbd5e1; padding: 16px; width: 170px; height: 180px; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.25), opacity 0.15s ease; opacity: 0; transform: scale(0.9); font-family: 'Poppins', sans-serif;">
-                    <span id="legend-zoom-circle" style="display: flex; align-items: center; justify-content: center; width: 90px; height: 90px; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.06); flex-shrink: 0; border: 3px solid transparent;">
-                        <img id="legend-zoom-img" src="" style="width: 55px; height: 55px; object-fit: contain;">
+                <div id="legend-zoom-tooltip" class="alm-position-fixed alm-display-none alm-pointer-events-none alm-z-index-99999 alm-background-rgba-255-255-255-0-98 alm-backdrop-filter-blur-10px alm-border-radius-12px alm-box-shadow-0-10px-25px-rgba-0-0-0-0-15 alm-border-3px-solid-cbd5e1 alm-padding-16px alm-width-170px alm-height-180px alm-flex-direction-column alm-align-items-center alm-justify-content-center alm-box-sizing-border-box alm-transition-transform-0-15s-cubic-bezier-0-175-0-885-0-32-1-25-opacity-0-15s-ease alm-opacity-0 alm-transform-scale-0-9 alm-font-family-Poppins-sans-serif">
+                    <span id="legend-zoom-circle" class="alm-display-flex alm-align-items-center alm-justify-content-center alm-width-90px alm-height-90px alm-border-radius-50pct alm-box-shadow-0-4px-8px-rgba-0-0-0-0-06 alm-flex-shrink-0 alm-border-3px-solid-transparent">
+                        <img id="legend-zoom-img" src="" class="alm-width-55px alm-height-55px alm-object-fit-contain">
                     </span>
-                    <span id="legend-zoom-label" style="font-size: 1.08rem; font-weight: 800; margin-top: 10px; text-align: center; line-height: 1.2;"></span>
+                    <span id="legend-zoom-label" class="alm-font-size-1-08rem alm-font-weight-800 alm-margin-top-10px alm-text-align-center alm-line-height-1-2"></span>
                 </div>
 
                 <script>
@@ -279,7 +279,7 @@
                 <div class="alm-stats">
                     <div class="alm-stat-card stat-total">
                         <div class="alm-stat-icon">
-                            <img src="{{ asset('images/pdf-view.png') }}" alt="Total" style="width: 60px;">
+                            <img src="{{ asset('images/pdf-view.png') }}" alt="Total" class="alm-w-60">
                         </div>
                         <div>
                             <div class="alm-stat-value">{{ $total }}</div>
@@ -288,7 +288,7 @@
                     </div>
                     <div class="alm-stat-card stat-activas">
                         <div class="alm-stat-icon">
-                            <img src="{{ asset('images/ready.png') }}" alt="Activas" style="width: 60px;">
+                            <img src="{{ asset('images/ready.png') }}" alt="Activas" class="alm-w-60">
                         </div>
                         <div>
                             <div class="alm-stat-value">{{ $activas }}</div>
@@ -297,7 +297,7 @@
                     </div>
                     <div class="alm-stat-card stat-inactivas">
                         <div class="alm-stat-icon">
-                            <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Archivadas" style="width: 60px;">
+                            <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Archivadas" class="alm-w-60">
                         </div>
                         <div>
                             <div class="alm-stat-value">{{ $inactivas }}</div>
@@ -350,7 +350,7 @@
                         $registrosEstado = $registros->where('status', $estado);
                     @endphp
 
-                    <div class="alm-table-card" style="margin-bottom: 2em;">
+                    <div class="alm-table-card alm-margin-bottom-2em">
                         <div class="alm-table-header"
                             style="{{ $estado === 'inactiva' ? 'background: #6c757d; border-bottom: 2px solid #5a6268;' : '' }}">
                             <h2>{{ $titulo }}</h2>
@@ -360,21 +360,9 @@
 
                         @if ($estado === 'activa')
                         {{-- ── BARRA DE SINCRONIZACIÓN MANUAL (solo tabla Activa) ── --}}
-                        <div id="sync-bar-activa" style="
-                            display: flex;
-                            align-items: center;
-                            justify-content: space-between;
-                            flex-wrap: wrap;
-                            gap: 10px;
-                            padding: 10px 20px;
-                            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-                            border-bottom: 1px solid #bae6fd;
-                            font-size: 0.85rem;
-                            color: #0369a1;
-                            font-family: 'Poppins', sans-serif;
-                        ">
-                            <span id="sync-status-almacen" style="display: flex; align-items: center; gap: 6px; font-weight: 600;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0369a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                        <div id="sync-bar-activa" class="alm-display-flex alm-align-items-center alm-justify-content-space-between alm-flex-wrap-wrap alm-gap-10px alm-padding-10px-20px alm-background-linear-gradient-135deg-f0f9ff-0-e0f2fe-100pct alm-border-bottom-1px-solid-bae6fd alm-font-size-0-85rem alm-color-0369a1 alm-font-family-Poppins-sans-serif">
+                            <span id="sync-status-almacen" class="alm-display-flex alm-align-items-center alm-gap-6px alm-font-weight-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0369a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="alm-flex-shrink-0">
                                     <polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline>
                                     <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
                                 </svg>
@@ -384,23 +372,7 @@
                                 id="btn-sync-manual-almacen"
                                 onclick="sincronizarDibujos(true)"
                                 title="Sincronizar archivos ahora"
-                                style="
-                                    display: inline-flex;
-                                    align-items: center;
-                                    gap: 7px;
-                                    padding: 7px 18px;
-                                    background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
-                                    color: #fff;
-                                    border: none;
-                                    border-radius: 8px;
-                                    font-weight: 700;
-                                    font-size: 0.82rem;
-                                    font-family: 'Poppins', sans-serif;
-                                    cursor: pointer;
-                                    box-shadow: 0 3px 10px rgba(3,105,161,0.25);
-                                    transition: all 0.2s ease;
-                                    white-space: nowrap;
-                                "
+                                class="alm-display-inline-flex alm-align-items-center alm-gap-7px alm-padding-7px-18px alm-background-linear-gradient-135deg-0369a1-0-0284c7-100pct alm-color-fff alm-border-none alm-border-radius-8px alm-font-weight-700 alm-font-size-0-82rem alm-font-family-Poppins-sans-serif alm-cursor-pointer alm-box-shadow-0-3px-10px-rgba-3-105-161-0-25 alm-transition-all-0-2s-ease alm-white-space-nowrap"
                                 onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 5px 15px rgba(3,105,161,0.35)';"
                                 onmouseout="this.style.transform=''; this.style.boxShadow='0 3px 10px rgba(3,105,161,0.25)';"
                             >
@@ -417,7 +389,7 @@
                             <div class="alm-empty">
                                 <div class="alm-empty-icon">
                                     <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados"
-                                        style="width: 64px; opacity: 0.5;">
+                                        class="alm-width-64px alm-opacity-0-5">
                                 </div>
                                 <p>
                                     @if ($busquedaOt || $desde || $hasta)
@@ -1560,12 +1532,11 @@
                                                 </td>
                                                 <td class="d-text-center">
                                                     <div id="status-modelo-{{ $reg->ot }}">
-                                                        <div class="status-modelo-container"
-                                                            style="display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 8px;">
+                                                        <div class="status-modelo-container alm-display-inline-flex alm-flex-direction-column alm-align-items-center alm-gap-2px alm-padding-6px alm-border-radius-8px">
                                                             <span class="badge-modelo-icon" title="{{ $tooltip }}"
                                                                 style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background: {{ $bgColor }}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid {{ $borderColor }}; transition: all 0.2s ease;">
                                                                 <img src="{{ asset('images/' . $icon) }}" alt="{{ $label }}"
-                                                                    style="width: 34px; height: 34px; object-fit: contain;">
+                                                                    class="alm-width-34px alm-height-34px alm-object-fit-contain">
                                                             </span>
                                                             <span class="status-modelo-label"
                                                                 style="font-size: 11px; font-weight: 700; color: {{ $textColor }}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
@@ -1588,7 +1559,7 @@
                                                             Ver Archivos
                                                         </button>
                                                     @else
-                                                        <span class="d-text-subtle" style="font-size:0.85em;">Sin archivos</span>
+                                                        <span class="d-text-subtle alm-font-size-0-85em">Sin archivos</span>
                                                     @endif
                                                 </td>
                                             </tr>
@@ -1611,18 +1582,18 @@
                                                                         <h3 style="margin-top: 15px; margin-bottom: 10px; color: {{ $group['color'] }}; border-bottom: 2px solid {{ $group['color'] }}; padding-bottom: 5px;">
                                                                             {{ $group['titulo'] }}
                                                                         </h3>
-                                                                        <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                                                        <div class="alm-pdf-grid alm-success-box">
                                                                             @foreach ($group['archivos'] as $archivoInfo)
                                                                                 @php
                                                                                     $tipoCls = $archivoInfo['tipo'] === 'ayuda' ? 'card-ayuda' : '';
                                                                                     $btnCls = $archivoInfo['tipo'] === 'ayuda' ? 'btn-ayuda-color' : '';
                                                                                 @endphp
                                                                                 <div class="dibujos-file-card {{ $tipoCls }}" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                                                    <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')" style="cursor: pointer;" title="Abrir PDF">
+                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                                                                         <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                                                         <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
                                                                                     </div>
-                                                                                    <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">
+                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">
                                                                                         {{ basename($archivoInfo['nombre']) }}
                                                                                     </div>
                                                                                     <div class="file-actions">
@@ -1634,7 +1605,7 @@
                                                                     @endif
                                                                 @endforeach
                                                             @else
-                                                                <div style="margin-top: 15px; padding: 14px 18px; background: rgba(0,81,148,0.06); border: 1.5px dashed #005194; border-radius: 10px; color: #005194; font-size: 0.93em;">
+                                                                <div class="alm-margin-top-15px alm-padding-14px-18px alm-background-rgba-0-81-148-0-06 alm-border-1-5px-dashed-005194 alm-border-radius-10px alm-color-005194 alm-font-size-0-93em">
                                                                     <strong>Documentos pendientes:</strong> Los dibujos y ayudas estarán disponibles una vez que Ingeniería envíe la alerta oficial desde el sistema de gestión documental.
                                                                 </div>
                                                             @endif
@@ -1667,23 +1638,23 @@
                                                         @endphp
 
                                                         @if (count($rechazadosAyudas) > 0)
-                                                            <h3 style="margin-top: 25px; margin-bottom: 10px; color: #155724; border-bottom: 2px solid #155724; padding-bottom: 5px;">
+                                                            <h3 class="alm-margin-top-25px alm-margin-bottom-10px alm-color-155724 alm-border-bottom-2px-solid-155724 alm-padding-bottom-5px">
                                                                 Ayudas Visuales de Fundición</h3>
-                                                            <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                                            <div class="alm-pdf-grid alm-success-box">
                                                                 @foreach ($rechazadosAyudas as $otroArchivo)
                                                                     @php
                                                                         $canDelete = false;
                                                                     @endphp
                                                                     <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
-                                                                        <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')" style="cursor: pointer;" title="Abrir PDF">
+                                                                        <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                                                             <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                                             <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
                                                                         </div>
-                                                                        <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">
+                                                                        <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">
                                                                             {{ basename($otroArchivo['nombre']) }}
                                                                         </div>
-                                                                        <div class="file-actions" style="display: flex; gap: 5px;">
-                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #155724; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">Ver</button>
+                                                                        <div class="file-actions alm-flex-gap-5">
+                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-155724 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">Ver</button>
                                                                         </div>
                                                                     </div>
                                                                 @endforeach
@@ -1692,9 +1663,9 @@
 
                                                         {{-- BLOQUE 4: Renombrar sección a "Documentos Aprobados" --}}
                                                         @if ($countAprobados > 0)
-                                                            <h3 style="margin-top: 25px; margin-bottom: 10px; color: #155724; border-bottom: 2px solid #155724; padding-bottom: 5px;">
+                                                            <h3 class="alm-margin-top-25px alm-margin-bottom-10px alm-color-155724 alm-border-bottom-2px-solid-155724 alm-padding-bottom-5px">
                                                                 Documentos Aprobados</h3>
-                                                            <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                                            <div class="alm-pdf-grid alm-success-box">
                                                                 @php
                                                                     $archivosAprobados = array_merge($dibujosAprobados, $ayudasAprobados, $otrosAprobados);
                                                                 @endphp
@@ -1727,32 +1698,32 @@
                                                                     @endphp
                                                                     @if ($otroArchivo['tipo'] === 'imagen')
                                                                         <div class="dibujos-file-card card-otro card-imagen" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0369a1;">
-                                                                            <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')" style="cursor: pointer;" title="Ver imagen">
-                                                                                <img src="{{ $otroArchivo['url'] }}" class="file-icon-img-thumb" alt="{{ basename($otroArchivo['nombre']) }}" style="width:100%; height:80px; object-fit:cover; border-radius:6px; border:1px solid #bae6fd;">
+                                                                            <div class="file-icon-wrapper alm-cursor-pointer" title="Ver imagen">
+                                                                                <img src="{{ $otroArchivo['url'] }}" class="file-icon-img-thumb alm-width-100pct alm-height-80px alm-object-fit-cover alm-border-radius-6px alm-border-1px-solid-bae6fd">
                                                                             </div>
-                                                                            <div class="file-name" style="cursor: pointer;" title="Ver imagen" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
+                                                                            <div class="file-name alm-cursor-pointer" title="Ver imagen" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
-                                                                            <div class="file-actions" style="display: flex; gap: 5px;">
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #0369a1; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
+                                                                            <div class="file-actions alm-flex-gap-5">
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-0369a1 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
                                                                                 @if ($canDelete)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
                                                                                 @endif
                                                                             </div>
                                                                         </div>
                                                                     @else
                                                                         <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
-                                                                            <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')" style="cursor: pointer;" title="Abrir PDF">
+                                                                            <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                                                                 <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                                                 <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
                                                                             </div>
-                                                                            <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                            <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
-                                                                            <div class="file-actions" style="display: flex; gap: 5px;">
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #155724; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                            <div class="file-actions alm-flex-gap-5">
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-155724 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
                                                                                 @if ($canDelete)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
                                                                                 @endif
                                                                             </div>
                                                                         </div>
@@ -1770,23 +1741,23 @@
 
                                                         @if (count($rechazadosDibujos) > 0 || count($rechazadosAyudas) > 0 || count($rechazadosOtros) > 0)
                                                             @if (count($rechazadosDibujos) > 0)
-                                                                <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
+                                                                <h3 class="alm-margin-top-25px alm-margin-bottom-10px alm-color-9c0300 alm-border-bottom-2px-solid-9c0300 alm-padding-bottom-5px">
                                                                     Dibujos Rechazados</h3>
-                                                                <div class="alm-pdf-grid" style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
+                                                                <div class="alm-pdf-grid alm-background-color-fef2f2 alm-padding-15px alm-border-radius-8px alm-border-1px-solid-fecaca">
                                                                     @foreach ($rechazadosDibujos as $otroArchivo)
                                                                         @php
                                                                             $canDelete = false;
                                                                         @endphp
                                                                         <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
-                                                                            <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'dibujo')" style="cursor: pointer;" title="Abrir PDF">
+                                                                            <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                                                                 <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                                                 <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
                                                                             </div>
-                                                                            <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'dibujo')">
+                                                                            <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'dibujo')">
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
-                                                                            <div class="file-actions" style="display: flex; gap: 5px;">
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'dibujo')">Ver</button>
+                                                                            <div class="file-actions alm-flex-gap-5">
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-9c0300 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'dibujo')">Ver</button>
                                                                             </div>
                                                                         </div>
                                                                     @endforeach
@@ -1796,23 +1767,23 @@
 
 
                                                             @if (count($rechazadosAyudas) > 0)
-                                                                <h3 style="margin-top: 25px; margin-bottom: 10px; color: #15803d; border-bottom: 2px solid #15803d; padding-bottom: 5px;">
+                                                                <h3 class="alm-margin-top-25px alm-margin-bottom-10px alm-color-15803d alm-border-bottom-2px-solid-15803d alm-padding-bottom-5px">
                                                                     Ayudas Visuales de Fundición</h3>
-                                                                <div class="alm-pdf-grid" style="background-color: #f0fdf4; padding: 15px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                                                <div class="alm-pdf-grid alm-success-box">
                                                                     @foreach ($rechazadosAyudas as $otroArchivo)
                                                                         @php
                                                                             $canDelete = false;
                                                                         @endphp
                                                                         <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                                            <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')" style="cursor: pointer;" title="Abrir PDF">
+                                                                            <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                                                                 <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                                                 <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
                                                                             </div>
-                                                                            <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">
+                                                                            <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
-                                                                            <div class="file-actions" style="display: flex; gap: 5px;">
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #15803d; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">Ver</button>
+                                                                            <div class="file-actions alm-flex-gap-5">
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">Ver</button>
                                                                             </div>
                                                                         </div>
                                                                     @endforeach
@@ -1822,9 +1793,9 @@
 
 
                                                             @if (count($rechazadosOtros) > 0)
-                                                                <h3 style="margin-top: 25px; margin-bottom: 10px; color: #9c0300; border-bottom: 2px solid #9c0300; padding-bottom: 5px;">
+                                                                <h3 class="alm-margin-top-25px alm-margin-bottom-10px alm-color-9c0300 alm-border-bottom-2px-solid-9c0300 alm-padding-bottom-5px">
                                                                     Documentos Rechazados</h3>
-                                                                <div class="alm-pdf-grid" style="background-color: #fef2f2; padding: 15px; border-radius: 8px; border: 1px solid #fecaca;">
+                                                                <div class="alm-pdf-grid alm-background-color-fef2f2 alm-padding-15px alm-border-radius-8px alm-border-1px-solid-fecaca">
                                                                     @foreach ($rechazadosOtros as $otroArchivo)
                                                                         @php
                                                                             $canDelete = false;
@@ -1841,17 +1812,17 @@
                                                                             elseif ($userPerfil == 4 && $fileOwner === 'calidad') $canDelete = true;
                                                                         @endphp
                                                                         <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
-                                                                            <div class="file-icon-wrapper" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')" style="cursor: pointer;" title="Abrir PDF">
+                                                                            <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                                                                 <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                                                 <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
                                                                             </div>
-                                                                            <div class="file-name" style="cursor: pointer;" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                            <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
                                                                                 {{ basename($otroArchivo['nombre']) }}
                                                                             </div>
-                                                                            <div class="file-actions" style="display: flex; gap: 5px;">
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #9c0300; color: white;" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                            <div class="file-actions alm-flex-gap-5">
+                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-9c0300 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
                                                                             @if($canDelete && !$alertSent)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar" style="background-color: #dc3545; color: white;" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')" title="Eliminar archivo">
+                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')" title="Eliminar archivo">
                                                                                     Eliminar
                                                                                 </button>
                                                                             @endif
@@ -2002,21 +1973,21 @@
                                                                     style="{{ $controlDisabled }} {{ $hideControlCard }}">
                                                                     <div class="lib-calidad-card-header">
                                                                         <img src="{{ $esReproceso ? asset('images/Reproceso.png') : asset('images/almacen.png') }}" alt="Almacén"
-                                                                            style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
-                                                                        <div style="overflow:hidden; flex:1;">
+                                                                            class="alm-icon-lg">
+                                                                        <div class="alm-overflow-hidden alm-flex-1">
                                                                             <span class="lib-calidad-card-title">Control de Modelos &mdash;
                                                                                 Almacén</span>
                                                                             <span
                                                                                 class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                         </div>
                                                                         @if (count($otClasesActivas) > 0)
-                                                                            <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:2px;">
+                                                                            <div class="alm-flex-shrink-0 alm-display-flex alm-flex-direction-column alm-align-items-center alm-gap-2px">
                                                                                 <span style="font-size:1.1em; font-weight:800; color:{{ $todasClasesProcesadas ? '#15803d' : ($algunaClaseProcesada ? '#0369a1' : '#ffffff') }};">
                                                                                     {{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }}
                                                                                 </span>
-                                                                                <span style="font-size:0.65em; font-weight:600; color:rgba(255,255,255,0.75); letter-spacing:0.5px; text-transform:uppercase;">clases</span>
+                                                                                <span class="alm-font-size-0-65em alm-font-weight-600 alm-color-rgba-255-255-255-0-75 alm-letter-spacing-0-5px alm-text-transform-uppercase">clases</span>
                                                                                 @if ($todasClasesProcesadas)
-                                                                                    <img src="{{ asset('images/ready.png') }}" style="width:18px;height:18px;margin-top:2px;" alt="Listo">
+                                                                                    <img src="{{ asset('images/ready.png') }}" class="alm-width-18px alm-height-18px alm-margin-top-2px" alt="Listo">
                                                                                 @endif
                                                                             </div>
                                                                         @endif
@@ -2025,17 +1996,17 @@
                                                                         <div class="lib-calidad-action-row">
                                                                             <h4 class="lib-calidad-card-prompt">
                                                                                 @if ($isFullySubmitted)
-                                                                                    <span style="color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                                                                                        <img src="{{ asset('images/ready.png') }}" style="width: 20px; height: 20px; vertical-align: middle;" alt="Listo">
+                                                                                    <span class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                        <img src="{{ asset('images/ready.png') }}" class="alm-icon-md" alt="Listo">
                                                                                         El proceso ahora le pertenece a Calidad. Por favor, espera instrucciones para las clases enviadas.
                                                                                     </span>
                                                                                 @elseif ($todasClasesProcesadas)
-                                                                                    <span style="color: #0369a1; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
-                                                                                        <img src="{{ asset('images/ready.png') }}" style="width: 20px; height: 20px; vertical-align: middle;" alt="Listo">
+                                                                                    <span class="alm-color-0369a1 alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                        <img src="{{ asset('images/ready.png') }}" class="alm-icon-md" alt="Listo">
                                                                                         ¡Todas las clases procesadas! Falta enviar la alerta a Calidad.
                                                                                     </span>
                                                                                 @elseif ($algunaClaseProcesada)
-                                                                                    <span style="color: #0369a1; font-weight: 600;">
+                                                                                    <span class="alm-color-0369a1 alm-font-weight-600">
                                                                                         Proceso parcial ({{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }} clases enviadas).
                                                                                         Puedes generar o enviar las pre-órdenes restantes.
                                                                                     </span>
@@ -2160,16 +2131,14 @@
                                                                     @endphp
                                                                     <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}"
                                                                         style="margin-top: 15px; {{ $aprobCardDisabled }}">
-                                                                        <div class="lib-calidad-card-header"
-                                                                            style="background: linear-gradient(135deg, #16a34a, #15803d); border-bottom: 2px solid rgba(22, 163, 74, 0.5);">
+                                                                        <div class="lib-calidad-card-header alm-background-linear-gradient-135deg-16a34a-15803d alm-border-bottom-2px-solid-rgba-22-163-74-0-5">
                                                                             <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
-                                                                                style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
-                                                                            <div style="overflow:hidden;">
-                                                                                <span class="lib-calidad-card-title" style="color: #ffffff;">Control de
+                                                                                class="alm-icon-lg">
+                                                                            <div class="alm-overflow-hidden">
+                                                                                <span class="lib-calidad-card-title alm-color-ffffff">Control de
                                                                                     Modelos
                                                                                     &mdash; Almacén (Aprobados)</span>
-                                                                                <span class="lib-calidad-card-ot"
-                                                                                    style="color: #d1fae5;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                                <span class="lib-calidad-card-ot alm-color-d1fae5">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                             </div>
                                                                         </div>
                                                                         <div class="lib-calidad-card-body">
@@ -2177,9 +2146,9 @@
                                                                                 <h4 class="lib-calidad-card-prompt">
                                                                                     @if ($castingEmailSent)
                                                                                         <span
-                                                                                            style="color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 8px;">
+                                                                                            class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
                                                                                             <img src="{{ asset('images/ready.png') }}"
-                                                                                                style="width: 20px; height: 20px; vertical-align: middle;"
+                                                                                                class="alm-icon-md"
                                                                                                 alt="Listo">
                                                                                             Proceso de pre-orden finalizado correctamente. El correo ha sido
                                                                                             enviado
@@ -2208,29 +2177,29 @@
                                                                                     @elseif ($hasCastingPre)
                                                                                         <button class="btn-modelo btn-modelo-si"
                                                                                             onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')"
-                                                                                            style="display: flex; background-color: #15803d; color: white;">
+                                                                                            class="alm-bg-success-white">
                                                                                             <img src="{{ asset('images/editar-informacion.png') }}"
                                                                                                 alt="Editar">
                                                                                             <span>Editar Pre-orden</span>
                                                                                         </button>
                                                                                         <button class="btn-modelo btn-modelo-email"
                                                                                             onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'casting')"
-                                                                                            style="display: flex; background-color: #033966; color: white;">
+                                                                                            class="alm-display-flex alm-background-color-033966 alm-color-white">
                                                                                             <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
                                                                                             <span>Enviar Correo</span>
                                                                                         </button>
                                                                                     @elseif ($reg->casting_pdf_generated)
                                                                                         <button class="btn-modelo btn-modelo-si"
                                                                                             onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')"
-                                                                                            style="display: flex; background-color: #15803d; color: white;">
+                                                                                            class="alm-bg-success-white">
                                                                                             <img src="{{ asset('images/almacen.png') }}" alt="Preorden"
-                                                                                                style="width: 16px; height: 16px; filter: brightness(0) invert(1);">
+                                                                                                class="alm-width-16px alm-height-16px alm-filter-brightness-0-invert-1">
                                                                                             <span>Preorden de Casting</span>
                                                                                         </button>
                                                                                     @else
                                                                                         <button class="btn-modelo btn-modelo-si"
                                                                                             onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($aprobados) }}, [])"
-                                                                                            style="display: flex; background-color: #15803d; color: white;">
+                                                                                            class="alm-bg-success-white">
                                                                                             <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
                                                                                             <span>Procesar Aceptados</span>
                                                                                         </button>
@@ -2276,16 +2245,14 @@
 
                                                                     <div class="lib-calidad-card" id="control-almacen-rechazados-{{ md5($reg->ot) }}"
                                                                         style="margin-top: 15px; {{ $rechCardDisabled }}">
-                                                                        <div class="lib-calidad-card-header"
-                                                                            style="background: linear-gradient(135deg, #dc2626, #b91c1c); border-bottom: 2px solid rgba(220, 38, 38, 0.5);">
+                                                                        <div class="lib-calidad-card-header alm-background-linear-gradient-135deg-dc2626-b91c1c alm-border-bottom-2px-solid-rgba-220-38-38-0-5">
                                                                             <img src="{{ asset('images/Reproceso.png') }}" alt="Reproceso"
-                                                                                style="width:38px;height:38px;object-fit:contain;flex-shrink:0;">
-                                                                            <div style="overflow:hidden;">
-                                                                                <span class="lib-calidad-card-title" style="color: #ffffff;">Control de
+                                                                                class="alm-icon-lg">
+                                                                            <div class="alm-overflow-hidden">
+                                                                                <span class="lib-calidad-card-title alm-color-ffffff">Control de
                                                                                     Modelos
                                                                                     &mdash; Almacén (Rechazados)</span>
-                                                                                <span class="lib-calidad-card-ot"
-                                                                                    style="color: #fee2e2;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                                <span class="lib-calidad-card-ot alm-color-fee2e2">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                             </div>
                                                                         </div>
                                                                         <div class="lib-calidad-card-body">
@@ -2293,15 +2260,15 @@
                                                                                 <h4 class="lib-calidad-card-prompt">
                                                                                     @if ($reg->rechazos_procesados)
                                                                                         @if ($latestReproceso)
-                                                                                            <div style="background: linear-gradient(to right, #f8fafc, #f1f5f9); border-left: 4px solid #0284c7; padding: 14px 18px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); margin-bottom: 5px; display: inline-block;">
-                                                                                                <span style="color: #1e293b; font-weight: 600; display: inline-flex; align-items: center; gap: 12px; font-size: 1.05rem;">
-                                                                                                    <span style="display: flex; align-items: center; justify-content: center; background: #e0f2fe; width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;">
-                                                                                                        <img src="{{ asset('images/redireccionar.png') }}" style="width: 22px; height: 22px; filter: invert(36%) sepia(87%) saturate(1514%) hue-rotate(176deg) brightness(94%) contrast(101%);" alt="Info">
+                                                                                            <div class="alm-background-linear-gradient-to-right-f8fafc-f1f5f9 alm-border-left-4px-solid-0284c7 alm-padding-14px-18px alm-border-radius-8px alm-box-shadow-0-2px-6px-rgba-0-0-0-0-06 alm-margin-bottom-5px alm-display-inline-block">
+                                                                                                <span class="alm-color-1e293b alm-font-weight-600 alm-display-inline-flex alm-align-items-center alm-gap-12px alm-font-size-1-05rem">
+                                                                                                    <span class="alm-display-flex alm-align-items-center alm-justify-content-center alm-background-e0f2fe alm-width-38px alm-height-38px alm-border-radius-50pct alm-flex-shrink-0">
+                                                                                                        <img src="{{ asset('images/redireccionar.png') }}" class="alm-width-22px alm-height-22px alm-filter-invert-36-sepia-87-saturate-1514-hue-rotate-176deg-brightness-94-contrast-101pct" alt="Info">
                                                                                                     </span>
-                                                                                                    <span style="line-height: 1.45;">
-                                                                                                        El reproceso de la <strong style="color: #dc2626; background: #fee2e2; padding: 2px 6px; border-radius: 4px; font-weight: 800;">{{ $reg->ot }}</strong> 
-                                                                                                        se está trabajando en la nueva OT <strong style="color: #15803d; background: #dcfce7; padding: 2px 6px; border-radius: 4px; font-weight: 800;">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $latestReproceso->ot) }}</strong>.<br>
-                                                                                                        <span style="font-size: 0.9rem; color: #64748b; font-weight: 500;">Presiona el botón para redirigirte a la nueva Orden de Trabajo.</span>
+                                                                                                    <span class="alm-line-height-1-45">
+                                                                                                        El reproceso de la <strong class="alm-color-dc2626 alm-background-fee2e2 alm-padding-2px-6px alm-border-radius-4px alm-font-weight-800">{{ $reg->ot }}</strong> 
+                                                                                                        se está trabajando en la nueva OT <strong class="alm-color-15803d alm-background-dcfce7 alm-padding-2px-6px alm-border-radius-4px alm-font-weight-800">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $latestReproceso->ot) }}</strong>.<br>
+                                                                                                        <span class="alm-font-size-0-9rem alm-color-64748b alm-font-weight-500">Presiona el botón para redirigirte a la nueva Orden de Trabajo.</span>
                                                                                                     </span>
                                                                                                 </span>
                                                                                             </div>
@@ -2323,16 +2290,15 @@
                                                                                         @if ($latestReproceso)
                                                                                             <button class="btn-modelo btn-modelo-si"
                                                                                                 onclick="const row = document.querySelector('tr[data-ot=\'{{ $latestReproceso->ot }}\']'); if(row) { row.scrollIntoView({behavior: 'smooth', block: 'center'}); row.animate([{ backgroundColor: '#86efac' }, { backgroundColor: 'transparent' }], { duration: 800, iterations: 3 }); } else { alert('La OT de reproceso se encuentra en otra página o filtro.'); }"
-                                                                                                style="display: flex; background: linear-gradient(135deg, #0284c7, #0369a1); color: white; padding: 12px 35px; font-size: 1.15em; align-items: center; justify-content: center; min-height: 52px; border-radius: 10px; gap: 10px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35); border: none; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease;"
+                                                                                                class="alm-display-flex alm-background-linear-gradient-135deg-0284c7-0369a1 alm-color-white alm-padding-12px-35px alm-font-size-1-15em alm-align-items-center alm-justify-content-center alm-min-height-52px alm-border-radius-10px alm-gap-10px alm-box-shadow-0-4px-12px-rgba-2-132-199-0-35 alm-border-none alm-cursor-pointer alm-transition-transform-0-2s-ease-box-shadow-0-2s-ease"
                                                                                                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(2, 132, 199, 0.45)';"
                                                                                                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(2, 132, 199, 0.35)';"
                                                                                                 title="Ir a la OT de re-proceso">
-                                                                                                <img src="{{ asset('images/redireccionar.png') }}" alt="Ir" style="width: 24px; height: 24px; filter: brightness(0) invert(1);">
-                                                                                                <span style="font-weight: 700; letter-spacing: 0.5px;">Ir a la Nueva OT</span>
+                                                                                                <img src="{{ asset('images/redireccionar.png') }}" alt="Ir" class="alm-width-24px alm-height-24px alm-filter-brightness-0-invert-1">
+                                                                                                <span class="alm-font-weight-700 alm-letter-spacing-0-5px">Ir a la Nueva OT</span>
                                                                                             </button>
                                                                                         @else
-                                                                                            <button class="btn-modelo btn-modelo-no"
-                                                                                                style="display: flex; background-color: #b91c1c; color: white;">
+                                                                                            <button class="btn-modelo btn-modelo-no alm-display-flex alm-background-color-b91c1c alm-color-white">
                                                                                                 <img src="{{ asset('images/Rechazado.png') }}" alt="No">
                                                                                                 <span>Rechazos Procesados</span>
                                                                                             </button>
@@ -2340,7 +2306,7 @@
                                                                                     @else
                                                                                         <button class="btn-modelo btn-modelo-no"
                                                                                             onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', [], {{ json_encode($rechazados) }})"
-                                                                                            style="display: flex; background-color: #b91c1c; color: white;">
+                                                                                            class="alm-display-flex alm-background-color-b91c1c alm-color-white">
                                                                                             <img src="{{ asset('images/Rechazado.png') }}" alt="No">
                                                                                             <span>Procesar Rechazados</span>
                                                                                         </button>
@@ -2366,123 +2332,110 @@
     </div>
 
     <div id="modalConfirmarModelo" class="alm-modal" role="dialog" aria-modal="true">
-        <div class="alm-modal-content"
-            style="max-width: 1100px; border-radius: 20px; border: 2.5px solid #0a8504; overflow: hidden;">
-            <div class="alm-modal-header"
-                style="background: linear-gradient(135deg, #0a8504, #064e03); border-bottom: 2px solid #064e03; padding: 2.2em 2.5em 2em; position: relative;">
+        <div class="alm-modal-content alm-max-width-1100px alm-border-radius-20px alm-border-2-5px-solid-0a8504 alm-overflow-hidden">
+            <div class="alm-modal-header alm-background-linear-gradient-135deg-0a8504-064e03 alm-border-bottom-2px-solid-064e03 alm-padding-2-2em-2-5em-2em alm-position-relative">
                 <div class="div-cerrar">
                     <button type="button" class="btn-cerrar" onclick="cerrarModalConfirmarModelo()">
                         <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
                     </button>
                 </div>
-                <div style="display: flex; align-items: center; gap: 18px;">
+                <div class="alm-display-flex alm-align-items-center alm-gap-18px">
                     <img src="{{ asset('images/Aprobado.png') }}"
-                        style="width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));"
+                        class="alm-width-46px alm-height-46px alm-object-fit-contain alm-filter-drop-shadow-0-4px-8px-rgba-0-0-0-0-15"
                         alt="">
                     <div>
                         <h3
-                            style="color:#fff; margin:0; font-size:1.45em; font-weight: 800; font-family: 'Poppins', sans-serif;">
+                            class="alm-color-fff alm-margin-0 alm-font-size-1-45em alm-font-weight-800 alm-font-family-Poppins-sans-serif">
                             Confirmar Disponibilidad del Modelo</h3>
                         <div id="confirmar-modelo-subtitle"
-                            style="color: rgba(255,255,255,0.9); font-size: 0.95em; margin-top: 2px; font-weight: 500; font-family: 'Poppins', sans-serif;">
+                            class="alm-color-rgba-255-255-255-0-9 alm-font-size-0-95em alm-margin-top-2px alm-font-weight-500 alm-font-family-Poppins-sans-serif">
                             OT: -</div>
                     </div>
                 </div>
             </div>
-            <div class="alm-modal-body"
-                style="padding: 2.2em 2.5em; background: #fafafa; font-family: 'Poppins', sans-serif;">
+            <div class="alm-modal-body alm-padding-2-2em-2-5em alm-background-fafafa alm-font-family-Poppins-sans-serif">
                 <form id="formConfirmarModelo" enctype="multipart/form-data"
                       data-email-modelo="{{ env('EMAIL_PROVEEDOR_MODELOS', 'produccion@ssmetalf.mx,asistenteprod@ssmetalf.mx') }}"
                       data-email-calidad="{{ env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com') }}">
                     <input type="hidden" id="cm-ot" name="ot">
                     <input type="hidden" id="cm-id-hash" name="id_hash">
 
-                    <div style="padding: 0 0 14px; color: #334155; font-size:0.97em;">
-                        <p style="margin-bottom:12px; font-weight: 500;">¿Confirmas que cuentas físicamente con el modelo
+                    <div class="alm-padding-0-0-14px alm-color-334155 alm-font-size-0-97em">
+                        <p class="alm-margin-bottom-12px alm-font-weight-500">¿Confirmas que cuentas físicamente con el modelo
                             para esta OT?</p>
                         <p
-                            style="background:#fef9c3; border:1px solid #fde047; border-radius:12px; padding:12px 18px; color:#713f12; font-size:0.9em; line-height: 1.5; margin-bottom: 20px;">
+                            class="alm-background-fef9c3 alm-border-1px-solid-fde047 alm-border-radius-12px alm-padding-12px-18px alm-color-713f12 alm-font-size-0-9em alm-line-height-1-5 alm-margin-bottom-20px">
                             <strong>Documentos requeridos:</strong> Debes adjuntar los documentos que acrediten la
                             recepción del modelo (ej. remisión, hoja de entrega, fotos).
                         </p>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 20px;" id="div-cm-destinatario">
-                        <label for="cm-destinatario" style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.15em;">
+                    <div class="form-group alm-mb-20" id="div-cm-destinatario">
+                        <label for="cm-destinatario" class="alm-font-weight-700 alm-color-334155 alm-display-block alm-margin-bottom-10px alm-font-family-Poppins-sans-serif alm-font-size-1-15em">
                             Notificar a Proveedor (correo electrónico):
                         </label>
-                        <input type="text" id="cm-destinatario" name="destinatario" class="form-control" required style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
-                        <span style="font-size: 0.85em; color: #64748b; margin-top: 4px; display: block;">Separa múltiples correos con comas.</span>
+                        <input type="text" id="cm-destinatario" name="destinatario" class="form-control alm-font-family-Poppins-sans-serif alm-font-size-1-1em alm-padding-12px-18px alm-height-auto alm-border-radius-10px">
+                        <span class="alm-font-size-0-85em alm-color-64748b alm-margin-top-4px alm-display-block">Separa múltiples correos con comas.</span>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 20px;" id="div-cm-destinatario-calidad">
-                        <label for="cm-destinatario-calidad" style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.15em;">
+                    <div class="form-group alm-mb-20" id="div-cm-destinatario-calidad">
+                        <label for="cm-destinatario-calidad" class="alm-font-weight-700 alm-color-334155 alm-display-block alm-margin-bottom-10px alm-font-family-Poppins-sans-serif alm-font-size-1-15em">
                             Notificar a Calidad (correo electrónico):
                         </label>
-                        <input type="text" id="cm-destinatario-calidad" name="destinatario_calidad" class="form-control" style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
-                        <span style="font-size: 0.85em; color: #64748b; margin-top: 4px; display: block;">Copia para Calidad (Modelos).</span>
+                        <input type="text" id="cm-destinatario-calidad" name="destinatario_calidad" class="form-control alm-font-family-Poppins-sans-serif alm-font-size-1-1em alm-padding-12px-18px alm-height-auto alm-border-radius-10px">
+                        <span class="alm-font-size-0-85em alm-color-64748b alm-margin-top-4px alm-display-block">Copia para Calidad (Modelos).</span>
                     </div>
 
                     {{-- FECHA DE CONFIRMACIÓN / ENVÍO --}}
-                    <div class="form-group" style="margin-bottom: 20px;">
+                    <div class="form-group alm-mb-20">
                         <label for="cm-fecha"
-                            style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.15em;">
-                            Fecha de Confirmación / Envío <span style="color:#9c0300;">*</span>
+                            class="alm-font-weight-700 alm-color-334155 alm-display-block alm-margin-bottom-10px alm-font-family-Poppins-sans-serif alm-font-size-1-15em">
+                            Fecha de Confirmación / Envío <span class="alm-text-dark-red">*</span>
                         </label>
-                        <input type="date" id="cm-fecha" name="fecha" class="form-control" required
-                            style="font-family:'Poppins', sans-serif; font-size: 1.1em; padding: 12px 18px; height: auto; border-radius: 10px;">
+                        <input type="date" id="cm-fecha" name="fecha" class="form-control alm-font-family-Poppins-sans-serif alm-font-size-1-1em alm-padding-12px-18px alm-height-auto alm-border-radius-10px">
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 22px;">
-                        <label style="font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif; font-size:1.15em;">
-                            Selecciona las clases (modelos) disponibles físicamente <span style="color:#9c0300;">*</span>
+                    <div class="form-group alm-mb-22">
+                        <label class="alm-font-weight-700 alm-color-334155 alm-display-block alm-margin-bottom-8px alm-font-family-Poppins-sans-serif alm-font-size-1-15em">
+                            Selecciona las clases (modelos) disponibles físicamente <span class="alm-text-dark-red">*</span>
                         </label>
-                        <div id="cm-clases-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; display: flex; flex-wrap: wrap; gap: 15px;">
-                            <div class="alm-spinner" id="cm-clases-spinner" style="border-top-color: #0284c7; display: block; margin: 5px auto;"></div>
+                        <div id="cm-clases-container" class="alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-display-flex alm-flex-wrap-wrap alm-gap-15px">
+                            <div class="alm-spinner alm-border-top-color-0284c7 alm-display-block alm-margin-5px-auto"></div>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 22px;">
+                    <div class="form-group alm-mb-22">
                         <label
-                            style="font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-family:'Poppins', sans-serif; font-size:1.15em;">Archivos
+                            class="alm-font-weight-700 alm-color-334155 alm-display-block alm-margin-bottom-8px alm-font-family-Poppins-sans-serif alm-font-size-1-15em">Archivos
                             de la OT disponibles para adjuntar:</label>
                         <div id="cm-server-files-container"
-                            style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;">
-                            <div class="alm-spinner" id="cm-server-spinner"
-                                style="border-top-color: #0284c7; display: block; margin: 10px auto; grid-column:1/-1;">
+                            class="alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-max-height-420px alm-overflow-y-auto alm-display-flex alm-flex-direction-column alm-gap-15px">
+                            <div class="alm-spinner alm-border-top-color-0284c7 alm-display-block alm-margin-10px-auto alm-grid-column-1-1">
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 22px;">
-                        <label class="custom-file-upload-label"
-                            style="font-weight:700; color:#334155; display:block; margin-bottom:10px; font-family:'Poppins', sans-serif; font-size:1.15em;">
-                            Adjuntar documentos de recepción <span style="color:#9c0300;">*</span>
+                    <div class="form-group alm-mb-22">
+                        <label class="custom-file-upload-label alm-font-weight-700 alm-color-334155 alm-display-block alm-margin-bottom-10px alm-font-family-Poppins-sans-serif alm-font-size-1-15em">
+                            Adjuntar documentos de recepción <span class="alm-text-dark-red">*</span>
                         </label>
-                        <div class="custom-file-dropzone"
-                            style="border: 2px dashed #0a8504; background: #f0fdf4; min-height: 80px; position: relative; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; cursor: pointer;">
-                            <input type="file" id="cm-archivos" name="archivos[]" class="custom-file-input" multiple
-                                accept=".pdf,image/*"
-                                style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
+                        <div class="custom-file-dropzone alm-border-2px-dashed-0a8504 alm-background-f0fdf4 alm-min-height-80px alm-position-relative alm-border-radius-12px alm-display-flex alm-flex-direction-column alm-align-items-center alm-justify-content-center alm-padding-12px alm-cursor-pointer">
+                            <input type="file" id="cm-archivos" name="archivos[]" class="custom-file-input alm-position-absolute alm-width-100pct alm-height-100pct alm-opacity-0 alm-cursor-pointer">
                             <div class="dropzone-content">
-                                <img src="{{ asset('images/anadir.png') }}" class="dropzone-icon"
-                                    style="width: 40px; height: 40px; margin-bottom: 8px; object-fit: contain;">
-                                <span class="dropzone-text"
-                                    style="font-weight: 700; color: #0a8504; font-size: 0.85em; text-align: center; font-family:'Poppins', sans-serif;">Arrastra
+                                <img src="{{ asset('images/anadir.png') }}" class="dropzone-icon alm-width-40px alm-height-40px alm-margin-bottom-8px alm-object-fit-contain">
+                                <span class="dropzone-text alm-font-weight-700 alm-color-0a8504 alm-font-size-0-85em alm-text-align-center alm-font-family-Poppins-sans-serif">Arrastra
                                     archivos aquí o haz clic para buscar</span>
-                                <span class="dropzone-subtext"
-                                    style="font-size: 0.7em; color: #64748b; margin-top: 2px; font-family:'Poppins', sans-serif;">Soporta
+                                <span class="dropzone-subtext alm-font-size-0-7em alm-color-64748b alm-margin-top-2px alm-font-family-Poppins-sans-serif">Soporta
                                     múltiples archivos PDF o imágenes</span>
                             </div>
                         </div>
                         <div id="cm-archivos-list"
-                            style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;">
+                            class="alm-margin-top-15px alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-max-height-420px alm-overflow-y-auto alm-display-none alm-grid-template-columns-repeat-auto-fill-minmax-200px-1fr alm-gap-12px alm-justify-items-center">
                         </div>
                     </div>
 
-                    <div class="form-actions" style="text-align:center; margin-top:24px;">
-                        <button type="submit" class="btn-save-preorden" id="btn-submit-confirmar-modelo"
-                            style="background: linear-gradient(135deg, #0a8504, #064e03); box-shadow: 0 4px 15px rgba(10,133,4,0.35); padding:12px 32px; border:none; border-radius:10px; color:#fff; font-weight:700; cursor:pointer; font-family:'Poppins', sans-serif; font-size:1.05em; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                    <div class="form-actions alm-text-align-center alm-margin-top-24px">
+                        <button type="submit" class="btn-save-preorden alm-background-linear-gradient-135deg-0a8504-064e03 alm-box-shadow-0-4px-15px-rgba-10-133-4-0-35 alm-padding-12px-32px alm-border-none alm-border-radius-10px alm-color-fff alm-font-weight-700 alm-cursor-pointer alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-display-inline-flex alm-align-items-center alm-justify-content-center alm-gap-8px">
                             Confirmar y Registrar
                         </button>
                     </div>
@@ -2508,7 +2461,7 @@
                     <form id="formPreOrden">
                         <div class="form-grid">
                             <div class="form-group po-proveedor-group">
-                                <label for="po-proveedor">Proveedor <span style="color:#dc2626;">*</span>:</label>
+                                <label for="po-proveedor">Proveedor <span class="alm-text-danger">*</span>:</label>
                                 <select id="po-proveedor" name="proveedor" class="form-control" required>
                                     <option value="SS Metal Foundry, S. de R. L. de C. V." selected>SS Metal Foundry, S. de R. L. de C. V.</option>
                                     <option value="Sociedad Cooperativa de Producción Jacarandas">Sociedad Cooperativa de Producción Jacarandas</option>
@@ -2539,37 +2492,35 @@
                             <table class="modal-table">
                                 <thead>
                                     <tr>
-                                        <th style="width: 16%;">Tipo de Modelo <span style="color:#dc2626;">*</span></th>
-                                        <th style="width: 12%;">Impresiones <span style="color:#dc2626;">*</span></th>
-                                        <th style="width: 12%;">Cantidad <span style="color:#dc2626;">*</span></th>
-                                        <th style="width: 22%;">Descripción <span style="color:#dc2626;">*</span></th>
-                                        <th style="width: 22%;">Código de Modelo</th>
-                                        <th style="width: 12%;">Fecha Entrega</th>
-                                        <th style="width: 6%; text-align:center;">Acciones</th>
+                                        <th class="alm-width-16pct">Tipo de Modelo <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-w-12">Impresiones <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-w-12">Cantidad <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-width-22pct">Descripción <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-width-22pct">Código de Modelo</th>
+                                        <th class="alm-w-12">Fecha Entrega</th>
+                                        <th class="alm-width-6pct alm-text-align-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="alm-tbody-preorden">
 
                                 </tbody>
                             </table>
-                            <div style="margin-top: 10px; text-align: center;">
-                                <button type="button" id="btn-add-clase-po" class="btn-img-action"
-                                    onclick="agregarFilaPreOrden()" title="Añadir una nueva clase a la pre-orden"
-                                    style="display: inline-block;">
-                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir" style="width: 40px;">
+                            <div class="alm-margin-top-10px alm-text-align-center">
+                                <button type="button" id="btn-add-clase-po" class="btn-img-action alm-display-inline-block">
+                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir" class="alm-width-40px">
                                 </button>
                             </div>
                         </div>
 
-                        <div class="form-group" style="margin-top: 20px;">
+                        <div class="form-group alm-margin-top-20px">
                             <div id="po-observaciones-cycle-prefix"
-                                style="display: none; padding: 8px 12px; background-color: #fee2e2; border-left: 4px solid #ef4444; color: #991b1b; font-weight: bold; margin-bottom: 8px; border-radius: 4px; font-family: 'Poppins', sans-serif;">
+                                class="alm-display-none alm-padding-8px-12px alm-background-color-fee2e2 alm-border-left-4px-solid-ef4444 alm-color-991b1b alm-font-weight-bold alm-margin-bottom-8px alm-border-radius-4px alm-font-family-Poppins-sans-serif">
                             </div>
                             <label for="po-observaciones">Observaciones:</label>
                             <textarea id="po-observaciones" name="observaciones" class="form-control" rows="3"></textarea>
                         </div>
 
-                        <div class="form-actions" style="margin-top: 30px; text-align: center;">
+                        <div class="form-actions alm-margin-top-30px alm-text-align-center">
                             <button type="submit" class="btn-save-preorden" id="btn-submit-preorden">
                                 Guardar y Descargar Pre-Orden (Fase 1)
                             </button>
@@ -2583,60 +2534,49 @@
     </div>
 
     <div id="modalPreOrdenCasting" class="alm-modal" role="dialog" aria-modal="true">
-        <div class="alm-modal-content"
-            style="max-width: 1800px; width: 95vw; border-radius: 20px; overflow: hidden; border: 1.5px solid #0284c7;">
-            <div class="alm-modal-header" id="poc-header"
-                style="background: linear-gradient(135deg, #0369a1, #0284c7); padding: 2.2em 2.5em 1.5em; position: relative;">
+        <div class="alm-modal-content alm-max-width-1800px alm-width-95vw alm-border-radius-20px alm-overflow-hidden alm-border-1-5px-solid-0284c7">
+            <div class="alm-modal-header alm-background-linear-gradient-135deg-0369a1-0284c7 alm-padding-2-2em-2-5em-1-5em alm-position-relative">
                 <div class="div-cerrar">
                     <button type="button" class="btn-cerrar" onclick="cerrarModalPreOrdenCasting()">
                         <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
                     </button>
                 </div>
-                <h3 style="font-size: 2em; margin: 0; font-family:'Poppins', sans-serif; font-weight: 700; color: #fff;">
+                <h3 class="alm-font-size-2em alm-margin-0 alm-font-family-Poppins-sans-serif alm-font-weight-700 alm-color-fff">
                     Pre-Orden de Fabricación de Casting (4ALM-17)</h3>
-                <p id="poc-modal-subtitle" class="lib-modal-subtitle"
-                    style="color: #bae6fd; font-size: 1.15em; margin-top: 8px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500;">
+                <p id="poc-modal-subtitle" class="lib-modal-subtitle alm-color-bae6fd alm-font-size-1-15em alm-margin-top-8px alm-margin-bottom-0 alm-font-family-Poppins-sans-serif alm-font-weight-500">
                 </p>
 
                 <div
-                    style="display: flex; gap: 10px; margin-top: 25px; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 0; align-items: center;">
-                    <button type="button" id="tab-poc-page-1" class="btn-po-tab active" onclick="switchPocPage(1)"
-                        style="border: none; padding: 12px 25px; border-top-left-radius: 12px; border-top-right-radius: 12px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 1.05em; cursor: pointer; transition: all 0.2s ease;">
+                    class="alm-display-flex alm-gap-10px alm-margin-top-25px alm-border-bottom-2px-solid-rgba-255-255-255-0-2 alm-padding-bottom-0 alm-align-items-center">
+                    <button type="button" id="tab-poc-page-1" class="btn-po-tab active alm-border-none alm-padding-12px-25px alm-border-top-left-radius-12px alm-border-top-right-radius-12px alm-font-family-Poppins-sans-serif alm-font-weight-600 alm-font-size-1-05em alm-cursor-pointer alm-transition-all-0-2s-ease">
                         Proveedor 1
                     </button>
-                    <button type="button" id="tab-poc-page-2" class="btn-po-tab" onclick="switchPocPage(2)"
-                        style="display: none; border: none; padding: 12px 25px; border-top-left-radius: 12px; border-top-right-radius: 12px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 1.05em; cursor: pointer; transition: all 0.2s ease;">
+                    <button type="button" id="tab-poc-page-2" class="btn-po-tab alm-display-none alm-border-none alm-padding-12px-25px alm-border-top-left-radius-12px alm-border-top-right-radius-12px alm-font-family-Poppins-sans-serif alm-font-weight-600 alm-font-size-1-05em alm-cursor-pointer alm-transition-all-0-2s-ease">
                         Proveedor 2
                     </button>
 
-                    <button type="button" id="btn-add-poc-page-2" class="btns btn-add-tab" onclick="agregarPocPagina2()"
-                        style="display: flex; align-items: center; gap: 6px; padding: 8px 16px; background: rgba(255,255,255,0.15); border: 1.5px dashed rgba(255,255,255,0.5); border-radius: 8px; color: white; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 0.9em; font-weight: 500; transition: all 0.2s ease; margin-left: 15px; height: auto;">
+                    <button type="button" id="btn-add-poc-page-2" class="btns btn-add-tab alm-display-flex alm-align-items-center alm-gap-6px alm-padding-8px-16px alm-background-rgba-255-255-255-0-15 alm-border-1-5px-dashed-rgba-255-255-255-0-5 alm-border-radius-8px alm-color-white alm-cursor-pointer alm-font-family-Poppins-sans-serif alm-font-size-0-9em alm-font-weight-500 alm-transition-all-0-2s-ease alm-margin-left-15px alm-height-auto">
                         <img src="{{ asset('images/anadir.png') }}"
-                            style="width: 14px; height: 14px; filter: brightness(0) invert(1);" alt=""> Agregar Proveedor 2
+                            class="alm-width-14px alm-height-14px alm-filter-brightness-0-invert-1" alt=""> Agregar Proveedor 2
                     </button>
-                    <button type="button" id="btn-remove-poc-page-2" class="btns btn-remove-tab"
-                        onclick="removerPocPagina2()"
-                        style="display: none; align-items: center; gap: 6px; padding: 8px 16px; background: #dc2626; border: 1.5px solid #b91c1c; border-radius: 8px; color: #ffffff; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 0.9em; font-weight: 500; transition: all 0.2s ease; margin-left: 15px; height: auto;">
+                    <button type="button" id="btn-remove-poc-page-2" class="btns btn-remove-tab alm-display-none alm-align-items-center alm-gap-6px alm-padding-8px-16px alm-background-dc2626 alm-border-1-5px-solid-b91c1c alm-border-radius-8px alm-color-ffffff alm-cursor-pointer alm-font-family-Poppins-sans-serif alm-font-size-0-9em alm-font-weight-500 alm-transition-all-0-2s-ease alm-margin-left-15px alm-height-auto">
                         Remover Proveedor 2
                     </button>
                 </div>
             </div>
 
-            <div class="alm-modal-body" style="padding: 2.5em; background: #fafafa; font-family: 'Poppins', sans-serif;">
+            <div class="alm-modal-body alm-padding-2-5em alm-background-fafafa alm-font-family-Poppins-sans-serif">
                 <form id="formPreOrdenCasting" novalidate autocomplete="off">
                     @csrf
                     <input type="hidden" id="poc-has-page2" name="has_page2" value="0">
 
 
                     <div id="poc-page-1" class="poc-page">
-                        <div class="form-grid"
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
+                        <div class="form-grid alm-display-grid alm-grid-template-columns-repeat-auto-fit-minmax-220px-1fr alm-gap-20px alm-margin-bottom-25px">
                             <div class="form-group">
                                 <label for="poc-p1-proveedor"
-                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Proveedor <span style="color:#dc2626;">*</span>:</label>
-                                <select id="poc-p1-proveedor" name="page1_proveedor" class="form-control" required
-                                    onchange="handlePocProveedorChange(1)"
-                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
+                                    class="alm-stat-title">Proveedor <span class="alm-text-danger">*</span>:</label>
+                                <select id="poc-p1-proveedor" name="page1_proveedor" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em">
                                     <option value="" disabled selected>-- Selecciona un proveedor --</option>
                                     <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de C. V.</option>
                                     <option value="SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS">SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS</option>
@@ -2644,68 +2584,58 @@
                             </div>
                             <div class="form-group">
                                 <label for="poc-p1-fecha"
-                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Fecha:</label>
-                                <input type="date" id="poc-p1-fecha" name="page1_fecha" class="form-control" readonly
-                                    required
-                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
+                                    class="alm-stat-title">Fecha:</label>
+                                <input type="date" id="poc-p1-fecha" name="page1_fecha" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9">
                             </div>
                             <div class="form-group">
                                 <label for="poc-p1-folio"
-                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Folio:</label>
-                                <input type="text" id="poc-p1-folio" name="page1_folio" class="form-control" readonly
-                                    required
-                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9; font-weight: bold; color: #0369a1;">
+                                    class="alm-stat-title">Folio:</label>
+                                <input type="text" id="poc-p1-folio" name="page1_folio" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9 alm-font-weight-bold alm-color-0369a1">
                             </div>
                             <div class="form-group">
                                 <label for="poc-p1-moldura"
-                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Moldura:</label>
-                                <input type="text" id="poc-p1-moldura" name="page1_moldura" class="form-control" readonly
-                                    required
-                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
+                                    class="alm-stat-title">Moldura:</label>
+                                <input type="text" id="poc-p1-moldura" name="page1_moldura" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9">
                             </div>
                             <div class="form-group">
                                 <label for="poc-p1-ot"
-                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Orden
+                                    class="alm-stat-title">Orden
                                     de Trabajo:</label>
-                                <input type="text" id="poc-p1-ot" name="page1_ot" class="form-control" readonly required
-                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
+                                <input type="text" id="poc-p1-ot" name="page1_ot" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9">
                             </div>
                             <div class="form-group">
                                 <label for="poc-p1-fecha-entrega"
-                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Fecha
-                                    Entrega <span style="color:#dc2626;">*</span>:</label>
-                                <input type="date" id="poc-p1-fecha-entrega" name="page1_fecha_entrega" class="form-control"
-                                    required
-                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
+                                    class="alm-stat-title">Fecha
+                                    Entrega <span class="alm-text-danger">*</span>:</label>
+                                <input type="date" id="poc-p1-fecha-entrega" name="page1_fecha_entrega" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em">
                             </div>
                         </div>
 
-                        <div class="modal-table-container"
-                            style="overflow-x: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                            <table class="modal-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <div class="modal-table-container alm-overflow-x-auto alm-background-fff alm-border-1px-solid-e2e8f0 alm-border-radius-14px alm-padding-20px alm-box-shadow-0-1px-3px-rgba-0-0-0-0-05">
+                            <table class="modal-table alm-width-100pct alm-border-collapse-collapse alm-text-align-left">
                                 <thead>
                                     <tr
-                                        style="border-bottom: 2px solid #cbd5e1; color: #475569; font-weight: 700; font-size: 0.95em;">
-                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Tipo
-                                            de Modelo <span style="color:#dc2626;">*</span></th>
-                                        <th style="padding: 12px 10px; width: 8%; font-family:'Poppins', sans-serif;">Cant.
-                                            Fabricar <span style="color:#dc2626;">*</span></th>
-                                        <th style="padding: 12px 10px; width: 8%; font-family:'Poppins', sans-serif;">Cant.
-                                            Consign. <span style="color:#dc2626;">*</span></th>
-                                        <th style="padding: 12px 10px; width: 15%; font-family:'Poppins', sans-serif;">
-                                            Descripción <span style="color:#dc2626;">*</span></th>
-                                        <th style="padding: 12px 10px; width: 14%; font-family:'Poppins', sans-serif;">
-                                            Material <span style="color:#dc2626;">*</span></th>
-                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">
-                                            Código de Modelo <span style="color:#dc2626;">*</span></th>
-                                        <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso
+                                        class="alm-border-bottom-2px-solid-cbd5e1 alm-color-475569 alm-font-weight-700 alm-font-size-0-95em">
+                                        <th class="alm-th-12">Tipo
+                                            de Modelo <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-th-8">Cant.
+                                            Fabricar <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-th-8">Cant.
+                                            Consign. <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-padding-12px-10px alm-width-15pct alm-font-family-Poppins-sans-serif">
+                                            Descripción <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-padding-12px-10px alm-width-14pct alm-font-family-Poppins-sans-serif">
+                                            Material <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-th-12">
+                                            Código de Modelo <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-th-7">Peso
                                             Juego (KG) </th>
-                                        <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso
+                                        <th class="alm-th-7">Peso
                                             Total (KG) </th>
-                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Fecha
-                                            Entrega <span style="color:#dc2626;">*</span></th>
+                                        <th class="alm-th-12">Fecha
+                                            Entrega <span class="alm-text-danger">*</span></th>
                                         <th
-                                            style="padding: 12px 10px; width: 5%; text-align: center; font-family:'Poppins', sans-serif;">
+                                            class="alm-padding-12px-10px alm-width-5pct alm-text-align-center alm-font-family-Poppins-sans-serif">
                                             Acciones</th>
                                     </tr>
                                 </thead>
@@ -2713,34 +2643,28 @@
 
                                 </tbody>
                             </table>
-                            <div style="margin-top: 15px; text-align: center;">
-                                <button type="button" class="btn-img-action" onclick="agregarFilaPoc(1)"
-                                    title="Añadir una nueva fila"
-                                    style="border: none; background: none; cursor: pointer; padding: 5px; outline: none; transition: transform 0.2s ease;">
+                            <div class="alm-margin-top-15px alm-text-align-center">
+                                <button type="button" class="btn-img-action alm-border-none alm-background-none alm-cursor-pointer alm-padding-5px alm-outline-none alm-transition-transform-0-2s-ease">
                                     <img src="{{ asset('images/anadir.png') }}" alt="Añadir"
-                                        style="width: 38px; height: 38px;">
+                                        class="alm-width-38px alm-height-38px">
                                 </button>
                             </div>
                         </div>
 
-                        <div class="form-group" style="margin-top: 25px;">
+                        <div class="form-group alm-margin-top-25px">
                             <label for="poc-p1-observaciones"
-                                style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Observaciones:</label>
-                            <textarea id="poc-p1-observaciones" name="page1_observaciones" class="form-control" rows="3"
-                                style="border-radius: 10px; padding: 14px; font-family:'Poppins',sans-serif; font-size: 1em; width: 100%; box-sizing: border-box; border: 1.5px solid #cbd5e1;"></textarea>
+                                class="alm-stat-title">Observaciones:</label>
+                            <textarea id="poc-p1-observaciones" name="page1_observaciones" class="form-control alm-border-radius-10px alm-padding-14px alm-font-family-Poppins-sans-serif alm-font-size-1em alm-width-100pct alm-box-sizing-border-box alm-border-1-5px-solid-cbd5e1"></textarea>
                         </div>
                     </div>
 
 
-                    <div id="poc-page-2" class="poc-page" style="display: none;">
-                        <div class="form-grid"
-                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 25px;">
+                    <div id="poc-page-2" class="poc-page alm-display-none">
+                        <div class="form-grid alm-display-grid alm-grid-template-columns-repeat-auto-fit-minmax-220px-1fr alm-gap-20px alm-margin-bottom-25px">
                             <div class="form-group">
                                 <label for="poc-p2-proveedor"
-                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Proveedor <span style="color:#dc2626;">*</span>:</label>
-                                <select id="poc-p2-proveedor" name="page2_proveedor" class="form-control" required
-                                    onchange="handlePocProveedorChange(2)"
-                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
+                                    class="alm-stat-title">Proveedor <span class="alm-text-danger">*</span>:</label>
+                                <select id="poc-p2-proveedor" name="page2_proveedor" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em">
                                     <option value="" disabled selected>-- Selecciona un proveedor --</option>
                                     <option value="SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS">SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS</option>
                                     <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de C. V.</option>
@@ -2748,68 +2672,58 @@
                             </div>
                             <div class="form-group">
                                 <label for="poc-p2-fecha"
-                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Fecha:</label>
-                                <input type="date" id="poc-p2-fecha" name="page2_fecha" class="form-control" readonly
-                                    required
-                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
+                                    class="alm-stat-title">Fecha:</label>
+                                <input type="date" id="poc-p2-fecha" name="page2_fecha" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9">
                             </div>
                             <div class="form-group">
                                 <label for="poc-p2-folio"
-                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Folio:</label>
-                                <input type="text" id="poc-p2-folio" name="page2_folio" class="form-control" readonly
-                                    required
-                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9; font-weight: bold; color: #0369a1;">
+                                    class="alm-stat-title">Folio:</label>
+                                <input type="text" id="poc-p2-folio" name="page2_folio" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9 alm-font-weight-bold alm-color-0369a1">
                             </div>
                             <div class="form-group">
                                 <label for="poc-p2-moldura"
-                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Moldura:</label>
-                                <input type="text" id="poc-p2-moldura" name="page2_moldura" class="form-control" readonly
-                                    required
-                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
+                                    class="alm-stat-title">Moldura:</label>
+                                <input type="text" id="poc-p2-moldura" name="page2_moldura" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9">
                             </div>
                             <div class="form-group">
                                 <label for="poc-p2-ot"
-                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Orden
+                                    class="alm-stat-title">Orden
                                     de Trabajo:</label>
-                                <input type="text" id="poc-p2-ot" name="page2_ot" class="form-control" readonly required
-                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em; background: #f1f5f9;">
+                                <input type="text" id="poc-p2-ot" name="page2_ot" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9">
                             </div>
                             <div class="form-group">
                                 <label for="poc-p2-fecha-entrega"
-                                    style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Fecha
-                                    Entrega <span style="color:#dc2626;">*</span>:</label>
-                                <input type="date" id="poc-p2-fecha-entrega" name="page2_fecha_entrega" class="form-control"
-                                    required
-                                    style="height: auto; padding: 12px 16px; border-radius: 10px; font-family:'Poppins', sans-serif; font-size: 1.05em;">
+                                    class="alm-stat-title">Fecha
+                                    Entrega <span class="alm-text-danger">*</span>:</label>
+                                <input type="date" id="poc-p2-fecha-entrega" name="page2_fecha_entrega" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em">
                             </div>
                         </div>
 
-                        <div class="modal-table-container"
-                            style="overflow-x: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                            <table class="modal-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <div class="modal-table-container alm-overflow-x-auto alm-background-fff alm-border-1px-solid-e2e8f0 alm-border-radius-14px alm-padding-20px alm-box-shadow-0-1px-3px-rgba-0-0-0-0-05">
+                            <table class="modal-table alm-width-100pct alm-border-collapse-collapse alm-text-align-left">
                                 <thead>
                                     <tr
-                                        style="border-bottom: 2px solid #cbd5e1; color: #475569; font-weight: 700; font-size: 0.95em;">
-                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Tipo
-                                            de Modelo <span style="color:#dc2626;">*</span></th>
-                                        <th style="padding: 12px 10px; width: 8%; font-family:'Poppins', sans-serif;">Cant.
-                                            Fabricar <span style="color:#dc2626;">*</span></th>
-                                        <th style="padding: 12px 10px; width: 8%; font-family:'Poppins', sans-serif;">Cant.
-                                            Consign. <span style="color:#dc2626;">*</span></th>
-                                        <th style="padding: 12px 10px; width: 15%; font-family:'Poppins', sans-serif;">
-                                            Descripción <span style="color:#dc2626;">*</span></th>
-                                        <th style="padding: 12px 10px; width: 14%; font-family:'Poppins', sans-serif;">
-                                            Material <span style="color:#dc2626;">*</span></th>
-                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">
-                                            Código de Modelo <span style="color:#dc2626;">*</span></th>
-                                        <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso
+                                        class="alm-border-bottom-2px-solid-cbd5e1 alm-color-475569 alm-font-weight-700 alm-font-size-0-95em">
+                                        <th class="alm-th-12">Tipo
+                                            de Modelo <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-th-8">Cant.
+                                            Fabricar <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-th-8">Cant.
+                                            Consign. <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-padding-12px-10px alm-width-15pct alm-font-family-Poppins-sans-serif">
+                                            Descripción <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-padding-12px-10px alm-width-14pct alm-font-family-Poppins-sans-serif">
+                                            Material <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-th-12">
+                                            Código de Modelo <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-th-7">Peso
                                             Juego (KG) </th>
-                                        <th style="padding: 12px 10px; width: 7%; font-family:'Poppins', sans-serif;">Peso
+                                        <th class="alm-th-7">Peso
                                             Total (KG) </th>
-                                        <th style="padding: 12px 10px; width: 12%; font-family:'Poppins', sans-serif;">Fecha
-                                            Entrega <span style="color:#dc2626;">*</span></th>
+                                        <th class="alm-th-12">Fecha
+                                            Entrega <span class="alm-text-danger">*</span></th>
                                         <th
-                                            style="padding: 12px 10px; width: 5%; text-align: center; font-family:'Poppins', sans-serif;">
+                                            class="alm-padding-12px-10px alm-width-5pct alm-text-align-center alm-font-family-Poppins-sans-serif">
                                             Acciones</th>
                                     </tr>
                                 </thead>
@@ -2817,27 +2731,23 @@
 
                                 </tbody>
                             </table>
-                            <div style="margin-top: 15px; text-align: center;">
-                                <button type="button" class="btn-img-action" onclick="agregarFilaPoc(2)"
-                                    title="Añadir una nueva fila"
-                                    style="border: none; background: none; cursor: pointer; padding: 5px; outline: none; transition: transform 0.2s ease;">
+                            <div class="alm-margin-top-15px alm-text-align-center">
+                                <button type="button" class="btn-img-action alm-border-none alm-background-none alm-cursor-pointer alm-padding-5px alm-outline-none alm-transition-transform-0-2s-ease">
                                     <img src="{{ asset('images/anadir.png') }}" alt="Añadir"
-                                        style="width: 38px; height: 38px;">
+                                        class="alm-width-38px alm-height-38px">
                                 </button>
                             </div>
                         </div>
 
-                        <div class="form-group" style="margin-top: 25px;">
+                        <div class="form-group alm-margin-top-25px">
                             <label for="poc-p2-observaciones"
-                                style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block; font-family:'Poppins', sans-serif;">Observaciones:</label>
-                            <textarea id="poc-p2-observaciones" name="page2_observaciones" class="form-control" rows="3"
-                                style="border-radius: 10px; padding: 14px; font-family:'Poppins',sans-serif; font-size: 1em; width: 100%; box-sizing: border-box; border: 1.5px solid #cbd5e1;"></textarea>
+                                class="alm-stat-title">Observaciones:</label>
+                            <textarea id="poc-p2-observaciones" name="page2_observaciones" class="form-control alm-border-radius-10px alm-padding-14px alm-font-family-Poppins-sans-serif alm-font-size-1em alm-width-100pct alm-box-sizing-border-box alm-border-1-5px-solid-cbd5e1"></textarea>
                         </div>
                     </div>
 
-                    <div class="form-actions" style="margin-top: 35px; text-align: center;">
-                        <button type="submit" class="btn-save-preorden" id="btn-submit-poc"
-                            style="font-size: 1.2em; padding: 15px 35px; border-radius: 10px; font-family: 'Poppins', sans-serif; font-weight: 700; background: linear-gradient(135deg, #0369a1, #0284c7); border: none; color: white; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(3, 105, 161, 0.3); height: auto;">
+                    <div class="form-actions alm-margin-top-35px alm-text-align-center">
+                        <button type="submit" class="btn-save-preorden alm-font-size-1-2em alm-padding-15px-35px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-weight-700 alm-background-linear-gradient-135deg-0369a1-0284c7 alm-border-none alm-color-white alm-cursor-pointer alm-transition-all-0-2s-ease alm-box-shadow-0-4px-15px-rgba-3-105-161-0-3 alm-height-auto">
                             Guardar y Descargar Pre-Orden de Casting
                         </button>
                     </div>
@@ -2847,7 +2757,7 @@
     </div>
 
     <div id="modalEnviarPreOrden" class="alm-modal">
-        <div class="alm-modal-content" style="max-width: 1100px;">
+        <div class="alm-modal-content alm-max-width-1100px">
             <div class="alm-modal-header">
                 <div class="div-cerrar">
                     <button type="button" class="btn-cerrar" onclick="cerrarModalEnviarPreOrden()">
@@ -2855,8 +2765,7 @@
                     </button>
                 </div>
                 <h3>Enviar Pre-Orden por Correo</h3>
-                <p id="env-po-modal-subtitle" class="lib-modal-subtitle"
-                    style="color: #bae6fd; font-size: 0.9em; margin-top: 4px; margin-bottom: 0;"></p>
+                <p id="env-po-modal-subtitle" class="lib-modal-subtitle alm-color-bae6fd alm-font-size-0-9em alm-margin-top-4px alm-margin-bottom-0"></p>
             </div>
             <div class="alm-modal-body">
                 <form id="formEnviarPreOrden" enctype="multipart/form-data"
@@ -2867,68 +2776,64 @@
                     <input type="hidden" id="env-ot" name="ot">
                     <input type="hidden" id="env-tipo" name="tipo" value="modelo">
 
-                    <div class="form-group" style="margin-bottom: 20px;" id="div-env-destinatario">
+                    <div class="form-group alm-mb-20" id="div-env-destinatario">
                         <label for="env-destinatario">Notificar a Proveedor (correo electrónico):</label>
                         <input type="text" id="env-destinatario" name="destinatario" class="form-control" required>
-                        <span style="font-size: 0.8em; color: #64748b; margin-top: 4px;">Separa múltiples correos con comas.</span>
+                        <span class="alm-text-sm-gray">Separa múltiples correos con comas.</span>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 20px;" id="div-env-destinatario-calidad">
+                    <div class="form-group alm-mb-20" id="div-env-destinatario-calidad">
                         <label for="env-destinatario-calidad">Notificar a Calidad (correo electrónico):</label>
                         <input type="text" id="env-destinatario-calidad" name="destinatario_calidad" class="form-control">
-                        <span style="font-size: 0.8em; color: #64748b; margin-top: 4px;">Copia para Calidad (Modelos).</span>
+                        <span class="alm-text-sm-gray">Copia para Calidad (Modelos).</span>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 20px;">
+                    <div class="form-group alm-mb-20">
                         <label for="env-fecha-entrega">Fecha de Entrega:</label>
                         <input type="date" id="env-fecha-entrega" name="fecha_entrega" class="form-control" required>
-                        <span style="font-size: 0.8em; color: #64748b; margin-top: 4px;">Indica la fecha de entrega acordada
+                        <span class="alm-text-sm-gray">Indica la fecha de entrega acordada
                             para imprimirla en el reporte.</span>
                     </div>
 
 
 
-                    <div class="form-group" style="margin-bottom: 20px;">
+                    <div class="form-group alm-mb-20">
                         <label>Pre-órdenes pendientes de enviar:</label>
                         <div id="env-pending-preordenes-container"
-                            style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                            class="alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-max-height-200px alm-overflow-y-auto alm-display-flex alm-flex-direction-column alm-gap-10px">
                             <!-- Checkboxes se cargarán aquí dinámicamente -->
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 20px;">
+                    <div class="form-group alm-mb-20">
                         <label>Archivos de la OT disponibles para adjuntar:</label>
                         <div id="env-server-files-container"
-                            style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;">
-                            <div class="alm-spinner"
-                                style="border-top-color: #033966; display: block; margin: 10px auto; grid-column: 1 / -1;">
+                            class="alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-max-height-420px alm-overflow-y-auto alm-display-flex alm-flex-direction-column alm-gap-15px">
+                            <div class="alm-spinner alm-border-top-color-033966 alm-display-block alm-margin-10px-auto alm-grid-column-1-1">
                             </div>
-                            <span style="text-align: center; color: #64748b; grid-column: 1 / -1;">Cargando archivos de la
+                            <span class="alm-text-align-center alm-color-64748b alm-grid-column-1-1">Cargando archivos de la
                                 OT...</span>
                         </div>
                     </div>
 
-                    <div class="form-group" style="margin-bottom: 30px;">
-                        <label class="custom-file-upload-label"
-                            style="font-weight: 700; color: #033966; display: block; margin-bottom: 8px;">Adjuntar archivos
+                    <div class="form-group alm-margin-bottom-30px">
+                        <label class="custom-file-upload-label alm-font-weight-700 alm-color-033966 alm-display-block alm-margin-bottom-8px">Adjuntar archivos
                             adicionales desde tu equipo:</label>
                         <div class="custom-file-dropzone">
                             <input type="file" id="env-archivos-adicionales" name="archivos_adicionales[]"
                                 class="custom-file-input" multiple>
                             <div class="dropzone-content">
-                                <img src="{{ asset('images/anadir.png') }}" class="dropzone-icon"
-                                    style="width: 40px; height: 40px; margin-bottom: 8px; object-fit: contain;">
+                                <img src="{{ asset('images/anadir.png') }}" class="dropzone-icon alm-width-40px alm-height-40px alm-margin-bottom-8px alm-object-fit-contain">
                                 <span class="dropzone-text">Arrastra archivos aquí o haz clic para buscar</span>
                                 <span class="dropzone-subtext">Soporta múltiples archivos PDF o imágenes</span>
                             </div>
                         </div>
                         <div id="env-archivos-adicionales-list"
-                            style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                            class="alm-margin-top-10px alm-display-flex alm-flex-wrap-wrap alm-gap-8px"></div>
                     </div>
 
-                    <div class="form-actions" style="text-align: center;">
-                        <button type="submit" class="btn-save-preorden" id="btn-submit-envio"
-                            style="background: #005194; box-shadow: 0 4px 15px rgba(0, 81, 148, 0.3);">
+                    <div class="form-actions alm-text-align-center">
+                        <button type="submit" class="btn-save-preorden alm-background-005194 alm-box-shadow-0-4px-15px-rgba-0-81-148-0-3">
                             Enviar Correo con Adjuntos
                         </button>
                     </div>

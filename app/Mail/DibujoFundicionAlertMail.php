@@ -15,16 +15,16 @@ class DibujoFundicionAlertMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $otName;
-    public $fileName;
-    public $ayudas;
+    public string $otName;
+    public ?string $fileName;
+    public array $ayudas;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($otName, $fileName, $ayudas = [])
+    public function __construct(string $otName, ?string $fileName = null, array $ayudas = [])
     {
         $this->otName = $otName;
         $this->fileName = $fileName;
@@ -34,7 +34,7 @@ class DibujoFundicionAlertMail extends Mailable
     /**
      * Get the message envelope.
      *
-     * @return \Illuminate\Mail\Mailables\Envelope
+     * @return Envelope
      */
     public function envelope()
     {
@@ -46,7 +46,7 @@ class DibujoFundicionAlertMail extends Mailable
     /**
      * Get the message content definition.
      *
-     * @return \Illuminate\Mail\Mailables\Content
+     * @return Content
      */
     public function content()
     {

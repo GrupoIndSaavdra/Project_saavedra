@@ -1,3 +1,6 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
 /* Contenedor principal */
 .wrapper {
     max-width: 850px;
@@ -20,7 +23,7 @@
     font-size: 1.4rem;
     font-weight: 600;
     margin-bottom: 0.3rem;
-    color: #033966;
+    color: var(--gis-blue);
 }
 
 .subtitle {
@@ -34,7 +37,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    background-color: #0a8504be;
+    background-color: var(--gis-green)be;
     color: rgb(255, 255, 255);
     padding: 0.6rem 1.2rem;
     border-radius: 2rem;
@@ -57,7 +60,7 @@
     text-align: left;
     display: block;
     font-weight: 600;
-    color: #033966;
+    color: var(--gis-blue);
     font-size: 1.1rem;
     margin-bottom: -0.3rem;
 }
@@ -126,12 +129,12 @@
 
 .bg-info {
     color: white !important;
-    background-color: #033966 !important;
+    background-color: var(--gis-blue) !important;
 }
 
 .bg-primary {
     color: rgb(0, 0, 0) !important;
-    background-color: #0a8504cf !important;
+    background-color: var(--gis-green)cf !important;
 }
 
 /* Row y columnas */
@@ -203,34 +206,34 @@ textarea.form-control {
 }
 
 .btn-primary {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: #000000;
     border: none;
     color: white;
 }
 
 .btn-primary:hover {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: #ffffff;
 }
 
 .btn-success {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
     color: white;
 }
 
 .btn-success:hover {
-    background-color: #0a8504;
+    background-color: var(--gis-green);
     color: white;
 }
 
 .btn-secondary {
-    background-color: #033966;
+    background-color: var(--gis-blue);
     color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #033966;
+    background-color: var(--gis-blue);
 }
 
 /* Texto de ayuda */

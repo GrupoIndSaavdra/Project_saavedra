@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const btnHabilitar = document.getElementById('btn-habilitar-edicion');
             const btnGuardar = document.getElementById('btn-guardar-clase');
-            if (btnHabilitar) btnHabilitar.style.display = '';
-            if (btnGuardar) btnGuardar.style.display = 'none';
+            if (btnHabilitar) btnHabilitar.classList.remove('hidden');
+            if (btnGuardar) btnGuardar.classList.add("hidden");
 
             document.getElementById('hidden-idClase').value        = idClase;
             document.getElementById('hidden-clase-nombre').value   = nombre;
@@ -60,17 +60,17 @@ document.addEventListener('DOMContentLoaded', () => {
             // ── Formulario parcialidad y tratamiento: mostrar directamente ──
             document.getElementById('hidden-idOtParcialidad').value    = idOt;
             document.getElementById('hidden-idClaseParcialidad').value = idClase;
-            placeholderParcialidad.style.display = 'none';
-            formParcialidad.style.display = '';
-            if (avisoSinRemision) avisoSinRemision.style.display = 'none';
+            placeholderParcialidad.classList.add("hidden");
+            formParcialidad.classList.remove('hidden');
+            if (avisoSinRemision) avisoSinRemision.classList.add("hidden");
 
             const placeholderTratamiento = document.getElementById('placeholder-tratamiento');
             const formTratamiento        = document.getElementById('form-tratamiento');
-            if (placeholderTratamiento) placeholderTratamiento.style.display = 'none';
+            if (placeholderTratamiento) placeholderTratamiento.classList.add("hidden");
             if (formTratamiento) {
                 document.getElementById('hidden-idOtTratamiento').value    = idOt;
                 document.getElementById('hidden-idClaseTratamiento').value = idClase;
-                formTratamiento.style.display = '';
+                formTratamiento.classList.remove('hidden');
             }
 
             // ── Filtrar listas de remisiones, parcialidades y tratamientos por clase ──
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function filterGroups(selector, idClase) {
         document.querySelectorAll(selector).forEach(g => {
-            g.style.display = g.dataset.idClase === idClase ? '' : 'none';
+            g.classList.toggle("hidden", !(g.dataset.idClase === idClase ));
         });
     }
 
@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function updateResumen(idClase, pedido, piezas) {
         if (!resumenEl) return;
-        resumenEl.style.display = 'flex';
+        resumenEl.classList.remove("hidden");
 
         let total = 0;
         document.querySelectorAll('.grupo-parcialidad').forEach(g => {
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function updateResumenTratamiento(idClase, pedido, piezas) {
         if (!resumenTratamientoEl) return;
-        resumenTratamientoEl.style.display = 'flex';
+        resumenTratamientoEl.classList.remove("hidden");
 
         let total = 0;
         document.querySelectorAll('.grupo-tratamiento').forEach(g => {
@@ -198,12 +198,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const formTratamiento = document.getElementById('form-tratamiento');
         if (formTratamiento) {
             if (totalParcialidades === 0) {
-                formTratamiento.style.opacity = '0.4';
-                formTratamiento.style.pointerEvents = 'none';
+                formTratamiento.classList.add("alm-form-disabled");
                 formTratamiento.setAttribute('title', 'Se requiere recibir piezas en parcialidades primero');
             } else {
-                formTratamiento.style.opacity = '1';
-                formTratamiento.style.pointerEvents = 'auto';
+                formTratamiento.classList.remove("alm-form-disabled");
                 formTratamiento.removeAttribute('title');
             }
         }
@@ -255,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 if (modal && passwordInput) {
                     passwordInput.value = '';
-                    modal.style.display = 'flex';
+                    modal.classList.remove("hidden");
                     passwordInput.focus();
                 }
             } else {
@@ -280,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (pendingDeleteForm) {
                 pendingDeleteForm.querySelector('.input-confirm-password').value = password;
-                if (modalDelete) modalDelete.style.display = 'none';
+                if (modalDelete) modalDelete.classList.add("hidden");
                 pendingDeleteForm.submit();
                 pendingDeleteForm = null;
             }
@@ -289,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (btnModalCancel) {
         btnModalCancel.addEventListener('click', () => {
-            if (modalDelete) modalDelete.style.display = 'none';
+            if (modalDelete) modalDelete.classList.add("hidden");
             pendingDeleteForm = null;
         });
     }
@@ -419,9 +417,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnHabilitar.addEventListener('click', () => {
             document.getElementById('input-pedido').disabled = false;
             document.getElementById('input-piezas').disabled = false;
-            btnHabilitar.style.display = 'none';
+            btnHabilitar.classList.add("hidden");
             const btnGuardar = document.getElementById('btn-guardar-clase');
-            if (btnGuardar) btnGuardar.style.display = '';
+            if (btnGuardar) btnGuardar.classList.remove('hidden');
         });
     }
 
@@ -521,12 +519,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (cantidadValue !== '' && parseInt(cantidadValue) > 0 && fileHasValue) {
             btnRegistrarTratamiento.disabled = false;
-            btnRegistrarTratamiento.style.opacity = '1';
-            btnRegistrarTratamiento.style.cursor = 'pointer';
+            btnRegistrarTratamiento.classList.remove("alm-btn-disabled");
         } else {
             btnRegistrarTratamiento.disabled = true;
-            btnRegistrarTratamiento.style.opacity = '0.5';
-            btnRegistrarTratamiento.style.cursor = 'not-allowed';
+            btnRegistrarTratamiento.classList.add("alm-btn-disabled");
         }
     }
 
@@ -697,7 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 if (row.classList.contains('selected')) {
                                     // Actualizar inputs si NO estamos en modo edición
                                     const btnGuardar = document.getElementById('btn-guardar-clase');
-                                    const isEditing = btnGuardar && btnGuardar.style.display !== 'none';
+                                    const isEditing = btnGuardar && !btnGuardar.classList.contains("hidden");
                                     
                                     if (!isEditing) {
                                         const inputPedido = document.getElementById('input-pedido');

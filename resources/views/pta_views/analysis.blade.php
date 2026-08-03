@@ -1,4 +1,4 @@
-@extends('layouts.appMenu')
+﻿@extends('layouts.appMenu')
 
 @section('head')
     <title>Análisis Resultados Sold. PTA</title>
@@ -116,10 +116,10 @@
                     ksort($juegosPTA, SORT_NUMERIC);
                 @endphp
 
-                <div class="pta-tech-section" style="margin-top:1.5rem;">
-                    <div class="pta-header" style="margin-bottom:1.5rem;">
-                        <h3 style="margin:0;">Resultados y Datos Técnicos — OT {{ $ot->id }} / {{ $claseSeleccionada->nombre }}</h3>
-                        <p style="margin:0.2rem 0 0;opacity:.8;">Información detallada agrupada por juego</p>
+                <div class="pta-tech-section ana-margin-top-1-5rem">
+                    <div class="pta-header ana-margin-bottom-1-5rem">
+                        <h3 class="ana-margin-0">Resultados y Datos Técnicos — OT {{ $ot->id }} / {{ $claseSeleccionada->nombre }}</h3>
+                        <p class="ana-margin-0-2rem-0-0 ana-opacity-8">Información detallada agrupada por juego</p>
                     </div>
 
                     @foreach ($juegosPTA as $jNum => $piezasDelJuegoObj)
@@ -145,22 +145,22 @@
                             }
                         @endphp
 
-                        <div class="pta-juego-block" style="margin-bottom:2.5rem;">
+                        <div class="pta-juego-block ana-margin-bottom-2-5rem">
                             {{-- Header del juego --}}
                             <div class="pta-juego-header">
                                 <span class="pta-juego-titulo">Juego {{ $jNum }}</span>
                                 <span class="pta-juego-piezas">{{ $piezasLabel }}</span>
                                 @if ($todasLiberadas)
-                                    <span class="badge-si" style="margin-left:auto;">✓ Juego Liberado</span>
+                                    <span class="badge-si ana-margin-left-auto">✓ Juego Liberado</span>
                                 @elseif (count($piezasDelJuegoObj) < (isset($esJuegoCompleto) && $esJuegoCompleto ? 1 : 2))
-                                    <span class="badge-na" style="margin-left:auto;">Incompleto</span>
+                                    <span class="badge-na ana-margin-left-auto">Incompleto</span>
                                 @else
-                                    <span class="badge-empty" style="margin-left:auto;">Pendiente</span>
+                                    <span class="badge-empty ana-margin-left-auto">Pendiente</span>
                                 @endif
                             </div>
 
                             {{-- 1. Tabla General de Resultados e Imágenes --}}
-                            <div class="pta-results-table-wrap" style="border-radius:0; box-shadow:none; margin:0; border-bottom:2px solid #ddd;">
+                            <div class="pta-results-table-wrap ana-border-radius-0 ana-box-shadow-none ana-margin-0 ana-border-bottom-2px-solid-ddd">
                                 <table>
                                     <thead>
                                         <tr>
@@ -253,7 +253,7 @@
                                     'piezasGroupActivas' => collect(),
                                 ])
                             @else
-                                <div style="padding:1.5rem; text-align:center; color:#888; font-size:0.95rem; background:#fbfbfb;">
+                                <div class="ana-padding-1-5rem ana-text-align-center ana-color-888 ana-font-size-0-95rem ana-background-fbfbfb">
                                     Sin datos técnicos de soldadura registrados para este juego.
                                 </div>
                             @endif
@@ -317,14 +317,14 @@
             }
         @endphp
 
-        <div class="pta-tech-section" style="margin-top:2rem; padding: 0 1.5rem; margin-bottom: 2rem;">
-            <div class="pta-header" style="margin-bottom:1.5rem;">
-                <h3 style="margin:0;">Juegos Defectuosos — OT {{ $ot->id }} / {{ $claseSeleccionada->nombre }}</h3>
-                <p style="margin:0.2rem 0 0;opacity:.8;">Detalles técnicos de los juegos que salieron mal (solo lectura)</p>
+        <div class="pta-tech-section ana-margin-top-2rem ana-padding-0-1-5rem ana-margin-bottom-2rem">
+            <div class="pta-header ana-margin-bottom-1-5rem">
+                <h3 class="ana-margin-0">Juegos Defectuosos — OT {{ $ot->id }} / {{ $claseSeleccionada->nombre }}</h3>
+                <p class="ana-margin-0-2rem-0-0 ana-opacity-8">Detalles técnicos de los juegos que salieron mal (solo lectura)</p>
             </div>
 
             @if (empty($juegosTecnicosMalos))
-                <div style="padding:1.5rem; text-align:center; color:#888; font-size:0.95rem; background:#fbfbfb; border-radius: 8px; border: 1px dashed #ccc;">
+                <div class="ana-padding-1-5rem ana-text-align-center ana-color-888 ana-font-size-0-95rem ana-background-fbfbfb ana-border-radius-8px ana-border-1px-dashed-ccc">
                     Ningún juego de esta OT presenta errores o defectos técnicos.
                 </div>
             @else
@@ -343,17 +343,17 @@
                         }
                     @endphp
 
-                    <div class="pta-juego-block" style="margin-bottom:2rem;">
+                    <div class="pta-juego-block ana-margin-bottom-2rem">
                         {{-- Header del juego --}}
                         <div class="pta-juego-header">
-                            <span class="pta-juego-titulo" style="color:#d32f2f;">Juego {{ $jNum }} (Con Defectos)</span>
+                            <span class="pta-juego-titulo ana-color-d32f2f">Juego {{ $jNum }} (Con Defectos)</span>
                             <span class="pta-juego-piezas">{{ $piezasLabel }}</span>
                             @if ($todasLiberadas)
-                                <span class="badge-si" style="margin-left:auto;">✓ Juego Liberado</span>
+                                <span class="badge-si ana-margin-left-auto">✓ Juego Liberado</span>
                             @elseif (count($piezasDelJuego) < (isset($esJuegoCompleto) && $esJuegoCompleto ? 1 : 2))
-                                <span class="badge-na" style="margin-left:auto;">Incompleto</span>
+                                <span class="badge-na ana-margin-left-auto">Incompleto</span>
                             @else
-                                <span class="badge-empty" style="margin-left:auto;">Pendiente</span>
+                                <span class="badge-empty ana-margin-left-auto">Pendiente</span>
                             @endif
                         </div>
 
@@ -370,7 +370,7 @@
             @endif
         </div>
     @elseif (isset($ot) && $ot)
-            <div style="margin-top:1.5rem;padding:1rem 1.5rem;background:#f7f7f7;border-radius:10px;color:#888;font-size:.9rem;text-align:center;">
+            <div class="ana-margin-top-1-5rem ana-padding-1rem-1-5rem ana-background-f7f7f7 ana-border-radius-10px ana-color-888 ana-font-size-9rem ana-text-align-center">
                     No hay datos técnicos de soldadura registrados para esta OT.
                 </div>
         @endif

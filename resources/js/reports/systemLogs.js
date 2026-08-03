@@ -21,13 +21,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const level = header.getAttribute("data-level");
             const targetRows = document.querySelectorAll(`.level-row.level-${level}`);
             const targetArrow = header.querySelector(".arrow");
-            const isExpanding = targetRows[0].style.display === "none";
+            const isExpanding = targetRows[0].classList.contains("sys-display-none");
 
             // Cerrar todos los niveles de la misma tabla primero
             const parentTable = header.closest('table');
             if (parentTable) {
                 parentTable.querySelectorAll(".level-row").forEach(row => {
-                    row.style.display = "none";
+                    row.classList.add("sys-display-none");
                 });
                 parentTable.querySelectorAll(".arrow").forEach(arrow => {
                     arrow.textContent = "▶";
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // Si estábamos expandiendo, abrir solo el objetivo
             if (isExpanding) {
                 targetRows.forEach(row => {
-                    row.style.display = "table-row";
+                    row.classList.remove("sys-display-none");
                 });
                 targetArrow.textContent = "▼";
             }
@@ -48,8 +48,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.isAdminOnly) {
         const tableNormal = document.querySelector('.table-colors:not(.table-colors-admin)');
         const tableAdmin  = document.querySelector('.table-colors-admin');
-        if (tableNormal) tableNormal.style.display = 'none';
-        if (tableAdmin)  tableAdmin.style.display  = '';
+        if (tableNormal) tableNormal.classList.add("sys-display-none");
+        if (tableAdmin)  tableAdmin.classList.remove('sys-display-none');
     }
 
     // ---------------------------------------------------------
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             btnLoadMore.disabled = true;
             btnLoadMore.textContent = 'Cargando registros...';
-            btnLoadMore.style.opacity = '0.7';
+            btnLoadMore.classList.add('opacity-70');
 
             try {
                 const response = await fetch(window.nextPageUrl, {
@@ -98,7 +98,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     // Mostrar/Ocultar botón según disponibilidad
                     if (!window.hasMorePages || !window.nextPageUrl) {
-                        loadMoreContainer.style.display = 'none';
+                        loadMoreContainer.classList.add("sys-display-none");
                     }
                 }
             } catch (error) {
@@ -107,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } finally {
                 btnLoadMore.disabled = false;
                 btnLoadMore.textContent = 'Cargar más registros...';
-                btnLoadMore.style.opacity = '1';
+                btnLoadMore.classList.remove('opacity-70');
             }
         });
     }
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             btnPurge.disabled = true;
             btnPurge.textContent = 'Depurando y Respaldando...';
-            btnPurge.style.opacity = '0.7';
+            btnPurge.classList.add('opacity-70');
 
             // Obtener base URL segura
             let baseUrl = window.baseUrl || (window.location.origin + '/');
@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
             } finally {
                 btnPurge.disabled = false;
                 btnPurge.textContent = 'Depurar logs ahora';
-                btnPurge.style.opacity = '1';
+                btnPurge.classList.remove('opacity-70');
             }
         });
     }
@@ -229,7 +229,7 @@ function createFilters() {
                     opt.textContent = item.val;
                     opt.style.backgroundColor = item.color;
                     opt.style.color = (item.color === "#943126" || item.color === "#21618C") ? "#FFFFFF" : "#000000";
-                    opt.style.fontWeight = "bold";
+                    opt.classList.add('font-bold');
                     if (window.selectedItems[key] === item.val) opt.selected = true;
                     select.appendChild(opt);
                 });
@@ -340,7 +340,7 @@ function createFilters() {
                         if (style) {
                             opt.style.backgroundColor = style.color;
                             opt.style.color = style.dark ? "#FFFFFF" : "#000000";
-                            opt.style.fontWeight = "bold";
+                            opt.classList.add('font-bold');
                         }
 
                         if (window.selectedItems[key] && window.selectedItems[key] == actionName) {

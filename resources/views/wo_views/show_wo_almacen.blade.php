@@ -1,3 +1,11 @@
+@php
+/**
+ * @var \Illuminate\Database\Eloquent\Collection|\App\Models\Clase[] $clases
+ * @var \App\Models\Clase $clase
+ * @var \App\Models\ParcialidadOt $p
+ * @var \App\Models\TratamientoTermico $tratamiento
+ */
+@endphp
 @extends('layouts.appMenu')
 
 @section('head')
@@ -16,7 +24,7 @@
          PANEL IZQUIERDO — Información de la OT
     ═══════════════════════════════════════════════════ --}}
     <div class="panel-ot">
-        <div class="navigation-header" style="margin-bottom: 1rem; display: flex; justify-content: flex-start;">
+        <div class="navigation-header mb-1 d-flex d-justify-start">
             <a href="{{ route('manageWO', request('almacen_only') == 1 ? ['almacen_only' => 1] : []) }}" class="btn-regresar">
                 ← Regresar a OTs
             </a>
@@ -81,7 +89,7 @@
 
         {{-- Detalle editable de la clase seleccionada (se muestra al hacer clic en la tabla) --}}
         <div class="clase-detail" id="clase-detail">
-            <h4 style="margin-bottom: 0.8rem;">Editar clase seleccionada</h4>
+            <h4 class="mb-0-8">Editar clase seleccionada</h4>
 
             <div class="field full">
                 <label>Clase / Tamaño</label>
@@ -122,11 +130,11 @@
                     </div>
                 </div>
 
-                <button type="button" id="btn-habilitar-edicion" class="btn-editar-clase-icon" title="Habilitar edición" style="background: none; border: none; cursor: pointer; padding: 0; display: block; margin: 1rem auto 0; text-align: center;">
-                    <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar" style="width: 48px; height: 48px; object-fit: contain;">
+                <button type="button" id="btn-habilitar-edicion" class="btn-editar-clase-icon" title="Habilitar edición" class="btn-reset mx-auto d-block mt-1 text-center">
+                    <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar" class="icon-48">
                 </button>
 
-                <button type="submit" class="btn-guardar" id="btn-guardar-clase" style="display: none;">Guardar cambios</button>
+                <button type="submit" class="btn-guardar" id="btn-guardar-clase" class="hidden">Guardar cambios</button>
             </form>
         </div>
     </div>
@@ -138,7 +146,7 @@
     <div class="panel-actividad">
 
         {{-- ── CARD REMISIONES (Ocultado ya que ahora se sube junto con la parcialidad) ── --}}
-        <div class="card-actividad" id="remisiones-panel" style="display: none;">
+        <div class="card-actividad" id="remisiones-panel" class="hidden">
             <h3>
                 Remisiones
             </h3>
@@ -150,7 +158,7 @@
 
             {{-- Formulario de subida (único, rellenado por JS) --}}
             <form action="{{ route('wo.remision.store') }}" method="POST" enctype="multipart/form-data"
-                  class="form-remision" id="form-remision" style="display:none">
+                  class="form-remision" id="form-remision" class="hidden">
                 @csrf
                 <input type="hidden" name="id_ot"    id="hidden-idOtRemision"    value="">
                 <input type="hidden" name="id_clase" id="hidden-idClaseRemision"  value="">
@@ -158,7 +166,7 @@
                 <div class="field">
                     <label>Remisión (PDF / Imagen)</label>
                     <input type="file" name="archivo" accept=".pdf,.jpg,.jpeg,.png" required
-                           class="form-control" style="font-size:.8rem;padding:.35rem">
+                           class="form-control btn-small">
                 </div>
                 <div class="field">
                     <label>Descripción (opcional)</label>
@@ -171,12 +179,14 @@
             {{-- Contenedor donde JS muestra las remisiones de la clase seleccionada --}}
             <div id="lista-remisiones-container">
                 @foreach($classes ?? [] as $clase)
-                <div class="grupo-remision" data-id-clase="{{ $clase->id }}" style="display:none">
+                @php /** @var \App\Models\Clase $clase */ @endphp
+                <div class="grupo-remision" data-id-clase="{{ $clase->id }}" class="hidden">
                     @if(isset($remisiones[$clase->id]) && $remisiones[$clase->id]->count() > 0)
                     <div class="lista-remisiones">
                         @foreach($remisiones[$clase->id] as $rem)
+                        @php /** @var \App\Models\RemisionOt $rem */ @endphp
                         <div class="item-remision" data-id="{{ $rem->id }}">
-                            <span class="file-icon" style="font-size: 0.85rem; font-weight: bold; color: #033966; background: #e8f0fb; padding: 3px 6px; border-radius: 4px;">
+                            <span class="file-icon badge-blue">
                                 {{ Str::endsWith(strtolower($rem->filename), '.pdf') ? 'PDF' : 'IMG' }}
                             </span>
                             <div class="file-info">
@@ -190,7 +200,7 @@
                             <a href="{{ route('wo.remision.serve', $rem->id) }}"
                                class="btn-download" target="_blank">Descargar</a>
                             <form action="{{ route('wo.remision.destroy', $rem->id) }}" method="POST"
-                                  class="form-eliminar-remision" style="display:inline">
+                                  class="form-eliminar-remision d-inline">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-eliminar-remision" title="Eliminar">Eliminar</button>
@@ -219,12 +229,12 @@
             </div>
 
             {{-- Aviso de bloqueo: se muestra hasta que exista al menos una remisión --}}
-            <div class="placeholder-msg" id="aviso-sin-remision" style="display:none; background:#fff8e1; border-color:#f0c040; color:#7a5c00;">
+            <div class="placeholder-msg" id="aviso-sin-remision" class="alert-warning-custom hidden">
                 Debes subir al menos una remisión antes de poder registrar parcialidades.
             </div>
 
             {{-- Resumen (se actualiza por JS) --}}
-            <div class="resumen-parcialidades" id="resumen-parcialidades" style="display:none">
+            <div class="resumen-parcialidades" id="resumen-parcialidades" class="hidden">
                 <div class="resumen-item">
                     <div class="resumen-valor val-recibido">0</div>
                     <div class="resumen-label">Pzas recibidas</div>
@@ -241,10 +251,9 @@
                     <div class="resumen-valor val-pct">0%</div>
                     <div class="resumen-label">Avance</div>
                 </div>
-                <div style="flex:1;align-self:center;padding:0 0.5rem">
-                    <div style="background:#e8eef6;border-radius:10px;height:10px;overflow:hidden">
-                        <div class="progress-bar-fill"
-                             style="height:100%;width:0%;background:#033966;border-radius:10px;transition:width .4s">
+                <div class="flex-1 self-center px-0-5">
+                    <div class="progress-track">
+                        <div class="progress-bar-fill progress-fill w-0">
                         </div>
                     </div>
                 </div>
@@ -252,18 +261,18 @@
 
             {{-- Formulario nueva parcialidad (único, rellenado por JS) --}}
             <form action="{{ route('wo.parcialidad.store') }}" method="POST" enctype="multipart/form-data"
-                  class="form-parcialidad" id="form-parcialidad" style="display:none">
+                  class="form-parcialidad" id="form-parcialidad" class="hidden">
                 @csrf
                 <input type="hidden" name="id_ot"    id="hidden-idOtParcialidad"    value="">
                 <input type="hidden" name="id_clase" id="hidden-idClaseParcialidad"  value="">
 
                 <div class="field">
                     <label>Cantidad</label>
-                    <input type="number" name="cantidad" id="parcialidad-cantidad" min="1" placeholder="Pzas" required class="form-control" style="padding: 0.55rem 0.4rem; text-align: center;">
+                    <input type="number" name="cantidad" id="parcialidad-cantidad" min="1" placeholder="Pzas" required class="form-control p-0-55-0-4 text-center">
                 </div>
                 <div class="field">
                     <label>Archivo (PDF / Imagen)</label>
-                    <input type="file" name="archivo" id="parcialidad-archivo" accept=".pdf,.jpg,.jpeg,.png" required class="form-control" style="font-size:.8rem;padding:.35rem">
+                    <input type="file" name="archivo" id="parcialidad-archivo" accept=".pdf,.jpg,.jpeg,.png" required class="form-control btn-small">
                 </div>
                 <div class="field">
                     <label>Descripción</label>
@@ -281,11 +290,12 @@
             {{-- Historial agrupado por clase --}}
             <div id="historial-parcialidades-container">
                 @foreach($classes ?? [] as $clase)
+                @php /** @var \App\Models\Clase $clase */ @endphp
                 {{-- data-tiene-remision: 1 si ya hay remisiones, 0 si no --}}
                 <div class="grupo-parcialidad" data-id-clase="{{ $clase->id }}"
                      data-pedido="{{ $clase->pedido }}"
                      data-tiene-remision="{{ (isset($remisiones[$clase->id]) && $remisiones[$clase->id]->count() > 0) ? '1' : '0' }}"
-                     style="display:none">
+                     class="hidden">
                     @if(isset($parcialidades[$clase->id]) && $parcialidades[$clase->id]->count() > 0)
                     <div class="tabla-parcialidades-wrap">
                         <p class="log-label">Log de Parcialidades</p>
@@ -303,6 +313,7 @@
                             </thead>
                             <tbody>
                                 @foreach($parcialidades[$clase->id] as $i => $p)
+                                @php /** @var \App\Models\ParcialidadOt $p */ @endphp
                                 <tr class="fila-parcialidad-item"
                                     data-id="{{ $p->id }}"
                                     data-cantidad="{{ $p->cantidad }}"
@@ -326,23 +337,23 @@
                                     <td>
                                         <div class="view-remision">
                                             @if($p->remision)
-                                                <a href="{{ route('wo.remision.serve', $p->remision->id) }}" target="_blank" style="font-size: 0.82rem; color: #033966; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="{{ $p->remision->descripcion }}">
-                                                    <img src="{{ asset('images/pdf.png') }}" alt="PDF" style="width: 16px; height: 16px; object-fit: contain;">
-                                                    <span style="max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $p->remision->filename }}</span>
+                                                <a href="{{ route('wo.remision.serve', $p->remision->id) }}" target="_blank" class="link-action-modal" title="{{ $p->remision->descripcion }}">
+                                                    <img src="{{ asset('images/pdf.png') }}" alt="PDF" class="icon-16">
+                                                    <span class="text-truncate max-w-120">{{ $p->remision->filename }}</span>
                                                 </a>
                                             @else
-                                                <span style="font-size: 0.85rem; color: #a0a8c0;">—</span>
+                                                <span class="text-muted-sm">—</span>
                                             @endif
                                         </div>
                                         <input type="file" class="edit-archivo form-control" accept=".pdf,.jpg,.jpeg,.png">
                                     </td>
                                     <td>{{ $p->usuario ? ($p->usuario->nombre . ' ' . $p->usuario->a_paterno) : ($p->registrado_por ?? '—') }}</td>
-                                    <td style="white-space: nowrap;">
+                                    <td class="ws-nowrap">
                                         <!-- Botones estándar -->
                                         <button type="button" class="btn-editar-parcialidad btn-download">Editar</button>
 
                                         <form action="{{ route('wo.parcialidad.destroy', $p->id) }}"
-                                              method="POST" class="form-eliminar-parcialidad" style="display:inline">
+                                              method="POST" class="form-eliminar-parcialidad d-inline">
                                             @csrf
                                             @method('DELETE')
                                             <input type="hidden" name="password" class="input-confirm-password" value="">
@@ -377,7 +388,7 @@
             </div>
 
             {{-- Resumen Tratamientos --}}
-            <div class="resumen-tratamientos" id="resumen-tratamientos" style="display:none">
+            <div class="resumen-tratamientos" id="resumen-tratamientos" class="hidden">
                 <div class="resumen-item">
                     <div class="resumen-valor val-tratadas">0</div>
                     <div class="resumen-label">PZAS EN TT</div>
@@ -394,28 +405,27 @@
                     <div class="resumen-valor val-pct-tratamiento">0%</div>
                     <div class="resumen-label">Avance</div>
                 </div>
-                <div style="flex:1;align-self:center;padding:0 0.5rem">
-                    <div style="background:#e8eef6;border-radius:10px;height:10px;overflow:hidden">
-                        <div class="progress-bar-fill-tratamiento"
-                             style="height:100%;width:0%;background:#033966;border-radius:10px;transition:width .4s">
+                <div class="flex-1 self-center px-0-5">
+                    <div class="progress-track">
+                        <div class="progress-bar-fill-tratamiento progress-fill w-0">
                         </div>
                     </div>
                 </div>
             </div>
 
             {{-- Formulario nueva --}}
-            <form action="{{ route('wo.tratamiento.store') }}" method="POST" enctype="multipart/form-data" class="form-tratamiento" id="form-tratamiento" style="display:none">
+            <form action="{{ route('wo.tratamiento.store') }}" method="POST" enctype="multipart/form-data" class="form-tratamiento" id="form-tratamiento" class="hidden">
                 @csrf
                 <input type="hidden" name="id_ot" id="hidden-idOtTratamiento" value="">
                 <input type="hidden" name="id_clase" id="hidden-idClaseTratamiento" value="">
 
                 <div class="field">
                     <label>Cantidad</label>
-                    <input type="number" name="cantidad" id="tratamiento-cantidad" min="1" placeholder="Pzas" required class="form-control" style="padding: 0.55rem 0.4rem; text-align: center;">
+                    <input type="number" name="cantidad" id="tratamiento-cantidad" min="1" placeholder="Pzas" required class="form-control p-0-55-0-4 text-center">
                 </div>
                 <div class="field">
                     <label>Archivo (PDF)</label>
-                    <input type="file" name="archivo" id="tratamiento-archivo" accept=".pdf" required class="form-control" style="font-size:.8rem;padding:.35rem">
+                    <input type="file" name="archivo" id="tratamiento-archivo" accept=".pdf" required class="form-control btn-small">
                 </div>
                 <div class="field">
                     <label>Descripción</label>
@@ -427,7 +437,8 @@
             {{-- Historial --}}
             <div id="historial-tratamiento-container">
                 @foreach($classes ?? [] as $clase)
-                <div class="grupo-tratamiento" data-id-clase="{{ $clase->id }}" style="display:none">
+                @php /** @var \App\Models\Clase $clase */ @endphp
+                <div class="grupo-tratamiento" data-id-clase="{{ $clase->id }}" class="hidden">
                     @if(isset($tratamientos[$clase->id]) && $tratamientos[$clase->id]->count() > 0)
                     <div class="lista-tratamientos">
                         <table class="tabla-parcialidades">
@@ -443,6 +454,7 @@
                             </thead>
                             <tbody>
                                 @foreach($tratamientos[$clase->id] as $tratamiento)
+                                @php /** @var \App\Models\TratamientoTermico $tratamiento */ @endphp
                                 <tr class="fila-tratamiento-item"
                                     data-id="{{ $tratamiento->id }}"
                                     data-cantidad="{{ $tratamiento->cantidad }}"
@@ -459,19 +471,19 @@
                                     </td>
                                     <td>
                                         <div class="view-remision">
-                                            <a href="{{ route('wo.tratamiento.download', $tratamiento->id) }}" target="_blank" style="font-size: 0.82rem; color: #033966; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                                                <img src="{{ asset('images/pdf.png') }}" alt="PDF" style="width: 16px; height: 16px; object-fit: contain;">
+                                            <a href="{{ route('wo.tratamiento.download', $tratamiento->id) }}" target="_blank" class="link-action-modal">
+                                                <img src="{{ asset('images/pdf.png') }}" alt="PDF" class="icon-16">
                                                 <span>Ver PDF</span>
                                             </a>
                                         </div>
                                         <input type="file" class="edit-archivo form-control" accept=".pdf">
                                     </td>
                                     <td>{{ $tratamiento->registrado_por }}</td>
-                                    <td style="white-space: nowrap;">
+                                    <td class="ws-nowrap">
                                         <!-- Botones estándar -->
                                         <button type="button" class="btn-editar-tratamiento btn-download">Editar</button>
 
-                                        <form action="{{ route('wo.tratamiento.destroy', $tratamiento->id) }}" method="POST" class="form-eliminar-tratamiento" style="display:inline">
+                                        <form action="{{ route('wo.tratamiento.destroy', $tratamiento->id) }}" method="POST" class="form-eliminar-tratamiento d-inline">
                                             @csrf
                                             @method('DELETE')
                                             <input type="hidden" name="password" class="input-confirm-password" value="">
@@ -499,7 +511,7 @@
 </div>{{-- /almacen-layout --}}
 
 {{-- Formulario oculto global para actualizar parcialidades --}}
-<form id="form-update-parcialidad" method="POST" style="display:none">
+<form id="form-update-parcialidad" method="POST" class="hidden">
     @csrf
     @method('PUT')
     <input type="hidden" name="cantidad" id="update-cantidad">
@@ -509,7 +521,7 @@
 </form>
 
 {{-- Formulario oculto global para actualizar tratamientos --}}
-<form id="form-update-tratamiento" method="POST" style="display:none" enctype="multipart/form-data">
+<form id="form-update-tratamiento" method="POST" class="hidden" enctype="multipart/form-data">
     @csrf
     @method('PUT')
     <input type="hidden" name="cantidad" id="update-tratamiento-cantidad">
@@ -518,14 +530,14 @@
 </form>
 
 {{-- Modal de Confirmación con Contraseña Encriptada --}}
-<div id="modal-confirm-delete" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-    <div style="background:#fff; padding:1.8rem; border-radius:12px; max-width:400px; width:90%; box-shadow:0 10px 30px rgba(0,0,0,0.25); text-align:center;">
-        <h4 style="margin-top:0; color:#033966; font-size:1.15rem; font-weight:700;">Autorizar Eliminación</h4>
-        <p style="font-size:0.9rem; color:#555; margin-bottom:1rem;">Ingresa la contraseña de un Administrador o Master para eliminar esta parcialidad:</p>
-        <input type="password" id="modal-delete-password" class="form-control" style="width:100%; padding:0.6rem; border:1px solid #ccc; border-radius:6px; margin-bottom:1.2rem; text-align:center; font-size:1rem;" placeholder="Contraseña">
-        <div style="display:flex; gap:0.8rem; justify-content:center;">
-            <button type="button" id="btn-modal-delete-confirm" style="background:#9c0303; color:#fff; border:none; padding:0.5rem 1.2rem; border-radius:6px; font-weight:600; cursor:pointer;">Confirmar</button>
-            <button type="button" id="btn-modal-delete-cancel" style="background:#e8f0fb; color:#033966; border:none; padding:0.5rem 1.2rem; border-radius:6px; font-weight:600; cursor:pointer;">Cancelar</button>
+<div id="modal-confirm-delete" class="modal-overlay hidden">
+    <div class="modal-content-box-v2">
+        <h4 class="modal-title">Autorizar Eliminación</h4>
+        <p class="modal-text">Ingresa la contraseña de un Administrador o Master para eliminar esta parcialidad:</p>
+        <input type="password" id="modal-delete-password" class="form-control modal-input-v2" placeholder="Contraseña">
+        <div class="modal-actions">
+            <button type="button" id="btn-modal-delete-confirm" class="modal-btn-confirm">Confirmar</button>
+            <button type="button" id="btn-modal-delete-cancel" class="modal-btn-cancel">Cancelar</button>
         </div>
     </div>
 </div>
