@@ -62,9 +62,9 @@ class tiemposProduccionController extends Controller
         }
 
         if ($clase) {
-            return view('processes_views.productionTimes', compact('workOrders', 'clase'));
+            return view('processes_views.production_times', compact('workOrders', 'clase'));
         }
-        return view('processes_views.productionTimes', compact('workOrders'));
+        return view('processes_views.production_times', compact('workOrders'));
     }
         /**
      * @param mixed $class
@@ -137,9 +137,9 @@ class tiemposProduccionController extends Controller
      */
     public function setProductionTimes($class)
     {
-        $productionTimes = $this->getProductionTimes($class);
-        if ($productionTimes != null) {
-            foreach ($productionTimes as $process => $time) {
+        $production_times = $this->getProductionTimes($class);
+        if ($production_times != null) {
+            foreach ($production_times as $process => $time) {
                 $processName = $this->get_processName($process);
                 $tiempo = tiempoproduccion::query()->where('id_clase', $class->id)->where('proceso', $processName)->first();
                 if ($tiempo) {
@@ -169,7 +169,7 @@ class tiemposProduccionController extends Controller
         $classObj = Clase::query()->where('nombre', $request->input('class'))->where("id_ot", $request->input('workOrder'))->first();
         if (!$classObj) return redirect()->back()->with('error', 'Clase no encontrada.');
         
-        $productionTimes = $this->getProductionTimes($classObj);
+        $production_times = $this->getProductionTimes($classObj);
         $tiemposClase = tiempoproduccion::query()->where('id_clase', $classObj->id)->get()->keyBy('proceso'); // Pre-cargar tiempos
 
         foreach ($request->all() as $key => $value) {
@@ -182,14 +182,14 @@ class tiemposProduccionController extends Controller
             $processName = $this->get_processNormalName($key);
             if ($tiempo) {
                 $tiempo->tamanio = $class->tamanio;
-                $tiempo->tiempo = $value != 0 ? $value : ($productionTimes[$processName]) ?? 0;
+                $tiempo->tiempo = $value != 0 ? $value : ($production_times[$processName]) ?? 0;
             } else {
                 $tiempo = new tiempoproduccion();
                 $tiempo->id_clase = $class->id;
                 $tiempo->clase = $request->input('class');
                 $tiempo->tamanio = $class->tamanio;
                 $tiempo->proceso = $key;
-                $tiempo->tiempo = $value != 0 ? $value : ($productionTimes[$processName]) ?? 0;
+                $tiempo->tiempo = $value != 0 ? $value : ($production_times[$processName]) ?? 0;
             }
             $tiempo->save();
         }

@@ -142,7 +142,7 @@ class WOController extends Controller
             $parcialidades = ParcialidadOt::with(['usuario', 'remision'])->whereIn('id_clase', $claseIds, 'and', false)->orderByDesc('fecha_recepcion')->get()->groupBy('id_clase');
             $tratamientos = TratamientoTermico::whereIn('id_clase', $claseIds, 'and', false)->orderByDesc('created_at')->get()->groupBy('id_clase');
 
-            return view('wo_views.show_wo_almacen', compact('workOrder', 'molding', 'classes', 'remisiones', 'parcialidades', 'tratamientos'));
+            return view('wo_views.show_wo_warehouse', compact('workOrder', 'molding', 'classes', 'remisiones', 'parcialidades', 'tratamientos'));
         }
 
         //Se obtienen las maquinas de los procesos guardados
@@ -224,7 +224,7 @@ class WOController extends Controller
 
     public function show_panelWO()
     {
-        return view('wo_views.progressPanel_wo');
+        return view('wo_views.progress_panel_wo');
     }
 
     /**
@@ -944,7 +944,7 @@ class WOController extends Controller
         [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
         $orderedOtIds = array_keys($wOInProgress);
 
-        return view('pieces_views.piecesInProgress_view', compact(
+        return view('pieces_views.pieces_in_progress_view', compact(
             'wOInProgress',
             'orderedOtIds',
             'pieces_Released',
@@ -1000,7 +1000,7 @@ class WOController extends Controller
             ];
         })->values()->toArray();
 
-        return view('pieces_views.priorityManager_view', compact('otPriorities'));
+        return view('pieces_views.priority_manager_view', compact('otPriorities'));
     }
 
     /**

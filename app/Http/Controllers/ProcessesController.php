@@ -167,7 +167,7 @@ class ProcessesController extends Controller
         }
 
         [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
-        return view('processes_views.cNominals_view', compact('workOrders', 'pieces_Released', 'info_Pieces'));
+        return view('processes_views.c_nominals_view', compact('workOrders', 'pieces_Released', 'info_Pieces'));
     }
         /**
      * @param mixed string $className

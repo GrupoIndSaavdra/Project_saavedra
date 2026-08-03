@@ -199,7 +199,7 @@ class PzasGeneralesController extends Controller
             if ($profile == 'quality') {
                 return [true, $pieces, $piecesData, $infoPieces, $selectedItems, $filtersData];
             }
-            return view('pieces_views.piecesReport.adminPieces', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
+            return view('pieces_views.pieces_report.admin_pieces', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
         } else {
             if ($profile == 'quality') {
                 return [false, $pieces, $piecesData, $infoPieces, $selectedItems, $filtersData];
@@ -210,7 +210,7 @@ class PzasGeneralesController extends Controller
             @ini_set('memory_limit', '2048M');
             @set_time_limit(300);
 
-            $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
+            $pdf = Pdf::loadView('pieces_views.pieces_report.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
             $filename = $this->generatePdfFilename($selectedItems, "Piezas");
             return $pdf->download($filename);
         }
@@ -249,8 +249,13 @@ class PzasGeneralesController extends Controller
         });
         $orders = \Illuminate\Support\Facades\Cache::remember('ot_active_all', 30, function () {
             return Orden_trabajo::query()
-                ->whereHas('clases', function ($q) {
-                    $q->where('finalizada', 0);
+                ->where(function ($query) {
+                    // Mostrar OTs con clases activas
+                    $query->whereHas('clases', function ($q) {
+                        $q->where('finalizada', 0);
+                    })
+                    // O mostrar OTs recién creadas que aún no tienen clases
+                    ->orWhereDoesntHave('clases');
                 })
                 ->orderBy('id', 'desc')
                 ->get();
@@ -309,14 +314,30 @@ class PzasGeneralesController extends Controller
         );
         return $this->search($datosPiezas, 'admin');
     }
+    /**
+     * @param array $piecesData
+     * @param array $itemElegidos
+     * @param bool $includeObservations
+     * @return mixed
+     */
     public function buscarPiezas($piecesData, &$itemElegidos, bool $includeObservations = false)
     {
         // ── OPTIMIZACIÓN: usar IDs de clases ACTIVAS (~40 IDs) en lugar de NOT IN con miles de IDs ──
         $activeClassIds = Clase::query()->where('finalizada', 0)->pluck('id')->toArray();
-        $query = Pieza::query();
+        
+        // ── OPTIMIZACIÓN EXTREMA: Usamos DB::table en lugar de Eloquent (Pieza::query)
+        // Esto evita "hidratar" miles de Modelos, obteniendo objetos planos 10x más rápido
+        $query = \Illuminate\Support\Facades\DB::table('piezas')->select(
+            'n_pieza', 'id_clase', 'proceso', 'id_ot', 'id_operador', 'error', 
+            'liberacion', 'user_liberacion', 'observacion_liberacion', 'created_at', 
+            'maquina', 'fecha_liberacion'
+        );
+
         if (!empty($activeClassIds)) {
-            $query->whereIn('id_clase', $activeClassIds, 'and', false);
+            $query->whereIn('id_clase', $activeClassIds);
         }
+
+        $hasFilters = false;
 
         foreach ($piecesData as $key => $value) {
             if ($key === 'action') continue;
@@ -326,6 +347,7 @@ class PzasGeneralesController extends Controller
                 continue;
             }
 
+            $hasFilters = true;
             $itemElegidos[$key] = $value;
 
             switch ($key) {
@@ -370,6 +392,11 @@ class PzasGeneralesController extends Controller
                     });
                     break;
             }
+        }
+
+        if (!$hasFilters && !isset($piecesData['action'])) {
+            // OPTIMIZACIÓN: Limitar a 2000 si es carga inicial sin filtros
+            $query->orderBy('id', 'desc')->limit(2000);
         }
 
         $piezas = $query->get();
@@ -523,6 +550,41 @@ class PzasGeneralesController extends Controller
             return $m->id_ot . '_' . $m->id_clase . '_' . $m->proceso . '_' . $m->fecha;
         });
 
+        // ── OPTIMIZACIÓN: Buscar mitades faltantes en bloque ANTES del bucle para matar el N+1 ──
+        $missingPiecesList = collect();
+        foreach ($arrayP as $item) {
+            if (substr($item->n_pieza, -1) !== 'J') {
+                $numJuego = $this->getPiezaNumber($item->n_pieza);
+                $indexKey = $item->id_clase . '_' . $item->proceso . '_' . $numJuego;
+                $group    = $piezasIndex->get($indexKey, collect());
+                
+                if (!$group->firstWhere('n_pieza', $numJuego . 'H')) $missingPiecesList->push($numJuego . 'H');
+                if (!$group->firstWhere('n_pieza', $numJuego . 'M')) $missingPiecesList->push($numJuego . 'M');
+            }
+        }
+
+        $missingPiecesList = $missingPiecesList->unique()->toArray();
+        if (!empty($missingPiecesList)) {
+            $otsArray = collect($arrayP)->pluck('id_ot')->unique()->toArray();
+            $missingPiecesDB = \Illuminate\Support\Facades\DB::table('piezas')->select(
+                'n_pieza', 'id_clase', 'proceso', 'id_ot', 'id_operador', 'error', 
+                'liberacion', 'user_liberacion', 'observacion_liberacion', 'created_at', 
+                'maquina', 'fecha_liberacion'
+            )
+                ->whereIn('n_pieza', $missingPiecesList)
+                ->whereIn('id_ot', $otsArray)
+                ->get();
+                
+            foreach($missingPiecesDB as $mp) {
+                $num = $this->getPiezaNumber($mp->n_pieza);
+                $indexKey = $mp->id_clase . '_' . $mp->proceso . '_' . $num;
+                if (!$piezasIndex->has($indexKey)) {
+                    $piezasIndex->put($indexKey, collect());
+                }
+                $piezasIndex->get($indexKey)->push($mp);
+            }
+        }
+
         foreach ($arrayP as $item) {
             if (in_array($item->id_clase, $finishedClassIds)) {
                 continue;
@@ -540,44 +602,22 @@ class PzasGeneralesController extends Controller
                     $array[$contador][1] = $numJuego . 'J';
                     $juegosGuardados[]   = $juegoKey;
 
-                    // ── Buscar mitades desde índice en memoria (0 queries) ──
+                    // ── Buscar mitades desde índice en memoria (0 queries porque ya las precargamos) ──
                     $indexKey = $item->id_clase . '_' . $item->proceso . '_' . $numJuego;
                     $group    = $piezasIndex->get($indexKey, collect());
                     $pzaH     = $group->firstWhere('n_pieza', $numJuego . 'H');
                     $pzaM     = $group->firstWhere('n_pieza', $numJuego . 'M');
-
-                    // ── Si no se encontró alguna mitad en el índice en memoria,
-                    //    puede ser que esté filtrada (ej. filtro por operador).
-                    //    Buscarla en BD antes de declarar el juego incompleto. ──
-                    if (!$pzaH) {
-                        $pzaH = Pieza::query()->where('n_pieza', $numJuego . 'H')
-                            ->where('id_clase', $item->id_clase)
-                            ->where('proceso', $item->proceso)
-                            ->where('id_ot', $item->id_ot)
-                            ->first();
-                    }
-                    if (!$pzaM) {
-                        $pzaM = Pieza::query()->where('n_pieza', $numJuego . 'M')
-                            ->where('id_clase', $item->id_clase)
-                            ->where('proceso', $item->proceso)
-                            ->where('id_ot', $item->id_ot)
-                            ->first();
-                    }
 
                     if (!$pzaH || !$pzaM) { // Realmente incompleto: una mitad no existe en BD
                         $existing = $pzaH ?? $pzaM;
                         $op = $usersCache->get($existing->id_operador);
                         $array[$contador][2] = $op ? "{$op->nombre} {$op->a_paterno} {$op->a_materno}" : '(desconocido)';
                         $error = $existing->error !== 'Ninguno' ? $existing->error . ' / Incompleto' : 'Incompleto';
-                        // Siempre en [5] — [6] se usa para created_at y no debe pisarse
                         $array[$contador][5] = $error;
                     } else {
                         // Operadores
                         $opH = $usersCache->get($pzaH->id_operador);
                         $opM = $usersCache->get($pzaM->id_operador);
-                        // Si el operador H no está en caché (es de otro operador filtrado), ir a BD
-                        if (!$opH) $opH = User::query()->where('matricula', $pzaH->id_operador)->first();
-                        if (!$opM) $opM = User::query()->where('matricula', $pzaM->id_operador)->first();
                         $nombreH = $opH ? "{$opH->nombre} {$opH->a_paterno} {$opH->a_materno}" : '(desconocido)';
                         $nombreM = $opM ? "{$opM->nombre} {$opM->a_paterno} {$opM->a_materno}" : '(desconocido)';
 
@@ -1320,7 +1360,7 @@ class PzasGeneralesController extends Controller
             $operadores[0] = array($nPieza, $nombreOp);
         }
         $piezasGroup = $piezasGroup ?? null;
-        return view('pieces_views.piecesReport.chosenPiece', compact('process', 'piecesInfo', 'cNominal', 'tolerance', 'ot', 'clase', 'profile', 'operadores', 'piezasGroup'));
+        return view('pieces_views.pieces_report.chosen_piece', compact('process', 'piecesInfo', 'cNominal', 'tolerance', 'ot', 'clase', 'profile', 'operadores', 'piezasGroup'));
     }
 
         /**
@@ -1398,9 +1438,9 @@ class PzasGeneralesController extends Controller
     {
         if ($this->retornarOTs() != 0) {
             $arregloOT = $this->retornarOTs();
-            return view('machines_views.maquinas', compact('arregloOT'));
+            return view('machines_views.machines', compact('arregloOT'));
         } else {
-            return view('machines_views.maquinas');
+            return view('machines_views.machines');
         }
     }
     /**
@@ -2022,7 +2062,7 @@ class PzasGeneralesController extends Controller
             $contador++;
         }
         array_splice($procesos, 0, 2);
-        return view('machines_views.vistaProcesos', compact('procesos', 'ot', 'clase'));
+        return view('machines_views.process_view', compact('procesos', 'ot', 'clase'));
     }
         /**
      * @param mixed $proceso
@@ -2190,18 +2230,28 @@ class PzasGeneralesController extends Controller
             // Obtener piezas filtradas
             $soldaduraPieces = $this->applySoldaduraFilters($filters);
 
+            // Bulk pre-fetching to prevent N+1 query problem
+            $procesoIds = $soldaduraPieces->pluck('id_proceso')->unique()->filter();
+            $metaIds = $soldaduraPieces->pluck('id_meta')->unique()->filter();
+            
+            $procesosMap = Soldadura::query()->whereIn('id', $procesoIds)->get()->keyBy('id');
+            $metasMap = Metas::query()->whereIn('id', $metaIds)->get()->keyBy('id');
+            
+            $userIds = $metasMap->pluck('id_usuario')->unique()->filter();
+            $usersMap = User::query()->whereIn('matricula', $userIds)->get()->keyBy('matricula');
+
             $piecesData = [];
 
             foreach ($soldaduraPieces as $piece) {
                 // Obtener información del proceso
-                $proceso = Soldadura::query()->find($piece->id_proceso);
+                $proceso = $procesosMap->get($piece->id_proceso);
 
                 // Obtener la meta asociada para sacar el operador
-                $meta = Metas::query()->find($piece->id_meta);
+                $meta = $metasMap->get($piece->id_meta);
                 $operatorName = 'N/A';
 
                 if ($meta) {
-                    $operator = User::query()->where('matricula', $meta->id_usuario)->first();
+                    $operator = $usersMap->get($meta->id_usuario);
                     if ($operator) {
                         $operatorName = $operator->nombre . ' ' . $operator->a_paterno . ' ' . $operator->a_materno;
                     }
@@ -2255,15 +2305,26 @@ class PzasGeneralesController extends Controller
             $filters = $request->all();
 
             $soldaduraPieces = $this->applySoldaduraFilters($filters);
+            
+            // Bulk pre-fetching to prevent N+1 query problem
+            $procesoIds = $soldaduraPieces->pluck('id_proceso')->unique()->filter();
+            $metaIds = $soldaduraPieces->pluck('id_meta')->unique()->filter();
+            
+            $procesosMap = Soldadura::query()->whereIn('id', $procesoIds)->get()->keyBy('id');
+            $metasMap = Metas::query()->whereIn('id', $metaIds)->get()->keyBy('id');
+            
+            $userIds = $metasMap->pluck('id_usuario')->unique()->filter();
+            $usersMap = User::query()->whereIn('matricula', $userIds)->get()->keyBy('matricula');
+            
             $piecesData = [];
 
             foreach ($soldaduraPieces as $piece) {
-                $proceso = Soldadura::query()->find($piece->id_proceso);
-                $meta = Metas::query()->find($piece->id_meta);
+                $proceso = $procesosMap->get($piece->id_proceso);
+                $meta = $metasMap->get($piece->id_meta);
                 $operatorName = 'N/A';
 
                 if ($meta) {
-                    $operator = User::query()->where('matricula', $meta->id_usuario)->first();
+                    $operator = $usersMap->get($meta->id_usuario);
                     if ($operator) {
                         $operatorName = $operator->nombre . ' ' . $operator->a_paterno . ' ' . $operator->a_materno;
                     }
@@ -2351,7 +2412,7 @@ class PzasGeneralesController extends Controller
             // Unir todas las partes con guiones bajos
             $filename = implode('_', $filenameParts) . '.pdf';
 
-            $pdf = Pdf::loadView('pieces_views.piecesReport.soldaduraExtraInfoPdf', compact('piecesData'));
+            $pdf = Pdf::loadView('pieces_views.pieces_report.welding_extra_info_pdf', compact('piecesData'));
             return $pdf->download($filename);
 
         } catch (\Exception $e) {

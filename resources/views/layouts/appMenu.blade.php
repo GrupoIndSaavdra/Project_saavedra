@@ -90,18 +90,18 @@
         manageWO: @json(route('manageWO')),
         show_panelWO: @json(route('show_panelWO')),
         users: @json(route('users')), // PENDING
-        createUser: @json(route('createUser')),
-        recoverPassword: @json(route('recoverPassword')),
+        create_user: @json(route('create_user')),
+        recover_password: @json(route('recover_password')),
         cNominals: @json(route('cNominals')),
         piecesInProgress: @json(route('showPiecesInProgress')),
         priorityManager: @json(route('showPriorityManager')),
         showPiecesReport_view: @json(route('showPiecesReport_view')),
         showReleasePieces_view: @json(route('showReleasePieces_view')),
         showTimes: @json(route('showTimes')),
-        productionData: @json(route('productionData')),
+        production_data: @json(route('production_data')),
         panelProgreso: @json(route('panelProgreso')),
         machinesOccupied: @json(route('machinesOccupied')),
-        processProduction: @json(route('processProduction')),
+        process_production: @json(route('process_production')),
         logout: @json(route('logout')),
         'soldadura.generarQRLote': @json(route('soldadura.generarQRLote')),
         'soldadura.generarQRIndividual': @json(route('soldadura.generarQRIndividual')),
@@ -109,7 +109,7 @@
         'soldadura.liberarQRPlanta': @json(route('soldadura.liberarQRPlanta')),
         'soldadura.regenerarQR': @json(route('soldadura.regenerarQR')),
         'pta.analysis': @json(route('pta.analysis')),
-        'pta.segunda_pasada': @json(route('pta.segunda_pasada')),
+        'pta.second_pass': @json(route('pta.second_pass')),
         'pta.results.current': @json(session('pta_temp_ot_id') ? route('pta.results', ['ot_id' => session('pta_temp_ot_id')]) : '#'),
         'reportes.reenvio': @json(route('reportes.reenvio')),
         'reportes.pta': @json(route('reportes.pta')),
@@ -122,8 +122,8 @@
         'calidad.fundicion.index': @json(route('calidad.fundicion.index')),
         'calidad.maquinados.index': @json(route('calidad.maquinados.index')),
         'herramientas.tecamac.index': @json(route('herramientas.tecamac.index')),
-        systemLogsReport: @json(route('systemLogsReport')),
-        adminLogsReport: @json(route('systemLogsReport', ['admin_only' => 1]))
+        system_logsReport: @json(route('system_logsReport')),
+        adminLogsReport: @json(route('system_logsReport', ['admin_only' => 1]))
     };
 </script>
 @isset($pieces_Released)

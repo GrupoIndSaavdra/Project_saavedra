@@ -3,7 +3,7 @@
 
 /* =============================================================
    Gestión de Usuarios — Estilos
-   Basado en el sistema de diseño de processProduction.css
+   Basado en el sistema de diseño de process_production.css
    ============================================================= */
 
 * {
@@ -13,7 +13,7 @@
     /* font-family heredado de global.css */
 }
 
-/* ── Variables de diseño (mismo sistema que processProduction) ── */
+/* ── Variables de diseño (mismo sistema que process_production) ── */
 :root {
     --color-primary:       var(--gis-blue);
     --color-primary-dim:   var(--gis-blue);
@@ -343,7 +343,7 @@ table td:last-child {
 }
 .badge-inactivo::before { background: var(--gis-red); }
 
-/* ── Botones de acción (mismo sistema que processProduction) ── */
+/* ── Botones de acción (mismo sistema que process_production) ── */
 .actions-cell {
     display: flex;
     gap: 8px;

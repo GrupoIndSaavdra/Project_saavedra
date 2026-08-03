@@ -139,7 +139,7 @@ class RegenerarQRController extends Controller
             'numero_factura' => $lote->numero_factura,
         ]);
 
-        $pdf = Pdf::loadView('trackingSoldadura_views.qr_lote_pdf', compact('lote', 'qrContent'));
+        $pdf = Pdf::loadView('welding_tracking_views.qr_lote_pdf', compact('lote', 'qrContent'));
 
         return $pdf->download('QR_Lote_' . $lote->matricula . '_REGENERADO.pdf');
     }
@@ -168,7 +168,7 @@ class RegenerarQRController extends Controller
             ];
         }
 
-        $pdf = Pdf::loadView('trackingSoldadura_views.qr_individuales_pdf', compact('qrCodes', 'lote'));
+        $pdf = Pdf::loadView('welding_tracking_views.qr_individuales_pdf', compact('qrCodes', 'lote'));
 
         return $pdf->download('QR_Botes_' . $lote->matricula . '_REGENERADO.pdf');
     }

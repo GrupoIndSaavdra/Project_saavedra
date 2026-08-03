@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace Tests\Feature;
 
@@ -76,7 +76,7 @@ class RobustProductionTest extends TestCase
         ]);
 
         // Simular el guardado de la pieza
-        $response = $this->post('/processProduction/storePiece', [
+        $response = $this->post('/process_production/storePiece', [
             'meta' => $meta->id,
             'process' => 'Cepillado',
             'piece' => $pza_cep->id,

@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+﻿import { defineConfig } from "vite";
 import laravel from "laravel-vite-plugin";
 
 export default defineConfig({
@@ -32,41 +32,41 @@ export default defineConfig({
                 //Views OT
                 "resources/css/wo_views/manage_wo.css",
                 "resources/css/wo_views/show_wo.css",
-                "resources/css/wo_views/show_wo_almacen.css",
+                "resources/css/wo_views/show_wo_warehouse.css",
                 'resources/js/wo_views/manage_wo.js',
                 'resources/js/wo_views/show_wo.js',
-                'resources/js/wo_views/show_wo_almacen.js',
+                'resources/js/wo_views/show_wo_warehouse.js',
 
                 //Views pieces
-                "resources/css/pieces_views/piecesInProgress_view.css",
-                "resources/js/pieces_views/piecesInProgress_view.js",
-                "resources/css/pieces_views/priorityManager_view.css",
-                "resources/js/pieces_views/priorityManager_view.js",
+                "resources/css/pieces_views/pieces_in_progress_view.css",
+                "resources/js/pieces_views/pieces_in_progress_view.js",
+                "resources/css/pieces_views/priority_manager_view.css",
+                "resources/js/pieces_views/priority_manager_view.js",
 
-                "resources/js/pieces_views/piecesReport/piecesReport_view.js",
-                "resources/css/pieces_views/piecesReport/chosenPiece.css",
-                'resources/css/pieces_views/releasePieces/releasePieces_view.css',
-                'resources/js/pieces_views/releasePieces/releasePieces_view.js',
-                "resources/js/pieces_views/releasePieces/releasePieces.js",
-                "resources/css/pieces_views/piecesReport/adminPieces.css",
-                'resources/js/pieces_views/piecesReport/adminPieces.js',
-                'resources/css/wo_views/progressPanel_wo.css',
-                'resources/js/wo_views/progressPanel_wo.js',
+                "resources/js/pieces_views/pieces_report/pieces_report_view.js",
+                "resources/css/pieces_views/pieces_report/chosen_piece.css",
+                'resources/css/pieces_views/release_pieces/release_pieces_view.css',
+                'resources/js/pieces_views/release_pieces/release_pieces_view.js',
+                "resources/js/pieces_views/release_pieces/release_pieces.js",
+                "resources/css/pieces_views/pieces_report/admin_pieces.css",
+                'resources/js/pieces_views/pieces_report/admin_pieces.js',
+                'resources/css/wo_views/progress_panel_wo.css',
+                'resources/js/wo_views/progress_panel_wo.js',
 
                 //Views users
-                "resources/css/users_views/createUser.css",
-                "resources/css/users_views/recoverPassword.css",
-                'resources/css/users_views/productionData.css',
-                'resources/js/users_views/productionData.js',
+                "resources/css/users_views/create_user.css",
+                "resources/css/users_views/recover_password.css",
+                'resources/css/users_views/production_data.css',
+                'resources/js/users_views/production_data.js',
 
                 //Views processes
-                "resources/css/processes_views/cNominals_view.css",
-                "resources/js/processes_views/cNominals_view.js",
+                "resources/css/processes_views/c_nominals_view.css",
+                "resources/js/processes_views/c_nominals_view.js",
                 "resources/js/processes_views/Process.js",
-                "resources/css/processes_views/productionTimes.css",
-                "resources/js/processes_views/productionTimes.js",
-                "resources/css/processes_views/processProduction.css",
-                "resources/js/processes_views/processProduction.js",
+                "resources/css/processes_views/production_times.css",
+                "resources/js/processes_views/production_times.js",
+                "resources/css/processes_views/process_production.css",
+                "resources/js/processes_views/process_production.js",
 
                 //Views machines
                 'resources/css/machines_views/machinesOccupied.css',
@@ -84,7 +84,7 @@ export default defineConfig({
                 'resources/css/welding_tracking_views/generate_batch_qr.css',
                 'resources/css/welding_tracking_views/plant_reception.css',
                 'resources/css/welding_tracking_views/regenerate_qr.css',
-                'resources/css/welding_tracking/trackingSoldadura.css',
+                'resources/css/welding_tracking/welding_tracking.css',
 
                 //Liberar soldadura
                 'resources/js/libs/html5-qrcode.min.js',
@@ -92,13 +92,13 @@ export default defineConfig({
                 'resources/js/welding_tracking/release_welding.js',
 
                 //Views PTA
-                'resources/css/processes_views/soldaduraPTA_table_partial.css',
+                'resources/css/processes_views/welding_pta_table_partial.css',
                 'resources/css/pta_views/analysis.css',
                 'resources/css/pta_views/analysis_pdf.css',
                 'resources/css/pta_views/results.css',
-                'resources/css/pta_views/segunda_pasada.css',
-                'resources/css/pieces_views/piecesReport/soldaduraExtraInfoPdf.css',
-                'resources/css/pieces_views/piecesReport/soldaduraPTAExtraInfoPdf.css',
+                'resources/css/pta_views/second_pass.css',
+                'resources/css/pieces_views/pieces_report/welding_extra_info_pdf.css',
+                'resources/css/pieces_views/pieces_report/welding_pta_extra_info_pdf.css',
 
                 //Views Reporte Diario
                 'resources/css/reports/email.css',
@@ -106,16 +106,16 @@ export default defineConfig({
                 'resources/css/reports/pta_send.css',
 
                 //Módulo Documentacion Técnica
-                'resources/css/wo_views/manage_dibujos.css',
-                'resources/css/wo_views/manage_fundicion.css',
-                'resources/css/wo_views/manage_manuales.css',
-                'resources/css/wo_views/manage_ayudas.css',
-                'resources/css/wo_views/manage_ayudas_fundicion.css',
-                'resources/js/wo_views/manage_dibujos.js',
-                'resources/js/wo_views/manage_fundicion.js',
-                'resources/js/wo_views/manage_manuales.js',
-                'resources/js/wo_views/manage_ayudas.js',
-                'resources/js/wo_views/manage_ayudas_fundicion.js',
+                'resources/css/wo_views/manage_drawings.css',
+                'resources/css/wo_views/manage_casting.css',
+                'resources/css/wo_views/manage_manuals.css',
+                'resources/css/wo_views/manage_visual_aids.css',
+                'resources/css/wo_views/manage_casting_visual_aids.css',
+                'resources/js/wo_views/manage_drawings.js',
+                'resources/js/wo_views/manage_casting.js',
+                'resources/js/wo_views/manage_manuals.js',
+                'resources/js/wo_views/manage_visual_aids.js',
+                'resources/js/wo_views/manage_casting_visual_aids.js',
 
                 //Vista Almacén/Calidad — Dibujos de Fundición
                 'resources/css/warehouse_views/warehouse_casting.css',
@@ -127,9 +127,9 @@ export default defineConfig({
                 'resources/css/quality_views/quality_machining.css',
                 'resources/js/quality_views/quality_machining.js',
 
-                // Views systemLogs
-                "resources/css/reports/systemLogs.css",
-                "resources/js/reports/systemLogs.js",
+                // Views system_logs
+                "resources/css/reports/system_logs.css",
+                "resources/js/reports/system_logs.js",
 
                 // Vista Herramientas Tecamac
                 'resources/css/tools_views/tools_tecamac.css',

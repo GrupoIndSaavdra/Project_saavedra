@@ -33,17 +33,19 @@
         </div>
 
         <!--Segunda parte del formulario-->
-        <div class="div-boxes hidden" id="casillas">
-            <h3>Procesos y numero de máquinas disponibles</h3>
-            <div class="sections">
-                <!--Se inserta el algoritmos para generar las casillas atraves de JavaScript-->
+        <div class="right-panel">
+            <div class="div-boxes hidden" id="casillas">
+                <h3>Procesos y numero de máquinas disponibles</h3>
+                <div class="sections">
+                    <!--Se inserta el algoritmos para generar las casillas atraves de JavaScript-->
+                </div>
+            </div>
+            <div class="div-btns">
+                <button type="submit" class="btn-addClass btn hidden" form="form">Guardar</button>
             </div>
         </div>
     </div>
 </form>
-<div class="div-btns">
-    <button type="submit" class="btn-addClass btn hidden" form="form">Guardar</button>
-</div>
 <script>
     window.workOrder = @json($workOrder);
     window.molding = @json($molding);

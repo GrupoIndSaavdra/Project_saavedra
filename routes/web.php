@@ -55,10 +55,10 @@ Route::controller(LoginController::class)->group(function () {
 //Grupo de rutas para el controlador de ver usuarios en perfil de master
 Route::controller(UserController::class)->group(function () {
     Route::get('/users', 'show')->name('users'); //Vista de usuarios
-    Route::get('/users/create', 'create')->name('createUser'); //Vista de crear usuario
+    Route::get('/users/create', 'create')->name('create_user'); //Vista de crear usuario
     Route::post('/users/create/store', 'store')->name('storeUser');
-    Route::get('/users/recoverPassword', 'showRecoverPassword')->name('recoverPassword'); //Vista recuperar contraseña
-    Route::post('/users/recoverPassword', 'recoverPassword')->name('recover'); //Recuperar contraseña
+    Route::get('/users/recover_password', 'showRecoverPassword')->name('recover_password'); //Vista recuperar contraseña
+    Route::post('/users/recover_password', 'recover_password')->name('recover'); //Recuperar contraseña
 
     Route::post('/alta-usuario/{id}', 'altaUsuario')->name('alta_usuario');
     Route::post('/baja-usuario/{id}', 'bajaUsuario')->name('baja_usuario');
@@ -120,18 +120,18 @@ Route::controller(ProcessesController::class)->group(function () {
 });
 
 Route::controller(ProcessProductionController::class)->group(function () {
-    Route::get('/processProduction', 'show')->name('processProduction'); //Ruta para ver los procesos de producción
-    Route::post('/processProduction/selected', 'storeHeaderdata')->name('headerdata'); //Ruta para ver los procesos de producción
-    Route::get('/processProduction/format/{meta}/{process}/{edit}', 'showReportFormat')->name('showReportFormat'); //Ruta para ver los procesos de producción
-    Route::post('/processProduction/verified', 'verifiedPasswordAdmin')->name('verifiedPassword'); //Ruta para verificar la contraseña del administrador
-    Route::post('/processProduction/editMeta', 'editMeta')->name('editMeta'); //Ruta para editar las metas
-    Route::get('/processProduction/finishReport/{meta}', 'finishReport')->name('finishReport'); //Ruta para finalizar el reporte
-    Route::post('/processProduction/storePiece', 'storePiece')->name('storePiece'); //Ruta para almacenar una pieza
-    Route::post('/processProduction/selectAssembly', 'selectAssembly')->name('selectAssembly'); //Ruta para almacenar una pieza
-    Route::post('/processProduction/editPieces', 'editPieces')->name('editPieces'); //Ruta para editar las piezas registradas
-    Route::post('/processProduction/verifyQualityPassword', 'verifyQualityPassword')->name('verifyQualityPassword'); //Ruta para verificar contraseña de calidad
-    Route::post('/processProduction/releasePieces', 'releasePieces')->name('releasePieces'); //Ruta para liberar piezas
-    Route::post('/processProduction/getPiecesForRelease', 'getPiecesForRelease')->name('getPiecesForRelease'); //Ruta para obtener piezas para liberación
+    Route::get('/process_production', 'show')->name('process_production'); //Ruta para ver los procesos de producción
+    Route::post('/process_production/selected', 'storeHeaderdata')->name('headerdata'); //Ruta para ver los procesos de producción
+    Route::get('/process_production/format/{meta}/{process}/{edit}', 'showReportFormat')->name('showReportFormat'); //Ruta para ver los procesos de producción
+    Route::post('/process_production/verified', 'verifiedPasswordAdmin')->name('verifiedPassword'); //Ruta para verificar la contraseña del administrador
+    Route::post('/process_production/editMeta', 'editMeta')->name('editMeta'); //Ruta para editar las metas
+    Route::get('/process_production/finishReport/{meta}', 'finishReport')->name('finishReport'); //Ruta para finalizar el reporte
+    Route::post('/process_production/storePiece', 'storePiece')->name('storePiece'); //Ruta para almacenar una pieza
+    Route::post('/process_production/selectAssembly', 'selectAssembly')->name('selectAssembly'); //Ruta para almacenar una pieza
+    Route::post('/process_production/editPieces', 'editPieces')->name('editPieces'); //Ruta para editar las piezas registradas
+    Route::post('/process_production/verifyQualityPassword', 'verifyQualityPassword')->name('verifyQualityPassword'); //Ruta para verificar contraseña de calidad
+    Route::post('/process_production/release_pieces', 'release_pieces')->name('release_pieces'); //Ruta para liberar piezas
+    Route::post('/process_production/getPiecesForRelease', 'getPiecesForRelease')->name('getPiecesForRelease'); //Ruta para obtener piezas para liberación
 });
 
 //Ruta para ver el progreso de los procesos
@@ -148,7 +148,7 @@ Route::controller(TiemposProduccionController::class)->group(function () {
 Route::controller(PzasGeneralesController::class)->group(function () {
     Route::get('/pieces', 'showPiecesReport_view')->name('showPiecesReport_view'); //Ruta para la vista general de piezas
     Route::match(['get', 'post'], '/pieces/search', 'getPiecesRequest')->name('searchPieces'); //Ruta para el controlador de piezas generales
-    Route::get('/pieces/{pieces}/{process}/{profile}', 'showPiece')->name('chosenPiece'); //Vista de la pieza elegida
+    Route::get('/pieces/{pieces}/{process}/{profile}', 'showPiece')->name('chosen_piece'); //Vista de la pieza elegida
     Route::post('/getGamesFromOT', 'getGamesFromOT')->name('getGamesFromOT'); //Ruta para obtener juegos de una OT
 
     Route::get('/piezasMaquina', 'showVistaMaquina')->name('vistaPzasMaquina'); //Ruta para la vista de piezas por maquina
@@ -161,14 +161,14 @@ Route::controller(PzasGeneralesController::class)->group(function () {
 
 //Grupo de rutas para el controlador PzasLiberadasController
 Route::controller(PzasLiberadasController::class)->group(function () {
-    Route::get('/releasePieces', 'show')->name('showReleasePieces_view'); //Ruta para la vista de piezas para liberar
+    Route::get('/release_pieces', 'show')->name('showReleasePieces_view'); //Ruta para la vista de piezas para liberar
     Route::post('/pieces', 'getPiecesRequest')->name('piecesRelease'); //Ruta para ver los procesos de las maquinas
     Route::post('/piezasLiberar', 'liberar_rechazar')->name('liberar_rechazar'); //Ruta para liberar o rechazar
 });
 //Rutas para el controlador de DatosProduccionController
 Route::controller(DatosProduccionController::class)->group(function () {
-    Route::get('/productionData', 'index')->name('productionData'); //Vista de datos de producción
-    Route::post('/productionData', 'show')->name('showProduccion'); //Vista de datos de producción
+    Route::get('/production_data', 'index')->name('production_data'); //Vista de datos de producción
+    Route::post('/production_data', 'show')->name('showProduccion'); //Vista de datos de producción
 });
 
 //Rutas para el controlador de MachinesController
@@ -178,15 +178,15 @@ Route::controller(MachinesController::class)->group(function () {
 });
 
 //Rutas para el controlador de ProgressPanelController
-Route::get('/panel-progreso', fn() => view('wo_views.progressPanel_wo'))->name('panelProgreso');
+Route::get('/panel-progreso', fn() => view('wo_views.progress_panel_wo'))->name('panelProgreso');
 
 /* ===========================
    Tracking Soldadura - NUEVO SISTEMA
 =========================== */
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/trackingSoldadura', [TrackingSoldaduraController::class, 'index'])->name('trackingSoldadura.index');
-    Route::post('/trackingSoldadura', [TrackingSoldaduraController::class, 'store'])->name('trackingSoldadura.store');
+    Route::get('/welding_tracking', [TrackingSoldaduraController::class, 'index'])->name('welding_tracking.index');
+    Route::post('/welding_tracking', [TrackingSoldaduraController::class, 'store'])->name('welding_tracking.store');
 });
 
 /* ===========================
@@ -319,9 +319,9 @@ Route::prefix('admin/pta')->name('pta.')->group(function () {
 
         // ── 2da Pasada — vista de edición diferida ──
         Route::get('/segunda-pasada', [PtaResultsController::class, 'segPasadaIndex'])
-            ->name('segunda_pasada');
+            ->name('second_pass');
         Route::post('/segunda-pasada/update', [PtaResultsController::class, 'segPasadaUpdate'])
-            ->name('segunda_pasada.update');
+            ->name('second_pass.update');
     });
 });
 
@@ -585,7 +585,7 @@ Route::middleware(['auth'])->prefix('ayudas_fundicion')->name('ayudas_fundicion.
 
 // Logs Controller (Limitado a 60 peticiones por minuto para evitar saturación de red)
 Route::middleware(['auth', 'throttle:60,1'])->group(function () {
-    Route::get('/system-logs-report', [SystemLogController::class, 'index'])->name('systemLogsReport');
+    Route::get('/system-logs-report', [SystemLogController::class, 'index'])->name('system_logsReport');
     Route::post('/system-logs', [SystemLogController::class, 'store'])->name('system.logs.store');
     Route::post('/system-logs/purge', [SystemLogController::class, 'purge'])->name('system.logs.purge');
 });

@@ -199,34 +199,36 @@ Cuando se listan archivos (ej. en Calidad o Almacén) que deben separarse visual
 ## 11. Estructura de Vistas del Proyecto (Referencia Rápida)
 Las vistas están organizadas por módulo. Nunca mezcles CSS de diferentes módulos:
 
-| Carpeta en `resources/views/` | Descripción |
-|---|---|
-| `warehouse/` | Vistas de Almacén Fundición (recepción, liberación, reprocesos) |
-| `quality/` | Vistas de Calidad Fundición (revisión, SCARs, liberación de modelos) |
-| `tools/` | Vistas del catálogo de Herramientas Tecamac |
-| `reports/` | Reportes generales del sistema |
-| `welding_tracking_views/` | Vistas del sistema de rastreo de soldadura |
-| `wo_views/` | Vistas de Órdenes de Trabajo (listado, detalle, maquinado) |
-| `pdf/` | Plantillas exclusivas para generación PDF con DomPDF |
-| `layouts/` | Layout base `appMenu.blade.php` del que extienden todas las vistas |
-| `emails/` | Plantillas de correo enviadas vía Mailables de Laravel |
-| `pta_views/` | Vistas del flujo PTA (Procedimiento de Trabajo Autorizado) |
-| `processes_views/` | Vistas por proceso de maquinado (cepillado, rectificado, etc.) |
-
-### CSS y JS por Módulo
-Cada módulo tiene su propio archivo CSS y JS en `resources/css/` y `resources/js/`:
-- **Almacén Fundición:** `warehouse_views/warehouse_casting.css` + `warehouse_views/warehouse_casting.js`
-- **Calidad Fundición:** `warehouse_views/quality_casting.css` + `warehouse_views/quality_casting.js`
-- **Liberación:** `warehouse_views/lib_release.css`
+| Carpeta en `resources/views/` | CSS | JS |
+|---|---|---|
+| `warehouse/` | `warehouse_views/warehouse_casting.css` | `warehouse_views/warehouse_casting.js` |
+| `quality/` | `warehouse_views/quality_casting.css` | `warehouse_views/quality_casting.js` |
+| `tools/` | `tools_views/tools_tecamac.css` | `tools_views/tools_tecamac.js` |
+| `reports/` | `reports/system_logs.css`, `reports/pta_send.css`, etc. | `reports/system_logs.js` |
+| `welding_tracking_views/` | `welding_tracking_views/generate_batch_qr.css`, etc. | `welding_tracking/welding_tracking.css` / `welding_tracking/register_welding.js` |
+| `wo_views/` | `wo_views/manage_wo.css`, `wo_views/manage_drawings.css`, `wo_views/manage_casting.css`, `wo_views/manage_manuals.css`, `wo_views/manage_visual_aids.css`, `wo_views/manage_casting_visual_aids.css`, `wo_views/show_wo.css`, `wo_views/show_wo_warehouse.css`, `wo_views/progress_panel_wo.css` | *(mismos nombres .js)* |
+| `pieces_views/` | `pieces_views/pieces_in_progress_view.css`, `pieces_views/priority_manager_view.css`, `pieces_views/chosen_piece.css` | `pieces_views/pieces_in_progress_view.js`, `pieces_views/priority_manager_view.js` |
+| `pieces_views/pieces_report/` | `pieces_report/admin_pieces.css`, `pieces_report/chosen_piece.css`, `pieces_report/welding_extra_info_pdf.css`, `pieces_report/welding_pta_extra_info_pdf.css` | `pieces_report/admin_pieces.js`, `pieces_report/pieces_report_view.js` |
+| `pieces_views/release_pieces/` | `release_pieces/release_pieces_view.css` | `release_pieces/release_pieces.js`, `release_pieces/release_pieces_view.js` |
+| `processes_views/` | `processes_views/c_nominals_view.css`, `processes_views/process_production.css`, `processes_views/production_times.css`, `processes_views/welding_pta_table_partial.css` | `processes_views/c_nominals_view.js`, `processes_views/process_production.js`, `processes_views/production_times.js` |
+| `machines_views/` | `css/machines2.css` (legacy) | *(sin JS Vite — inline)* |
+| `users_views/` | `users_views/create_user.css`, `users_views/production_data.css`, `users_views/recover_password.css` | `users_views/production_data.js` |
+| `pta_views/` | `pta_views/analysis.css`, `pta_views/results.css`, `pta_views/second_pass.css`, `pta_views/analysis_pdf.css` | *(sin JS Vite propio)* |
+| `auth/` | `auth/login.css` | *(sin JS Vite)* |
+| `layouts/` | `layouts/appMenu.css` | `layouts/appMenu.js` |
+| `pdf/` | `reports/pdf.css` | *(solo para DomPDF)* |
+| `emails/` | `reports/email.css` | *(solo para Mailables)* |
 
 Siempre cárgalos con `@vite` en el `@section('head')` de la vista:
 ```blade
 @section('head')
- <title>Almacén Fundición</title>
- @vite(['resources/css/warehouse_views/warehouse_casting.css',
- 'resources/js/warehouse_views/warehouse_casting.js'])
+    <title>Almacén Fundición</title>
+    @vite(['resources/css/warehouse_views/warehouse_casting.css',
+           'resources/js/warehouse_views/warehouse_casting.js'])
 @endsection
 ```
+
+---
 
 ## 12. Sincronización entre Controladores y Vistas (Evitar Variables Indefinidas y Fallos en Blade)
 

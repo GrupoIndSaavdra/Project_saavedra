@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>Análisis Resultados Sold. PTA</title>
@@ -246,7 +246,7 @@
 
                             {{-- 2. Tabla de Datos Técnicos --}}
                             @if (!empty($piezasDelJuegoTecnicos))
-                                @include('processes_views.soldaduraPTA_table_partial', [
+                                @include('processes_views.welding_pta_table_partial', [
                                     'piezasGroup'        => collect($piezasDelJuegoTecnicos),
                                     'piezas'             => collect(),
                                     'modo'               => 'reporte',
@@ -358,7 +358,7 @@
                         </div>
 
                         {{-- Tabla con solo las piezas de este juego --}}
-                        @include('processes_views.soldaduraPTA_table_partial', [
+                        @include('processes_views.welding_pta_table_partial', [
                             'piezasGroup' => collect($piezasDelJuego),
                             'piezas' => collect(),
                             'modo' => 'reporte',

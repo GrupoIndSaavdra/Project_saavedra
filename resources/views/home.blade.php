@@ -101,6 +101,6 @@
 
     <script>
         window.baseUrl = @json(url('/'));
-        window.reportRoute = @json(route('processProduction'));
+        window.reportRoute = @json(route('process_production'));
     </script>
 @endsection

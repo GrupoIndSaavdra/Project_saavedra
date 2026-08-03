@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SISTEMA GLOBAL DE PRODUCTIVIDAD Y AUDITORÍA
  * GRUPO INDUSTRIAL SAAVEDRA
  */
@@ -140,7 +140,7 @@ function syncProductivityWithServer() {
     // Si estamos en una página conocida de producción/home pero no detectamos nada, 
     // evitamos enviar 'none' para no confundir al servidor momentáneamente.
     const isOperatorPage = window.location.pathname.includes('/home') || 
-                           window.location.pathname.includes('/processProduction');
+                           window.location.pathname.includes('/process_production');
     
     if (isOperatorPage && currentStatus === 'none') {
         return; // Ignorar este latido hasta que cargue la UI

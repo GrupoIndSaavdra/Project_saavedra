@@ -228,7 +228,7 @@ class DibujosFundicionPdfController extends Controller
             }
         }
 
-        return view('wo_views.manage_fundicion', array_merge(compact(
+        return view('wo_views.manage_casting', array_merge(compact(
             'estructura',
             'todasLasOTs',
             'todasLasClases',

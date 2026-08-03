@@ -80,7 +80,7 @@ class ProcessProductionController extends Controller
         if ($returnArray != null) {
             return $workOrders; // Si se solicita un array, se retorna el array de órdenes de trabajo
         }
-        return view('processes_views.processProduction_view', compact('workOrders'));
+        return view('processes_views.process_production_view', compact('workOrders'));
     }
 
         /**
@@ -175,7 +175,7 @@ class ProcessProductionController extends Controller
 
         $machine = Maquinas::query()->where('id_meta', $meta->id)->first();
         if (!$machine) {
-            return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
+            return redirect()->route('process_production')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
 
         $class = Clase::query()->find($meta->id_clase);
@@ -185,7 +185,7 @@ class ProcessProductionController extends Controller
         $piecesData = $this->get_ArrayPieces($meta->proceso, $class, $meta);
         $pieceToBeUsed = $this->get_pieceToBeUsed($meta->proceso, $piecesData['availableAssemblies'], $meta, $class);
 
-        return view('processes_views.processProduction_view', compact('arrayData', 'workOrders', 'pieceToBeUsed'));
+        return view('processes_views.process_production_view', compact('arrayData', 'workOrders', 'pieceToBeUsed'));
     }
 
     /**
@@ -248,7 +248,7 @@ class ProcessProductionController extends Controller
                     ->groupBy('n_pieza')
                 : collect();
 
-            $ptaTableHtml = view('processes_views.soldaduraPTA_table_partial', [
+            $ptaTableHtml = view('processes_views.welding_pta_table_partial', [
                 'piezasGroup' => $piezasGroupHistory,
                 'piezasGroupActivas' => $piezasGroupActivas,
                 'modo' => ($edit == 2) ? 'captura' : 'reporte',
@@ -588,7 +588,7 @@ class ProcessProductionController extends Controller
             //Retornar pieza siguiente
             return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->input('process'), "edit" => 0])->with('success', 'Pieza registrada correctamente.');
         } else {
-            return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
+            return redirect()->route('process_production')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
     }
         /**
@@ -745,7 +745,7 @@ class ProcessProductionController extends Controller
         $meta = Metas::query()->find($request->input('meta'));
         $machine = Maquinas::query()->where('id_meta', $meta->id)->first();
         if (!$machine) {
-            return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
+            return redirect()->route('process_production')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
 
         $user = auth()->user();
@@ -985,7 +985,7 @@ class ProcessProductionController extends Controller
         $meta = Metas::query()->find($request->input('meta'));
         $machine = Maquinas::query()->where('id_meta', $meta->id)->first();
         if (!$machine) {
-            return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
+            return redirect()->route('process_production')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
 
         $user = auth()->user();
@@ -1086,9 +1086,9 @@ class ProcessProductionController extends Controller
                     return redirect()->route('showReportFormat', ["meta" => $foundedMeta, "process" => $request->input('process'), "edit" => 0])->with('success', 'Tu meta se ha editado correctamente');
                 }
             }
-            return redirect()->route('processProduction')->with('error', 'La meta a editar no se ha encontrado.'); // Si la meta a editar no existe, retornar error
+            return redirect()->route('process_production')->with('error', 'La meta a editar no se ha encontrado.'); // Si la meta a editar no existe, retornar error
         }
-        return redirect()->route('processProduction')->with('error', 'La clase ingresada no existe.'); // Si la clase no existe, retornar error
+        return redirect()->route('process_production')->with('error', 'La clase ingresada no existe.'); // Si la clase no existe, retornar error
     }
         /**
      * @param StoreHeaderProcessRequest $request
@@ -1157,9 +1157,9 @@ class ProcessProductionController extends Controller
                 }
                 return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $processString, "edit" => 0])->with('success', $successMessage);
             }
-            return redirect()->route('processProduction')->with('warning', 'La máquina esta ocupada. Por favor, elija otra maquina o pida a un supervisor desbloquearla');
+            return redirect()->route('process_production')->with('warning', 'La máquina esta ocupada. Por favor, elija otra maquina o pida a un supervisor desbloquearla');
         }
-        return redirect()->route('processProduction')->with('error', 'La clase ingresada no existe.'); // Si la clase no existe, retornar error
+        return redirect()->route('process_production')->with('error', 'La clase ingresada no existe.'); // Si la clase no existe, retornar error
     }
 
         /**
@@ -2694,7 +2694,7 @@ class ProcessProductionController extends Controller
     /**
      * Procesar la liberación de piezas
      */
-    public function releasePieces(Request $request)
+    public function release_pieces(Request $request)
     {
         $meta = Metas::query()->find($request->input('meta'));
         if (!$meta) {

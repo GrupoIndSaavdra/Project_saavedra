@@ -1,4 +1,4 @@
-/* global.css: reset, Poppins, variables GIS */
+﻿/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 /* ====================================================
@@ -2744,7 +2744,7 @@ table.alm-table {
 }
 
 
-/* Extracted from _btn_cerrar */
+/* Extracted from _btn_close */
 .btn-cerrar-icon { width: 30px; margin-right: 5px; }
 .btn-cerrar-container { text-align: center; margin-top: 20px; }
 

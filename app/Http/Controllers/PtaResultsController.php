@@ -658,7 +658,7 @@ class PtaResultsController extends Controller
             }
         }
 
-        return view('pta_views.segunda_pasada', compact(
+        return view('pta_views.second_pass', compact(
             'otsConPTA',
             'otSeleccionadaId',
             'claseSeleccionadaId',
@@ -679,7 +679,7 @@ class PtaResultsController extends Controller
     public function segPasadaUpdate(Request $request)
     {
         if (!session('pta_temp_auth')) {
-            return redirect()->route('pta.segunda_pasada', [
+            return redirect()->route('pta.second_pass', [
                 'ot_id' => $request->input('ot_id'),
                 'clase_id' => $request->input('clase_id'),
                 'n_pieza' => $request->input('n_pieza'),
@@ -800,7 +800,7 @@ class PtaResultsController extends Controller
             ]);
         }
 
-        return redirect()->route('pta.segunda_pasada', [
+        return redirect()->route('pta.second_pass', [
             'ot_id' => $request->input('ot_id'),
             'clase_id' => $request->input('clase_id'),
             'n_pieza' => $request->input('n_pieza'),

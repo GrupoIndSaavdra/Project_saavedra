@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace Tests\Feature;
 
@@ -110,7 +110,7 @@ class ProductionFlowTest extends TestCase
         ]);
 
         // El operador guarda la pieza en Cepillado
-        $this->postJson('/processProduction/storePiece', [
+        $this->postJson('/process_production/storePiece', [
             'meta' => $metaCep->id,
             'process' => 'Cepillado',
             'piece' => $pza_cep->id,
@@ -175,7 +175,7 @@ class ProductionFlowTest extends TestCase
         ]);
 
         // Guardamos en Cavidades
-        $this->postJson('/processProduction/storePiece', [
+        $this->postJson('/process_production/storePiece', [
             'meta' => $metaCav->id,
             'process' => 'Cavidades',
             'piece' => $pza_cav->id,

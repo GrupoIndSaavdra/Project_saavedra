@@ -44,7 +44,7 @@ class RegistrarSoldaduraController extends Controller
         $qrBase64 = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($textoQR);
 
         // Generar PDF con la plantilla original
-        $pdf = Pdf::loadView('trackingSoldadura_views.qr_soldadura_pdf', [
+        $pdf = Pdf::loadView('welding_tracking_views.qr_soldadura_pdf', [
             'qrImage' => $qrBase64,
             'soldadura' => [
                 'nombre' => $request->nombre,
@@ -61,7 +61,7 @@ class RegistrarSoldaduraController extends Controller
         Storage::disk('public')->put($pdfPath, $pdf->output());
 
         // Mensaje de éxito con enlace de descarga
-        // Nota: El nombre de la ruta 'registrarSoldadura' y la vista 'trackingSoldadura_views.registrar'
+        // Nota: El nombre de la ruta 'registrarSoldadura' y la vista 'welding_tracking_views.registrar'
         // parecen estar pendientes de definición o fueron removidos en la migración al nuevo sistema.
         return redirect()->back()
             ->with('success', 'Soldadura registrada y QR generado correctamente.')

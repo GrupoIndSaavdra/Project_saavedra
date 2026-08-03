@@ -82,7 +82,7 @@ class GenerarQRIndividualController extends Controller
             ];
         }
 
-        $pdf = Pdf::loadView('trackingSoldadura_views.qr_individuales_pdf', compact('qrCodes', 'lote'));
+        $pdf = Pdf::loadView('welding_tracking_views.individual_qr_pdf', compact('qrCodes', 'lote'));
         
         return $pdf->download('QR_Botes_' . $lote->matricula . '.pdf');
     }

@@ -38,7 +38,7 @@ class PtaReporteMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.pta_reporte',
+            view: 'emails.pta_report',
             with: [
                 'otNombre'    => $this->otNombre,
                 'claseNombre' => $this->claseNombre,

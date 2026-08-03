@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /* @noinspection ALL */
 // @formatter:off
 // phpcs:ignoreFile
@@ -1799,10 +1799,10 @@ namespace Illuminate\Support\Facades {
          * @return \Illuminate\Contracts\Auth\UserProvider|null
          * @throws \InvalidArgumentException
          * @static
-         */        public static function createUserProvider($provider = null)
+         */        public static function create_userProvider($provider = null)
         {
                         /** @var \Illuminate\Auth\AuthManager $instance */
-                        return $instance->createUserProvider($provider);
+                        return $instance->create_userProvider($provider);
         }
                     /**
          * Get the default user provider name.

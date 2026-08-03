@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace Tests\Feature;
 
@@ -73,7 +73,7 @@ class ProcessRegistrationTest extends TestCase
         ]);
 
         // 2. Ejecutar registro vía HTTP para probar todo el middleware
-        $response = $this->postJson('/processProduction/storePiece', [
+        $response = $this->postJson('/process_production/storePiece', [
             'meta' => $meta->id,
             'process' => 'Cepillado',
             'piece' => $pza_cep->id,

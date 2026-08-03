@@ -1,4 +1,4 @@
-import "../layouts/partials/messages.js";
+﻿import "../layouts/partials/messages.js";
 
 //Dar funcionalidad al bonton del menu
 let btn_open = document.querySelector(".open-menu"); //Obtenemos el elemento por su id.
@@ -134,13 +134,13 @@ function isPathMatching(currentPath, aHref) {
         if (currentPath === linkPath) return true;
 
         // Sub-rutas derivadas o parametrizadas de Orden de Trabajo (ej: /showWO/5468 -> /manageWO)
-        if ((currentPath.startsWith('/showWO') || currentPath.startsWith('/show_wo_almacen')) && window.routes && window.routes.manageWO) {
+        if ((currentPath.startsWith('/showWO') || currentPath.startsWith('/show_wo_warehouse')) && window.routes && window.routes.manageWO) {
             const managePath = new URL(window.routes.manageWO, window.location.origin).pathname;
             if (linkPath === managePath) return true;
         }
 
         // Sub-rutas de usuarios (ej: /users/1/edit -> /users)
-        if (currentPath.startsWith('/users/') && !currentPath.includes('/create') && !currentPath.includes('/recoverPassword')) {
+        if (currentPath.startsWith('/users/') && !currentPath.includes('/create') && !currentPath.includes('/recover_password')) {
             if (window.routes && window.routes.users) {
                 const usersPath = new URL(window.routes.users, window.location.origin).pathname;
                 if (linkPath === usersPath) return true;
@@ -347,18 +347,18 @@ function getRoutes(profile) {
                     title: "Usuarios",
                     routes: [
                         ['users', 'Ver usuarios'],
-                        ["createUser", "Registrar usuario"],
-                        ["recoverPassword", "Recuperar contraseña"],
+                        ["create_user", "Registrar usuario"],
+                        ["recover_password", "Recuperar contraseña"],
                     ],
                 },
                 {
                     title: "Producción",
                     routes: [
-                        ["productionData", "Datos de productividad"],
+                        ["production_data", "Datos de productividad"],
                         ["cNominals", "Editar C.Nominales y Tolerancias"],
                         ["machinesOccupied", "Máquinas ocupadas"],
                         ["show_panelWO", "Panel de progreso de O.T"],
-                        ["systemLogsReport", "Auditoría de Producción"],
+                        ["system_logsReport", "Auditoría de Producción"],
                         ["adminLogsReport", "Logs de Administradores"],
                     ],
                 },
@@ -366,7 +366,7 @@ function getRoutes(profile) {
                     title: "Soldadura PTA",
                     routes: [
                         ["pta.analysis", "Análisis de Resultados PTA"],
-                        ["pta.segunda_pasada", "Segunda Pasada PTA"],
+                        ["pta.second_pass", "Segunda Pasada PTA"],
                     ],
                 },
                 {
@@ -392,7 +392,7 @@ function getRoutes(profile) {
                 },
                 {
                     title: null,
-                    routes: [["processProduction", "Proceso de Producción"]],
+                    routes: [["process_production", "Proceso de Producción"]],
                 },
                 {
                     title: "Herramientas",
@@ -443,18 +443,18 @@ function getRoutes(profile) {
                             title: "Usuarios",
                             routes: [
                                 ['users', 'Ver usuarios'],
-                                ["createUser", "Registrar usuario"],
-                                ["recoverPassword", "Recuperar contraseña"],
+                                ["create_user", "Registrar usuario"],
+                                ["recover_password", "Recuperar contraseña"],
                             ],
                         },
                         {
                             title: "Producción",
                             routes: [
-                                ["productionData", "Datos de productividad"],
+                                ["production_data", "Datos de productividad"],
                                 ["cNominals", "Editar C.Nominales y Tolerancias"],
                                 ["machinesOccupied", "Máquinas ocupadas"],
                                 ["show_panelWO", "Panel de progreso de O.T"],
-                                ["systemLogsReport", "Auditoría de Producción"],
+                                ["system_logsReport", "Auditoría de Producción"],
                                 ["adminLogsReport", "Logs de Administradores"],
                             ],
                         },
@@ -462,7 +462,7 @@ function getRoutes(profile) {
                             title: "Soldadura PTA",
                             routes: [
                                 ["pta.analysis", "Análisis de Resultados PTA"],
-                                ["pta.segunda_pasada", "Segunda Pasada PTA"],
+                                ["pta.second_pass", "Segunda Pasada PTA"],
                             ],
                         },
                         {
@@ -610,7 +610,7 @@ function getRoutes(profile) {
                     routes: [
                         ["pta.results.current", "Resultados de Sold. PTA"],
                         ["pta.analysis", "Análisis de Resultados Sold. PTA"],
-                        ["pta.segunda_pasada", "Segunda Pasada PTA"],
+                        ["pta.second_pass", "Segunda Pasada PTA"],
                     ],
                 },
             ];

@@ -38,7 +38,7 @@ class UserController extends Controller
      */
     public function store(CreateUserRequest $request){
         $user = User::create($request->validated());
-        return redirect()->route('createUser')->with('success', 'Usuario registrado correctamente');
+        return redirect()->route('create_user')->with('success', 'Usuario registrado correctamente');
     }
 
     /**
@@ -96,21 +96,21 @@ class UserController extends Controller
         return redirect()->back()->with('success', 'Usuario actualizado correctamente.');
     }
     public function showRecoverPassword(){
-        return view('users_views.recoverPassword');
+        return view('users_views.recover_password');
     }
         /**
      * @param HttpRequest $request
      */
-    public function recoverPassword(HttpRequest $request){
+    public function recover_password(HttpRequest $request){
         $request->validate([
             'matricula' => 'required',
             'nueva_contraseña' => ['required', 'string', 'min:8', 'confirmed']
         ]);
         $user = User::query()->where('matricula', $request->matricula)->first();
         if(!$user){
-            return redirect()->to('recoverPassword')->withErrors('Matricula no encontrada.');
+            return redirect()->to('recover_password')->withErrors('Matricula no encontrada.');
         }
         $user->update(['contrasena' => bcrypt($request->nueva_contraseña)]);
-        return redirect()->route('recoverPassword')->with('success', 'Contraseña actualizada.');
+        return redirect()->route('recover_password')->with('success', 'Contraseña actualizada.');
     }
 }

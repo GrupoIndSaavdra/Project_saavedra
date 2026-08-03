@@ -52,7 +52,7 @@ class DibujosPdfController extends Controller
         $otActiva    = $otSeleccionadaId    ? $todasLasOTs->firstWhere('id', $otSeleccionadaId)    : null;
         $claseActiva = $claseSeleccionadaId ? optional($otActiva?->clases)->firstWhere('id', $claseSeleccionadaId) : null;
 
-        return view('wo_views.manage_dibujos', array_merge(compact(
+        return view('wo_views.manage_drawings', array_merge(compact(
             'estructura',
             'todasLasOTs',
             'otSeleccionadaId',

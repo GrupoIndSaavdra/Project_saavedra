@@ -1,0 +1,45 @@
+﻿@import "../../global.css";
+/* resources/css/pieces_views/pieces_report/welding_extra_info_pdf.css */
+
+body {
+    font-family: sans-serif;
+    font-size: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #033966;
+    color: white;
+    font-weight: bold;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.header h2 {
+    margin: 0;
+    color: #033966;
+}
+
+.header p {
+    margin: 5px 0 0 0;
+    color: #666;
+}

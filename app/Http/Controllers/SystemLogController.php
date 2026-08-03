@@ -554,7 +554,7 @@ class SystemLogController extends Controller
             $isAdminOnly = $request->filled('admin_only') && $request->admin_only == 1;
             $reportType  = $isAdminOnly ? 'Logs de Administradores' : 'Logs de Sistema';
 
-            $pdf = Pdf::loadView('reports.systemLogsPdf', [
+            $pdf = Pdf::loadView('reports.system_logs_pdf', [
                 'logsRender'   => $pdfLogs,
                 'selectedItems' => $selectedItems,
                 'isAdminOnly'  => $isAdminOnly,
@@ -562,7 +562,7 @@ class SystemLogController extends Controller
             return $pdf->download($this->generatePdfFilename($selectedItems, $reportType));
         }
 
-        return view('reports.systemLogs', [
+        return view('reports.system_logs', [
             'logsRender' => $logsRender,
             'filtrosDisponibles' => $filtrosDisponibles,
             'selectedItems' => $selectedItems,

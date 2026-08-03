@@ -207,28 +207,206 @@ php artisan route:list --name=almacen
 # Filtrar rutas por URI
 php artisan route:list --path=fundicion
 
-# Filtrar rutas por método HTTP
-php artisan route:list --method=POST
-
 # Limpiar caché de rutas (si usas route:cache)
 php artisan route:clear
 ```
 
 ---
 
-## 9. Rutas Principales del Proyecto (Referencia Rápida)
+## 9. Rutas Principales del Proyecto — Referencia Completa
 
-| Nombre de Ruta | Método | URI | Controlador |
+> **Fuente:** `php artisan route:list` ejecutado el 2026-07-30. Total: 217 rutas registradas.
+
+### Módulo: Auth
+| Nombre | Método | URI | Controlador |
+|---|---|---|---|
+| `login` | GET | `/login` | `LoginController@show` |
+| `loginUser` | POST | `/login` | `LoginController@login` |
+| `logout` | GET | `/logout` | `LogoutController@logout` |
+| `recoverPassword` | GET | `/users/recoverPassword` | `UserController@showRecoverPassword` |
+| `recover` | POST | `/users/recoverPassword` | `UserController@recoverPassword` |
+
+### Módulo: Home
+| Nombre | Método | URI | Controlador |
+|---|---|---|---|
+| `home` | GET | `/home` | `HomeController@index` |
+
+### Módulo: Usuarios
+| Nombre | Método | URI | Controlador |
+|---|---|---|---|
+| `users` | GET | `/users` | `UserController@show` |
+| `createUser` | GET | `/users/create` | `UserController@create` |
+| `storeUser` | POST | `/users/create/store` | `UserController@store` |
+| `update_usuario` | POST | `/users/{id}` | `UserController@updateUsuario` |
+| `eliminar_usuario` | DELETE | `/eliminar-usuario/{id}` | `UserController@eliminarUsuario` |
+| `baja_usuario` | POST | `/baja-usuario/{id}` | `UserController@bajaUsuario` |
+| `productionData` | GET | `/productionData` | `DatosProduccionController@index` |
+| `showProduccion` | POST | `/productionData` | `DatosProduccionController@show` |
+
+### Módulo: Almacén Fundición
+| Nombre | Método | URI | Controlador |
 |---|---|---|---|
 | `almacen.fundicion.index` | GET | `/almacen/fundicion` | `AlmacenFundicionController@index` |
 | `almacen.fundicion.show` | GET | `/almacen/fundicion/detalle/{ot}` | `AlmacenFundicionController@show` |
-| `almacen.fundicion.delete.pdf` | POST | `/almacen/fundicion/eliminar-pdf` | `AlmacenFundicionController@eliminarPdf` |
+| `almacen.fundicion.getFiles` | GET | `/almacen/fundicion/archivos` | `AlmacenFundicionController@getFiles` |
 | `almacen.fundicion.serve` | GET | `/almacen/fundicion/servir/{ot}/{archivo}/{tipo}` | `AlmacenFundicionController@servirArchivo` |
-| `calidad.fundicion.index` | GET | `/calidad/fundicion` | `CalidadFundicionController@index` |
-| `calidad.fundicion.serve` | GET | `/calidad/fundicion/servir/{ot}/{archivo}/{tipo}` | `CalidadFundicionController@servirArchivo` |
-| `home` | GET | `/home` | `HomeController@index` |
+| `almacen.fundicion.uploadPdf` | POST | `/almacen/fundicion/subir-pdf` | `AlmacenFundicionController@subirPdf` |
+| `almacen.fundicion.delete.pdf` | POST | `/almacen/fundicion/eliminar-pdf` | `AlmacenFundicionController@eliminarPdf` |
+| `almacen.fundicion.send.alert` | POST | `/almacen/fundicion/enviar-alerta` | `AlmacenFundicionController@enviarAlerta` |
 
-> Para ver la lista completa y actualizada: `php artisan route:list`
+### Módulo: Calidad Fundición
+| Nombre | Método | URI | Controlador |
+|---|---|---|---|
+| `calidad.fundicion.index` | GET | `/calidad/fundicion` | `CalidadFundicionController@index` |
+| `calidad.fundicion.serve` | GET | `/calidad/fundicion/serve` | `CalidadFundicionController@serveFile` |
+| `calidad.fundicion.archivos` | GET | `/calidad/fundicion/archivos` | `CalidadFundicionController@getFiles` |
+| `calidad.fundicion.deleteFile` | POST | `/calidad/fundicion/delete-file` | `CalidadFundicionController@deleteFile` |
+| `calidad.fundicion.getLiberacion` | GET | `/calidad/fundicion/liberacion` | `CalidadFundicionController@getLiberacion` |
+| `calidad.fundicion.submitLiberacion` | POST | `/calidad/fundicion/submit-liberacion` | `CalidadFundicionController@submitLiberacion` |
+| `calidad.fundicion.generateScar` | POST | `/calidad/fundicion/generate-scar` | `CalidadFundicionController@generateScar` |
+| `calidad.fundicion.getScar` | GET | `/calidad/fundicion/get-scar` | `CalidadFundicionController@getScar` |
+| `calidad.fundicion.sendScarAlert` | POST | `/calidad/fundicion/send-scar-alert` | `CalidadFundicionController@sendScarAlert` |
+| `calidad.fundicion.enviarAlertaLiberacion` | POST | `/calidad/fundicion/enviar-alerta-liberacion` | `CalidadFundicionController@enviarAlertaLiberacion` |
+
+### Módulo: Calidad Maquinados
+| Nombre | Método | URI | Controlador |
+|---|---|---|---|
+| `calidad.maquinados.index` | GET | `/calidad/maquinados` | `CalidadMaquinadosController@index` |
+| `calidad.maquinados.docs` | GET | `/calidad/maquinados/docs` | `CalidadMaquinadosController@getDocs` |
+| `calidad.maquinados.serve` | GET | `/calidad/maquinados/serve` | `CalidadMaquinadosController@serveFile` |
+
+### Módulo: Órdenes de Trabajo (WO)
+| Nombre | Método | URI | Controlador |
+|---|---|---|---|
+| `manageWO` | GET | `/manageWO` | `WOController@manage` |
+| `storeWO` | POST | `/storeWO` | `WOController@store` |
+| `showWO` | GET | `/showWO/{workOrder}` | `WOController@show` |
+| `show_panelWO` | GET | `/show_panelWO` | `WOController@show_panelWO` |
+| `destroyWO` | GET | `/destroyWO/{wo}` | `WOController@destroy` |
+| `fundicionUpdateFlag` | POST | `/fundicion/updateFlag` | `WOController@markFundicionFlag` |
+| `panelProgreso` | GET | `/panel-progreso` | *(generada)* |
+| `showPiecesInProgress` | GET | `/piecesInProgress` | `WOController@showViewPiecesInProgress` |
+| `savePriorities` | POST | `/piecesInProgress/priorities` | `WOController@savePriorities` |
+| `showPriorityManager` | GET | `/piecesInProgress/priorityManager` | `WOController@showPriorityManager` |
+| `generatePDFWO` | GET | `/generatePDFWO/{wo}` | `WOController@generatePDF` |
+| `finishOrder` | GET | `/finishOrder/{wOrderName}/{className}` | `WOController@finishOrder` |
+
+### Módulo: Piezas
+| Nombre | Método | URI | Controlador |
+|---|---|---|---|
+| `showPiecesReport_view` | GET | `/pieces` | `PzasGeneralesController@showPiecesReport_view` |
+| `chosenPiece` | GET | `/pieces/{pieces}/{process}/{profile}` | `PzasGeneralesController@showPiece` |
+| `searchPieces` | GET/POST | `/pieces/search` | `PzasGeneralesController@getPiecesRequest` |
+| `showReleasePieces_view` | GET | `/releasePieces` | `PzasLiberadasController@show` |
+| `liberar_rechazar` | POST | `/piezasLiberar` | `PzasLiberadasController@liberar_rechazar` |
+| `vistaPzasMaquina` | GET | `/piezasMaquina` | `PzasGeneralesController@showVistaMaquina` |
+| `showMachinesProcess` | POST | `/piezasMaquina` | `PzasGeneralesController@showMachinesProcess` |
+
+### Módulo: Gestión de Archivos (Dibujos, Ayudas, Manuales, Fundición)
+| Nombre | Método | URI |
+|---|---|---|
+| `dibujos.manage` | GET | `/dibujos/manage` |
+| `dibujos.upload` | POST | `/dibujos/upload` |
+| `dibujos.delete` | POST | `/dibujos/delete` |
+| `dibujos.replace` | POST | `/dibujos/replace` |
+| `dibujos.serve` | GET | `/dibujos/serve` |
+| `dibujos.archivos` | GET | `/dibujos/archivos` |
+| `dibujos.estructura` | GET | `/dibujos/estructura` |
+| `dibujos.createFolder` | POST | `/dibujos/createFolder` |
+| `dibujos.deleteFolder` | POST | `/dibujos/deleteFolder` |
+| `dibujos.deleteParent` | POST | `/dibujos/deleteParent` |
+| `dibujos.log` | GET | `/dibujos/log` |
+| `ayudas.*` | varios | `/ayudas/*` | *(mismo patrón que dibujos)* |
+| `ayudas_fundicion.*` | varios | `/ayudas_fundicion/*` | *(mismo patrón)* |
+| `manuales.*` | varios | `/manuales/*` | *(mismo patrón)* |
+| `fundicion.*` | varios | `/fundicion/*` | *(mismo patrón, controlador DibujosFundicionPdfController)* |
+
+### Módulo: Procesos y Producción
+| Nombre | Método | URI | Controlador |
+|---|---|---|---|
+| `headerdata` | POST | `/processProduction/selected` | `ProcessProductionController@storeHeaderdata` |
+| `storePiece` | POST | `/processProduction/storePiece` | `ProcessProductionController@storePiece` |
+| `editPieces` | POST | `/processProduction/editPieces` | `ProcessProductionController@editPieces` |
+| `finishReport` | GET | `/processProduction/finishReport/{meta}` | `ProcessProductionController@finishReport` |
+| `showReportFormat` | GET | `/processProduction/format/{meta}/{process}/{edit}` | `ProcessProductionController@showReportFormat` |
+| `cNominals` | GET | `/cNominals` | `ProcessesController@show_cNominalsView` |
+| `storeCNominals` | POST | `/cNominals/store` | `ProcessesController@storeCNominalsData` |
+| `showTimes` | GET | `/tiemposProduccion/{clase?}` | `TiemposProduccionController@show` |
+| `storeTimes` | POST | `/tiemposProduccion` | `TiemposProduccionController@store` |
+| `verProcesos` | GET | `/progresoOT` | `ProgresoProcesosController@show` |
+| `machinesOccupied` | GET | `/machinesOccupied` | `MachinesController@show` |
+| `freeUp` | POST | `/machinesOccupied/freeUp` | `MachinesController@freeUp` |
+
+### Módulo: Herramientas Tecamac
+| Nombre | Método | URI | Controlador |
+|---|---|---|---|
+| `herramientas.tecamac.index` | GET | `/herramientas/tecamac` | `HerramientasTecamacController@index` |
+| `herramientas.tecamac.store` | POST | `/herramientas/tecamac` | `HerramientasTecamacController@store` |
+| `herramientas.tecamac.update` | POST | `/herramientas/tecamac/{id}` | `HerramientasTecamacController@update` |
+| `herramientas.tecamac.destroy` | DELETE | `/herramientas/tecamac/{id}` | `HerramientasTecamacController@destroy` |
+| `herramientas.tecamac.reactivar` | POST | `/herramientas/tecamac/{id}/reactivar` | `HerramientasTecamacController@reactivar` |
+| `herramientas.tecamac.updateStock` | PATCH | `/herramientas/tecamac/{id}/stock` | `HerramientasTecamacController@updateStock` |
+| `herramientas.tecamac.imagen.replace` | POST | `/herramientas/tecamac/imagen/{imgId}/replace` | `HerramientasTecamacController@replaceImage` |
+| `herramientas.tecamac.imagen.rename` | PATCH | `/herramientas/tecamac/imagen/{imgId}/rename` | `HerramientasTecamacController@renameImage` |
+
+### Módulo: Rastreo de Soldadura
+| Nombre | Método | URI | Controlador |
+|---|---|---|---|
+| `trackingSoldadura.index` | GET | `/trackingSoldadura` | `TrackingSoldaduraController@index` |
+| `trackingSoldadura.store` | POST | `/trackingSoldadura` | `TrackingSoldaduraController@store` |
+| `soldadura.generarQRIndividual` | GET | `/soldadura/generar-qr-individual` | `GenerarQRIndividualController@index` |
+| `soldadura.generarQRIndividual.store` | POST | `/soldadura/generar-qr-individual` | `GenerarQRIndividualController@store` |
+| `soldadura.generarQRLote` | GET | `/soldadura/generar-qr-lote` | `GenerarQRLoteController@index` |
+| `soldadura.generarQRLote.store` | POST | `/soldadura/generar-qr-lote` | `GenerarQRLoteController@store` |
+| `soldadura.liberarQRPlanta` | GET | `/soldadura/liberar-qr-planta` | `LiberarQRPlantaController@index` |
+| `soldadura.liberarQRPlanta.escanear` | POST | `/soldadura/liberar-qr-planta/escanear` | `LiberarQRPlantaController@escanear` |
+| `soldadura.liberarQRPlanta.liberar` | POST | `/soldadura/liberar-qr-planta/liberar` | `LiberarQRPlantaController@liberar` |
+| `soldadura.recepcionPlanta` | GET | `/soldadura/recepcion-planta` | `LiberarQRPlantaController@indexRecepcion` |
+| `soldadura.recepcionPlanta.escanear` | POST | `/soldadura/recepcion-planta/escanear` | `LiberarQRPlantaController@escanear` |
+| `soldadura.recepcionPlanta.confirmar` | POST | `/soldadura/recepcion-planta/confirmar` | `LiberarQRPlantaController@confirmar` |
+| `soldadura.regenerarQR` | GET | `/soldadura/regenerar-qr` | `RegenerarQRController@index` |
+| `soldadura.regenerarQR.lista` | GET | `/soldadura/regenerar-qr/lista` | `RegenerarQRController@listaLotes` |
+| `soldadura.regenerarQR.verificar` | POST | `/soldadura/regenerar-qr/verificar` | `RegenerarQRController@verificarAcceso` |
+| `soldadura.regenerarQR.cerrar` | GET | `/soldadura/regenerar-qr/cerrar` | `RegenerarQRController@cerrarSesion` |
+| `soldadura.regenerarQRLote.descargar` | GET | `/soldadura/regenerar-qr/lote/{loteId}` | `RegenerarQRController@regenerarLote` |
+| `soldadura.regenerarQRIndividuales.descargar` | GET | `/soldadura/regenerar-qr/individuales/{loteId}` | `RegenerarQRController@descargarIndividuales` |
+
+### Módulo: Reportes
+| Nombre | Método | URI | Controlador |
+|---|---|---|---|
+| `reportes.pta` | GET | `/reportes/pta` | `EnvioPtaController@index` |
+| `reportes.pta.enviar` | POST | `/reportes/pta/enviar` | `EnvioPtaController@enviar` |
+| `reportes.reenvio` | GET | `/reportes/reenvio` | `ReporteProduccionController@showReenvio` |
+| `reportes.produccion.reenviar` | POST | `/reportes/reenviar` | `ReporteProduccionController@reenviarCorreo` |
+| `reportes.descargar_pdf` | GET | `/reportes/descargar-pdf/{fecha}` | `ReporteProduccionController@descargarPDF` |
+| `systemLogsReport` | GET | `/system-logs-report` | `SystemLogController@index` |
+| `system.logs.store` | POST | `/system-logs` | `SystemLogController@store` |
+| `system.logs.purge` | POST | `/system-logs/purge` | `SystemLogController@purge` |
+
+### Módulo: PTA
+| Nombre | Método | URI | Controlador |
+|---|---|---|---|
+| *(pta routes)* | varios | `/pta/*` | *(middleware: CheckPtaAccess)* |
+
+### Módulo: Almacén WO (Parcialidades, Remisiones, Tratamiento Térmico)
+| Nombre | Método | URI |
+|---|---|---|
+| `wo.parcialidad.store` | POST | `/wo/parcialidad` |
+| `wo.parcialidad.update` | PUT | `/wo/parcialidad/{id}` |
+| `wo.parcialidad.destroy` | DELETE | `/wo/parcialidad/{id}` |
+| `wo.remision.store` | POST | `/wo/remision` |
+| `wo.remision.destroy` | DELETE | `/wo/remision/{id}` |
+| `wo.remision.serve` | GET | `/wo/remision/{id}/serve` |
+| `wo.tratamiento.store` | POST | `/wo/tratamiento` |
+| `wo.tratamiento.update` | PUT | `/wo/tratamiento/{id}` |
+| `wo.tratamiento.destroy` | DELETE | `/wo/tratamiento/{id}` |
+| `wo.tratamiento.download` | GET | `/wo/tratamiento/{id}/download` |
+
+### Módulo: Productividad
+| Nombre | Método | URI |
+|---|---|---|
+| `productivity.ping` | POST | `/productivity/ping` |
+| `productivity.unlock` | POST | `/productivity/unlock` |
 
 ---
 
@@ -245,3 +423,13 @@ Route::get('/almacen/fundicion/{ot}', [AlmacenFundicionController::class, 'show'
 Route::get('/almacen/fundicion/{ot}', [AlmacenFundicionController::class, 'show'])->name('almacen.fundicion.show');
 Route::get('/almacen/fundicion/crear', [AlmacenFundicionController::class, 'crear'])->name('almacen.fundicion.crear');
 ```
+
+---
+
+## 11. Buenas Prácticas y Bugs Conocidos
+
+- **Nunca codifiques URLs en JS directamente.** Siempre usa `window.routes` inyectado desde Blade.
+- **`route:cache`** no debe usarse en desarrollo. Solo en producción (`php artisan route:cache`). Para limpiar: `php artisan route:clear`.
+- **Rutas legacy sin nombre** (ej. `generated::XYZ`): No usarlas en Blade ni en JS. Agregar nombre si se necesita referenciar.
+- **Rutas de `showMachinesProcess`** (`POST /piezasMaquina`): Esta ruta usa controlador `PzasGeneralesController`, no `MachinesController` — no confundir con `machinesOccupied`.
+- **El módulo `fundicion/*`** (`DibujosFundicionPdfController`) es distinto de `almacen/fundicion/*` (`AlmacenFundicionController`). El primero gestiona el filesystem de archivos; el segundo gestiona la vista de historial.

@@ -55,7 +55,7 @@ class LiberacionModeloMailable extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.liberacion_modelo',
+            view: 'emails.model_release',
         );
     }
 

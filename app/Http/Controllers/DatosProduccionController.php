@@ -73,9 +73,9 @@ class DatosProduccionController extends Controller
         //Obtener todas las ordenes de trabajo y sus respectivas clases
         $datos = $this->obtenerDatos($this->obtenerOtArray());
         if ($operadores == null) {
-            return view('users_views.productionData', compact('datos'));
+            return view('users_views.production_data', compact('datos'));
         } else {
-            return view('users_views.productionData', compact('datos', 'operadores', 'filtros'));
+            return view('users_views.production_data', compact('datos', 'operadores', 'filtros'));
         }
     }
         /**

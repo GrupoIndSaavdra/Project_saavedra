@@ -1,0 +1,1584 @@
+﻿/* global.css: reset, Poppins, variables GIS */
+@import "../global.css";
+
+/* ====================================================
+   manage_drawings.css — Módulo Gestión de Planos PDF
+   Paleta de diseño: var(--gis-blue) (azul), var(--gis-red) (rojo),
+   siguiendo los patrones de process_production.css
+   ==================================================== */
+
+body {
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+}
+
+/* ── Contenedor principal ── */
+.dibujos-wrapper {
+    max-width: 98%;
+    margin: 1em auto;
+    padding: 0 1.5em;
+}
+
+.dibujos-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--gis-blue);
+    color: #fff;
+    padding: 1em 1.5em;
+    border-radius: 10px;
+    margin-bottom: 1.5em;
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.4);
+    position: sticky;
+    top: 75px; /* Altura aproximada del nav superior */
+    z-index: 100;
+}
+
+.dibujos-header h1 {
+    font-size: 1.4em;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.dibujos-header span {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+/* ── Sección de filtros / creación ── */
+.dibujos-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+@media (max-width: 900px) {
+    .dibujos-panel {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Layout Dashboard Rediseñado ── */
+.dibujos-dashboard-layout {
+    display: grid;
+    grid-template-columns: 380px minmax(0, 1fr);
+    gap: 2em;
+    align-items: start;
+}
+
+@media (max-width: 1200px) {
+    .dibujos-dashboard-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.dibujos-dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    position: sticky;
+    top: 165px; /* 75px (header) + 90px (altura header) */
+    z-index: 10;
+}
+
+.dibujos-dashboard-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+}
+
+/* Ajustes para el panel interno dentro del sidebar */
+.dibujos-dashboard-layout .dibujos-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    margin-bottom: 0;
+}
+
+/* Eliminar márgenes sobrantes */
+.dibujos-dashboard-layout .dibujos-files-panel,
+.dibujos-dashboard-layout .dibujos-table-section {
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.dibujos-card {
+    background: #ffffff;
+    border: 5px solid #033966d4;
+    border-radius: 10px;
+    padding: 1.5em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.dibujos-card h2 {
+    color: var(--gis-blue);
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ── Form groups ── */
+.dibujos-form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1em;
+}
+
+.dibujos-form-group label {
+    font-size: 0.9em;
+    font-weight: 700;
+    color: var(--gis-blue);
+    margin-bottom: 0.3em;
+}
+
+.dibujos-form-group select,
+.dibujos-form-group input[type="text"] {
+    width: 100%;
+    border-radius: 5px;
+    padding: 0.6em;
+    border: 5px solid #033966d4;
+    text-align: center;
+    font-size: 1em;
+    letter-spacing: 1px;
+    background: var(--gis-blue);
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.dibujos-form-group select option {
+    background: #fff;
+    color: #000;
+}
+
+.dibujos-form-group select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.dibujos-form-group input[type="text"] {
+    background: #fff;
+    color: #000;
+    cursor: text;
+}
+
+/* Input file estilizado */
+.dibujos-file-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.7em;
+    border: 3px dashed var(--gis-blue);
+    border-radius: 8px;
+    background: #f0f6ff;
+    color: var(--gis-blue);
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+    margin-bottom: 0.5em;
+}
+
+.dibujos-file-label:hover {
+    background: var(--gis-blue);
+    color: #fff;
+}
+
+.dibujos-file-label input[type="file"] {
+    display: none;
+}
+
+.dibujos-file-name {
+    font-size: 0.8em;
+    color: #666;
+    text-align: center;
+    word-break: break-all;
+}
+
+/* ── Botones ── */
+.btn-dibujos {
+    width: 100%;
+    background: #005194;
+    color: #ffffff;
+    padding: 0.8em;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition:
+        transform 0.3s ease,
+        background-color 0.3s ease;
+    margin-top: 0.5em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.btn-dibujos:hover {
+    transform: scale(1.03);
+    background: #036613;
+}
+
+.btn-dibujos:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-dibujos-danger {
+    background: var(--gis-red);
+}
+
+.btn-dibujos-danger:hover {
+    background: #7a0200;
+}
+
+.btn-dibujos-sm {
+    width: auto;
+    padding: 0.4em 0.9em;
+    font-size: 0.85em;
+    margin-top: 0;
+}
+
+/* ── Tabla de estructura OT/Clase ── */
+.dibujos-table-section {
+    background: #ffffff;
+    border: 5px solid #033966d4;
+    border-radius: 10px;
+    padding: 1.5em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5em;
+}
+
+.dibujos-table-section h2 {
+    color: var(--gis-blue);
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.dibujos-table-container {
+    max-height: 25vh; /* Reducido para evitar scroll global */
+    overflow-y: auto;
+    border: 2px solid var(--gis-blue);
+    border-radius: 8px;
+}
+
+.dibujos-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.dibujos-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.dibujos-table th {
+    background: var(--gis-blue);
+    color: #fff;
+    padding: 0.9em 1em;
+    text-align: left; /* Default alignment */
+    font-weight: 700;
+    border: 1px solid #022847;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.dibujos-table td {
+    padding: 0.8em 1em;
+    text-align: center;
+    border: 1px solid #ddd;
+    vertical-align: middle;
+    font-size: 0.95em;
+    color: #333;
+}
+
+.dibujos-table tbody tr:hover {
+    background: #e8f2ff;
+    transition: background 0.2s ease;
+}
+
+.dibujos-table tbody tr:nth-child(even) {
+    background: #f5f9ff;
+}
+
+.dibujos-table tbody tr:nth-child(even):hover {
+    background: #e8f2ff;
+}
+
+.dibujos-table .td-actions {
+    display: flex;
+    justify-content: center; /* A la derecha */
+    gap: 2em;
+}
+
+/* Clases de utilidad para alineacion estricta */
+.d-text-center {
+    text-align: center !important;
+}
+.d-text-right {
+    text-align: right !important;
+}
+
+/* Anchos fijos para columnas de control */
+.dibujos-table th:nth-last-child(2),
+.dibujos-table td:nth-last-child(2) {
+    width: 140px;
+}
+
+.dibujos-table th:last-child,
+.dibujos-table td:last-child {
+    width: 240px;
+}
+
+/* Badge de cantidad de archivos */
+.badge-count {
+    display: inline-block;
+    background: var(--gis-blue);
+    color: #fff;
+    border-radius: 20px;
+    padding: 0.2em 0.7em;
+    font-size: 0.8em;
+    font-weight: 700;
+    min-width: 28px;
+    text-align: center;
+}
+
+.badge-count-empty {
+    background: #9c9c9c;
+}
+
+/* ── Panel de archivos de una OT/Clase seleccionada ── */
+.dibujos-files-panel {
+    background: #ffffff;
+    border: 5px solid #033966d4;
+    border-radius: 10px;
+    padding: 1.5em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5em;
+    display: none;
+}
+
+.dibujos-files-panel.active {
+    display: block;
+}
+
+.dibujos-files-panel h2 {
+    color: var(--gis-blue);
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.dibujos-files-breadcrumb {
+    font-size: 0.85em;
+    color: #666;
+    margin-bottom: 1em;
+    background: #f0f6ff;
+    border: 1px solid #c0d8f0;
+    border-radius: 6px;
+    padding: 0.5em 1em;
+}
+
+.dibujos-files-breadcrumb strong {
+    color: var(--gis-blue);
+}
+
+.dibujos-files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.5em;
+    margin-top: 1.5em;
+    max-height: 35vh; /* Scroll interno para no afectar el alto total */
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+@keyframes prodCardPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) translateY(20px);
+    }
+    70% {
+        transform: scale(1.02) translateY(-5px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.dibujos-file-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.2em;
+    border: 3px solid var(--gis-blue);
+    border-radius: 12px;
+    background: #f5f9ff;
+    transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.3s ease,
+        box-shadow 0.3s ease;
+    cursor: pointer;
+    min-height: 155px;
+    position: relative;
+    /* overflow: hidden; Eliminado para que los botones no se recorten en hover */
+    will-change: transform, background-color, box-shadow;
+    animation: prodCardPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.dibujos-file-card:hover {
+    background: var(--gis-blue);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 18px rgba(3, 57, 102, 0.4);
+}
+
+.dibujos-file-card .file-name {
+    font-size: 0.95em;
+    font-weight: 700;
+    color: var(--gis-blue);
+    word-break: break-all;
+    text-align: center;
+    margin-bottom: 1em;
+    transition: color 0.3s ease;
+}
+
+.dibujos-file-card:hover .file-name {
+    color: #ffffff;
+}
+
+.dibujos-file-card .file-icon-wrapper {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0.5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dibujos-file-card .file-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition:
+        opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity, transform;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.dibujos-file-card .icon-hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+}
+
+.dibujos-file-card:hover .icon-default {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.dibujos-file-card:hover .icon-hover {
+    opacity: 1;
+    transform: scale(1.15) rotate(3deg);
+    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.549));
+}
+
+.dibujos-file-card .file-actions {
+    display: flex;
+    gap: 0.4em;
+    margin-top: auto;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Botones dentro de la tarjeta - Más grandes y con colores que resaltan en el hover */
+.dibujos-file-card .btn-dibujos-sm {
+    padding: 0.5em 0.3em;
+    font-size: 0.8em;
+    flex: 1;
+    text-align: center;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: var(--gis-blue) !important; /* Color base uniforme */
+    color: #fff !important;
+}
+
+/* Colores específicos que se revelan al hacer hover en la tarjeta */
+.dibujos-file-card:hover .btn-ver {
+    border: 2px solid #00d06f;
+    background: #006943 !important; /* Verdecito Base */
+}
+
+.dibujos-file-card:hover .btn-alerta-fund {
+    border: 2px solid #4caf50;
+    background: #2e7d32 !important; /* Verde Alerta Base */
+}
+
+.dibujos-file-card:hover .btn-reemplazar {
+    border: 2px solid #ffc107;
+    background: #b8860b !important; /* Amarillo/Dorado Fuerte Base */
+}
+
+.dibujos-file-card:hover .btn-eliminar,
+.dibujos-file-card:hover .btn-dibujos-danger {
+    border: 2px solid #dc2626;
+    background: var(--gis-red) !important;
+}
+
+/* Estilización Estándar (Basada en btn-cancel / btn-submit-password) */
+.dibujos-file-card .btn-dibujos-sm {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 0.85em;
+    border-radius: 8px;
+    transition:
+        transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        background-color 0.3s ease,
+        box-shadow 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 54, 102, 0.2);
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    will-change: transform, background-color, box-shadow;
+}
+
+/* Efectos de Hover Moderados */
+.dibujos-file-card .btn-ver:hover {
+    border: 2px solid #00d06f;
+    background: #00d06f !important;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 208, 111, 0.4) !important;
+}
+
+.dibujos-file-card .btn-alerta-fund:hover {
+    border: 2px solid #4caf50;
+    background: #4caf50 !important;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 18px rgba(76, 175, 80, 0.4) !important;
+}
+
+.dibujos-file-card .btn-reemplazar:hover {
+    border: 2px solid #ffc107;
+    background: #ffc107 !important;
+    color: #000 !important; /* Texto oscuro para mejor lectura en amarillo */
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 18px rgba(255, 193, 7, 0.4) !important;
+}
+
+.dibujos-file-card .btn-eliminar:hover,
+.btn-dibujos-danger:hover {
+    border: 2px solid #dc2626;
+    background: #dc2626 !important;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.4) !important;
+}
+
+/* ── Estado vacío ── */
+.dibujos-empty-state {
+    text-align: center;
+    padding: 2em;
+    color: #666;
+}
+
+.dibujos-empty-state .empty-icon {
+    font-size: 3em;
+    margin-bottom: 0.5em;
+}
+
+.dibujos-empty-state p {
+    font-size: 1em;
+    color: #999;
+    margin: 0;
+    font-style: normal;
+    font-weight: 400;
+}
+
+/* ── Overlay y modal ── */
+.div-opacity {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: #0000003a;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(5px);
+    z-index: 900;
+}
+
+.alert-NoCotas {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: white;
+    max-width: 800px;
+    width: 90%;
+    transition: 0.2s;
+    padding: 2em;
+    border-radius: 10px;
+    font-weight: 800;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.div-cerrar {
+    width: 3em;
+    margin-left: 95%;
+    margin-bottom: -1em;
+}
+
+.btn-cerrar {
+    border: none;
+    background: transparent;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.btn-cerrar:hover {
+    transform: scale(1.3);
+}
+
+.img-cerrar {
+    width: 100%;
+}
+
+.label-alert {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-top: 1em;
+    color: var(--gis-blue);
+    line-height: 1.5;
+}
+
+/* ── Notificación toast ── */
+.dibujos-toast {
+    position: fixed;
+    bottom: 2em;
+    right: 2em;
+    background: var(--gis-blue);
+    color: #fff;
+    padding: 1em 1.5em;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    max-width: 400px;
+}
+
+.dibujos-toast.error {
+    background: var(--gis-red);
+}
+
+.dibujos-toast.fade-out {
+    opacity: 0;
+}
+
+/* ── Spinner / loading ── */
+.dibujos-spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 3px solid #fff3;
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.dibujos-spinner-sm {
+    border-width: 2px;
+    width: 14px;
+    height: 14px;
+}
+
+.icon-btn-alerta {
+    width: 14px;
+    vertical-align: middle;
+}
+
+/* Cuando se usa dentro de .btn-action-icon se ajusta el tamaño */
+.btn-action-icon.btn-alerta-fund img {
+    width: 44px;
+    height: 44px;
+}
+
+/* ── Log de auditoría ── */
+.dibujos-log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+    background: #ffffff; /* Añadido fondo blanco para solucionar la transparencia */
+}
+
+.dibujos-log-table th {
+    background: var(--gis-blue);
+    color: #fff;
+    font-weight: 700;
+    padding: 0.8em;
+    text-align: left;
+}
+
+.dibujos-log-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.dibujos-log-table td {
+    padding: 0.5em 0.8em;
+    border: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.dibujos-log-table tbody tr:nth-child(even) {
+    background: #f5f9ff;
+}
+
+.action-badge {
+    display: inline-block;
+    border-radius: 6px;
+    padding: 0.4em 0.8em;
+    font-size: 0.85em;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.action-badge.crear_carpeta {
+    background: #d4edda;
+    color: #155724;
+}
+.action-badge.subir_pdf {
+    background: #cce5ff;
+    color: #004085;
+}
+.action-badge.eliminar_pdf {
+    background: #f8d7da;
+    color: #721c24;
+}
+.action-badge.reemplazar_pdf {
+    background: #fff3cd;
+    color: #856404;
+}
+.action-badge.enviar_alerta {
+    background: #fff8f0;
+    color: #ff8c00;
+}
+.action-badge.eliminar_carpeta {
+    background: #f8d7da;
+    color: #721c24;
+}
+.action-badge.guardar_ayudas {
+    background: #e9d8fd;
+    color: #553c9a;
+}
+.action-badge.vaciar_carpeta {
+    background: #ffe8cc;
+    color: #855d00;
+}
+.action-badge.desvincular_ayudas {
+    background: #f0f0f0;
+    color: #555;
+}
+
+/* ── Log details (Collapsible) ── */
+.dibujos-log-details summary {
+    cursor: pointer;
+    background: #f5f9ff;
+    color: var(--gis-blue);
+    padding: 0.8em 1.2em;
+    border: 3px solid var(--gis-blue);
+    border-radius: 8px;
+    font-weight: 700;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s;
+    font-size: 1.05em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.dibujos-log-details summary:hover {
+    background: var(--gis-blue);
+    color: #fff;
+}
+.dibujos-log-details summary::-webkit-details-marker {
+    display: none;
+}
+.dibujos-log-details summary::after {
+    content: "▼";
+    font-size: 0.9em;
+}
+.dibujos-log-details[open] summary::after {
+    content: "▲";
+}
+.dibujos-log-details[open] .dibujos-table-container {
+    margin-top: 1em;
+}
+
+/* ── Clases de Utilidad para Limpieza de Estilos Inline ── */
+.d-text-muted {
+    color: #666;
+}
+.d-text-subtle {
+    color: #999;
+}
+.d-text-primary {
+    color: var(--gis-blue) !important;
+}
+.d-text-danger {
+    color: var(--gis-red) !important;
+}
+.d-text-success {
+    color: #28a745 !important;
+}
+.d-text-center {
+    text-align: center;
+}
+.d-text-small {
+    font-size: 0.82em;
+}
+.d-text-xs {
+    font-size: 0.85em;
+}
+.d-text-bold {
+    font-weight: 700 !important;
+}
+
+/* Niveles de carpetas */
+.lvl-1 {
+    color: #0056b3;
+    font-weight: 800;
+}
+.lvl-2 {
+    color: #d9534f;
+    font-weight: 800;
+}
+.lvl-sep {
+    color: #666;
+    font-weight: 400;
+    margin: 0 4px;
+}
+
+.d-mt-1 {
+    margin-top: 0.5em;
+}
+.d-mt-2 {
+    margin-top: 0.8em;
+}
+.d-mb-1 {
+    margin-bottom: 0.5em;
+}
+.d-mb-2 {
+    margin-bottom: 1em;
+}
+
+.d-w-100 {
+    width: 100%;
+}
+
+.d-alert {
+    padding: 0.7em 1em;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid transparent;
+}
+.d-alert-success {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+.d-alert-warning {
+    background: #fff3cd;
+    border-color: #856404;
+    color: #856404;
+}
+.d-alert-info {
+    background: #f0f6ff;
+    border-color: #a0c4e4;
+    color: var(--gis-blue);
+}
+
+.d-card-placeholder {
+    padding: 2em;
+    text-align: center;
+    color: #999;
+}
+
+.d-log-scroll {
+    max-height: 35vh;
+    overflow-y: auto;
+}
+
+/* ── Botones de acción con iconos ── */
+.td-actions {
+    display: flex;
+    gap: 2.5em;
+    justify-content: center;
+}
+
+.btn-action-icon {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    padding: 1em;
+    min-width: 90px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.btn-action-icon span {
+    font-size: 0.85em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-action-icon img {
+    width: 44px;
+    height: 44px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Tema Verde (Ver archivos) */
+.btn-ver-archivos {
+    background: #28a745;
+    border-color: #218838;
+    color: #fff;
+}
+
+.btn-ver-archivos img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-ver-archivos:hover {
+    background: #e6f9ed;
+    color: #28a745;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.15);
+}
+
+.btn-ver-archivos:hover img {
+    filter: none; /* Icono a color original en hover */
+}
+
+/* Tema Rojo (Eliminar carpeta) */
+.btn-eliminar-carpeta {
+    background: #dc3545;
+    border-color: #c82333;
+    color: #fff;
+}
+
+.btn-eliminar-carpeta img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-eliminar-carpeta:hover {
+    background: #fdf2f2;
+    color: #dc3545;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.15);
+}
+
+.btn-eliminar-carpeta:hover img {
+    filter: none; /* Icono a color original en hover */
+}
+
+/* Tema Naranja/Amber (Enviar Alerta) */
+.btn-alerta-fund {
+    background: #ff8c00;
+    border-color: #e67e00;
+    color: #fff;
+}
+
+.btn-alerta-fund img {
+    filter: brightness(0) invert(1);
+}
+
+.btn-alerta-fund:hover {
+    background: #fff8f0;
+    color: #ff8c00;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(255, 140, 0, 0.15);
+}
+
+.btn-alerta-fund:hover img {
+    filter: none; /* Icono a color original en hover */
+}
+
+.btn-action-icon:active {
+    transform: scale(0.9);
+}
+
+/* ── Portal y Modal Estilo Premium (prod-viewer) ── */
+.confirm-portal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 10, 25, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.confirm-modal {
+    max-width: 600px;
+    width: 95%;
+    background: #fff;
+    border-radius: 20px;
+    border: 4px solid var(--gis-blue);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: prodModalEntrance 0.5s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+@keyframes prodModalEntrance {
+    0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.confirm-modal-header {
+    padding: 1.5em 2em;
+    background: #fff;
+    border-bottom: 2px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.confirm-modal-header h3 {
+    color: var(--gis-blue);
+    font-size: 1.3em;
+    font-weight: 800;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.confirm-modal-body {
+    padding: 2.5em;
+    text-align: center;
+    background: #fdfdfd;
+}
+
+.confirm-icon-wrapper {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 1.5em;
+    background: #fdf2f2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-icon-wrapper img {
+    width: 60px;
+}
+
+.confirm-modal-body p {
+    margin: 0 0 1.5em 0;
+    color: #444;
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+
+.confirm-label-highlight {
+    display: block;
+    margin-top: 0.5em;
+    color: #ff0000;
+    font-weight: 800;
+    font-size: 1.3em;
+}
+
+.confirm-modal-actions {
+    display: flex;
+    gap: 1.5em;
+    justify-content: center;
+}
+
+.btn-confirm-cancel {
+    background: #6c757d;
+    color: #fff;
+    padding: 1em 2em;
+    border-radius: 8px;
+    border: none;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-confirm-cancel:hover {
+    background: var(--gis-blue);
+    transform: scale(1.05);
+}
+
+.btn-confirm-danger {
+    background: var(--gis-red);
+    color: #000;
+    padding: 1em 2em;
+    border-radius: 8px;
+    border: none;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 4px 15px rgba(156, 3, 0, 0.2);
+}
+
+.btn-confirm-danger:hover {
+    background: #ff0000;
+    color: #fff;
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255, 0, 0, 0.5);
+}
+/* ── Ayudas Visuales Pills ── */
+.ayudas-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 1.5em 0;
+}
+
+.ayuda-chip {
+    position: relative;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.ayuda-chip input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.ayuda-chip-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    background: #f0f6ff;
+    border: 2px solid var(--gis-blue);
+    border-radius: 50px;
+    color: var(--gis-blue);
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.ayuda-chip:hover .ayuda-chip-content {
+    background: #e0edff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(3, 57, 102, 0.2);
+}
+
+.ayuda-chip input:checked ~ .ayuda-chip-content {
+    background: var(--gis-blue);
+    color: #fff;
+    border-color: var(--gis-blue);
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.3);
+}
+
+.ayuda-chip-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--gis-blue);
+    font-size: 10px;
+    font-weight: 900;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.ayuda-chip input:checked ~ .ayuda-chip-content .ayuda-chip-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.ayuda-chip-label {
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.badge-ayuda-tag {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #045491 100%);
+    color: white;
+    padding: 7px 18px;
+    border-radius: 20px;
+    font-size: 1em;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 3px solid transparent; /* Para evitar saltos en la animación */
+    box-shadow: 0 2px 4px rgba(3, 57, 102, 0.2);
+    transition: all 0.3s ease;
+}
+
+/* Efecto Neón para las clases que aún no han sido enviadas (Brillante y expansivo) */
+.badge-ayuda-tag:not(.alerta-enviada-tag):not(.alerta-modificada-tag):not(
+        .alerta-vacia-tag
+    ) {
+    border: 3px solid hsla(195, 100%, 80%, 1); /* Borde más notorio y grueso */
+    box-shadow:
+        0 0 8px hsla(195, 100%, 75%, 1),
+        /* Núcleo muy intenso y brillante */ 0 0 18px hsla(195, 100%, 50%, 0.9),
+        /* Halo principal */ 0 0 35px hsla(195, 100%, 30%, 0.8),
+        /* Sombra exterior más oscura */ 0 0 55px hsla(195, 100%, 15%, 0.7); /* Expansión final muy oscura */
+}
+
+.alerta-enviada-tag {
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
+    color: white !important;
+    transform: scale(1.05);
+    border: 3px solid hsla(135, 100%, 75%, 1) !important; /* Borde más notorio y grueso */
+    box-shadow:
+        0 0 8px hsla(135, 100%, 75%, 1),
+        /* Núcleo muy intenso y brillante */ 0 0 18px hsla(135, 100%, 50%, 0.9),
+        /* Halo principal */ 0 0 35px hsla(135, 100%, 30%, 0.8),
+        /* Sombra exterior oscura */ 0 0 55px hsla(135, 100%, 15%, 0.7) !important; /* Expansión final muy oscura */
+}
+
+/* Efecto Neón para las clases modificadas (Naranja) */
+.alerta-modificada-tag {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%) !important;
+    color: white !important;
+    transform: scale(1.05);
+    border: 3px solid hsla(35, 100%, 75%, 1) !important; /* Borde notorio y grueso */
+    box-shadow:
+        0 0 8px hsla(35, 100%, 75%, 1),
+        0 0 18px hsla(35, 100%, 50%, 0.9),
+        0 0 35px hsla(35, 100%, 30%, 0.8),
+        0 0 55px hsla(35, 100%, 15%, 0.7) !important; /* Expansión final muy oscura */
+}
+
+/* Efecto Neón Rojo para Sin Clases Vinculadas */
+.alerta-sin-clases-tag {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%) !important;
+    color: white !important;
+    border: 3px solid hsla(0, 100%, 80%, 1) !important;
+    box-shadow:
+        0 0 8px hsla(0, 100%, 75%, 1),
+        0 0 18px hsla(0, 100%, 50%, 0.9),
+        0 0 35px hsla(0, 100%, 30%, 0.8),
+        0 0 55px hsla(0, 100%, 15%, 0.7) !important;
+}
+
+/* Efecto Neón para las clases vacías (Gris/Blanco) */
+.alerta-vacia-tag {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%) !important;
+    color: #f8f9fa !important;
+    transform: scale(0.98);
+    opacity: 0.85;
+    border: 3px solid hsla(0, 0%, 85%, 1) !important;
+    box-shadow:
+        0 0 8px hsla(0, 0%, 85%, 0.9),
+        0 0 15px hsla(0, 0%, 65%, 0.8),
+        0 0 25px hsla(0, 0%, 40%, 0.6),
+        0 0 45px hsla(0, 0%, 20%, 0.5) !important;
+}
+
+.new-ayuda-badge {
+    background: #10b981;
+    color: #fff;
+    font-size: 0.7em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 800;
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+.ayuda-up-to-date {
+    cursor: default;
+    opacity: 0.7;
+}
+
+.ayuda-up-to-date .ayuda-chip-content {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #64748b !important;
+}
+
+.ayuda-up-to-date input:checked ~ .ayuda-chip-content {
+    background: #f8fafc !important;
+    color: #475569 !important;
+}
+/* ── Utilidades Flex ── */
+.d-flex {
+    display: flex !important;
+}
+.d-justify-end {
+    justify-content: flex-end !important;
+}
+.d-justify-center {
+    justify-content: center !important;
+}
+.d-align-center {
+    align-items: center !important;
+}
+.d-gap-1 {
+    gap: 0.5em !important;
+}
+.d-gap-2 {
+    gap: 1em !important;
+}
+.d-w-100 {
+    width: 100% !important;
+}
+
+/* ── Estilos Dinámicos por Cantidad de Tags (Quantity Queries) ── */
+
+.tags-container {
+    gap: 14px !important; /* Mayor separación entre las tags */
+}
+
+/* Si hay 4 o 5 tags, reducción muy leve */
+#tabla-alertas-body
+    .tags-container:has(> .badge-ayuda-tag:nth-last-child(n + 4))
+    .badge-ayuda-tag {
+    padding: 6px 16px;
+    font-size: 0.95em;
+    border-width: 2.5px !important;
+}
+
+/* Si hay 6 o 7 tags, reducción moderada para acomodar mejor */
+#tabla-alertas-body
+    .tags-container:has(> .badge-ayuda-tag:nth-last-child(n + 6))
+    .badge-ayuda-tag {
+    padding: 5px 14px;
+    font-size: 0.9em;
+    border-width: 2px !important;
+}
+
+/* Si hay 8 o más tags, tamaño compacto conservador (nunca miniatura) */
+#tabla-alertas-body
+    .tags-container:has(> .badge-ayuda-tag:nth-last-child(n + 8))
+    .badge-ayuda-tag {
+    padding: 4px 12px;
+    font-size: 0.85em;
+    border-width: 2px !important;
+}
+
+/* ── Botón Flotante de Simbología ── */
+
+.floating-symbology-wrapper {
+    position: fixed;
+    top: 50%;
+    right: -8px;
+    transform: translateY(-50%);
+    z-index: 900; /* Debajo del header (995) y del overlay del menú (1000) */
+    display: flex;
+    align-items: center;
+}
+
+.floating-symbology-btn {
+    background: var(--gis-blue);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 12px 0 0 12px;
+    box-shadow: -4px 0 15px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    letter-spacing: 5px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-right: none;
+}
+
+.floating-symbology-btn span {
+    transform: rotate(180deg);
+}
+
+.floating-symbology-btn img {
+    transform: rotate(90deg);
+}
+
+.floating-symbology-wrapper:hover .floating-symbology-btn {
+    background: var(--gis-blue);
+    border: 3px solid hsla(195, 100%, 80%, 1);
+    box-shadow:
+        0 0 8px hsla(195, 100%, 75%, 1),
+        0 0 18px hsla(195, 100%, 50%, 0.9),
+        0 0 35px hsla(195, 100%, 30%, 0.8),
+        0 0 55px hsla(195, 100%, 15%, 0.7);
+}
+
+.floating-symbology-panel {
+    position: absolute;
+    right: calc(100% + 15px);
+    top: 50%;
+    transform: translateY(-50%) translateX(20px);
+    background: rgba(3, 57, 102, 0.85);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow:
+        0 0 8px hsla(195, 100%, 75%, 1),
+        0 0 18px hsla(195, 100%, 50%, 0.9),
+        0 0 35px hsla(195, 100%, 30%, 0.8),
+        0 0 55px hsla(195, 100%, 15%, 0.7);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 3px solid hsla(195, 100%, 80%, 1);
+    min-width: 250px;
+}
+
+.floating-symbology-wrapper:hover .floating-symbology-panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-50%) translateX(0);
+    pointer-events: auto;
+}
+
+/* Extracted utility classes */
+.grid-ready { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: 1fr; min-height: calc(100vh - 180px); gap: 2em; align-items: stretch; }
+.grid-not-ready { display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr; min-height: calc(100vh - 180px); gap: 2em; align-items: stretch; }
+.d-flex-column { flex-direction: column; }
+.h-100 { height: 100%; }
+.d-justify-between { justify-content: space-between; }
+.d-align-center { align-items: center; }
+.mb-1-5 { margin-bottom: 1.5rem; }
+.border-bottom { border-bottom: 1px solid #e2e8f0; }
+.pb-0-5 { padding-bottom: 0.5rem; }
+.m-0 { margin: 0; }
+.pb-0 { padding-bottom: 0; }
+.border-none { border: none; }
+.bg-none { background: none; }
+.p-0 { padding: 0; }
+.flex-shrink-0 { flex-shrink: 0; }
+.flex-1 { flex: 1; }
+.max-h-none { max-height: none; }
+.overflow-y-auto { overflow-y: auto; }
+.align-content-start { align-content: flex-start; }
+.position-relative { position: relative; }
+.position-absolute-inset { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+.gap-0-5 { gap: 0.5rem; }
+.mb-1 { margin-bottom: 1rem; }
+.flex-wrap { flex-wrap: wrap; }
+.gap-1 { gap: 1rem; }
+.min-w-250 { min-width: 250px; }
+.min-w-240 { min-width: 240px; }
+.max-w-360 { max-width: 360px; }
+.custom-select { width: 100%; padding: 8px 14px; border-radius: 8px; border: 2px solid var(--gis-blue); font-size: 0.9em; outline: none; background: #ffffff; color: var(--gis-blue); font-weight: 700; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+.badge-legend { padding: 8px 16px; font-size: 0.85em; pointer-events: none; transform: none !important; width: 100%; text-align: center; box-sizing: border-box; }
+.d-justify-center { justify-content: center; }
+.d-justify-start { justify-content: flex-start; }
+.pointer-events-none { pointer-events: none; }
+.text-danger { color: var(--gis-red); }
+.text-primary { color: var(--gis-blue); }
+.p-1 { padding: 1em; }
+.fs-1-1 { font-size: 1.1em; }
+.lh-1-6 { line-height: 1.6; }
+.text-center { text-align: center; }
+.fw-bold { font-weight: bold; }
+.text-uppercase { text-transform: uppercase; }
+.dibujos-table-section-clean { border: none; padding: 0; box-shadow: none; background: transparent; grid-column: 1 / -1; }
+.custom-alert-warning { font-size: 0.95em; border-left: 4px solid #f59e0b; background-color: #fffbeb; color: #b45309; padding: 12px 15px; border-radius: 6px; }
+.max-h-100 { max-height: 100%; }
+.max-h-calc { max-height: calc(100vh - 280px); }
+.max-h-40vh { max-height: calc(40vh - 100px); }
+.grid-col-full { grid-column: 1 / -1; }
+.gap-0-8 { gap: 0.8rem; }
+
+/* JS state classes */
+.card-border-red { border-color: #9D0402 !important; box-shadow: none !important; }
+.card-border-green { border-color: #0C8201 !important; box-shadow: none !important; }

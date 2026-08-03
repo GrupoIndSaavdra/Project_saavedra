@@ -33,7 +33,7 @@ class GenerarQRSoldaduraController extends Controller
             ->having('kilos_totales', '>', 0)
             ->get();
 
-        return view('trackingSoldadura_views.generarQRSoldadura', compact('operadores', 'soldaduras'));
+        return view('welding_tracking_views.generarQRSoldadura', compact('operadores', 'soldaduras'));
     }
 
     /**
@@ -124,7 +124,7 @@ class GenerarQRSoldaduraController extends Controller
         }
 
         // Generar PDF
-        $pdf = Pdf::loadView('trackingSoldadura_views.qr_individual_pdf', [
+        $pdf = Pdf::loadView('welding_tracking_views.qr_individual_pdf', [
             'qrs' => $qrsConImagenes,
             'operador' => $operador,
             'nombre' => $nombre,

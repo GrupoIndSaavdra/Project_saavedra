@@ -11,11 +11,11 @@ use Illuminate\Support\Facades\Auth;
 class MachinesController extends Controller
 {
     /** @var \App\Http\Controllers\ProcessProductionController */
-    protected $processProductionController;
+    protected $process_productionController;
     public function __construct()
     {
         $this->middleware('auth');
-        $this->processProductionController = new ProcessProductionController();
+        $this->process_productionController = new ProcessProductionController();
     }
 
     public function show()
@@ -52,7 +52,7 @@ class MachinesController extends Controller
             $machine->delete();
             // Desocupar piezas en la meta si es que estaban ocupadas
             $meta = Metas::query()->find($metaId);
-            $modelProcessPieces = $this->processProductionController->get_ModelProcessPieces($meta->proceso);
+            $modelProcessPieces = $this->process_productionController->get_ModelProcessPieces($meta->proceso);
             $occupiedPieces = $modelProcessPieces::query()->where('id_meta', $meta->id)->where('estado', 1)->get();
             if (count($occupiedPieces) > 0) {
                 $processesAssemblies = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Embudo CM"];

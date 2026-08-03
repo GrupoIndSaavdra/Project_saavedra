@@ -68,7 +68,7 @@ class EnviarReporteDiario extends Command
             mkdir($folderPath, 0755, true);
         }
         $fullPath = "{$folderPath}/{$fecha->toDateString()}.pdf";
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('emails.reporte_diario_pdf', [
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('emails.daily_report_pdf', [
             'reporte' => $reporte,
             'fecha' => $fecha
         ]);
@@ -575,7 +575,7 @@ class EnviarReporteDiario extends Command
     }
 
     /**
-     * Mapeamos el color en Hex de acuerdo con adminPieces.js
+     * Mapeamos el color en Hex de acuerdo con admin_pieces.js
      * 
      * @param int|string $status
      * @param string $error

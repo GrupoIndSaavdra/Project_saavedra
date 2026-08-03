@@ -104,15 +104,6 @@ function get_inputAttributes(workOrder, molding, value = null) {
                 value: value == null ? null : value.pedido,
             },
         },
-        pieces: {
-            label: "Piezas con consignación",
-            input: {
-                type: "number",
-                name: "pieces",
-                required: true,
-                value: value == null ? null : value.piezas,
-            },
-        },
         startDate: {
             label: "Fecha de inicio",
             input: {
@@ -129,6 +120,15 @@ function get_inputAttributes(workOrder, molding, value = null) {
                 name: "start_time",
                 required: true,
                 value: value == null ? null : value.hora_inicio,
+            },
+        },
+        pieces: {
+            label: "Piezas con consignación",
+            input: {
+                type: "number",
+                name: "pieces",
+                required: true,
+                value: value == null ? null : value.piezas,
             },
         },
         finishDate: {
@@ -254,8 +254,8 @@ function createRowsForm(formInputs) {
         let row = document.createElement("div");
         row.className = "row";
 
-        // Crear hasta 2 columnas por fila
-        for (let j = 0; j < 2; j++) {
+        // Crear hasta 3 columnas por fila
+        for (let j = 0; j < 3; j++) {
             nameInput = keys[inputsCounter];
             // Guard: salir si no hay más campos o si es tabla
             if (nameInput === undefined || formInputs[nameInput] === undefined) break;
@@ -645,14 +645,6 @@ function setClassInfo(classesObject = null, classSelected) {
                         disabled: true,
                     },
                 },
-                pieces: {
-                    label: "Piezas con consignación",
-                    input: {
-                        type: "number",
-                        value: classesObject[classObject].piezas,
-                        disabled: true,
-                    },
-                },
                 startDate: {
                     label: "Fecha de inicio",
                     input: {
@@ -666,6 +658,14 @@ function setClassInfo(classesObject = null, classSelected) {
                     input: {
                         type: "time",
                         value: classesObject[classObject].hora_inicio,
+                        disabled: true,
+                    },
+                },
+                pieces: {
+                    label: "Piezas con consignación",
+                    input: {
+                        type: "number",
+                        value: classesObject[classObject].piezas,
                         disabled: true,
                     },
                 },

@@ -89,7 +89,7 @@ class ReporteProduccionController extends Controller
         }
         $fullPath = "{$folderPath}/{$fecha->toDateString()}.pdf";
 
-        $pdf = FacadePdf::loadView('emails.reporte_diario_pdf', [
+        $pdf = FacadePdf::loadView('emails.daily_report_pdf', [
             'reporte' => $reporte,
             'fecha' => $fecha
         ]);
@@ -149,7 +149,7 @@ class ReporteProduccionController extends Controller
 
         $reporte = $this->agruparJerarquicamente($piezas);
 
-        $pdf = FacadePdf::loadView('emails.reporte_diario_pdf', [
+        $pdf = FacadePdf::loadView('emails.daily_report_pdf', [
             'reporte' => $reporte,
             'fecha' => $fecha
         ]);
@@ -594,7 +594,7 @@ class ReporteProduccionController extends Controller
     }
 
     /**
-     * Mapeamos el color en Hex de acuerdo con adminPieces.js
+     * Mapeamos el color en Hex de acuerdo con admin_pieces.js
      * @param int|string $status
      * @param string|null $error
      * @param string $process

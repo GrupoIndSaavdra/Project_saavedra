@@ -2844,7 +2844,7 @@
 
 
 
-    @include('warehouse.partials._modal_iniciar_casting')
+    @include('warehouse.partials._modal_start_casting')
 
     <script>
         window.almacenRoutes = {
