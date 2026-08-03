@@ -3,7 +3,7 @@
 @section('head')
     @php
         $perfil = Auth::user()->perfil;
-        $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
+        $deptName = in_array($perfil, [1, 2, 3]) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
     @endphp
     <title>Almacén — Dibujos de Fundición | GIS</title>
     <meta name="description"
@@ -18,7 +18,7 @@
     <div class="alm-wrapper">
         @php
             $perfil = Auth::user()->perfil;
-            $deptName = ($perfil == 1 || $perfil == 2) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
+            $deptName = in_array($perfil, [1, 2, 3]) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
             $deptIcon = $perfil == 4 ? 'Quality.png' : 'almacen.png';
         @endphp
 
@@ -1413,7 +1413,7 @@
                                                     $bgColor = '#fffbeb';
                                                     $textColor = '#b45309';
                                                 } elseif ($targetReg->pre_orden_email_sent) {
-                                                    if (Auth::user()->perfil == 4) {
+                                                    if (in_array(Auth::user()->perfil, [1, 3, 4])) {
                                                         $icon = 'Recibido.png';
                                                         $label = 'Nuevo';
                                                         $fsmState = 'recibido';

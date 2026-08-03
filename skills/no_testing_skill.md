@@ -40,3 +40,51 @@ Aunque las pruebas en navegador están prohibidas para el agente, el agente **S�
  ```
 
 El agente debe asegurarse de dejar el código listo, compilado y sintácticamente impecable para que el usuario solo tenga que realizar pruebas en el navegador.
+
+---
+
+## Pruebas de Envío de Correos (Mailables y SMTP)
+Para verificar la correcta integración con el servidor de correos (SMTP, Mailables y adjuntos PDF/imágenes), puedes utilizar el siguiente script desde Tinker sin necesidad de usar el navegador:
+
+```php
+// Crea un archivo temporal test_mails.php y ejecútalo con `php artisan tinker test_mails.php`
+<?php
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PtaReporteMail;
+use App\Mail\DibujoFundicionAlertMail;
+use App\Mail\LiberacionModeloMailable;
+use App\Models\LiberacionModeloFundicion;
+
+$email = 'correo_de_prueba@ejemplo.com';
+
+try {
+    // 1. PtaReporteMail
+    $dummyPdf = storage_path('app/dummy.pdf');
+    file_put_contents($dummyPdf, 'dummy content');
+    Mail::to($email)->send(new PtaReporteMail("OT #999 - Prueba", "Clase Test", $dummyPdf));
+
+    // 2. DibujoFundicionAlertMail
+    Mail::to($email)->send(new DibujoFundicionAlertMail("OT #999 - Prueba", "Test File", ["clase 1"]));
+
+    // 3. LiberacionModeloMailable
+    $lib = new LiberacionModeloFundicion();
+    $lib->motivo_rechazo = "Test de rechazo";
+    $lib->tipo_modelo = "Molde";
+    $lib->observaciones_modelo = "Obs modelo";
+    $lib->user_nombre_calidad = "Test QA";
+    Mail::to($email)->send(new LiberacionModeloMailable("OT #999 - Prueba", "rechazado", $lib, []));
+
+    // 4. Raw Mail (Almacén pre-órdenes)
+    Mail::send([], [], function ($message) use ($email) {
+        $message->to($email)
+            ->subject('Alerta Pre-Orden (Prueba)')
+            ->html('<h1>Esto es una prueba de envío generada para Almacén.</h1>');
+    });
+
+    @unlink($dummyPdf);
+    echo "ALL_EMAILS_SUCCESS\n";
+} catch (\Exception $e) {
+    echo "ERROR_SENDING: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine();
+}
+```
+Este método permite diagnosticar inmediatamente si falta alguna variable en la plantilla de Blade o si existe un problema de autenticación SMTP.

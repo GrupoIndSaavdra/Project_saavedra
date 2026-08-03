@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
 class HerramientasTecamacController extends Controller
 {
     private const PERFILES_PERMITIDOS = ['1', '3', '5'];
-    private const PERFILES_ALMACEN   = ['5'];   // CRUD completo + inactivar/reactivar
+    private const PERFILES_ALMACEN   = ['1', '3', '5'];   // CRUD completo + inactivar/reactivar
     private const PERFILES_STOCK     = ['1', '3'];   // Solo editar mínimo y máximo
 
     private const DIR_PUBLIC = 'herramientas_tecamac';

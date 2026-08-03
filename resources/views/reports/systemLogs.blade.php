@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>Reporte de Logs de Sistema</title>
@@ -85,7 +85,7 @@
                 </div>
 
                 <!-- Botón de Depuración Manual (Izquierda) -->
-                @if(auth()->user()->perfil == 1)
+                @if(in_array(auth()->user()->perfil, [1, 3]))
                     <div id="manual-purge-container">
                         <button type="button" id="btn-manual-purge" class="btn-manual-purge-premium">
                             Depurar Logs

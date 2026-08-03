@@ -1628,7 +1628,7 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                                             ]);
                                             $isQualityFinalized = $hasFinalStatus && $todosGuardados;
                                             $showQualityCard =
-                                                in_array(Auth::user()->perfil, ["3", "4", 3, 4]) &&
+                                                in_array(Auth::user()->perfil, ["1", "3", "4", 1, 3, 4]) &&
                                                 $estado === "activa" &&
                                                 !$isQualityFinalized;
                                             $hasFilesOrControl = $count > 0 || $showQualityCard;
@@ -2428,7 +2428,7 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                                                     @endif
 
                                                     {{-- ── ACCIONES DE CALIDAD / ESTADOS DE LIBERACION ── --}}
-                                                    @if (in_array(Auth::user()->perfil, [3, 4, "3", "4"]) &&
+                                                    @if (in_array(Auth::user()->perfil, [1, 3, 4, "1", "3", "4"]) &&
                                                         $estado === "activa" &&
                                                         !$isQualityFinalized)
                                                         <div
@@ -2943,7 +2943,7 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                                                                 </div>
                                                             @endif
                                                         </div>
-                                                    @elseif (in_array(Auth::user()->perfil, [3, 4, "3", "4"]) &&
+                                                    @elseif (in_array(Auth::user()->perfil, [1, 3, 4, "1", "3", "4"]) &&
                                                         $isQualityFinalized)
                                                         @php
                                                             $libStatusClean = str_replace(

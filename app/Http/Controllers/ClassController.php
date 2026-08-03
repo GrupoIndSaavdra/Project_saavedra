@@ -149,7 +149,7 @@ class ClassController extends Controller
         $class = Clase::query()->find($idClass, ['*']);
         $workOrder = Orden_trabajo::query()->find($class->id_ot, ['*']);
 
-        if (auth()->user()->perfil != 5 && $request->input('from_almacen') != 1) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 5]) && $request->input('from_almacen') != 1) {
             $class->pedido = $request->input('order');
             $class->piezas = $request->input('pieces');
             $class->fecha_inicio = $request->input('start_date');
@@ -295,7 +295,7 @@ class ClassController extends Controller
                 break;
         }
 
-        if (auth()->user()->perfil != 5) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 5])) {
             //Inicializar los campos de los procesos en 0
             $process->id_clase = $class->id;
             $fields = [
@@ -328,8 +328,8 @@ class ClassController extends Controller
                 $process->$field = 0;
             }
         }
-        if ($dataProcess !== null || auth()->user()->perfil == 5) {
-            if (auth()->user()->perfil == 5) {
+        if ($dataProcess !== null || in_array(auth()->user()->perfil, [1, 3, 5])) {
+            if (in_array(auth()->user()->perfil, [1, 3, 5])) {
                 //Asignar los procesos a la clase
                 $noProcess = 0;
                 $processFounded = Procesos::query()->where('id_clase', '=', $class->id, 'and')->first();

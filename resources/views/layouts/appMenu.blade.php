@@ -59,7 +59,7 @@
                     <ul class="nav-list"></ul>
                     @php
                         // Si tiene sesión temporal Y NO ES perfil 1 (Admin/Sistemas) ni 6 (Gerencia) ni 8 (Calidad/Ingeniería), se recorta su menú
-                        $isPtaTemp = session('pta_temp_auth') && !in_array(auth()->user()->perfil, ['1', '6', '8']);
+                        $isPtaTemp = session('pta_temp_auth') && !in_array(auth()->user()->perfil, ['1', '3', '6', '8']);
                     @endphp
 
                     @if($isPtaTemp)
@@ -128,8 +128,8 @@
 </script>
 @isset($pieces_Released)
     <script>
-        window.pieces_Released = [4].includes({{ auth()->user()->perfil }}) ? @json($pieces_Released) : [];
-        window.info_Pieces = [4].includes({{ auth()->user()->perfil }}) ? @json($info_Pieces) : [];
+        window.pieces_Released = [1, 3, 4].includes({{ auth()->user()->perfil }}) ? @json($pieces_Released) : [];
+        window.info_Pieces = [1, 3, 4].includes({{ auth()->user()->perfil }}) ? @json($info_Pieces) : [];
     </script>
 @endisset
 
