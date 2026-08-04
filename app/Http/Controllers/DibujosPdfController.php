@@ -36,13 +36,18 @@ class DibujosPdfController extends Controller
         $estructura = $this->buildStructure();
 
         // Cargamos SOLO las OTs que tienen al menos una Clase NO finalizada (activas)
-        $todasLasOTs = Orden_trabajo::query()->with([
-            'moldura',
-            'clases' => fn($q) => $q->where('finalizada', 0)->orderBy('nombre'),
-        ])
-        ->whereHas('clases', fn($q) => $q->where('finalizada', 0))
-        ->orderBy('id', 'asc')
-        ->get();
+        try {
+            $todasLasOTs = Orden_trabajo::query()->with([
+                'moldura',
+                'clases' => fn($q) => $q->where('finalizada', 0)->orderBy('nombre'),
+            ])
+            ->whereHas('clases', fn($q) => $q->where('finalizada', 0))
+            ->orderBy('id', 'asc')
+            ->get();
+        } catch (\Throwable $dbe) {
+            Log::warning('Error DB en DibujosPdfController@showManage (Orden_trabajo): ' . $dbe->getMessage());
+            $todasLasOTs = collect();
+        }
 
         // ── Selección activa (via query string: ?ot_id=X&clase_id=Y) ──
         $otSeleccionadaId    = $request->query('ot_id');
@@ -129,18 +134,28 @@ class DibujosPdfController extends Controller
 
             if ($clase === 'null' || $clase === '--') $clase = '';
 
-            $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
-            if ($otModel) {
-                $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-                $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
-            } else {
-                $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
+            $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
+            if (is_numeric($rawOt)) {
+                try {
+                    $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+                    if ($otModel) {
+                        $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+                        $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+                    }
+                } catch (\Throwable $dbe) {
+                    Log::warning("Error DB en DibujosPdfController@getFiles: " . $dbe->getMessage());
+                }
             }
 
-            $newClasePath = Storage::disk('local')->path(self::BASE_DIR . '/' . $ot . '/' . $clase);
-            $oldClasePath = Storage::disk('local')->path(self::OLD_BASE_DIR . '/' . $ot . '/' . $clase);
-            $newRootPath = Storage::disk('local')->path(self::BASE_DIR . '/' . $ot);
-            $oldRootPath = Storage::disk('local')->path(self::OLD_BASE_DIR . '/' . $ot);
+            $newClasePathRel = $this->resolveCaseInsensitivePath(self::BASE_DIR . '/' . $ot . '/' . $clase);
+            $oldClasePathRel = $this->resolveCaseInsensitivePath(self::OLD_BASE_DIR . '/' . $ot . '/' . $clase);
+            $newRootPathRel  = $this->resolveCaseInsensitivePath(self::BASE_DIR . '/' . $ot);
+            $oldRootPathRel  = $this->resolveCaseInsensitivePath(self::OLD_BASE_DIR . '/' . $ot);
+
+            $newClasePath = Storage::disk('local')->path($newClasePathRel);
+            $oldClasePath = Storage::disk('local')->path($oldClasePathRel);
+            $newRootPath  = Storage::disk('local')->path($newRootPathRel);
+            $oldRootPath  = Storage::disk('local')->path($oldRootPathRel);
 
             $files = [];
 
@@ -202,46 +217,56 @@ class DibujosPdfController extends Controller
     public function serveFile(Request $request): BinaryFileResponse
     {
         $rawOt = $request->query('ot', '');
-        $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
-        if ($otModel) {
-            $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-            $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
-        } else {
-            $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
+        $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
+        if (is_numeric($rawOt)) {
+            try {
+                $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+                if ($otModel) {
+                    $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+                    $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+                }
+            } catch (\Throwable $dbe) {
+                Log::warning("Error DB en DibujosPdfController@serveFile: " . $dbe->getMessage());
+            }
         }
+
         $clase   = $this->sanitizePath($request->query('clase', ''));
         $archivo = $this->sanitizeFileName($request->query('archivo', ''));
 
-        if (empty($ot) || empty($clase) || empty($archivo)) {
+        if (empty($ot) || empty($archivo)) {
             abort(422, 'Parámetros inválidos.');
         }
 
-        if ($clase === '--') {
-            $dirPath = self::BASE_DIR . '/' . $ot;
-            if (!Storage::disk('local')->exists($dirPath)) {
-                $dirPath = self::OLD_BASE_DIR . '/' . $ot;
-            }
+        if ($clase === '--' || empty($clase)) {
+            $candidateDirs = [
+                self::BASE_DIR . '/' . $ot,
+                self::OLD_BASE_DIR . '/' . $ot
+            ];
         } else {
-            $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
-            if (!Storage::disk('local')->exists($dirPath)) {
-                $dirPath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
-            }
+            $candidateDirs = [
+                self::BASE_DIR . '/' . $ot . '/' . $clase,
+                self::OLD_BASE_DIR . '/' . $ot . '/' . $clase,
+                self::BASE_DIR . '/' . $ot,
+                self::OLD_BASE_DIR . '/' . $ot
+            ];
         }
 
-        if (!Storage::disk('local')->exists($dirPath)) {
-            abort(404, 'Archivo no encontrado.');
-        }
-
-        $files = Storage::disk('local')->files($dirPath);
         $foundFile = null;
         $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
-        foreach ($files as $f) {
-            $rawName = basename($f);
-            $utf8Name = $this->toUtf8($rawName);
-            $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
-            if ($utf8NameNorm === $archivoNorm) {
-                $foundFile = $f;
-                break;
+
+        foreach ($candidateDirs as $cand) {
+            $resolvedDir = $this->resolveCaseInsensitivePath($cand);
+            if (Storage::disk('local')->exists($resolvedDir)) {
+                $files = Storage::disk('local')->files($resolvedDir);
+                foreach ($files as $f) {
+                    $rawName = basename($f);
+                    $utf8Name = $this->toUtf8($rawName);
+                    $utf8NameNorm = \Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), \Normalizer::FORM_C);
+                    if ($utf8NameNorm === $archivoNorm) {
+                        $foundFile = $f;
+                        break 2;
+                    }
+                }
             }
         }
 
@@ -755,5 +780,54 @@ class DibujosPdfController extends Controller
         // Eliminar espacios múltiples
         $name = preg_replace('/\s+/', ' ', $name);
         return trim($name);
+    }
+
+    /**
+     * Resuelve una ruta de forma insensible a mayúsculas/minúsculas.
+     * Útil en servidores Linux donde el filesystem es case-sensitive.
+     */
+    private function resolveCaseInsensitivePath(string $path): string
+    {
+        if (Storage::disk('local')->exists($path)) {
+            return $path;
+        }
+
+        $parts = explode('/', str_replace('\\', '/', $path));
+        $resolved = '';
+
+        foreach ($parts as $part) {
+            if ($part === '') continue;
+
+            $exactPath = $resolved ? $resolved . '/' . $part : $part;
+            if (Storage::disk('local')->exists($exactPath)) {
+                $resolved = $exactPath;
+                continue;
+            }
+
+            $currentSearch = $resolved ?: '.';
+            if (!Storage::disk('local')->exists($currentSearch)) {
+                $resolved = $exactPath;
+                continue;
+            }
+
+            $subdirs = Storage::disk('local')->directories($currentSearch);
+            $found = false;
+            $partNorm = mb_strtolower($part, 'UTF-8');
+
+            foreach ($subdirs as $subdir) {
+                $base = basename($subdir);
+                if (mb_strtolower($base, 'UTF-8') === $partNorm) {
+                    $resolved = $resolved ? $resolved . '/' . $base : $base;
+                    $found = true;
+                    break;
+                }
+            }
+
+            if (!$found) {
+                $resolved = $exactPath;
+            }
+        }
+
+        return $resolved;
     }
 }

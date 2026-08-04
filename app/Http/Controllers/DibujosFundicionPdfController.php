@@ -44,10 +44,15 @@ class DibujosFundicionPdfController extends Controller
         $estructura = $this->buildStructure();
 
         // OTs activas (que tienen al menos una clase NO finalizada)
-        $todasLasOTs = Orden_trabajo::with('moldura')
-            ->whereHas('clases', fn($q) => $q->where('finalizada', '=', 0, 'and'))
-            ->orderBy('id', 'asc')
-            ->get();
+        try {
+            $todasLasOTs = Orden_trabajo::with('moldura')
+                ->whereHas('clases', fn($q) => $q->where('finalizada', '=', 0))
+                ->orderBy('id', 'asc')
+                ->get();
+        } catch (\Throwable $dbe) {
+            Log::warning('Error DB en showManage (Orden_trabajo): ' . $dbe->getMessage());
+            $todasLasOTs = collect();
+        }
 
         $otSeleccionadaId = $request->query('ot_id');
         $claseSeleccionadaId = $request->query('clase_id');
@@ -107,8 +112,12 @@ class DibujosFundicionPdfController extends Controller
             $otFolderNameRaw = "OT " . $otActiva->id . ($otActiva->moldura ? " - " . $otActiva->moldura->nombre : "");
             $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderNameRaw));
 
-            $history = FundicionHistory::where('ot', '=', $otFolderName, 'and')->first();
-            $ayudasSeleccionadas = $history ? ($history->ayudas_config ?? []) : [];
+            try {
+                $history = FundicionHistory::where('ot', '=', $otFolderName)->first();
+                $ayudasSeleccionadas = $history ? ($history->ayudas_config ?? []) : [];
+            } catch (\Throwable $dbe) {
+                Log::warning('Error DB en showManage (history): ' . $dbe->getMessage());
+            }
 
             // 1. Verificar dibujos principales
             $newPath = self::BASE_DIR . '/' . $otFolderName;
@@ -163,10 +172,14 @@ class DibujosFundicionPdfController extends Controller
             }
         }
 
-        $todasLasClases = Clase::all();
-
-        // Consolidar historiales (agrupar por nombre normalizado para evitar duplicidades por guiones)
-        $historialesRaw = FundicionHistory::all();
+        try {
+            $todasLasClases = Clase::all();
+            $historialesRaw = FundicionHistory::all();
+        } catch (\Throwable $dbe) {
+            Log::warning('Error DB en showManage (Clase/FundicionHistory): ' . $dbe->getMessage());
+            $todasLasClases = collect();
+            $historialesRaw = collect();
+        }
         $historiales = [];
         $alertasEnviadas = [];
         
@@ -299,8 +312,13 @@ class DibujosFundicionPdfController extends Controller
             }
 
             // 3. Ayudas Visuales vinculadas
-            $history = FundicionHistory::where('ot', '=', $otNorm, 'and')->first();
-            $ayudas = $history ? ($history->ayudas_config ?? []) : [];
+            $ayudas = [];
+            try {
+                $history = FundicionHistory::where('ot', '=', $otNorm)->first();
+                $ayudas = $history ? ($history->ayudas_config ?? []) : [];
+            } catch (\Throwable $dbe) {
+                Log::warning('Error DB en getTotalFiles (ayudas): ' . $dbe->getMessage());
+            }
             
             if (is_array($ayudas)) {
                 $newBase = 'DOCUMENTACION_GIS/AYUDAS_FUNDICION';
@@ -362,21 +380,31 @@ class DibujosFundicionPdfController extends Controller
 
             if ($clase === 'null' || $clase === '--') $clase = '';
 
-            $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
-            if ($otModel) {
-                $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-                $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
-            } else {
-                $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
+            $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
+            if (is_numeric($rawOt)) {
+                try {
+                    $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+                    if ($otModel) {
+                        $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+                        $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+                    }
+                } catch (\Throwable $dbe) {
+                    Log::warning("Error DB en DibujosFundicionPdfController@getFiles: " . $dbe->getMessage());
+                }
             }
 
-            // 1. Directorios de Clase (Nuevo esquema)
-            $newClasePath = Storage::disk('local')->path(self::BASE_DIR . '/' . $ot . '/' . $clase);
-            $oldClasePath = Storage::disk('local')->path(self::OLD_BASE_DIR . '/' . $ot . '/' . $clase);
+            // 1. Directorios de Clase (Nuevo esquema insensible a mayúsculas/minúsculas)
+            $newClasePathRel = $this->resolveCaseInsensitivePath(self::BASE_DIR . '/' . $ot . '/' . $clase);
+            $oldClasePathRel = $this->resolveCaseInsensitivePath(self::OLD_BASE_DIR . '/' . $ot . '/' . $clase);
 
             // 2. Directorios Raíz (Esquema anterior/legado)
-            $newRootPath = Storage::disk('local')->path(self::BASE_DIR . '/' . $ot);
-            $oldRootPath = Storage::disk('local')->path(self::OLD_BASE_DIR . '/' . $ot);
+            $newRootPathRel = $this->resolveCaseInsensitivePath(self::BASE_DIR . '/' . $ot);
+            $oldRootPathRel = $this->resolveCaseInsensitivePath(self::OLD_BASE_DIR . '/' . $ot);
+
+            $newClasePath = Storage::disk('local')->path($newClasePathRel);
+            $oldClasePath = Storage::disk('local')->path($oldClasePathRel);
+            $newRootPath = Storage::disk('local')->path($newRootPathRel);
+            $oldRootPath = Storage::disk('local')->path($oldRootPathRel);
 
             $files = [];
 
@@ -393,7 +421,7 @@ class DibujosFundicionPdfController extends Controller
             $files = array_merge($files, $rootFilesNew, $rootFilesOld);
 
             $allFiles = collect($files)
-                ->map(function ($f) use ($ot, $clase, $newClasePath, $oldClasePath, $newRootPath, $oldRootPath) {
+                ->map(function ($f) use ($ot, $clase, $newRootPath, $oldRootPath) {
                     $rawName = basename($f);
                     $utf8Name = $this->toUtf8($rawName);
                     $fullPath = $f;
@@ -445,52 +473,55 @@ class DibujosFundicionPdfController extends Controller
             abort(422, 'Parámetros inválidos.');
         }
 
-        $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
-        if ($otModel) {
-            $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
-            $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
-        } else {
-            $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
+        $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
+        if (is_numeric($rawOt)) {
+            try {
+                $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+                if ($otModel) {
+                    $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
+                    $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+                }
+            } catch (\Throwable $dbe) {
+                Log::warning("Error DB en DibujosFundicionPdfController@serveFile: " . $dbe->getMessage());
+            }
         }
 
-        // Si la clase es '--', buscamos en la raíz de la OT
         if ($clase === '--' || empty($clase)) {
-            $dirPath = self::BASE_DIR . '/' . $ot;
-            if (!Storage::disk('local')->exists($dirPath)) {
-                $dirPath = self::OLD_BASE_DIR . '/' . $ot;
-            }
+            $candidateDirs = [
+                self::BASE_DIR . '/' . $ot,
+                self::OLD_BASE_DIR . '/' . $ot
+            ];
         } else {
-            $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
-            if (!Storage::disk('local')->exists($dirPath)) {
-                $dirPath = self::OLD_BASE_DIR . '/' . $ot . '/' . $clase;
-            }
+            $candidateDirs = [
+                self::BASE_DIR . '/' . $ot . '/' . $clase,
+                self::OLD_BASE_DIR . '/' . $ot . '/' . $clase,
+                self::BASE_DIR . '/' . $ot,
+                self::OLD_BASE_DIR . '/' . $ot
+            ];
         }
 
-        $dirPath = $this->resolveCaseInsensitivePath($dirPath);
-
-        if (!Storage::disk('local')->exists($dirPath)) {
-            Log::warning("Directorio no encontrado en Fundicion (Dibujos). OT solicitada: {$ot}, Clase: {$clase}. Directorio esperado: {$dirPath}");
-            abort(404, 'Archivo no encontrado.');
-        }
-
-        $files = Storage::disk('local')->files($dirPath);
         $foundFile = null;
-
         $archivoNorm = Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), Normalizer::FORM_C);
 
-        foreach ($files as $f) {
-            $rawName = basename($f);
-            $utf8Name = $this->toUtf8($rawName);
-            $utf8NameNorm = Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), Normalizer::FORM_C);
+        foreach ($candidateDirs as $cand) {
+            $resolvedDir = $this->resolveCaseInsensitivePath($cand);
+            if (Storage::disk('local')->exists($resolvedDir)) {
+                $files = Storage::disk('local')->files($resolvedDir);
+                foreach ($files as $f) {
+                    $rawName = basename($f);
+                    $utf8Name = $this->toUtf8($rawName);
+                    $utf8NameNorm = Normalizer::normalize(mb_strtolower($utf8Name, 'UTF-8'), Normalizer::FORM_C);
 
-            if ($utf8NameNorm === $archivoNorm) {
-                $foundFile = $f;
-                break;
+                    if ($utf8NameNorm === $archivoNorm) {
+                        $foundFile = $f;
+                        break 2;
+                    }
+                }
             }
         }
 
         if (!$foundFile) {
-            Log::warning("Archivo no encontrado en Fundicion (Dibujos). OT: {$ot}, Archivo buscado: {$archivo}, dentro del directorio: {$dirPath}");
+            Log::warning("Archivo no encontrado en Fundicion (Dibujos). OT: {$ot}, Archivo buscado: {$archivo}, Clase: {$clase}");
             abort(404, 'Archivo no encontrado.');
         }
 
