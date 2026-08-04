@@ -3240,7 +3240,7 @@
         window.almacenAppAssets = {
             liberar: "{{ asset('images/Liberar.png') }}",
             descarga: "{{ asset('images/Descarga.png') }}",
-            aprobado: "{{ asset('images/aprobado.png') }}",
+            aprobado: "{{ asset('images/Aprobado.png') }}",
             rechazado: "{{ asset('images/Rechazado.png') }}",
             recibido: "{{ asset('images/Recibido.png') }}",
             guardado: "{{ asset('images/Guardado.png') }}",
