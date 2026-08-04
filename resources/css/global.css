@@ -1,4 +1,4 @@
-﻿/* =============================================================================
+/* =============================================================================
    GLOBAL.CSS — Grupo Industrial Saavedra
    Base universal: paleta GIS, fuente Poppins, reset y clases utilitarias.
    IMPORTAR en appMenu.css (layout raíz). No modificar colores sin autorización.
@@ -206,6 +206,7 @@
 ::-webkit-scrollbar-thumb:hover { background: rgba(3, 57, 102, 0.6); }
 
 /* ── Utilidades de visibilidad (para JS) ─────────────────────────────────────── */
+[hidden] { display: none !important; }
 .hidden { display: none !important; }
 .visible { display: block !important; }
 .flex-visible { display: flex !important; }

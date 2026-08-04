@@ -2175,31 +2175,27 @@
                                                                                     @if ($castingEmailSent)
                                                                                         {{-- Controles ocultos tras finalizar el proceso --}}
                                                                                     @elseif ($hasCastingPre)
-                                                                                        <button class="btn-modelo btn-modelo-si"
-                                                                                            onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')"
-                                                                                            class="alm-bg-success-white">
+                                                                                        <button class="btn-modelo btn-modelo-si alm-bg-success-white"
+                                                                                            onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')">
                                                                                             <img src="{{ asset('images/editar-informacion.png') }}"
                                                                                                 alt="Editar">
                                                                                             <span>Editar Pre-orden</span>
                                                                                         </button>
-                                                                                        <button class="btn-modelo btn-modelo-email"
-                                                                                            onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'casting')"
-                                                                                            class="alm-display-flex alm-background-color-033966 alm-color-white">
+                                                                                        <button class="btn-modelo btn-modelo-email alm-display-flex alm-background-color-033966 alm-color-white"
+                                                                                            onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'casting')">
                                                                                             <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
                                                                                             <span>Enviar Correo</span>
                                                                                         </button>
                                                                                     @elseif ($reg->casting_pdf_generated)
-                                                                                        <button class="btn-modelo btn-modelo-si"
-                                                                                            onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')"
-                                                                                            class="alm-bg-success-white">
+                                                                                        <button class="btn-modelo btn-modelo-si alm-bg-success-white"
+                                                                                            onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')">
                                                                                             <img src="{{ asset('images/almacen.png') }}" alt="Preorden"
                                                                                                 class="alm-width-16px alm-height-16px alm-filter-brightness-0-invert-1">
                                                                                             <span>Preorden de Casting</span>
                                                                                         </button>
                                                                                     @else
-                                                                                        <button class="btn-modelo btn-modelo-si"
-                                                                                            onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($aprobados) }}, [])"
-                                                                                            class="alm-bg-success-white">
+                                                                                        <button class="btn-modelo btn-modelo-si alm-bg-success-white"
+                                                                                            onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($aprobados) }}, [])">
                                                                                             <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
                                                                                             <span>Procesar Aceptados</span>
                                                                                         </button>
@@ -2533,228 +2529,7 @@
         </div>
     </div>
 
-    <div id="modalPreOrdenCasting" class="alm-modal" role="dialog" aria-modal="true">
-        <div class="alm-modal-content alm-max-width-1800px alm-width-95vw alm-border-radius-20px alm-overflow-hidden alm-border-1-5px-solid-0284c7">
-            <div class="alm-modal-header alm-background-linear-gradient-135deg-0369a1-0284c7 alm-padding-2-2em-2-5em-1-5em alm-position-relative">
-                <div class="div-cerrar">
-                    <button type="button" class="btn-cerrar" onclick="cerrarModalPreOrdenCasting()">
-                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
-                    </button>
-                </div>
-                <h3 class="alm-font-size-2em alm-margin-0 alm-font-family-Poppins-sans-serif alm-font-weight-700 alm-color-fff">
-                    Pre-Orden de Fabricación de Casting (4ALM-17)</h3>
-                <p id="poc-modal-subtitle" class="lib-modal-subtitle alm-color-bae6fd alm-font-size-1-15em alm-margin-top-8px alm-margin-bottom-0 alm-font-family-Poppins-sans-serif alm-font-weight-500">
-                </p>
-
-                <div
-                    class="alm-display-flex alm-gap-10px alm-margin-top-25px alm-border-bottom-2px-solid-rgba-255-255-255-0-2 alm-padding-bottom-0 alm-align-items-center">
-                    <button type="button" id="tab-poc-page-1" class="btn-po-tab active alm-border-none alm-padding-12px-25px alm-border-top-left-radius-12px alm-border-top-right-radius-12px alm-font-family-Poppins-sans-serif alm-font-weight-600 alm-font-size-1-05em alm-cursor-pointer alm-transition-all-0-2s-ease">
-                        Proveedor 1
-                    </button>
-                    <button type="button" id="tab-poc-page-2" class="btn-po-tab alm-display-none alm-border-none alm-padding-12px-25px alm-border-top-left-radius-12px alm-border-top-right-radius-12px alm-font-family-Poppins-sans-serif alm-font-weight-600 alm-font-size-1-05em alm-cursor-pointer alm-transition-all-0-2s-ease">
-                        Proveedor 2
-                    </button>
-
-                    <button type="button" id="btn-add-poc-page-2" class="btns btn-add-tab alm-display-flex alm-align-items-center alm-gap-6px alm-padding-8px-16px alm-background-rgba-255-255-255-0-15 alm-border-1-5px-dashed-rgba-255-255-255-0-5 alm-border-radius-8px alm-color-white alm-cursor-pointer alm-font-family-Poppins-sans-serif alm-font-size-0-9em alm-font-weight-500 alm-transition-all-0-2s-ease alm-margin-left-15px alm-height-auto">
-                        <img src="{{ asset('images/anadir.png') }}"
-                            class="alm-width-14px alm-height-14px alm-filter-brightness-0-invert-1" alt=""> Agregar Proveedor 2
-                    </button>
-                    <button type="button" id="btn-remove-poc-page-2" class="btns btn-remove-tab alm-display-none alm-align-items-center alm-gap-6px alm-padding-8px-16px alm-background-dc2626 alm-border-1-5px-solid-b91c1c alm-border-radius-8px alm-color-ffffff alm-cursor-pointer alm-font-family-Poppins-sans-serif alm-font-size-0-9em alm-font-weight-500 alm-transition-all-0-2s-ease alm-margin-left-15px alm-height-auto">
-                        Remover Proveedor 2
-                    </button>
-                </div>
-            </div>
-
-            <div class="alm-modal-body alm-padding-2-5em alm-background-fafafa alm-font-family-Poppins-sans-serif">
-                <form id="formPreOrdenCasting" novalidate autocomplete="off">
-                    @csrf
-                    <input type="hidden" id="poc-has-page2" name="has_page2" value="0">
-
-
-                    <div id="poc-page-1" class="poc-page">
-                        <div class="form-grid alm-display-grid alm-grid-template-columns-repeat-auto-fit-minmax-220px-1fr alm-gap-20px alm-margin-bottom-25px">
-                            <div class="form-group">
-                                <label for="poc-p1-proveedor"
-                                    class="alm-stat-title">Proveedor <span class="alm-text-danger">*</span>:</label>
-                                <select id="poc-p1-proveedor" name="page1_proveedor" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em">
-                                    <option value="" disabled selected>-- Selecciona un proveedor --</option>
-                                    <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de C. V.</option>
-                                    <option value="SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS">SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="poc-p1-fecha"
-                                    class="alm-stat-title">Fecha:</label>
-                                <input type="date" id="poc-p1-fecha" name="page1_fecha" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9">
-                            </div>
-                            <div class="form-group">
-                                <label for="poc-p1-folio"
-                                    class="alm-stat-title">Folio:</label>
-                                <input type="text" id="poc-p1-folio" name="page1_folio" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9 alm-font-weight-bold alm-color-0369a1">
-                            </div>
-                            <div class="form-group">
-                                <label for="poc-p1-moldura"
-                                    class="alm-stat-title">Moldura:</label>
-                                <input type="text" id="poc-p1-moldura" name="page1_moldura" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9">
-                            </div>
-                            <div class="form-group">
-                                <label for="poc-p1-ot"
-                                    class="alm-stat-title">Orden
-                                    de Trabajo:</label>
-                                <input type="text" id="poc-p1-ot" name="page1_ot" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9">
-                            </div>
-                            <div class="form-group">
-                                <label for="poc-p1-fecha-entrega"
-                                    class="alm-stat-title">Fecha
-                                    Entrega <span class="alm-text-danger">*</span>:</label>
-                                <input type="date" id="poc-p1-fecha-entrega" name="page1_fecha_entrega" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em">
-                            </div>
-                        </div>
-
-                        <div class="modal-table-container alm-overflow-x-auto alm-background-fff alm-border-1px-solid-e2e8f0 alm-border-radius-14px alm-padding-20px alm-box-shadow-0-1px-3px-rgba-0-0-0-0-05">
-                            <table class="modal-table alm-width-100pct alm-border-collapse-collapse alm-text-align-left">
-                                <thead>
-                                    <tr
-                                        class="alm-border-bottom-2px-solid-cbd5e1 alm-color-475569 alm-font-weight-700 alm-font-size-0-95em">
-                                        <th class="alm-th-12">Tipo
-                                            de Modelo <span class="alm-text-danger">*</span></th>
-                                        <th class="alm-th-8">Cant.
-                                            Fabricar <span class="alm-text-danger">*</span></th>
-                                        <th class="alm-th-8">Cant.
-                                            Consign. <span class="alm-text-danger">*</span></th>
-                                        <th class="alm-padding-12px-10px alm-width-15pct alm-font-family-Poppins-sans-serif">
-                                            Descripción <span class="alm-text-danger">*</span></th>
-                                        <th class="alm-padding-12px-10px alm-width-14pct alm-font-family-Poppins-sans-serif">
-                                            Material <span class="alm-text-danger">*</span></th>
-                                        <th class="alm-th-12">
-                                            Código de Modelo <span class="alm-text-danger">*</span></th>
-                                        <th class="alm-th-7">Peso
-                                            Juego (KG) </th>
-                                        <th class="alm-th-7">Peso
-                                            Total (KG) </th>
-                                        <th class="alm-th-12">Fecha
-                                            Entrega <span class="alm-text-danger">*</span></th>
-                                        <th
-                                            class="alm-padding-12px-10px alm-width-5pct alm-text-align-center alm-font-family-Poppins-sans-serif">
-                                            Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="alm-tbody-poc-p1">
-
-                                </tbody>
-                            </table>
-                            <div class="alm-margin-top-15px alm-text-align-center">
-                                <button type="button" class="btn-img-action alm-border-none alm-background-none alm-cursor-pointer alm-padding-5px alm-outline-none alm-transition-transform-0-2s-ease">
-                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir"
-                                        class="alm-width-38px alm-height-38px">
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="form-group alm-margin-top-25px">
-                            <label for="poc-p1-observaciones"
-                                class="alm-stat-title">Observaciones:</label>
-                            <textarea id="poc-p1-observaciones" name="page1_observaciones" class="form-control alm-border-radius-10px alm-padding-14px alm-font-family-Poppins-sans-serif alm-font-size-1em alm-width-100pct alm-box-sizing-border-box alm-border-1-5px-solid-cbd5e1"></textarea>
-                        </div>
-                    </div>
-
-
-                    <div id="poc-page-2" class="poc-page alm-display-none">
-                        <div class="form-grid alm-display-grid alm-grid-template-columns-repeat-auto-fit-minmax-220px-1fr alm-gap-20px alm-margin-bottom-25px">
-                            <div class="form-group">
-                                <label for="poc-p2-proveedor"
-                                    class="alm-stat-title">Proveedor <span class="alm-text-danger">*</span>:</label>
-                                <select id="poc-p2-proveedor" name="page2_proveedor" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em">
-                                    <option value="" disabled selected>-- Selecciona un proveedor --</option>
-                                    <option value="SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS">SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS</option>
-                                    <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de C. V.</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="poc-p2-fecha"
-                                    class="alm-stat-title">Fecha:</label>
-                                <input type="date" id="poc-p2-fecha" name="page2_fecha" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9">
-                            </div>
-                            <div class="form-group">
-                                <label for="poc-p2-folio"
-                                    class="alm-stat-title">Folio:</label>
-                                <input type="text" id="poc-p2-folio" name="page2_folio" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9 alm-font-weight-bold alm-color-0369a1">
-                            </div>
-                            <div class="form-group">
-                                <label for="poc-p2-moldura"
-                                    class="alm-stat-title">Moldura:</label>
-                                <input type="text" id="poc-p2-moldura" name="page2_moldura" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9">
-                            </div>
-                            <div class="form-group">
-                                <label for="poc-p2-ot"
-                                    class="alm-stat-title">Orden
-                                    de Trabajo:</label>
-                                <input type="text" id="poc-p2-ot" name="page2_ot" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-background-f1f5f9">
-                            </div>
-                            <div class="form-group">
-                                <label for="poc-p2-fecha-entrega"
-                                    class="alm-stat-title">Fecha
-                                    Entrega <span class="alm-text-danger">*</span>:</label>
-                                <input type="date" id="poc-p2-fecha-entrega" name="page2_fecha_entrega" class="form-control alm-height-auto alm-padding-12px-16px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-size-1-05em">
-                            </div>
-                        </div>
-
-                        <div class="modal-table-container alm-overflow-x-auto alm-background-fff alm-border-1px-solid-e2e8f0 alm-border-radius-14px alm-padding-20px alm-box-shadow-0-1px-3px-rgba-0-0-0-0-05">
-                            <table class="modal-table alm-width-100pct alm-border-collapse-collapse alm-text-align-left">
-                                <thead>
-                                    <tr
-                                        class="alm-border-bottom-2px-solid-cbd5e1 alm-color-475569 alm-font-weight-700 alm-font-size-0-95em">
-                                        <th class="alm-th-12">Tipo
-                                            de Modelo <span class="alm-text-danger">*</span></th>
-                                        <th class="alm-th-8">Cant.
-                                            Fabricar <span class="alm-text-danger">*</span></th>
-                                        <th class="alm-th-8">Cant.
-                                            Consign. <span class="alm-text-danger">*</span></th>
-                                        <th class="alm-padding-12px-10px alm-width-15pct alm-font-family-Poppins-sans-serif">
-                                            Descripción <span class="alm-text-danger">*</span></th>
-                                        <th class="alm-padding-12px-10px alm-width-14pct alm-font-family-Poppins-sans-serif">
-                                            Material <span class="alm-text-danger">*</span></th>
-                                        <th class="alm-th-12">
-                                            Código de Modelo <span class="alm-text-danger">*</span></th>
-                                        <th class="alm-th-7">Peso
-                                            Juego (KG) </th>
-                                        <th class="alm-th-7">Peso
-                                            Total (KG) </th>
-                                        <th class="alm-th-12">Fecha
-                                            Entrega <span class="alm-text-danger">*</span></th>
-                                        <th
-                                            class="alm-padding-12px-10px alm-width-5pct alm-text-align-center alm-font-family-Poppins-sans-serif">
-                                            Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="alm-tbody-poc-p2">
-
-                                </tbody>
-                            </table>
-                            <div class="alm-margin-top-15px alm-text-align-center">
-                                <button type="button" class="btn-img-action alm-border-none alm-background-none alm-cursor-pointer alm-padding-5px alm-outline-none alm-transition-transform-0-2s-ease">
-                                    <img src="{{ asset('images/anadir.png') }}" alt="Añadir"
-                                        class="alm-width-38px alm-height-38px">
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="form-group alm-margin-top-25px">
-                            <label for="poc-p2-observaciones"
-                                class="alm-stat-title">Observaciones:</label>
-                            <textarea id="poc-p2-observaciones" name="page2_observaciones" class="form-control alm-border-radius-10px alm-padding-14px alm-font-family-Poppins-sans-serif alm-font-size-1em alm-width-100pct alm-box-sizing-border-box alm-border-1-5px-solid-cbd5e1"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="form-actions alm-margin-top-35px alm-text-align-center">
-                        <button type="submit" class="btn-save-preorden alm-font-size-1-2em alm-padding-15px-35px alm-border-radius-10px alm-font-family-Poppins-sans-serif alm-font-weight-700 alm-background-linear-gradient-135deg-0369a1-0284c7 alm-border-none alm-color-white alm-cursor-pointer alm-transition-all-0-2s-ease alm-box-shadow-0-4px-15px-rgba-3-105-161-0-3 alm-height-auto">
-                            Guardar y Descargar Pre-Orden de Casting
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    @include('almacen.partials._modal_preorden_casting')
 
     <div id="modalEnviarPreOrden" class="alm-modal">
         <div class="alm-modal-content alm-max-width-1100px">

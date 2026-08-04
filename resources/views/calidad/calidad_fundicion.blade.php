@@ -5,26 +5,26 @@
         $perfil = Auth::user()->perfil;
         $deptName =
             $perfil == 1 || $perfil == 2
-                ? "Administración"
-                : ($perfil == 3
-                    ? "Master"
-                    : ($perfil == 4
-                        ? "Calidad"
-                        : "Almacén"));
+            ? "Administración"
+            : ($perfil == 3
+                ? "Master"
+                : ($perfil == 4
+                    ? "Calidad"
+                    : "Almacén"));
     @endphp
     <title>Calidad — Dibujos de Fundición | GIS</title>
-    <meta
-        name="description"
-        content="Consulta histórica de dibujos de fundición enviados a Almacén y Calidad. Vista de solo lectura."
-    />
+    <meta name="description"
+        content="Consulta histórica de dibujos de fundición enviados a Almacén y Calidad. Vista de solo lectura." />
     @vite ([
         "resources/css/almacen_views/calidad_fundicion.css",
         "resources/js/almacen_views/calidad_fundicion.js"
     ])
 @endsection
 
-@section ("background-body",
-    'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section (
+    "background-body",
+    'background-image:url("' . asset("images/fondoLogin.jpg") . '")'
+)
 
 @section ("content")
 
@@ -35,28 +35,25 @@
             $perfil = Auth::user()->perfil;
             $deptName =
                 $perfil == 1 || $perfil == 2
-                    ? "Administración"
-                    : ($perfil == 3
-                        ? "Master"
-                        : ($perfil == 4
-                            ? "Calidad"
-                            : "Almacén"));
+                ? "Administración"
+                : ($perfil == 3
+                    ? "Master"
+                    : ($perfil == 4
+                        ? "Calidad"
+                        : "Almacén"));
             $deptIcon = $perfil == 4 || $perfil == 3 ? "Quality.png" : "almacen.png";
         @endphp
 
         <div class="alm-header">
 
             <div class="alm-header-icon">
-                <img
-                    src="{{ asset('images/' . $deptIcon) }}"
-                    alt="{{ $deptName }}"
-                    class="cal-width-90px"
-                />
+                <img src="{{ asset('images/' . $deptIcon) }}" alt="{{ $deptName }}" class="cal-width-90px" />
             </div>
 
             <div class="alm-header-text">
                 <h1>Calidad — Dibujos y Ayudas Visuales de Fundición</h1>
-                <p>Consulta histórica de todos los dibujos y ayudas visuales enviados a Calidad. Registro permanente e inmutable.</p>
+                <p>Consulta histórica de todos los dibujos y ayudas visuales enviados a Calidad. Registro permanente e
+                    inmutable.</p>
             </div>
             <span class="alm-readonly-badge">Solo lectura</span>
         </div>
@@ -69,216 +66,153 @@
 
                 {{-- ── LEYENDA DE ESTADOS DE MODELO ───────────────────────── --}}
 
-                <div class="alm-filters-card cal-margin-bottom-2em cal-background-rgba-255-255-255-0-95 cal-backdrop-filter-blur-10px cal-border-radius-12px cal-box-shadow-0-4px-15px-rgba-0-0-0-0-08 cal-position-relative cal-padding-1-6em"
-                >
+                <div
+                    class="alm-filters-card cal-margin-bottom-2em cal-background-rgba-255-255-255-0-95 cal-backdrop-filter-blur-10px cal-border-radius-12px cal-box-shadow-0-4px-15px-rgba-0-0-0-0-08 cal-position-relative cal-padding-1-6em">
                     <div
-                        class="cal-display-flex cal-align-items-center cal-gap-12px cal-margin-bottom-16px cal-border-bottom-2px-solid-e2e8f0 cal-padding-bottom-12px"
-                    >
-                        <img
-                            src="{{ asset('images/Quality.png') }}"
-                            alt="Leyenda"
-                            class="cal-width-30px cal-height-30px cal-object-fit-contain"
-                        />
-                        <h2
-                            class="cal-margin-0 cal-font-size-1-3rem cal-color-0f172a cal-font-weight-700"
-                        >
+                        class="cal-display-flex cal-align-items-center cal-gap-12px cal-margin-bottom-16px cal-border-bottom-2px-solid-e2e8f0 cal-padding-bottom-12px">
+                        <img src="{{ asset('images/Quality.png') }}" alt="Leyenda"
+                            class="cal-width-30px cal-height-30px cal-object-fit-contain" />
+                        <h2 class="cal-margin-0 cal-font-size-1-3rem cal-color-0f172a cal-font-weight-700">
                             Guía de Estados de Modelo
                         </h2>
                     </div>
                     <h3
-                        class="cal-font-size-0-92rem cal-color-475569 cal-font-weight-700 cal-margin-0-0-10px-0 cal-border-left-4px-solid-94a3b8 cal-padding-left-8px"
-                    >
+                        class="cal-font-size-0-92rem cal-color-475569 cal-font-weight-700 cal-margin-0-0-10px-0 cal-border-left-4px-solid-94a3b8 cal-padding-left-8px">
                         Estados de Transición
                     </h3>
-                    <div class="legend-grid-compact cal-display-flex cal-flex-wrap-wrap cal-justify-content-center cal-gap-8px cal-margin-bottom-20px"
-                    >
-                        <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center"
-                        >
+                    <div
+                        class="legend-grid-compact cal-display-flex cal-flex-wrap-wrap cal-justify-content-center cal-gap-8px cal-margin-bottom-20px">
+                        <div
+                            class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center">
                             <span
-                                class="cal-display-flex cal-background-f1f5f9 cal-border-2px-solid-cbd5e1 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
-                            >
-                                <img
-                                    src="{{ asset('images/Recibido.png') }}"
-                                    class="cal-width-28px cal-height-28px cal-object-fit-contain"
-                                />
+                                class="cal-display-flex cal-background-f1f5f9 cal-border-2px-solid-cbd5e1 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0">
+                                <img src="{{ asset('images/Recibido.png') }}"
+                                    class="cal-width-28px cal-height-28px cal-object-fit-contain" />
                             </span>
                             <span
-                                class="cal-font-size-0-8rem cal-color-475569 cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1"
-                                >Nuevo</span
-                            >
+                                class="cal-font-size-0-8rem cal-color-475569 cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1">Nuevo</span>
                         </div>
-                        <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center"
-                        >
+                        <div
+                            class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center">
                             <span
-                                class="cal-display-flex cal-background-fffbeb cal-border-2px-solid-f59e0b cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
-                            >
-                                <img
-                                    src="{{ asset('images/Revisando.png') }}"
-                                    class="cal-width-28px cal-height-28px cal-object-fit-contain"
-                                />
+                                class="cal-display-flex cal-background-fffbeb cal-border-2px-solid-f59e0b cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0">
+                                <img src="{{ asset('images/Revisando.png') }}"
+                                    class="cal-width-28px cal-height-28px cal-object-fit-contain" />
                             </span>
                             <span
-                                class="cal-font-size-0-8rem cal-color-b45309 cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1"
-                                >En Revisión</span
-                            >
+                                class="cal-font-size-0-8rem cal-color-b45309 cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1">En
+                                Revisión</span>
                         </div>
                     </div>
                     <h3
-                        class="cal-font-size-0-92rem cal-color-0f172a cal-font-weight-700 cal-margin-0-0-10px-0 cal-border-left-4px-solid-3b82f6 cal-padding-left-8px"
-                    >
+                        class="cal-font-size-0-92rem cal-color-0f172a cal-font-weight-700 cal-margin-0-0-10px-0 cal-border-left-4px-solid-3b82f6 cal-padding-left-8px">
                         Estados Prioritarios
                     </h3>
-                    <div class="legend-grid-compact cal-display-flex cal-flex-wrap-wrap cal-justify-content-center cal-gap-8px"
-                    >
-                        <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center"
-                        >
+                    <div
+                        class="legend-grid-compact cal-display-flex cal-flex-wrap-wrap cal-justify-content-center cal-gap-8px">
+                        <div
+                            class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center">
                             <span
-                                class="cal-display-flex cal-background-eff6ff cal-border-2px-solid-60a5fa cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
-                            >
-                                <img
-                                    src="{{ asset('images/pdf-view.png') }}"
-                                    class="cal-width-28px cal-height-28px cal-object-fit-contain"
-                                />
+                                class="cal-display-flex cal-background-eff6ff cal-border-2px-solid-60a5fa cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0">
+                                <img src="{{ asset('images/pdf-view.png') }}"
+                                    class="cal-width-28px cal-height-28px cal-object-fit-contain" />
                             </span>
                             <span
-                                class="cal-font-size-0-8rem cal-color-2563eb cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1"
-                                >Pre-Orden</span
-                            >
+                                class="cal-font-size-0-8rem cal-color-2563eb cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1">Pre-Orden</span>
                         </div>
-                        <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center"
-                        >
+                        <div
+                            class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center">
                             <span
-                                class="cal-display-flex cal-background-f0f9ff cal-border-2px-solid-0ea5e9 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
-                            >
-                                <img
-                                    src="{{ asset('images/Espera.png') }}"
-                                    class="cal-width-28px cal-height-28px cal-object-fit-contain"
-                                />
+                                class="cal-display-flex cal-background-f0f9ff cal-border-2px-solid-0ea5e9 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0">
+                                <img src="{{ asset('images/Espera.png') }}"
+                                    class="cal-width-28px cal-height-28px cal-object-fit-contain" />
                             </span>
                             <span
-                                class="cal-font-size-0-8rem cal-color-0369a1 cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1"
-                                >Tengo Modelo</span
-                            >
+                                class="cal-font-size-0-8rem cal-color-0369a1 cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1">Tengo
+                                Modelo</span>
                         </div>
-                        <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center"
-                        >
+                        <div
+                            class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center">
                             <span
-                                class="cal-display-flex cal-background-ecfdf5 cal-border-2px-solid-10b981 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
-                            >
-                                <img
-                                    src="{{ asset('images/Quality.png') }}"
-                                    class="cal-width-28px cal-height-28px cal-object-fit-contain"
-                                />
+                                class="cal-display-flex cal-background-ecfdf5 cal-border-2px-solid-10b981 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0">
+                                <img src="{{ asset('images/Quality.png') }}"
+                                    class="cal-width-28px cal-height-28px cal-object-fit-contain" />
                             </span>
                             <span
-                                class="cal-font-size-0-8rem cal-color-047857 cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1"
-                                >Aprobado</span
-                            >
+                                class="cal-font-size-0-8rem cal-color-047857 cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1">Aprobado</span>
                         </div>
-                        <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center"
-                        >
+                        <div
+                            class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center">
                             <span
-                                class="cal-display-flex cal-background-fef2f2 cal-border-2px-solid-ef4444 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
-                            >
-                                <img
-                                    src="{{ asset('images/Quality.png') }}"
-                                    class="cal-width-28px cal-height-28px cal-object-fit-contain"
-                                />
+                                class="cal-display-flex cal-background-fef2f2 cal-border-2px-solid-ef4444 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0">
+                                <img src="{{ asset('images/Quality.png') }}"
+                                    class="cal-width-28px cal-height-28px cal-object-fit-contain" />
                             </span>
                             <span
-                                class="cal-font-size-0-8rem cal-color-b91c1c cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1"
-                                >Rechazado</span
-                            >
+                                class="cal-font-size-0-8rem cal-color-b91c1c cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1">Rechazado</span>
                         </div>
-                        <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center"
-                        >
+                        <div
+                            class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center">
                             <span
-                                class="cal-display-flex cal-background-fef9c3 cal-border-2px-solid-eab308 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
-                            >
-                                <img
-                                    src="{{ asset('images/Quality.png') }}"
-                                    class="cal-width-28px cal-height-28px cal-object-fit-contain"
-                                />
+                                class="cal-display-flex cal-background-fef9c3 cal-border-2px-solid-eab308 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0">
+                                <img src="{{ asset('images/Quality.png') }}"
+                                    class="cal-width-28px cal-height-28px cal-object-fit-contain" />
                             </span>
                             <span
-                                class="cal-font-size-0-8rem cal-color-854d0e cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1"
-                                >Mixto</span
-                            >
+                                class="cal-font-size-0-8rem cal-color-854d0e cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1">Mixto</span>
                         </div>
-                        <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center"
-                        >
+                        <div
+                            class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center">
                             <span
-                                class="cal-display-flex cal-background-f0fdf4 cal-border-2px-solid-059669 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
-                            >
-                                <img
-                                    src="{{ asset('images/pdf-view.png') }}"
-                                    class="cal-width-28px cal-height-28px cal-object-fit-contain"
-                                />
+                                class="cal-display-flex cal-background-f0fdf4 cal-border-2px-solid-059669 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0">
+                                <img src="{{ asset('images/pdf-view.png') }}"
+                                    class="cal-width-28px cal-height-28px cal-object-fit-contain" />
                             </span>
                             <span
-                                class="cal-font-size-0-8rem cal-color-15803d cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1"
-                                >Casting</span
-                            >
+                                class="cal-font-size-0-8rem cal-color-15803d cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1">Casting</span>
                         </div>
-                        <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center"
-                        >
+                        <div
+                            class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center">
                             <span
-                                class="cal-display-flex cal-background-fdf2f8 cal-border-2px-solid-ec4899 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
-                            >
-                                <img
-                                    src="{{ asset('images/Reproceso.png') }}"
-                                    class="cal-width-28px cal-height-28px cal-object-fit-contain"
-                                />
+                                class="cal-display-flex cal-background-fdf2f8 cal-border-2px-solid-ec4899 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0">
+                                <img src="{{ asset('images/Reproceso.png') }}"
+                                    class="cal-width-28px cal-height-28px cal-object-fit-contain" />
                             </span>
                             <span
-                                class="cal-font-size-0-8rem cal-color-be185d cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1"
-                                >Reproceso</span
-                            >
+                                class="cal-font-size-0-8rem cal-color-be185d cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1">Reproceso</span>
                         </div>
-                        <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center"
-                        >
+                        <div
+                            class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center">
                             <span
-                                class="cal-display-flex cal-background-f3e8ff cal-border-2px-solid-9333ea cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
-                            >
-                                <img
-                                    src="{{ asset('images/Proveedor.png') }}"
-                                    class="cal-width-28px cal-height-28px cal-object-fit-contain"
-                                />
+                                class="cal-display-flex cal-background-f3e8ff cal-border-2px-solid-9333ea cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0">
+                                <img src="{{ asset('images/Proveedor.png') }}"
+                                    class="cal-width-28px cal-height-28px cal-object-fit-contain" />
                             </span>
                             <span
-                                class="cal-font-size-0-8rem cal-color-9333ea cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1"
-                                >Enviado a Proveedor</span
-                            >
+                                class="cal-font-size-0-8rem cal-color-9333ea cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1">Enviado
+                                a Proveedor</span>
                         </div>
-                        <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center"
-                        >
+                        <div
+                            class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center">
                             <span
-                                class="cal-display-flex cal-background-ecfdf5 cal-border-2px-solid-10b981 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
-                            >
-                                <img
-                                    src="{{ asset('images/Aprobado.png') }}"
-                                    class="cal-width-28px cal-height-28px cal-object-fit-contain"
-                                />
+                                class="cal-display-flex cal-background-ecfdf5 cal-border-2px-solid-10b981 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0">
+                                <img src="{{ asset('images/Aprobado.png') }}"
+                                    class="cal-width-28px cal-height-28px cal-object-fit-contain" />
                             </span>
                             <span
-                                class="cal-font-size-0-8rem cal-color-047857 cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1"
-                                >Aprobado Final</span
-                            >
+                                class="cal-font-size-0-8rem cal-color-047857 cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1">Aprobado
+                                Final</span>
                         </div>
-                        <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center"
-                        >
+                        <div
+                            class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-10px-6px cal-background-f8fafc cal-border-1-5px-solid-e2e8f0 cal-border-radius-8px cal-min-height-102px cal-justify-content-center">
                             <span
-                                class="cal-display-flex cal-background-fef2f2 cal-border-2px-solid-dc2626 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0"
-                            >
-                                <img
-                                    src="{{ asset('images/Rechazado.png') }}"
-                                    class="cal-width-28px cal-height-28px cal-object-fit-contain"
-                                />
+                                class="cal-display-flex cal-background-fef2f2 cal-border-2px-solid-dc2626 cal-align-items-center cal-justify-content-center cal-width-54px cal-height-54px cal-border-radius-50pct cal-box-shadow-0-2px-4px-rgba-0-0-0-0-04 cal-flex-shrink-0">
+                                <img src="{{ asset('images/Rechazado.png') }}"
+                                    class="cal-width-28px cal-height-28px cal-object-fit-contain" />
                             </span>
                             <span
-                                class="cal-font-size-0-8rem cal-color-b91c1c cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1"
-                                >Rechazado Final</span
-                            >
+                                class="cal-font-size-0-8rem cal-color-b91c1c cal-font-weight-700 cal-margin-top-7px cal-text-align-center cal-line-height-1-1">Rechazado
+                                Final</span>
                         </div>
                     </div>
                 </div>
@@ -287,15 +221,18 @@
                         transition: all 0.2s ease-in-out !important;
                         cursor: help;
                     }
+
                     .legend-compact-item:hover {
                         transform: translateY(-2px);
                         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
                     }
+
                     @keyframes almFadeIn {
                         from {
                             opacity: 0;
                             transform: translateY(4px);
                         }
+
                         to {
                             opacity: 1;
                             transform: translateY(0);
@@ -303,24 +240,14 @@
                     }
                 </style>
                 <!-- Zoom Tooltip Flotante (Mercado Libre / Amazon Style) -->
-                <div
-                    id="legend-zoom-tooltip"
-                    class="cal-position-fixed cal-display-none cal-pointer-events-none cal-z-index-99999 cal-background-rgba-255-255-255-0-98 cal-backdrop-filter-blur-10px cal-border-radius-12px cal-box-shadow-0-10px-25px-rgba-0-0-0-0-15 cal-border-3px-solid-cbd5e1 cal-padding-16px cal-width-170px cal-height-180px cal-flex-direction-column cal-align-items-center cal-justify-content-center cal-box-sizing-border-box cal-transition-transform-0-15s-cubic-bezier-0-175-0-885-0-32-1-25-opacity-0-15s-ease cal-opacity-0 cal-transform-scale-0-9 cal-font-family-quot"
-                >
-                    <span
-                        id="legend-zoom-circle"
-                        class="cal-display-flex cal-align-items-center cal-justify-content-center cal-width-90px cal-height-90px cal-border-radius-50pct cal-box-shadow-0-4px-8px-rgba-0-0-0-0-06 cal-flex-shrink-0 cal-border-3px-solid-transparent"
-                    >
-                        <img
-                            id="legend-zoom-img"
-                            src=""
-                            class="cal-width-55px cal-height-55px cal-object-fit-contain"
-                        />
+                <div id="legend-zoom-tooltip"
+                    class="cal-position-fixed cal-display-none cal-pointer-events-none cal-z-index-99999 cal-background-rgba-255-255-255-0-98 cal-backdrop-filter-blur-10px cal-border-radius-12px cal-box-shadow-0-10px-25px-rgba-0-0-0-0-15 cal-border-3px-solid-cbd5e1 cal-padding-16px cal-width-170px cal-height-180px cal-flex-direction-column cal-align-items-center cal-justify-content-center cal-box-sizing-border-box cal-transition-transform-0-15s-cubic-bezier-0-175-0-885-0-32-1-25-opacity-0-15s-ease cal-opacity-0 cal-transform-scale-0-9 cal-font-family-quot">
+                    <span id="legend-zoom-circle"
+                        class="cal-display-flex cal-align-items-center cal-justify-content-center cal-width-90px cal-height-90px cal-border-radius-50pct cal-box-shadow-0-4px-8px-rgba-0-0-0-0-06 cal-flex-shrink-0 cal-border-3px-solid-transparent">
+                        <img id="legend-zoom-img" src="" class="cal-width-55px cal-height-55px cal-object-fit-contain" />
                     </span>
-                    <span
-                        id="legend-zoom-label"
-                        class="cal-font-size-1-08rem cal-font-weight-800 cal-margin-top-10px cal-text-align-center cal-line-height-1-2"
-                    ></span>
+                    <span id="legend-zoom-label"
+                        class="cal-font-size-1-08rem cal-font-weight-800 cal-margin-top-10px cal-text-align-center cal-line-height-1-2"></span>
                 </div>
                 <script>
                     function initLegendZoom() {
@@ -440,11 +367,7 @@
                     <div class="alm-stat-card stat-total">
 
                         <div class="alm-stat-icon">
-                            <img
-                                src="{{ asset('images/pdf-view.png') }}"
-                                alt="Total"
-                                class="cal-width-60px"
-                            />
+                            <img src="{{ asset('images/pdf-view.png') }}" alt="Total" class="cal-width-60px" />
                         </div>
                         <div>
 
@@ -457,11 +380,7 @@
                     <div class="alm-stat-card stat-activas">
 
                         <div class="alm-stat-icon">
-                            <img
-                                src="{{ asset('images/ready.png') }}"
-                                alt="Activas"
-                                class="cal-width-60px"
-                            />
+                            <img src="{{ asset('images/ready.png') }}" alt="Activas" class="cal-width-60px" />
                         </div>
                         <div>
 
@@ -474,11 +393,7 @@
                     <div class="alm-stat-card stat-inactivas">
 
                         <div class="alm-stat-icon">
-                            <img
-                                src="{{ asset('images/Eliminar-Carpeta.png') }}"
-                                alt="Archivadas"
-                                class="cal-width-60px"
-                            />
+                            <img src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Archivadas" class="cal-width-60px" />
                         </div>
                         <div>
 
@@ -494,71 +409,43 @@
                 <div class="alm-filters-card">
                     <h2>Búsqueda y Filtros</h2>
 
-                    <form
-                        method="GET"
-                        action="{{ route('calidad.fundicion.index') }}"
-                        id="alm-filter-form"
-                    >
+                    <form method="GET" action="{{ route('calidad.fundicion.index') }}" id="alm-filter-form">
                         <div class="filters">
                             <div class="filter">
-                                <select
-                                    id="alm-search-ot"
-                                    class="select-filter"
-                                    name="ot"
-                                    onchange="this.form.submit()"
-                                >
+                                <select id="alm-search-ot" class="select-filter" name="ot" onchange="this.form.submit()">
                                     <option value="">Todas las OTs</option>
                                     @foreach ($listaOts as $otOption)
-                                        <option
-                                            value="{{ $otOption }}"
-                                            {{
-                                                $busquedaOt === $otOption
-                                                    ? "selected"
-                                                    : ""
-                                            }}
-                                        >
-                                            {{
-                                                preg_replace(
-                                                    "/_\d{8}_\d{6}_.*/",
-                                                    "",
-                                                    $otOption,
-                                                )
-                                            }}
-                                        </option>
+                                                                <option value="{{ $otOption }}" {{
+                                        $busquedaOt === $otOption
+                                        ? "selected"
+                                        : ""
+                                                                            }}>
+                                                                    {{
+                                        preg_replace(
+                                            "/_\d{8}_\d{6}_.*/",
+                                            "",
+                                            $otOption,
+                                        )
+                                                                            }}
+                                                                </option>
                                     @endforeach
                                 </select>
-                                <label for="alm-search-ot"
-                                    >Orden de trabajo:
+                                <label for="alm-search-ot">Orden de trabajo:
                                 </label>
                             </div>
                             <div class="filter">
-                                <input
-                                    id="alm-desde"
-                                    class="input-filter"
-                                    type="date"
-                                    name="desde"
-                                    value="{{ $desde }}"
-                                    onchange="this.form.submit()"
-                                />
+                                <input id="alm-desde" class="input-filter" type="date" name="desde" value="{{ $desde }}"
+                                    onchange="this.form.submit()" />
                                 <label for="alm-desde">Desde: </label>
                             </div>
                             <div class="filter">
-                                <input
-                                    id="alm-hasta"
-                                    class="input-filter"
-                                    type="date"
-                                    name="hasta"
-                                    value="{{ $hasta }}"
-                                    onchange="this.form.submit()"
-                                />
+                                <input id="alm-hasta" class="input-filter" type="date" name="hasta" value="{{ $hasta }}"
+                                    onchange="this.form.submit()" />
                                 <label for="alm-hasta">Hasta: </label>
                             </div>
                             @if ($busquedaOt || $desde || $hasta)
-                                <button
-                                    type="button"
-                                    class="btns btn-clear-filters"
-                                    onclick="window.location.href='{{ route('calidad.fundicion.index') }}'"
-                                >
+                                <button type="button" class="btns btn-clear-filters"
+                                    onclick="window.location.href='{{ route('calidad.fundicion.index') }}'">
                                     Limpiar Filtros
                                 </button>
                             @endif
@@ -566,2446 +453,2362 @@
                     </form>
                 </div>
                 @foreach ([
-                        "activa" => "Documentos Activos (Dibujos y Ayudas)",
-                        "inactiva" => "Documentos Inactivos (Histórico)"
-                    ]
-                    as $estado => $titulo)
-                    @php
-                        $registrosEstado = $registros->where("status", $estado);
-                    @endphp
+                                "activa" => "Documentos Activos (Dibujos y Ayudas)",
+                                "inactiva" => "Documentos Inactivos (Histórico)"
+                            ]
+                        as $estado => $titulo)
+                        @php
+                            $registrosEstado = $registros->where("status", $estado);
+                        @endphp
 
-                    <div class="alm-table-card cal-margin-bottom-2em">
-                        <div
-                            class="alm-table-header"
-                            style="{{ $estado === 'inactiva' ? 'background: #6c757d; border-bottom: 2px solid #5a6268;' : '' }}"
-                        >
-                            <h2>{{ $titulo }}</h2>
-                            <span class="alm-results-count"
-                                >{{ $registrosEstado->count() }} resultado{{
-                                    $registrosEstado->count() !== 1
-                                        ? "s"
-                                        : ""
-                                }}</span
-                            >
-                        </div>
-                        @if ($estado === 'activa')
-                        {{-- ── BARRA DE SINCRONIZACIÓN MANUAL (solo tabla Activa) ── --}}
-                        <div id="sync-bar-activa" class="cal-display-flex cal-align-items-center cal-justify-content-space-between cal-flex-wrap-wrap cal-gap-10px cal-padding-10px-20px cal-background-linear-gradient-135deg-f0f9ff-0-e0f2fe-100pct cal-border-bottom-1px-solid-bae6fd cal-font-size-0-85rem cal-color-0369a1 cal-font-family-Poppins-sans-serif">
-                            <span id="sync-status-calidad" class="cal-display-flex cal-align-items-center cal-gap-6px cal-font-weight-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0369a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="cal-flex-shrink-0">
-                                    <polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline>
-                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                                </svg>
-                                <span id="sync-last-time-calidad">Sincronización automática activa</span>
-                            </span>
-                            <button
-                                id="btn-sync-manual-calidad"
-                                onclick="sincronizarDibujos(true)"
-                                title="Sincronizar archivos ahora"
-                                class="cal-display-inline-flex cal-align-items-center cal-gap-7px cal-padding-7px-18px cal-background-linear-gradient-135deg-0369a1-0-0284c7-100pct cal-color-fff cal-border-none cal-border-radius-8px cal-font-weight-700 cal-font-size-0-82rem cal-font-family-Poppins-sans-serif cal-cursor-pointer cal-box-shadow-0-3px-10px-rgba-3-105-161-0-25 cal-transition-all-0-2s-ease cal-white-space-nowrap"
-                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 5px 15px rgba(3,105,161,0.35)';"
-                                onmouseout="this.style.transform=''; this.style.boxShadow='0 3px 10px rgba(3,105,161,0.25)';"
-                            >
-                                <svg id="sync-icon-calidad" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline>
-                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                                </svg>
-                                Sincronizar ahora
-                            </button>
-                        </div>
-                        @endif
-                        @if ($registrosEstado->isEmpty())
-                        <div class="alm-empty">
-                            <div class="alm-empty-icon">
-                                <img
-                                    src="{{ asset('images/noPieces.png') }}"
-                                    alt="Sin resultados"
-                                    class="cal-width-64px cal-opacity-0-5"
-                                />
+                        <div class="alm-table-card cal-margin-bottom-2em">
+                            <div class="alm-table-header"
+                                style="{{ $estado === 'inactiva' ? 'background: #6c757d; border-bottom: 2px solid #5a6268;' : '' }}">
+                                <h2>{{ $titulo }}</h2>
+                                <span class="alm-results-count">{{ $registrosEstado->count() }} resultado{{
+                    $registrosEstado->count() !== 1
+                    ? "s"
+                    : ""
+                                            }}</span>
                             </div>
-                            <p>
-                                @if ($busquedaOt || $desde || $hasta)
-                                    No se encontraron registros de {{
-                                        strtolower(
-                                            $titulo,
-                                        )
-                                    }} con los filtros aplicados.
-                                @else
-                                    Aún no hay registros en la bandeja de {{
-                                        strtolower(
-                                            $titulo,
-                                        )
-                                    }}.
-                                @endif
-                            </p>
-                        </div>
-                        @else
-
-                        <div class="alm-table-scroll">
-
-                            <table class="alm-table">
-                                <thead>
-                                    <tr>
-                                        <th
-                                            style="width:30%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
-                                        >
-                                            Orden de Trabajo
-                                        </th>
-                                        <th
-                                            style="width:12%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
-                                            class="d-text-center"
-                                        >
-                                            Estado
-                                        </th>
-                                        <th
-                                            style="width:12%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
-                                            class="d-text-center"
-                                        >
-                                            Modelo
-                                        </th>
-                                        <th
-                                            style="width:18%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
-                                            class="d-text-center"
-                                        >
-                                            Ášltimo envío
-                                        </th>
-                                        <th
-                                            style="width:10%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
-                                            class="d-text-center"
-                                        >
-                                            Archivos
-                                        </th>
-                                        <th
-                                            style="width:16%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
-                                            class="d-text-center"
-                                        >
-                                            Acciones
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody id="alm-tbody-{{ $estado }}">
-                                    @foreach ($registrosEstado as $reg)
-                                        @php
-                                            $liberacionesReg = \App\Models\LiberacionModeloFundicion::where(
-                                                "ot",
-                                                $reg->ot,
-                                            )->get();
-                                            $hasAprobados = $liberacionesReg->where("decision", "aprobar")->isNotEmpty();
-                                            $latestReproceso = null;
-                                            if ($reg->rechazos_procesados) {
-                                                $latestReproceso = \App\Models\FundicionHistory::where(
-                                                    "ot",
-                                                    "LIKE",
-                                                    $reg->ot . "_R%",
-                                                )
-                                                    ->orderBy("id", "desc")
-                                                    ->first();
-                                            }
-                                            // Corregimos la asignación para que la fila original NO actúe como si fuera el reproceso.
-                                            // Así mantenemos las clases independientes (Ej: original para Bombillo, R1 para Fondo).
-                                            $targetReg = $reg;
-                                            // ── RESOLVER TODOS LOS REGISTROS RELACIONADOS ──
-                                            $baseOtName = preg_replace('/_R\d+$/', "", $reg->ot);
-                                            $relatedRecords = \App\Models\FundicionHistory::where("ot", "=", $baseOtName)
-                                                ->orWhere("ot", "LIKE", $baseOtName . "_R%")
-                                                ->get();
-                                            $allRelatedOtNames = $relatedRecords->pluck("ot")->toArray();
-                                            $allOtNames = $allRelatedOtNames;
-                                            // Obtener clases activas para filtrar archivos del historial
-                                            $activeClassesForOt = [];
-                                            $confSource = $targetReg->ayudas_config ?? ($reg->ayudas_config ?? null);
-                                            if (!empty($confSource)) {
-                                                $configs = is_string($confSource)
-                                                    ? json_decode($confSource, true)
-                                                    : $confSource;
-                                                if (is_array($configs)) {
-                                                    foreach ($configs as $val) {
-                                                        $val = strtolower($val);
-                                                        if (str_contains($val, "opcional")) {
-                                                            continue;
-                                                        }
-                                                        foreach (["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"] as $kc) {
-                                                            if (strpos($val, $kc) !== false) {
-                                                                $activeClassesForOt[] = $kc;
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            if (empty($activeClassesForOt)) {
-                                                $po = \App\Models\PreOrdenFundicion::where("ot", $reg->ot)->first();
-                                                if ($po) {
-                                                    $filas = $po->filas;
-                                                    if (is_string($filas)) {
-                                                        $filas = json_decode($filas, true);
-                                                    }
-                                                    if (is_array($filas)) {
-                                                        foreach ($filas as $f) {
-                                                            $val = null;
-                                                            if (isset($f["clase"])) {
-                                                                $val = strtolower($f["clase"]);
-                                                            } elseif (isset($f["clase_nombre"])) {
-                                                                $val = strtolower($f["clase_nombre"]);
-                                                            } elseif (isset($f["tipo_modelo"])) {
-                                                                $val = strtolower($f["tipo_modelo"]);
-                                                            }
-                                                            if ($val) {
-                                                                foreach (
-                                                                    ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"]
-                                                                    as $kc
-                                                                ) {
-                                                                    if (strpos($val, $kc) !== false) {
-                                                                        $activeClassesForOt[] = $kc;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            if (empty($activeClassesForOt)) {
-                                                $activeClassesForOt = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
-                                            }
-                                            $activeClassesForOt = array_values(array_unique($activeClassesForOt));
-                                            $rechazadosDibujos = [];
-                                            $rechazadosAyudas = [];
-                                            $rechazadosOtros = [];
-                                            $otParaRechazados = $reg->ot;
-                                            if (preg_match('/_R\d+$/i', $reg->ot)) {
-                                                $otParaRechazados = preg_replace_callback(
-                                                    '/_R(\d+)$/i',
-                                                    function ($m) {
-                                                        $num = intval($m[1]) - 1;
-                                                        return $num > 0 ? "_R" . $num : "";
-                                                    },
-                                                    $reg->ot,
-                                                );
-                                            }
-                                            $rejectedClassesForOt = \App\Models\LiberacionModeloFundicion::where(
-                                                "ot",
-                                                $otParaRechazados,
+                            @if ($estado === 'activa')
+                                {{-- ── BARRA DE SINCRONIZACIÓN MANUAL (solo tabla Activa) ── --}}
+                                <div id="sync-bar-activa"
+                                    class="cal-display-flex cal-align-items-center cal-justify-content-space-between cal-flex-wrap-wrap cal-gap-10px cal-padding-10px-20px cal-background-linear-gradient-135deg-f0f9ff-0-e0f2fe-100pct cal-border-bottom-1px-solid-bae6fd cal-font-size-0-85rem cal-color-0369a1 cal-font-family-Poppins-sans-serif">
+                                    <span id="sync-status-calidad"
+                                        class="cal-display-flex cal-align-items-center cal-gap-6px cal-font-weight-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                            stroke="#0369a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                            class="cal-flex-shrink-0">
+                                            <polyline points="23 4 23 10 17 10"></polyline>
+                                            <polyline points="1 20 1 14 7 14"></polyline>
+                                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                        </svg>
+                                        <span id="sync-last-time-calidad">Sincronización automática activa</span>
+                                    </span>
+                                    <button id="btn-sync-manual-calidad" onclick="sincronizarDibujos(true)"
+                                        title="Sincronizar archivos ahora"
+                                        class="cal-display-inline-flex cal-align-items-center cal-gap-7px cal-padding-7px-18px cal-background-linear-gradient-135deg-0369a1-0-0284c7-100pct cal-color-fff cal-border-none cal-border-radius-8px cal-font-weight-700 cal-font-size-0-82rem cal-font-family-Poppins-sans-serif cal-cursor-pointer cal-box-shadow-0-3px-10px-rgba-3-105-161-0-25 cal-transition-all-0-2s-ease cal-white-space-nowrap"
+                                        onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 5px 15px rgba(3,105,161,0.35)';"
+                                        onmouseout="this.style.transform=''; this.style.boxShadow='0 3px 10px rgba(3,105,161,0.25)';">
+                                        <svg id="sync-icon-calidad" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="23 4 23 10 17 10"></polyline>
+                                            <polyline points="1 20 1 14 7 14"></polyline>
+                                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                        </svg>
+                                        Sincronizar ahora
+                                    </button>
+                                </div>
+                            @endif
+                            @if ($registrosEstado->isEmpty())
+                                <div class="alm-empty">
+                                    <div class="alm-empty-icon">
+                                        <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados"
+                                            class="cal-width-64px cal-opacity-0-5" />
+                                    </div>
+                                    <p>
+                                        @if ($busquedaOt || $desde || $hasta)
+                                                    No se encontraron registros de {{
+                                            strtolower(
+                                                $titulo,
                                             )
-                                                ->where("decision", "rechazar")
-                                                ->pluck("tipo_modelo")
-                                                ->map(fn($t) => strtolower($t))
-                                                ->toArray();
-                                            $archivos = [];
-                                            $dibujoBaseNames = [];
-                                            foreach ($relatedRecords as $relRec) {
-                                                $relArchivos = is_array($relRec->almacen_archivos)
-                                                    ? $relRec->almacen_archivos
-                                                    : [];
-                                                foreach ($relArchivos as $archivo) {
-                                                    $base = basename($archivo);
-                                                    $fileLower = strtolower($archivo);
-                                                    if (
-                                                        strpos($fileLower, "ayudas_visuales") !== false ||
-                                                        strpos($fileLower, "ayudas-visuales") !== false
-                                                    ) {
-                                                        continue;
-                                                    }
-                                                    $knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
-                                                    $hasKnownClass = false;
-                                                    foreach ($knownClasses as $kc) {
-                                                        if (strpos($fileLower, $kc) !== false) {
-                                                            $hasKnownClass = true;
-                                                            break;
-                                                        }
-                                                    }
-                                                    if ($hasKnownClass) {
-                                                        $matchesRejected = false;
-                                                        foreach ($rejectedClassesForOt as $rc) {
-                                                            if (strpos($fileLower, $rc) !== false) {
-                                                                $matchesRejected = true;
-                                                                break;
-                                                            }
-                                                        }
-                                                        if ($matchesRejected) {
-                                                            if (!in_array($base, $dibujoBaseNames)) {
-                                                                $rechazadosDibujos[] = [
-                                                                    "nombre" => $archivo,
-                                                                    "ot" => $relRec->ot,
-                                                                    "tipo" => "dibujo",
-                                                                ];
-                                                                $dibujoBaseNames[] = $base;
-                                                                break;
-                                                            }
-                                                            continue;
-                                                        }
-                                                        $matchesActive = false;
-                                                        foreach ($activeClassesForOt as $ac) {
-                                                            if (strpos($fileLower, $ac) !== false) {
-                                                                $matchesActive = true;
-                                                                break;
-                                                            }
-                                                        }
-                                                        if (!$matchesActive) {
-                                                            continue;
-                                                        }
-                                                    } else {
-                                                        if ($relRec->ot !== $reg->ot) {
-                                                            continue;
-                                                        }
-                                                    }
-                                                    if (!in_array($base, $dibujoBaseNames)) {
-                                                        $archivos[] = [
-                                                            "nombre" => $archivo,
-                                                            "ot" => $relRec->ot,
-                                                            "tipo" => "dibujo",
-                                                        ];
-                                                        $dibujoBaseNames[] = $base;
-                                                    }
-                                                }
-                                            }
-                                            $countDibujos = count($archivos);
-                                            $ayudasArchivos = [];
-                                            $otrosArchivos = [];
-                                            $baseNames = [];
-                                            // --- NUEVO: Escanear ayudas visuales globales desde AYUDAS_FUNDICION ---
-                                            $ayudasGlobalesBase = "DOCUMENTACION_GIS/AYUDAS_FUNDICION";
-                                            foreach ($activeClassesForOt as $activeClass) {
-                                                $classNameProper = ucfirst(strtolower($activeClass));
-                                                $candidateDirs = [
-                                                    $ayudasGlobalesBase . "/" . $classNameProper,
-                                                    $ayudasGlobalesBase . "/" . $classNameProper . "/Fundicion",
-                                                ];
-                                                foreach ($candidateDirs as $globalClassDir) {
-                                                    if (
-                                                        \Illuminate\Support\Facades\Storage::disk("local")->exists(
-                                                            $globalClassDir,
-                                                        )
-                                                    ) {
-                                                        $files = \Illuminate\Support\Facades\Storage::disk("local")->files(
-                                                            $globalClassDir,
-                                                        );
-                                                        foreach ($files as $f) {
-                                                            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                                                            if ($ext === "pdf") {
-                                                                $base = basename($f);
-                                                                if (!in_array($base, $baseNames)) {
-                                                                    $ayudasArchivos[] = [
-                                                                        "nombre" => $classNameProper . "/" . $base,
-                                                                        "url" => route("ayudas_fundicion.serve", [
-                                                                            "clase" => $classNameProper,
-                                                                            "archivo" => $base,
-                                                                        ]),
-                                                                        "tipo" => "ayuda",
-                                                                        "ot" => $reg->ot,
-                                                                    ];
-                                                                    $baseNames[] = $base;
+                                                                }} con los filtros aplicados.
+                                        @else
+                                                    Aún no hay registros en la bandeja de {{
+                                            strtolower(
+                                                $titulo,
+                                            )
+                                                                }}.
+                                        @endif
+                                    </p>
+                                </div>
+                            @else
+
+                                <div class="alm-table-scroll">
+
+                                    <table class="alm-table">
+                                        <thead>
+                                            <tr>
+                                                <th
+                                                    style="width:30%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}">
+                                                    Orden de Trabajo
+                                                </th>
+                                                <th style="width:12%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                                                    class="d-text-center">
+                                                    Estado
+                                                </th>
+                                                <th style="width:12%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                                                    class="d-text-center">
+                                                    Modelo
+                                                </th>
+                                                <th style="width:18%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                                                    class="d-text-center">
+                                                    Ášltimo envío
+                                                </th>
+                                                <th style="width:10%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                                                    class="d-text-center">
+                                                    Archivos
+                                                </th>
+                                                <th style="width:16%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                                                    class="d-text-center">
+                                                    Acciones
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="alm-tbody-{{ $estado }}">
+                                            @foreach ($registrosEstado as $reg)
+                                                            @php
+                                                                $liberacionesReg = \App\Models\LiberacionModeloFundicion::where(
+                                                                    "ot",
+                                                                    $reg->ot,
+                                                                )->get();
+                                                                $hasAprobados = $liberacionesReg->where("decision", "aprobar")->isNotEmpty();
+                                                                $latestReproceso = null;
+                                                                if ($reg->rechazos_procesados) {
+                                                                    $latestReproceso = \App\Models\FundicionHistory::where(
+                                                                        "ot",
+                                                                        "LIKE",
+                                                                        $reg->ot . "_R%",
+                                                                    )
+                                                                        ->orderBy("id", "desc")
+                                                                        ->first();
                                                                 }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            $liberacionesPath = storage_path("app/public/liberaciones_pdf");
-                                            foreach ($allOtNames as $otName) {
-                                                $otNameSanitized = trim(
-                                                    preg_replace("/[\/\\\\]/", "", preg_replace("/\.\.+/", "", $otName)),
-                                                );
-                                                // 1. Escanear ayudas visuales de Almacen (Legacy y Nueva Estructura)
-                                                $ayudasDir =
-                                                    "DOCUMENTACION_GIS/ALMACEN_FUNDICION/" .
-                                                    $otNameSanitized .
-                                                    "/ayudas_visuales";
-                                                $almacenRootScan =
-                                                    "DOCUMENTACION_GIS/ALMACEN_FUNDICION/" . $otNameSanitized;
-                                                $scanDirs = [];
-                                                if (
-                                                    \Illuminate\Support\Facades\Storage::disk("local")->exists($ayudasDir)
-                                                ) {
-                                                    $scanDirs[] = [
-                                                        "path" => $ayudasDir,
-                                                        "base_dir" => $ayudasDir,
-                                                    ];
-                                                }
-                                                foreach (["Candado obturador", "Cabeza de soplo", "Obturador", "Bombillo", "Embudo", "Corona", "Plato", "Molde", "Fondo"] as $claseDir) {
-                                                    $newAyDir = $almacenRootScan . "/" . $claseDir . "/Ayudas_Visuales";
-                                                    if (
-                                                        \Illuminate\Support\Facades\Storage::disk("local")->exists(
-                                                            $newAyDir,
-                                                        )
-                                                    ) {
-                                                        $scanDirs[] = [
-                                                            "path" => $newAyDir,
-                                                            "base_dir" => $almacenRootScan,
-                                                        ];
-                                                    }
-                                                    $legacyClaseAyDir = $ayudasDir . "/" . $claseDir;
-                                                    if (
-                                                        \Illuminate\Support\Facades\Storage::disk("local")->exists(
-                                                            $legacyClaseAyDir,
-                                                        )
-                                                    ) {
-                                                        $scanDirs[] = [
-                                                            "path" => $legacyClaseAyDir,
-                                                            "base_dir" => $ayudasDir,
-                                                        ];
-                                                    }
-                                                }
-                                                foreach ($scanDirs as $sInfo) {
-                                                    if (
-                                                        \Illuminate\Support\Facades\Storage::disk("local")->exists(
-                                                            $sInfo["path"],
-                                                        )
-                                                    ) {
-                                                        $files = \Illuminate\Support\Facades\Storage::disk(
-                                                            "local",
-                                                        )->allFiles($sInfo["path"]);
-                                                        foreach ($files as $f) {
-                                                            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                                                            $isPdf = $ext === "pdf";
-                                                            $isImage = in_array($ext, [
-                                                                "jpg",
-                                                                "jpeg",
-                                                                "png",
-                                                                "gif",
-                                                                "webp",
-                                                            ]);
-                                                            if (!$isPdf && !$isImage) {
-                                                                continue;
-                                                            }
-                                                            $fNorm = str_replace("\\", "/", $f);
-                                                            $dirNorm = str_replace("\\", "/", $sInfo["base_dir"]);
-                                                            $relativePath = ltrim(str_replace($dirNorm, "", $fNorm), "/");
-                                                            $base = basename($relativePath);
-                                                            $fileLower = strtolower($relativePath);
-                                                            $knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
-                                                            $hasKnownClass = false;
-                                                            foreach ($knownClasses as $kc) {
-                                                                if (strpos($fileLower, $kc) !== false) {
-                                                                    $hasKnownClass = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if ($hasKnownClass) {
-                                                                $matchesRejected = false;
-                                                                foreach ($rejectedClassesForOt as $rc) {
-                                                                    if (strpos($fileLower, $rc) !== false) {
-                                                                        $matchesRejected = true;
-                                                                        break;
+                                                                // Corregimos la asignación para que la fila original NO actúe como si fuera el reproceso.
+                                                                // Así mantenemos las clases independientes (Ej: original para Bombillo, R1 para Fondo).
+                                                                $targetReg = $reg;
+                                                                // ── RESOLVER TODOS LOS REGISTROS RELACIONADOS ──
+                                                                $baseOtName = preg_replace('/_R\d+$/', "", $reg->ot);
+                                                                $relatedRecords = \App\Models\FundicionHistory::where("ot", "=", $baseOtName)
+                                                                    ->orWhere("ot", "LIKE", $baseOtName . "_R%")
+                                                                    ->get();
+                                                                $allRelatedOtNames = $relatedRecords->pluck("ot")->toArray();
+                                                                $allOtNames = $allRelatedOtNames;
+                                                                // Obtener clases activas para filtrar archivos del historial
+                                                                $activeClassesForOt = [];
+                                                                $confSource = $targetReg->ayudas_config ?? ($reg->ayudas_config ?? null);
+                                                                if (!empty($confSource)) {
+                                                                    $configs = is_string($confSource)
+                                                                        ? json_decode($confSource, true)
+                                                                        : $confSource;
+                                                                    if (is_array($configs)) {
+                                                                        foreach ($configs as $val) {
+                                                                            $val = strtolower($val);
+                                                                            if (str_contains($val, "opcional")) {
+                                                                                continue;
+                                                                            }
+                                                                            foreach (["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"] as $kc) {
+                                                                                if (strpos($val, $kc) !== false) {
+                                                                                    $activeClassesForOt[] = $kc;
+                                                                                    break;
+                                                                                }
+                                                                            }
+                                                                        }
                                                                     }
                                                                 }
-                                                                if ($matchesRejected) {
-                                                                    if (str_starts_with($relativePath, "preordenes/")) {
-                                                                        if (!in_array($base, $baseNames)) {
-                                                                            $rechazadosOtros[] = [
-                                                                                "nombre" => $relativePath,
-                                                                                "url" => route("calidad.fundicion.serve", [
-                                                                                    "ot" => $otName,
-                                                                                    "archivo" => $relativePath,
-                                                                                    "tipo" => "otro",
-                                                                                ]),
-                                                                                "tipo" => $isImage ? "imagen" : "otro",
-                                                                                "ot" => $otName,
-                                                                                "origin" => "otro",
-                                                                                "owner" => "almacen",
+                                                                if (empty($activeClassesForOt)) {
+                                                                    $po = \App\Models\PreOrdenFundicion::where("ot", $reg->ot)->first();
+                                                                    if ($po) {
+                                                                        $filas = $po->filas;
+                                                                        if (is_string($filas)) {
+                                                                            $filas = json_decode($filas, true);
+                                                                        }
+                                                                        if (is_array($filas)) {
+                                                                            foreach ($filas as $f) {
+                                                                                $val = null;
+                                                                                if (isset($f["clase"])) {
+                                                                                    $val = strtolower($f["clase"]);
+                                                                                } elseif (isset($f["clase_nombre"])) {
+                                                                                    $val = strtolower($f["clase_nombre"]);
+                                                                                } elseif (isset($f["tipo_modelo"])) {
+                                                                                    $val = strtolower($f["tipo_modelo"]);
+                                                                                }
+                                                                                if ($val) {
+                                                                                    foreach (
+                                                                                        ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"]
+                                                                                        as $kc
+                                                                                    ) {
+                                                                                        if (strpos($val, $kc) !== false) {
+                                                                                            $activeClassesForOt[] = $kc;
+                                                                                            break;
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                if (empty($activeClassesForOt)) {
+                                                                    $activeClassesForOt = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
+                                                                }
+                                                                $activeClassesForOt = array_values(array_unique($activeClassesForOt));
+                                                                $rechazadosDibujos = [];
+                                                                $rechazadosAyudas = [];
+                                                                $rechazadosOtros = [];
+                                                                $otParaRechazados = $reg->ot;
+                                                                if (preg_match('/_R\d+$/i', $reg->ot)) {
+                                                                    $otParaRechazados = preg_replace_callback(
+                                                                        '/_R(\d+)$/i',
+                                                                        function ($m) {
+                                                                            $num = intval($m[1]) - 1;
+                                                                            return $num > 0 ? "_R" . $num : "";
+                                                                        },
+                                                                        $reg->ot,
+                                                                    );
+                                                                }
+                                                                $rejectedClassesForOt = \App\Models\LiberacionModeloFundicion::where(
+                                                                    "ot",
+                                                                    $otParaRechazados,
+                                                                )
+                                                                    ->where("decision", "rechazar")
+                                                                    ->pluck("tipo_modelo")
+                                                                    ->map(fn($t) => strtolower($t))
+                                                                    ->toArray();
+                                                                $archivos = [];
+                                                                $dibujoBaseNames = [];
+                                                                foreach ($relatedRecords as $relRec) {
+                                                                    $relArchivos = is_array($relRec->almacen_archivos)
+                                                                        ? $relRec->almacen_archivos
+                                                                        : [];
+                                                                    foreach ($relArchivos as $archivo) {
+                                                                        $base = basename($archivo);
+                                                                        $fileLower = strtolower($archivo);
+                                                                        if (
+                                                                            strpos($fileLower, "ayudas_visuales") !== false ||
+                                                                            strpos($fileLower, "ayudas-visuales") !== false
+                                                                        ) {
+                                                                            continue;
+                                                                        }
+                                                                        $knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
+                                                                        $hasKnownClass = false;
+                                                                        foreach ($knownClasses as $kc) {
+                                                                            if (strpos($fileLower, $kc) !== false) {
+                                                                                $hasKnownClass = true;
+                                                                                break;
+                                                                            }
+                                                                        }
+                                                                        if ($hasKnownClass) {
+                                                                            $matchesRejected = false;
+                                                                            foreach ($rejectedClassesForOt as $rc) {
+                                                                                if (strpos($fileLower, $rc) !== false) {
+                                                                                    $matchesRejected = true;
+                                                                                    break;
+                                                                                }
+                                                                            }
+                                                                            if ($matchesRejected) {
+                                                                                if (!in_array($base, $dibujoBaseNames)) {
+                                                                                    $rechazadosDibujos[] = [
+                                                                                        "nombre" => $archivo,
+                                                                                        "ot" => $relRec->ot,
+                                                                                        "tipo" => "dibujo",
+                                                                                    ];
+                                                                                    $dibujoBaseNames[] = $base;
+                                                                                    break;
+                                                                                }
+                                                                                continue;
+                                                                            }
+                                                                            $matchesActive = false;
+                                                                            foreach ($activeClassesForOt as $ac) {
+                                                                                if (strpos($fileLower, $ac) !== false) {
+                                                                                    $matchesActive = true;
+                                                                                    break;
+                                                                                }
+                                                                            }
+                                                                            if (!$matchesActive) {
+                                                                                continue;
+                                                                            }
+                                                                        } else {
+                                                                            if ($relRec->ot !== $reg->ot) {
+                                                                                continue;
+                                                                            }
+                                                                        }
+                                                                        if (!in_array($base, $dibujoBaseNames)) {
+                                                                            $archivos[] = [
+                                                                                "nombre" => $archivo,
+                                                                                "ot" => $relRec->ot,
+                                                                                "tipo" => "dibujo",
                                                                             ];
-                                                                            $baseNames[] = $base;
+                                                                            $dibujoBaseNames[] = $base;
+                                                                        }
+                                                                    }
+                                                                }
+                                                                $countDibujos = count($archivos);
+                                                                $ayudasArchivos = [];
+                                                                $otrosArchivos = [];
+                                                                $baseNames = [];
+                                                                // --- NUEVO: Escanear ayudas visuales globales desde AYUDAS_FUNDICION ---
+                                                                $ayudasGlobalesBase = "DOCUMENTACION_GIS/AYUDAS_FUNDICION";
+                                                                foreach ($activeClassesForOt as $activeClass) {
+                                                                    $classNameProper = ucfirst(strtolower($activeClass));
+                                                                    $candidateDirs = [
+                                                                        $ayudasGlobalesBase . "/" . $classNameProper,
+                                                                        $ayudasGlobalesBase . "/" . $classNameProper . "/Fundicion",
+                                                                    ];
+                                                                    foreach ($candidateDirs as $globalClassDir) {
+                                                                        if (
+                                                                            \Illuminate\Support\Facades\Storage::disk("local")->exists(
+                                                                                $globalClassDir,
+                                                                            )
+                                                                        ) {
+                                                                            $files = \Illuminate\Support\Facades\Storage::disk("local")->files(
+                                                                                $globalClassDir,
+                                                                            );
+                                                                            foreach ($files as $f) {
+                                                                                $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                                                                                if ($ext === "pdf") {
+                                                                                    $base = basename($f);
+                                                                                    if (!in_array($base, $baseNames)) {
+                                                                                        $ayudasArchivos[] = [
+                                                                                            "nombre" => $classNameProper . "/" . $base,
+                                                                                            "url" => route("ayudas_fundicion.serve", [
+                                                                                                "clase" => $classNameProper,
+                                                                                                "archivo" => $base,
+                                                                                            ]),
+                                                                                            "tipo" => "ayuda",
+                                                                                            "ot" => $reg->ot,
+                                                                                        ];
+                                                                                        $baseNames[] = $base;
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                $liberacionesPath = storage_path("app/public/liberaciones_pdf");
+                                                                foreach ($allOtNames as $otName) {
+                                                                    $otNameSanitized = trim(
+                                                                        preg_replace("/[\/\\\\]/", "", preg_replace("/\.\.+/", "", $otName)),
+                                                                    );
+                                                                    // 1. Escanear ayudas visuales de Almacen (Legacy y Nueva Estructura)
+                                                                    $ayudasDir =
+                                                                        "DOCUMENTACION_GIS/ALMACEN_FUNDICION/" .
+                                                                        $otNameSanitized .
+                                                                        "/ayudas_visuales";
+                                                                    $almacenRootScan =
+                                                                        "DOCUMENTACION_GIS/ALMACEN_FUNDICION/" . $otNameSanitized;
+                                                                    $scanDirs = [];
+                                                                    if (
+                                                                        \Illuminate\Support\Facades\Storage::disk("local")->exists($ayudasDir)
+                                                                    ) {
+                                                                        $scanDirs[] = [
+                                                                            "path" => $ayudasDir,
+                                                                            "base_dir" => $ayudasDir,
+                                                                        ];
+                                                                    }
+                                                                    foreach (["Candado obturador", "Cabeza de soplo", "Obturador", "Bombillo", "Embudo", "Corona", "Plato", "Molde", "Fondo"] as $claseDir) {
+                                                                        $newAyDir = $almacenRootScan . "/" . $claseDir . "/Ayudas_Visuales";
+                                                                        if (
+                                                                            \Illuminate\Support\Facades\Storage::disk("local")->exists(
+                                                                                $newAyDir,
+                                                                            )
+                                                                        ) {
+                                                                            $scanDirs[] = [
+                                                                                "path" => $newAyDir,
+                                                                                "base_dir" => $almacenRootScan,
+                                                                            ];
+                                                                        }
+                                                                        $legacyClaseAyDir = $ayudasDir . "/" . $claseDir;
+                                                                        if (
+                                                                            \Illuminate\Support\Facades\Storage::disk("local")->exists(
+                                                                                $legacyClaseAyDir,
+                                                                            )
+                                                                        ) {
+                                                                            $scanDirs[] = [
+                                                                                "path" => $legacyClaseAyDir,
+                                                                                "base_dir" => $ayudasDir,
+                                                                            ];
+                                                                        }
+                                                                    }
+                                                                    foreach ($scanDirs as $sInfo) {
+                                                                        if (
+                                                                            \Illuminate\Support\Facades\Storage::disk("local")->exists(
+                                                                                $sInfo["path"],
+                                                                            )
+                                                                        ) {
+                                                                            $files = \Illuminate\Support\Facades\Storage::disk(
+                                                                                "local",
+                                                                            )->allFiles($sInfo["path"]);
+                                                                            foreach ($files as $f) {
+                                                                                $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                                                                                $isPdf = $ext === "pdf";
+                                                                                $isImage = in_array($ext, [
+                                                                                    "jpg",
+                                                                                    "jpeg",
+                                                                                    "png",
+                                                                                    "gif",
+                                                                                    "webp",
+                                                                                ]);
+                                                                                if (!$isPdf && !$isImage) {
+                                                                                    continue;
+                                                                                }
+                                                                                $fNorm = str_replace("\\", "/", $f);
+                                                                                $dirNorm = str_replace("\\", "/", $sInfo["base_dir"]);
+                                                                                $relativePath = ltrim(str_replace($dirNorm, "", $fNorm), "/");
+                                                                                $base = basename($relativePath);
+                                                                                $fileLower = strtolower($relativePath);
+                                                                                $knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
+                                                                                $hasKnownClass = false;
+                                                                                foreach ($knownClasses as $kc) {
+                                                                                    if (strpos($fileLower, $kc) !== false) {
+                                                                                        $hasKnownClass = true;
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                                if ($hasKnownClass) {
+                                                                                    $matchesRejected = false;
+                                                                                    foreach ($rejectedClassesForOt as $rc) {
+                                                                                        if (strpos($fileLower, $rc) !== false) {
+                                                                                            $matchesRejected = true;
+                                                                                            break;
+                                                                                        }
+                                                                                    }
+                                                                                    if ($matchesRejected) {
+                                                                                        if (str_starts_with($relativePath, "preordenes/")) {
+                                                                                            if (!in_array($base, $baseNames)) {
+                                                                                                $rechazadosOtros[] = [
+                                                                                                    "nombre" => $relativePath,
+                                                                                                    "url" => route("calidad.fundicion.serve", [
+                                                                                                        "ot" => $otName,
+                                                                                                        "archivo" => $relativePath,
+                                                                                                        "tipo" => "otro",
+                                                                                                    ]),
+                                                                                                    "tipo" => $isImage ? "imagen" : "otro",
+                                                                                                    "ot" => $otName,
+                                                                                                    "origin" => "otro",
+                                                                                                    "owner" => "almacen",
+                                                                                                ];
+                                                                                                $baseNames[] = $base;
+                                                                                                break;
+                                                                                            }
+                                                                                        } elseif ($isPdf) {
+                                                                                            if (!in_array($base, $baseNames)) {
+                                                                                                $rechazadosAyudas[] = [
+                                                                                                    "nombre" => $relativePath,
+                                                                                                    "url" => route("calidad.fundicion.serve", [
+                                                                                                        "ot" => $otName,
+                                                                                                        "archivo" => $relativePath,
+                                                                                                        "tipo" => "ayuda",
+                                                                                                    ]),
+                                                                                                    "tipo" => "ayuda",
+                                                                                                    "ot" => $otName,
+                                                                                                ];
+                                                                                                $baseNames[] = $base;
+                                                                                            }
+                                                                                        }
+                                                                                        continue;
+                                                                                    }
+                                                                                    $matchesActive = false;
+                                                                                    foreach ($activeClassesForOt as $ac) {
+                                                                                        if (strpos($fileLower, $ac) !== false) {
+                                                                                            $matchesActive = true;
+                                                                                            break;
+                                                                                        }
+                                                                                    }
+                                                                                    if (!$matchesActive) {
+                                                                                        continue;
+                                                                                    }
+                                                                                } else {
+                                                                                    if ($otName !== $reg->ot) {
+                                                                                        continue;
+                                                                                    }
+                                                                                }
+                                                                                if (str_starts_with($relativePath, "preordenes/")) {
+                                                                                    if (!in_array($base, $baseNames)) {
+                                                                                        $otrosArchivos[] = [
+                                                                                            "nombre" => $relativePath,
+                                                                                            "url" => route("calidad.fundicion.serve", [
+                                                                                                "ot" => $otName,
+                                                                                                "archivo" => $relativePath,
+                                                                                                "tipo" => "otro",
+                                                                                            ]),
+                                                                                            "tipo" => $isImage ? "imagen" : "otro",
+                                                                                            "ot" => $otName,
+                                                                                            "origin" => "otro",
+                                                                                            "owner" => "almacen",
+                                                                                        ];
+                                                                                        $baseNames[] = $base;
+                                                                                    }
+                                                                                } elseif ($isPdf) {
+                                                                                    if (!in_array($base, $baseNames)) {
+                                                                                        $ayudasArchivos[] = [
+                                                                                            "nombre" => $relativePath,
+                                                                                            "url" => route("calidad.fundicion.serve", [
+                                                                                                "ot" => $otName,
+                                                                                                "archivo" => $relativePath,
+                                                                                                "tipo" => "ayuda",
+                                                                                            ]),
+                                                                                            "tipo" => "ayuda",
+                                                                                            "ot" => $otName,
+                                                                                        ];
+                                                                                        $baseNames[] = $base;
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    // 2. Escanear ayudas visuales de Calidad
+                                                                    $calidadDir =
+                                                                        "DOCUMENTACION_GIS/CALIDAD_FUNDICION/" .
+                                                                        $otNameSanitized .
+                                                                        "/ayudas_visuales/preordenes";
+                                                                    if (
+                                                                        \Illuminate\Support\Facades\Storage::disk("local")->exists($calidadDir)
+                                                                    ) {
+                                                                        $files = \Illuminate\Support\Facades\Storage::disk("local")->allFiles(
+                                                                            $calidadDir,
+                                                                        );
+                                                                        foreach ($files as $f) {
+                                                                            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                                                                            $isPdf = $ext === "pdf";
+                                                                            $isImage = in_array($ext, ["jpg", "jpeg", "png", "gif", "webp"]);
+                                                                            if (!$isPdf && !$isImage) {
+                                                                                continue;
+                                                                            }
+                                                                            $fNorm = str_replace("\\", "/", $f);
+                                                                            $dirNorm = str_replace("\\", "/", $calidadDir);
+                                                                            $relativePath = ltrim(str_replace($dirNorm, "", $fNorm), "/");
+                                                                            $base = basename($relativePath);
+                                                                            $fileLower = strtolower($relativePath);
+                                                                            $knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
+                                                                            $hasKnownClass = false;
+                                                                            foreach ($knownClasses as $kc) {
+                                                                                if (strpos($fileLower, $kc) !== false) {
+                                                                                    $hasKnownClass = true;
+                                                                                    break;
+                                                                                }
+                                                                            }
+                                                                            if ($hasKnownClass) {
+                                                                                $matchesRejected = false;
+                                                                                foreach ($rejectedClassesForOt as $rc) {
+                                                                                    if (strpos($fileLower, $rc) !== false) {
+                                                                                        $matchesRejected = true;
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                                if ($matchesRejected) {
+                                                                                    if (!in_array($base, $baseNames)) {
+                                                                                        $rechazadosOtros[] = [
+                                                                                            "nombre" => $relativePath,
+                                                                                            "url" => route("calidad.fundicion.serve", [
+                                                                                                "ot" => $otName,
+                                                                                                "archivo" => $relativePath,
+                                                                                                "tipo" => "otro",
+                                                                                            ]),
+                                                                                            "tipo" => "otro",
+                                                                                            "ot" => $otName,
+                                                                                        ];
+                                                                                        $baseNames[] = $base;
+                                                                                        break;
+                                                                                    }
+                                                                                    continue;
+                                                                                }
+                                                                                $matchesActive = false;
+                                                                                foreach ($activeClassesForOt as $ac) {
+                                                                                    if (strpos($fileLower, $ac) !== false) {
+                                                                                        $matchesActive = true;
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                                if (!$matchesActive) {
+                                                                                    continue;
+                                                                                }
+                                                                            } else {
+                                                                                if ($otName !== $reg->ot) {
+                                                                                    continue;
+                                                                                }
+                                                                            }
+                                                                            if (!in_array($base, $baseNames)) {
+                                                                                $origin = "otro";
+                                                                                if (strpos($relativePath, "documentos_aprobados") !== false) {
+                                                                                    $origin = "aprobado";
+                                                                                } elseif (
+                                                                                    strpos($relativePath, "documentos_rechazados") !== false
+                                                                                ) {
+                                                                                    $origin = "rechazado";
+                                                                                }
+                                                                                $relativePathWithPrefix = "preordenes/" . $relativePath;
+                                                                                $otrosArchivos[] = [
+                                                                                    "nombre" => $relativePathWithPrefix,
+                                                                                    "url" => route("calidad.fundicion.serve", [
+                                                                                        "ot" => $otName,
+                                                                                        "archivo" => $relativePathWithPrefix,
+                                                                                        "tipo" => "otro",
+                                                                                        "origin" => $origin,
+                                                                                    ]),
+                                                                                    "tipo" => $isImage ? "imagen" : "otro",
+                                                                                    "ot" => $otName,
+                                                                                    "origin" => $origin,
+                                                                                    "owner" => "calidad",
+                                                                                ];
+                                                                                $baseNames[] = $base;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    // 2b. Escanear Documentos_Aprobados y Documentos_Rechazados de Almacen y Calidad
+                                                                    $newDirs = [
+                                                                        [
+                                                                            "dir" =>
+                                                                                "DOCUMENTACION_GIS/ALMACEN_FUNDICION/" .
+                                                                                $otNameSanitized .
+                                                                                "/Documentos_Aprobados",
+                                                                            "origin" => "aprobado",
+                                                                            "prefix" => "Documentos_Aprobados/",
+                                                                            "owner" => "almacen",
+                                                                        ],
+                                                                        [
+                                                                            "dir" =>
+                                                                                "DOCUMENTACION_GIS/ALMACEN_FUNDICION/" .
+                                                                                $otNameSanitized .
+                                                                                "/Documentos_Rechazados",
+                                                                            "origin" => "rechazado",
+                                                                            "prefix" => "Documentos_Rechazados/",
+                                                                            "owner" => "almacen",
+                                                                        ],
+                                                                        [
+                                                                            "dir" =>
+                                                                                "DOCUMENTACION_GIS/CALIDAD_FUNDICION/" .
+                                                                                $otNameSanitized .
+                                                                                "/Documentos_Aprobados",
+                                                                            "origin" => "aprobado",
+                                                                            "prefix" => "Documentos_Aprobados/",
+                                                                            "owner" => "calidad",
+                                                                        ],
+                                                                        [
+                                                                            "dir" =>
+                                                                                "DOCUMENTACION_GIS/CALIDAD_FUNDICION/" .
+                                                                                $otNameSanitized .
+                                                                                "/Documentos_Rechazados",
+                                                                            "origin" => "rechazado",
+                                                                            "prefix" => "Documentos_Rechazados/",
+                                                                            "owner" => "calidad",
+                                                                        ],
+                                                                    ];
+                                                                    foreach ($newDirs as $dirInfo) {
+                                                                        $targetDir = $dirInfo["dir"];
+                                                                        $origin = $dirInfo["origin"];
+                                                                        $prefix = $dirInfo["prefix"];
+                                                                        if (
+                                                                            \Illuminate\Support\Facades\Storage::disk("local")->exists(
+                                                                                $targetDir,
+                                                                            )
+                                                                        ) {
+                                                                            $files = \Illuminate\Support\Facades\Storage::disk(
+                                                                                "local",
+                                                                            )->allFiles($targetDir);
+                                                                            foreach ($files as $f) {
+                                                                                $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                                                                                $isPdf = $ext === "pdf";
+                                                                                $isImage = in_array($ext, [
+                                                                                    "jpg",
+                                                                                    "jpeg",
+                                                                                    "png",
+                                                                                    "gif",
+                                                                                    "webp",
+                                                                                ]);
+                                                                                if (!$isPdf && !$isImage) {
+                                                                                    continue;
+                                                                                }
+                                                                                $fNorm = str_replace("\\", "/", $f);
+                                                                                $dirNorm = str_replace("\\", "/", $targetDir);
+                                                                                $relativePath = ltrim(str_replace($dirNorm, "", $fNorm), "/");
+                                                                                $base = basename($relativePath);
+                                                                                $fileLower = strtolower($relativePath);
+                                                                                $knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
+                                                                                $hasKnownClass = false;
+                                                                                foreach ($knownClasses as $kc) {
+                                                                                    if (strpos($fileLower, $kc) !== false) {
+                                                                                        $hasKnownClass = true;
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                                if ($hasKnownClass) {
+                                                                                    $matchesRejected = false;
+                                                                                    foreach ($rejectedClassesForOt as $rc) {
+                                                                                        if (strpos($fileLower, $rc) !== false) {
+                                                                                            $matchesRejected = true;
+                                                                                            break;
+                                                                                        }
+                                                                                    }
+                                                                                    if ($matchesRejected) {
+                                                                                        if (!in_array($base, $baseNames)) {
+                                                                                            $rechazadosOtros[] = [
+                                                                                                "nombre" => $relativePath,
+                                                                                                "url" => route("calidad.fundicion.serve", [
+                                                                                                    "ot" => $otName,
+                                                                                                    "archivo" => $relativePath,
+                                                                                                    "tipo" => "otro",
+                                                                                                ]),
+                                                                                                "tipo" => "otro",
+                                                                                                "ot" => $otName,
+                                                                                            ];
+                                                                                            $baseNames[] = $base;
+                                                                                            break;
+                                                                                        }
+                                                                                        continue;
+                                                                                    }
+                                                                                    $matchesActive = false;
+                                                                                    foreach ($activeClassesForOt as $ac) {
+                                                                                        if (strpos($fileLower, $ac) !== false) {
+                                                                                            $matchesActive = true;
+                                                                                            break;
+                                                                                        }
+                                                                                    }
+                                                                                    if (!$matchesActive) {
+                                                                                        continue;
+                                                                                    }
+                                                                                } else {
+                                                                                    if ($otName !== $reg->ot) {
+                                                                                        continue;
+                                                                                    }
+                                                                                }
+                                                                                if (!in_array($base, $baseNames)) {
+                                                                                    $relativePathWithPrefix = $prefix . $relativePath;
+                                                                                    $otrosArchivos[] = [
+                                                                                        "nombre" => $relativePathWithPrefix,
+                                                                                        "url" => route("calidad.fundicion.serve", [
+                                                                                            "ot" => $otName,
+                                                                                            "archivo" => $relativePathWithPrefix,
+                                                                                            "tipo" => "otro",
+                                                                                            "origin" => $origin,
+                                                                                        ]),
+                                                                                        "tipo" => $isImage ? "imagen" : "otro",
+                                                                                        "ot" => $otName,
+                                                                                        "origin" => $origin,
+                                                                                        "owner" => $dirInfo["owner"],
+                                                                                    ];
+                                                                                    $baseNames[] = $base;
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    // 3. Buscar PDFs generados en public/liberaciones_pdf (LDM y SCAR)
+                                                                    $otSanitizada = preg_replace("/[^\w\s\-]/", "", $otName);
+                                                                    $otSanitizada = preg_replace("/[\s]+/", "_", trim($otSanitizada));
+                                                                    if (file_exists($liberacionesPath)) {
+                                                                        // Buscar LDM PDFs
+                                                                        $ldmPattern = "{$liberacionesPath}/F-CCL-LDM_*_{$otSanitizada}*.pdf";
+                                                                        foreach (glob($ldmPattern) ?: [] as $f) {
+                                                                            $base = basename($f);
+                                                                            $fileLower = strtolower($base);
+                                                                            $knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
+                                                                            $hasKnownClass = false;
+                                                                            foreach ($knownClasses as $kc) {
+                                                                                if (strpos($fileLower, $kc) !== false) {
+                                                                                    $hasKnownClass = true;
+                                                                                    break;
+                                                                                }
+                                                                            }
+                                                                            if ($hasKnownClass) {
+                                                                                $matchesRejected = false;
+                                                                                foreach ($rejectedClassesForOt as $rc) {
+                                                                                    if (strpos($fileLower, $rc) !== false) {
+                                                                                        $matchesRejected = true;
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                                if ($matchesRejected) {
+                                                                                    if (!in_array($base, $baseNames)) {
+                                                                                        $rechazadosOtros[] = [
+                                                                                            "nombre" => $relativePath,
+                                                                                            "url" => route("calidad.fundicion.serve", [
+                                                                                                "ot" => $otName,
+                                                                                                "archivo" => $relativePath,
+                                                                                                "tipo" => "otro",
+                                                                                            ]),
+                                                                                            "tipo" => "otro",
+                                                                                            "ot" => $otName,
+                                                                                        ];
+                                                                                        $baseNames[] = $base;
+                                                                                        break;
+                                                                                    }
+                                                                                    continue;
+                                                                                }
+                                                                                $matchesActive = false;
+                                                                                foreach ($activeClassesForOt as $ac) {
+                                                                                    if (strpos($fileLower, $ac) !== false) {
+                                                                                        $matchesActive = true;
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                                if (!$matchesActive) {
+                                                                                    continue;
+                                                                                }
+                                                                            } else {
+                                                                                if ($otName !== $reg->ot) {
+                                                                                    continue;
+                                                                                }
+                                                                            }
+                                                                            if (!in_array($base, $baseNames)) {
+                                                                                $otrosArchivos[] = [
+                                                                                    "nombre" => $base,
+                                                                                    "url" => route("calidad.fundicion.serve", [
+                                                                                        "ot" => $otName,
+                                                                                        "archivo" => $base,
+                                                                                        "tipo" => "liberacion",
+                                                                                    ]),
+                                                                                    "tipo" => "liberacion",
+                                                                                    "ot" => $otName,
+                                                                                    "origin" => "",
+                                                                                    "owner" => "calidad",
+                                                                                ];
+                                                                                $baseNames[] = $base;
+                                                                            }
+                                                                        }
+                                                                        // Buscar SCAR PDFs (digital y firmado)
+                                                                        $scarPattern = "{$liberacionesPath}/F-CCL-SCAR_*_{$otSanitizada}*.pdf";
+                                                                        $scarPattern2 = "{$liberacionesPath}/F-CCL-SCAR_{$otSanitizada}.pdf";
+                                                                        $scarFiles = array_merge(
+                                                                            glob($scarPattern) ?: [],
+                                                                            glob($scarPattern2) ?: [],
+                                                                        );
+                                                                        foreach (array_unique($scarFiles) as $f) {
+                                                                            $base = basename($f);
+                                                                            $fileLower = strtolower($base);
+                                                                            $knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
+                                                                            $hasKnownClass = false;
+                                                                            foreach ($knownClasses as $kc) {
+                                                                                if (strpos($fileLower, $kc) !== false) {
+                                                                                    $hasKnownClass = true;
+                                                                                    break;
+                                                                                }
+                                                                            }
+                                                                            if ($hasKnownClass) {
+                                                                                $matchesRejected = false;
+                                                                                foreach ($rejectedClassesForOt as $rc) {
+                                                                                    if (strpos($fileLower, $rc) !== false) {
+                                                                                        $matchesRejected = true;
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                                if ($matchesRejected) {
+                                                                                    if (!in_array($base, $baseNames)) {
+                                                                                        $rechazadosOtros[] = [
+                                                                                            "nombre" => $relativePath,
+                                                                                            "url" => route("calidad.fundicion.serve", [
+                                                                                                "ot" => $otName,
+                                                                                                "archivo" => $relativePath,
+                                                                                                "tipo" => "otro",
+                                                                                            ]),
+                                                                                            "tipo" => "otro",
+                                                                                            "ot" => $otName,
+                                                                                        ];
+                                                                                        $baseNames[] = $base;
+                                                                                        break;
+                                                                                    }
+                                                                                    continue;
+                                                                                }
+                                                                                $matchesActive = false;
+                                                                                foreach ($activeClassesForOt as $ac) {
+                                                                                    if (strpos($fileLower, $ac) !== false) {
+                                                                                        $matchesActive = true;
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                                if (!$matchesActive) {
+                                                                                    continue;
+                                                                                }
+                                                                            } else {
+                                                                                if ($otName !== $reg->ot) {
+                                                                                    continue;
+                                                                                }
+                                                                            }
+                                                                            if (!in_array($base, $baseNames)) {
+                                                                                $otrosArchivos[] = [
+                                                                                    "nombre" => $base,
+                                                                                    "url" => route("calidad.fundicion.serve", [
+                                                                                        "ot" => $otName,
+                                                                                        "archivo" => $base,
+                                                                                        "tipo" => "liberacion",
+                                                                                    ]),
+                                                                                    "tipo" => "liberacion",
+                                                                                    "ot" => $otName,
+                                                                                    "origin" => "",
+                                                                                    "owner" => "calidad",
+                                                                                ];
+                                                                                $baseNames[] = $base;
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                // Aplicar filtros de visibilidad según perfil de usuario
+                                                                $userPerfil = Auth::user()->perfil;
+                                                                if ($userPerfil != 1 && $userPerfil != 2 && $userPerfil != 3) {
+                                                                    $filteredOtros = [];
+                                                                    foreach ($otrosArchivos as $archivo) {
+                                                                        $nameLow = strtolower($archivo["nombre"]);
+                                                                        $isPreorden =
+                                                                            ((in_array($archivo["tipo"], ["otro", "imagen"]) ||
+                                                                                str_starts_with($archivo["nombre"], "preordenes/")) &&
+                                                                                strpos($nameLow, "ldm") === false &&
+                                                                                strpos($nameLow, "scar") === false &&
+                                                                                strpos($nameLow, "confirmacion") === false &&
+                                                                                strpos($nameLow, "liberacion") === false) ||
+                                                                            strpos($nameLow, "escaneado") !== false;
+                                                                        if ($userPerfil == 4 || $userPerfil == 3) {
+                                                                            // Calidad o Master
+                                                                            // Calidad solo ve preordenes si pre_orden_email_sent es true
+                                                                            if (!$isPreorden) {
+                                                                                $filteredOtros[] = $archivo;
+                                                                            } else {
+                                                                                $fileHistory = $relatedRecords->firstWhere(
+                                                                                    "ot",
+                                                                                    $archivo["ot"],
+                                                                                );
+                                                                                if ($fileHistory && $fileHistory->pre_orden_email_sent) {
+                                                                                    $filteredOtros[] = $archivo;
+                                                                                }
+                                                                            }
+                                                                        } elseif ($userPerfil == 5) {
+                                                                            // Almacén
+                                                                            // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
+                                                                            if ($isPreorden || strpos($nameLow, "confirmacion") !== false) {
+                                                                                $filteredOtros[] = $archivo;
+                                                                            } else {
+                                                                                $fileHistory = $relatedRecords->firstWhere(
+                                                                                    "ot",
+                                                                                    $archivo["ot"],
+                                                                                );
+                                                                                $status = $fileHistory
+                                                                                    ? $fileHistory->calidad_revision_status
+                                                                                    : null;
+                                                                                $calidadAlertaEnviada =
+                                                                                    in_array($status, [
+                                                                                        "calidad_aprobado",
+                                                                                        "calidad_rechazado",
+                                                                                        "calidad_mixto",
+                                                                                        "calidad_parcial",
+                                                                                        "casting_aprobado",
+                                                                                    ]) ||
+                                                                                    \App\Models\ScarModelo::where("ot", "=", $archivo["ot"])
+                                                                                        ->where("estatus", "=", "alertado")
+                                                                                        ->exists();
+                                                                                if ($calidadAlertaEnviada) {
+                                                                                    $filteredOtros[] = $archivo;
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    $otrosArchivos = $filteredOtros;
+                                                                }
+                                                                $archivosAprobados = [];
+                                                                $archivosRechazados = [];
+                                                                foreach ($otrosArchivos as $archivo) {
+                                                                    $nameLow = strtolower($archivo["nombre"]);
+                                                                    $baseLow = strtolower(basename($archivo["nombre"]));
+                                                                    if (strpos($nameLow, "documentos_rechazados") !== false) {
+                                                                        $archivosRechazados[] = $archivo;
+                                                                    } elseif (strpos($nameLow, "documentos_aprobados") !== false) {
+                                                                        $archivosAprobados[] = $archivo;
+                                                                    } elseif (
+                                                                        strpos($baseLow, "pre-orden") !== false ||
+                                                                        strpos($baseLow, "preorden") !== false ||
+                                                                        strpos($baseLow, "confirmacion") !== false ||
+                                                                        strpos($baseLow, "escaneado_fundicion") !== false
+                                                                    ) {
+                                                                        $archivosAprobados[] = $archivo;
+                                                                    } elseif (
+                                                                        strpos($baseLow, "rechazado") !== false ||
+                                                                        strpos($baseLow, "scar") !== false
+                                                                    ) {
+                                                                        $archivosRechazados[] = $archivo;
+                                                                    } else {
+                                                                        $archivosAprobados[] = $archivo;
+                                                                    }
+                                                                }
+                                                                $clasesActivas = collect($targetReg->ayudas_config ?? [])
+                                                                    ->filter(fn($c) => !str_contains(strtolower($c), "opcional"))
+                                                                    ->filter(function ($claseNombre) use ($targetReg) {
+                                                                        $clLow = strtolower($claseNombre);
+                                                                        $tipo = null;
+                                                                        if (strpos($clLow, "candado obturador") !== false) {
+                                                                            $tipo = "Candado obturador";
+                                                                        } elseif (strpos($clLow, "cabeza de soplo") !== false) {
+                                                                            $tipo = "Cabeza de soplo";
+                                                                        } elseif (strpos($clLow, "embudo") !== false) {
+                                                                            $tipo = "Embudo";
+                                                                        } elseif (strpos($clLow, "corona") !== false) {
+                                                                            $tipo = "Corona";
+                                                                        } elseif (strpos($clLow, "plato") !== false) {
+                                                                            $tipo = "Plato";
+                                                                        } elseif (strpos($clLow, "fondo") !== false) {
+                                                                            $tipo = "Fondo";
+                                                                        } elseif (strpos($clLow, "obturador") !== false) {
+                                                                            $tipo = "Obturador";
+                                                                        } elseif (strpos($clLow, "molde") !== false) {
+                                                                            $tipo = "Molde";
+                                                                        } elseif (strpos($clLow, "bombillo") !== false) {
+                                                                            $tipo = "Bombillo";
+                                                                        }
+                                                                        if ($tipo) {
+                                                                            $baseOt = preg_replace('/_R\d+$/i', "", $targetReg->ot);
+                                                                            $isAprobado = \App\Models\LiberacionModeloFundicion::where(
+                                                                                fn($q) => $q
+                                                                                    ->where("ot", "=", $baseOt)
+                                                                                    ->orWhere("ot", "LIKE", $baseOt . "_R%"),
+                                                                            )
+                                                                                ->where("ot", "!=", $targetReg->ot)
+                                                                                ->where("tipo_modelo", "=", $tipo)
+                                                                                ->where("estado", "=", "aprobado")
+                                                                                ->exists();
+                                                                            return !$isAprobado;
+                                                                        }
+                                                                        return true;
+                                                                    })
+                                                                    ->values()
+                                                                    ->toArray();
+                                                                $todosGuardados = true;
+                                                                foreach ($clasesActivas as $clName) {
+                                                                    $clLow = strtolower($clName);
+                                                                    $tipo = null;
+                                                                    if (strpos($clLow, "candado obturador") !== false) {
+                                                                        $tipo = "Candado obturador";
+                                                                    } elseif (strpos($clLow, "cabeza de soplo") !== false) {
+                                                                        $tipo = "Cabeza de soplo";
+                                                                    } elseif (strpos($clLow, "embudo") !== false) {
+                                                                        $tipo = "Embudo";
+                                                                    } elseif (strpos($clLow, "corona") !== false) {
+                                                                        $tipo = "Corona";
+                                                                    } elseif (strpos($clLow, "plato") !== false) {
+                                                                        $tipo = "Plato";
+                                                                    } elseif (strpos($clLow, "fondo") !== false) {
+                                                                        $tipo = "Fondo";
+                                                                    } elseif (strpos($clLow, "obturador") !== false) {
+                                                                        $tipo = "Obturador";
+                                                                    } elseif (strpos($clLow, "molde") !== false) {
+                                                                        $tipo = "Molde";
+                                                                    } elseif (strpos($clLow, "bombillo") !== false) {
+                                                                        $tipo = "Bombillo";
+                                                                    }
+                                                                    if ($tipo) {
+                                                                        $hasData = \App\Models\LiberacionModeloFundicion::where(
+                                                                            "ot",
+                                                                            "=",
+                                                                            $targetReg->ot,
+                                                                        )
+                                                                            ->where("tipo_modelo", "=", $tipo)
+                                                                            ->exists();
+                                                                        if (!$hasData) {
+                                                                            $todosGuardados = false;
                                                                             break;
                                                                         }
-                                                                    } elseif ($isPdf) {
-                                                                        if (!in_array($base, $baseNames)) {
-                                                                            $rechazadosAyudas[] = [
-                                                                                "nombre" => $relativePath,
-                                                                                "url" => route("calidad.fundicion.serve", [
-                                                                                    "ot" => $otName,
-                                                                                    "archivo" => $relativePath,
-                                                                                    "tipo" => "ayuda",
-                                                                                ]),
-                                                                                "tipo" => "ayuda",
-                                                                                "ot" => $otName,
-                                                                            ];
-                                                                            $baseNames[] = $base;
-                                                                        }
-                                                                    }
-                                                                    continue;
-                                                                }
-                                                                $matchesActive = false;
-                                                                foreach ($activeClassesForOt as $ac) {
-                                                                    if (strpos($fileLower, $ac) !== false) {
-                                                                        $matchesActive = true;
-                                                                        break;
                                                                     }
                                                                 }
-                                                                if (!$matchesActive) {
-                                                                    continue;
+                                                                if (empty($clasesActivas)) {
+                                                                    $todosGuardados = false;
                                                                 }
-                                                            } else {
-                                                                if ($otName !== $reg->ot) {
-                                                                    continue;
-                                                                }
-                                                            }
-                                                            if (str_starts_with($relativePath, "preordenes/")) {
-                                                                if (!in_array($base, $baseNames)) {
-                                                                    $otrosArchivos[] = [
-                                                                        "nombre" => $relativePath,
-                                                                        "url" => route("calidad.fundicion.serve", [
-                                                                            "ot" => $otName,
-                                                                            "archivo" => $relativePath,
-                                                                            "tipo" => "otro",
-                                                                        ]),
-                                                                        "tipo" => $isImage ? "imagen" : "otro",
-                                                                        "ot" => $otName,
-                                                                        "origin" => "otro",
-                                                                        "owner" => "almacen",
-                                                                    ];
-                                                                    $baseNames[] = $base;
-                                                                }
-                                                            } elseif ($isPdf) {
-                                                                if (!in_array($base, $baseNames)) {
-                                                                    $ayudasArchivos[] = [
-                                                                        "nombre" => $relativePath,
-                                                                        "url" => route("calidad.fundicion.serve", [
-                                                                            "ot" => $otName,
-                                                                            "archivo" => $relativePath,
-                                                                            "tipo" => "ayuda",
-                                                                        ]),
-                                                                        "tipo" => "ayuda",
-                                                                        "ot" => $otName,
-                                                                    ];
-                                                                    $baseNames[] = $base;
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                // 2. Escanear ayudas visuales de Calidad
-                                                $calidadDir =
-                                                    "DOCUMENTACION_GIS/CALIDAD_FUNDICION/" .
-                                                    $otNameSanitized .
-                                                    "/ayudas_visuales/preordenes";
-                                                if (
-                                                    \Illuminate\Support\Facades\Storage::disk("local")->exists($calidadDir)
-                                                ) {
-                                                    $files = \Illuminate\Support\Facades\Storage::disk("local")->allFiles(
-                                                        $calidadDir,
-                                                    );
-                                                    foreach ($files as $f) {
-                                                        $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                                                        $isPdf = $ext === "pdf";
-                                                        $isImage = in_array($ext, ["jpg", "jpeg", "png", "gif", "webp"]);
-                                                        if (!$isPdf && !$isImage) {
-                                                            continue;
-                                                        }
-                                                        $fNorm = str_replace("\\", "/", $f);
-                                                        $dirNorm = str_replace("\\", "/", $calidadDir);
-                                                        $relativePath = ltrim(str_replace($dirNorm, "", $fNorm), "/");
-                                                        $base = basename($relativePath);
-                                                        $fileLower = strtolower($relativePath);
-                                                        $knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
-                                                        $hasKnownClass = false;
-                                                        foreach ($knownClasses as $kc) {
-                                                            if (strpos($fileLower, $kc) !== false) {
-                                                                $hasKnownClass = true;
-                                                                break;
-                                                            }
-                                                        }
-                                                        if ($hasKnownClass) {
-                                                            $matchesRejected = false;
-                                                            foreach ($rejectedClassesForOt as $rc) {
-                                                                if (strpos($fileLower, $rc) !== false) {
-                                                                    $matchesRejected = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if ($matchesRejected) {
-                                                                if (!in_array($base, $baseNames)) {
-                                                                    $rechazadosOtros[] = [
-                                                                        "nombre" => $relativePath,
-                                                                        "url" => route("calidad.fundicion.serve", [
-                                                                            "ot" => $otName,
-                                                                            "archivo" => $relativePath,
-                                                                            "tipo" => "otro",
-                                                                        ]),
-                                                                        "tipo" => "otro",
-                                                                        "ot" => $otName,
-                                                                    ];
-                                                                    $baseNames[] = $base;
-                                                                    break;
-                                                                }
-                                                                continue;
-                                                            }
-                                                            $matchesActive = false;
-                                                            foreach ($activeClassesForOt as $ac) {
-                                                                if (strpos($fileLower, $ac) !== false) {
-                                                                    $matchesActive = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if (!$matchesActive) {
-                                                                continue;
-                                                            }
-                                                        } else {
-                                                            if ($otName !== $reg->ot) {
-                                                                continue;
-                                                            }
-                                                        }
-                                                        if (!in_array($base, $baseNames)) {
-                                                            $origin = "otro";
-                                                            if (strpos($relativePath, "documentos_aprobados") !== false) {
-                                                                $origin = "aprobado";
-                                                            } elseif (
-                                                                strpos($relativePath, "documentos_rechazados") !== false
-                                                            ) {
-                                                                $origin = "rechazado";
-                                                            }
-                                                            $relativePathWithPrefix = "preordenes/" . $relativePath;
-                                                            $otrosArchivos[] = [
-                                                                "nombre" => $relativePathWithPrefix,
-                                                                "url" => route("calidad.fundicion.serve", [
-                                                                    "ot" => $otName,
-                                                                    "archivo" => $relativePathWithPrefix,
-                                                                    "tipo" => "otro",
-                                                                    "origin" => $origin,
-                                                                ]),
-                                                                "tipo" => $isImage ? "imagen" : "otro",
-                                                                "ot" => $otName,
-                                                                "origin" => $origin,
-                                                                "owner" => "calidad",
-                                                            ];
-                                                            $baseNames[] = $base;
-                                                        }
-                                                    }
-                                                }
-                                                // 2b. Escanear Documentos_Aprobados y Documentos_Rechazados de Almacen y Calidad
-                                                $newDirs = [
-                                                    [
-                                                        "dir" =>
-                                                            "DOCUMENTACION_GIS/ALMACEN_FUNDICION/" .
-                                                            $otNameSanitized .
-                                                            "/Documentos_Aprobados",
-                                                        "origin" => "aprobado",
-                                                        "prefix" => "Documentos_Aprobados/",
-                                                        "owner" => "almacen",
-                                                    ],
-                                                    [
-                                                        "dir" =>
-                                                            "DOCUMENTACION_GIS/ALMACEN_FUNDICION/" .
-                                                            $otNameSanitized .
-                                                            "/Documentos_Rechazados",
-                                                        "origin" => "rechazado",
-                                                        "prefix" => "Documentos_Rechazados/",
-                                                        "owner" => "almacen",
-                                                    ],
-                                                    [
-                                                        "dir" =>
-                                                            "DOCUMENTACION_GIS/CALIDAD_FUNDICION/" .
-                                                            $otNameSanitized .
-                                                            "/Documentos_Aprobados",
-                                                        "origin" => "aprobado",
-                                                        "prefix" => "Documentos_Aprobados/",
-                                                        "owner" => "calidad",
-                                                    ],
-                                                    [
-                                                        "dir" =>
-                                                            "DOCUMENTACION_GIS/CALIDAD_FUNDICION/" .
-                                                            $otNameSanitized .
-                                                            "/Documentos_Rechazados",
-                                                        "origin" => "rechazado",
-                                                        "prefix" => "Documentos_Rechazados/",
-                                                        "owner" => "calidad",
-                                                    ],
-                                                ];
-                                                foreach ($newDirs as $dirInfo) {
-                                                    $targetDir = $dirInfo["dir"];
-                                                    $origin = $dirInfo["origin"];
-                                                    $prefix = $dirInfo["prefix"];
-                                                    if (
-                                                        \Illuminate\Support\Facades\Storage::disk("local")->exists(
-                                                            $targetDir,
-                                                        )
-                                                    ) {
-                                                        $files = \Illuminate\Support\Facades\Storage::disk(
-                                                            "local",
-                                                        )->allFiles($targetDir);
-                                                        foreach ($files as $f) {
-                                                            $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                                                            $isPdf = $ext === "pdf";
-                                                            $isImage = in_array($ext, [
-                                                                "jpg",
-                                                                "jpeg",
-                                                                "png",
-                                                                "gif",
-                                                                "webp",
-                                                            ]);
-                                                            if (!$isPdf && !$isImage) {
-                                                                continue;
-                                                            }
-                                                            $fNorm = str_replace("\\", "/", $f);
-                                                            $dirNorm = str_replace("\\", "/", $targetDir);
-                                                            $relativePath = ltrim(str_replace($dirNorm, "", $fNorm), "/");
-                                                            $base = basename($relativePath);
-                                                            $fileLower = strtolower($relativePath);
-                                                            $knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
-                                                            $hasKnownClass = false;
-                                                            foreach ($knownClasses as $kc) {
-                                                                if (strpos($fileLower, $kc) !== false) {
-                                                                    $hasKnownClass = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if ($hasKnownClass) {
-                                                                $matchesRejected = false;
-                                                                foreach ($rejectedClassesForOt as $rc) {
-                                                                    if (strpos($fileLower, $rc) !== false) {
-                                                                        $matchesRejected = true;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                                if ($matchesRejected) {
-                                                                    if (!in_array($base, $baseNames)) {
-                                                                        $rechazadosOtros[] = [
-                                                                            "nombre" => $relativePath,
-                                                                            "url" => route("calidad.fundicion.serve", [
-                                                                                "ot" => $otName,
-                                                                                "archivo" => $relativePath,
-                                                                                "tipo" => "otro",
-                                                                            ]),
-                                                                            "tipo" => "otro",
-                                                                            "ot" => $otName,
-                                                                        ];
-                                                                        $baseNames[] = $base;
-                                                                        break;
-                                                                    }
-                                                                    continue;
-                                                                }
-                                                                $matchesActive = false;
-                                                                foreach ($activeClassesForOt as $ac) {
-                                                                    if (strpos($fileLower, $ac) !== false) {
-                                                                        $matchesActive = true;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                                if (!$matchesActive) {
-                                                                    continue;
-                                                                }
-                                                            } else {
-                                                                if ($otName !== $reg->ot) {
-                                                                    continue;
-                                                                }
-                                                            }
-                                                            if (!in_array($base, $baseNames)) {
-                                                                $relativePathWithPrefix = $prefix . $relativePath;
-                                                                $otrosArchivos[] = [
-                                                                    "nombre" => $relativePathWithPrefix,
-                                                                    "url" => route("calidad.fundicion.serve", [
-                                                                        "ot" => $otName,
-                                                                        "archivo" => $relativePathWithPrefix,
-                                                                        "tipo" => "otro",
-                                                                        "origin" => $origin,
-                                                                    ]),
-                                                                    "tipo" => $isImage ? "imagen" : "otro",
-                                                                    "ot" => $otName,
-                                                                    "origin" => $origin,
-                                                                    "owner" => $dirInfo["owner"],
-                                                                ];
-                                                                $baseNames[] = $base;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                // 3. Buscar PDFs generados en public/liberaciones_pdf (LDM y SCAR)
-                                                $otSanitizada = preg_replace("/[^\w\s\-]/", "", $otName);
-                                                $otSanitizada = preg_replace("/[\s]+/", "_", trim($otSanitizada));
-                                                if (file_exists($liberacionesPath)) {
-                                                    // Buscar LDM PDFs
-                                                    $ldmPattern = "{$liberacionesPath}/F-CCL-LDM_*_{$otSanitizada}*.pdf";
-                                                    foreach (glob($ldmPattern) ?: [] as $f) {
-                                                        $base = basename($f);
-                                                        $fileLower = strtolower($base);
-                                                        $knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
-                                                        $hasKnownClass = false;
-                                                        foreach ($knownClasses as $kc) {
-                                                            if (strpos($fileLower, $kc) !== false) {
-                                                                $hasKnownClass = true;
-                                                                break;
-                                                            }
-                                                        }
-                                                        if ($hasKnownClass) {
-                                                            $matchesRejected = false;
-                                                            foreach ($rejectedClassesForOt as $rc) {
-                                                                if (strpos($fileLower, $rc) !== false) {
-                                                                    $matchesRejected = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if ($matchesRejected) {
-                                                                if (!in_array($base, $baseNames)) {
-                                                                    $rechazadosOtros[] = [
-                                                                        "nombre" => $relativePath,
-                                                                        "url" => route("calidad.fundicion.serve", [
-                                                                            "ot" => $otName,
-                                                                            "archivo" => $relativePath,
-                                                                            "tipo" => "otro",
-                                                                        ]),
-                                                                        "tipo" => "otro",
-                                                                        "ot" => $otName,
-                                                                    ];
-                                                                    $baseNames[] = $base;
-                                                                    break;
-                                                                }
-                                                                continue;
-                                                            }
-                                                            $matchesActive = false;
-                                                            foreach ($activeClassesForOt as $ac) {
-                                                                if (strpos($fileLower, $ac) !== false) {
-                                                                    $matchesActive = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if (!$matchesActive) {
-                                                                continue;
-                                                            }
-                                                        } else {
-                                                            if ($otName !== $reg->ot) {
-                                                                continue;
-                                                            }
-                                                        }
-                                                        if (!in_array($base, $baseNames)) {
-                                                            $otrosArchivos[] = [
-                                                                "nombre" => $base,
-                                                                "url" => route("calidad.fundicion.serve", [
-                                                                    "ot" => $otName,
-                                                                    "archivo" => $base,
-                                                                    "tipo" => "liberacion",
-                                                                ]),
-                                                                "tipo" => "liberacion",
-                                                                "ot" => $otName,
-                                                                "origin" => "",
-                                                                "owner" => "calidad",
-                                                            ];
-                                                            $baseNames[] = $base;
-                                                        }
-                                                    }
-                                                    // Buscar SCAR PDFs (digital y firmado)
-                                                    $scarPattern = "{$liberacionesPath}/F-CCL-SCAR_*_{$otSanitizada}*.pdf";
-                                                    $scarPattern2 = "{$liberacionesPath}/F-CCL-SCAR_{$otSanitizada}.pdf";
-                                                    $scarFiles = array_merge(
-                                                        glob($scarPattern) ?: [],
-                                                        glob($scarPattern2) ?: [],
-                                                    );
-                                                    foreach (array_unique($scarFiles) as $f) {
-                                                        $base = basename($f);
-                                                        $fileLower = strtolower($base);
-                                                        $knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo"];
-                                                        $hasKnownClass = false;
-                                                        foreach ($knownClasses as $kc) {
-                                                            if (strpos($fileLower, $kc) !== false) {
-                                                                $hasKnownClass = true;
-                                                                break;
-                                                            }
-                                                        }
-                                                        if ($hasKnownClass) {
-                                                            $matchesRejected = false;
-                                                            foreach ($rejectedClassesForOt as $rc) {
-                                                                if (strpos($fileLower, $rc) !== false) {
-                                                                    $matchesRejected = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if ($matchesRejected) {
-                                                                if (!in_array($base, $baseNames)) {
-                                                                    $rechazadosOtros[] = [
-                                                                        "nombre" => $relativePath,
-                                                                        "url" => route("calidad.fundicion.serve", [
-                                                                            "ot" => $otName,
-                                                                            "archivo" => $relativePath,
-                                                                            "tipo" => "otro",
-                                                                        ]),
-                                                                        "tipo" => "otro",
-                                                                        "ot" => $otName,
-                                                                    ];
-                                                                    $baseNames[] = $base;
-                                                                    break;
-                                                                }
-                                                                continue;
-                                                            }
-                                                            $matchesActive = false;
-                                                            foreach ($activeClassesForOt as $ac) {
-                                                                if (strpos($fileLower, $ac) !== false) {
-                                                                    $matchesActive = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if (!$matchesActive) {
-                                                                continue;
-                                                            }
-                                                        } else {
-                                                            if ($otName !== $reg->ot) {
-                                                                continue;
-                                                            }
-                                                        }
-                                                        if (!in_array($base, $baseNames)) {
-                                                            $otrosArchivos[] = [
-                                                                "nombre" => $base,
-                                                                "url" => route("calidad.fundicion.serve", [
-                                                                    "ot" => $otName,
-                                                                    "archivo" => $base,
-                                                                    "tipo" => "liberacion",
-                                                                ]),
-                                                                "tipo" => "liberacion",
-                                                                "ot" => $otName,
-                                                                "origin" => "",
-                                                                "owner" => "calidad",
-                                                            ];
-                                                            $baseNames[] = $base;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            // Aplicar filtros de visibilidad según perfil de usuario
-                                            $userPerfil = Auth::user()->perfil;
-                                            if ($userPerfil != 1 && $userPerfil != 2 && $userPerfil != 3) {
-                                                $filteredOtros = [];
-                                                foreach ($otrosArchivos as $archivo) {
-                                                    $nameLow = strtolower($archivo["nombre"]);
-                                                    $isPreorden =
-                                                        ((in_array($archivo["tipo"], ["otro", "imagen"]) ||
-                                                            str_starts_with($archivo["nombre"], "preordenes/")) &&
-                                                            strpos($nameLow, "ldm") === false &&
-                                                            strpos($nameLow, "scar") === false &&
-                                                            strpos($nameLow, "confirmacion") === false &&
-                                                            strpos($nameLow, "liberacion") === false) ||
-                                                        strpos($nameLow, "escaneado") !== false;
-                                                    if ($userPerfil == 4 || $userPerfil == 3) {
-                                                        // Calidad o Master
-                                                        // Calidad solo ve preordenes si pre_orden_email_sent es true
-                                                        if (!$isPreorden) {
-                                                            $filteredOtros[] = $archivo;
-                                                        } else {
-                                                            $fileHistory = $relatedRecords->firstWhere(
-                                                                "ot",
-                                                                $archivo["ot"],
-                                                            );
-                                                            if ($fileHistory && $fileHistory->pre_orden_email_sent) {
-                                                                $filteredOtros[] = $archivo;
-                                                            }
-                                                        }
-                                                    } elseif ($userPerfil == 5) {
-                                                        // Almacén
-                                                        // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
-                                                        if ($isPreorden || strpos($nameLow, "confirmacion") !== false) {
-                                                            $filteredOtros[] = $archivo;
-                                                        } else {
-                                                            $fileHistory = $relatedRecords->firstWhere(
-                                                                "ot",
-                                                                $archivo["ot"],
-                                                            );
-                                                            $status = $fileHistory
-                                                                ? $fileHistory->calidad_revision_status
-                                                                : null;
-                                                            $calidadAlertaEnviada =
-                                                                in_array($status, [
+                                                                $countAprobados = count($archivosAprobados);
+                                                                $countRechazados = count($archivosRechazados);
+                                                                $countAyudas = count($ayudasArchivos);
+                                                                $countOtros = count($otrosArchivos);
+                                                                $isReprocesoBadge = (bool) preg_match('/_R\d+$/i', $reg->ot);
+                                                                // En Calidad, todos los archivos base se obtienen de 4 arrays disjuntos:
+                                                                // $archivos (Dibujos/), $ayudasArchivos (Ayudas/), $archivosAprobados (Otros_Documentos/),
+                                                                // y $archivosRechazados (Documentos_Rechazados/).
+                                                                // Al sumar estos 4, evitamos doble-conteo.
+                                                                $count =
+                                                                    count($archivos) +
+                                                                    count($rechazadosDibujos) +
+                                                                    count($ayudasArchivos) +
+                                                                    count($rechazadosAyudas) +
+                                                                    count($archivosAprobados) +
+                                                                    count($archivosRechazados) +
+                                                                    count($rechazadosOtros);
+                                                                $hasFinalStatus = in_array($targetReg->calidad_revision_status, [
                                                                     "calidad_aprobado",
                                                                     "calidad_rechazado",
                                                                     "calidad_mixto",
-                                                                    "calidad_parcial",
                                                                     "casting_aprobado",
-                                                                ]) ||
-                                                                \App\Models\ScarModelo::where("ot", "=", $archivo["ot"])
-                                                                    ->where("estatus", "=", "alertado")
-                                                                    ->exists();
-                                                            if ($calidadAlertaEnviada) {
-                                                                $filteredOtros[] = $archivo;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                $otrosArchivos = $filteredOtros;
-                                            }
-                                            $archivosAprobados = [];
-                                            $archivosRechazados = [];
-                                            foreach ($otrosArchivos as $archivo) {
-                                                $nameLow = strtolower($archivo["nombre"]);
-                                                $baseLow = strtolower(basename($archivo["nombre"]));
-                                                if (strpos($nameLow, "documentos_rechazados") !== false) {
-                                                    $archivosRechazados[] = $archivo;
-                                                } elseif (strpos($nameLow, "documentos_aprobados") !== false) {
-                                                    $archivosAprobados[] = $archivo;
-                                                } elseif (
-                                                    strpos($baseLow, "pre-orden") !== false ||
-                                                    strpos($baseLow, "preorden") !== false ||
-                                                    strpos($baseLow, "confirmacion") !== false ||
-                                                    strpos($baseLow, "escaneado_fundicion") !== false
-                                                ) {
-                                                    $archivosAprobados[] = $archivo;
-                                                } elseif (
-                                                    strpos($baseLow, "rechazado") !== false ||
-                                                    strpos($baseLow, "scar") !== false
-                                                ) {
-                                                    $archivosRechazados[] = $archivo;
-                                                } else {
-                                                    $archivosAprobados[] = $archivo;
-                                                }
-                                            }
-                                            $clasesActivas = collect($targetReg->ayudas_config ?? [])
-                                                ->filter(fn($c) => !str_contains(strtolower($c), "opcional"))
-                                                ->filter(function ($claseNombre) use ($targetReg) {
-                                                    $clLow = strtolower($claseNombre);
-                                                    $tipo = null;
-                                                    if (strpos($clLow, "candado obturador") !== false) { $tipo = "Candado obturador"; }
-elseif (strpos($clLow, "cabeza de soplo") !== false) { $tipo = "Cabeza de soplo"; }
-elseif (strpos($clLow, "embudo") !== false) { $tipo = "Embudo"; }
-elseif (strpos($clLow, "corona") !== false) { $tipo = "Corona"; }
-elseif (strpos($clLow, "plato") !== false) { $tipo = "Plato"; }
-elseif (strpos($clLow, "fondo") !== false) { $tipo = "Fondo"; }
-elseif (strpos($clLow, "obturador") !== false) { $tipo = "Obturador"; }
-elseif (strpos($clLow, "molde") !== false) { $tipo = "Molde"; }
-elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
-                                                    if ($tipo) {
-                                                        $baseOt = preg_replace('/_R\d+$/i', "", $targetReg->ot);
-                                                        $isAprobado = \App\Models\LiberacionModeloFundicion::where(
-                                                            fn($q) => $q
-                                                                ->where("ot", "=", $baseOt)
-                                                                ->orWhere("ot", "LIKE", $baseOt . "_R%"),
-                                                        )
-                                                            ->where("ot", "!=", $targetReg->ot)
-                                                            ->where("tipo_modelo", "=", $tipo)
-                                                            ->where("estado", "=", "aprobado")
-                                                            ->exists();
-                                                        return !$isAprobado;
-                                                    }
-                                                    return true;
-                                                })
-                                                ->values()
-                                                ->toArray();
-                                            $todosGuardados = true;
-                                            foreach ($clasesActivas as $clName) {
-                                                $clLow = strtolower($clName);
-                                                $tipo = null;
-                                                if (strpos($clLow, "candado obturador") !== false) { $tipo = "Candado obturador"; }
-elseif (strpos($clLow, "cabeza de soplo") !== false) { $tipo = "Cabeza de soplo"; }
-elseif (strpos($clLow, "embudo") !== false) { $tipo = "Embudo"; }
-elseif (strpos($clLow, "corona") !== false) { $tipo = "Corona"; }
-elseif (strpos($clLow, "plato") !== false) { $tipo = "Plato"; }
-elseif (strpos($clLow, "fondo") !== false) { $tipo = "Fondo"; }
-elseif (strpos($clLow, "obturador") !== false) { $tipo = "Obturador"; }
-elseif (strpos($clLow, "molde") !== false) { $tipo = "Molde"; }
-elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
-                                                if ($tipo) {
-                                                    $hasData = \App\Models\LiberacionModeloFundicion::where(
-                                                        "ot",
-                                                        "=",
-                                                        $targetReg->ot,
-                                                    )
-                                                        ->where("tipo_modelo", "=", $tipo)
-                                                        ->exists();
-                                                    if (!$hasData) {
-                                                        $todosGuardados = false;
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                            if (empty($clasesActivas)) {
-                                                $todosGuardados = false;
-                                            }
-                                            $countAprobados = count($archivosAprobados);
-                                            $countRechazados = count($archivosRechazados);
-                                            $countAyudas = count($ayudasArchivos);
-                                            $countOtros = count($otrosArchivos);
-                                            $isReprocesoBadge = (bool) preg_match('/_R\d+$/i', $reg->ot);
-                                            // En Calidad, todos los archivos base se obtienen de 4 arrays disjuntos:
-                                            // $archivos (Dibujos/), $ayudasArchivos (Ayudas/), $archivosAprobados (Otros_Documentos/),
-                                            // y $archivosRechazados (Documentos_Rechazados/).
-                                            // Al sumar estos 4, evitamos doble-conteo.
-                                            $count =
-                                                count($archivos) +
-                                                count($rechazadosDibujos) +
-                                                count($ayudasArchivos) +
-                                                count($rechazadosAyudas) +
-                                                count($archivosAprobados) +
-                                                count($archivosRechazados) +
-                                                count($rechazadosOtros);
-                                            $hasFinalStatus = in_array($targetReg->calidad_revision_status, [
-                                                "calidad_aprobado",
-                                                "calidad_rechazado",
-                                                "calidad_mixto",
-                                                "casting_aprobado",
-                                            ]);
-                                            $isQualityFinalized = $hasFinalStatus && $todosGuardados;
-                                            $showQualityCard =
-                                                in_array(Auth::user()->perfil, ["1", "3", "4", 1, 3, 4]) &&
-                                                $estado === "activa" &&
-                                                !$isQualityFinalized;
-                                            $hasFilesOrControl = $count > 0 || $showQualityCard;
-                                            // ── CALCULAR APROBADOS Y RECHAZADOS DEL ÁšLTIMO VEREDICTO DE CADA CLASE ──
-                                            $liberacionesAll = \App\Models\LiberacionModeloFundicion::whereIn(
-                                                "ot",
-                                                $allRelatedOtNames,
-                                            )->get();
-                                            $latestLiberacionesByClass = [];
-                                            foreach ($liberacionesAll as $lib) {
-                                                $tipo = $lib->tipo_modelo;
-                                                $libOt = $lib->ot;
-                                                preg_match('/_R(\d+)$/', $libOt, $matches);
-                                                $suffixNum = isset($matches[1]) ? (int) $matches[1] : 0;
-                                                if (
-                                                    !isset($latestLiberacionesByClass[$tipo]) ||
-                                                    $suffixNum > $latestLiberacionesByClass[$tipo]["suffix"]
-                                                ) {
-                                                    $latestLiberacionesByClass[$tipo] = [
-                                                        "lib" => $lib,
-                                                        "suffix" => $suffixNum,
-                                                    ];
-                                                }
-                                            }
-                                            $aprobadosRaw = [];
-                                            $rechazadosRaw = [];
-                                            foreach ($latestLiberacionesByClass as $tipo => $data) {
-                                                $lib = $data["lib"];
-                                                if ($lib->decision === "aprobar") {
-                                                    $aprobadosRaw[] = $tipo;
-                                                } elseif ($lib->decision === "rechazar") {
-                                                    $rechazadosRaw[] = $tipo;
-                                                }
-                                            }
-                                            // Filtrar por clases activas en esta versión de la OT (desde la pre-orden de modelo)
-                                            // (Ya calculado al inicio en activeClassesForOt)
-                                            $aprobados = array_filter($aprobadosRaw, function ($clase) use (
-                                                $activeClassesForOt,
-                                            ) {
-                                                return in_array(strtolower($clase), $activeClassesForOt);
-                                            });
-                                            $rechazados = array_filter($rechazadosRaw, function ($clase) use (
-                                                $activeClassesForOt,
-                                            ) {
-                                                return in_array(strtolower($clase), $activeClassesForOt);
-                                            });
-                                        @endphp
-
-                                        {{-- Fila principal --}}
-                                        <tr data-ot="{{ $reg->ot }}">
-                                            <td>
-
-                                                <div class="alm-ot-label">
-                                                    {{
-                                                        preg_replace(
-                                                            "/_\d{8}_\d{6}_.*/",
-                                                            "",
-                                                            $reg->ot,
-                                                        )
-                                                    }}
-                                                </div>
-                                                @if ($reg->status === "inactiva")
-                                                    <div
-                                                        class="alm-inactiva-note"
-                                                    >
-                                                        La carpeta fue eliminada
-                                                        por el administrador.
-                                                        Los PDFs de {{ $deptName }} se
-                                                        conservan.
-                                                    </div>
-                                                @endif
-                                            </td>
-                                            <td class="d-text-center">
-                                                <span
-                                                    class="badge-status badge-{{ $reg->status }}"
-                                                >
-                                                    {{ $reg->status }}
-                                                </span>
-                                            </td>
-                                            <td class="d-text-center">
-                                                <div
-                                                    id="status-modelo-{{ $reg->ot }}"
-                                                >
-                                                    @php
-                                                        $libStatus = $targetReg->calidad_revision_status ?? null;
-                                                        if ($libStatus === "casting_aprobado") {
-                                                            $icon = "Proveedor.png";
-                                                            $label = "Enviado a Proveedor";
-                                                            $tooltip = "Pre-orden de casting enviada al proveedor, proceso finalizado";
-                                                            $borderColor = "#9333ea";
-                                                            $bgColor = "#f3e8ff";
-                                                            $textColor = "#9333ea";
-                                                        } elseif ($targetReg->casting_pdf_generated) {
-                                                            $icon = "pdf-view.png";
-                                                            $label = "Casting";
-                                                            $tooltip = "Pre-orden de casting generada, esperando envío";
-                                                            $borderColor = "#059669";
-                                                            $bgColor = "#f0fdf4";
-                                                            $textColor = "#15803d";
-                                                        } elseif (in_array($libStatus, ["aprobado", "calidad_aprobado"])) {
-                                                            $icon = "Quality.png";
-                                                            $label = "Aprobado";
-                                                            $tooltip = "Modelo aprobado y liberado por Calidad";
-                                                            $borderColor = "#10b981";
-                                                            $bgColor = "#ecfdf5";
-                                                            $textColor = "#047857";
-                                                        } elseif (in_array($libStatus, ["rechazado", "calidad_rechazado"])) {
-                                                            $icon = "Quality.png";
-                                                            $label = "Rechazado";
-                                                            $tooltip = "Modelo rechazado por Calidad debido a desviaciones";
-                                                            $borderColor = "#ef4444";
-                                                            $bgColor = "#fef2f2";
-                                                            $textColor = "#b91c1c";
-                                                        } elseif (in_array($libStatus, ["mixto", "calidad_mixto"])) {
-                                                            $icon = "Quality.png";
-                                                            $label = "Mixto";
-                                                            $tooltip = "Liberación mixta por Calidad (clases aprobadas y rechazadas)";
-                                                            $borderColor = "#eab308";
-                                                            $bgColor = "#fef9c3";
-                                                            $textColor = "#854d0e";
-                                                        } elseif (in_array($libStatus, ["pendiente", "calidad_parcial"])) {
-                                                            $icon = "Revisando.png";
-                                                            $label = "En Revisión";
-                                                            $tooltip = "Calidad está realizando la revisión del modelo";
-                                                            $borderColor = "#f59e0b";
-                                                            $bgColor = "#fffbeb";
-                                                            $textColor = "#b45309";
-                                                        } elseif ($targetReg->pre_orden_email_sent) {
-                                                            if (Auth::user()->perfil == 4 || Auth::user()->perfil == 3) {
-                                                                $icon = "Recibido.png";
-                                                                $label = "Nuevo";
-                                                                $tooltip =
-                                                                    "Pre-orden de fabricación de modelo recibida, esperando revisión de Calidad";
-                                                                $borderColor = "#cbd5e1";
-                                                                $bgColor = "#f1f5f9";
-                                                                $textColor = "#64748b";
-                                                            } else {
-                                                                $icon = "enviando.png";
-                                                                $label = "Correo Enviado";
-                                                                $tooltip =
-                                                                    "Pre-orden enviada por correo electrónico, esperando revisión de Calidad";
-                                                                $borderColor = "#818cf8";
-                                                                $bgColor = "#e0e7ff";
-                                                                $textColor = "#4f46e5";
-                                                            }
-                                                        } elseif ($targetReg->pre_orden_sent) {
-                                                            $icon = "pdf-view.png";
-                                                            $label = "Pre-Orden";
-                                                            $tooltip = "Pre-orden de modelo generada y guardada, pendiente de enviar";
-                                                            $borderColor = "#60a5fa";
-                                                            $bgColor = "#eff6ff";
-                                                            $textColor = "#2563eb";
-                                                        } elseif ($targetReg->tiene_modelo) {
-                                                            $icon = "Espera.png";
-                                                            $label = "Tengo Modelo";
-                                                            $tooltip =
-                                                                "Modelo físico disponible en Almacén, en espera de revisión por Calidad";
-                                                            $borderColor = "#0ea5e9";
-                                                            $bgColor = "#f0f9ff";
-                                                            $textColor = "#0369a1";
-                                                        } elseif ($reg->rechazos_procesados) {
-                                                            $icon = "Rechazado.png";
-                                                            $label = "Rechazado";
-                                                            $tooltip = "Retornado hacia un nuevo ciclo de modelo (Reproceso)";
-                                                            $borderColor = "#dc2626";
-                                                            $bgColor = "#fef2f2";
-                                                            $textColor = "#b91c1c";
-                                                        } else {
-                                                            $icon = "Recibido.png";
-                                                            $label = "Nuevo";
-                                                            $tooltip =
-                                                                "Alerta inicial recibida, pendiente de procesar modelo por Almacén";
-                                                            $borderColor = "#cbd5e1";
-                                                            $bgColor = "#f1f5f9";
-                                                            $textColor = "#64748b";
-                                                        }
-                                                    @endphp
-                                                    <div class="status-modelo-container cal-display-inline-flex cal-flex-direction-column cal-align-items-center cal-gap-2px cal-padding-6px cal-border-radius-8px"
-                                                    >
-                                                        <span
-                                                            class="badge-modelo-icon"
-                                                            title="{{ $tooltip }}"
-                                                            style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background: {{ $bgColor }}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid {{ $borderColor }}; transition: all 0.2s ease;"
-                                                        >
-                                                            <img
-                                                                src="{{ asset('images/' . $icon) }}"
-                                                                alt="{{ $label }}"
-                                                                class="cal-width-34px cal-height-34px cal-object-fit-contain"
-                                                            />
-                                                        </span>
-                                                        <span
-                                                            class="status-modelo-label"
-                                                            style="font-size: 11px; font-weight: 700; color: {{ $textColor }}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;"
-                                                        >
-                                                            {{ $label }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="alm-date d-text-center">
-                                                {{
-                                                    $reg->alert_sent_at
-                                                        ? $reg->alert_sent_at->format("d/m/Y H:i")
-                                                        : "—"
-                                                }}
-                                            </td>
-                                            <td class="d-text-center">
-                                                <span
-                                                    class="badge-pdf-count"
-                                                    >{{ $count }}</span
-                                                >
-                                            </td>
-                                            <td class="d-text-center">
-                                                @if ($hasFilesOrControl)
-                                                    <button
-                                                        class="btn-toggle-files"
-                                                        data-target="files-{{ $estado }}-{{ $loop->index }}"
-                                                        data-ot="{{ $reg->ot }}"
-                                                        id="toggle-btn-{{ $estado }}-{{ $loop->index }}"
-                                                        aria-expanded="false"
-                                                    >
-                                                        Ver Archivos
-                                                    </button>
-                                                @else
-                                                    <span class="d-text-subtle cal-font-size-0-85em"
-                                                        >Sin archivos</span
-                                                    >
-                                                @endif
-                                            </td>
-                                        </tr>
-
-                                        {{-- Fila desplegable de archivos --}}
-                                        @if ($hasFilesOrControl)
-                                            <tr
-                                                class="alm-files-row"
-                                                id="files-{{ $estado }}-{{ $loop->index }}"
-                                            >
-                                                <td colspan="6">
-
-                                                    {{-- BLOQUE 1: Dibujos solo visibles si la alerta fue enviada desde
-                                                        manage_documentation.js
-                                                        --}}
-                                                    @if ($countDibujos > 0 && $reg->alert_sent_at)
-                                                        <h3
-                                                            class="cal-margin-top-15px cal-margin-bottom-10px cal-color-005194 cal-border-bottom-2px-solid-005194 cal-padding-bottom-5px"
-                                                        >
-                                                            Dibujos de Fundición
-                                                        </h3>
-
-                                                        <div class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0"
-                                                        >
-                                                            @foreach ($archivos as $archivoInfo)
-                                                                <div
-                                                                    class="dibujos-file-card"
-                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s;"
-                                                                >
-                                                                    <div class="file-icon-wrapper cal-cursor-pointer"
-                                                                        title="Abrir PDF"
-                                                                    >
-                                                                        <img
-                                                                            src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                            class="file-icon icon-default"
-                                                                        />
-                                                                        <img
-                                                                            src="{{ asset('images/pdf-view.png') }}"
-                                                                            class="file-icon icon-hover"
-                                                                        />
-                                                                    </div>
-                                                                    <div class="file-name cal-cursor-pointer"
-                                                                        title="Abrir PDF"
-                                                                        onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')"
-                                                                    >
-                                                                        {{
-                                                                            basename(
-                                                                                $archivoInfo["nombre"],
-                                                                            )
-                                                                        }}
-                                                                    </div>
-                                                                    <div
-                                                                        class="file-actions"
-                                                                    >
-                                                                        <button
-                                                                            class="btn-dibujos btn-dibujos-sm btn-ver"
-                                                                            onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')"
-                                                                        >
-                                                                            Ver
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                    @elseif ($countDibujos > 0 && !$reg->alert_sent_at)
-
-                                                        {{-- Dibujos existentes pero alerta aún no enviada desde Ingeniería --}}
-                                                        <div
-                                                            class="cal-margin-top-15px cal-padding-14px-18px cal-background-rgba-0-81-148-0-06 cal-border-1-5px-dashed-005194 cal-border-radius-10px cal-color-005194 cal-font-size-0-93em"
-                                                        >
-                                                            <strong
-                                                                >Dibujos
-                                                                pendientes:</strong
-                                                            >
-                                                            Los dibujos estarán
-                                                            disponibles una vez
-                                                            que Ingeniería envíe
-                                                            la alerta oficial
-                                                            desde el sistema de
-                                                            gestión documental.
-                                                        </div>
-                                                    @endif
-                                                    @if ($countAyudas > 0)
-                                                        <h3
-                                                            class="cal-margin-top-25px cal-margin-bottom-10px cal-color-9c0300 cal-border-bottom-2px-solid-9c0300 cal-padding-bottom-5px"
-                                                        >
-                                                            Ayudas Visuales de
-                                                            Fundición
-                                                        </h3>
-
-                                                        <div class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0"
-                                                        >
-                                                            @foreach ($ayudasArchivos as $ayudaArchivo)
-                                                                <div
-                                                                    class="dibujos-file-card card-ayuda"
-                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s;"
-                                                                >
-                                                                    <div class="file-icon-wrapper cal-cursor-pointer"
-                                                                        title="Abrir PDF"
-                                                                    >
-                                                                        <img
-                                                                            src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                            class="file-icon icon-default"
-                                                                        />
-                                                                        <img
-                                                                            src="{{ asset('images/pdf-view.png') }}"
-                                                                            class="file-icon icon-hover"
-                                                                        />
-                                                                    </div>
-                                                                    <div class="file-name cal-cursor-pointer"
-                                                                        title="Abrir PDF"
-                                                                        onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')"
-                                                                    >
-                                                                        {{
-                                                                            basename(
-                                                                                $ayudaArchivo["nombre"],
-                                                                            )
-                                                                        }}
-                                                                    </div>
-                                                                    <div
-                                                                        class="file-actions"
-                                                                    >
-                                                                        <button
-                                                                            class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color"
-                                                                            onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')"
-                                                                        >
-                                                                            Ver
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                    @elseif (!empty($reg->ayudas_config))
-                                                        <div
-                                                            class="cal-margin-top-20px cal-padding-15px cal-background-fff5f5 cal-border-1px-solid-feb2b2 cal-border-radius-8px cal-color-9c0300"
-                                                        >
-                                                            <strong
-                                                                >Aviso:</strong
-                                                            >
-                                                            Se han vinculado {{ count($reg->ayudas_config) }} clases
-                                                            de ayudas visuales,
-                                                            pero los archivos
-                                                            aún no se han
-                                                            sincronizado con {{ $deptName }}.
-                                                            Por favor,
-                                                            <strong
-                                                                >Vuelve a
-                                                                Vincular</strong
-                                                            >
-                                                            las ayudas desde la
-                                                            vista de
-                                                            administración.
-                                                        </div>
-                                                    @endif
-                                                    @php
-                                                        foreach ($archivosRechazados as $rArchivo) {
-                                                            $nameLow = strtolower($rArchivo["nombre"]);
-                                                            $ext = pathinfo($nameLow, PATHINFO_EXTENSION);
-                                                            $isImg = in_array($ext, ["jpg", "jpeg", "png", "gif", "webp"]);
-                                                            $rArchivo["ot"] = $rArchivo["ot"] ?? $reg->ot;
-                                                            $rArchivo["tipo"] = $rArchivo["tipo"] ?? ($isImg ? "imagen" : "otro");
-                                                            if (
-                                                                strpos($nameLow, "ayudas_visuales") !== false ||
-                                                                strpos($nameLow, "ayudas-visuales") !== false ||
-                                                                $isImg
-                                                            ) {
-                                                                $rArchivo["tipo"] =
-                                                                    $rArchivo["tipo"] === "otro" ? "ayuda" : $rArchivo["tipo"];
-                                                                $rechazadosAyudas[] = $rArchivo;
-                                                            } elseif (
-                                                                strpos($nameLow, "dibujos") !== false ||
-                                                                strpos($nameLow, "dibujo") !== false
-                                                            ) {
-                                                                $rechazadosDibujos[] = $rArchivo;
-                                                            } else {
-                                                                $rechazadosOtros[] = $rArchivo;
-                                                            }
-                                                        }
-                                                    @endphp
-
-                                                    {{-- BLOQUE 4: Renombrar sección a "Documentos Aprobados" --}}
-                                                    @if ($countAprobados > 0)
-                                                        <h3
-                                                            class="cal-margin-top-25px cal-margin-bottom-10px cal-color-155724 cal-border-bottom-2px-solid-155724 cal-padding-bottom-5px"
-                                                        >
-                                                            Documentos Aprobados
-                                                        </h3>
-
-                                                        <div class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0"
-                                                        >
-                                                            @foreach ($archivosAprobados as $otroArchivo)
-                                                                @php
-                                                                    $canDelete = false;
-                                                                    $fileOwner = $otroArchivo["owner"] ?? "";
-                                                                    $fileNameLower = strtolower($otroArchivo["nombre"]);
+                                                                ]);
+                                                                $isQualityFinalized = $hasFinalStatus && $todosGuardados;
+                                                                $showQualityCard =
+                                                                    in_array(Auth::user()->perfil, ["1", "3", "4", 1, 3, 4]) &&
+                                                                    $estado === "activa" &&
+                                                                    !$isQualityFinalized;
+                                                                $hasFilesOrControl = $count > 0 || $showQualityCard;
+                                                                // ── CALCULAR APROBADOS Y RECHAZADOS DEL ÁšLTIMO VEREDICTO DE CADA CLASE ──
+                                                                $liberacionesAll = \App\Models\LiberacionModeloFundicion::whereIn(
+                                                                    "ot",
+                                                                    $allRelatedOtNames,
+                                                                )->get();
+                                                                $latestLiberacionesByClass = [];
+                                                                foreach ($liberacionesAll as $lib) {
+                                                                    $tipo = $lib->tipo_modelo;
+                                                                    $libOt = $lib->ot;
+                                                                    preg_match('/_R(\d+)$/', $libOt, $matches);
+                                                                    $suffixNum = isset($matches[1]) ? (int) $matches[1] : 0;
                                                                     if (
-                                                                        strpos($fileNameLower, "f-ccl-ldm") !== false ||
-                                                                        strpos($fileNameLower, "scar") !== false
+                                                                        !isset($latestLiberacionesByClass[$tipo]) ||
+                                                                        $suffixNum > $latestLiberacionesByClass[$tipo]["suffix"]
                                                                     ) {
-                                                                        $fileOwner = "calidad";
+                                                                        $latestLiberacionesByClass[$tipo] = [
+                                                                            "lib" => $lib,
+                                                                            "suffix" => $suffixNum,
+                                                                        ];
                                                                     }
-                                                                    $userPerfil = Auth::user()->perfil;
-                                                                    if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
-                                                                        $canDelete = true;
-                                                                    } elseif ($userPerfil == 5 && $fileOwner === "almacen") {
-                                                                        if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
-                                                                            $canDelete = true;
-                                                                        }
-                                                                    } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === "calidad") {
-                                                                        $canDelete = true;
+                                                                }
+                                                                $aprobadosRaw = [];
+                                                                $rechazadosRaw = [];
+                                                                foreach ($latestLiberacionesByClass as $tipo => $data) {
+                                                                    $lib = $data["lib"];
+                                                                    if ($lib->decision === "aprobar") {
+                                                                        $aprobadosRaw[] = $tipo;
+                                                                    } elseif ($lib->decision === "rechazar") {
+                                                                        $rechazadosRaw[] = $tipo;
                                                                     }
-                                                                @endphp
-                                                                @if ($otroArchivo["tipo"] === "imagen")
+                                                                }
+                                                                // Filtrar por clases activas en esta versión de la OT (desde la pre-orden de modelo)
+                                                                // (Ya calculado al inicio en activeClassesForOt)
+                                                                $aprobados = array_filter($aprobadosRaw, function ($clase) use ($activeClassesForOt, ) {
+                                                                    return in_array(strtolower($clase), $activeClassesForOt);
+                                                                });
+                                                                $rechazados = array_filter($rechazadosRaw, function ($clase) use ($activeClassesForOt, ) {
+                                                                    return in_array(strtolower($clase), $activeClassesForOt);
+                                                                });
+                                                            @endphp
 
-                                                                    {{-- Tarjeta para imágenes (fotos de evidencia) --}}
-                                                                    <div
-                                                                        class="dibujos-file-card card-otro card-imagen"
-                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0369a1;"
-                                                                    >
-                                                                        <div class="file-icon-wrapper cal-cursor-pointer"
-                                                                            title="Ver imagen"
-                                                                        >
-                                                                            <img
-                                                                                src="{{ $otroArchivo['url'] }}" class="file-icon-img-thumb cal-width-100pct cal-height-80px cal-object-fit-cover cal-border-radius-6px cal-border-1px-solid-bae6fd"
-                                                                            />
-                                                                        </div>
-                                                                        <div class="file-name cal-cursor-pointer"
-                                                                            title="Ver imagen"
-                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')"
-                                                                        >
-                                                                            {{
-                                                                                basename(
-                                                                                    $otroArchivo["nombre"],
-                                                                                )
-                                                                            }}
-                                                                        </div>
-                                                                        <div class="file-actions cal-display-flex cal-gap-5px"
-                                                                        >
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-0369a1 cal-color-white"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')"
-                                                                            >
-                                                                                Ver
-                                                                            </button>
-                                                                            @if ($canDelete)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')"
-                                                                                >
-                                                                                    Eliminar
-                                                                                </button>
-                                                                            @endif
-                                                                        </div>
-                                                                    </div>
-                                                                @else
+                                                            {{-- Fila principal --}}
+                                                            <tr data-ot="{{ $reg->ot }}">
+                                                                <td>
 
-                                                                    {{-- Tarjeta para PDFs y otros documentos --}}
-                                                                    <div
-                                                                        class="dibujos-file-card card-otro"
-                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;"
-                                                                    >
-                                                                        <div class="file-icon-wrapper cal-cursor-pointer"
-                                                                            title="Abrir PDF"
-                                                                        >
-                                                                            <img
-                                                                                src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                                class="file-icon icon-default"
-                                                                            />
-                                                                            <img
-                                                                                src="{{ asset('images/pdf-view.png') }}"
-                                                                                class="file-icon icon-hover"
-                                                                            />
-                                                                        </div>
-                                                                        <div class="file-name cal-cursor-pointer"
-                                                                            title="Abrir PDF"
-                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
-                                                                        >
-                                                                            {{
-                                                                                basename(
-                                                                                    $otroArchivo["nombre"],
-                                                                                )
-                                                                            }}
-                                                                        </div>
-                                                                        <div class="file-actions cal-display-flex cal-gap-5px"
-                                                                        >
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-155724 cal-color-white"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
-                                                                            >
-                                                                                Ver
-                                                                            </button>
-                                                                            @if ($canDelete)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')"
-                                                                                >
-                                                                                    Eliminar
-                                                                                </button>
-                                                                            @endif
-                                                                        </div>
-                                                                    </div>
-                                                                @endif
-                                                            @endforeach
-                                                        </div>
-                                                    @endif
-
-                                                    {{-- BLOQUE 5.1: Dibujos Rechazados --}}
-                                                    @if (count($rechazadosDibujos) > 0)
-                                                        <h3
-                                                            class="cal-margin-top-25px cal-margin-bottom-10px cal-color-9c0300 cal-border-bottom-2px-solid-9c0300 cal-padding-bottom-5px"
-                                                        >
-                                                            Dibujos Rechazados
-                                                        </h3>
-
-                                                        <div class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca"
-                                                        >
-                                                            @foreach ($rechazadosDibujos as $otroArchivo)
-                                                                @php
-                                                                    $canDelete = false;
-                                                                    $fileOwner = $otroArchivo["owner"] ?? "";
-                                                                    $fileNameLower = strtolower($otroArchivo["nombre"]);
-                                                                    if (
-                                                                        strpos($fileNameLower, "f-ccl-ldm") !== false ||
-                                                                        strpos($fileNameLower, "scar") !== false
-                                                                    ) {
-                                                                        $fileOwner = "calidad";
-                                                                    }
-                                                                    $userPerfil = Auth::user()->perfil;
-                                                                    if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
-                                                                        $canDelete = true;
-                                                                    } elseif ($userPerfil == 5 && $fileOwner === "almacen") {
-                                                                        if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
-                                                                            $canDelete = true;
-                                                                        }
-                                                                    } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === "calidad") {
-                                                                        $canDelete = true;
-                                                                    }
-                                                                @endphp
-                                                                <div
-                                                                    class="dibujos-file-card card-otro"
-                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;"
-                                                                >
-                                                                    <div class="file-icon-wrapper cal-cursor-pointer"
-                                                                        title="Abrir Archivo"
-                                                                    >
-                                                                        <img
-                                                                            src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                            class="file-icon icon-default"
-                                                                        />
-                                                                        <img
-                                                                            src="{{ asset('images/pdf-view.png') }}"
-                                                                            class="file-icon icon-hover"
-                                                                        />
-                                                                    </div>
-                                                                    <div class="file-name cal-cursor-pointer"
-                                                                        onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
-                                                                    >
+                                                                    <div class="alm-ot-label">
                                                                         {{
-                                                                            basename(
-                                                                                $otroArchivo["nombre"],
-                                                                            )
-                                                                        }}
+                                                preg_replace(
+                                                    "/_\d{8}_\d{6}_.*/",
+                                                    "",
+                                                    $reg->ot,
+                                                )
+                                                                                    }}
                                                                     </div>
-                                                                    <div class="file-actions cal-display-flex cal-gap-5px"
-                                                                    >
-                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
-                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
-                                                                        >
-                                                                            Ver
+                                                                    @if ($reg->status === "inactiva")
+                                                                        <div class="alm-inactiva-note">
+                                                                            La carpeta fue eliminada
+                                                                            por el administrador.
+                                                                            Los PDFs de {{ $deptName }} se
+                                                                            conservan.
+                                                                        </div>
+                                                                    @endif
+                                                                </td>
+                                                                <td class="d-text-center">
+                                                                    <span class="badge-status badge-{{ $reg->status }}">
+                                                                        {{ $reg->status }}
+                                                                    </span>
+                                                                </td>
+                                                                <td class="d-text-center">
+                                                                    <div id="status-modelo-{{ $reg->ot }}">
+                                                                        @php
+                                                                            $libStatus = $targetReg->calidad_revision_status ?? null;
+                                                                            if ($libStatus === "casting_aprobado") {
+                                                                                $icon = "Proveedor.png";
+                                                                                $label = "Enviado a Proveedor";
+                                                                                $tooltip = "Pre-orden de casting enviada al proveedor, proceso finalizado";
+                                                                                $borderColor = "#9333ea";
+                                                                                $bgColor = "#f3e8ff";
+                                                                                $textColor = "#9333ea";
+                                                                            } elseif ($targetReg->casting_pdf_generated) {
+                                                                                $icon = "pdf-view.png";
+                                                                                $label = "Casting";
+                                                                                $tooltip = "Pre-orden de casting generada, esperando envío";
+                                                                                $borderColor = "#059669";
+                                                                                $bgColor = "#f0fdf4";
+                                                                                $textColor = "#15803d";
+                                                                            } elseif (in_array($libStatus, ["aprobado", "calidad_aprobado"])) {
+                                                                                $icon = "Quality.png";
+                                                                                $label = "Aprobado";
+                                                                                $tooltip = "Modelo aprobado y liberado por Calidad";
+                                                                                $borderColor = "#10b981";
+                                                                                $bgColor = "#ecfdf5";
+                                                                                $textColor = "#047857";
+                                                                            } elseif (in_array($libStatus, ["rechazado", "calidad_rechazado"])) {
+                                                                                $icon = "Quality.png";
+                                                                                $label = "Rechazado";
+                                                                                $tooltip = "Modelo rechazado por Calidad debido a desviaciones";
+                                                                                $borderColor = "#ef4444";
+                                                                                $bgColor = "#fef2f2";
+                                                                                $textColor = "#b91c1c";
+                                                                            } elseif (in_array($libStatus, ["mixto", "calidad_mixto"])) {
+                                                                                $icon = "Quality.png";
+                                                                                $label = "Mixto";
+                                                                                $tooltip = "Liberación mixta por Calidad (clases aprobadas y rechazadas)";
+                                                                                $borderColor = "#eab308";
+                                                                                $bgColor = "#fef9c3";
+                                                                                $textColor = "#854d0e";
+                                                                            } elseif (in_array($libStatus, ["pendiente", "calidad_parcial"])) {
+                                                                                $icon = "Revisando.png";
+                                                                                $label = "En Revisión";
+                                                                                $tooltip = "Calidad está realizando la revisión del modelo";
+                                                                                $borderColor = "#f59e0b";
+                                                                                $bgColor = "#fffbeb";
+                                                                                $textColor = "#b45309";
+                                                                            } elseif ($targetReg->pre_orden_email_sent) {
+                                                                                if (Auth::user()->perfil == 4 || Auth::user()->perfil == 3) {
+                                                                                    $icon = "Recibido.png";
+                                                                                    $label = "Nuevo";
+                                                                                    $tooltip =
+                                                                                        "Pre-orden de fabricación de modelo recibida, esperando revisión de Calidad";
+                                                                                    $borderColor = "#cbd5e1";
+                                                                                    $bgColor = "#f1f5f9";
+                                                                                    $textColor = "#64748b";
+                                                                                } else {
+                                                                                    $icon = "enviando.png";
+                                                                                    $label = "Correo Enviado";
+                                                                                    $tooltip =
+                                                                                        "Pre-orden enviada por correo electrónico, esperando revisión de Calidad";
+                                                                                    $borderColor = "#818cf8";
+                                                                                    $bgColor = "#e0e7ff";
+                                                                                    $textColor = "#4f46e5";
+                                                                                }
+                                                                            } elseif ($targetReg->pre_orden_sent) {
+                                                                                $icon = "pdf-view.png";
+                                                                                $label = "Pre-Orden";
+                                                                                $tooltip = "Pre-orden de modelo generada y guardada, pendiente de enviar";
+                                                                                $borderColor = "#60a5fa";
+                                                                                $bgColor = "#eff6ff";
+                                                                                $textColor = "#2563eb";
+                                                                            } elseif ($targetReg->tiene_modelo) {
+                                                                                $icon = "Espera.png";
+                                                                                $label = "Tengo Modelo";
+                                                                                $tooltip =
+                                                                                    "Modelo físico disponible en Almacén, en espera de revisión por Calidad";
+                                                                                $borderColor = "#0ea5e9";
+                                                                                $bgColor = "#f0f9ff";
+                                                                                $textColor = "#0369a1";
+                                                                            } elseif ($reg->rechazos_procesados) {
+                                                                                $icon = "Rechazado.png";
+                                                                                $label = "Rechazado";
+                                                                                $tooltip = "Retornado hacia un nuevo ciclo de modelo (Reproceso)";
+                                                                                $borderColor = "#dc2626";
+                                                                                $bgColor = "#fef2f2";
+                                                                                $textColor = "#b91c1c";
+                                                                            } else {
+                                                                                $icon = "Recibido.png";
+                                                                                $label = "Nuevo";
+                                                                                $tooltip =
+                                                                                    "Alerta inicial recibida, pendiente de procesar modelo por Almacén";
+                                                                                $borderColor = "#cbd5e1";
+                                                                                $bgColor = "#f1f5f9";
+                                                                                $textColor = "#64748b";
+                                                                            }
+                                                                        @endphp
+                                                                        <div
+                                                                            class="status-modelo-container cal-display-inline-flex cal-flex-direction-column cal-align-items-center cal-gap-2px cal-padding-6px cal-border-radius-8px">
+                                                                            <span class="badge-modelo-icon" title="{{ $tooltip }}"
+                                                                                style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background: {{ $bgColor }}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid {{ $borderColor }}; transition: all 0.2s ease;">
+                                                                                <img src="{{ asset('images/' . $icon) }}" alt="{{ $label }}"
+                                                                                    class="cal-width-34px cal-height-34px cal-object-fit-contain" />
+                                                                            </span>
+                                                                            <span class="status-modelo-label"
+                                                                                style="font-size: 11px; font-weight: 700; color: {{ $textColor }}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
+                                                                                {{ $label }}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="alm-date d-text-center">
+                                                                    {{
+                                                $reg->alert_sent_at
+                                                ? $reg->alert_sent_at->format("d/m/Y H:i")
+                                                : "—"
+                                                                                }}
+                                                                </td>
+                                                                <td class="d-text-center">
+                                                                    <span class="badge-pdf-count">{{ $count }}</span>
+                                                                </td>
+                                                                <td class="d-text-center">
+                                                                    @if ($hasFilesOrControl)
+                                                                        <button class="btn-toggle-files"
+                                                                            data-target="files-{{ $estado }}-{{ $loop->index }}" data-ot="{{ $reg->ot }}"
+                                                                            id="toggle-btn-{{ $estado }}-{{ $loop->index }}" aria-expanded="false">
+                                                                            Ver Archivos
                                                                         </button>
-                                                                        @if ($canDelete)
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                                                                onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')"
-                                                                            >
-                                                                                Eliminar
-                                                                            </button>
+                                                                    @else
+                                                                        <span class="d-text-subtle cal-font-size-0-85em">Sin archivos</span>
+                                                                    @endif
+                                                                </td>
+                                                            </tr>
+
+                                                            {{-- Fila desplegable de archivos --}}
+                                                            @if ($hasFilesOrControl)
+                                                                <tr class="alm-files-row" id="files-{{ $estado }}-{{ $loop->index }}">
+                                                                    <td colspan="6">
+
+                                                                        {{-- BLOQUE 1: Dibujos solo visibles si la alerta fue enviada desde
+                                                                        manage_documentation.js
+                                                                        --}}
+                                                                        @if ($countDibujos > 0 && $reg->alert_sent_at)
+                                                                            <h3
+                                                                                class="cal-margin-top-15px cal-margin-bottom-10px cal-color-005194 cal-border-bottom-2px-solid-005194 cal-padding-bottom-5px">
+                                                                                Dibujos de Fundición
+                                                                            </h3>
+
+                                                                            <div
+                                                                                class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0">
+                                                                                @foreach ($archivos as $archivoInfo)
+                                                                                                <div class="dibujos-file-card"
+                                                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                                                                    <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
+                                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                            class="file-icon icon-default" />
+                                                                                                        <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                            class="file-icon icon-hover" />
+                                                                                                    </div>
+                                                                                                    <div class="file-name cal-cursor-pointer" title="Abrir PDF"
+                                                                                                        onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
+                                                                                                        {{
+                                                                                    basename(
+                                                                                        $archivoInfo["nombre"],
+                                                                                    )
+                                                                                                                                }}
+                                                                                                    </div>
+                                                                                                    <div class="file-actions">
+                                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver"
+                                                                                                            onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
+                                                                                                            Ver
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @elseif ($countDibujos > 0 && !$reg->alert_sent_at)
+
+                                                                            {{-- Dibujos existentes pero alerta aún no enviada desde Ingeniería --}}
+                                                                            <div
+                                                                                class="cal-margin-top-15px cal-padding-14px-18px cal-background-rgba-0-81-148-0-06 cal-border-1-5px-dashed-005194 cal-border-radius-10px cal-color-005194 cal-font-size-0-93em">
+                                                                                <strong>Dibujos
+                                                                                    pendientes:</strong>
+                                                                                Los dibujos estarán
+                                                                                disponibles una vez
+                                                                                que Ingeniería envíe
+                                                                                la alerta oficial
+                                                                                desde el sistema de
+                                                                                gestión documental.
+                                                                            </div>
                                                                         @endif
-                                                                    </div>
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                    @endif
+                                                                        @if ($countAyudas > 0)
+                                                                            <h3
+                                                                                class="cal-margin-top-25px cal-margin-bottom-10px cal-color-9c0300 cal-border-bottom-2px-solid-9c0300 cal-padding-bottom-5px">
+                                                                                Ayudas Visuales de
+                                                                                Fundición
+                                                                            </h3>
 
-                                                    {{-- BLOQUE 5.2: Ayudas Visuales Rechazadas --}}
-                                                    @if (count($rechazadosAyudas) > 0)
-                                                        <h3
-                                                            class="cal-margin-top-25px cal-margin-bottom-10px cal-color-9c0300 cal-border-bottom-2px-solid-9c0300 cal-padding-bottom-5px"
-                                                        >
-                                                            Ayudas Visuales
-                                                            Rechazadas
-                                                        </h3>
-
-                                                        <div class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca"
-                                                        >
-                                                            @foreach ($rechazadosAyudas as $otroArchivo)
-                                                                @php
-                                                                    $canDelete = false;
-                                                                    $fileOwner = $otroArchivo["owner"] ?? "";
-                                                                    $fileNameLower = strtolower($otroArchivo["nombre"]);
-                                                                    if (
-                                                                        strpos($fileNameLower, "f-ccl-ldm") !== false ||
-                                                                        strpos($fileNameLower, "scar") !== false
-                                                                    ) {
-                                                                        $fileOwner = "calidad";
-                                                                    }
-                                                                    $userPerfil = Auth::user()->perfil;
-                                                                    if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
-                                                                        $canDelete = true;
-                                                                    } elseif ($userPerfil == 5 && $fileOwner === "almacen") {
-                                                                        if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
-                                                                            $canDelete = true;
-                                                                        }
-                                                                    } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === "calidad") {
-                                                                        $canDelete = true;
-                                                                    }
-                                                                @endphp
-                                                                @if ($otroArchivo["tipo"] === "imagen")
-                                                                    <div
-                                                                        class="dibujos-file-card card-otro card-imagen"
-                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;"
-                                                                    >
-                                                                        <div class="file-icon-wrapper cal-cursor-pointer"
-                                                                        >
-                                                                            <img
-                                                                                src="{{ $otroArchivo['url'] }}" class="file-icon-img-thumb cal-width-100pct cal-height-80px cal-object-fit-cover cal-border-radius-6px cal-border-1px-solid-fecaca"
-                                                                            />
-                                                                        </div>
-                                                                        <div class="file-name cal-cursor-pointer"
-                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')"
-                                                                        >
-                                                                            {{
-                                                                                basename(
-                                                                                    $otroArchivo["nombre"],
-                                                                                )
-                                                                            }}
-                                                                        </div>
-                                                                        <div class="file-actions cal-display-flex cal-gap-5px"
-                                                                        >
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')"
-                                                                            >
-                                                                                Ver
-                                                                            </button>
-                                                                            @if ($canDelete)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')"
-                                                                                >
-                                                                                    Eliminar
-                                                                                </button>
-                                                                            @endif
-                                                                        </div>
-                                                                    </div>
-                                                                @else
-                                                                    <div
-                                                                        class="dibujos-file-card card-otro"
-                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;"
-                                                                    >
-                                                                        <div class="file-icon-wrapper cal-cursor-pointer"
-                                                                        >
-                                                                            <img
-                                                                                src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                                class="file-icon icon-default"
-                                                                            />
-                                                                            <img
-                                                                                src="{{ asset('images/pdf-view.png') }}"
-                                                                                class="file-icon icon-hover"
-                                                                            />
-                                                                        </div>
-                                                                        <div class="file-name cal-cursor-pointer"
-                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
-                                                                        >
-                                                                            {{
-                                                                                basename(
-                                                                                    $otroArchivo["nombre"],
-                                                                                )
-                                                                            }}
-                                                                        </div>
-                                                                        <div class="file-actions cal-display-flex cal-gap-5px"
-                                                                        >
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
-                                                                            >
-                                                                                Ver
-                                                                            </button>
-                                                                            @if ($canDelete)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')"
-                                                                                >
-                                                                                    Eliminar
-                                                                                </button>
-                                                                            @endif
-                                                                        </div>
-                                                                    </div>
-                                                                @endif
-                                                            @endforeach
-                                                        </div>
-                                                    @endif
-
-                                                    {{-- BLOQUE 5.3: Otros Documentos Rechazados --}}
-                                                    @if (count($rechazadosOtros) > 0)
-                                                        <h3
-                                                            class="cal-margin-top-25px cal-margin-bottom-10px cal-color-9c0300 cal-border-bottom-2px-solid-9c0300 cal-padding-bottom-5px"
-                                                        >
-                                                            Documentos
-                                                            Rechazados
-                                                        </h3>
-
-                                                        <div class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca"
-                                                        >
-                                                            @foreach ($rechazadosOtros as $otroArchivo)
-                                                                @php
-                                                                    $canDelete = false;
-                                                                    $fileOwner = $otroArchivo["owner"] ?? "";
-                                                                    $fileNameLower = strtolower($otroArchivo["nombre"]);
-                                                                    if (
-                                                                        strpos($fileNameLower, "f-ccl-ldm") !== false ||
-                                                                        strpos($fileNameLower, "scar") !== false
-                                                                    ) {
-                                                                        $fileOwner = "calidad";
-                                                                    }
-                                                                    $userPerfil = Auth::user()->perfil;
-                                                                    if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
-                                                                        $canDelete = true;
-                                                                    } elseif ($userPerfil == 5 && $fileOwner === "almacen") {
-                                                                        if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
-                                                                            $canDelete = true;
-                                                                        }
-                                                                    } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === "calidad") {
-                                                                        $canDelete = true;
-                                                                    }
-                                                                @endphp
-                                                                <div
-                                                                    class="dibujos-file-card card-otro"
-                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;"
-                                                                >
-                                                                    <div class="file-icon-wrapper cal-cursor-pointer"
-                                                                    >
-                                                                        <img
-                                                                            src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                            class="file-icon icon-default"
-                                                                        />
-                                                                        <img
-                                                                            src="{{ asset('images/pdf-view.png') }}"
-                                                                            class="file-icon icon-hover"
-                                                                        />
-                                                                    </div>
-                                                                    <div class="file-name cal-cursor-pointer"
-                                                                        onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
-                                                                    >
-                                                                        {{
-                                                                            basename(
-                                                                                $otroArchivo["nombre"],
-                                                                            )
-                                                                        }}
-                                                                    </div>
-                                                                    <div class="file-actions cal-display-flex cal-gap-5px"
-                                                                    >
-                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
-                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')"
-                                                                        >
-                                                                            Ver
-                                                                        </button>
-                                                                        @if ($canDelete)
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                                                                onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')"
-                                                                            >
-                                                                                Eliminar
-                                                                            </button>
+                                                                            <div
+                                                                                class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0">
+                                                                                @foreach ($ayudasArchivos as $ayudaArchivo)
+                                                                                                <div class="dibujos-file-card card-ayuda"
+                                                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                                                                    <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
+                                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                            class="file-icon icon-default" />
+                                                                                                        <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                            class="file-icon icon-hover" />
+                                                                                                    </div>
+                                                                                                    <div class="file-name cal-cursor-pointer" title="Abrir PDF"
+                                                                                                        onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
+                                                                                                        {{
+                                                                                    basename(
+                                                                                        $ayudaArchivo["nombre"],
+                                                                                    )
+                                                                                                                                }}
+                                                                                                    </div>
+                                                                                                    <div class="file-actions">
+                                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color"
+                                                                                                            onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
+                                                                                                            Ver
+                                                                                                        </button>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @elseif (!empty($reg->ayudas_config))
+                                                                            <div
+                                                                                class="cal-margin-top-20px cal-padding-15px cal-background-fff5f5 cal-border-1px-solid-feb2b2 cal-border-radius-8px cal-color-9c0300">
+                                                                                <strong>Aviso:</strong>
+                                                                                Se han vinculado {{ count($reg->ayudas_config) }} clases
+                                                                                de ayudas visuales,
+                                                                                pero los archivos
+                                                                                aún no se han
+                                                                                sincronizado con {{ $deptName }}.
+                                                                                Por favor,
+                                                                                <strong>Vuelve a
+                                                                                    Vincular</strong>
+                                                                                las ayudas desde la
+                                                                                vista de
+                                                                                administración.
+                                                                            </div>
                                                                         @endif
-                                                                    </div>
-                                                                </div>
-                                                            @endforeach
-                                                        </div>
-                                                    @endif
+                                                                        @php
+                                                                            foreach ($archivosRechazados as $rArchivo) {
+                                                                                $nameLow = strtolower($rArchivo["nombre"]);
+                                                                                $ext = pathinfo($nameLow, PATHINFO_EXTENSION);
+                                                                                $isImg = in_array($ext, ["jpg", "jpeg", "png", "gif", "webp"]);
+                                                                                $rArchivo["ot"] = $rArchivo["ot"] ?? $reg->ot;
+                                                                                $rArchivo["tipo"] = $rArchivo["tipo"] ?? ($isImg ? "imagen" : "otro");
+                                                                                if (
+                                                                                    strpos($nameLow, "ayudas_visuales") !== false ||
+                                                                                    strpos($nameLow, "ayudas-visuales") !== false ||
+                                                                                    $isImg
+                                                                                ) {
+                                                                                    $rArchivo["tipo"] =
+                                                                                        $rArchivo["tipo"] === "otro" ? "ayuda" : $rArchivo["tipo"];
+                                                                                    $rechazadosAyudas[] = $rArchivo;
+                                                                                } elseif (
+                                                                                    strpos($nameLow, "dibujos") !== false ||
+                                                                                    strpos($nameLow, "dibujo") !== false
+                                                                                ) {
+                                                                                    $rechazadosDibujos[] = $rArchivo;
+                                                                                } else {
+                                                                                    $rechazadosOtros[] = $rArchivo;
+                                                                                }
+                                                                            }
+                                                                        @endphp
 
-                                                    {{-- ── ACCIONES DE CALIDAD / ESTADOS DE LIBERACION ── --}}
-                                                    @if (in_array(Auth::user()->perfil, [1, 3, 4, "1", "3", "4"]) &&
-                                                        $estado === "activa" &&
-                                                        !$isQualityFinalized)
-                                                        <div
-                                                            class="lib-calidad-card"
-                                                        >
-                                                            <div
-                                                                class="lib-calidad-card-header"
-                                                            >
-                                                                <img
-                                                                    src="{{ asset('images/Quality.png') }}"
-                                                                    alt="Calidad"
-                                                                    class="cal-width-38px cal-height-38px cal-object-fit-contain cal-flex-shrink-0"
-                                                                />
-                                                                <div
-                                                                    class="cal-overflow-hidden cal-flex-1"
-                                                                >
-                                                                    <span
-                                                                        class="lib-calidad-card-title"
-                                                                        >Acciones
-                                                                        de
-                                                                        Liberacion
-                                                                        &mdash;
-                                                                        Calidad</span
-                                                                    >
-                                                                    <span
-                                                                        class="lib-calidad-card-ot"
-                                                                        >{{
+                                                                        {{-- BLOQUE 4: Renombrar sección a "Documentos Aprobados" --}}
+                                                                        @if ($countAprobados > 0)
+                                                                            <h3
+                                                                                class="cal-margin-top-25px cal-margin-bottom-10px cal-color-155724 cal-border-bottom-2px-solid-155724 cal-padding-bottom-5px">
+                                                                                Documentos Aprobados
+                                                                            </h3>
+
+                                                                            <div
+                                                                                class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0">
+                                                                                @foreach ($archivosAprobados as $otroArchivo)
+                                                                                    @php
+                                                                                        $canDelete = false;
+                                                                                        $fileOwner = $otroArchivo["owner"] ?? "";
+                                                                                        $fileNameLower = strtolower($otroArchivo["nombre"]);
+                                                                                        if (
+                                                                                            strpos($fileNameLower, "f-ccl-ldm") !== false ||
+                                                                                            strpos($fileNameLower, "scar") !== false
+                                                                                        ) {
+                                                                                            $fileOwner = "calidad";
+                                                                                        }
+                                                                                        $userPerfil = Auth::user()->perfil;
+                                                                                        if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
+                                                                                            $canDelete = true;
+                                                                                        } elseif ($userPerfil == 5 && $fileOwner === "almacen") {
+                                                                                            if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
+                                                                                                $canDelete = true;
+                                                                                            }
+                                                                                        } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === "calidad") {
+                                                                                            $canDelete = true;
+                                                                                        }
+                                                                                    @endphp
+                                                                                    @if ($otroArchivo["tipo"] === "imagen")
+
+                                                                                                {{-- Tarjeta para imágenes (fotos de evidencia) --}}
+                                                                                                <div class="dibujos-file-card card-otro card-imagen"
+                                                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0369a1;">
+                                                                                                    <div class="file-icon-wrapper cal-cursor-pointer" title="Ver imagen">
+                                                                                                        <img src="{{ $otroArchivo['url'] }}"
+                                                                                                            class="file-icon-img-thumb cal-width-100pct cal-height-80px cal-object-fit-cover cal-border-radius-6px cal-border-1px-solid-bae6fd" />
+                                                                                                    </div>
+                                                                                                    <div class="file-name cal-cursor-pointer" title="Ver imagen"
+                                                                                                        onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
+                                                                                                        {{
+                                                                                        basename(
+                                                                                            $otroArchivo["nombre"],
+                                                                                        )
+                                                                                                                                    }}
+                                                                                                    </div>
+                                                                                                    <div class="file-actions cal-display-flex cal-gap-5px">
+                                                                                                        <button
+                                                                                                            class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-0369a1 cal-color-white"
+                                                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
+                                                                                                            Ver
+                                                                                                        </button>
+                                                                                                        @if ($canDelete)
+                                                                                                            <button
+                                                                                                                class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
+                                                                                                                onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">
+                                                                                                                Eliminar
+                                                                                                            </button>
+                                                                                                        @endif
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                    @else
+
+                                                                                                {{-- Tarjeta para PDFs y otros documentos --}}
+                                                                                                <div class="dibujos-file-card card-otro"
+                                                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
+                                                                                                    <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
+                                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                            class="file-icon icon-default" />
+                                                                                                        <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                            class="file-icon icon-hover" />
+                                                                                                    </div>
+                                                                                                    <div class="file-name cal-cursor-pointer" title="Abrir PDF"
+                                                                                                        onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                                        {{
+                                                                                        basename(
+                                                                                            $otroArchivo["nombre"],
+                                                                                        )
+                                                                                                                                    }}
+                                                                                                    </div>
+                                                                                                    <div class="file-actions cal-display-flex cal-gap-5px">
+                                                                                                        <button
+                                                                                                            class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-155724 cal-color-white"
+                                                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                                            Ver
+                                                                                                        </button>
+                                                                                                        @if ($canDelete)
+                                                                                                            <button
+                                                                                                                class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
+                                                                                                                onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">
+                                                                                                                Eliminar
+                                                                                                            </button>
+                                                                                                        @endif
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                    @endif
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
+
+                                                                        {{-- BLOQUE 5.1: Dibujos Rechazados --}}
+                                                                        @if (count($rechazadosDibujos) > 0)
+                                                                            <h3
+                                                                                class="cal-margin-top-25px cal-margin-bottom-10px cal-color-9c0300 cal-border-bottom-2px-solid-9c0300 cal-padding-bottom-5px">
+                                                                                Dibujos Rechazados
+                                                                            </h3>
+
+                                                                            <div
+                                                                                class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca">
+                                                                                @foreach ($rechazadosDibujos as $otroArchivo)
+                                                                                                @php
+                                                                                                    $canDelete = false;
+                                                                                                    $fileOwner = $otroArchivo["owner"] ?? "";
+                                                                                                    $fileNameLower = strtolower($otroArchivo["nombre"]);
+                                                                                                    if (
+                                                                                                        strpos($fileNameLower, "f-ccl-ldm") !== false ||
+                                                                                                        strpos($fileNameLower, "scar") !== false
+                                                                                                    ) {
+                                                                                                        $fileOwner = "calidad";
+                                                                                                    }
+                                                                                                    $userPerfil = Auth::user()->perfil;
+                                                                                                    if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
+                                                                                                        $canDelete = true;
+                                                                                                    } elseif ($userPerfil == 5 && $fileOwner === "almacen") {
+                                                                                                        if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
+                                                                                                            $canDelete = true;
+                                                                                                        }
+                                                                                                    } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === "calidad") {
+                                                                                                        $canDelete = true;
+                                                                                                    }
+                                                                                                @endphp
+                                                                                                <div class="dibujos-file-card card-otro"
+                                                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                                                    <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir Archivo">
+                                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                            class="file-icon icon-default" />
+                                                                                                        <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                            class="file-icon icon-hover" />
+                                                                                                    </div>
+                                                                                                    <div class="file-name cal-cursor-pointer"
+                                                                                                        onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                                        {{
+                                                                                    basename(
+                                                                                        $otroArchivo["nombre"],
+                                                                                    )
+                                                                                                                                }}
+                                                                                                    </div>
+                                                                                                    <div class="file-actions cal-display-flex cal-gap-5px">
+                                                                                                        <button
+                                                                                                            class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
+                                                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                                            Ver
+                                                                                                        </button>
+                                                                                                        @if ($canDelete)
+                                                                                                            <button
+                                                                                                                class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
+                                                                                                                onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">
+                                                                                                                Eliminar
+                                                                                                            </button>
+                                                                                                        @endif
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
+
+                                                                        {{-- BLOQUE 5.2: Ayudas Visuales Rechazadas --}}
+                                                                        @if (count($rechazadosAyudas) > 0)
+                                                                            <h3
+                                                                                class="cal-margin-top-25px cal-margin-bottom-10px cal-color-9c0300 cal-border-bottom-2px-solid-9c0300 cal-padding-bottom-5px">
+                                                                                Ayudas Visuales
+                                                                                Rechazadas
+                                                                            </h3>
+
+                                                                            <div
+                                                                                class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca">
+                                                                                @foreach ($rechazadosAyudas as $otroArchivo)
+                                                                                    @php
+                                                                                        $canDelete = false;
+                                                                                        $fileOwner = $otroArchivo["owner"] ?? "";
+                                                                                        $fileNameLower = strtolower($otroArchivo["nombre"]);
+                                                                                        if (
+                                                                                            strpos($fileNameLower, "f-ccl-ldm") !== false ||
+                                                                                            strpos($fileNameLower, "scar") !== false
+                                                                                        ) {
+                                                                                            $fileOwner = "calidad";
+                                                                                        }
+                                                                                        $userPerfil = Auth::user()->perfil;
+                                                                                        if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
+                                                                                            $canDelete = true;
+                                                                                        } elseif ($userPerfil == 5 && $fileOwner === "almacen") {
+                                                                                            if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
+                                                                                                $canDelete = true;
+                                                                                            }
+                                                                                        } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === "calidad") {
+                                                                                            $canDelete = true;
+                                                                                        }
+                                                                                    @endphp
+                                                                                    @if ($otroArchivo["tipo"] === "imagen")
+                                                                                                <div class="dibujos-file-card card-otro card-imagen"
+                                                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                                                    <div class="file-icon-wrapper cal-cursor-pointer">
+                                                                                                        <img src="{{ $otroArchivo['url'] }}"
+                                                                                                            class="file-icon-img-thumb cal-width-100pct cal-height-80px cal-object-fit-cover cal-border-radius-6px cal-border-1px-solid-fecaca" />
+                                                                                                    </div>
+                                                                                                    <div class="file-name cal-cursor-pointer"
+                                                                                                        onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
+                                                                                                        {{
+                                                                                        basename(
+                                                                                            $otroArchivo["nombre"],
+                                                                                        )
+                                                                                                                                    }}
+                                                                                                    </div>
+                                                                                                    <div class="file-actions cal-display-flex cal-gap-5px">
+                                                                                                        <button
+                                                                                                            class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
+                                                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
+                                                                                                            Ver
+                                                                                                        </button>
+                                                                                                        @if ($canDelete)
+                                                                                                            <button
+                                                                                                                class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
+                                                                                                                onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">
+                                                                                                                Eliminar
+                                                                                                            </button>
+                                                                                                        @endif
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                    @else
+                                                                                                <div class="dibujos-file-card card-otro"
+                                                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                                                    <div class="file-icon-wrapper cal-cursor-pointer">
+                                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                            class="file-icon icon-default" />
+                                                                                                        <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                            class="file-icon icon-hover" />
+                                                                                                    </div>
+                                                                                                    <div class="file-name cal-cursor-pointer"
+                                                                                                        onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                                        {{
+                                                                                        basename(
+                                                                                            $otroArchivo["nombre"],
+                                                                                        )
+                                                                                                                                    }}
+                                                                                                    </div>
+                                                                                                    <div class="file-actions cal-display-flex cal-gap-5px">
+                                                                                                        <button
+                                                                                                            class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
+                                                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                                            Ver
+                                                                                                        </button>
+                                                                                                        @if ($canDelete)
+                                                                                                            <button
+                                                                                                                class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
+                                                                                                                onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">
+                                                                                                                Eliminar
+                                                                                                            </button>
+                                                                                                        @endif
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                    @endif
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
+
+                                                                        {{-- BLOQUE 5.3: Otros Documentos Rechazados --}}
+                                                                        @if (count($rechazadosOtros) > 0)
+                                                                            <h3
+                                                                                class="cal-margin-top-25px cal-margin-bottom-10px cal-color-9c0300 cal-border-bottom-2px-solid-9c0300 cal-padding-bottom-5px">
+                                                                                Documentos
+                                                                                Rechazados
+                                                                            </h3>
+
+                                                                            <div
+                                                                                class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca">
+                                                                                @foreach ($rechazadosOtros as $otroArchivo)
+                                                                                                @php
+                                                                                                    $canDelete = false;
+                                                                                                    $fileOwner = $otroArchivo["owner"] ?? "";
+                                                                                                    $fileNameLower = strtolower($otroArchivo["nombre"]);
+                                                                                                    if (
+                                                                                                        strpos($fileNameLower, "f-ccl-ldm") !== false ||
+                                                                                                        strpos($fileNameLower, "scar") !== false
+                                                                                                    ) {
+                                                                                                        $fileOwner = "calidad";
+                                                                                                    }
+                                                                                                    $userPerfil = Auth::user()->perfil;
+                                                                                                    if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
+                                                                                                        $canDelete = true;
+                                                                                                    } elseif ($userPerfil == 5 && $fileOwner === "almacen") {
+                                                                                                        if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
+                                                                                                            $canDelete = true;
+                                                                                                        }
+                                                                                                    } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === "calidad") {
+                                                                                                        $canDelete = true;
+                                                                                                    }
+                                                                                                @endphp
+                                                                                                <div class="dibujos-file-card card-otro"
+                                                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                                                    <div class="file-icon-wrapper cal-cursor-pointer">
+                                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                            class="file-icon icon-default" />
+                                                                                                        <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                            class="file-icon icon-hover" />
+                                                                                                    </div>
+                                                                                                    <div class="file-name cal-cursor-pointer"
+                                                                                                        onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                                        {{
+                                                                                    basename(
+                                                                                        $otroArchivo["nombre"],
+                                                                                    )
+                                                                                                                                }}
+                                                                                                    </div>
+                                                                                                    <div class="file-actions cal-display-flex cal-gap-5px">
+                                                                                                        <button
+                                                                                                            class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
+                                                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                                            Ver
+                                                                                                        </button>
+                                                                                                        @if ($canDelete)
+                                                                                                            <button
+                                                                                                                class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
+                                                                                                                onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">
+                                                                                                                Eliminar
+                                                                                                            </button>
+                                                                                                        @endif
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
+
+                                                                        {{-- ── ACCIONES DE CALIDAD / ESTADOS DE LIBERACION ── --}}
+                                                                        @if (
+                                                                                            in_array(Auth::user()->perfil, [1, 3, 4, "1", "3", "4"]) &&
+                                                                                            $estado === "activa" &&
+                                                                                            !$isQualityFinalized
+                                                                                        )
+                                                                                        <div class="lib-calidad-card">
+                                                                                            <div class="lib-calidad-card-header">
+                                                                                                <img src="{{ asset('images/Quality.png') }}" alt="Calidad"
+                                                                                                    class="cal-width-38px cal-height-38px cal-object-fit-contain cal-flex-shrink-0" />
+                                                                                                <div class="cal-overflow-hidden cal-flex-1">
+                                                                                                    <span class="lib-calidad-card-title">Acciones
+                                                                                                        de
+                                                                                                        Liberacion
+                                                                                                        &mdash;
+                                                                                                        Calidad</span>
+                                                                                                    <span class="lib-calidad-card-ot">{{
                                                                             preg_replace(
                                                                                 "/_\d{8}_\d{6}_.*/",
                                                                                 "",
                                                                                 $targetReg->ot,
                                                                             )
-                                                                        }}</span
-                                                                    >
-                                                                </div>
-                                                                @php
-                                                                    $hdClasesActivas = collect($targetReg->ayudas_config ?? [])
-                                                                        ->filter(fn($c) => !str_contains(strtolower($c), "opcional"))
-                                                                        ->filter(function ($claseNombre) use ($targetReg) {
-                                                                            $clLow = strtolower($claseNombre);
-                                                                            $tipo = null;
-                                                                            if (strpos($clLow, "candado obturador") !== false) { $tipo = "Candado obturador"; }
-elseif (strpos($clLow, "cabeza de soplo") !== false) { $tipo = "Cabeza de soplo"; }
-elseif (strpos($clLow, "embudo") !== false) { $tipo = "Embudo"; }
-elseif (strpos($clLow, "corona") !== false) { $tipo = "Corona"; }
-elseif (strpos($clLow, "plato") !== false) { $tipo = "Plato"; }
-elseif (strpos($clLow, "fondo") !== false) { $tipo = "Fondo"; }
-elseif (strpos($clLow, "obturador") !== false) { $tipo = "Obturador"; }
-elseif (strpos($clLow, "molde") !== false) { $tipo = "Molde"; }
-elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
-                                                                            if ($tipo) {
-                                                                                $baseOt = preg_replace('/_R\d+$/i', "", $targetReg->ot);
-                                                                                $isAprob = \App\Models\LiberacionModeloFundicion::where(
-                                                                                    fn($q) => $q
-                                                                                        ->where("ot", "=", $baseOt)
-                                                                                        ->orWhere("ot", "LIKE", $baseOt . "_R%"),
-                                                                                )
-                                                                                    ->where("ot", "!=", $targetReg->ot)
-                                                                                    ->where("tipo_modelo", "=", $tipo)
-                                                                                    ->where("estado", "=", "aprobado")
-                                                                                    ->exists();
-                                                                                if ($isAprob) {
-                                                                                    return false;
-                                                                                }
-                                                                                return \App\Models\LiberacionModeloFundicion::where(
-                                                                                    "ot",
-                                                                                    "=",
-                                                                                    $targetReg->ot,
-                                                                                )
-                                                                                    ->where("tipo_modelo", "=", $tipo)
-                                                                                    ->where(function ($q) {
-                                                                                        $q->whereIn("tipo_origen", [
-                                                                                            "con_modelo",
-                                                                                            "pre_orden",
-                                                                                        ])->orWhereNull("tipo_origen");
-                                                                                    })
-                                                                                    ->exists();
-                                                                            }
-                                                                            return false;
-                                                                        })
-                                                                        ->values()
-                                                                        ->toArray();
-                                                                    $hdCont = 0;
-                                                                    foreach ($hdClasesActivas as $clName) {
-                                                                        $clLow = strtolower($clName);
-                                                                        $tipo = null;
-                                                                        if (strpos($clLow, "candado obturador") !== false) { $tipo = "Candado obturador"; }
-elseif (strpos($clLow, "cabeza de soplo") !== false) { $tipo = "Cabeza de soplo"; }
-elseif (strpos($clLow, "embudo") !== false) { $tipo = "Embudo"; }
-elseif (strpos($clLow, "corona") !== false) { $tipo = "Corona"; }
-elseif (strpos($clLow, "plato") !== false) { $tipo = "Plato"; }
-elseif (strpos($clLow, "fondo") !== false) { $tipo = "Fondo"; }
-elseif (strpos($clLow, "obturador") !== false) { $tipo = "Obturador"; }
-elseif (strpos($clLow, "molde") !== false) { $tipo = "Molde"; }
-elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
-                                                                        if ($tipo) {
-                                                                            if (
-                                                                                \App\Models\LiberacionModeloFundicion::where(
-                                                                                    "ot",
-                                                                                    "=",
-                                                                                    $targetReg->ot,
-                                                                                )
-                                                                                    ->where("tipo_modelo", "=", $tipo)
-                                                                                    ->whereNotNull("user_id_calidad")
-                                                                                    ->exists()
-                                                                            ) {
-                                                                                $hdCont++;
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                @endphp
-                                                                <div
-                                                                    class="cal-flex-shrink-0 cal-display-flex cal-flex-direction-column cal-align-items-center cal-gap-2px cal-padding-left-10px cal-border-left-1px-solid-e2e8f0 cal-margin-left-auto"
-                                                                >
-                                                                    <span
-                                                                        style="font-size:1.1em; font-weight:800; color: {{ $hdCont == count($hdClasesActivas) && count($hdClasesActivas) > 0 ? '#15803d' : '#033966' }};"
-                                                                    >
-                                                                        {{ $hdCont }}/{{ count($hdClasesActivas) }}
-                                                                    </span>
-                                                                    <span
-                                                                        class="cal-font-size-0-65em cal-font-weight-700 cal-color-64748b cal-letter-spacing-0-5px cal-text-transform-uppercase"
-                                                                        >Clases</span
-                                                                    >
-                                                                    @if ($hdCont == count($hdClasesActivas) && count($hdClasesActivas) > 0)
-                                                                        <img
-                                                                            src="{{ asset('images/ready.png') }}"
-                                                                            class="cal-width-14px cal-height-14px cal-margin-top-2px"
-                                                                            alt="Listo"
-                                                                        />
-                                                                    @endif
-                                                                </div>
-                                                            </div>
-                                                            <div
-                                                                class="lib-calidad-card-body"
-                                                            >
-                                                                @if (in_array($targetReg->calidad_revision_status, [
-                                                                        "rechazado",
-                                                                        "calidad_rechazado"
-                                                                    ]))
-                                                                    <div class="lib-estado-badge lib-estado-rechazado cal-padding-12px-16px cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px"
-                                                                    >
-                                                                        <img
-                                                                            src="{{ asset('images/Rechazado.png') }}"
-                                                                            alt=""
-                                                                            class="cal-width-18px cal-height-18px cal-object-fit-contain cal-flex-shrink-0"
-                                                                        />
-                                                                        <span
-                                                                            >Liberacion
-                                                                            rechazada
-                                                                            anteriormente.
-                                                                            Puedes
-                                                                            revisar
-                                                                            y
-                                                                            volver
-                                                                            a
-                                                                            emitir
-                                                                            un
-                                                                            veredicto.</span
-                                                                        >
-                                                                    </div>
-                                                                @elseif (is_null($targetReg->calidad_revision_status))
-                                                                    <div class="lib-estado-badge lib-estado-info cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px"
-                                                                    >
-                                                                        Modelo
-                                                                        disponible
-                                                                        para
-                                                                        iniciar
-                                                                        el
-                                                                        proceso
-                                                                        de
-                                                                        liberación.
-                                                                    </div>
-                                                                @elseif (in_array($targetReg->calidad_revision_status, [
-                                                                        "pendiente",
-                                                                        "calidad_pendiente"
-                                                                    ]))
-                                                                    <div class="lib-estado-badge lib-estado-guardado cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px"
-                                                                    >
-                                                                        <img
-                                                                            src="{{ asset('images/Guardado.png') }}"
-                                                                            alt=""
-                                                                            class="cal-width-18px cal-height-18px cal-object-fit-contain cal-flex-shrink-0"
-                                                                        />
-                                                                        Datos
-                                                                        capturados
-                                                                        como
-                                                                        borrador.
-                                                                    </div>
-                                                                @endif
-                                                                @php
-                                                                    $borradorPendiente = \App\Models\LiberacionModeloFundicion::where(
-                                                                        "ot",
-                                                                        $targetReg->ot,
-                                                                    )
-                                                                        ->where("estado", "pendiente")
-                                                                        ->first();
-                                                                    $scarModelo = \App\Models\ScarModelo::where("ot", $targetReg->ot)->first();
-                                                                    $reqFotos =
-                                                                        $scarModelo &&
-                                                                        ($scarModelo->evidencia_fotos || $scarModelo->evidencia_otro);
-                                                                    $clasesActivas = collect($targetReg->ayudas_config ?? [])
-                                                                        ->filter(fn($c) => !str_contains(strtolower($c), "opcional"))
-                                                                        ->filter(function ($claseNombre) use ($targetReg) {
-                                                                            $clLow = strtolower($claseNombre);
-                                                                            $tipo = null;
-                                                                            if (strpos($clLow, "candado obturador") !== false) { $tipo = "Candado obturador"; }
-elseif (strpos($clLow, "cabeza de soplo") !== false) { $tipo = "Cabeza de soplo"; }
-elseif (strpos($clLow, "embudo") !== false) { $tipo = "Embudo"; }
-elseif (strpos($clLow, "corona") !== false) { $tipo = "Corona"; }
-elseif (strpos($clLow, "plato") !== false) { $tipo = "Plato"; }
-elseif (strpos($clLow, "fondo") !== false) { $tipo = "Fondo"; }
-elseif (strpos($clLow, "obturador") !== false) { $tipo = "Obturador"; }
-elseif (strpos($clLow, "molde") !== false) { $tipo = "Molde"; }
-elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
-                                                                            if ($tipo) {
-                                                                                $baseOt = preg_replace('/_R\d+$/i', "", $targetReg->ot);
-                                                                                $isAprobado = \App\Models\LiberacionModeloFundicion::where(
-                                                                                    fn($q) => $q
-                                                                                        ->where("ot", "=", $baseOt)
-                                                                                        ->orWhere("ot", "LIKE", $baseOt . "_R%"),
-                                                                                )
-                                                                                    ->where("ot", "!=", $targetReg->ot)
-                                                                                    ->where("tipo_modelo", "=", $tipo)
-                                                                                    ->where("estado", "=", "aprobado")
-                                                                                    ->exists();
-                                                                                if ($isAprobado) {
-                                                                                    return false;
-                                                                                }
-                                                                                $fueEnviadoPorAlmacen = \App\Models\LiberacionModeloFundicion::where(
-                                                                                    "ot",
-                                                                                    "=",
-                                                                                    $targetReg->ot,
-                                                                                )
-                                                                                    ->where("tipo_modelo", "=", $tipo)
-                                                                                    ->where(function ($q) {
-                                                                                        $q->whereIn("tipo_origen", [
-                                                                                            "con_modelo",
-                                                                                            "pre_orden",
-                                                                                        ])->orWhereNull("tipo_origen");
-                                                                                    })
-                                                                                    ->exists();
-                                                                                return $fueEnviadoPorAlmacen;
-                                                                            }
-                                                                            return false;
-                                                                        })
-                                                                        ->values()
-                                                                        ->toArray();
-                                                                    // Determinar si todas las clases activas tienen datos guardados (como borrador pendiente)
-                                                                    $todosGuardados = true;
-                                                                    $contClasesConDatos = 0;
-                                                                    foreach ($clasesActivas as $clName) {
-                                                                        $clLow = strtolower($clName);
-                                                                        $tipo = null;
-                                                                        if (strpos($clLow, "candado obturador") !== false) { $tipo = "Candado obturador"; }
-elseif (strpos($clLow, "cabeza de soplo") !== false) { $tipo = "Cabeza de soplo"; }
-elseif (strpos($clLow, "embudo") !== false) { $tipo = "Embudo"; }
-elseif (strpos($clLow, "corona") !== false) { $tipo = "Corona"; }
-elseif (strpos($clLow, "plato") !== false) { $tipo = "Plato"; }
-elseif (strpos($clLow, "fondo") !== false) { $tipo = "Fondo"; }
-elseif (strpos($clLow, "obturador") !== false) { $tipo = "Obturador"; }
-elseif (strpos($clLow, "molde") !== false) { $tipo = "Molde"; }
-elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
-                                                                        if ($tipo) {
-                                                                            $hasData = \App\Models\LiberacionModeloFundicion::where(
-                                                                                "ot",
-                                                                                "=",
-                                                                                $targetReg->ot,
+                                                                                                                            }}</span>
+                                                                                                </div>
+                                                                                                @php
+                                                                                                    $hdClasesActivas = collect($targetReg->ayudas_config ?? [])
+                                                                                                        ->filter(fn($c) => !str_contains(strtolower($c), "opcional"))
+                                                                                                        ->filter(function ($claseNombre) use ($targetReg) {
+                                                                                                            $clLow = strtolower($claseNombre);
+                                                                                                            $tipo = null;
+                                                                                                            if (strpos($clLow, "candado obturador") !== false) {
+                                                                                                                $tipo = "Candado obturador";
+                                                                                                            } elseif (strpos($clLow, "cabeza de soplo") !== false) {
+                                                                                                                $tipo = "Cabeza de soplo";
+                                                                                                            } elseif (strpos($clLow, "embudo") !== false) {
+                                                                                                                $tipo = "Embudo";
+                                                                                                            } elseif (strpos($clLow, "corona") !== false) {
+                                                                                                                $tipo = "Corona";
+                                                                                                            } elseif (strpos($clLow, "plato") !== false) {
+                                                                                                                $tipo = "Plato";
+                                                                                                            } elseif (strpos($clLow, "fondo") !== false) {
+                                                                                                                $tipo = "Fondo";
+                                                                                                            } elseif (strpos($clLow, "obturador") !== false) {
+                                                                                                                $tipo = "Obturador";
+                                                                                                            } elseif (strpos($clLow, "molde") !== false) {
+                                                                                                                $tipo = "Molde";
+                                                                                                            } elseif (strpos($clLow, "bombillo") !== false) {
+                                                                                                                $tipo = "Bombillo";
+                                                                                                            }
+                                                                                                            if ($tipo) {
+                                                                                                                $baseOt = preg_replace('/_R\d+$/i', "", $targetReg->ot);
+                                                                                                                $isAprob = \App\Models\LiberacionModeloFundicion::where(
+                                                                                                                    fn($q) => $q
+                                                                                                                        ->where("ot", "=", $baseOt)
+                                                                                                                        ->orWhere("ot", "LIKE", $baseOt . "_R%"),
+                                                                                                                )
+                                                                                                                    ->where("ot", "!=", $targetReg->ot)
+                                                                                                                    ->where("tipo_modelo", "=", $tipo)
+                                                                                                                    ->where("estado", "=", "aprobado")
+                                                                                                                    ->exists();
+                                                                                                                if ($isAprob) {
+                                                                                                                    return false;
+                                                                                                                }
+                                                                                                                return \App\Models\LiberacionModeloFundicion::where(
+                                                                                                                    "ot",
+                                                                                                                    "=",
+                                                                                                                    $targetReg->ot,
+                                                                                                                )
+                                                                                                                    ->where("tipo_modelo", "=", $tipo)
+                                                                                                                    ->where(function ($q) {
+                                                                                                                        $q->whereIn("tipo_origen", [
+                                                                                                                            "con_modelo",
+                                                                                                                            "pre_orden",
+                                                                                                                        ])->orWhereNull("tipo_origen");
+                                                                                                                    })
+                                                                                                                    ->exists();
+                                                                                                            }
+                                                                                                            return false;
+                                                                                                        })
+                                                                                                        ->values()
+                                                                                                        ->toArray();
+                                                                                                    $hdCont = 0;
+                                                                                                    foreach ($hdClasesActivas as $clName) {
+                                                                                                        $clLow = strtolower($clName);
+                                                                                                        $tipo = null;
+                                                                                                        if (strpos($clLow, "candado obturador") !== false) {
+                                                                                                            $tipo = "Candado obturador";
+                                                                                                        } elseif (strpos($clLow, "cabeza de soplo") !== false) {
+                                                                                                            $tipo = "Cabeza de soplo";
+                                                                                                        } elseif (strpos($clLow, "embudo") !== false) {
+                                                                                                            $tipo = "Embudo";
+                                                                                                        } elseif (strpos($clLow, "corona") !== false) {
+                                                                                                            $tipo = "Corona";
+                                                                                                        } elseif (strpos($clLow, "plato") !== false) {
+                                                                                                            $tipo = "Plato";
+                                                                                                        } elseif (strpos($clLow, "fondo") !== false) {
+                                                                                                            $tipo = "Fondo";
+                                                                                                        } elseif (strpos($clLow, "obturador") !== false) {
+                                                                                                            $tipo = "Obturador";
+                                                                                                        } elseif (strpos($clLow, "molde") !== false) {
+                                                                                                            $tipo = "Molde";
+                                                                                                        } elseif (strpos($clLow, "bombillo") !== false) {
+                                                                                                            $tipo = "Bombillo";
+                                                                                                        }
+                                                                                                        if ($tipo) {
+                                                                                                            if (
+                                                                                                                \App\Models\LiberacionModeloFundicion::where(
+                                                                                                                    "ot",
+                                                                                                                    "=",
+                                                                                                                    $targetReg->ot,
+                                                                                                                )
+                                                                                                                    ->where("tipo_modelo", "=", $tipo)
+                                                                                                                    ->whereNotNull("user_id_calidad")
+                                                                                                                    ->exists()
+                                                                                                            ) {
+                                                                                                                $hdCont++;
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                @endphp
+                                                                                                <div
+                                                                                                    class="cal-flex-shrink-0 cal-display-flex cal-flex-direction-column cal-align-items-center cal-gap-2px cal-padding-left-10px cal-border-left-1px-solid-e2e8f0 cal-margin-left-auto">
+                                                                                                    <span
+                                                                                                        style="font-size:1.1em; font-weight:800; color: {{ $hdCont == count($hdClasesActivas) && count($hdClasesActivas) > 0 ? '#15803d' : '#033966' }};">
+                                                                                                        {{ $hdCont }}/{{ count($hdClasesActivas) }}
+                                                                                                    </span>
+                                                                                                    <span
+                                                                                                        class="cal-font-size-0-65em cal-font-weight-700 cal-color-64748b cal-letter-spacing-0-5px cal-text-transform-uppercase">Clases</span>
+                                                                                                    @if ($hdCont == count($hdClasesActivas) && count($hdClasesActivas) > 0)
+                                                                                                        <img src="{{ asset('images/ready.png') }}"
+                                                                                                            class="cal-width-14px cal-height-14px cal-margin-top-2px"
+                                                                                                            alt="Listo" />
+                                                                                                    @endif
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            <div class="lib-calidad-card-body">
+                                                                                                @if (
+                                                                                                        in_array($targetReg->calidad_revision_status, [
+                                                                                                            "rechazado",
+                                                                                                            "calidad_rechazado"
+                                                                                                        ])
+                                                                                                    )
+                                                                                                    <div
+                                                                                                        class="lib-estado-badge lib-estado-rechazado cal-padding-12px-16px cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px">
+                                                                                                        <img src="{{ asset('images/Rechazado.png') }}" alt=""
+                                                                                                            class="cal-width-18px cal-height-18px cal-object-fit-contain cal-flex-shrink-0" />
+                                                                                                        <span>Liberacion
+                                                                                                            rechazada
+                                                                                                            anteriormente.
+                                                                                                            Puedes
+                                                                                                            revisar
+                                                                                                            y
+                                                                                                            volver
+                                                                                                            a
+                                                                                                            emitir
+                                                                                                            un
+                                                                                                            veredicto.</span>
+                                                                                                    </div>
+                                                                                                @elseif (is_null($targetReg->calidad_revision_status))
+                                                                                                    <div
+                                                                                                        class="lib-estado-badge lib-estado-info cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px">
+                                                                                                        Modelo
+                                                                                                        disponible
+                                                                                                        para
+                                                                                                        iniciar
+                                                                                                        el
+                                                                                                        proceso
+                                                                                                        de
+                                                                                                        liberación.
+                                                                                                    </div>
+                                                                                                @elseif (
+                                                                                                        in_array($targetReg->calidad_revision_status, [
+                                                                                                            "pendiente",
+                                                                                                            "calidad_pendiente"
+                                                                                                        ])
+                                                                                                    )
+                                                                                                    <div
+                                                                                                        class="lib-estado-badge lib-estado-guardado cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px">
+                                                                                                        <img src="{{ asset('images/Guardado.png') }}" alt=""
+                                                                                                            class="cal-width-18px cal-height-18px cal-object-fit-contain cal-flex-shrink-0" />
+                                                                                                        Datos
+                                                                                                        capturados
+                                                                                                        como
+                                                                                                        borrador.
+                                                                                                    </div>
+                                                                                                @endif
+                                                                                                @php
+                                                                                                    $borradorPendiente = \App\Models\LiberacionModeloFundicion::where(
+                                                                                                        "ot",
+                                                                                                        $targetReg->ot,
+                                                                                                    )
+                                                                                                        ->where("estado", "pendiente")
+                                                                                                        ->first();
+                                                                                                    $scarModelo = \App\Models\ScarModelo::where("ot", $targetReg->ot)->first();
+                                                                                                    $reqFotos =
+                                                                                                        $scarModelo &&
+                                                                                                        ($scarModelo->evidencia_fotos || $scarModelo->evidencia_otro);
+                                                                                                    $clasesActivas = collect($targetReg->ayudas_config ?? [])
+                                                                                                        ->filter(fn($c) => !str_contains(strtolower($c), "opcional"))
+                                                                                                        ->filter(function ($claseNombre) use ($targetReg) {
+                                                                                                            $clLow = strtolower($claseNombre);
+                                                                                                            $tipo = null;
+                                                                                                            if (strpos($clLow, "candado obturador") !== false) {
+                                                                                                                $tipo = "Candado obturador";
+                                                                                                            } elseif (strpos($clLow, "cabeza de soplo") !== false) {
+                                                                                                                $tipo = "Cabeza de soplo";
+                                                                                                            } elseif (strpos($clLow, "embudo") !== false) {
+                                                                                                                $tipo = "Embudo";
+                                                                                                            } elseif (strpos($clLow, "corona") !== false) {
+                                                                                                                $tipo = "Corona";
+                                                                                                            } elseif (strpos($clLow, "plato") !== false) {
+                                                                                                                $tipo = "Plato";
+                                                                                                            } elseif (strpos($clLow, "fondo") !== false) {
+                                                                                                                $tipo = "Fondo";
+                                                                                                            } elseif (strpos($clLow, "obturador") !== false) {
+                                                                                                                $tipo = "Obturador";
+                                                                                                            } elseif (strpos($clLow, "molde") !== false) {
+                                                                                                                $tipo = "Molde";
+                                                                                                            } elseif (strpos($clLow, "bombillo") !== false) {
+                                                                                                                $tipo = "Bombillo";
+                                                                                                            }
+                                                                                                            if ($tipo) {
+                                                                                                                $baseOt = preg_replace('/_R\d+$/i', "", $targetReg->ot);
+                                                                                                                $isAprobado = \App\Models\LiberacionModeloFundicion::where(
+                                                                                                                    fn($q) => $q
+                                                                                                                        ->where("ot", "=", $baseOt)
+                                                                                                                        ->orWhere("ot", "LIKE", $baseOt . "_R%"),
+                                                                                                                )
+                                                                                                                    ->where("ot", "!=", $targetReg->ot)
+                                                                                                                    ->where("tipo_modelo", "=", $tipo)
+                                                                                                                    ->where("estado", "=", "aprobado")
+                                                                                                                    ->exists();
+                                                                                                                if ($isAprobado) {
+                                                                                                                    return false;
+                                                                                                                }
+                                                                                                                $fueEnviadoPorAlmacen = \App\Models\LiberacionModeloFundicion::where(
+                                                                                                                    "ot",
+                                                                                                                    "=",
+                                                                                                                    $targetReg->ot,
+                                                                                                                )
+                                                                                                                    ->where("tipo_modelo", "=", $tipo)
+                                                                                                                    ->where(function ($q) {
+                                                                                                                        $q->whereIn("tipo_origen", [
+                                                                                                                            "con_modelo",
+                                                                                                                            "pre_orden",
+                                                                                                                        ])->orWhereNull("tipo_origen");
+                                                                                                                    })
+                                                                                                                    ->exists();
+                                                                                                                return $fueEnviadoPorAlmacen;
+                                                                                                            }
+                                                                                                            return false;
+                                                                                                        })
+                                                                                                        ->values()
+                                                                                                        ->toArray();
+                                                                                                    // Determinar si todas las clases activas tienen datos guardados (como borrador pendiente)
+                                                                                                    $todosGuardados = true;
+                                                                                                    $contClasesConDatos = 0;
+                                                                                                    foreach ($clasesActivas as $clName) {
+                                                                                                        $clLow = strtolower($clName);
+                                                                                                        $tipo = null;
+                                                                                                        if (strpos($clLow, "candado obturador") !== false) {
+                                                                                                            $tipo = "Candado obturador";
+                                                                                                        } elseif (strpos($clLow, "cabeza de soplo") !== false) {
+                                                                                                            $tipo = "Cabeza de soplo";
+                                                                                                        } elseif (strpos($clLow, "embudo") !== false) {
+                                                                                                            $tipo = "Embudo";
+                                                                                                        } elseif (strpos($clLow, "corona") !== false) {
+                                                                                                            $tipo = "Corona";
+                                                                                                        } elseif (strpos($clLow, "plato") !== false) {
+                                                                                                            $tipo = "Plato";
+                                                                                                        } elseif (strpos($clLow, "fondo") !== false) {
+                                                                                                            $tipo = "Fondo";
+                                                                                                        } elseif (strpos($clLow, "obturador") !== false) {
+                                                                                                            $tipo = "Obturador";
+                                                                                                        } elseif (strpos($clLow, "molde") !== false) {
+                                                                                                            $tipo = "Molde";
+                                                                                                        } elseif (strpos($clLow, "bombillo") !== false) {
+                                                                                                            $tipo = "Bombillo";
+                                                                                                        }
+                                                                                                        if ($tipo) {
+                                                                                                            $hasData = \App\Models\LiberacionModeloFundicion::where(
+                                                                                                                "ot",
+                                                                                                                "=",
+                                                                                                                $targetReg->ot,
+                                                                                                            )
+                                                                                                                ->where("tipo_modelo", "=", $tipo)
+                                                                                                                ->whereNotNull("user_id_calidad")
+                                                                                                                ->exists();
+                                                                                                            if (!$hasData) {
+                                                                                                                $todosGuardados = false;
+                                                                                                            } else {
+                                                                                                                $contClasesConDatos++;
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                    if (empty($clasesActivas)) {
+                                                                                                        $todosGuardados = false;
+                                                                                                    }
+                                                                                                    // Determinar si hay al menos una clase con decisión de rechazo pendiente de enviar
+                                                                                                    $hasRechazoBorrador = \App\Models\LiberacionModeloFundicion::where(
+                                                                                                        "ot",
+                                                                                                        "=",
+                                                                                                        $targetReg->ot,
+                                                                                                    )
+                                                                                                        ->where("decision", "=", "rechazar")
+                                                                                                        ->where("alerta_enviada", "=", 0)
+                                                                                                        ->exists();
+                                                                                                    $hasAprobadoBorrador = \App\Models\LiberacionModeloFundicion::where(
+                                                                                                        "ot",
+                                                                                                        "=",
+                                                                                                        $targetReg->ot,
+                                                                                                    )
+                                                                                                        ->where("decision", "=", "aprobar")
+                                                                                                        ->where("alerta_enviada", "=", 0)
+                                                                                                        ->exists();
+                                                                                                    $decisionGlobal = "aprobar";
+                                                                                                    if ($hasRechazoBorrador && $hasAprobadoBorrador) {
+                                                                                                        $decisionGlobal = "mixto";
+                                                                                                    } elseif ($hasRechazoBorrador) {
+                                                                                                        $decisionGlobal = "rechazar";
+                                                                                                    }
+                                                                                                    $borradorRechazado = \App\Models\LiberacionModeloFundicion::where(
+                                                                                                        "ot",
+                                                                                                        "=",
+                                                                                                        $targetReg->ot,
+                                                                                                    )
+                                                                                                        ->where("decision", "=", "rechazar")
+                                                                                                        ->where("alerta_enviada", "=", 0)
+                                                                                                        ->first();
+                                                                                                    $tiposGuardados = \App\Models\LiberacionModeloFundicion::where(
+                                                                                                        "ot",
+                                                                                                        "=",
+                                                                                                        $targetReg->ot,
+                                                                                                    )
+                                                                                                        ->where("alerta_enviada", "=", 0)
+                                                                                                        ->get(["tipo_modelo", "decision"]);
+                                                                                                    $tiposLabel = implode(", ", $tiposGuardados->pluck("tipo_modelo")->toArray());
+                                                                                                    $tiposAprobadosArr = $tiposGuardados
+                                                                                                        ->where("decision", "aprobar")
+                                                                                                        ->pluck("tipo_modelo")
+                                                                                                        ->values()
+                                                                                                        ->toArray();
+                                                                                                    $tiposRechazadosArr = $tiposGuardados
+                                                                                                        ->where("decision", "rechazar")
+                                                                                                        ->pluck("tipo_modelo")
+                                                                                                        ->values()
+                                                                                                        ->toArray();
+                                                                                                    $tiposAprobadosJson = json_encode($tiposAprobadosArr);
+                                                                                                    $tiposRechazadosJson = json_encode($tiposRechazadosArr);
+
+                                                                                                    // Verificar si todas las clases activas ya fueron alertadas (proceso enviado a la siguiente etapa)
+                                                                                                    $clasesAlertadas = \App\Models\LiberacionModeloFundicion::where("ot", "=", $targetReg->ot)
+                                                                                                        ->where("alerta_enviada", "=", 1)
+                                                                                                        ->pluck("tipo_modelo")
+                                                                                                        ->map(fn($item) => strtolower(trim($item)))
+                                                                                                        ->toArray();
+                                                                                                    $clasesPendientesAlertar = array_filter($clasesActivas, function ($c) use ($clasesAlertadas) {
+                                                                                                        $clLow = strtolower($c);
+                                                                                                        $tipo = null;
+                                                                                                        if (strpos($clLow, "candado obturador") !== false)
+                                                                                                            $tipo = "candado obturador";
+                                                                                                        elseif (strpos($clLow, "cabeza de soplo") !== false)
+                                                                                                            $tipo = "cabeza de soplo";
+                                                                                                        elseif (strpos($clLow, "embudo") !== false)
+                                                                                                            $tipo = "embudo";
+                                                                                                        elseif (strpos($clLow, "corona") !== false)
+                                                                                                            $tipo = "corona";
+                                                                                                        elseif (strpos($clLow, "plato") !== false)
+                                                                                                            $tipo = "plato";
+                                                                                                        elseif (strpos($clLow, "fondo") !== false)
+                                                                                                            $tipo = "fondo";
+                                                                                                        elseif (strpos($clLow, "obturador") !== false)
+                                                                                                            $tipo = "obturador";
+                                                                                                        elseif (strpos($clLow, "molde") !== false)
+                                                                                                            $tipo = "molde";
+                                                                                                        elseif (strpos($clLow, "bombillo") !== false)
+                                                                                                            $tipo = "bombillo";
+                                                                                                        return $tipo && !in_array($tipo, $clasesAlertadas);
+                                                                                                    });
+                                                                                                    $etapaFinalizada = !empty($clasesActivas) && empty($clasesPendientesAlertar) && !$todosGuardados && !$hasRechazoBorrador && !$hasAprobadoBorrador;
+                                                                                                @endphp
+                                                                                                <div class="lib-calidad-action-row">
+                                                                                                    <h4 class="lib-calidad-card-prompt">
+                                                                                                        @if ($etapaFinalizada)
+                                                                                                            El proceso de liberación para las clases actuales ha sido completado
+                                                                                                            y pasó a su siguiente etapa (En espera).
+                                                                                                        @elseif ($todosGuardados)
+                                                                                                            @if ($hasRechazoBorrador)
+                                                                                                                Borrador
+                                                                                                                de
+                                                                                                                rechazo
+                                                                                                                guardado
+                                                                                                                para
+                                                                                                                esta
+                                                                                                                OT.
+                                                                                                                ¿Qué
+                                                                                                                deseas
+                                                                                                                hacer?
+                                                                                                            @else
+                                                                                                                Borrador
+                                                                                                                de
+                                                                                                                aprobación
+                                                                                                                guardado
+                                                                                                                para
+                                                                                                                esta
+                                                                                                                OT.
+                                                                                                                ¿Qué
+                                                                                                                deseas
+                                                                                                                hacer?
+                                                                                                            @endif
+                                                                                                        @elseif ($contClasesConDatos > 0)
+                                                                                                                                    Proceso de liberación en curso (capturados:
+                                                                                                                                    {{ $contClasesConDatos }} de
+                                                                                                                                    {{
+                                                                                                            count(
+                                                                                                                $clasesActivas,
+                                                                                                            )
+                                                                                                                                                            }}).
+                                                                                                        @elseif (
+                                                                                                                in_array($targetReg->calidad_revision_status, [
+                                                                                                                    "rechazado",
+                                                                                                                    "calidad_rechazado"
+                                                                                                                ])
+                                                                                                            )
+                                                                                                            El
+                                                                                                            modelo
+                                                                                                            fue
+                                                                                                            rechazado
+                                                                                                            antes.
+                                                                                                            ¿Quieres
+                                                                                                            revisarlo
+                                                                                                            de
+                                                                                                            nuevo?
+                                                                                                        @else
+                                                                                                            ¿Qué
+                                                                                                            deseas
+                                                                                                            hacer
+                                                                                                            con
+                                                                                                            este
+                                                                                                            modelo?
+                                                                                                            ¿Lo
+                                                                                                            apruebas
+                                                                                                            o lo
+                                                                                                            rechazas?
+                                                                                                        @endif
+                                                                                                    </h4>
+                                                                                                    <div class="lib-calidad-card-btns">
+                                                                                                        @if ($etapaFinalizada)
+                                                                                                            <span class="cal-status-en-espera" style="background:#f8fafc; border:1.5px solid #cbd5e1; color:#475569; padding:10px 18px; border-radius:10px; font-weight:600; font-family:'Poppins',sans-serif; display:inline-flex; align-items:center; gap:8px;">
+                                                                                                                <img src="{{ asset('images/ready.png') }}" style="width:20px;height:20px;" alt="Listo">
+                                                                                                                Proceso finalizado. En espera de la siguiente etapa o nuevas clases.
+                                                                                                            </span>
+                                                                                                        @elseif ($todosGuardados)
+                                                                                                            <button class="btn-calidad-action btn-calidad-iniciar"
+                                                                                                                onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})"
+                                                                                                                title="Editar borrador del formato de liberación F-CCL-LDM">
+                                                                                                                <img src="{{ asset('images/editar-informacion.png') }}"
+                                                                                                                    alt="" />
+                                                                                                                <span>Editar
+                                                                                                                    Información</span>
+                                                                                                            </button>
+                                                                                                        @else
+                                                                                                                                    @php
+                                                                                                                                        $btnDisabled = empty($clasesActivas);
+                                                                                                                                        $btnTitle = $btnDisabled
+                                                                                                                                            ? "No hay clases enviadas por Almacén para revisar"
+                                                                                                                                            : ($contClasesConDatos > 0
+                                                                                                                                                ? "Continuar con el proceso de liberación"
+                                                                                                                                                : "Iniciar el proceso de liberación");
+                                                                                                                                    @endphp
+                                                                                                                                    <button
+                                                                                                                                        class="btn-calidad-action btn-calidad-iniciar @if($btnDisabled) cal-opacity-0-55 cal-cursor-not-allowed @endif"
+                                                                                                                                        title="{{ $btnTitle }}"
+                                                                                                                                        onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})">
+                                                                                                                                        <img src="{{ asset('images/Liberar.png') }}" alt="" />
+                                                                                                                                        <span>{{
+                                                                                                            $contClasesConDatos > 0
+                                                                                                            ? "Continuar con el proceso de liberación"
+                                                                                                            : "Empezar con el proceso de liberación"
+                                                                                                                                                                    }}</span>
+                                                                                                                                    </button>
+                                                                                                        @endif
+                                                                                                        @if ($contClasesConDatos > 0)
+                                                                                                            @if ($hasRechazoBorrador)
+                                                                                                                @if (!$scarModelo)
+                                                                                                                    <button class="btn-calidad-action btn-calidad-borrador"
+                                                                                                                        onclick="abrirModalScar('{{ $targetReg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
+                                                                                                                        title="Generar el formato de acción correctiva SCAR">
+                                                                                                                        <img src="{{ asset('images/pdf.png') }}" alt="" />
+                                                                                                                        <span>Generar
+                                                                                                                            Formato
+                                                                                                                            SCAR</span>
+                                                                                                                    </button>
+                                                                                                                @else
+                                                                                                                    <button class="btn-calidad-action btn-calidad-email"
+                                                                                                                        onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
+                                                                                                                        title="Enviar alerta de calidad y notificar por correo"
+                                                                                                                        class="cal-background-color-dc2626 cal-color-white">
+                                                                                                                        <img src="{{ asset('images/enviando.png') }}" alt="" />
+                                                                                                                        <span>Enviar
+                                                                                                                            Alerta</span>
+                                                                                                                    </button>
+                                                                                                                @endif
+                                                                                                            @else
+                                                                                                                <button class="btn-calidad-action btn-calidad-email"
+                                                                                                                    onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
+                                                                                                                    title="Enviar alerta de calidad y notificar por correo"
+                                                                                                                    class="cal-background-color-059669 cal-color-white">
+                                                                                                                    <img src="{{ asset('images/enviando.png') }}" alt="" />
+                                                                                                                    <span>Enviar
+                                                                                                                        Alerta</span>
+                                                                                                                </button>
+                                                                                                            @endif
+                                                                                                        @endif
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                            @if ($decisionGlobal === 'ninguno' && $targetReg->calidad_revision_status !== 'pendiente')
+                                                                                                <div class="lib-calidad-card"
+                                                                                                    id="control-calidad-enviados-{{ md5($targetReg->ot) }}"
+                                                                                                    class="cal-margin-top-15px">
+                                                                                                    <div
+                                                                                                        class="lib-calidad-card-header cal-background-linear-gradient-135deg-059669-047857 cal-border-bottom-2px-solid-rgba-5-150-105-0-5">
+                                                                                                        <img src="{{ asset('images/Quality.png') }}" alt="Calidad"
+                                                                                                            class="cal-width-38px cal-height-38px cal-object-fit-contain cal-flex-shrink-0 cal-filter-brightness-0-invert-1">
+                                                                                                        <div class="cal-overflow-hidden cal-flex-1">
+                                                                                                            <span class="lib-calidad-card-title cal-color-ffffff">Alertas
+                                                                                                                Enviadas &mdash; Calidad</span>
+                                                                                                            <span
+                                                                                                                class="lib-calidad-card-ot cal-color-rgba-255-255-255-0-9">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $targetReg->ot) }}</span>
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div
+                                                                                                        class="lib-calidad-card-body cal-background-color-f0fdf4 cal-border-1px-solid-bbf7d0 cal-border-top-none cal-padding-15px cal-text-align-center">
+                                                                                                        <img src="{{ asset('images/enviando.png') }}" alt="Enviado"
+                                                                                                            class="cal-width-48px cal-height-48px cal-margin-bottom-10px">
+                                                                                                        <h4
+                                                                                                            class="cal-color-065f46 cal-font-size-1-1em cal-margin-0-0-5px-0 cal-font-weight-600">
+                                                                                                            Alertas de Liberación Completadas</h4>
+                                                                                                        <p class="cal-color-064e3b cal-font-size-0-9em cal-margin-0">Las
+                                                                                                            notificaciones de liberación correspondientes a este modelo ya han
+                                                                                                            sido procesadas y enviadas exitosamente al almacén.</p>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            @endif
+                                                                                        </div>
+                                                                        @elseif (
+                                                                                in_array(Auth::user()->perfil, [1, 3, 4, "1", "3", "4"]) &&
+                                                                                $isQualityFinalized
                                                                             )
-                                                                                ->where("tipo_modelo", "=", $tipo)
-                                                                                ->whereNotNull("user_id_calidad")
-                                                                                ->exists();
-                                                                            if (!$hasData) {
-                                                                                $todosGuardados = false;
-                                                                            } else {
-                                                                                $contClasesConDatos++;
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    if (empty($clasesActivas)) {
-                                                                        $todosGuardados = false;
-                                                                    }
-                                                                    // Determinar si hay al menos una clase con decisión de rechazo pendiente de enviar
-                                                                    $hasRechazoBorrador = \App\Models\LiberacionModeloFundicion::where(
-                                                                        "ot",
-                                                                        "=",
-                                                                        $targetReg->ot,
-                                                                    )
-                                                                        ->where("decision", "=", "rechazar")
-                                                                        ->where("alerta_enviada", "=", 0)
-                                                                        ->exists();
-                                                                    $hasAprobadoBorrador = \App\Models\LiberacionModeloFundicion::where(
-                                                                        "ot",
-                                                                        "=",
-                                                                        $targetReg->ot,
-                                                                    )
-                                                                        ->where("decision", "=", "aprobar")
-                                                                        ->where("alerta_enviada", "=", 0)
-                                                                        ->exists();
-                                                                    $decisionGlobal = "aprobar";
-                                                                    if ($hasRechazoBorrador && $hasAprobadoBorrador) {
-                                                                        $decisionGlobal = "mixto";
-                                                                    } elseif ($hasRechazoBorrador) {
-                                                                        $decisionGlobal = "rechazar";
-                                                                    }
-                                                                    $borradorRechazado = \App\Models\LiberacionModeloFundicion::where(
-                                                                        "ot",
-                                                                        "=",
-                                                                        $targetReg->ot,
-                                                                    )
-                                                                        ->where("decision", "=", "rechazar")
-                                                                        ->where("alerta_enviada", "=", 0)
-                                                                        ->first();
-                                                                    $tiposGuardados = \App\Models\LiberacionModeloFundicion::where(
-                                                                        "ot",
-                                                                        "=",
-                                                                        $targetReg->ot,
-                                                                    )
-                                                                        ->where("alerta_enviada", "=", 0)
-                                                                        ->get(["tipo_modelo", "decision"]);
-                                                                    $tiposLabel = implode(", ", $tiposGuardados->pluck("tipo_modelo")->toArray());
-                                                                    $tiposAprobadosArr = $tiposGuardados
-                                                                        ->where("decision", "aprobar")
-                                                                        ->pluck("tipo_modelo")
-                                                                        ->values()
-                                                                        ->toArray();
-                                                                    $tiposRechazadosArr = $tiposGuardados
-                                                                        ->where("decision", "rechazar")
-                                                                        ->pluck("tipo_modelo")
-                                                                        ->values()
-                                                                        ->toArray();
-                                                                    $tiposAprobadosJson = json_encode($tiposAprobadosArr);
-                                                                    $tiposRechazadosJson = json_encode($tiposRechazadosArr);
-                                                                @endphp
-                                                                <div
-                                                                    class="lib-calidad-action-row"
-                                                                >
-                                                                    <h4
-                                                                        class="lib-calidad-card-prompt"
-                                                                    >
-                                                                        @if ($todosGuardados)
-                                                                            @if ($hasRechazoBorrador)
-                                                                                Borrador
-                                                                                de
-                                                                                rechazo
-                                                                                guardado
-                                                                                para
-                                                                                esta
-                                                                                OT.
-                                                                                ¿Qué
-                                                                                deseas
-                                                                                hacer?
-                                                                            @else
-                                                                                Borrador
-                                                                                de
-                                                                                aprobación
-                                                                                guardado
-                                                                                para
-                                                                                esta
-                                                                                OT.
-                                                                                ¿Qué
-                                                                                deseas
-                                                                                hacer?
-                                                                            @endif
-                                                                        @elseif ($contClasesConDatos > 0)
-                                                                            Proceso de liberación en curso (capturados:
-                                                                            {{ $contClasesConDatos }} de
-                                                                            {{
-                                                                                count(
-                                                                                    $clasesActivas,
-                                                                                )
-                                                                            }}).
-                                                                        @elseif (in_array($targetReg->calidad_revision_status, [
-                                                                                "rechazado",
-                                                                                "calidad_rechazado"
-                                                                            ]))
-                                                                            El
-                                                                            modelo
-                                                                            fue
-                                                                            rechazado
-                                                                            antes.
-                                                                            ¿Quieres
-                                                                            revisarlo
-                                                                            de
-                                                                            nuevo?
-                                                                        @else
-                                                                            ¿Qué
-                                                                            deseas
-                                                                            hacer
-                                                                            con
-                                                                            este
-                                                                            modelo?
-                                                                            ¿Lo
-                                                                            apruebas
-                                                                            o lo
-                                                                            rechazas?
-                                                                        @endif
-                                                                    </h4>
-                                                                    <div
-                                                                        class="lib-calidad-card-btns"
-                                                                    >
-                                                                        @if ($todosGuardados)
-                                                                            <button
-                                                                                class="btn-calidad-action btn-calidad-iniciar"
-                                                                                onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})"
-                                                                                title="Editar borrador del formato de liberación F-CCL-LDM"
-                                                                            >
-                                                                                <img
-                                                                                    src="{{ asset('images/editar-informacion.png') }}"
-                                                                                    alt=""
-                                                                                />
-                                                                                <span
-                                                                                    >Editar
-                                                                                    Información</span
-                                                                                >
-                                                                            </button>
-                                                                        @else
                                                                             @php
-                                                                                $btnDisabled = empty($clasesActivas);
-                                                                                $btnTitle = $btnDisabled
-                                                                                    ? "No hay clases enviadas por Almacén para revisar"
-                                                                                    : ($contClasesConDatos > 0
-                                                                                        ? "Continuar con el proceso de liberación"
-                                                                                        : "Iniciar el proceso de liberación");
+                                                                                $libStatusClean = str_replace(
+                                                                                    "calidad_",
+                                                                                    "",
+                                                                                    $targetReg->calidad_revision_status,
+                                                                                );
                                                                             @endphp
-                                                                            <button class="btn-calidad-action btn-calidad-iniciar @if($btnDisabled) cal-opacity-0-55 cal-cursor-not-allowed @endif"
-                                                                                title="{{ $btnTitle }}"
-                                                                                onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})"
-                                                                            >
-                                                                                <img
-                                                                                    src="{{ asset('images/Liberar.png') }}"
-                                                                                    alt=""
-                                                                                />
-                                                                                <span
-                                                                                    >{{
-                                                                                        $contClasesConDatos > 0
-                                                                                            ? "Continuar con el proceso de liberación"
-                                                                                            : "Empezar con el proceso de liberación"
-                                                                                    }}</span
-                                                                                >
-                                                                            </button>
-                                                                        @endif
-                                                                        @if ($contClasesConDatos > 0)
-                                                                            @if ($hasRechazoBorrador)
-                                                                                @if (!$scarModelo)
-                                                                                    <button
-                                                                                        class="btn-calidad-action btn-calidad-borrador"
-                                                                                        onclick="abrirModalScar('{{ $targetReg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
-                                                                                        title="Generar el formato de acción correctiva SCAR"
-                                                                                    >
-                                                                                        <img
-                                                                                            src="{{ asset('images/pdf.png') }}"
-                                                                                            alt=""
-                                                                                        />
-                                                                                        <span
-                                                                                            >Generar
-                                                                                            Formato
-                                                                                            SCAR</span
-                                                                                        >
-                                                                                    </button>
-                                                                                @else
-                                                                                    <button
-                                                                                        class="btn-calidad-action btn-calidad-email"
-                                                                                        onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
-                                                                                        title="Enviar alerta de calidad y notificar por correo"
-                                                                                        class="cal-background-color-dc2626 cal-color-white"
-                                                                                    >
-                                                                                        <img
-                                                                                            src="{{ asset('images/enviando.png') }}"
-                                                                                            alt=""
-                                                                                        />
-                                                                                        <span
-                                                                                            >Enviar
-                                                                                            Alerta</span
-                                                                                        >
-                                                                                    </button>
-                                                                                @endif
-                                                                            @else
-                                                                                <button
-                                                                                    class="btn-calidad-action btn-calidad-email"
-                                                                                    onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
-                                                                                    title="Enviar alerta de calidad y notificar por correo"
-                                                                                    class="cal-background-color-059669 cal-color-white"
-                                                                                >
-                                                                                    <img
-                                                                                        src="{{ asset('images/enviando.png') }}"
-                                                                                        alt=""
-                                                                                    />
-                                                                                    <span
-                                                                                        >Enviar
-                                                                                        Alerta</span
-                                                                                    >
-                                                                                </button>
+                                                                            @if (
+                                                                                    in_array($targetReg->calidad_revision_status, [
+                                                                                        "aprobado",
+                                                                                        "calidad_aprobado",
+                                                                                        "calidad_parcial",
+                                                                                        "rechazado",
+                                                                                        "calidad_rechazado",
+                                                                                        "mixto",
+                                                                                        "calidad_mixto"
+                                                                                    ])
+                                                                                )
+                                                                                @php
+                                                                                    $liberacionesAll = \App\Models\LiberacionModeloFundicion::where(
+                                                                                        "ot",
+                                                                                        $targetReg->ot,
+                                                                                    )->get();
+                                                                                    $aprobadosAll = $liberacionesAll
+                                                                                        ->where("decision", "aprobar")
+                                                                                        ->pluck("tipo_modelo")
+                                                                                        ->toArray();
+                                                                                    $rechazadosAll = $liberacionesAll
+                                                                                        ->where("decision", "rechazar")
+                                                                                        ->pluck("tipo_modelo")
+                                                                                        ->toArray();
+                                                                                    $liberacionesPend = $liberacionesAll->where("alerta_enviada", false);
+                                                                                    $aprobadosPend = $liberacionesPend
+                                                                                        ->where("decision", "aprobar")
+                                                                                        ->pluck("tipo_modelo")
+                                                                                        ->toArray();
+                                                                                    $rechazadosPend = $liberacionesPend
+                                                                                        ->where("decision", "rechazar")
+                                                                                        ->pluck("tipo_modelo")
+                                                                                        ->toArray();
+                                                                                    if (count($aprobadosPend) > 0 && count($rechazadosPend) > 0) {
+                                                                                        $decisionFinal = "mixto";
+                                                                                    } elseif (count($aprobadosPend) > 0) {
+                                                                                        $decisionFinal = "aprobar";
+                                                                                    } elseif (count($rechazadosPend) > 0) {
+                                                                                        $decisionFinal = "rechazar";
+                                                                                    } else {
+                                                                                        $decisionFinal = "ninguno";
+                                                                                    }
+                                                                                    $tiposAprobadosJson = json_encode(array_values($aprobadosPend));
+                                                                                    $tiposRechazadosJson = json_encode(array_values($rechazadosPend));
+                                                                                @endphp
                                                                             @endif
                                                                         @endif
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            @if ($decisionGlobal === 'ninguno' && $targetReg->calidad_revision_status !== 'pendiente')
-                                                                <div class="lib-calidad-card" id="control-calidad-enviados-{{ md5($targetReg->ot) }}" class="cal-margin-top-15px">
-                                                                    <div class="lib-calidad-card-header cal-background-linear-gradient-135deg-059669-047857 cal-border-bottom-2px-solid-rgba-5-150-105-0-5">
-                                                                        <img src="{{ asset('images/Quality.png') }}" alt="Calidad" class="cal-width-38px cal-height-38px cal-object-fit-contain cal-flex-shrink-0 cal-filter-brightness-0-invert-1">
-                                                                        <div class="cal-overflow-hidden cal-flex-1">
-                                                                            <span class="lib-calidad-card-title cal-color-ffffff">Alertas Enviadas &mdash; Calidad</span>
-                                                                            <span class="lib-calidad-card-ot cal-color-rgba-255-255-255-0-9">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $targetReg->ot) }}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="lib-calidad-card-body cal-background-color-f0fdf4 cal-border-1px-solid-bbf7d0 cal-border-top-none cal-padding-15px cal-text-align-center">
-                                                                        <img src="{{ asset('images/enviando.png') }}" alt="Enviado" class="cal-width-48px cal-height-48px cal-margin-bottom-10px">
-                                                                        <h4 class="cal-color-065f46 cal-font-size-1-1em cal-margin-0-0-5px-0 cal-font-weight-600">Alertas de Liberación Completadas</h4>
-                                                                        <p class="cal-color-064e3b cal-font-size-0-9em cal-margin-0">Las notificaciones de liberación correspondientes a este modelo ya han sido procesadas y enviadas exitosamente al almacén.</p>
-                                                                    </div>
-                                                                </div>
+                                                                    </td>
+                                                                </tr>
                                                             @endif
-                                                        </div>
-                                                    @elseif (in_array(Auth::user()->perfil, [1, 3, 4, "1", "3", "4"]) &&
-                                                        $isQualityFinalized)
-                                                        @php
-                                                            $libStatusClean = str_replace(
-                                                                "calidad_",
-                                                                "",
-                                                                $targetReg->calidad_revision_status,
-                                                            );
-                                                        @endphp
-                                                        @if (in_array($targetReg->calidad_revision_status, [
-                                                                "aprobado",
-                                                                "calidad_aprobado",
-                                                                "calidad_parcial",
-                                                                "rechazado",
-                                                                "calidad_rechazado",
-                                                                "mixto",
-                                                                "calidad_mixto"
-                                                            ]))
-                                                            @php
-                                                                $liberacionesAll = \App\Models\LiberacionModeloFundicion::where(
-                                                                    "ot",
-                                                                    $targetReg->ot,
-                                                                )->get();
-                                                                $aprobadosAll = $liberacionesAll
-                                                                    ->where("decision", "aprobar")
-                                                                    ->pluck("tipo_modelo")
-                                                                    ->toArray();
-                                                                $rechazadosAll = $liberacionesAll
-                                                                    ->where("decision", "rechazar")
-                                                                    ->pluck("tipo_modelo")
-                                                                    ->toArray();
-                                                                $liberacionesPend = $liberacionesAll->where("alerta_enviada", false);
-                                                                $aprobadosPend = $liberacionesPend
-                                                                    ->where("decision", "aprobar")
-                                                                    ->pluck("tipo_modelo")
-                                                                    ->toArray();
-                                                                $rechazadosPend = $liberacionesPend
-                                                                    ->where("decision", "rechazar")
-                                                                    ->pluck("tipo_modelo")
-                                                                    ->toArray();
-                                                                if (count($aprobadosPend) > 0 && count($rechazadosPend) > 0) {
-                                                                    $decisionFinal = "mixto";
-                                                                } elseif (count($aprobadosPend) > 0) {
-                                                                    $decisionFinal = "aprobar";
-                                                                } elseif (count($rechazadosPend) > 0) {
-                                                                    $decisionFinal = "rechazar";
-                                                                } else {
-                                                                    $decisionFinal = "ninguno";
-                                                                }
-                                                                $tiposAprobadosJson = json_encode(array_values($aprobadosPend));
-                                                                $tiposRechazadosJson = json_encode(array_values($rechazadosPend));
-                                                            @endphp
-                                                        @endif
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endif
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
                         </div>
-                        @endif
-                    </div>
                 @endforeach
             </main>
         </div>
@@ -3016,105 +2819,70 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
     {{-- ── MINI-MODAL: CONFIRMAR MODELO CON DOCUMENTOS OBLIGATORIOS ── --}}
 
     {{-- ── MODAL: ENVIAR ALERTA DE LIBERACION (APROBADO/RECHAZADO) ── --}}
-    <div
-        id="modalEnviarAlertaLiberacion"
-        class="alm-modal"
-        role="dialog"
-        aria-modal="true"
-    >
+    <div id="modalEnviarAlertaLiberacion" class="alm-modal" role="dialog" aria-modal="true">
 
-        <div class="alm-modal-content cal-max-width-1500px cal-width-96vw cal-border-radius-20px"
-        >
+        <div class="alm-modal-content cal-max-width-1500px cal-width-96vw cal-border-radius-20px">
 
-            <div class="alm-modal-header cal-padding-2-5em-3em-2-2em cal-border-top-left-radius-18px cal-border-top-right-radius-18px"
-            >
+            <div
+                class="alm-modal-header cal-padding-2-5em-3em-2-2em cal-border-top-left-radius-18px cal-border-top-right-radius-18px">
                 <div class="div-cerrar">
-                    @include ("almacen.partials._btn_cerrar",
-                        ["onclick" => "cerrarModalEnviarAlertaLiberacion()"])
+                    @include (
+                        "almacen.partials._btn_cerrar",
+                        ["onclick" => "cerrarModalEnviarAlertaLiberacion()"]
+                    )
                 </div>
-                <h3
-                    id="alerta-lib-title"
-                    class="cal-font-size-2-2em cal-margin-0 cal-font-family-quot cal-font-weight-700 cal-color-fff"
-                >
+                <h3 id="alerta-lib-title"
+                    class="cal-font-size-2-2em cal-margin-0 cal-font-family-quot cal-font-weight-700 cal-color-fff">
                     Enviar Alerta de Liberación
                 </h3>
-                <p
-                    id="alerta-lib-subtitle" class="lib-modal-subtitle cal-color-bae6fd cal-font-size-1-15em cal-margin-top-8px cal-margin-bottom-0 cal-font-family-quot cal-font-weight-500"
-                ></p>
+                <p id="alerta-lib-subtitle"
+                    class="lib-modal-subtitle cal-color-bae6fd cal-font-size-1-15em cal-margin-top-8px cal-margin-bottom-0 cal-font-family-quot cal-font-weight-500">
+                </p>
             </div>
 
             <div class="alm-modal-body cal-padding-3em-3-5em">
 
-                <form
-                    id="formEnviarAlertaLiberacion"
-                    enctype="multipart/form-data"
-                    novalidate
-                >
+                <form id="formEnviarAlertaLiberacion" enctype="multipart/form-data" novalidate>
                     @csrf
                     <input type="hidden" id="al-ot" name="ot" />
                     <input type="hidden" id="al-decision" name="decision" />
-                    <input
-                        type="hidden"
-                        id="al-tipo-modelo"
-                        name="tipo_modelo"
-                    />
-                    <p
-                        class="cal-margin-bottom-28px cal-font-family-quot cal-font-weight-500 cal-line-height-1-6 cal-color-334155 cal-font-size-1-3em"
-                        id="al-prompt-text"
-                    ></p>
+                    <input type="hidden" id="al-tipo-modelo" name="tipo_modelo" />
+                    <p class="cal-margin-bottom-28px cal-font-family-quot cal-font-weight-500 cal-line-height-1-6 cal-color-334155 cal-font-size-1-3em"
+                        id="al-prompt-text"></p>
 
                     {{-- FECHA --}}
                     <div class="form-group cal-margin-bottom-28px">
-                        <label
-                            id="al-fecha-label"
-                            for="al-fecha"
-                            class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-10px cal-font-family-quot cal-font-size-1-2em"
-                        >
+                        <label id="al-fecha-label" for="al-fecha"
+                            class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-10px cal-font-family-quot cal-font-size-1-2em">
                             Fecha de Emisión / Entrega
                             <span class="cal-color-9c0300">*</span>
                         </label>
-                        <input
-                            type="date"
-                            id="al-fecha"
-                            name="fecha" class="form-control cal-font-family-quot cal-font-size-1-15em cal-padding-14px-20px cal-height-auto cal-border-radius-10px"
-                        />
+                        <input type="date" id="al-fecha" name="fecha"
+                            class="form-control cal-font-family-quot cal-font-size-1-15em cal-padding-14px-20px cal-height-auto cal-border-radius-10px" />
                     </div>
 
                     {{-- -•--•--•- LAYOUT DUAL: Aprobados (izq) + Rechazados (der) si hay ambos, o uno solo al 100%
                     -•--•--•- --}}
-                    <div
-                        id="al-dual-layout"
-                        class="cal-display-flex cal-gap-32px cal-align-items-stretch cal-margin-top-32px"
-                    >
+                    <div id="al-dual-layout"
+                        class="cal-display-flex cal-gap-32px cal-align-items-stretch cal-margin-top-32px">
 
                         {{-- ── COLUMNA APROBADOS ── --}}
-                        <div
-                            id="al-col-aprobados"
-                            class="cal-flex-1 cal-width-100pct cal-display-none"
-                        >
+                        <div id="al-col-aprobados" class="cal-flex-1 cal-width-100pct cal-display-none">
                             <div
-                                class="cal-border-2-5px-solid-059669 cal-border-radius-18px cal-overflow-hidden cal-box-shadow-0-8px-25px-rgba-5-150-105-0-12"
-                            >
+                                class="cal-border-2-5px-solid-059669 cal-border-radius-18px cal-overflow-hidden cal-box-shadow-0-8px-25px-rgba-5-150-105-0-12">
 
                                 {{-- Header Aprobados --}}
                                 <div
-                                    class="cal-background-linear-gradient-135deg-059669-047857 cal-padding-20px-24px cal-display-flex cal-align-items-center cal-gap-14px"
-                                >
-                                    <img
-                                        src="{{ asset('images/Aprobado.png') }}"
-                                        class="cal-width-36px cal-height-36px cal-object-fit-contain"
-                                        alt=""
-                                    />
+                                    class="cal-background-linear-gradient-135deg-059669-047857 cal-padding-20px-24px cal-display-flex cal-align-items-center cal-gap-14px">
+                                    <img src="{{ asset('images/Aprobado.png') }}"
+                                        class="cal-width-36px cal-height-36px cal-object-fit-contain" alt="" />
                                     <div>
                                         <div
-                                            class="cal-font-weight-800 cal-font-size-1-35em cal-color-fff cal-font-family-quot"
-                                        >
+                                            class="cal-font-weight-800 cal-font-size-1-35em cal-color-fff cal-font-family-quot">
                                             Documentos Aprobados
                                         </div>
-                                        <div
-                                            id="al-aprobados-tipos-label"
-                                            class="cal-font-size-0-95em cal-color-a7f3d0 cal-font-family-quot"
-                                        >
+                                        <div id="al-aprobados-tipos-label"
+                                            class="cal-font-size-0-95em cal-color-a7f3d0 cal-font-family-quot">
                                             —
                                         </div>
                                     </div>
@@ -3123,17 +2891,13 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
 
                                     {{-- Archivos del servidor — Aprobados --}}
                                     <label
-                                        class="cal-font-weight-700 cal-color-059669 cal-font-size-1-15em cal-margin-bottom-12px cal-display-block cal-font-family-quot"
-                                        >Archivos en servidor (selecciona los
-                                        que deseas adjuntar):</label
-                                    >
-                                    <div
-                                        id="al-server-files-aprobados"
-                                        class="cal-background-f0fdf4 cal-border-1-8px-solid-bbf7d0 cal-border-radius-14px cal-padding-20px cal-max-height-280px cal-overflow-y-auto cal-display-grid cal-grid-template-columns-repeat-auto-fill-minmax-180px-1fr cal-gap-12px cal-justify-items-center"
-                                    >
+                                        class="cal-font-weight-700 cal-color-059669 cal-font-size-1-15em cal-margin-bottom-12px cal-display-block cal-font-family-quot">Archivos
+                                        en servidor (selecciona los
+                                        que deseas adjuntar):</label>
+                                    <div id="al-server-files-aprobados"
+                                        class="cal-background-f0fdf4 cal-border-1-8px-solid-bbf7d0 cal-border-radius-14px cal-padding-20px cal-max-height-280px cal-overflow-y-auto cal-display-grid cal-grid-template-columns-repeat-auto-fill-minmax-180px-1fr cal-gap-12px cal-justify-items-center">
                                         <div
-                                            class="cal-text-align-center cal-color-64748b cal-grid-column-1-1 cal-padding-12px cal-font-style-italic cal-font-size-0-95em cal-font-family-quot"
-                                        >
+                                            class="cal-text-align-center cal-color-64748b cal-grid-column-1-1 cal-padding-12px cal-font-style-italic cal-font-size-0-95em cal-font-family-quot">
                                             Cargando archivos...
                                         </div>
                                     </div>
@@ -3141,52 +2905,39 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                                     {{-- Upload Firmados — por Modelo (Aprobados) --}}
                                     <div class="cal-margin-top-24px">
                                         <label
-                                            class="cal-font-weight-700 cal-color-059669 cal-font-size-1-15em cal-display-block cal-margin-bottom-10px cal-font-family-quot"
-                                        >
+                                            class="cal-font-weight-700 cal-color-059669 cal-font-size-1-15em cal-display-block cal-margin-bottom-10px cal-font-family-quot">
                                             Subir Formato F-CCL-LDM Firmado (por
                                             modelo):
                                         </label>
                                         <p
-                                            class="cal-font-size-0-9em cal-color-64748b cal-margin-bottom-14px cal-font-family-quot cal-line-height-1-5"
-                                        >Selecciona el tipo de modelo y luego sube el formato de liberación
-                                        <strong>aprobado y firmado</strong> correspondiente.</p>
-                                        <div
-                                            id="al-upload-aprobados-rows"
-                                            class="cal-display-flex cal-flex-direction-column cal-gap-14px"
-                                        ></div>
+                                            class="cal-font-size-0-9em cal-color-64748b cal-margin-bottom-14px cal-font-family-quot cal-line-height-1-5">
+                                            Selecciona el tipo de modelo y luego sube el formato de liberación
+                                            <strong>aprobado y firmado</strong> correspondiente.
+                                        </p>
+                                        <div id="al-upload-aprobados-rows"
+                                            class="cal-display-flex cal-flex-direction-column cal-gap-14px"></div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         {{-- ── COLUMNA RECHAZADOS ── --}}
-                        <div
-                            id="al-col-rechazados"
-                            class="cal-flex-1 cal-width-100pct cal-display-none"
-                        >
+                        <div id="al-col-rechazados" class="cal-flex-1 cal-width-100pct cal-display-none">
                             <div
-                                class="cal-border-2-5px-solid-dc2626 cal-border-radius-18px cal-overflow-hidden cal-box-shadow-0-8px-25px-rgba-220-38-38-0-12"
-                            >
+                                class="cal-border-2-5px-solid-dc2626 cal-border-radius-18px cal-overflow-hidden cal-box-shadow-0-8px-25px-rgba-220-38-38-0-12">
 
                                 {{-- Header Rechazados --}}
                                 <div
-                                    class="cal-background-linear-gradient-135deg-dc2626-b91c1c cal-padding-20px-24px cal-display-flex cal-align-items-center cal-gap-14px"
-                                >
-                                    <img
-                                        src="{{ asset('images/Rechazado.png') }}"
-                                        class="cal-width-36px cal-height-36px cal-object-fit-contain"
-                                        alt=""
-                                    />
+                                    class="cal-background-linear-gradient-135deg-dc2626-b91c1c cal-padding-20px-24px cal-display-flex cal-align-items-center cal-gap-14px">
+                                    <img src="{{ asset('images/Rechazado.png') }}"
+                                        class="cal-width-36px cal-height-36px cal-object-fit-contain" alt="" />
                                     <div>
                                         <div
-                                            class="cal-font-weight-800 cal-font-size-1-35em cal-color-fff cal-font-family-quot"
-                                        >
+                                            class="cal-font-weight-800 cal-font-size-1-35em cal-color-fff cal-font-family-quot">
                                             Documentos Rechazados
                                         </div>
-                                        <div
-                                            id="al-rechazados-tipos-label"
-                                            class="cal-font-size-0-95em cal-color-fecaca cal-font-family-quot"
-                                        >
+                                        <div id="al-rechazados-tipos-label"
+                                            class="cal-font-size-0-95em cal-color-fecaca cal-font-family-quot">
                                             —
                                         </div>
                                     </div>
@@ -3195,17 +2946,13 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
 
                                     {{-- Archivos del servidor — Rechazados --}}
                                     <label
-                                        class="cal-font-weight-700 cal-color-dc2626 cal-font-size-1-15em cal-margin-bottom-12px cal-display-block cal-font-family-quot"
-                                        >Archivos en servidor (selecciona los
-                                        que deseas adjuntar):</label
-                                    >
-                                    <div
-                                        id="al-server-files-rechazados"
-                                        class="cal-background-fef2f2 cal-border-1-8px-solid-fecaca cal-border-radius-14px cal-padding-20px cal-max-height-280px cal-overflow-y-auto cal-display-grid cal-grid-template-columns-repeat-auto-fill-minmax-180px-1fr cal-gap-12px cal-justify-items-center"
-                                    >
+                                        class="cal-font-weight-700 cal-color-dc2626 cal-font-size-1-15em cal-margin-bottom-12px cal-display-block cal-font-family-quot">Archivos
+                                        en servidor (selecciona los
+                                        que deseas adjuntar):</label>
+                                    <div id="al-server-files-rechazados"
+                                        class="cal-background-fef2f2 cal-border-1-8px-solid-fecaca cal-border-radius-14px cal-padding-20px cal-max-height-280px cal-overflow-y-auto cal-display-grid cal-grid-template-columns-repeat-auto-fill-minmax-180px-1fr cal-gap-12px cal-justify-items-center">
                                         <div
-                                            class="cal-text-align-center cal-color-64748b cal-grid-column-1-1 cal-padding-12px cal-font-style-italic cal-font-size-0-95em cal-font-family-quot"
-                                        >
+                                            class="cal-text-align-center cal-color-64748b cal-grid-column-1-1 cal-padding-12px cal-font-style-italic cal-font-size-0-95em cal-font-family-quot">
                                             Cargando archivos...
                                         </div>
                                     </div>
@@ -3213,18 +2960,16 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                                     {{-- Upload Firmados — por Modelo (Rechazados) --}}
                                     <div class="cal-margin-top-24px">
                                         <label
-                                            class="cal-font-weight-700 cal-color-dc2626 cal-font-size-1-15em cal-display-block cal-margin-bottom-10px cal-font-family-quot"
-                                        >
+                                            class="cal-font-weight-700 cal-color-dc2626 cal-font-size-1-15em cal-display-block cal-margin-bottom-10px cal-font-family-quot">
                                             Subir Formato F-CCL-LDM de Rechazo +
                                             SCAR Firmado (por modelo):
                                         </label>
                                         <p
-                                            class="cal-font-size-0-9em cal-color-64748b cal-margin-bottom-14px cal-font-family-quot cal-line-height-1-5"
-                                        >Selecciona el tipo de modelo y luego sube el <strong>formato de liberación rechazado</strong> y el <strong>SCAR firmado</strong> correspondiente.</p>
-                                        <div
-                                            id="al-upload-rechazados-rows"
-                                            class="cal-display-flex cal-flex-direction-column cal-gap-14px"
-                                        ></div>
+                                            class="cal-font-size-0-9em cal-color-64748b cal-margin-bottom-14px cal-font-family-quot cal-line-height-1-5">
+                                            Selecciona el tipo de modelo y luego sube el <strong>formato de liberación
+                                                rechazado</strong> y el <strong>SCAR firmado</strong> correspondiente.</p>
+                                        <div id="al-upload-rechazados-rows"
+                                            class="cal-display-flex cal-flex-direction-column cal-gap-14px"></div>
                                     </div>
                                 </div>
                             </div>
@@ -3232,11 +2977,9 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
                     </div>
 
                     {{-- fin dual-layout --}}
-                    <div class="form-actions cal-text-align-center cal-margin-top-40px cal-margin-bottom-12px"
-                    >
-                        <button
-                            type="submit" id="btn-submit-alerta-liberacion" class="btn-save-preorden cal-font-size-1-2em cal-padding-15px-32px cal-border-radius-10px cal-font-family-quot cal-font-weight-700 cal-height-auto"
-                        >
+                    <div class="form-actions cal-text-align-center cal-margin-top-40px cal-margin-bottom-12px">
+                        <button type="submit" id="btn-submit-alerta-liberacion"
+                            class="btn-save-preorden cal-font-size-1-2em cal-padding-15px-32px cal-border-radius-10px cal-font-family-quot cal-font-weight-700 cal-height-auto">
                             Enviar Alerta de Liberación
                         </button>
                     </div>
@@ -3250,147 +2993,94 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
     {{-- ── MODAL: PRE-ORDEN PARA FABRICAR CASTING (DOUBLE MODAL TABS) ── --}}
 
     {{-- ── MODAL: FINALIZAR PROCESO DE CALIDAD (CORREO Y FECHA) ── --}}
-    <div
-        id="modalFinalizarCalidad"
-        class="alm-modal"
-        role="dialog"
-        aria-modal="true"
-    >
+    <div id="modalFinalizarCalidad" class="alm-modal" role="dialog" aria-modal="true">
 
-        <div class="alm-modal-content cal-max-width-1500px cal-width-95vw cal-border-radius-20px cal-overflow-hidden"
-        >
+        <div id="finalizar-calidad-modal-content"
+            class="alm-modal-content cal-max-width-1500px cal-width-95vw cal-border-radius-20px cal-overflow-hidden">
 
-            <div class="alm-modal-header cal-padding-1-5em-5-5em-1-2em-2-2em cal-border-top-left-radius-18px cal-border-top-right-radius-18px cal-position-relative"
-            >
+            <div id="finalizar-calidad-header"
+                class="alm-modal-header cal-padding-1-5em-5-5em-1-2em-2-2em cal-border-top-left-radius-18px cal-border-top-right-radius-18px cal-position-relative">
                 <div class="div-cerrar">
-                    <button
-                        type="button" class="btn-cerrar cal-position-absolute cal-top-18px cal-right-22px cal-background-rgba-255-255-255-0-18 cal-border-1-5px-solid-rgba-255-255-255-0-45 cal-border-radius-50pct cal-width-36px cal-height-36px cal-display-inline-flex cal-align-items-center cal-justify-content-center cal-cursor-pointer cal-transition-all-0-2s-ease"
-                    >
-                        <img class="img-cerrar cal-width-12px cal-height-12px cal-filter-brightness-0-invert-1"
-                        />
+                    <button type="button" class="btn-cerrar" onclick="cerrarModalFinalizarCalidad()">
+                        <img src="{{ asset('images/cerrar.png') }}" alt="Cerrar" class="img-cerrar" />
                     </button>
                 </div>
-                <h3
-                    id="finalizar-calidad-title"
-                    class="cal-font-size-1-5em cal-margin-0 cal-font-family-quot cal-font-weight-700 cal-color-fff cal-line-height-1-3"
-                >
+                <h3 id="finalizar-calidad-title"
+                    class="cal-font-size-1-5em cal-margin-0 cal-font-family-quot cal-font-weight-700 cal-color-fff cal-line-height-1-3">
                     Finalizar Proceso de Calidad
                 </h3>
-                <p
-                    id="finalizar-calidad-subtitle" class="lib-modal-subtitle cal-color-ffffff cal-font-size-0-95em cal-margin-top-5px cal-margin-bottom-0 cal-font-family-quot cal-font-weight-500 cal-opacity-0-9"
-                ></p>
+                <p id="finalizar-calidad-subtitle"
+                    class="lib-modal-subtitle cal-color-ffffff cal-font-size-0-95em cal-margin-top-5px cal-margin-bottom-0 cal-font-family-quot cal-font-weight-500 cal-opacity-0-9">
+                </p>
             </div>
 
-            <div class="alm-modal-body cal-padding-2-2em-2-5em cal-background-fafafa cal-font-family-quot"
-            >
+            <div class="alm-modal-body cal-padding-2-2em-2-5em cal-background-fafafa cal-font-family-quot">
 
-                <form
-                    id="formFinalizarCalidad"
-                    enctype="multipart/form-data"
-                    novalidate
+                <form id="formFinalizarCalidad" enctype="multipart/form-data" novalidate
                     data-email-almacen="{{ env('EMAIL_ALMACEN', 'almacentec@grupoindsaavedra.com') }}"
-                    data-email-calidad="{{ env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com') }}"
-                >
+                    data-email-calidad="{{ env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com') }}">
                     @csrf
                     <input type="hidden" id="fc-ot" name="ot" />
                     <input type="hidden" id="fc-decision" name="decision" />
-                    <input
-                        type="hidden"
-                        id="fc-tipo-modelo"
-                        name="tipo_modelo"
-                    />
-                    <input
-                        type="hidden"
-                        id="fc-tipos-aprobados"
-                        name="tipos_aprobados"
-                    />
-                    <input
-                        type="hidden"
-                        id="fc-tipos-rechazados"
-                        name="tipos_rechazados"
-                    />
+                    <input type="hidden" id="fc-tipo-modelo" name="tipo_modelo" />
+                    <input type="hidden" id="fc-tipos-aprobados" name="tipos_aprobados" />
+                    <input type="hidden" id="fc-tipos-rechazados" name="tipos_rechazados" />
                     <div id="fc-prompt-text" class="cal-margin-bottom-24px"></div>
 
                     {{-- DESTINATARIO ALMACEN --}}
                     <div class="form-group cal-margin-bottom-24px">
-                        <label
-                            for="fc-destinatario"
-                            class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-8px cal-font-family-quot cal-font-size-1-1em"
-                        >
+                        <label for="fc-destinatario"
+                            class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-8px cal-font-family-quot cal-font-size-1-1em">
                             Notificar a Almacén (correo electrónico):
                         </label>
-                        <input
-                            type="text"
-                            id="fc-destinatario"
-                            name="destinatario" class="form-control cal-font-family-quot cal-font-size-1-1em cal-padding-12px-18px cal-height-auto cal-border-radius-10px"
-                        />
-                        <span
-                            class="cal-font-size-0-85em cal-color-64748b cal-margin-top-4px cal-display-block"
-                            >Separa múltiples correos con comas.</span
-                        >
+                        <input type="text" id="fc-destinatario" name="destinatario"
+                            class="form-control cal-font-family-quot cal-font-size-1-1em cal-padding-12px-18px cal-height-auto cal-border-radius-10px" />
+                        <span class="cal-font-size-0-85em cal-color-64748b cal-margin-top-4px cal-display-block">Separa
+                            múltiples correos con comas.</span>
                     </div>
 
                     {{-- DESTINATARIO CALIDAD --}}
                     <div class="form-group cal-margin-bottom-24px">
-                        <label
-                            for="fc-destinatario-calidad"
-                            class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-8px cal-font-family-quot cal-font-size-1-1em"
-                        >
+                        <label for="fc-destinatario-calidad"
+                            class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-8px cal-font-family-quot cal-font-size-1-1em">
                             Notificar a Calidad (correo electrónico):
                         </label>
-                        <input
-                            type="text"
-                            id="fc-destinatario-calidad"
-                            name="destinatario_calidad" class="form-control cal-font-family-quot cal-font-size-1-1em cal-padding-12px-18px cal-height-auto cal-border-radius-10px"
-                        />
-                        <span
-                            class="cal-font-size-0-85em cal-color-64748b cal-margin-top-4px cal-display-block"
-                            >Copia para Calidad (Modelos).</span
-                        >
+                        <input type="text" id="fc-destinatario-calidad" name="destinatario_calidad"
+                            class="form-control cal-font-family-quot cal-font-size-1-1em cal-padding-12px-18px cal-height-auto cal-border-radius-10px" />
+                        <span class="cal-font-size-0-85em cal-color-64748b cal-margin-top-4px cal-display-block">Copia para
+                            Calidad (Modelos).</span>
                     </div>
 
                     {{-- FECHA (OBLIGATORIA) --}}
                     <div class="form-group cal-margin-bottom-24px">
-                        <label
-                            id="fc-fecha-label"
-                            for="fc-fecha"
-                            class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-8px cal-font-family-quot cal-font-size-1-1em"
-                        >
+                        <label id="fc-fecha-label" for="fc-fecha"
+                            class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-8px cal-font-family-quot cal-font-size-1-1em">
                             Fecha de Finalización
                             <span class="cal-color-dc2626">*</span>
                         </label>
-                        <input
-                            type="date"
-                            id="fc-fecha"
-                            name="fecha" class="form-control cal-font-family-quot cal-font-size-1-1em cal-padding-12px-18px cal-height-auto cal-border-radius-10px"
-                        />
+                        <input type="date" id="fc-fecha" name="fecha"
+                            class="form-control cal-font-family-quot cal-font-size-1-1em cal-padding-12px-18px cal-height-auto cal-border-radius-10px" />
                     </div>
 
                     {{-- Listado de Documentos del Servidor --}}
                     <div class="form-group cal-margin-bottom-24px">
                         <label
-                            class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-8px cal-font-family-quot"
-                            >Archivos de liberación en servidor a
-                            adjuntar:</label
-                        >
-                        <div
-                            id="fc-server-files-container"
-                            class="cal-background-f8fafc cal-border-1px-solid-e2e8f0 cal-border-radius-12px cal-padding-15px cal-max-height-420px cal-overflow-y-auto cal-display-flex cal-flex-direction-column cal-gap-15px"
-                        >
+                            class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-8px cal-font-family-quot">Archivos
+                            de liberación en servidor a
+                            adjuntar:</label>
+                        <div id="fc-server-files-container"
+                            class="cal-background-f8fafc cal-border-1px-solid-e2e8f0 cal-border-radius-12px cal-padding-15px cal-max-height-420px cal-overflow-y-auto cal-display-flex cal-flex-direction-column cal-gap-15px">
 
-                            <div class="alm-spinner cal-border-top-color-0284c7 cal-display-block cal-margin-10px-auto cal-grid-column-1-1"
-                            ></div>
-                            <span
-                                class="cal-text-align-center cal-color-64748b cal-grid-column-1-1"
-                                >Cargando archivos de la OT...</span
-                            >
+                            <div
+                                class="alm-spinner cal-border-top-color-0284c7 cal-display-block cal-margin-10px-auto cal-grid-column-1-1">
+                            </div>
+                            <span class="cal-text-align-center cal-color-64748b cal-grid-column-1-1">Cargando archivos de la
+                                OT...</span>
                         </div>
                     </div>
-                    <div class="form-actions cal-text-align-center cal-margin-top-30px cal-margin-bottom-10px"
-                    >
-                        <button
-                            type="submit" id="btn-submit-finalizar-calidad" class="btn-save-preorden cal-font-size-1-15em cal-padding-14px-30px cal-border-radius-10px cal-font-family-quot cal-font-weight-700 cal-height-auto"
-                        >
+                    <div class="form-actions cal-text-align-center cal-margin-top-30px cal-margin-bottom-10px">
+                        <button type="submit" id="btn-submit-finalizar-calidad"
+                            class="btn-save-preorden cal-font-size-1-15em cal-padding-14px-30px cal-border-radius-10px cal-font-family-quot cal-font-weight-700 cal-height-auto">
                             Finalizar y Enviar Correo
                         </button>
                     </div>
@@ -3404,158 +3094,111 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
     {{-- ── MODAL: ENVIAR ALERTA SCAR (Paso 2) ── --}}
     <div id="modalEnviarScar" class="alm-modal" role="dialog" aria-modal="true">
 
-        <div class="alm-modal-content lib-modal-content cal-max-width-1100px"
-        >
-            <div
-                class="alm-modal-header lib-modal-header lib-modal-header-rechazo"
-                id="env-scar-header"
-            >
+        <div class="alm-modal-content lib-modal-content cal-max-width-1100px">
+            <div class="alm-modal-header lib-modal-header lib-modal-header-rechazo" id="env-scar-header">
                 <div class="div-cerrar">
-                    <button
-                        type="button"
-                        class="btn-cerrar"
-                        onclick="cerrarModalEnviarScar()"
-                    >
-                        <img
-                            class="img-cerrar"
-                            src="{{ asset('images/cerrar.png') }}"
-                            alt="Cerrar"
-                        />
+                    <button type="button" class="btn-cerrar" onclick="cerrarModalEnviarScar()">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar" />
                     </button>
                 </div>
                 <h3 class="cal-color-ffffff">Enviar Alerta SCAR al Proveedor</h3>
-                <p
-                    id="env-scar-modal-subtitle" class="lib-modal-subtitle cal-color-ffd1d1 cal-font-size-0-9em cal-margin-top-4px cal-margin-bottom-0"
-                ></p>
+                <p id="env-scar-modal-subtitle"
+                    class="lib-modal-subtitle cal-color-ffd1d1 cal-font-size-0-9em cal-margin-top-4px cal-margin-bottom-0">
+                </p>
             </div>
 
             <div class="alm-modal-body lib-modal-body">
 
-                <form
-                    id="formEnviarScar"
-                    enctype="multipart/form-data"
-                    autocomplete="off"
-                >
+                <form id="formEnviarScar" enctype="multipart/form-data" autocomplete="off">
                     <input type="hidden" id="env-scar-ot" name="ot" />
 
                     {{-- Destinatario Removido para uso de .env --}}
 
                     {{-- Fecha Compromiso --}}
                     <div class="form-group cal-margin-bottom-16px">
-                        <label
-                            for="env-scar-fecha-compromiso"
-                            class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-4px"
-                        >
+                        <label for="env-scar-fecha-compromiso"
+                            class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-4px">
                             Fecha Compromiso de Devolución (Obligatoria):
                         </label>
-                        <input
-                            type="date"
-                            id="env-scar-fecha-compromiso"
-                            name="fecha_compromiso"
-                            class="form-control"
-                            required
-                        />
+                        <input type="date" id="env-scar-fecha-compromiso" name="fecha_compromiso" class="form-control"
+                            required />
                     </div>
 
                     {{-- SCAR Firmado --}}
                     <div class="form-group cal-margin-bottom-20px">
-                        <label
-                            for="env-scar-pdf-firmado"
-                            class="cal-font-weight-700 cal-color-9c0300 cal-display-block cal-margin-bottom-8px"
-                            >Subir SCAR Firmado Físicamente (PDF Obligatorio):
-                            <span class="cal-color-9c0300">*</span></label
-                        >
-                        <div class="custom-file-dropzone cal-border-2px-dashed-dc2626 cal-background-fef2f2 cal-min-height-80px cal-position-relative cal-border-radius-12px cal-display-flex cal-flex-direction-column cal-align-items-center cal-justify-content-center cal-padding-12px cal-cursor-pointer"
-                        >
-                            <input
-                                type="file"
-                                id="env-scar-pdf-firmado"
-                                name="pdf_firmado" class="custom-file-input cal-position-absolute cal-width-100pct cal-height-100pct cal-opacity-0 cal-cursor-pointer"
+                        <label for="env-scar-pdf-firmado"
+                            class="cal-font-weight-700 cal-color-9c0300 cal-display-block cal-margin-bottom-8px">Subir SCAR
+                            Firmado Físicamente (PDF Obligatorio):
+                            <span class="cal-color-9c0300">*</span></label>
+                        <div
+                            class="custom-file-dropzone cal-border-2px-dashed-dc2626 cal-background-fef2f2 cal-min-height-80px cal-position-relative cal-border-radius-12px cal-display-flex cal-flex-direction-column cal-align-items-center cal-justify-content-center cal-padding-12px cal-cursor-pointer">
+                            <input type="file" id="env-scar-pdf-firmado" name="pdf_firmado"
+                                class="custom-file-input cal-position-absolute cal-width-100pct cal-height-100pct cal-opacity-0 cal-cursor-pointer"
                                 onchange="
-                                    handleAlertaFileChange(
-                                        this,
-                                        'env-scar-pdf-text',
-                                        'pdf',
-                                    )
-                                "
-                            />
-                            <div class="dropzone-content cal-display-flex cal-flex-direction-column cal-align-items-center cal-pointer-events-none"
-                            >
-                                <img
-                                    src="{{ asset('images/pdf.png') }}"
-                                    class="cal-width-24px cal-height-24px cal-margin-bottom-4px"
-                                    alt="PDF"
-                                />
+                                        handleAlertaFileChange(
+                                            this,
+                                            'env-scar-pdf-text',
+                                            'pdf',
+                                        )
+                                    " />
+                            <div
+                                class="dropzone-content cal-display-flex cal-flex-direction-column cal-align-items-center cal-pointer-events-none">
+                                <img src="{{ asset('images/pdf.png') }}"
+                                    class="cal-width-24px cal-height-24px cal-margin-bottom-4px" alt="PDF" />
+                                <span id="env-scar-pdf-text"
+                                    class="cal-font-weight-700 cal-color-dc2626 cal-font-size-0-85em cal-text-align-center cal-font-family-quot">Seleccionar
+                                    o arrastrar PDF *</span>
                                 <span
-                                    id="env-scar-pdf-text"
-                                    class="cal-font-weight-700 cal-color-dc2626 cal-font-size-0-85em cal-text-align-center cal-font-family-quot"
-                                    >Seleccionar o arrastrar PDF *</span
-                                >
-                                <span
-                                    class="cal-font-size-0-7em cal-color-64748b cal-margin-top-2px cal-font-family-quot"
-                                    >Solo archivos PDF</span
-                                >
+                                    class="cal-font-size-0-7em cal-color-64748b cal-margin-top-2px cal-font-family-quot">Solo
+                                    archivos PDF</span>
                             </div>
                         </div>
                     </div>
 
                     {{-- Archivos de la OT disponibles --}}
                     <div class="form-group cal-margin-bottom-20px">
-                        <label
-                            >Archivos de la OT disponibles para adjuntar:</label
-                        >
-                        <div
-                            id="env-scar-server-files-container"
-                            class="cal-background-f8fafc cal-border-1px-solid-e2e8f0 cal-border-radius-12px cal-padding-15px cal-max-height-420px cal-overflow-y-auto cal-display-flex cal-flex-direction-column cal-gap-15px"
-                        >
+                        <label>Archivos de la OT disponibles para adjuntar:</label>
+                        <div id="env-scar-server-files-container"
+                            class="cal-background-f8fafc cal-border-1px-solid-e2e8f0 cal-border-radius-12px cal-padding-15px cal-max-height-420px cal-overflow-y-auto cal-display-flex cal-flex-direction-column cal-gap-15px">
 
-                            <div class="alm-spinner cal-border-top-color-9c0300 cal-display-block cal-margin-10px-auto cal-grid-column-1-1"
-                            ></div>
-                            <span
-                                class="cal-text-align-center cal-color-64748b cal-grid-column-1-1"
-                                >Cargando archivos de la OT...</span
-                            >
+                            <div
+                                class="alm-spinner cal-border-top-color-9c0300 cal-display-block cal-margin-10px-auto cal-grid-column-1-1">
+                            </div>
+                            <span class="cal-text-align-center cal-color-64748b cal-grid-column-1-1">Cargando archivos de la
+                                OT...</span>
                         </div>
                     </div>
 
                     {{-- Evidencia adicional --}}
                     <div class="form-group cal-margin-bottom-30px">
-                        <label class="custom-file-upload-label cal-font-weight-700 cal-color-9c0300 cal-display-block cal-margin-bottom-8px"
-                            >Subir Evidencia Adicional al Envío (Imágenes o PDFs
-                            adicionales):</label
-                        >
-                        <div class="custom-file-dropzone cal-border-2px-dashed-9c0300 cal-background-fff8f8 cal-min-height-80px cal-position-relative cal-border-radius-12px cal-display-flex cal-flex-direction-column cal-align-items-center cal-justify-content-center cal-padding-12px cal-cursor-pointer"
-                        >
-                            <input
-                                type="file"
-                                id="env-scar-archivos-adicionales"
-                                name="archivos_adicionales[]" class="custom-file-input cal-position-absolute cal-width-100pct cal-height-100pct cal-opacity-0 cal-cursor-pointer"
-                            />
+                        <label
+                            class="custom-file-upload-label cal-font-weight-700 cal-color-9c0300 cal-display-block cal-margin-bottom-8px">Subir
+                            Evidencia Adicional al Envío (Imágenes o PDFs
+                            adicionales):</label>
+                        <div
+                            class="custom-file-dropzone cal-border-2px-dashed-9c0300 cal-background-fff8f8 cal-min-height-80px cal-position-relative cal-border-radius-12px cal-display-flex cal-flex-direction-column cal-align-items-center cal-justify-content-center cal-padding-12px cal-cursor-pointer">
+                            <input type="file" id="env-scar-archivos-adicionales" name="archivos_adicionales[]"
+                                class="custom-file-input cal-position-absolute cal-width-100pct cal-height-100pct cal-opacity-0 cal-cursor-pointer" />
                             <div class="dropzone-content">
-                                <img
-                                    src="{{ asset('images/anadir.png') }}" class="dropzone-icon cal-width-24px cal-height-24px cal-margin-bottom-4px cal-object-fit-contain"
-                                />
-                                <span class="dropzone-text cal-font-weight-700 cal-color-9c0300 cal-font-size-0-85em cal-text-align-center cal-font-family-quot"
-                                    >Arrastra archivos aquí o haz clic para
-                                    buscar</span
-                                >
-                                <span class="dropzone-subtext cal-font-size-0-7em cal-color-64748b cal-margin-top-2px cal-font-family-quot"
-                                    >Imágenes, PDF, ZIP</span
-                                >
+                                <img src="{{ asset('images/anadir.png') }}"
+                                    class="dropzone-icon cal-width-24px cal-height-24px cal-margin-bottom-4px cal-object-fit-contain" />
+                                <span
+                                    class="dropzone-text cal-font-weight-700 cal-color-9c0300 cal-font-size-0-85em cal-text-align-center cal-font-family-quot">Arrastra
+                                    archivos aquí o haz clic para
+                                    buscar</span>
+                                <span
+                                    class="dropzone-subtext cal-font-size-0-7em cal-color-64748b cal-margin-top-2px cal-font-family-quot">Imágenes,
+                                    PDF, ZIP</span>
                             </div>
                         </div>
-                        <div
-                            id="env-scar-archivos-adicionales-list"
-                            class="cal-margin-top-10px cal-display-flex cal-flex-wrap-wrap cal-gap-8px"
-                        ></div>
+                        <div id="env-scar-archivos-adicionales-list"
+                            class="cal-margin-top-10px cal-display-flex cal-flex-wrap-wrap cal-gap-8px"></div>
                     </div>
 
                     {{-- Boton de Envio --}}
-                    <div class="form-actions cal-text-align-center cal-margin-top-20px"
-                    >
-                        <button
-                            type="submit" class="btn-lib-send cal-background-linear-gradient-135deg-9c0300-7a0200 cal-box-shadow-0-4px-15px-rgba-156-3-0-0-3"
-                        >
+                    <div class="form-actions cal-text-align-center cal-margin-top-20px">
+                        <button type="submit"
+                            class="btn-lib-send cal-background-linear-gradient-135deg-9c0300-7a0200 cal-box-shadow-0-4px-15px-rgba-156-3-0-0-3">
                             Enviar Alerta SCAR al Proveedor
                         </button>
                     </div>
@@ -3571,130 +3214,38 @@ elseif (strpos($clLow, "bombillo") !== false) { $tipo = "Bombillo"; }
     @include ("almacen.partials._modal_scar")
 
     {{-- ── MODAL: INICIAR CASTING / GESTION VEREDICTO (Almacén) ────── --}}
+    @include ("almacen.partials._modal_iniciar_casting")
+
+    {{-- ── MODAL: PRE-ORDEN DE CASTING (Almacén) ────────────────────── --}}
+    @include ("almacen.partials._modal_preorden_casting")
     <script>
         window.almacenRoutes = {
-            archivos: "{{
-            route(
-                "calidad.fundicion.archivos",
-            )
-        }}",
-            serve: "{{
-            route(
-                "calidad.fundicion.serve",
-            )
-        }}",
-            confirmarModelo: "{{
-            route(
-                "almacen.fundicion.confirmarModelo",
-            )
-        }}",
-            getOtData: "{{
-            route(
-                "almacen.fundicion.getOtData",
-            )
-        }}",
-            storePreOrden: "{{
-            route(
-                "almacen.fundicion.storePreOrden",
-            )
-        }}",
-            sendEmailPreOrden: "{{
-            route(
-                "almacen.fundicion.sendEmailPreOrden",
-            )
-        }}",
-            getLiberacion: "{{
-            route(
-                "calidad.fundicion.getLiberacion",
-            )
-        }}",
-            submitLiberacion: "{{
-            route(
-                "calidad.fundicion.submitLiberacion",
-            )
-        }}",
-            generateScar: "{{
-            route(
-                "calidad.fundicion.generateScar",
-            )
-        }}",
-            getScar: "{{
-            route(
-                "calidad.fundicion.getScar",
-            )
-        }}",
-            sendScarAlert: "{{
-            route(
-                "calidad.fundicion.sendScarAlert",
-            )
-        }}",
-            enviarAlertaLiberacion: "{{
-            route(
-                "calidad.fundicion.enviarAlertaLiberacion",
-            )
-        }}",
-            deleteFile: "{{
-            route(
-                "calidad.fundicion.deleteFile",
-            )
-        }}",
-            iniciarCasting: "{{
-            route(
-                "almacen.fundicion.iniciarCasting",
-            )
-        }}",
-            procesarRechazos: "{{
-            route(
-                "almacen.fundicion.procesarRechazos",
-            )
-        }}",
-            confirmarRecepcionRechazo: "{{
-            route(
-                "almacen.fundicion.confirmarRecepcionRechazo",
-            )
-        }}",
+            archivos: "{{ route('calidad.fundicion.archivos') }}",
+            serve: "{{ route('calidad.fundicion.serve') }}",
+            confirmarModelo: "{{ route('almacen.fundicion.confirmarModelo') }}",
+            getOtData: "{{ route('almacen.fundicion.getOtData') }}",
+            storePreOrden: "{{ route('almacen.fundicion.storePreOrden') }}",
+            sendEmailPreOrden: "{{ route('almacen.fundicion.sendEmailPreOrden') }}",
+            getLiberacion: "{{ route('calidad.fundicion.getLiberacion') }}",
+            submitLiberacion: "{{ route('calidad.fundicion.submitLiberacion') }}",
+            generateScar: "{{ route('calidad.fundicion.generateScar') }}",
+            getScar: "{{ route('calidad.fundicion.getScar') }}",
+            sendScarAlert: "{{ route('calidad.fundicion.sendScarAlert') }}",
+            enviarAlertaLiberacion: "{{ route('calidad.fundicion.enviarAlertaLiberacion') }}",
+            deleteFile: "{{ route('calidad.fundicion.deleteFile') }}",
+            iniciarCasting: "{{ route('almacen.fundicion.iniciarCasting') }}",
+            procesarRechazos: "{{ route('almacen.fundicion.procesarRechazos') }}",
+            confirmarRecepcionRechazo: "{{ route('almacen.fundicion.confirmarRecepcionRechazo') }}",
         };
         window.almacenAppAssets = {
-            liberar: "{{
-            asset(
-                "images/Liberar.png",
-            )
-        }}",
-            descarga: "{{
-            asset(
-                "images/Descarga.png",
-            )
-        }}",
-            recibido: "{{
-            asset(
-                "images/Recibido.png",
-            )
-        }}",
-            aprobado: "{{
-            asset(
-                "images/Aprobado.png",
-            )
-        }}",
-            rechazado: "{{
-            asset(
-                "images/Rechazado.png",
-            )
-        }}",
-            guardado: "{{
-            asset(
-                "images/Guardado.png",
-            )
-        }}",
-            revisando: "{{
-            asset(
-                "images/Revisando.png",
-            )
-        }}",
-            espera: "{{
-            asset(
-                "images/Espera.png",
-            )
-        }}",
+            liberar: "{{ asset('images/Liberar.png') }}",
+            descarga: "{{ asset('images/Descarga.png') }}",
+            aprobado: "{{ asset('images/aprobado.png') }}",
+            rechazado: "{{ asset('images/Rechazado.png') }}",
+            recibido: "{{ asset('images/Recibido.png') }}",
+            guardado: "{{ asset('images/Guardado.png') }}",
+            revisando: "{{ asset('images/Revisando.png') }}",
+            espera: "{{ asset('images/Espera.png') }}"
         };
     </script>
 @endsection

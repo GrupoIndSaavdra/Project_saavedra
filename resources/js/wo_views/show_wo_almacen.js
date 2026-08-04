@@ -49,8 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const btnHabilitar = document.getElementById('btn-habilitar-edicion');
             const btnGuardar = document.getElementById('btn-guardar-clase');
-            if (btnHabilitar) btnHabilitar.hidden = false;
-            if (btnGuardar) btnGuardar.hidden = true;
+            if (btnHabilitar) {
+                btnHabilitar.hidden = false;
+                btnHabilitar.classList.remove('hidden');
+            }
+            if (btnGuardar) {
+                btnGuardar.hidden = true;
+                btnGuardar.classList.add('hidden');
+            }
 
             document.getElementById('hidden-idClase').value        = idClase;
             document.getElementById('hidden-clase-nombre').value   = nombre;
@@ -60,17 +66,30 @@ document.addEventListener('DOMContentLoaded', () => {
             // ── Formulario parcialidad y tratamiento: mostrar directamente ──
             document.getElementById('hidden-idOtParcialidad').value    = idOt;
             document.getElementById('hidden-idClaseParcialidad').value = idClase;
-            placeholderParcialidad.hidden = true;
-            formParcialidad.hidden = false;
-            if (avisoSinRemision) avisoSinRemision.hidden = true;
+            if (placeholderParcialidad) {
+                placeholderParcialidad.hidden = true;
+                placeholderParcialidad.classList.add('hidden');
+            }
+            if (formParcialidad) {
+                formParcialidad.hidden = false;
+                formParcialidad.classList.remove('hidden');
+            }
+            if (avisoSinRemision) {
+                avisoSinRemision.hidden = true;
+                avisoSinRemision.classList.add('hidden');
+            }
 
             const placeholderTratamiento = document.getElementById('placeholder-tratamiento');
             const formTratamiento        = document.getElementById('form-tratamiento');
-            if (placeholderTratamiento) placeholderTratamiento.hidden = true;
+            if (placeholderTratamiento) {
+                placeholderTratamiento.hidden = true;
+                placeholderTratamiento.classList.add('hidden');
+            }
             if (formTratamiento) {
                 document.getElementById('hidden-idOtTratamiento').value    = idOt;
                 document.getElementById('hidden-idClaseTratamiento').value = idClase;
                 formTratamiento.hidden = false;
+                formTratamiento.classList.remove('hidden');
             }
 
             // ── Filtrar listas de remisiones, parcialidades y tratamientos por clase ──
@@ -418,8 +437,12 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('input-pedido').disabled = false;
             document.getElementById('input-piezas').disabled = false;
             btnHabilitar.hidden = true;
+            btnHabilitar.classList.add('hidden');
             const btnGuardar = document.getElementById('btn-guardar-clase');
-            if (btnGuardar) btnGuardar.hidden = false;
+            if (btnGuardar) {
+                btnGuardar.hidden = false;
+                btnGuardar.classList.remove('hidden');
+            }
         });
     }
 

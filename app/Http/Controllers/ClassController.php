@@ -295,9 +295,9 @@ class ClassController extends Controller
                 break;
         }
 
+        $process->id_clase = $class->id;
         if (!in_array(auth()->user()->perfil, [1, 3, 5])) {
             //Inicializar los campos de los procesos en 0
-            $process->id_clase = $class->id;
             $fields = [
                 'cepillado',
                 'desbaste_exterior',

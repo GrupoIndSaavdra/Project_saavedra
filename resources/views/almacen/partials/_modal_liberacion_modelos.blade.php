@@ -379,7 +379,7 @@
         </div>
 
         {{-- BLOQUE 5b: SELECTOR VISUAL APROBAR / RECHAZAR --}}
-        <div class="lib-decision-selector" id="lib-decision-selector" style="display:none; gap:14px; margin-bottom:22px; padding:16px; background:linear-gradient(135deg,rgba(3,0,65,0.04),rgba(10,133,4,0.04)); border-radius:12px; border:1.5px solid #e2e8f0;">
+        <div class="lib-decision-selector alm-display-none cal-display-none" id="lib-decision-selector" style="gap:14px; margin-bottom:22px; padding:16px; background:linear-gradient(135deg,rgba(3,0,65,0.04),rgba(10,133,4,0.04)); border-radius:12px; border:1.5px solid #e2e8f0;">
           <div class="lib-decision-card lib-decision-aprobar active" id="lib-dec-aprobar"
                onclick="libSeleccionarDecision('aprobar')"
                style="flex:1; padding:14px 10px; border-radius:10px; cursor:pointer; text-align:center; border:2px solid #0a8504; background:rgba(10,133,4,0.08); transition:all 0.25s;">

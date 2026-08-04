@@ -513,30 +513,44 @@ function setOrDelete_ClassButtons(idClass, action) {
     if (!action) {
         if (containerCheckbox) {
             containerCheckbox.hidden = false;
+            containerCheckbox.classList.remove("hidden");
         }
         if (idClass !== null) {
             let div_btns = document.querySelector(".div-btns"); //Obtener el div en donde se insertaran los botones de accion de la clase
             //Ocultar el boton de agregar clase
             let btn_addClass = document.querySelector(".btn-addClass");
-            btn_addClass.hidden = true;
+            if (btn_addClass) {
+                btn_addClass.hidden = true;
+                btn_addClass.classList.add("hidden");
+            }
 
             //Creacion del boton de eliminar clase
             createButtons(idClass).forEach((button) => {
                 if (window.profile == 5 && button.innerHTML == "Eliminar Clase") {
                     button.hidden = true;
+                    button.classList.add("hidden");
                 }
                 div_btns.appendChild(button);
             });
         } else {
             //Ocultar el boton de agregar clase
-            btn_addClass.hidden = true;
+            let btn_addClass = document.querySelector(".btn-addClass");
+            if (btn_addClass) {
+                btn_addClass.hidden = true;
+                btn_addClass.classList.add("hidden");
+            }
         }
     } else if (action == "edit") {
         if (containerCheckbox) {
             containerCheckbox.hidden = true;
+            containerCheckbox.classList.add("hidden");
         }
         //Ocultar el boton de agregar clase
-        btn_addClass.hidden = true;
+        let btn_addClass = document.querySelector(".btn-addClass");
+        if (btn_addClass) {
+            btn_addClass.hidden = true;
+            btn_addClass.classList.add("hidden");
+        }
 
         //Creacion del boton de editar clase
         let btn_saveClassEdition = document.createElement("button");
@@ -549,9 +563,14 @@ function setOrDelete_ClassButtons(idClass, action) {
     } else {
         if (containerCheckbox) {
             containerCheckbox.hidden = false;
+            containerCheckbox.classList.remove("hidden");
         }
         //Mostrar el boton de agregar clase
-        btn_addClass.hidden = false;
+        let btn_addClass = document.querySelector(".btn-addClass");
+        if (btn_addClass) {
+            btn_addClass.hidden = false;
+            btn_addClass.classList.remove("hidden");
+        }
     }
 }
 
@@ -766,12 +785,13 @@ function createCheckboxAddClass() {
 function showformHidden(value) {
     let div_rowsHidden = document.querySelector(".div-rows-hidden");
     let div_boxes = document.querySelector(".div-boxes");
-    if (value) {
-        div_boxes.hidden = false;
-        div_rowsHidden.hidden = false;
-    } else {
-        div_boxes.hidden = true;
-        div_rowsHidden.hidden = true;
+    if (div_boxes) {
+        div_boxes.hidden = !value;
+        div_boxes.classList.toggle("hidden", !value);
+    }
+    if (div_rowsHidden) {
+        div_rowsHidden.hidden = !value;
+        div_rowsHidden.classList.toggle("hidden", !value);
     }
 }
 

@@ -1,4 +1,4 @@
-﻿<div id="modalGestionVeredicto" class="alm-modal" role="dialog" aria-modal="true">
+<div id="modalGestionVeredicto" class="alm-modal" role="dialog" aria-modal="true">
     <div class="alm-modal-content lib-modal-content"
         style="max-width: 1100px; width: 85vw; border-radius: 20px; overflow: hidden;">
         <div id="mgv-header" class="alm-modal-header lib-modal-header"
@@ -82,7 +82,8 @@
                         <button type="button" id="btn-ir-preorden-casting"
                             onclick="cerrarModalGestionVeredicto(); abrirModalPreOrdenCasting(document.getElementById('mgv-ot').value)"
                             title="Ir directamente a generar / editar la Pre-Orden de Casting"
-                            style="display: none; font-size:1.15em; padding:14px 30px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight: 700; height: auto; background: linear-gradient(135deg, #0369a1, #0284c7); box-shadow: 0 4px 15px rgba(3,105,161,0.3); align-items: center; justify-content: center; gap: 8px; border: none; color: white; cursor: pointer; transition: all 0.2s ease;">
+                            class="alm-display-none cal-display-none"
+                            style="font-size:1.15em; padding:14px 30px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight: 700; height: auto; background: linear-gradient(135deg, #0369a1, #0284c7); box-shadow: 0 4px 15px rgba(3,105,161,0.3); align-items: center; justify-content: center; gap: 8px; border: none; color: white; cursor: pointer; transition: all 0.2s ease;">
                             <span>Generar / Ver Pre-Orden Casting</span>
                         </button>
                     </div>
@@ -92,7 +93,7 @@
             {{-- ─────────────────────────────────────────────── --}}
             {{-- VISTA: RECHAZADOS (PROCESAR) --}}
             {{-- ─────────────────────────────────────────────── --}}
-            <div id="mgv-view-rechazados" class="mgv-view" style="display: none;">
+            <div id="mgv-view-rechazados" class="mgv-view alm-display-none cal-display-none">
                 <form id="formMgvRechazados" enctype="multipart/form-data" novalidate autocomplete="off">
                     @csrf
                     <input type="hidden" name="ot" class="mgv-form-ot">

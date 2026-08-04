@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 /* ====================================================
@@ -1074,6 +1074,10 @@ body {
     justify-content: center;
     align-items: center;
     z-index: 10000;
+}
+.confirm-portal[hidden],
+.confirm-portal.hidden {
+    display: none !important;
 }
 
 .confirm-modal {

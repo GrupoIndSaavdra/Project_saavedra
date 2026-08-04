@@ -1,4 +1,4 @@
-﻿{{-- _modal_scar.blade.php — Formato SCAR de Modelos --}}
+{{-- _modal_scar.blade.php — Formato SCAR de Modelos --}}
 
 {{-- ── MODAL SCAR ── --}}
 <div id="modalScar" class="alm-modal" role="dialog" aria-modal="true">
@@ -136,7 +136,7 @@
                             <label
                                 class="checkbox-label">
                                 <input type="checkbox" id="scar-evidencia-fotos" name="evidencia_fotos" value="1"
-                                    class="w-16 h-16" onchange="document.getElementById('scar-fotos-upload-group').style.display = this.checked ? 'block' : 'none'">
+                                    class="w-16 h-16" onchange="const el = document.getElementById('scar-fotos-upload-group'); if(el) { el.style.display = this.checked ? 'block' : 'none'; el.classList.toggle('alm-display-none', !this.checked); el.classList.toggle('cal-display-none', !this.checked); }">
                                 <span>Fotografías</span>
                             </label>
                         </div>
@@ -144,14 +144,14 @@
                             <label
                                 class="checkbox-label">
                                 <input type="checkbox" id="scar-evidencia-otro" name="evidencia_otro" value="1"
-                                    class="w-16 h-16" onchange="document.getElementById('scar-otro-upload-group').style.display = this.checked ? 'block' : 'none'">
+                                    class="w-16 h-16" onchange="const el = document.getElementById('scar-otro-upload-group'); if(el) { el.style.display = this.checked ? 'block' : 'none'; el.classList.toggle('alm-display-none', !this.checked); el.classList.toggle('cal-display-none', !this.checked); }">
                                 <span>Otro / PDFs adicionales</span>
                             </label>
                         </div>
                     </div>
 
                     {{-- UPLOAD DE FOTOS --}}
-                    <div class="form-group" id="scar-fotos-upload-group" style="margin-top: 16px; display: none;">
+                    <div class="form-group alm-display-none cal-display-none" id="scar-fotos-upload-group" style="margin-top: 16px;">
                         <label for="scar-fotos" style="font-weight:700; color:#334155; display:block; margin-bottom:6px; font-size:0.9em;">
                             Subir Fotografías <span class="text-danger">*</span>
                         </label>
@@ -163,11 +163,11 @@
                                 <span style="font-size: 0.7em; color: #64748b; margin-top: 2px;">Solo archivos de imagen</span>
                             </div>
                         </div>
-                        <div id="scar-fotos-list" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
+                        <div id="scar-fotos-list" class="alm-display-none cal-display-none" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
                     </div>
 
                     {{-- UPLOAD DE OTROS ARCHIVOS --}}
-                    <div class="form-group" id="scar-otro-upload-group" style="margin-top: 16px; display: none;">
+                    <div class="form-group alm-display-none cal-display-none" id="scar-otro-upload-group" style="margin-top: 16px;">
                         <label for="scar-otro-archivos" style="font-weight:700; color:#334155; display:block; margin-bottom:6px; font-size:0.9em;">
                             Subir Otros Archivos / PDFs adicionales <span class="text-danger">*</span>
                         </label>
@@ -179,7 +179,7 @@
                                 <span style="font-size: 0.7em; color: #64748b; margin-top: 2px;">Cualquier tipo de archivo</span>
                             </div>
                         </div>
-                        <div id="scar-otro-archivos-list" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: none; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
+                        <div id="scar-otro-archivos-list" class="alm-display-none cal-display-none" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
                     </div>
 
                     {{-- ARCHIVOS EVIDENCIA DEL SERVIDOR --}}
@@ -206,12 +206,12 @@
                         <label class="checkbox-label">
                             <input type="checkbox" id="scar-accion-otro" name="accion_otro" value="1"
                                 class="w-16 h-16"
-                                onchange="document.getElementById('scar-accion-otro-text-group').style.display = this.checked ? 'block' : 'none'">
+                                onchange="const el = document.getElementById('scar-accion-otro-text-group'); if(el) { el.style.display = this.checked ? 'block' : 'none'; el.classList.toggle('alm-display-none', !this.checked); el.classList.toggle('cal-display-none', !this.checked); }">
                             <span>Otro</span>
                         </label>
 
-                        <div id="scar-accion-otro-text-group"
-                            style="display: none; margin-top: 4px; padding-left: 24px;">
+                        <div id="scar-accion-otro-text-group" class="alm-display-none cal-display-none"
+                            style="margin-top: 4px; padding-left: 24px;">
                             <input type="text" id="scar-accion-otro-texto" name="accion_otro_texto" class="form-control"
                                 placeholder="Escriba la acción correctiva inmediata requerida...">
                         </div>

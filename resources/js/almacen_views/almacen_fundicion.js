@@ -2247,6 +2247,7 @@ window.libCambiarTipo = function (tipo) {
     const decisionSelector = document.getElementById("lib-decision-selector");
     if (decisionSelector) {
         decisionSelector.classList.toggle("alm-display-none", !tipo);
+        decisionSelector.style.display = tipo ? "flex" : "none";
     }
     if (typeof _libActualizarColorSelectPropio === "function") {
         _libActualizarColorSelectPropio();
@@ -4502,7 +4503,10 @@ function _libSetDecisionUI(decision) {
             cardRechazar.style.border = "2px solid #e2e8f0";
             cardRechazar.style.background = "#fff";
         }
-        if (bloqueRechazo) bloqueRechazo.classList.add("alm-display-none");
+        if (bloqueRechazo) {
+            bloqueRechazo.classList.add("alm-display-none");
+            bloqueRechazo.style.display = "none";
+        }
     } else {
         if (cardRechazar) {
             cardRechazar.classList.add("active");
@@ -4513,7 +4517,11 @@ function _libSetDecisionUI(decision) {
             cardAprobar.style.border = "2px solid #e2e8f0";
             cardAprobar.style.background = "#fff";
         }
-        if (bloqueRechazo) bloqueRechazo.classList.remove("alm-display-none");
+        if (bloqueRechazo) {
+            bloqueRechazo.classList.remove("alm-display-none");
+            bloqueRechazo.removeAttribute("hidden");
+            bloqueRechazo.style.display = "block";
+        }
     }
     // Actualizar los botones de acción del modal
     _libActualizarBotonesAccion(decision);
@@ -5250,7 +5258,7 @@ window.abrirModalFinalizarCalidad = function (
         btnText = "Finalizar y Enviar Alerta de Rechazo";
         promptHtml = `
             <div style="background: #fef2f2; border-left: 5px solid #dc2626; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(220, 38, 38, 0.03);">
-                <img src="${baseUrl}images/cerrar.png" style="width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; filter: invert(24%) sepia(87%) saturate(2823%) hue-rotate(345deg) brightness(88%) contrast(98%);" alt="Rechazado">
+                <img src="${baseUrl}images/Rechazado.png" style="width: 32px; height: 32px; object-fit: contain; flex-shrink: 0;" alt="Rechazado">
                 <div style="font-family:'Poppins', sans-serif; font-weight: 500; color: #991b1b; font-size: 1.1em; line-height: 1.5;">
                     Se enviará la alerta de rechazo para los modelos: <strong>${arrRechazados.join(", ")}</strong>.
                 </div>
@@ -5743,25 +5751,38 @@ window.abrirModalPreOrdenCasting = async function (ot) {
                 };
                 fillPageData(pocState.page1, castingPos[0]);
                 if (castingPos.length > 1) {
-                    document.getElementById("poc-has-page2").value = "1";
-                    document
-                        .getElementById("tab-poc-page-2")
-                        .classList.remove("alm-display-none");
-                    document
-                        .getElementById("btn-remove-poc-page-2")
-                        .classList.remove("alm-display-none");
-                    document
-                        .getElementById("btn-add-poc-page-2")
-                        .classList.add("alm-display-none");
-                    setPocPage2Required(true);
                     fillPageData(pocState.page2, castingPos[1]);
                 } else {
                     pocState.page2.filas = [];
                     pocState.page2.fecha_entrega = res.fecha_entrega || "";
                 }
+                // Siempre iniciar con el Proveedor 2 deshabilitado y oculto hasta que se haga clic en Agregar Proveedor 2
+                document.getElementById("poc-has-page2").value = "0";
+                document
+                    .getElementById("tab-poc-page-2")
+                    .classList.add("alm-display-none", "cal-display-none");
+                document
+                    .getElementById("btn-remove-poc-page-2")
+                    .classList.add("alm-display-none", "cal-display-none");
+                document
+                    .getElementById("btn-add-poc-page-2")
+                    .classList.remove("alm-display-none", "cal-display-none");
+                setPocPage2Required(false);
             } else {
                 // Ignorar las pre-órdenes anteriores para el llenado de filas,
                 // ya que queremos generar un NUEVO envío parcial con las clases restantes.
+                document.getElementById("poc-has-page2").value = "0";
+                document
+                    .getElementById("tab-poc-page-2")
+                    .classList.add("alm-display-none", "cal-display-none");
+                document
+                    .getElementById("btn-remove-poc-page-2")
+                    .classList.add("alm-display-none", "cal-display-none");
+                document
+                    .getElementById("btn-add-poc-page-2")
+                    .classList.remove("alm-display-none", "cal-display-none");
+                setPocPage2Required(false);
+
                 pocState.page1.proveedor = "";
                 pocState.page1.observaciones = "";
                 pocState.page1.fecha_entrega = res.fecha_entrega || "";
@@ -5782,7 +5803,8 @@ window.abrirModalPreOrdenCasting = async function (ot) {
                 pocState.page2.fecha_entrega = res.fecha_entrega || "";
             }
             recopilarMaterialesPersonalizados();
-            loadPocPage(1);
+            pocActivePage = 0; // Forzar cambio a pagina 1
+            switchPocPage(1);
             const modal = document.getElementById("modalPreOrdenCasting");
             modal.classList.add("open");
             document.body.classList.add("modal-open");
@@ -5804,37 +5826,55 @@ window.cerrarModalPreOrdenCasting = function () {
 };
 window.switchPocPage = function (pageNum) {
     if (pageNum === pocActivePage) return;
-    // Guardar datos actuales del formulario al estado local
+    const hasPage2 = document.getElementById("poc-has-page2")?.value === "1";
+    if (pageNum === 2 && !hasPage2) return;
+
     savePocPageData(pocActivePage);
     const tab1 = document.getElementById("tab-poc-page-1");
     const tab2 = document.getElementById("tab-poc-page-2");
     if (pageNum === 1) {
-        tab1.className = "btn-po-tab active";
-        tab1.style.background = "#0369a1";
-        tab1.style.color = "white";
-        tab1.style.borderColor = "#0369a1";
-        tab2.className = "btn-po-tab";
-        tab2.style.background = "#f8fafc";
-        tab2.style.color = "#64748b";
-        tab2.style.borderColor = "#cbd5e1";
-        document.getElementById("poc-page-2").classList.add("alm-display-none");
+        if (tab1) {
+            tab1.classList.add("active");
+            tab1.style.background = "#ffffff";
+            tab1.style.color = "#0369a1";
+            tab1.style.borderColor = "#ffffff";
+            tab1.style.boxShadow = "0 -4px 12px rgba(0,0,0,0.15)";
+        }
+        if (tab2) {
+            tab2.classList.remove("active");
+            tab2.style.background = "rgba(255, 255, 255, 0.2)";
+            tab2.style.color = "#ffffff";
+            tab2.style.borderColor = "transparent";
+            tab2.style.boxShadow = "none";
+            if (!hasPage2) {
+                tab2.classList.add("alm-display-none", "cal-display-none");
+            }
+        }
+        document.getElementById("poc-page-2")?.classList.add("alm-display-none", "cal-display-none");
         document
             .getElementById("poc-page-1")
-            .classList.remove("alm-display-none");
+            ?.classList.remove("alm-display-none", "cal-display-none");
         setPocPage2Required(false);
     } else {
-        tab2.className = "btn-po-tab active";
-        tab2.style.background = "#0369a1";
-        tab2.style.color = "white";
-        tab2.style.borderColor = "#0369a1";
-        tab1.className = "btn-po-tab";
-        tab1.style.background = "#f8fafc";
-        tab1.style.color = "#64748b";
-        tab1.style.borderColor = "#cbd5e1";
-        document.getElementById("poc-page-1").classList.add("alm-display-none");
+        if (tab2) {
+            tab2.classList.add("active");
+            tab2.style.background = "#ffffff";
+            tab2.style.color = "#0369a1";
+            tab2.style.borderColor = "#ffffff";
+            tab2.style.boxShadow = "0 -4px 12px rgba(0,0,0,0.15)";
+            tab2.classList.remove("alm-display-none", "cal-display-none");
+        }
+        if (tab1) {
+            tab1.classList.remove("active");
+            tab1.style.background = "rgba(255, 255, 255, 0.2)";
+            tab1.style.color = "#ffffff";
+            tab1.style.borderColor = "transparent";
+            tab1.style.boxShadow = "none";
+        }
+        document.getElementById("poc-page-1")?.classList.add("alm-display-none", "cal-display-none");
         document
             .getElementById("poc-page-2")
-            .classList.remove("alm-display-none");
+            ?.classList.remove("alm-display-none", "cal-display-none");
         setPocPage2Required(true);
     }
     pocActivePage = pageNum;
@@ -5845,13 +5885,13 @@ window.agregarPocPagina2 = function () {
     document.getElementById("poc-has-page2").value = "1";
     document
         .getElementById("tab-poc-page-2")
-        .classList.remove("alm-display-none");
+        .classList.remove("alm-display-none", "cal-display-none");
     document
         .getElementById("btn-add-poc-page-2")
-        .classList.add("alm-display-none");
+        .classList.add("alm-display-none", "cal-display-none");
     document
         .getElementById("btn-remove-poc-page-2")
-        .classList.remove("alm-display-none");
+        .classList.remove("alm-display-none", "cal-display-none");
     if (pocState.page2.filas.length === 0) {
         pocState.page2.fecha_entrega =
             pocState.page2.fecha_entrega || pocState.page1.fecha_entrega || "";
@@ -5880,13 +5920,13 @@ window.removerPocPagina2 = function () {
         document.getElementById("poc-has-page2").value = "0";
         document
             .getElementById("tab-poc-page-2")
-            .classList.add("alm-display-none");
+            .classList.add("alm-display-none", "cal-display-none");
         document
             .getElementById("btn-remove-poc-page-2")
-            .classList.add("alm-display-none");
+            .classList.add("alm-display-none", "cal-display-none");
         document
             .getElementById("btn-add-poc-page-2")
-            .classList.remove("alm-display-none");
+            .classList.remove("alm-display-none", "cal-display-none");
         setPocPage2Required(false);
         pocState.page2.filas = [];
         switchPocPage(1);
@@ -5990,7 +6030,8 @@ function loadPocPage(pageNum) {
     const fechaEl = document.getElementById(`poc-p${pageNum}-fecha`);
     if (fechaEl) {
         fechaEl.value = pData.fecha || todayStr;
-        fechaEl.setAttribute("readonly", true);
+        fechaEl.readOnly = true;
+        fechaEl.disabled = true;
     }
     document.getElementById(`poc-p${pageNum}-folio`).value = pData.folio;
     document.getElementById(`poc-p${pageNum}-moldura`).value = pocState.moldura;
@@ -6002,18 +6043,16 @@ function loadPocPage(pageNum) {
     document.getElementById(`poc-p${pageNum}-ot`).value = pocOtNumber;
     document.getElementById(`poc-p${pageNum}-observaciones`).value =
         pData.observaciones || "";
-    const fechaEntregaEl = document.getElementById(
-        `poc-p${pageNum}-fecha-entrega`,
-    );
-    if (fechaEntregaEl) {
-        fechaEntregaEl.value = pData.fecha_entrega || "";
-    }
+
     const tbody = document.getElementById(`alm-tbody-poc-p${pageNum}`);
     tbody.innerHTML = "";
     const tiposModelo = ["Suelto", "Placa", "Templadera"];
     pData.filas.forEach((fila, idx) => {
         const tr = document.createElement("tr");
         tr.style.borderBottom = "1px solid #e2e8f0";
+        tr.style.transition = "background 0.2s ease";
+        tr.onmouseover = function() { tr.style.background = "#f8fafc"; };
+        tr.onmouseout = function() { tr.style.background = "#ffffff"; };
         let tipoOpts = `<option value="">-- Tipo --</option>`;
         tiposModelo.forEach((t) => {
             const sel = fila.tipo_modelo === t ? "selected" : "";
@@ -6056,26 +6095,26 @@ function loadPocPage(pageNum) {
             matOpts += `<option value="Otro">Otro</option>`;
         }
         tr.innerHTML = `
-            <td style="padding:8px;min-width:110px;">
-                <select name="tipo_modelo" class="form-control poc-input-tipo" required onchange="handlePocTipoChange(${pageNum},${idx},this)">
+            <td style="padding:10px 8px;min-width:110px;">
+                <select name="tipo_modelo" class="form-control poc-input-tipo" required style="font-size:0.9em; padding:6px 10px; border-radius:8px;" onchange="handlePocTipoChange(${pageNum},${idx},this)">
                     ${tipoOpts}
                 </select>
             </td>
-            <td style="padding:8px;min-width:90px;">
-                <input type="number" name="cant_fabricar" class="form-control poc-input-cant-fabricar" min="1" value="${fila.cant_fabricar !== undefined && fila.cant_fabricar !== null && fila.cant_fabricar !== "" ? fila.cant_fabricar : ""}" placeholder="Ej: 100" required oninput="recalcPocRowWeight(${pageNum},${idx})">
+            <td style="padding:10px 8px;min-width:90px;">
+                <input type="number" name="cant_fabricar" class="form-control poc-input-cant-fabricar" min="1" value="${fila.cant_fabricar !== undefined && fila.cant_fabricar !== null && fila.cant_fabricar !== "" ? fila.cant_fabricar : ""}" placeholder="Ej: 100" required style="font-size:0.9em; padding:6px 10px; border-radius:8px;" oninput="recalcPocRowWeight(${pageNum},${idx})">
             </td>
-            <td style="padding:8px;min-width:90px;">
-                <input type="number" name="cant_consignacion" class="form-control poc-input-cant-consignacion" min="0" value="${fila.cant_consignacion || ""}" placeholder="Auto" required style="background:#f0fdf4;" title="Se calcula automáticamente al llenar Cant. Fabricar. Puedes modificarlo si es necesario.">
+            <td style="padding:10px 8px;min-width:90px;">
+                <input type="number" name="cant_consignacion" class="form-control poc-input-cant-consignacion" min="0" value="${fila.cant_consignacion || ""}" placeholder="Auto" required style="background:#f0fdf4; border-color:#bbf7d0; color:#15803d; font-weight:700; font-size:0.9em; padding:6px 10px; border-radius:8px;" title="Se calcula automáticamente al llenar Cant. Fabricar. Puedes modificarlo si es necesario.">
             </td>
-            <td style="padding:8px;">
-                <select name="id_clase" class="form-control poc-select-clase" required onchange="handlePocClaseChange(${pageNum},${idx},this)">
+            <td style="padding:10px 8px;">
+                <select name="id_clase" class="form-control poc-select-clase" required style="font-size:0.9em; padding:6px 10px; border-radius:8px;" onchange="handlePocClaseChange(${pageNum},${idx},this)">
                     ${claseOptions}
                 </select>
             </td>
-            <td style="padding:8px;min-width:160px;vertical-align:middle;">
+            <td style="padding:10px 8px;min-width:160px;vertical-align:middle;">
                 <div class="poc-material-wrapper" data-page="${pageNum}" data-idx="${idx}">
                     <div style="display:flex;gap:6px;align-items:center;">
-                        <select class="form-control poc-input-material" style="flex:1;font-size:0.88em;" required onchange="handlePocMaterialChange(${pageNum},${idx},this)">
+                        <select class="form-control poc-input-material" style="flex:1;font-size:0.88em; padding:6px 8px; border-radius:8px;" required onchange="handlePocMaterialChange(${pageNum},${idx},this)">
                             ${matOpts}
                         </select>
                         ${
@@ -6083,8 +6122,8 @@ function loadPocPage(pageNum) {
                             !MATERIALES_CASTING_FIJOS.includes(materialFila) &&
                             materialFila !== "Otro"
                                 ? `<button type="button" class="btn-eliminar-material-opcion" onclick="eliminarMaterialGlobal(${pageNum}, '${materialFila.replace(/'/g, "\\'")}')"
-                                style="background:#fff;border:none;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0;" title="Quitar de la lista de materiales">
-                                <img src="${getBaseUrl()}images/quitar.png" style="width:16px;height:16px;">
+                                style="background:#fff;border:1px solid #cbd5e1;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0;" title="Quitar de la lista de materiales">
+                                <img src="${getBaseUrl()}images/quitar.png" style="width:14px;height:14px;">
                                </button>`
                                 : ""
                         }
@@ -6097,21 +6136,21 @@ function loadPocPage(pageNum) {
                     }
                 </div>
             </td>
-            <td style="padding:8px;min-width:120px;">
-                <input type="text" name="codigo" class="form-control poc-input-codigo" value="${codigoVal}" placeholder="Ej: F2102" required>
+            <td style="padding:10px 8px;min-width:120px;">
+                <input type="text" name="codigo" class="form-control poc-input-codigo" value="${codigoVal}" placeholder="Ej: F2102" required style="font-size:0.9em; padding:6px 10px; border-radius:8px;">
             </td>
-            <td style="padding:8px;min-width:90px;">
-                <input type="number" step="0.01" name="peso_juego" class="form-control poc-input-peso-juego" min="0" value="${fila.peso_juego > 0 ? fila.peso_juego : ""}" placeholder="KG p/juego" oninput="recalcPocRowWeight(${pageNum},${idx})">
+            <td style="padding:10px 8px;min-width:90px;">
+                <input type="number" step="0.01" name="peso_juego" class="form-control poc-input-peso-juego" min="0" value="${fila.peso_juego > 0 ? fila.peso_juego : ""}" placeholder="KG p/juego" style="font-size:0.9em; padding:6px 10px; border-radius:8px;" oninput="recalcPocRowWeight(${pageNum},${idx})">
             </td>
-            <td style="padding:8px;min-width:90px;">
-                <input type="number" step="0.01" name="peso_total" class="form-control poc-input-peso-total" min="0" value="${fila.peso_total > 0 ? fila.peso_total : ""}" placeholder="KG total">
+            <td style="padding:10px 8px;min-width:90px;">
+                <input type="number" step="0.01" name="peso_total" class="form-control poc-input-peso-total" min="0" value="${fila.peso_total > 0 ? fila.peso_total : ""}" placeholder="KG total" style="font-size:0.9em; padding:6px 10px; border-radius:8px;">
             </td>
-            <td style="padding:8px;min-width:120px;">
-                <input type="date" name="fecha_entrega" class="form-control poc-input-fecha-entrega" value="${fila.fecha_entrega || pData.fecha_entrega || ""}" required style="font-size:0.9em; padding: 6px 10px;">
+            <td style="padding:10px 8px;min-width:130px;">
+                <input type="date" name="fecha_entrega" class="form-control poc-input-fecha-entrega" value="${fila.fecha_entrega || ""}" style="font-size:0.9em; padding: 6px 10px; border-radius:8px; border:1.5px solid #0284c7; background:#ffffff;">
             </td>
-            <td style="padding:8px;text-align:center;">
-                <button type="button" class="btn-eliminar-fila" onclick="eliminarFilaPoc(${pageNum},${idx})" style="background:none;border:none;cursor:pointer;">
-                    <img src="${getBaseUrl()}images/quitar.png" style="width:24px;height:24px;">
+            <td style="padding:10px 8px;text-align:center;">
+                <button type="button" class="btn-eliminar-fila" onclick="eliminarFilaPoc(${pageNum},${idx})" style="background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;transition:transform 0.2s;" title="Eliminar clase">
+                    <img src="${getBaseUrl()}images/quitar.png" style="width:22px;height:22px;">
                 </button>
             </td>
         `;
@@ -6307,19 +6346,17 @@ window.eliminarFilaPoc = function (pageNum, idx) {
     loadPocPage(pageNum);
 };
 function savePocPageData(pageNum) {
+    if (!pageNum || (pageNum !== 1 && pageNum !== 2)) return;
     const pData = pocState["page" + pageNum];
+    if (!pData) return;
     const provEl = document.getElementById(`poc-p${pageNum}-proveedor`);
     const folioEl = document.getElementById(`poc-p${pageNum}-folio`);
     const obsEl = document.getElementById(`poc-p${pageNum}-observaciones`);
-    const fechaEntregaEl = document.getElementById(
-        `poc-p${pageNum}-fecha-entrega`,
-    );
     if (provEl) pData.proveedor = provEl.value;
     // Preservar la fecha guardada; solo asignar hoy si aún no tiene fecha
     if (!pData.fecha) pData.fecha = new Date().toISOString().substring(0, 10);
     if (folioEl) pData.folio = folioEl.value;
     if (obsEl) pData.observaciones = obsEl.value;
-    if (fechaEntregaEl) pData.fecha_entrega = fechaEntregaEl.value;
     const tbody = document.getElementById(`alm-tbody-poc-p${pageNum}`);
     if (tbody) {
         const rows = tbody.querySelectorAll("tr");
@@ -6361,9 +6398,7 @@ function savePocPageData(pageNum) {
                 parseFloat(tr.querySelector(".poc-input-peso-total")?.value) ||
                 0;
             rowState.fecha_entrega =
-                tr.querySelector(".poc-input-fecha-entrega")?.value ||
-                pData.fecha_entrega ||
-                "";
+                tr.querySelector(".poc-input-fecha-entrega")?.value || "";
         });
     }
 }
@@ -6384,13 +6419,7 @@ document
             );
             return;
         }
-        if (!p1.fecha_entrega) {
-            almacenToast(
-                "Debe completar la Fecha de Entrega de la Página 1.",
-                "error",
-            );
-            return;
-        }
+
         if (p1.filas.length === 0) {
             almacenToast(
                 "Página 1 debe tener al menos una fila de clase.",
@@ -6409,8 +6438,7 @@ document
                 f.cant_fabricar === null ||
                 f.cant_fabricar === undefined ||
                 f.cant_fabricar <= 0 ||
-                (!f.cant_consignacion && f.cant_consignacion !== 0) ||
-                !f.fecha_entrega
+                (!f.cant_consignacion && f.cant_consignacion !== 0)
             ) {
                 p1Valid = false;
             }
@@ -6431,13 +6459,7 @@ document
                 );
                 return;
             }
-            if (!p2.fecha_entrega) {
-                almacenToast(
-                    "Debe completar la Fecha de Entrega de la Página 2.",
-                    "error",
-                );
-                return;
-            }
+
             if (p2.filas.length === 0) {
                 almacenToast(
                     "Página 2 debe tener al menos una fila de clase.",
@@ -6456,8 +6478,7 @@ document
                     f.cant_fabricar === null ||
                     f.cant_fabricar === undefined ||
                     f.cant_fabricar <= 0 ||
-                    (!f.cant_consignacion && f.cant_consignacion !== 0) ||
-                    !f.fecha_entrega
+                    (!f.cant_consignacion && f.cant_consignacion !== 0)
                 ) {
                     p2Valid = false;
                 }
@@ -6527,10 +6548,12 @@ document
                 })),
             };
         }
-        const btn = document.getElementById("btn-submit-poc");
-        const origText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = "Guardando y Generando PDF...";
+        const btn = document.getElementById("btn-submit-poc") || document.querySelector(".btn-save-preorden");
+        const origText = btn ? btn.innerHTML : "";
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> Guardando y Generando PDF...';
+        }
         try {
             let fetchUrl = "/almacen/fundicion/store-preorden";
             if (window.baseUrl) {
@@ -6571,14 +6594,18 @@ document
                     res.message || "Error al guardar la pre-orden.",
                     "error",
                 );
-                btn.disabled = false;
-                btn.innerHTML = origText;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origText;
+                }
             }
         } catch (err) {
             console.error("Error storing casting pre-order:", err);
             almacenToast("Error de red al guardar la pre-orden.", "error");
-            btn.disabled = false;
-            btn.innerHTML = origText;
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origText;
+            }
         }
     });
 let madcSelectedFiles = [];
