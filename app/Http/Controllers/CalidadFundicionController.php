@@ -465,8 +465,8 @@ class CalidadFundicionController extends Controller
             $allFiles = $dibujos->merge($ayudas)->merge($generatedFiles)->values();
         }
 
-        $historyLatest = FundicionHistory::where('ot', '=', $ot, 'and')->first() ?: FundicionHistory::where('ot', 'LIKE', $baseOt . '%', 'and')->orderBy('id', 'desc')->first();
-        $preOrden = PreOrdenFundicion::where('ot', '=', $historyLatest->ot, 'and')->first();
+        $historyLatest = FundicionHistory::where('ot', '=', $ot)->first() ?: FundicionHistory::where('ot', 'LIKE', $baseOt . '%')->orderBy('id', 'desc')->first();
+        $preOrden = ($historyLatest && $historyLatest->ot) ? PreOrdenFundicion::where('ot', '=', $historyLatest->ot)->first() : null;
         $fechaEntrega = $preOrden && $preOrden->fecha_entrega 
             ? ($preOrden->fecha_entrega instanceof \DateTimeInterface 
                 ? $preOrden->fecha_entrega->format('Y-m-d') 
@@ -477,10 +477,10 @@ class CalidadFundicionController extends Controller
             'existe' => true,
             'archivos' => $allFiles,
             'ot' => $ot,
-            'status' => $historyLatest->status,
-            'tiene_modelo' => (bool) $historyLatest->tiene_modelo,
-            'casting_pdf_generated' => (bool) $historyLatest->casting_pdf_generated,
-            'alert_sent_at' => $historyLatest->alert_sent_at?->format('d/m/Y H:i'),
+            'status' => $historyLatest ? $historyLatest->status : null,
+            'tiene_modelo' => $historyLatest ? (bool) $historyLatest->tiene_modelo : false,
+            'casting_pdf_generated' => $historyLatest ? (bool) $historyLatest->casting_pdf_generated : false,
+            'alert_sent_at' => $historyLatest ? $historyLatest->alert_sent_at?->format('d/m/Y H:i') : null,
             'fecha_entrega' => $fechaEntrega,
         ]);
     }

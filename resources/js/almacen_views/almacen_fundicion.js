@@ -4366,6 +4366,12 @@ window.abrirModalLiberacionUnificado = function (
     clasesActivas,
     todasClases,
 ) {
+    if (!clasesActivas || !Array.isArray(clasesActivas) || clasesActivas.length === 0) {
+        if (typeof almacenToast === "function") {
+            almacenToast("No hay clases enviadas por Almacén para revisar", "error");
+        }
+        return;
+    }
     // Llamar al opener original para mantener lógica de FSM
     if (typeof abrirModalLiberacion === "function") {
         abrirModalLiberacion(ot, "aprobar");
@@ -5506,28 +5512,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         `button[onclick*="abrirModalFinalizarCalidad('${otSafe}'"]`,
                     );
                     buttons.forEach((b) => {
-                        const card =
-                            b.closest(".lib-calidad-card") ||
-                            b.closest("td") ||
-                            b.closest("div");
-                        if (card) {
-                            const btnsContainer = card.querySelector(
-                                ".lib-calidad-card-btns",
-                            );
-                            if (btnsContainer) {
-                                btnsContainer.innerHTML = `
-                                    <span style="color: #475569; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; animation: fadeIn 0.3s ease;">
-                                        <img src="${baseUrlLocal}images/ready.png" style="width: 18px; height: 18px;" alt="">
-                                        La alerta ha sido enviada exitosamente.
-                                    </span>
-                                `;
-                            }
-                            const prompt = card.querySelector(
-                                ".lib-calidad-card-prompt",
-                            );
-                            if (prompt)
-                                prompt.classList.add("alm-display-none");
-                        }
+                        b.disabled = true;
+                        b.style.pointerEvents = "none";
+                        b.style.opacity = "0.85";
+                        b.style.backgroundColor = "#059669";
+                        b.style.borderColor = "#047857";
+                        b.style.color = "#ffffff";
+                        b.style.cursor = "not-allowed";
+                        b.title = "El correo de alerta ha sido enviado exitosamente";
+                        b.innerHTML = `<img src="${baseUrlLocal}images/enviando.png" style="filter: none !important;" alt=""> <span>Correo Enviado</span>`;
                     });
                     setTimeout(() => {
                         window.location.reload();
@@ -8119,6 +8112,7 @@ window._syncSnapshot = {};
 window._syncIntervalId = null;
 window._lastSyncTime = null;
 window.sincronizarDibujos = function (manual = false) {
+    if (!manual) return; // Solo ejecutar cuando el usuario presiona "Sincronizar ahora"
     const isAlmacen = !!window.almacenRoutes;
     const btnId = isAlmacen
         ? "btn-sync-manual-almacen"
@@ -8140,30 +8134,20 @@ window.sincronizarDibujos = function (manual = false) {
     if (!routesObj || !routesObj.archivos) return;
     const rows = tbody.querySelectorAll("tr[data-ot]");
     let promises = [];
-    let cambiosDetectados = 0;
     rows.forEach((row) => {
         const ot = row.getAttribute("data-ot");
         if (!ot) return;
         const p = fetch(`${routesObj.archivos}?ot=${encodeURIComponent(ot)}`)
-            .then((res) => res.json())
+            .then((res) => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            })
             .then((data) => {
                 if (data.existe) {
                     const count = Array.isArray(data.archivos)
                         ? data.archivos.length
                         : 0;
-                    // Si es polling automático, verificamos si cambió
-                    if (!manual) {
-                        const previousCount = window._syncSnapshot[ot];
-                        if (
-                            previousCount !== undefined &&
-                            previousCount !== count
-                        ) {
-                            cambiosDetectados++;
-                        }
-                    }
-                    // Guardamos el snapshot
                     window._syncSnapshot[ot] = count;
-                    // Actualizamos el badge en la UI
                     const badge = row.querySelector(".badge-pdf-count");
                     if (badge) {
                         badge.textContent = count;
@@ -8174,25 +8158,10 @@ window.sincronizarDibujos = function (manual = false) {
         promises.push(p);
     });
     Promise.all(promises).then(() => {
-        // Actualizar UI
         if (manual && btn) {
             btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:middle;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Sincronizar ahora`;
             btn.disabled = false;
-            almacenToast("Sincronización manual completada.", "success");
-        }
-        if (!manual && cambiosDetectados > 0) {
-            // Utilizamos el toast general del sistema para dar una notificación visible
-            if (typeof toastpremium === "function") {
-                toastpremium(
-                    `Se detectaron cambios en archivos de ${cambiosDetectados} OT(s).`,
-                    "warning",
-                );
-            } else {
-                almacenToast(
-                    `Se detectaron cambios en archivos de ${cambiosDetectados} OT(s).`,
-                    "warning",
-                );
-            }
+            if (typeof almacenToast === 'function') almacenToast("Sincronización manual completada.", "success");
         }
         const timeId = isAlmacen
             ? "sync-last-time-almacen"
@@ -8222,15 +8191,10 @@ function actualizarRelojSync() {
         statusTime.textContent = `Actualizado: hace ${mins} min`;
     }
 }
-// Inicializar el polling (cada 30 segundos)
 document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("alm-tbody-activa")) {
-        setTimeout(() => {
-            window.sincronizarDibujos(false);
-            window._syncIntervalId = setInterval(() => {
-                window.sincronizarDibujos(false);
-            }, 30000);
-            setInterval(actualizarRelojSync, 5000);
-        }, 1500);
+        window._lastSyncTime = new Date();
+        actualizarRelojSync();
+        setInterval(actualizarRelojSync, 5000);
     }
 });

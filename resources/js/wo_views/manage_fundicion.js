@@ -14,6 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sincronizar UI inicial si hay parámetros cargados (mediante selectores)
     updateDependentSelectors();
     updateAdminUI();
+
+    window.addEventListener('popstate', () => {
+        updateDependentSelectors();
+        updateAdminUI();
+    });
 });
 
 window.changeDocSelector = function (paramName, value, toClear = []) {
@@ -21,7 +26,33 @@ window.changeDocSelector = function (paramName, value, toClear = []) {
     if (value) url.searchParams.set(paramName, value);
     else url.searchParams.delete(paramName);
     toClear.forEach(p => url.searchParams.delete(p));
-    window.location.href = url.toString();
+
+    window.history.pushState(null, '', url.toString());
+
+    if (paramName === 'ot_id') {
+        const clSel = document.getElementById('clase-select');
+        if (clSel) {
+            clSel.innerHTML = '<option value="">— Seleccionar Clase —</option>';
+            if (value && window.todasLasOTs) {
+                const otMatch = window.todasLasOTs.find(o => String(o.id) === String(value));
+                if (otMatch && otMatch.clases) {
+                    otMatch.clases.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.textContent = c.nombre;
+                        clSel.appendChild(opt);
+                    });
+                }
+                const optP = document.createElement('option'); optP.value = 'Pistones'; optP.textContent = 'Pistones (Opcional)'; clSel.appendChild(optP);
+                const optG = document.createElement('option'); optG.value = 'Guías'; optG.textContent = 'Guías (Opcional)'; clSel.appendChild(optG);
+                clSel.disabled = false;
+            } else {
+                clSel.disabled = true;
+            }
+        }
+    }
+
+    updateAdminUI();
 };
 
 window.irACarpeta = function (p1, p2, isId = false) {
@@ -40,8 +71,40 @@ window.irACarpeta = function (p1, p2, isId = false) {
         if (p2 && p2 !== 'null') url.searchParams.set('clase_id', p2);
     }
 
-    window.location.href = url.toString();
+    window.history.pushState(null, '', url.toString());
+    updateDependentSelectors();
+    updateAdminUI();
 };
+
+function refreshPageDiscretely(p1 = null, p2 = null) {
+    const otSel = document.getElementById('ot-select');
+    const clSel = document.getElementById('clase-select');
+    
+    if (!p1 && otSel && otSel.value && otSel.options[otSel.selectedIndex]) {
+        p1 = normalizeOTName(otSel.options[otSel.selectedIndex].text.trim());
+    }
+    if (!p2 && clSel && clSel.value && clSel.options[clSel.selectedIndex]) {
+        p2 = clSel.options[clSel.selectedIndex].text.trim().replace(' (Opcional)', '');
+    }
+
+    if (p1) {
+        cargarArchivosEnPanel(p1, p2);
+        actualizarBadge(p1, p2);
+    }
+
+    if (window.routes && window.routes['doc.estructura']) {
+        fetch(window.routes['doc.estructura'], { headers: { 'Accept': 'application/json' } })
+            .then(r => r.json())
+            .then(str => {
+                window.estructura = str;
+                if (typeof renderEstructuraTable === 'function') renderEstructuraTable();
+                if (typeof renderAlertasTable === 'function') renderAlertasTable();
+                updateAdminUI();
+                loadAuditLog();
+            })
+            .catch(() => {});
+    }
+}
 
 function updateDependentSelectors() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -209,14 +272,12 @@ function updateAdminUI() {
         if (alertUploadNoFolder) alertUploadNoFolder.classList.toggle("hidden", existe);
 
         const fileFormGroup = uploadReadyContent ? uploadReadyContent.querySelector('.dibujos-form-group') : null;
-        if (fileFormGroup) fileFormGroup.classList.toggle("hidden", !existe);
+        if (fileFormGroup) fileFormGroup.classList.remove("hidden");
 
         const fileInput = document.getElementById('d-upload-file');
-        if (fileInput) fileInput.disabled = !existe;
 
         if (btnSubir) {
-            btnSubir.disabled = !existe;
-            btnSubir.classList.toggle("hidden", !existe);
+            btnSubir.classList.remove("hidden");
             if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
             else if (module === 'manuales') { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; }
             else if (module === 'ayudas') { btnSubir.dataset.proceso = p1; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
@@ -390,10 +451,7 @@ function initUploadBtn() {
             const p1 = (module === 'manuales') ? payload.proceso : payload.param1;
             const p2 = (module === 'manuales') ? null : payload.param2;
 
-            cargarArchivosEnPanel(p1, p2);
-            actualizarBadge(p1, p2);
-            renderAlertasTable();
-            loadAuditLog();
+            refreshPageDiscretely(p1, p2);
         }
     });
 }
@@ -550,7 +608,7 @@ window.eliminarPdf = function (nombreArchivo, param1, param2) {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Archivo eliminado correctamente.');
-                setTimeout(() => window.location.reload(), 1000);
+                refreshPageDiscretely(param1, param2);
             } else {
                 mostrarNotificacion(data.message || 'No se pudo eliminar el archivo.', true);
             }
@@ -585,7 +643,7 @@ function subirPdf(payload, file, btn, onSuccess) {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Archivo subido correctamente.');
-                setTimeout(() => window.location.reload(), 1000);
+                refreshPageDiscretely(payload.param1, payload.param2);
             } else {
                 mostrarNotificacion(data.message || 'No se pudo subir el archivo.', true);
             }
@@ -618,7 +676,7 @@ function reemplazarPdf(payload, file, btn, onSuccess) {
         .then(data => {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Archivo reemplazado correctamente.');
-                setTimeout(() => window.location.reload(), 1000);
+                refreshPageDiscretely(payload.param1, payload.param2);
             } else {
                 mostrarNotificacion(data.message || 'No se pudo reemplazar.', true);
             }
@@ -1079,11 +1137,7 @@ function eliminarCarpetaAJAX(folder) {
                 loadAuditLog();
 
                 // Opcional: recargar tabla para reflejar cambios (o podrías eliminar la fila del DOM)
-                // Por ahora updateAdminUI y badges son suficientes si el usuario vuelve a filtrar.
-                // Pero para la tabla, lo mejor es un refresco ligero o recarga si es necesario.
-                // Como usamos Blade simple para la tabla, un reload podria ser util aqui si no queremos
-                // manipular el DOM de la tabla manualmente.
-                setTimeout(() => window.location.reload(), 1500);
+                refreshPageDiscretely(folder.p1, folder.p2);
 
             } else {
                 mostrarNotificacion(data.message || 'Error al eliminar carpeta.', true);
@@ -1145,13 +1199,27 @@ window.enviarAlertaFundicion = function (archivo, ot, btnEl) {
                         });
                     });
                 }
+
+                // Bloquear botón tras envío exitoso y cambiar a Verde
+                btnEl.disabled = true;
+                btnEl.style.pointerEvents = 'none';
+                btnEl.classList.add('btn-alerta-enviada', 'btn-alerta-disabled');
+                btnEl.title = 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)';
+                btnEl.removeAttribute('onclick');
+                btnEl.innerHTML = `<img src="${window.baseUrl}/images/enviando.png" style="filter: none !important;" alt="Alerta"><span>Correo Enviado</span>`;
             } else {
                 mostrarNotificacion(data.message || 'No se pudo enviar la alerta.', true);
+                btnEl.disabled = false;
+                btnEl.style.pointerEvents = 'auto';
+                btnEl.style.opacity = '1';
+                btnEl.innerHTML = originalContent;
             }
         })
-        .catch(() => mostrarNotificacion('Error de conexión al enviar alerta.', true))
-        .finally(() => {
+        .catch(() => {
+            mostrarNotificacion('Error de conexión al enviar alerta.', true);
             btnEl.disabled = false;
+            btnEl.style.pointerEvents = 'auto';
+            btnEl.style.opacity = '1';
             btnEl.innerHTML = originalContent;
         });
 };
@@ -1581,6 +1649,17 @@ function renderAlertasTable() {
                 `;
             }
 
+            const valEstados = Object.values(clasesEnviadas).filter(st => st !== 'vacio');
+            const hasPendingOrMod = valEstados.some(st => st === 'pendiente' || st === 'modificada');
+            const hasEnviadas = valEstados.some(st => st === 'enviada');
+            const isBtnDisabled = hasEnviadas && !hasPendingOrMod;
+
+            const btnDisabledAttr = isBtnDisabled ? 'disabled style="pointer-events: none;"' : '';
+            const btnTitle = isBtnDisabled ? 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)' : 'Enviar correo de alerta global';
+            const btnText = isBtnDisabled ? 'Correo Enviado' : 'Enviar Correo';
+            const btnClassExtra = isBtnDisabled ? 'btn-alerta-enviada btn-alerta-disabled' : '';
+            const btnOnClick = isBtnDisabled ? '' : `onclick="enviarAlertaFundicion(null, '${otName}', this)"`;
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="d-text-center d-text-primary"><strong>${otLabel}</strong></td>
@@ -1592,10 +1671,10 @@ function renderAlertasTable() {
                 </td>
                 <td class="d-text-center">
                     <div class="td-actions">
-                        <button class="btn-action-icon btn-alerta-fund" title="Enviar correo de alerta global"
-                            onclick="enviarAlertaFundicion(null, '${otName}', this)">
+                        <button class="btn-action-icon btn-alerta-fund ${btnClassExtra}" title="${btnTitle}"
+                            ${btnDisabledAttr} ${btnOnClick}>
                             <img src="${window.baseUrl}/images/enviando.png" alt="Alerta">
-                            <span>Enviar Correo</span>
+                            <span>${btnText}</span>
                         </button>
                     </div>
                 </td>

@@ -1058,6 +1058,34 @@ body {
     filter: none; /* Icono a color original en hover */
 }
 
+/* Estado Enviada (Verde) */
+.btn-alerta-fund.btn-alerta-enviada,
+.btn-alerta-fund:disabled,
+.btn-alerta-disabled {
+    background: #28a745 !important;
+    border-color: #1e7e34 !important;
+    color: #ffffff !important;
+    cursor: not-allowed !important;
+    opacity: 0.9 !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.btn-alerta-fund.btn-alerta-enviada img,
+.btn-alerta-fund:disabled img,
+.btn-alerta-disabled img {
+    filter: none !important;
+}
+
+.btn-alerta-fund.btn-alerta-enviada:hover,
+.btn-alerta-fund:disabled:hover,
+.btn-alerta-disabled:hover {
+    background: #28a745 !important;
+    color: #ffffff !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
 .btn-action-icon:active {
     transform: scale(0.9);
 }

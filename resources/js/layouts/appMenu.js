@@ -1,50 +1,68 @@
 import "../layouts/partials/messages.js";
 
-//Dar funcionalidad al bonton del menu
-let btn_open = document.querySelector(".open-menu"); //Obtenemos el elemento por su id.
-let nav = document.querySelector(".filter-opacity"); //Obtenemos el elemento por su id.
+function initAppMenu() {
+    let btn_open = document.querySelector(".open-menu");
+    let nav = document.querySelector(".filter-opacity");
+    let profileEl = document.getElementById("profile");
 
-// Crear la lista de rutas
-let profile = document.getElementById("profile").value;
-createMenu(profile);
-//Agregamos un evento al botón de abrir
-btn_open.addEventListener("click", function () {
-    if (nav.classList.contains("is-open")) {
-        nav.classList.remove("is-open");
-        nav.style.opacity = "0";
-        setTimeout(() => {
-            if (!nav.classList.contains("is-open")) {
-                nav.style.visibility = "hidden";
-            }
-        }, 250);
-    } else {
-        nav.classList.add("is-open");
-        nav.style.visibility = "visible";
-        nav.style.opacity = "1";
-    }
-});
+    if (!profileEl) return;
 
-// Cerrar al hacer clic fuera del menú
-nav.addEventListener("click", function (e) {
-    if (e.target === nav) {
-        nav.classList.remove("is-open");
-        nav.style.opacity = "0";
-        setTimeout(() => {
-            if (!nav.classList.contains("is-open")) {
-                nav.style.visibility = "hidden";
+    let profile = profileEl.value;
+    createMenu(profile);
+
+    if (btn_open && nav) {
+        btn_open.addEventListener("click", function () {
+            if (nav.classList.contains("is-open")) {
+                nav.classList.remove("is-open");
+                nav.style.opacity = "0";
+                setTimeout(() => {
+                    if (!nav.classList.contains("is-open")) {
+                        nav.style.visibility = "hidden";
+                    }
+                }, 250);
+            } else {
+                nav.classList.add("is-open");
+                nav.style.visibility = "visible";
+                nav.style.opacity = "1";
             }
-        }, 250);
+        });
+
+        nav.addEventListener("click", function (e) {
+            if (e.target === nav) {
+                nav.classList.remove("is-open");
+                nav.style.opacity = "0";
+                setTimeout(() => {
+                    if (!nav.classList.contains("is-open")) {
+                        nav.style.visibility = "hidden";
+                    }
+                }, 250);
+            }
+        });
     }
-});
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAppMenu);
+} else {
+    initAppMenu();
+}
 
 function createMenu(profile) {
+    let btn_open = document.querySelector(".open-menu");
     if (profile == 2) {
-        let btn_open = document.querySelector(".open-menu"); //Obtenemos el elemento por su id.
-        btn_open.style.opacity = "0"; //Cambiamos la opacidad del nav.
-        btn_open.style.pointerEvents = "none"; //Cambiamos la opacidad del nav.
+        if (btn_open) {
+            btn_open.style.opacity = "0";
+            btn_open.style.pointerEvents = "none";
+        }
     } else {
+        if (btn_open) {
+            btn_open.style.opacity = "1";
+            btn_open.style.pointerEvents = "auto";
+        }
         let routes = getRoutes(profile);
         let ul = document.querySelector(".nav-list");
+        if (!ul) return;
+        ul.innerHTML = "";
         ul.appendChild(createList(routes, false));
 
         // Determinar la sección principal preferida (Administración, Calidad, Almacén)

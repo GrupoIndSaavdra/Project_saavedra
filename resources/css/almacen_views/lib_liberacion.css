@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 /* ================================================================================
@@ -979,6 +979,11 @@
     background: #d97706 !important;
     border: 2px solid #b45309 !important;
     color: #ffffff !important;
+}
+.btn-calidad-email.cal-background-color-059669,
+.btn-calidad-email:disabled,
+.btn-calidad-email[disabled] {
+    border-color: #047857 !important;
 }
 .btn-calidad-email img {
     filter: brightness(0) invert(1) !important;

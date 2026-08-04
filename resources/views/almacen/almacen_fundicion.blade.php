@@ -657,9 +657,9 @@
                                                                         'ot' => $relRec->ot,
                                                                         'tipo' => 'dibujo',
                                                                         'origin' => 'dibujo',
+                                                                        'owner' => 'almacen',
                                                                     ];
                                                                     $dibujoBaseNames[] = $base;
-                                                                    break;
                                                                 }
                                                                 continue;
                                                             }
@@ -957,46 +957,48 @@
                                                                 $base = basename($relativePath);
 
                                                                 $fileLower = strtolower($relativePath);
-                                                                $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
-                                                                $hasKnownClass = false;
+                                                                $fileClasses = [];
                                                                 foreach ($knownClasses as $kc) {
                                                                     if (strpos($fileLower, $kc) !== false) {
-                                                                        $hasKnownClass = true;
-                                                                        break;
+                                                                        $fileClasses[] = $kc;
                                                                     }
                                                                 }
-                                                                if ($hasKnownClass) {
-                                                                    $matchesActive = false;
-                                                                    $matchesRejected = false;
-                                                                    foreach ($activeClassesForOt as $ac) {
-                                                                        if (strpos($fileLower, $ac) !== false) {
-                                                                            $matchesActive = true;
+                                                                if (!empty($fileClasses)) {
+                                                                    $hasInactiveClass = false;
+                                                                    foreach ($fileClasses as $fc) {
+                                                                        if (!in_array($fc, $activeClassesForOt) && !in_array($fc, $clasesRechazadas)) {
+                                                                            $hasInactiveClass = true;
                                                                             break;
                                                                         }
                                                                     }
-                                                                    foreach ($clasesRechazadas as $rc) {
-                                                                        if (strpos($fileLower, $rc) !== false) {
+                                                                    if ($hasInactiveClass) {
+                                                                        continue;
+                                                                    }
+
+                                                                    $matchesRejected = false;
+                                                                    foreach ($fileClasses as $fc) {
+                                                                        if (in_array($fc, $clasesRechazadas)) {
                                                                             $matchesRejected = true;
                                                                             break;
                                                                         }
                                                                     }
                                                                     if ($matchesRejected) {
                                                                         if (!in_array($base, $baseNames)) {
+                                                                            $relativePathWithPrefix = $prefix . $relativePath;
                                                                             $rechazadosOtros[] = [
-                                                                                'nombre' => $relativePath,
-                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'otro']),
+                                                                                'nombre' => $relativePathWithPrefix,
+                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePathWithPrefix, 'tipo' => 'otro', 'origin' => 'rechazado']),
                                                                                 'tipo' => 'otro',
                                                                                 'ot' => $otName,
+                                                                                'origin' => 'rechazado',
+                                                                                'owner' => $dirInfo['owner'],
                                                                             ];
                                                                             $baseNames[] = $base;
-                                                                            break;
                                                                         }
                                                                         continue;
                                                                     }
-                                                                    if (!$matchesActive)
-                                                                        continue;
                                                                 } else {
-                                                                    if (!$allowFileCrossOt($otName)) {
+                                                                    if ($otName !== $reg->ot) {
                                                                         continue;
                                                                     }
                                                                 }
@@ -1037,31 +1039,11 @@
                                                             }
                                                             if ($hasKnownClass) {
                                                                     $matchesActive = false;
-                                                                    $matchesRejected = false;
                                                                     foreach ($activeClassesForOt as $ac) {
                                                                         if (strpos($fileLower, $ac) !== false) {
                                                                             $matchesActive = true;
                                                                             break;
                                                                         }
-                                                                    }
-                                                                    foreach ($clasesRechazadas as $rc) {
-                                                                        if (strpos($fileLower, $rc) !== false) {
-                                                                            $matchesRejected = true;
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                    if ($matchesRejected) {
-                                                                        if (!in_array($base, $baseNames)) {
-                                                                            $rechazadosOtros[] = [
-                                                                                'nombre' => $relativePath,
-                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'otro']),
-                                                                                'tipo' => 'otro',
-                                                                                'ot' => $otName,
-                                                                            ];
-                                                                            $baseNames[] = $base;
-                                                                            break;
-                                                                        }
-                                                                        continue;
                                                                     }
                                                                     if (!$matchesActive)
                                                                         continue;
@@ -1073,10 +1055,10 @@
                                                             if (!in_array($base, $baseNames)) {
                                                                 $otrosArchivos[] = [
                                                                     'nombre' => $base,
-                                                                    'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $base, 'tipo' => 'liberacion']),
+                                                                    'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $base, 'tipo' => 'liberacion', 'origin' => 'aprobado']),
                                                                     'tipo' => 'liberacion',
                                                                     'ot' => $otName,
-                                                                    'origin' => '',
+                                                                    'origin' => 'aprobado',
                                                                     'owner' => 'calidad',
                                                                 ];
                                                                 $baseNames[] = $base;
@@ -1100,31 +1082,11 @@
                                                             }
                                                             if ($hasKnownClass) {
                                                                     $matchesActive = false;
-                                                                    $matchesRejected = false;
                                                                     foreach ($activeClassesForOt as $ac) {
                                                                         if (strpos($fileLower, $ac) !== false) {
                                                                             $matchesActive = true;
                                                                             break;
                                                                         }
-                                                                    }
-                                                                    foreach ($clasesRechazadas as $rc) {
-                                                                        if (strpos($fileLower, $rc) !== false) {
-                                                                            $matchesRejected = true;
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                    if ($matchesRejected) {
-                                                                        if (!in_array($base, $baseNames)) {
-                                                                            $rechazadosOtros[] = [
-                                                                                'nombre' => $relativePath,
-                                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'otro']),
-                                                                                'tipo' => 'otro',
-                                                                                'ot' => $otName,
-                                                                            ];
-                                                                            $baseNames[] = $base;
-                                                                            break;
-                                                                        }
-                                                                        continue;
                                                                     }
                                                                     if (!$matchesActive)
                                                                         continue;
@@ -1134,12 +1096,12 @@
                                                                 }
                                                             }
                                                             if (!in_array($base, $baseNames)) {
-                                                                $otrosArchivos[] = [
+                                                                $rechazadosOtros[] = [
                                                                     'nombre' => $base,
-                                                                    'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $base, 'tipo' => 'liberacion']),
+                                                                    'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $base, 'tipo' => 'liberacion', 'origin' => 'rechazado']),
                                                                     'tipo' => 'liberacion',
                                                                     'ot' => $otName,
-                                                                    'origin' => '',
+                                                                    'origin' => 'rechazado',
                                                                     'owner' => 'calidad',
                                                                 ];
                                                                 $baseNames[] = $base;
@@ -1965,7 +1927,7 @@
                                                                     $clasesParaEnvioJson = json_encode(array_values(array_unique($clasesParaEnvio)));
 
                                                                     $todasClasesEnviadas = $todasClasesProcesadas && !$poPendienteEnvio;
-                                                                    $isFullySubmitted = $targetReg->tiene_modelo || $todasClasesEnviadas;
+                                                                    $isFullySubmitted = $todasClasesEnviadas;
                                                                     $hideAllBtns = $isFullySubmitted ? 'display: none;' : '';
                                                                     $hideSendEmail = ($tienePreOrden && $poPendienteEnvio) ? '' : 'display: none;';
                                                                 @endphp

@@ -139,15 +139,13 @@ function updateAdminUI() {
         if (alertUploadNoFolder) alertUploadNoFolder.classList.toggle("hidden", existe);
         
         const fileFormGroup = uploadReadyContent ? uploadReadyContent.querySelector('.dibujos-form-group') : null;
-        if (fileFormGroup) fileFormGroup.classList.toggle("hidden", !existe);
+        if (fileFormGroup) fileFormGroup.classList.remove("hidden");
         
         const fileInput = document.getElementById('d-upload-file');
-        if (fileInput) fileInput.disabled = !existe;
 
         if (btnSubir) {
-            btnSubir.disabled = !existe;
-            btnSubir.classList.toggle("hidden", !existe);
-            btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2;
+            btnSubir.classList.remove("hidden");
+            if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
         }
 
         cargarArchivosEnPanel(p1, p2);

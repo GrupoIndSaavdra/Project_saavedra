@@ -130,11 +130,8 @@
                             Carpeta destino: <strong class="folder-label d-text-bold" class="text-primary">...</strong>
                         </p>
 
-                        <div id="alert-upload-no-folder" class="d-alert d-alert-warning d-mb-3"
-                            class="d-alert d-alert-warning custom-alert-warning" hidden>
-                            <strong class="text-danger">ACCIÓN REQUERIDA:</strong> La carpeta de destino aun no existe.<br>
-                            Para habilitar la subida de archivos, primero <strong class="text-danger">Crea la Carpeta</strong> utilizando el
-                            botón correspondiente en el panel izquierdo.
+                        <div id="alert-upload-no-folder" class="d-alert d-alert-info d-mb-3 custom-alert-info hidden">
+                            <strong class="text-primary">Nota:</strong> La carpeta de destino aun no existe en el servidor; se creará automáticamente al subir tus archivos PDF.
                         </div>
 
                         <div class="dibujos-form-group">
@@ -424,10 +421,19 @@
                                     </td>
                                     <td class="d-text-center">
                                         <div class="td-actions">
-                                            <button class="btn-action-icon btn-alerta-fund" title="Enviar correo de alerta global"
-                                                onclick="enviarAlertaFundicion(null, '{{ $otName }}', this)">
-                                                <img src="{{ asset('images/enviando.png') }}" alt="Alerta">
-                                                <span>Enviar Correo</span>
+                                            @php
+                                                $valEstados = collect($clasesEnviadas)->filter(fn($st) => $st !== 'vacio');
+                                                $hasPendingOrMod = $valEstados->contains(fn($st) => in_array($st, ['pendiente', 'modificada']));
+                                                $hasEnviadas = $valEstados->contains(fn($st) => $st === 'enviada');
+                                                $isBtnDisabled = $hasEnviadas && !$hasPendingOrMod;
+                                                $btnTitle = $isBtnDisabled ? 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)' : 'Enviar correo de alerta global';
+                                                $btnText = $isBtnDisabled ? 'Correo Enviado' : 'Enviar Correo';
+                                            @endphp
+                                            <button class="btn-action-icon btn-alerta-fund @if($isBtnDisabled) btn-alerta-enviada btn-alerta-disabled @endif"
+                                                title="{{ $btnTitle }}"
+                                                @if($isBtnDisabled) disabled style="pointer-events: none;" @else onclick="enviarAlertaFundicion(null, '{{ $otName }}', this)" @endif>
+                                                <img src="{{ asset('images/enviando.png') }}" alt="Alerta" style="filter: none !important;">
+                                                <span>{{ $btnText }}</span>
                                             </button>
                                         </div>
                                     </td>
@@ -534,7 +540,11 @@
         window.csrfToken = "{{ csrf_token() }}";
         window.estructura = @json($estructura);
 
-        window.todasLasOTs = {!! json_encode($todasLasOTs->map(fn($o) => ['id' => $o->id, 'moldura_nombre' => $o->moldura?->nombre])) !!};
+        window.todasLasOTs = {!! json_encode($todasLasOTs->map(fn($o) => [
+            'id' => $o->id, 
+            'moldura_nombre' => $o->moldura?->nombre,
+            'clases' => $o->clases->map(fn($c) => ['id' => $c->id, 'nombre' => $c->nombre])->values()
+        ])) !!};
         window.todasLasClases = {!! json_encode($todasLasClases->map(fn($c) => ['id' => $c->id, 'nombre' => $c->nombre])) !!};
         window.historiales = {!! json_encode($historiales) !!};
 
