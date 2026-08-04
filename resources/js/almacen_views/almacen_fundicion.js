@@ -363,8 +363,8 @@ window.abrirModalPreOrden = function (ot, clasesYaProcesadas = []) {
                                 cycle === 1
                                     ? "2.ª"
                                     : cycle === 2
-                                      ? "3.ª"
-                                      : `${cycle + 1}.ª`;
+                                        ? "3.ª"
+                                        : `${cycle + 1}.ª`;
                             window.predefinedCycleObs = `[${ordinal} vuelta — Ciclo R${cycle} de liberación de modelo y fabricación de casting]`;
                             const prefixDiv = document.getElementById(
                                 "po-observaciones-cycle-prefix",
@@ -418,8 +418,8 @@ window.abrirModalPreOrden = function (ot, clasesYaProcesadas = []) {
                             cycle === 1
                                 ? "2.ª"
                                 : cycle === 2
-                                  ? "3.ª"
-                                  : `${cycle + 1}.ª`;
+                                    ? "3.ª"
+                                    : `${cycle + 1}.ª`;
                         window.predefinedCycleObs = `[${ordinal} vuelta — Ciclo R${cycle} de liberación de modelo y fabricación de casting]`;
                         const prefixDiv = document.getElementById(
                             "po-observaciones-cycle-prefix",
@@ -991,34 +991,34 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
                 <h4 style="font-family:'Poppins',sans-serif;font-weight:700;color:#1e293b;font-size:1.05em;margin-top:10px;margin-bottom:12px;border-left:4px solid ${borderLeftColor};padding-left:8px;text-align:left;">${title}</h4>
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; justify-items: center; width: 100%;">
                     ${files
-                        .map((f, idx) => {
-                            const cleanName = f.nombre.split("/").pop();
-                            const ext = f.nombre.split(".").pop().toLowerCase();
-                            const esImg = [
-                                "png",
-                                "jpg",
-                                "jpeg",
-                                "gif",
-                                "webp",
-                                "bmp",
-                            ].includes(ext);
-                            const defaultIcon = esImg
-                                ? "galeria-shadow.png"
-                                : "pdf-view-shadow.png";
-                            const hoverIcon = esImg
-                                ? "galeria.png"
-                                : "pdf-view.png";
-                            const isConfirmacion = cleanName
-                                .toLowerCase()
-                                .includes("confirmacionmodelo");
-                            const shouldCheck = !(
-                                inputNameMode === "preorden" && isConfirmacion
-                            );
-                            const checkedAttr = shouldCheck ? "checked" : "";
-                            const checkedClass = shouldCheck
-                                ? "checked-card"
-                                : "";
-                            return `
+                .map((f, idx) => {
+                    const cleanName = f.nombre.split("/").pop();
+                    const ext = f.nombre.split(".").pop().toLowerCase();
+                    const esImg = [
+                        "png",
+                        "jpg",
+                        "jpeg",
+                        "gif",
+                        "webp",
+                        "bmp",
+                    ].includes(ext);
+                    const defaultIcon = esImg
+                        ? "galeria-shadow.png"
+                        : "pdf-view-shadow.png";
+                    const hoverIcon = esImg
+                        ? "galeria.png"
+                        : "pdf-view.png";
+                    const isConfirmacion = cleanName
+                        .toLowerCase()
+                        .includes("confirmacionmodelo");
+                    const shouldCheck = !(
+                        inputNameMode === "preorden" && isConfirmacion
+                    );
+                    const checkedAttr = shouldCheck ? "checked" : "";
+                    const checkedClass = shouldCheck
+                        ? "checked-card"
+                        : "";
+                    return `
                             <div class="dibujos-file-card ${colorClass} select-file-card ${checkedClass}" style="position: relative; width: 100%; max-width: 220px; display: inline-flex; flex-direction: column; align-items: center; text-align: center; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; background: #fff; padding: 10px; border: 1.5px solid #e2e8f0;">
                                 <div style="position: absolute; top: 10px; left: 10px; z-index: 10;">
                                     <input type="checkbox" name="${inputName}" value="${f.nombre}" ${checkedAttr} style="width: 20px; height: 20px; cursor: pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card', this.checked);">
@@ -1035,8 +1035,8 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
                                 </div>
                             </div>
                         `;
-                        })
-                        .join("")}
+                })
+                .join("")}
                 </div>
             </div>
         `;
@@ -2747,7 +2747,7 @@ async function _libSubmit(accion) {
                 );
                 const esRechazoPorDecision =
                     document.getElementById("lib-accion")?.value ===
-                        "rechazar" ||
+                    "rechazar" ||
                     (activeDecisionEl &&
                         activeDecisionEl.id === "lib-dec-rechazar");
                 // También detectar por la decisión enviada al servidor
@@ -3872,7 +3872,7 @@ window.cerrarModalEnviarScar = function () {
                         if (data.success) {
                             mostrarToast(
                                 data.message ||
-                                    "Alerta SCAR firmada enviada con éxito.",
+                                "Alerta SCAR firmada enviada con éxito.",
                             );
                             cerrarModalEnviarScar();
                             if (window.ModeloStateMachine) {
@@ -4293,8 +4293,8 @@ window.actualizarInputImpresiones = function (selectEl) {
     impInput.value = esNA
         ? "N/A"
         : impInput.value === "N/A"
-          ? ""
-          : impInput.value;
+            ? ""
+            : impInput.value;
     impInput.placeholder = esNA ? "N/A" : "Ej. 1";
     impInput.style.background = esNA ? "#f1f5f9" : "";
     impInput.style.color = esNA ? "#94a3b8" : "";
@@ -4722,8 +4722,8 @@ window._alFileChanged = function (inputId, textId, labelId) {
     const borderCol = isScar
         ? "#ef4444"
         : inputId.includes("-rech")
-          ? "#dc2626"
-          : "#059669";
+            ? "#dc2626"
+            : "#059669";
     let iconHtml = "";
     if (file.type.startsWith("image/")) {
         iconHtml = `
@@ -4821,8 +4821,8 @@ window.abrirModalEnviarAlertaLiberacion = function (
     document.getElementById("al-decision").value = isAlmacen
         ? "aprobar"
         : esMixto
-          ? "mixto"
-          : decision;
+            ? "mixto"
+            : decision;
     document.getElementById("al-tipo-modelo").value = [
         ...arrAprobados,
         ...(isAlmacen ? [] : arrRechazados),
@@ -4934,18 +4934,18 @@ window.abrirModalEnviarAlertaLiberacion = function (
     if (rowsA)
         rowsA.innerHTML = arrAprobados.length
             ? arrAprobados
-                  .map((t) =>
-                      _crearFilaUpload(t, "#059669", "#f0fdf4", false, baseUrl),
-                  )
-                  .join("")
+                .map((t) =>
+                    _crearFilaUpload(t, "#059669", "#f0fdf4", false, baseUrl),
+                )
+                .join("")
             : '<p style="font-size:0.8em;color:#64748b;font-style:italic;">Sin modelos aprobados.</p>';
     if (rowsR)
         rowsR.innerHTML = arrRechazados.length
             ? arrRechazados
-                  .map((t) =>
-                      _crearFilaUpload(t, "#dc2626", "#fef2f2", true, baseUrl),
-                  )
-                  .join("")
+                .map((t) =>
+                    _crearFilaUpload(t, "#dc2626", "#fef2f2", true, baseUrl),
+                )
+                .join("")
             : '<p style="font-size:0.8em;color:#64748b;font-style:italic;">Sin modelos rechazados.</p>';
     // Activar/desactivar inputs requeridos según la visibilidad de las columnas
     if (rowsA) {
@@ -5085,7 +5085,7 @@ window.abrirModalEnviarAlertaLiberacion = function (
                 if (d) d.value = dest;
             }
         })
-        .catch(() => {});
+        .catch(() => { });
     modal.classList.add("open");
     document.body.classList.add("modal-open");
 };
@@ -5156,7 +5156,7 @@ document
         if (missingFiles.length > 0) {
             almacenToast(
                 "Por favor, suba los archivos obligatorios: " +
-                    missingFiles.join(", "),
+                missingFiles.join(", "),
                 "error",
             );
             return;
@@ -5690,7 +5690,7 @@ window.abrirModalPreOrdenCasting = async function (ot) {
                             typeof poRecord.filas === "string"
                                 ? JSON.parse(poRecord.filas)
                                 : poRecord.filas;
-                    } catch (e) {}
+                    } catch (e) { }
                     pageObj.proveedor = poRecord.proveedor || "";
                     pageObj.observaciones = poRecord.observaciones || "";
                     pageObj.fecha_entrega = poRecord.fecha_entrega
@@ -6044,8 +6044,8 @@ function loadPocPage(pageNum) {
         const tr = document.createElement("tr");
         tr.style.borderBottom = "1px solid #e2e8f0";
         tr.style.transition = "background 0.2s ease";
-        tr.onmouseover = function() { tr.style.background = "#f8fafc"; };
-        tr.onmouseout = function() { tr.style.background = "#ffffff"; };
+        tr.onmouseover = function () { tr.style.background = "#f8fafc"; };
+        tr.onmouseout = function () { tr.style.background = "#ffffff"; };
         let tipoOpts = `<option value="">-- Tipo --</option>`;
         tiposModelo.forEach((t) => {
             const sel = fila.tipo_modelo === t ? "selected" : "";
@@ -6110,23 +6110,21 @@ function loadPocPage(pageNum) {
                         <select class="form-control poc-input-material" style="flex:1;font-size:0.88em; padding:6px 8px; border-radius:8px;" required onchange="handlePocMaterialChange(${pageNum},${idx},this)">
                             ${matOpts}
                         </select>
-                        ${
-                            materialFila &&
-                            !MATERIALES_CASTING_FIJOS.includes(materialFila) &&
-                            materialFila !== "Otro"
-                                ? `<button type="button" class="btn-eliminar-material-opcion" onclick="eliminarMaterialGlobal(${pageNum}, '${materialFila.replace(/'/g, "\\'")}')"
+                        ${materialFila &&
+                !MATERIALES_CASTING_FIJOS.includes(materialFila) &&
+                materialFila !== "Otro"
+                ? `<button type="button" class="btn-eliminar-material-opcion" onclick="eliminarMaterialGlobal(${pageNum}, '${materialFila.replace(/'/g, "\\'")}')"
                                 style="background:#fff;border:1px solid #cbd5e1;border-radius:6px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;flex-shrink:0;" title="Quitar de la lista de materiales">
                                 <img src="${getBaseUrl()}images/quitar.png" style="width:14px;height:14px;">
                                </button>`
-                                : ""
-                        }
+                : ""
+            }
                     </div>
                     <input type="text" class="poc-input-material-custom" placeholder="Especificar material..." style="display:none;margin-top:4px;padding:5px 8px;border:1.5px solid #0284c7;border-radius:8px;width:100%;font-family:'Poppins',sans-serif;font-size:0.88em;" onkeydown="handlePocMaterialCustomKey(${pageNum},${idx},event,this)" oninput="handlePocMaterialCustomInput(${pageNum},${idx},this)" onblur="handlePocMaterialCustomBlur(${pageNum},${idx},this)">
-                    ${
-                        limiteAlcanzado
-                            ? `<span class="poc-material-hint" style="font-size:0.72em;color:#f97316;margin-top:2px;display:block;">Límite de 7 materiales alcanzado.</span>`
-                            : ""
-                    }
+                    ${limiteAlcanzado
+                ? `<span class="poc-material-hint" style="font-size:0.72em;color:#f97316;margin-top:2px;display:block;">Límite de 7 materiales alcanzado.</span>`
+                : ""
+            }
                 </div>
             </td>
             <td style="padding:10px 8px;min-width:120px;">
@@ -7042,10 +7040,10 @@ window.cargarInputsCasting = function (ot, files) {
                         nameUpper.includes("DOCUMENTOS_APROBADOS/FDLDM/") &&
                         nameUpper.includes(
                             "F-CCL-LDM_" +
-                                c.toUpperCase() +
-                                "_" +
-                                sanitizedOt +
-                                "_APROBADO",
+                            c.toUpperCase() +
+                            "_" +
+                            sanitizedOt +
+                            "_APROBADO",
                         )
                     );
                 });
@@ -7226,10 +7224,10 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                         nameLower.includes("documentos_rechazados/fdrdm/") &&
                         filename.startsWith(
                             "rechazo_" +
-                                c.toLowerCase() +
-                                "_" +
-                                sanitizedOt +
-                                ".",
+                            c.toLowerCase() +
+                            "_" +
+                            sanitizedOt +
+                            ".",
                         )
                     );
                 });
@@ -7440,10 +7438,10 @@ window.quitarArchivoRechazo = function (ot, archivo, buttonEl) {
                             const sectionsHtml =
                                 window.generarHtmlCategorizadoCastingAprobados
                                     ? window.generarHtmlCategorizadoCastingAprobados(
-                                          filtrados,
-                                          otClean,
-                                          true,
-                                      )
+                                        filtrados,
+                                        otClean,
+                                        true,
+                                    )
                                     : "";
                             filesContainer.innerHTML =
                                 sectionsHtml ||
@@ -8072,7 +8070,7 @@ class FundicionChecklistCard {
                 this._data = data;
                 this._updateCard(this.root, data);
             }
-        } catch (_) {}
+        } catch (_) { }
     }
     _destroy() {
         clearInterval(this._pollTimer);
@@ -8198,3 +8196,214 @@ document.addEventListener("DOMContentLoaded", () => {
         setInterval(actualizarRelojSync, 5000);
     }
 });
+
+// ── REVISAR CAMBIOS PENDIENTES ────────────────────────────────────────────────
+let currentPendingOt = null;
+
+window.almacenRevisarCambios = function (ot) {
+    currentPendingOt = ot;
+    const url = window.almacenRoutes.pendingComparison + "?ot=" + encodeURIComponent(ot);
+
+    fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.has_pending) {
+                renderizarModalRevisarCambios(data.comparison, data.tipo_cambio);
+                const modal = document.getElementById("modalRevisarCambios");
+                modal.classList.add("open");
+                document.body.classList.add("modal-open");
+            } else {
+                almacenToast(data.message || "No hay cambios pendientes.", data.success ? "success" : "error");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            almacenToast("Error al obtener los cambios pendientes.", "error");
+        });
+};
+
+window.cerrarModalRevisarCambios = function () {
+    const modal = document.getElementById("modalRevisarCambios");
+    modal.classList.remove("open");
+    document.body.classList.remove("modal-open");
+    currentPendingOt = null;
+};
+
+window.almacenResolverCambios = function (action) {
+    if (!currentPendingOt) return;
+
+    let msg = action === 'reiniciar'
+        ? "¿Estás seguro de REINICIAR el proceso? Se borrarán los documentos aprobados/rechazados de esta OT."
+        : "¿Estás seguro de MANTENER el proceso? Se aplicarán las actualizaciones de los dibujos.";
+
+    if (!confirm(msg)) return;
+
+    fetch(window.almacenRoutes.resolveChanges, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+        },
+        body: JSON.stringify({ ot: currentPendingOt, action: action })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                almacenToast(data.message, "success");
+                cerrarModalRevisarCambios();
+                setTimeout(() => window.location.reload(), 1500);
+            } else {
+                almacenToast(data.message || "Error al resolver los cambios.", "error");
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            almacenToast("Error de conexión.", "error");
+        });
+};
+
+function renderizarModalRevisarCambios(comparisonData, tipoCambio) {
+    const container = document.getElementById('revisar-cambios-container');
+    const btnMantener = document.getElementById('btn-resolver-mantener');
+
+    const affectedClasses = comparisonData.map(item => item.clase).join(', ');
+    const baseUrl = window.baseUrl || window.location.origin + "/";
+    const pdfViewShadow = baseUrl.endsWith('/') ? baseUrl + 'images/pdf-view-shadow.png' : baseUrl + '/images/pdf-view-shadow.png';
+    const pdfView = baseUrl.endsWith('/') ? baseUrl + 'images/pdf-view.png' : baseUrl + '/images/pdf-view.png';
+
+    const isAdicion = tipoCambio === 'adicion';
+
+    if (btnMantener) {
+        btnMantener.textContent = isAdicion ? "Solo Agregar Dibujos" : "Solo Reemplazar Archivos";
+    }
+
+    let alertHtml = isAdicion
+        ? `<strong>¡Atención!</strong> Se agregaron nuevos Dibujos de Fundición para <strong>${affectedClasses}</strong>. <br><br>¿Deseas regresar el proceso desde el inicio o solo agregamos los dibujos nuevos al proceso?`
+        : `<strong>¡Atención!</strong> Se registraron cambios en Dibujos de Fundición y estos afectan al proceso de <strong>${affectedClasses}</strong>. <br><br>¿Deseas regresar el proceso desde el inicio o solo cambiamos los dibujos viejos por los nuevos?`;
+
+    let html = `
+        <div class="alm-alert alm-alert-warning alm-margin-bottom-20px alm-padding-15px alm-border-radius-8px" style="background-color: #fffbeb; border-left: 4px solid #f59e0b; color: #b45309;">
+            ${alertHtml}
+        </div>
+    `;
+
+    comparisonData.forEach(item => {
+        const itemIsAdicion = item.es_adicion || isAdicion;
+        const viejos = item.viejos || [];
+        const nuevos = item.nuevos || [];
+
+        if (itemIsAdicion) {
+            // CASO ADICIÓN: Mostrar solo la columna de Dibujos Nuevos Agregados
+            const agregadosList = (item.agregados && item.agregados.length > 0) ? item.agregados : nuevos;
+            html += `
+            <div class="alm-background-ffffff alm-border-radius-14px alm-padding-20px alm-margin-bottom-20px" style="border: 2px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+                <h4 class="alm-margin-top-0 alm-margin-bottom-15px alm-color-0f172a alm-font-size-1-15rem alm-border-bottom-2px-solid-0369a1 alm-padding-bottom-8px">
+                    Clase: <strong style="text-transform: capitalize; color: #0369a1;">${item.clase}</strong> <span style="font-size: 0.8em; color: #059669; font-weight: 700;">(Nuevo Dibujo Agregado)</span>
+                </h4>
+                <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
+                    <h5 class="alm-color-059669 alm-margin-0-0-10px-0" style="font-weight: 700;">Nuevos Dibujos Agregados</h5>
+                    ${agregadosList.map((n, index) => `
+                        <div class="dibujos-file-card card-dibujo" style="animation-delay: ${index * 0.05}s; border: 2px solid #10b981; background-color: #ecfdf5; border-left: 5px solid #10b981;">
+                            <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                <img src="${pdfViewShadow}" class="file-icon icon-default">
+                                <img src="${pdfView}" class="file-icon icon-hover">
+                            </div>
+                            <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="window.open('${n.url}', '_blank')">
+                                <div style="margin-bottom: 3px;">
+                                    <span style="font-size: 0.72em; font-weight: 700; background: #d1fae5; color: #047857; padding: 2px 8px; border-radius: 4px; border: 1px solid #a7f3d0;">NUEVO DIBUJO AGREGADO</span>
+                                </div>
+                                <strong>${n.nombre}</strong>
+                            </div>
+                            <div class="file-actions alm-flex-gap-5">
+                                <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #059669; color: white;" onclick="window.open('${n.url}', '_blank')">Ver</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            `;
+        } else {
+            // CASO REEMPLAZO: Mostrar 2 columnas (Actuales en Almacén vs Nuevos de Dibujos de Fundición)
+            const nuevosProcesados = nuevos.map((n, index) => {
+                const exactMatch = viejos.some(v => v.nombre.toLowerCase() === n.nombre.toLowerCase());
+                const posMatch = index < viejos.length;
+                const isReemplazo = exactMatch || posMatch;
+                return {
+                    ...n,
+                    isReemplazo: isReemplazo,
+                    theme: isReemplazo ? 'blue' : 'green'
+                };
+            });
+
+            html += `
+            <div class="alm-background-ffffff alm-border-radius-14px alm-padding-20px alm-margin-bottom-20px" style="border: 2px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+                <h4 class="alm-margin-top-0 alm-margin-bottom-15px alm-color-0f172a alm-font-size-1-15rem alm-border-bottom-2px-solid-0369a1 alm-padding-bottom-8px">
+                    Clase: <strong style="text-transform: capitalize; color: #0369a1;">${item.clase}</strong>
+                </h4>
+                <div class="alm-display-flex alm-gap-20px">
+                    <!-- Viejos (En Almacén) -->
+                    <div class="alm-flex-1">
+                        <h5 class="alm-color-64748b alm-margin-0-0-10px-0" style="font-weight: 700;">Actuales (En Almacén)</h5>
+                        <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
+                            ${viejos.length > 0 ? viejos.map((v, index) => `
+                                <div class="dibujos-file-card card-dibujo" style="animation-delay: ${index * 0.05}s; border: 2px solid #0284c7; background-color: #f0f9ff; border-left: 5px solid #0284c7;">
+                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                        <img src="${pdfViewShadow}" class="file-icon icon-default">
+                                        <img src="${pdfView}" class="file-icon icon-hover">
+                                    </div>
+                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="window.open('${v.url}', '_blank')">
+                                        <div style="margin-bottom: 3px;">
+                                            <span style="font-size: 0.72em; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; border: 1px solid #bae6fd;">DIBUJO EN ALMACÉN</span>
+                                        </div>
+                                        <strong>${v.nombre}</strong>
+                                    </div>
+                                    <div class="file-actions alm-flex-gap-5">
+                                        <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #0284c7; color: white;" onclick="window.open('${v.url}', '_blank')">Ver</button>
+                                    </div>
+                                </div>
+                            `).join('') : '<span class="alm-text-sm-gray">Sin archivos</span>'}
+                        </div>
+                    </div>
+                    <!-- Nuevos (De Dibujos de Fundición) -->
+                    <div class="alm-flex-1">
+                        <h5 class="alm-color-0369a1 alm-margin-0-0-10px-0" style="font-weight: 700;">Nuevos (De Programación)</h5>
+                        <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
+                            ${nuevosProcesados.length > 0 ? nuevosProcesados.map((n, index) => {
+                const isBlue = n.theme === 'blue';
+                const borderColor = isBlue ? '#0284c7' : '#10b981';
+                const bgColor = isBlue ? '#f0f9ff' : '#ecfdf5';
+                const badgeBg = isBlue ? '#e0f2fe' : '#d1fae5';
+                const badgeColor = isBlue ? '#0369a1' : '#047857';
+                const badgeBorder = isBlue ? '#bae6fd' : '#a7f3d0';
+                const badgeText = isBlue ? 'DIBUJO REEMPLAZADO' : 'NUEVO DIBUJO AGREGADO';
+                const btnColor = isBlue ? '#0284c7' : '#059669';
+                const textColor = isBlue ? '#0369a1' : '#047857';
+
+                return `
+                                <div class="dibujos-file-card card-dibujo" style="animation-delay: ${index * 0.05}s; border: 2px solid ${borderColor}; background-color: ${bgColor}; border-left: 5px solid ${borderColor};">
+                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                        <img src="${pdfViewShadow}" class="file-icon icon-default">
+                                        <img src="${pdfView}" class="file-icon icon-hover">
+                                    </div>
+                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="window.open('${n.url}', '_blank')">
+                                        <div style="margin-bottom: 3px;">
+                                            <span style="font-size: 0.72em; font-weight: 700; background: ${badgeBg}; color: ${badgeColor}; padding: 2px 8px; border-radius: 4px; border: 1px solid ${badgeBorder};">${badgeText}</span>
+                                        </div>
+                                        <strong style="color: ${textColor};">${n.nombre}</strong>
+                                    </div>
+                                    <div class="file-actions alm-flex-gap-5">
+                                        <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: ${btnColor}; color: white;" onclick="window.open('${n.url}', '_blank')">Ver</button>
+                                    </div>
+                                </div>
+                                `;
+            }).join('') : '<span class="alm-text-sm-gray">Sin archivos</span>'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            `;
+        }
+    });
+
+    container.innerHTML = html;
+}

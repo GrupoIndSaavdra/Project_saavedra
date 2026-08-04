@@ -529,8 +529,8 @@ class AlmacenFundicionController extends Controller
             $allFiles = $dibujos->merge($ayudas)->merge($generatedFiles)->values();
         }
 
-        $historyLatest = FundicionHistory::where('ot', '=', $ot)->first() ?: FundicionHistory::where('ot', 'LIKE', $baseOt . '%')->orderBy('id', 'desc')->first();
-        $preOrden = ($historyLatest && $historyLatest->ot) ? PreOrdenFundicion::where('ot', '=', $historyLatest->ot)->first() : null;
+        $historyLatest = FundicionHistory::where('ot', '=', $ot, 'and')->first() ?: FundicionHistory::where('ot', 'LIKE', $baseOt . '%', 'and')->orderBy('id', 'desc')->first();
+        $preOrden = ($historyLatest && $historyLatest->ot) ? PreOrdenFundicion::where('ot', '=', $historyLatest->ot, 'and')->first() : null;
         $fechaEntrega = $preOrden && $preOrden->fecha_entrega
             ? ($preOrden->fecha_entrega instanceof \DateTimeInterface
                 ? $preOrden->fecha_entrega->format('Y-m-d')
@@ -3324,5 +3324,132 @@ elseif (strpos($clLow, 'bombillo') !== false) $clasesNombres[] = 'Bombillo';
             \Log::error('Error en getPendingPreOrdenes: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Error interno: ' . $e->getMessage()]);
         }
+    }
+
+    public function getPendingChangesComparison(Request $request)
+    {
+        $this->verificarAcceso();
+        $ot = $request->input('ot');
+        if (!$ot) return response()->json(['success' => false, 'message' => 'Falta OT']);
+
+        $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
+        if (!$history) return response()->json(['success' => false, 'message' => 'No se encontró historial para la OT']);
+
+        $pending = is_array($history->pending_almacen_changes) ? $history->pending_almacen_changes : [];
+        if (empty($pending)) {
+            return response()->json(['success' => true, 'has_pending' => false]);
+        }
+
+        $comparison = [];
+        $isOverallAddition = true;
+
+        // Para cada clase con cambios, listamos sus dibujos actuales en Almacén (Viejos) y en Ingeniería (Nuevos)
+        foreach ($pending as $clase) {
+            $claseComparison = [
+                'clase' => $clase,
+                'viejos' => [],
+                'nuevos' => [],
+                'agregados' => [],
+                'es_adicion' => false
+            ];
+
+            $viejosNames = [];
+            // Viejos (Almacén)
+            $almacenDir = self::ALMACEN_DIR . '/' . $ot . '/' . $clase . '/' . FundicionPaths::DIBUJOS;
+            if (Storage::disk('local')->exists($almacenDir)) {
+                $files = Storage::disk('local')->files($almacenDir);
+                foreach ($files as $f) {
+                    if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
+                        $filename = basename($f);
+                        $viejosNames[] = $filename;
+                        $claseComparison['viejos'][] = [
+                            'nombre' => $filename,
+                            'url' => route('almacen.fundicion.serve', ['ot' => $ot, 'archivo' => $clase . '/' . FundicionPaths::DIBUJOS . '/' . $filename])
+                        ];
+                    }
+                }
+            }
+
+            $nuevosNames = [];
+            // Nuevos (Ingeniería)
+            $ingenieriaDir = \App\Http\Controllers\DibujosFundicionPdfController::BASE_DIR . '/' . $ot . '/' . $clase;
+            if (Storage::disk('local')->exists($ingenieriaDir)) {
+                $files = Storage::disk('local')->files($ingenieriaDir);
+                foreach ($files as $f) {
+                    if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
+                        $filename = basename($f);
+                        $nuevosNames[] = $filename;
+                        $item = [
+                            'nombre' => $filename,
+                            'url' => route('fundicion.serve', ['ot' => $ot, 'clase' => $clase, 'archivo' => $filename])
+                        ];
+                        $claseComparison['nuevos'][] = $item;
+                        if (!in_array($filename, $viejosNames)) {
+                            $claseComparison['agregados'][] = $item;
+                        }
+                    }
+                }
+            }
+
+            $removed = array_diff($viejosNames, $nuevosNames);
+            if (!empty($claseComparison['agregados']) && empty($removed) && !empty($viejosNames)) {
+                $claseComparison['es_adicion'] = true;
+            } else {
+                $isOverallAddition = false;
+            }
+
+            $comparison[] = $claseComparison;
+        }
+
+        return response()->json([
+            'success' => true,
+            'has_pending' => true,
+            'tipo_cambio' => ($isOverallAddition && count($comparison) > 0) ? 'adicion' : 'reemplazo',
+            'comparison' => $comparison
+        ]);
+    }
+
+    public function resolvePendingChanges(Request $request)
+    {
+        $this->verificarAcceso();
+        $ot = $request->input('ot');
+        $action = $request->input('action'); // 'reiniciar' o 'mantener'
+
+        if (!$ot || !in_array($action, ['reiniciar', 'mantener'])) {
+            return response()->json(['success' => false, 'message' => 'Parámetros inválidos']);
+        }
+
+        $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
+        if (!$history) return response()->json(['success' => false, 'message' => 'No se encontró historial para la OT']);
+
+        $pending = is_array($history->pending_almacen_changes) ? $history->pending_almacen_changes : [];
+        if (empty($pending)) {
+            return response()->json(['success' => true, 'message' => 'No hay cambios pendientes']);
+        }
+
+        if ($action === 'reiniciar') {
+            // El reset completo (borrar registros DB de PreOrden y Liberaciones, eliminar PDFs aprobados/rechazados y resetear flags) se realiza en copyToAlmacen con $resetFlags = true
+            \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, true);
+        } else {
+            // Solo reemplazar archivos manteniendo el avance del proceso
+            $history->pending_almacen_changes = null;
+
+            $enviadas = is_array($history->clases_enviadas) ? $history->clases_enviadas : [];
+            foreach ($pending as $clase) {
+                $newHash = \App\Http\Controllers\DibujosFundicionPdfController::computeClassHash($ot, $clase);
+                if ($newHash !== "") {
+                    $enviadas[$clase] = $newHash;
+                }
+            }
+            $history->clases_enviadas = $enviadas;
+            $history->save();
+
+            \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, false);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cambios aplicados exitosamente'
+        ]);
     }
 }

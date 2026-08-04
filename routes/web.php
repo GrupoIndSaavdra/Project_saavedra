@@ -430,6 +430,14 @@ Route::middleware(['auth'])->prefix('almacen/fundicion')->name('almacen.fundicio
     Route::get('/archivos', [\App\Http\Controllers\AlmacenFundicionController::class, 'getFiles'])
         ->name('archivos');
 
+    // API: Comparación de cambios pendientes
+    Route::get('/pending-comparison', [\App\Http\Controllers\AlmacenFundicionController::class, 'getPendingChangesComparison'])
+        ->name('pending_comparison');
+
+    // API: Resolver cambios pendientes
+    Route::post('/resolve-changes', [\App\Http\Controllers\AlmacenFundicionController::class, 'resolvePendingChanges'])
+        ->name('resolve_changes');
+
     // Servir PDF protegido desde el directorio aislado
     Route::get('/serve', [\App\Http\Controllers\AlmacenFundicionController::class, 'serveFile'])
         ->name('serve');

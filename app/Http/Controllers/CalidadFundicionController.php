@@ -13,7 +13,7 @@ use App\Models\ScarModelo;
 use App\Mail\LiberacionModeloMailable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+
 use Illuminate\Support\Facades\Log;
 use Normalizer;
 use Illuminate\Support\Facades\Storage;
@@ -465,8 +465,8 @@ class CalidadFundicionController extends Controller
             $allFiles = $dibujos->merge($ayudas)->merge($generatedFiles)->values();
         }
 
-        $historyLatest = FundicionHistory::where('ot', '=', $ot)->first() ?: FundicionHistory::where('ot', 'LIKE', $baseOt . '%')->orderBy('id', 'desc')->first();
-        $preOrden = ($historyLatest && $historyLatest->ot) ? PreOrdenFundicion::where('ot', '=', $historyLatest->ot)->first() : null;
+        $historyLatest = FundicionHistory::where('ot', '=', $ot, 'and')->first() ?: FundicionHistory::where('ot', 'LIKE', $baseOt . '%', 'and')->orderBy('id', 'desc')->first();
+        $preOrden = ($historyLatest && $historyLatest->ot) ? PreOrdenFundicion::where('ot', '=', $historyLatest->ot, 'and')->first() : null;
         $fechaEntrega = $preOrden && $preOrden->fecha_entrega 
             ? ($preOrden->fecha_entrega instanceof \DateTimeInterface 
                 ? $preOrden->fecha_entrega->format('Y-m-d') 

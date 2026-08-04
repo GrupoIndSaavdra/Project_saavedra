@@ -255,10 +255,11 @@ function updateAdminUI() {
         }
 
         // Visibilidad Alertas Izquierda
-        if (alertNotReady) alertNotReady.hidden = true;
-        if (alertReadyExists) alertReadyExists.classList.toggle("hidden", !existe);
-        if (alertReadyNotExists) alertReadyNotExists.classList.toggle("hidden", existe);
+        if (alertNotReady) { alertNotReady.removeAttribute('hidden'); alertNotReady.classList.toggle("hidden", true); }
+        if (alertReadyExists) { alertReadyExists.removeAttribute('hidden'); alertReadyExists.classList.toggle("hidden", !existe); }
+        if (alertReadyNotExists) { alertReadyNotExists.removeAttribute('hidden'); alertReadyNotExists.classList.toggle("hidden", existe); }
         if (btnCrear) {
+            btnCrear.removeAttribute('hidden');
             btnCrear.classList.toggle("hidden", existe);
             if (module === 'dibujos' || module === 'fundicion') { btnCrear.dataset.otId = otSel.value; btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
             else if (module === 'manuales') { btnCrear.dataset.proceso = p1; btnCrear.dataset.folderParam1 = p1; }
@@ -267,9 +268,9 @@ function updateAdminUI() {
         }
 
         // Visibilidad Panel Derecha (Subir)
-        if (uploadNotReadyContent) uploadNotReadyContent.hidden = true;
-        if (uploadReadyContent) uploadReadyContent.hidden = false;
-        if (alertUploadNoFolder) alertUploadNoFolder.classList.toggle("hidden", existe);
+        if (uploadNotReadyContent) { uploadNotReadyContent.removeAttribute('hidden'); uploadNotReadyContent.classList.toggle("hidden", true); }
+        if (uploadReadyContent) { uploadReadyContent.removeAttribute('hidden'); uploadReadyContent.classList.toggle("hidden", false); }
+        if (alertUploadNoFolder) { alertUploadNoFolder.removeAttribute('hidden'); alertUploadNoFolder.classList.toggle("hidden", existe); }
 
         const fileFormGroup = uploadReadyContent ? uploadReadyContent.querySelector('.dibujos-form-group') : null;
         if (fileFormGroup) fileFormGroup.classList.remove("hidden");
@@ -277,6 +278,7 @@ function updateAdminUI() {
         const fileInput = document.getElementById('d-upload-file');
 
         if (btnSubir) {
+            btnSubir.removeAttribute('hidden');
             btnSubir.classList.remove("hidden");
             if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
             else if (module === 'manuales') { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; }
@@ -291,13 +293,13 @@ function updateAdminUI() {
         }
     } else {
         if (panelFiles) panelFiles.classList.remove('active');
-        if (alertNotReady) alertNotReady.hidden = false;
-        if (alertReadyExists) alertReadyExists.hidden = true;
-        if (alertReadyNotExists) alertReadyNotExists.hidden = true;
-        if (btnCrear) btnCrear.hidden = true;
+        if (alertNotReady) { alertNotReady.removeAttribute('hidden'); alertNotReady.classList.toggle("hidden", false); }
+        if (alertReadyExists) { alertReadyExists.removeAttribute('hidden'); alertReadyExists.classList.toggle("hidden", true); }
+        if (alertReadyNotExists) { alertReadyNotExists.removeAttribute('hidden'); alertReadyNotExists.classList.toggle("hidden", true); }
+        if (btnCrear) { btnCrear.removeAttribute('hidden'); btnCrear.classList.toggle("hidden", true); }
 
-        if (uploadNotReadyContent) uploadNotReadyContent.hidden = false;
-        if (uploadReadyContent) uploadReadyContent.hidden = true;
+        if (uploadNotReadyContent) { uploadNotReadyContent.removeAttribute('hidden'); uploadNotReadyContent.classList.toggle("hidden", false); }
+        if (uploadReadyContent) { uploadReadyContent.removeAttribute('hidden'); uploadReadyContent.classList.toggle("hidden", true); }
     }
 }
 
@@ -351,6 +353,8 @@ function initCreateFolderBtn() {
                         updateAdminUI();
                         actualizarBadge(payload.param1, payload.param2);
                     });
+                    
+                    setTimeout(() => window.location.reload(), 1500);
                 } else {
                     mostrarNotificacion(data.message || 'No se pudo crear la carpeta.', true);
                 }
@@ -452,6 +456,8 @@ function initUploadBtn() {
             const p2 = (module === 'manuales') ? null : payload.param2;
 
             refreshPageDiscretely(p1, p2);
+            
+            setTimeout(() => window.location.reload(), 1500);
         }
     });
 }
@@ -609,6 +615,7 @@ window.eliminarPdf = function (nombreArchivo, param1, param2) {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Archivo eliminado correctamente.');
                 refreshPageDiscretely(param1, param2);
+                setTimeout(() => window.location.reload(), 1500);
             } else {
                 mostrarNotificacion(data.message || 'No se pudo eliminar el archivo.', true);
             }
@@ -644,6 +651,7 @@ function subirPdf(payload, file, btn, onSuccess) {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Archivo subido correctamente.');
                 refreshPageDiscretely(payload.param1, payload.param2);
+                setTimeout(() => window.location.reload(), 1500);
             } else {
                 mostrarNotificacion(data.message || 'No se pudo subir el archivo.', true);
             }
@@ -677,6 +685,7 @@ function reemplazarPdf(payload, file, btn, onSuccess) {
             if (data.success) {
                 mostrarNotificacion(data.message || 'Archivo reemplazado correctamente.');
                 refreshPageDiscretely(payload.param1, payload.param2);
+                setTimeout(() => window.location.reload(), 1500);
             } else {
                 mostrarNotificacion(data.message || 'No se pudo reemplazar.', true);
             }
