@@ -128,8 +128,8 @@
 </script>
 @isset($pieces_Released)
     <script>
-        window.pieces_Released = [1, 3, 4].includes({{ auth()->user()->perfil }}) ? @json($pieces_Released) : [];
-        window.info_Pieces = [1, 3, 4].includes({{ auth()->user()->perfil }}) ? @json($info_Pieces) : [];
+        window.pieces_Released = ({{ auth()->user()->perfil }} == 4 || ({{ auth()->user()->perfil }} == 3 && "{{ request('sec') }}" === "calidad")) ? @json($pieces_Released) : [];
+        window.info_Pieces = ({{ auth()->user()->perfil }} == 4 || ({{ auth()->user()->perfil }} == 3 && "{{ request('sec') }}" === "calidad")) ? @json($info_Pieces) : [];
     </script>
 @endisset
 

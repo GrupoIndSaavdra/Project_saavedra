@@ -868,7 +868,13 @@ class WOController extends Controller
             }
         }
 
-        [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
+        $userProfile = (int)(auth()->user()->perfil ?? 0);
+        if ($userProfile === 4 || ($userProfile === 3 && request('sec') === 'calidad')) {
+            [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
+        } else {
+            $pieces_Released = [];
+            $info_Pieces = [];
+        }
         $orderedOtIds = array_keys($wOInProgress);
 
         return view('pieces_views.piecesInProgress_view', compact(

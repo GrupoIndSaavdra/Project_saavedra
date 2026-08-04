@@ -214,7 +214,13 @@ class ProcessesController extends Controller
         }
 
 
-        [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
+        $userProfile = (int)(auth()->user()->perfil ?? 0);
+        if ($userProfile === 4 || ($userProfile === 3 && request('sec') === 'calidad')) {
+            [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
+        } else {
+            $pieces_Released = [];
+            $info_Pieces = [];
+        }
         return view('processes_views.cNominals_view', compact('workOrders', 'pieces_Released', 'info_Pieces'));
     }
         /**
