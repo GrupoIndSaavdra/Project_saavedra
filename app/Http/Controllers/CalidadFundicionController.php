@@ -2741,14 +2741,16 @@ class CalidadFundicionController extends Controller
         // Permitir un solo nivel de carpeta (ej: "Clase/archivo.pdf")
         // Bloquear .. y cualquier intento de subir de nivel
         $name = preg_replace('/\.\.+/', '', $name);
-        $name = preg_replace('/[^a-zA-Z0-9_\-\.\s\/]/', '_', $name); // Permitir /
-        return trim($name, '_.');
+        // Quitamos el preg_replace agresivo para permitir símbolos como () - _ etc.
+        $name = str_replace('\\', '/', $name); 
+        return trim($name);
     }
 
     private function sanitizeFileName(string $name): string
     {
-        $name = preg_replace('/\.\.+/', '', $name);
+        // Evitar path traversal
         $name = preg_replace('/[\/\\\\]/', '', $name);
+        $name = preg_replace('/\.\.+/', '', $name);
         return trim($name) ?: 'archivo.pdf';
     }
 

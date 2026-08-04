@@ -754,8 +754,10 @@ class DibujosPdfController extends Controller
     private function sanitizeFileName(string $name): string
     {
         // Evitar path traversal pero permitir acentos, paréntesis, espacios y otros caracteres seguros
-        $name = preg_replace('/[\/\\\\]/', '', $name);
+        // Solo prevenir directory traversal hacia arriba
         $name = preg_replace('/\.\.+/', '', $name);
+        // Normalizar slashes
+        $name = str_replace('\\', '/', $name);
         return trim($name) ?: 'archivo.pdf';
     }
 

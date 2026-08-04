@@ -1529,16 +1529,20 @@ class DibujosFundicionPdfController extends Controller
      */
     public static function sanitizePath(string $path): string
     {
+        // Solo prevenir directory traversal hacia arriba
         $path = preg_replace('/\.\.+/', '', $path);
-        $path = preg_replace('/[\/\\\\]/', '', $path);
+        // Normalizar slashes
+        $path = str_replace('\\', '/', $path);
         $path = trim($path);
         return $path;
     }
 
     private function sanitizeFileName(string $name): string
     {
-        $name = preg_replace('/[\/\\\\]/', '', $name);
+        // Solo prevenir directory traversal hacia arriba
         $name = preg_replace('/\.\.+/', '', $name);
+        // Normalizar slashes
+        $name = str_replace('\\', '/', $name);
         return trim($name) ?: 'archivo.pdf';
     }
 

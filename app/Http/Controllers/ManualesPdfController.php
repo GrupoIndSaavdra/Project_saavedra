@@ -575,8 +575,10 @@ class ManualesPdfController extends Controller
 
     private function sanitizeFileName(string $name): string
     {
-        $name = preg_replace('/[\/\\\\]/', '', $name);
+        // Solo prevenir directory traversal hacia arriba
         $name = preg_replace('/\.\.+/', '', $name);
+        // Normalizar slashes
+        $name = str_replace('\\', '/', $name);
         return trim($name) ?: 'archivo.pdf';
     }
 
