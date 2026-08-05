@@ -938,6 +938,24 @@
                                                         ['dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/Documentos_Rechazados', 'origin' => 'rechazado', 'prefix' => 'Documentos_Rechazados/', 'owner' => 'calidad'],
                                                     ];
 
+                                                    // --- NUEVO: ESCANEAR RUTAS DE PREORDENES FALTANTES ---
+                                                    $preOrdenesCandidates = [
+                                                        'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/preordenes',
+                                                        'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/preordenes',
+                                                        'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/Documentos_Aprobados/preordenes',
+                                                        'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/Documentos_Aprobados/preordenes',
+                                                        'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/ayudas_visuales/preordenes',
+                                                        'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/ayudas_visuales/preordenes/documentos_aprobados',
+                                                        'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/ayudas_visuales/preordenes/documentos_aprobados',
+                                                        'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/preordenes/documentos_aprobados',
+                                                        'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/preordenes/documentos_aprobados',
+                                                    ];
+
+                                                    foreach ($preOrdenesCandidates as $poDir) {
+                                                        $owner = strpos($poDir, 'ALMACEN_FUNDICION') !== false ? 'almacen' : 'calidad';
+                                                        $newDirs[] = ['dir' => $poDir, 'origin' => 'aprobado', 'prefix' => 'preordenes/', 'owner' => $owner];
+                                                    }
+
                                                     foreach ($newDirs as $dirInfo) {
                                                         $targetDir = $dirInfo['dir'];
                                                         $origin = $dirInfo['origin'];
@@ -1126,17 +1144,18 @@
                                                         strpos($nameLow, 'escaneado') !== false
                                                     );
 
-                                                    // Si el archivo es de Calidad y no es preorden ni confirmacion, ocultar hasta que se envie la alerta
-                                                    if ($archivo['owner'] === 'calidad' && !$isPreorden && strpos($nameLow, 'confirmacion') === false) {
+                                                    // Si el archivo es de Calidad y no es preorden ni confirmación, verificar estatus o inclusión en Documentos_Aprobados
+                                                    if ($archivo['owner'] === 'calidad' && !$isPreorden && strpos($nameLow, 'confirmacion') === false && strpos($nameLow, 'documentos_aprobados') === false) {
                                                         /** @var \App\Models\FundicionHistory|null $fileHistory */
                                                         $fileHistory = $relatedRecords->firstWhere('ot', $archivo['ot']);
-                                                        $status = $fileHistory ? $fileHistory->calidad_revision_status : null;
+                                                        $status = $targetReg->calidad_revision_status ?? ($fileHistory ? $fileHistory->calidad_revision_status : null);
                                                         $calidadAlertaEnviada = (
-                                                            in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']) ||
-                                                            \App\Models\ScarModelo::where('ot', '=', $archivo['ot'])->where('estatus', '=', 'alertado')->exists()
+                                                            in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado', 'aprobado', 'rechazado']) ||
+                                                            \App\Models\LiberacionModeloFundicion::where('ot', '=', $archivo['ot'])->orWhere('ot', '=', $targetReg->ot)->exists() ||
+                                                            \App\Models\ScarModelo::where('ot', '=', $archivo['ot'])->orWhere('ot', '=', $targetReg->ot)->exists()
                                                         );
-                                                        if (!$calidadAlertaEnviada) {
-                                                            continue; // Ocultar para todos los perfiles, incluidos Admin y Supervisor
+                                                        if (!$calidadAlertaEnviada && strpos($nameLow, 'documentos_aprobados') === false) {
+                                                            continue; // Ocultar si aún no hay veredicto ni es documento aprobado
                                                         }
                                                     }
 
@@ -1146,7 +1165,11 @@
                                                             if ($isPreorden) {
                                                                 /** @var \App\Models\FundicionHistory|null $fileHistory */
                                                                 $fileHistory = $relatedRecords->firstWhere('ot', $archivo['ot']);
-                                                                if (!$fileHistory || !$fileHistory->pre_orden_email_sent) {
+                                                                $hasPreorden = ($fileHistory && $fileHistory->pre_orden_email_sent)
+                                                                    || !empty($targetReg->pre_orden_sent)
+                                                                    || !empty($targetReg->pre_orden_email_sent)
+                                                                    || \App\Models\PreOrdenFundicion::where('ot', $archivo['ot'])->orWhere('ot', $targetReg->ot)->exists();
+                                                                if (!$hasPreorden && strpos($nameLow, 'documentos_aprobados') === false) {
                                                                     continue;
                                                                 }
                                                             }
@@ -1536,9 +1559,9 @@
                                                             $isCalidadAlerted = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'aprobado', 'rechazado', 'mixto', 'parcial', 'casting_aprobado']);
                                                             $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado');
 
-                                                            $tieneFabricacion = (count($clasesFabricacion) > 0 || $showControlCard) && !$castingEmailSent;
-                                                            $tieneAprobados = count($aprobados) > 0 && $isCalidadAlerted;
-                                                            $tieneRechazados = count($rechazados) > 0 && $isCalidadAlerted;
+                                                            $tieneFabricacion = (count($clasesFabricacion) > 0 || $showControlCard || count($dibujosModelo) > 0 || count($ayudasModelo) > 0) && !$castingEmailSent;
+                                                            $tieneAprobados = (count($aprobados) > 0 && $isCalidadAlerted) || (count($archivosAprobados) > 0 && !$tieneFabricacion) || count($dibujosCasting) > 0 || count($ayudasCasting) > 0;
+                                                            $tieneRechazados = (count($rechazados) > 0 && $isCalidadAlerted) || count($rechazadosOtros) > 0 || count($rechazadosDibujos) > 0 || count($rechazadosAyudas) > 0;
                                                         @endphp
 
                                                         {{-- CONTENEDOR PRINCIPAL PROCESOS (CONTENEDOR 0) --}}
@@ -1593,6 +1616,54 @@
                                                                                     </div>
                                                                                     <div class="file-actions">
                                                                                         <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">Ver</button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    @endif
+
+                                                                    {{-- Documentos / Pre-órdenes de Fabricación --}}
+                                                                    @if (count($archivosAprobados) > 0)
+                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #0284c7; font-weight: 700;">Documentos / Pre-órdenes de Fabricación</h4>
+                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                            @foreach ($archivosAprobados as $otroArchivo)
+                                                                                @php
+                                                                                    $canDelete = false;
+                                                                                    $fileOwner = $otroArchivo['owner'] ?? '';
+                                                                                    $fileNameLower = strtolower($otroArchivo['nombre']);
+                                                                                    if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
+                                                                                        $fileOwner = 'calidad';
+                                                                                    }
+                                                                                    $userPerfil = Auth::user()->perfil;
+                                                                                    $alertSent = false;
+                                                                                    if ($fileOwner === 'almacen') {
+                                                                                        $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
+                                                                                    } elseif ($fileOwner === 'calidad') {
+                                                                                        $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
+                                                                                    }
+                                                                                    if (!$alertSent) {
+                                                                                        if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
+                                                                                            $canDelete = true;
+                                                                                        } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
+                                                                                            $canDelete = true;
+                                                                                        } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
+                                                                                            $canDelete = true;
+                                                                                        }
+                                                                                    }
+                                                                                @endphp
+                                                                                <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
+                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                                    </div>
+                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                        {{ basename($otroArchivo['nombre']) }}
+                                                                                    </div>
+                                                                                    <div class="file-actions alm-flex-gap-5">
+                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-0284c7 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                        @if ($canDelete)
+                                                                                            <button class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                        @endif
                                                                                     </div>
                                                                                 </div>
                                                                             @endforeach

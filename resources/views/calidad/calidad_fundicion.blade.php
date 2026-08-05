@@ -1335,71 +1335,14 @@
                                                     $otSanitizada = preg_replace('/[^\w\s\-]/', '', $otName);
                                                     $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
                                                     if (file_exists($liberacionesPath)) {
-                                                        // Buscar LDM PDFs
+                                                        // Buscar LDM PDFs (aprobados y rechazados)
                                                         $ldmPattern = "{$liberacionesPath}/F-CCL-LDM_*_{$otSanitizada}*.pdf";
                                                         foreach (glob($ldmPattern) ?: [] as $f) {
                                                             $base = basename($f);
                                                             $fileLower = strtolower($base);
-                                                            $knownClasses = [
-                                                                'candado obturador',
-                                                                'cabeza de soplo',
-                                                                'obturador',
-                                                                'bombillo',
-                                                                'embudo',
-                                                                'corona',
-                                                                'plato',
-                                                                'molde',
-                                                                'fondo',
-                                                            ];
-                                                            $hasKnownClass = false;
-                                                            foreach ($knownClasses as $kc) {
-                                                                if (strpos($fileLower, $kc) !== false) {
-                                                                    $hasKnownClass = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if ($hasKnownClass) {
-                                                                $matchesActive = false;
-                                                                foreach ($activeClassesForOt as $ac) {
-                                                                    if (strpos($fileLower, $ac) !== false) {
-                                                                        $matchesActive = true;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                                if (!$matchesActive) {
-                                                                    continue;
-                                                            $foundClass = null;
-                                                            foreach ($knownClasses as $kc) {
-                                                                if (strpos($fileLower, $kc) !== false) {
-                                                                    $hasKnownClass = true;
-                                                                    $foundClass = $kc;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if ($hasKnownClass) {
-                                                                if (strpos($fileLower, 'rechazado') !== false && !in_array($foundClass, $clasesRechazadas)) {
-                                                                    continue;
-                                                                }
-                                                                if (strpos($fileLower, 'aprobado') !== false && !in_array($foundClass, $aprobados)) {
-                                                                    continue;
-                                                                }
-                                                                $matchesActive = false;
-                                                                foreach ($activeClassesForOt as $ac) {
-                                                                    if (strpos($fileLower, $ac) !== false) {
-                                                                        $matchesActive = true;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                                if (!$matchesActive) {
-                                                                    continue;
-                                                                }
-                                                            } else {
-                                                                if ($otName !== $reg->ot) {
-                                                                    continue;
-                                                                }
-                                                            }
                                                             if (!in_array($base, $baseNames)) {
-                                                                $origin = strpos($fileLower, 'rechazado') !== false ? 'rechazado' : 'aprobado';
+                                                                $isRechazado = strpos($fileLower, 'rechazado') !== false;
+                                                                $origin = $isRechazado ? 'rechazado' : 'aprobado';
                                                                 $itemData = [
                                                                     'nombre' => $base,
                                                                     'url' => route('calidad.fundicion.serve', [
@@ -1413,7 +1356,7 @@
                                                                     'origin' => $origin,
                                                                     'owner' => 'calidad',
                                                                 ];
-                                                                if ($origin === 'rechazado') {
+                                                                if ($isRechazado) {
                                                                     $rechazadosOtros[] = $itemData;
                                                                 } else {
                                                                     $otrosArchivos[] = $itemData;
@@ -1430,40 +1373,8 @@
                                                         );
                                                         foreach (array_unique($scarFiles) as $f) {
                                                             $base = basename($f);
-                                                            $fileLower = strtolower($base);
-                                                            $knownClasses = [
-                                                                'candado obturador',
-                                                                'cabeza de soplo',
-                                                                'obturador',
-                                                                'bombillo',
-                                                                'embudo',
-                                                                'corona',
-                                                                'plato',
-                                                                'molde',
-                                                                'fondo',
-                                                            ];
-                                                            $hasKnownClass = false;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if ($hasKnownClass) {
-                                                                $matchesActive = false;
-                                                                foreach ($activeClassesForOt as $ac) {
-                                                                    if (strpos($fileLower, $ac) !== false) {
-                                                                        $matchesActive = true;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                                if (!$matchesActive) {
-                                                                    continue;
-                                                                }
-                                                            } else {
-                                                                if ($otName !== $reg->ot) {
-                                                                    continue;
-                                                                }
-                                                            }
                                                             if (!in_array($base, $baseNames)) {
-                                                                $rechazadosOtros[] = [
+                                                                $itemData = [
                                                                     'nombre' => $base,
                                                                     'url' => route('calidad.fundicion.serve', [
                                                                         'ot' => $otName,
@@ -1476,6 +1387,7 @@
                                                                     'origin' => 'rechazado',
                                                                     'owner' => 'calidad',
                                                                 ];
+                                                                $rechazadosOtros[] = $itemData;
                                                                 $baseNames[] = $base;
                                                             }
                                                         }
@@ -1932,8 +1844,7 @@
                                                             Ver Archivos
                                                         </button>
                                                     @else
-                                                        <span class="d-text-subtle cal-font-size-0-85em">Sin
-                                                            archivos</span>
+                                                        <span class="d-text-subtle cal-font-size-0-85em">Sin archivos</span>
                                                     @endif
                                                 </td>
                                             </tr>
@@ -1942,513 +1853,278 @@
                                             @if ($hasFilesOrControl)
                                                 <tr class="alm-files-row" id="files-{{ $estado }}-{{ $loop->index }}">
                                                     <td colspan="6">
+                                                         @php
+                                                             $rechazadosDibujos = [];
+                                                             $rechazadosAyudas = [];
+                                                             $rechazadosOtros = [];
+                                                             foreach ($archivosRechazados as $rArchivo) {
+                                                                 $nameLow = strtolower($rArchivo['nombre']);
+                                                                 $ext = pathinfo($nameLow, PATHINFO_EXTENSION);
+                                                                 $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                                                 $rArchivo['ot'] = $rArchivo['ot'] ?? $targetReg->ot;
+                                                                 $rArchivo['tipo'] = $rArchivo['tipo'] ?? ($isImg ? 'imagen' : 'otro');
+                                                                 if (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
+                                                                     $rArchivo['tipo'] = $rArchivo['tipo'] === 'otro' ? 'ayuda' : $rArchivo['tipo'];
+                                                                     $rechazadosAyudas[] = $rArchivo;
+                                                                 } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
+                                                                     $rechazadosDibujos[] = $rArchivo;
+                                                                 } else {
+                                                                     $rechazadosOtros[] = $rArchivo;
+                                                                 }
+                                                             }
 
-                                                        @if ($tieneFabricacion)
-                                                            {-- CONTENEDOR 1: FABRICACIÓN / RE-PROCESO DE MODELO --}
-                                                            <div class="alm-process-block" style="margin-bottom: 25px; padding: 20px; border-radius: 14px; background-color: #f0f9ff; border: 2px solid #0284c7; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);">
-                                                                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
-                                                                    <h3 style="margin: 0; color: #0284c7; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                                                        <img src="{{ asset('images/almacen.png') }}" style="width: 24px; height: 24px;">
-                                                                        Etapa: Fabricación de Modelo ({{ implode(', ', array_map('ucfirst', $clasesFabricacion)) }})
-                                                                    </h3>
-                                                                    <span style="font-size: 0.8rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 6px; border: 1px solid #bae6fd;">
-                                                                        EN FABRICACIÓN / RE-PROCESO
-                                                                    </span>
-                                                                </div>
+                                                             // Documentos y Dibujos recibidos de Almacén (NUNCA se ocultan aunque 1 de 3 clases esté aprobada/rechazada)
+                                                             $allValidDibujos = $archivos;
+                                                             $allValidAyudas = $ayudasArchivos;
 
-                                                                {{-- BLOQUE 1: Dibujos solo visibles si la alerta fue enviada desde manage_documentation.js --}}
-                                                                @if ($countDibujos > 0)
-                                                                    <h4 style="margin-top: 10px; margin-bottom: 10px; color: #005194; font-weight: 700;">Dibujos de Fundición</h4>
-                                                                    <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
-                                                                        @foreach ($dibujosModelo as $archivoInfo)
-                                                                            <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                                                <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
-                                                                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
-                                                                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
-                                                                                </div>
-                                                                                <div class="file-name cal-cursor-pointer" title="Abrir PDF" onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
-                                                                                    {{ basename($archivoInfo['nombre']) }}
-                                                                                </div>
-                                                                                <div class="file-actions">
-                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">Ver</button>
-                                                                                </div>
-                                                                            </div>
-                                                                        @endforeach
-                                                                    </div>
-                                                                @elseif ($countDibujos > 0 && !$reg->alert_sent_at)
-                                                                    {{-- Dibujos existentes pero alerta aún no enviada desde Ingeniería --}}
-                                                                    <div class="cal-margin-top-15px cal-padding-14px-18px cal-background-rgba-0-81-148-0-06 cal-border-1-5px-dashed-005194 cal-border-radius-10px cal-color-005194 cal-font-size-0-93em">
-                                                                        <strong>Dibujos pendientes:</strong> Los dibujos estarán disponibles una vez que Ingeniería envíe la alerta oficial desde el sistema de gestión documental.
-                                                                    </div>
-                                                                @endif
+                                                             // Clasificar $archivosAprobados en Almacén (preórdenes/confirmaciones) vs Calidad (Formatos de Liberación Aprobados F-CCL-LDM)
+                                                             $almacenAprobadosDocs = [];
+                                                             $calidadAprobadosLdm = [];
 
-                                                                @if ($countAyudas > 0)
-                                                                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #9c0300; font-weight: 700;">Ayudas Visuales de Fundición</h4>
-                                                                    <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
-                                                                        @foreach ($ayudasModelo as $ayudaArchivo)
-                                                                            <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                                                <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
-                                                                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
-                                                                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
-                                                                                </div>
-                                                                                <div class="file-name cal-cursor-pointer" title="Abrir PDF" onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
-                                                                                    {{ basename($ayudaArchivo['nombre']) }}
-                                                                                </div>
-                                                                                <div class="file-actions">
-                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">Ver</button>
-                                                                                </div>
-                                                                            </div>
-                                                                        @endforeach
-                                                                    </div>
-                                                                @elseif (!empty($reg->ayudas_config))
-                                                                    <div class="cal-margin-top-20px cal-padding-15px cal-background-fff5f5 cal-border-1px-solid-feb2b2 cal-border-radius-8px cal-color-9c0300">
-                                                                        <strong>Aviso:</strong> Se han vinculado {{ count($reg->ayudas_config) }} clases de ayudas visuales, pero los archivos aún no se han sincronizado con {{ $deptName }}. Por favor, <strong>Vuelve a Vincular</strong> las ayudas desde la vista de administración.
-                                                                    </div>
-                                                                @endif
-                                                            </div>
-                                                        @endif
+                                                             foreach ($archivosAprobados as $doc) {
+                                                                 $baseLow = strtolower(basename($doc['nombre']));
+                                                                 if (strpos($baseLow, 'f-ccl-ldm') !== false || strpos($baseLow, 'liberacion') !== false) {
+                                                                     $calidadAprobadosLdm[] = $doc;
+                                                                 } else {
+                                                                     $almacenAprobadosDocs[] = $doc;
+                                                                 }
+                                                             }
 
-                                                        @php
-                                                            foreach ($archivosRechazados as $rArchivo) {
-                                                                $nameLow = strtolower($rArchivo['nombre']);
-                                                                $ext = pathinfo($nameLow, PATHINFO_EXTENSION);
-                                                                $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-                                                                $rArchivo['ot'] = $rArchivo['ot'] ?? $reg->ot;
-                                                                $rArchivo['tipo'] = $rArchivo['tipo'] ?? ($isImg ? 'imagen' : 'otro');
-                                                                if (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
-                                                                    $rArchivo['tipo'] = $rArchivo['tipo'] === 'otro' ? 'ayuda' : $rArchivo['tipo'];
-                                                                    $rechazadosAyudas[] = $rArchivo;
-                                                                } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
-                                                                    $rechazadosDibujos[] = $rArchivo;
-                                                                } else {
-                                                                    $rechazadosOtros[] = $rArchivo;
-                                                                }
-                                                            }
-                                                        @endphp
+                                                             $hasAlmacenGroup = (count($allValidDibujos) > 0 || count($allValidAyudas) > 0 || count($almacenAprobadosDocs) > 0);
+                                                             $hasAprobadosGroup = (count($calidadAprobadosLdm) > 0);
+                                                             $hasRechazadosGroup = (count($rechazadosDibujos) > 0 || count($rechazadosAyudas) > 0 || count($rechazadosOtros) > 0);
+                                                         @endphp
 
-                                                        @if (count($dibujosCasting) > 0 || count($ayudasCasting) > 0 || $countAprobados > 0 || count($rechazadosDibujos) > 0 || count($rechazadosAyudas) > 0 || count($rechazadosOtros) > 0 || (in_array(Auth::user()->perfil, [1, 2, 3, 4, '1', '2', '3', '4']) && $estado === 'activa'))
-                                                            {-- CONTENEDOR 2: PROCESO DE CASTING / MODELO APROBADO --}
-                                                            <div class="alm-process-block" style="margin-top: 30px; margin-bottom: 25px; padding: 20px; border-radius: 14px; background-color: #f8fafc; border: 2px solid #64748b; box-shadow: 0 4px 14px rgba(100, 116, 139, 0.08);">
-                                                                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #64748b; padding-bottom: 10px; margin-bottom: 15px;">
-                                                                    <h3 style="margin: 0; color: #475569; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                                                        <img src="{{ asset('images/Quality.png') }}" style="width: 24px; height: 24px;">
-                                                                        Etapa: Proceso de Casting / Modelo Aprobado
-                                                                    </h3>
-                                                                    <span style="font-size: 0.8rem; font-weight: 700; background: #f1f5f9; color: #475569; padding: 4px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
-                                                                        MODELOS APROBADOS
-                                                                    </span>
-                                                                </div>
+                                                         {{-- CONTENEDOR UNIFICADO DE CONTROL DE CALIDAD Y DOCUMENTACIÓN --}}
+                                                         <div class="alm-process-block" style="margin-bottom: 25px; padding: 22px; border-radius: 14px; background-color: #f8fafc; border: 2px solid #033966; box-shadow: 0 4px 14px rgba(3, 57, 102, 0.08);">
+                                                             <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #033966; padding-bottom: 10px; margin-bottom: 20px;">
+                                                                 <h3 style="margin: 0; color: #033966; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                                     <img src="{{ asset('images/Quality.png') }}" style="width: 24px; height: 24px;">
+                                                                     Etapa: Control de Calidad y Registro de Modelo de Fundición
+                                                                 </h3>
+                                                                 <span style="font-size: 0.8rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 6px; border: 1px solid #bae6fd;">
+                                                                     CONTROL Y LIBERACIÓN
+                                                                 </span>
+                                                             </div>
 
-                                                                {{-- BLOQUE 2: Dibujos Casting --}}
-                                                                @if (count($dibujosCasting) > 0)
-                                                                    <h4 style="margin-top: 10px; margin-bottom: 10px; color: #475569; font-weight: 700;">Dibujos de Fundición (Casting)</h4>
-                                                                    <div class="alm-pdf-grid" style="margin-bottom: 15px;">
-                                                                        @foreach ($dibujosCasting as $archivoInfo)
-                                                                            <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                                                <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
-                                                                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
-                                                                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
-                                                                                </div>
-                                                                                <div class="file-name cal-cursor-pointer" title="Abrir PDF" onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
-                                                                                    {{ basename($archivoInfo['nombre']) }}
-                                                                                </div>
-                                                                                <div class="file-actions">
-                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">Ver</button>
-                                                                                </div>
-                                                                            </div>
-                                                                        @endforeach
-                                                                    </div>
-                                                                @endif
+                                                             {{-- SUB-CONTENEDOR 1 (AZUL/NEUTRO SUPERIOR): DOCUMENTOS, DIBUJOS Y AYUDAS RECIBIDOS DE ALMACÉN --}}
+                                                             @if ($hasAlmacenGroup)
+                                                                 <div class="cal-subcontainer-almacen" style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #f0f9ff; border: 2px solid #0284c7; box-shadow: 0 3px 10px rgba(2, 132, 199, 0.08);">
+                                                                     <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bae6fd; padding-bottom: 8px; margin-bottom: 15px;">
+                                                                         <h4 style="margin: 0; color: #0369a1; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                                             <span style="font-size: 1.2rem;">📦</span> Documentos, Dibujos y Ayudas Visuales Aprobados por Almacén
+                                                                         </h4>
+                                                                         <span style="font-size: 0.75rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 3px 10px; border-radius: 6px; border: 1px solid #7dd3fc;">
+                                                                             DOCUMENTOS ALMACÉN
+                                                                         </span>
+                                                                     </div>
 
-                                                                {{-- BLOQUE 3: Ayudas Casting --}}
-                                                                @if (count($ayudasCasting) > 0)
-                                                                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #475569; font-weight: 700;">Ayudas Visuales (Casting)</h4>
-                                                                    <div class="alm-pdf-grid" style="margin-bottom: 15px;">
-                                                                        @foreach ($ayudasCasting as $ayudaArchivo)
-                                                                            <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                                                <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
-                                                                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
-                                                                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
-                                                                                </div>
-                                                                                <div class="file-name cal-cursor-pointer" title="Abrir PDF" onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
-                                                                                    {{ basename($ayudaArchivo['nombre']) }}
-                                                                                </div>
-                                                                                <div class="file-actions">
-                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">Ver</button>
-                                                                                </div>
-                                                                            </div>
-                                                                        @endforeach
-                                                                    </div>
-                                                                @endif
+                                                                     {{-- Dibujos de Fundición --}}
+                                                                     @if (count($allValidDibujos) > 0)
+                                                                         <h5 style="margin-top: 10px; margin-bottom: 10px; color: #0369a1; font-weight: 700; font-size: 0.95rem;">Dibujos de Fundición</h5>
+                                                                         <div class="alm-pdf-grid cal-background-color-f0f9ff cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bae6fd" style="margin-bottom: 15px;">
+                                                                             @foreach ($allValidDibujos as $archivoInfo)
+                                                                                 <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
+                                                                                     <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
+                                                                                         <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
+                                                                                         <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
+                                                                                     </div>
+                                                                                     <div class="file-name cal-cursor-pointer" title="Abrir PDF" onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
+                                                                                         {{ basename($archivoInfo['nombre']) }}
+                                                                                     </div>
+                                                                                     <div class="file-actions">
+                                                                                         <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-0369a1 cal-color-white" onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">Ver</button>
+                                                                                     </div>
+                                                                                 </div>
+                                                                             @endforeach
+                                                                         </div>
+                                                                     @endif
 
-                                                                {{-- BLOQUE 4: Renombrar sección a "Documentos Aprobados" --}}
-                                                                @if ($countAprobados > 0)
-                                                                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #155724; font-weight: 700;">Documentos Aprobados</h4>
+                                                                     {{-- Ayudas Visuales de Fundición --}}
+                                                                     @if (count($allValidAyudas) > 0)
+                                                                         <h5 style="margin-top: 15px; margin-bottom: 10px; color: #0369a1; font-weight: 700; font-size: 0.95rem;">Ayudas Visuales de Fundición</h5>
+                                                                         <div class="alm-pdf-grid cal-background-color-f0f9ff cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bae6fd" style="margin-bottom: 15px;">
+                                                                             @foreach ($allValidAyudas as $ayudaArchivo)
+                                                                                 <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
+                                                                                     <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
+                                                                                         <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
+                                                                                         <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
+                                                                                     </div>
+                                                                                     <div class="file-name cal-cursor-pointer" title="Abrir PDF" onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
+                                                                                         {{ basename($ayudaArchivo['nombre']) }}
+                                                                                     </div>
+                                                                                     <div class="file-actions">
+                                                                                         <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">Ver</button>
+                                                                                     </div>
+                                                                                 </div>
+                                                                             @endforeach
+                                                                         </div>
+                                                                     @endif
 
-                                                            <div
-                                                                class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0">
-                                                                @foreach ($archivosAprobados as $otroArchivo)
-                                                                    @php
-                                                                        $canDelete = false;
-                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
-                                                                        $fileNameLower = strtolower(
-                                                                            $otroArchivo['nombre'],
-                                                                        );
-                                                                        if (
-                                                                            strpos($fileNameLower, 'f-ccl-ldm') !==
-                                                                            false ||
-                                                                            strpos($fileNameLower, 'scar') !== false
-                                                                        ) {
-                                                                            $fileOwner = 'calidad';
-                                                                        }
-                                                                        $userPerfil = Auth::user()->perfil;
-                                                                        if (
-                                                                            $userPerfil == 1 ||
-                                                                            $userPerfil == 2 ||
-                                                                            $userPerfil == 3
-                                                                        ) {
-                                                                            $canDelete = true;
-                                                                        } elseif (
-                                                                            $userPerfil == 5 &&
-                                                                            $fileOwner === 'almacen'
-                                                                        ) {
-                                                                            if (
-                                                                                !$targetReg->pre_orden_email_sent &&
-                                                                                !$targetReg->pre_orden_sent
-                                                                            ) {
-                                                                                $canDelete = true;
-                                                                            }
-                                                                        } elseif (
-                                                                            ($userPerfil == 4 || $userPerfil == 3) &&
-                                                                            $fileOwner === 'calidad'
-                                                                        ) {
-                                                                            $canDelete = true;
-                                                                        }
-                                                                    @endphp
-                                                                    @if ($otroArchivo['tipo'] === 'imagen')
-                                                                        {{-- Tarjeta para imágenes (fotos de evidencia) --}}
-                                                                        <div class="dibujos-file-card card-otro card-imagen"
-                                                                            style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0369a1;">
-                                                                            <div class="file-icon-wrapper cal-cursor-pointer" title="Ver imagen">
-                                                                                <img src="{{ $otroArchivo['url'] }}"
-                                                                                    class="file-icon-img-thumb cal-width-100pct cal-height-80px cal-object-fit-cover cal-border-radius-6px cal-border-1px-solid-bae6fd" />
-                                                                            </div>
-                                                                            <div class="file-name cal-cursor-pointer" title="Ver imagen"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
-                                                                                {{ basename($otroArchivo['nombre']) }}
-                                                                            </div>
-                                                                            <div class="file-actions cal-display-flex cal-gap-5px">
-                                                                                <button
-                                                                                    class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-0369a1 cal-color-white"
-                                                                                    onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
-                                                                                    Ver
-                                                                                </button>
-                                                                                @if ($canDelete)
-                                                                                    <button
-                                                                                        class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                                                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">
-                                                                                        Eliminar
-                                                                                    </button>
-                                                                                @endif
-                                                                            </div>
-                                                                        </div>
-                                                                    @else
-                                                                        {{-- Tarjeta para PDFs y otros documentos --}}
-                                                                        <div class="dibujos-file-card card-otro"
-                                                                            style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
-                                                                            <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
-                                                                                <img src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                                    class="file-icon icon-default" />
-                                                                                <img src="{{ asset('images/pdf-view.png') }}"
-                                                                                    class="file-icon icon-hover" />
-                                                                            </div>
-                                                                            <div class="file-name cal-cursor-pointer" title="Abrir PDF"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                                {{ basename($otroArchivo['nombre']) }}
-                                                                            </div>
-                                                                            <div class="file-actions cal-display-flex cal-gap-5px">
-                                                                                <button
-                                                                                    class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-155724 cal-color-white"
-                                                                                    onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                                    Ver
-                                                                                </button>
-                                                                                @if ($canDelete)
-                                                                                    <button
-                                                                                        class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                                                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">
-                                                                                        Eliminar
-                                                                                    </button>
-                                                                                @endif
-                                                                            </div>
-                                                                        </div>
-                                                                    @endif
-                                                                @endforeach
-                                                            </div>
-                                                        @endif
+                                                                     {{-- Documentos Aprobados de Almacén --}}
+                                                                     @if (count($almacenAprobadosDocs) > 0)
+                                                                         <h5 style="margin-top: 15px; margin-bottom: 10px; color: #0369a1; font-weight: 700; font-size: 0.95rem;">Pre-Órdenes y Confirmaciones de Almacén</h5>
+                                                                         <div class="alm-pdf-grid cal-background-color-f0f9ff cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bae6fd">
+                                                                             @foreach ($almacenAprobadosDocs as $otroArchivo)
+                                                                                 @php
+                                                                                     $canDelete = false;
+                                                                                     $fileOwner = $otroArchivo['owner'] ?? '';
+                                                                                     $userPerfil = Auth::user()->perfil;
+                                                                                     if (in_array($userPerfil, [1, 2, 3, '1', '2', '3'])) {
+                                                                                         $canDelete = true;
+                                                                                     } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
+                                                                                         if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {
+                                                                                             $canDelete = true;
+                                                                                         }
+                                                                                     }
+                                                                                 @endphp
+                                                                                 <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
+                                                                                     <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
+                                                                                         <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
+                                                                                         <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
+                                                                                     </div>
+                                                                                     <div class="file-name cal-cursor-pointer" title="Abrir PDF" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                         {{ basename($otroArchivo['nombre']) }}
+                                                                                     </div>
+                                                                                     <div class="file-actions cal-display-flex cal-gap-5px">
+                                                                                         <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-0369a1 cal-color-white" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                         @if ($canDelete)
+                                                                                             <button class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                         @endif
+                                                                                     </div>
+                                                                                 </div>
+                                                                             @endforeach
+                                                                         </div>
+                                                                     @endif
+                                                                 </div>
+                                                             @endif
 
-                                                        {{-- BLOQUE 5.1: Dibujos Rechazados --}}
-                                                        @if (count($rechazadosDibujos) > 0)
-                                                            <h3
-                                                                class="cal-margin-top-25px cal-margin-bottom-10px cal-color-9c0300 cal-border-bottom-2px-solid-9c0300 cal-padding-bottom-5px">
-                                                                Dibujos Rechazados
-                                                            </h3>
+                                                             {{-- SUB-CONTENEDOR 2 (VERDECITO): FORMATO DE LIBERACIÓN DE MODELO - APROBADOS --}}
+                                                             @if ($hasAprobadosGroup)
+                                                                 <div class="cal-subcontainer-aprobados" style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #f0fdf4; border: 2px solid #22c55e; box-shadow: 0 3px 10px rgba(34, 197, 94, 0.08);">
+                                                                     <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bbf7d0; padding-bottom: 8px; margin-bottom: 15px;">
+                                                                         <h4 style="margin: 0; color: #15803d; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                                             <span style="font-size: 1.2rem;">✅</span> Formato de Liberación de Modelo (F-CCL-LDM) &mdash; Aprobados
+                                                                         </h4>
+                                                                         <span style="font-size: 0.75rem; font-weight: 700; background: #dcfce7; color: #15803d; padding: 3px 10px; border-radius: 6px; border: 1px solid #86efac;">
+                                                                             EN ORDEN / APROBADOS
+                                                                         </span>
+                                                                     </div>
 
-                                                            <div
-                                                                class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca">
-                                                                @foreach ($rechazadosDibujos as $otroArchivo)
-                                                                    @php
-                                                                        $canDelete = false;
-                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
-                                                                        $fileNameLower = strtolower(
-                                                                            $otroArchivo['nombre'],
-                                                                        );
-                                                                        if (
-                                                                            strpos($fileNameLower, 'f-ccl-ldm') !==
-                                                                            false ||
-                                                                            strpos($fileNameLower, 'scar') !== false
-                                                                        ) {
-                                                                            $fileOwner = 'calidad';
-                                                                        }
-                                                                        $userPerfil = Auth::user()->perfil;
-                                                                        if (
-                                                                            $userPerfil == 1 ||
-                                                                            $userPerfil == 2 ||
-                                                                            $userPerfil == 3
-                                                                        ) {
-                                                                            $canDelete = true;
-                                                                        } elseif (
-                                                                            $userPerfil == 5 &&
-                                                                            $fileOwner === 'almacen'
-                                                                        ) {
-                                                                            if (
-                                                                                !$targetReg->pre_orden_email_sent &&
-                                                                                !$targetReg->pre_orden_sent
-                                                                            ) {
-                                                                                $canDelete = true;
-                                                                            }
-                                                                        } elseif (
-                                                                            ($userPerfil == 4 || $userPerfil == 3) &&
-                                                                            $fileOwner === 'calidad'
-                                                                        ) {
-                                                                            $canDelete = true;
-                                                                        }
-                                                                    @endphp
-                                                                    <div class="dibujos-file-card card-otro"
-                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
-                                                                        <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir Archivo">
-                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                                class="file-icon icon-default" />
-                                                                            <img src="{{ asset('images/pdf-view.png') }}"
-                                                                                class="file-icon icon-hover" />
-                                                                        </div>
-                                                                        <div class="file-name cal-cursor-pointer"
-                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                            {{ basename($otroArchivo['nombre']) }}
-                                                                        </div>
-                                                                        <div class="file-actions cal-display-flex cal-gap-5px">
-                                                                            <button
-                                                                                class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                                Ver
-                                                                            </button>
-                                                                            @if ($canDelete)
-                                                                                <button
-                                                                                    class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">
-                                                                                    Eliminar
-                                                                                </button>
-                                                                            @endif
-                                                                        </div>
-                                                                    </div>
-                                                                @endforeach
-                                                            </div>
-                                                        @endif
+                                                                     <div class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0">
+                                                                         @foreach ($calidadAprobadosLdm as $otroArchivo)
+                                                                             @php
+                                                                                 $canDelete = false;
+                                                                                 $userPerfil = Auth::user()->perfil;
+                                                                                 if (in_array($userPerfil, [1, 2, 3, 4, '1', '2', '3', '4'])) {
+                                                                                     $canDelete = true;
+                                                                                 }
+                                                                             @endphp
+                                                                             <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
+                                                                                 <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
+                                                                                     <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
+                                                                                     <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
+                                                                                 </div>
+                                                                                 <div class="file-name cal-cursor-pointer" title="Abrir PDF" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                     {{ basename($otroArchivo['nombre']) }}
+                                                                                 </div>
+                                                                                 <div class="file-actions cal-display-flex cal-gap-5px">
+                                                                                     <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-155724 cal-color-white" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                     @if ($canDelete)
+                                                                                         <button class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                     @endif
+                                                                                 </div>
+                                                                             </div>
+                                                                         @endforeach
+                                                                     </div>
+                                                                 </div>
+                                                             @endif
 
-                                                        {{-- BLOQUE 5.2: Ayudas Visuales Rechazadas --}}
-                                                        @if (count($rechazadosAyudas) > 0)
-                                                            <h3
-                                                                class="cal-margin-top-25px cal-margin-bottom-10px cal-color-9c0300 cal-border-bottom-2px-solid-9c0300 cal-padding-bottom-5px">
-                                                                Ayudas Visuales
-                                                                Rechazadas
-                                                            </h3>
+                                                             {{-- SUB-CONTENEDOR 3 (ROJITO): FORMATO DE RECHAZO DE MODELO Y SCAR --}}
+                                                             @if ($hasRechazadosGroup)
+                                                                 <div class="cal-subcontainer-rechazados" style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #fef2f2; border: 2px solid #ef4444; box-shadow: 0 3px 10px rgba(239, 68, 68, 0.08);">
+                                                                     <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #fecaca; padding-bottom: 8px; margin-bottom: 15px;">
+                                                                         <h4 style="margin: 0; color: #991b1b; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                                             <span style="font-size: 1.2rem;">❌</span> Formato de Rechazo de Modelo y SCAR
+                                                                         </h4>
+                                                                         <span style="font-size: 0.75rem; font-weight: 700; background: #fee2e2; color: #991b1b; padding: 3px 10px; border-radius: 6px; border: 1px solid #fca5a5;">
+                                                                             RECHAZADOS / DESVIACIONES
+                                                                         </span>
+                                                                     </div>
 
-                                                            <div
-                                                                class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca">
-                                                                @foreach ($rechazadosAyudas as $otroArchivo)
-                                                                    @php
-                                                                        $canDelete = false;
-                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
-                                                                        $fileNameLower = strtolower(
-                                                                            $otroArchivo['nombre'],
-                                                                        );
-                                                                        if (
-                                                                            strpos($fileNameLower, 'f-ccl-ldm') !==
-                                                                            false ||
-                                                                            strpos($fileNameLower, 'scar') !== false
-                                                                        ) {
-                                                                            $fileOwner = 'calidad';
-                                                                        }
-                                                                        $userPerfil = Auth::user()->perfil;
-                                                                        if (
-                                                                            $userPerfil == 1 ||
-                                                                            $userPerfil == 2 ||
-                                                                            $userPerfil == 3
-                                                                        ) {
-                                                                            $canDelete = true;
-                                                                        } elseif (
-                                                                            $userPerfil == 5 &&
-                                                                            $fileOwner === 'almacen'
-                                                                        ) {
-                                                                            if (
-                                                                                !$targetReg->pre_orden_email_sent &&
-                                                                                !$targetReg->pre_orden_sent
-                                                                            ) {
-                                                                                $canDelete = true;
-                                                                            }
-                                                                        } elseif (
-                                                                            ($userPerfil == 4 || $userPerfil == 3) &&
-                                                                            $fileOwner === 'calidad'
-                                                                        ) {
-                                                                            $canDelete = true;
-                                                                        }
-                                                                    @endphp
-                                                                    @if ($otroArchivo['tipo'] === 'imagen')
-                                                                        <div class="dibujos-file-card card-otro card-imagen"
-                                                                            style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
-                                                                            <div class="file-icon-wrapper cal-cursor-pointer">
-                                                                                <img src="{{ $otroArchivo['url'] }}"
-                                                                                    class="file-icon-img-thumb cal-width-100pct cal-height-80px cal-object-fit-cover cal-border-radius-6px cal-border-1px-solid-fecaca" />
-                                                                            </div>
-                                                                            <div class="file-name cal-cursor-pointer"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
-                                                                                {{ basename($otroArchivo['nombre']) }}
-                                                                            </div>
-                                                                            <div class="file-actions cal-display-flex cal-gap-5px">
-                                                                                <button
-                                                                                    class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
-                                                                                    onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
-                                                                                    Ver
-                                                                                </button>
-                                                                                @if ($canDelete)
-                                                                                    <button
-                                                                                        class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                                                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">
-                                                                                        Eliminar
-                                                                                    </button>
-                                                                                @endif
-                                                                            </div>
-                                                                        </div>
-                                                                    @else
-                                                                        <div class="dibujos-file-card card-otro"
-                                                                            style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
-                                                                            <div class="file-icon-wrapper cal-cursor-pointer">
-                                                                                <img src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                                    class="file-icon icon-default" />
-                                                                                <img src="{{ asset('images/pdf-view.png') }}"
-                                                                                    class="file-icon icon-hover" />
-                                                                            </div>
-                                                                            <div class="file-name cal-cursor-pointer"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                                {{ basename($otroArchivo['nombre']) }}
-                                                                            </div>
-                                                                            <div class="file-actions cal-display-flex cal-gap-5px">
-                                                                                <button
-                                                                                    class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
-                                                                                    onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                                    Ver
-                                                                                </button>
-                                                                                @if ($canDelete)
-                                                                                    <button
-                                                                                        class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                                                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">
-                                                                                        Eliminar
-                                                                                    </button>
-                                                                                @endif
-                                                                            </div>
-                                                                        </div>
-                                                                    @endif
-                                                                @endforeach
-                                                            </div>
-                                                        @endif
+                                                                     @if (count($rechazadosDibujos) > 0)
+                                                                         <h5 style="margin-top: 10px; margin-bottom: 10px; color: #991b1b; font-weight: 700; font-size: 0.95rem;">Dibujos Rechazados</h5>
+                                                                         <div class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca" style="margin-bottom: 15px;">
+                                                                             @foreach ($rechazadosDibujos as $otroArchivo)
+                                                                                 <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                                     <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir Archivo">
+                                                                                         <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
+                                                                                         <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
+                                                                                     </div>
+                                                                                     <div class="file-name cal-cursor-pointer" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                         {{ basename($otroArchivo['nombre']) }}
+                                                                                     </div>
+                                                                                     <div class="file-actions cal-display-flex cal-gap-5px">
+                                                                                         <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                     </div>
+                                                                                 </div>
+                                                                             @endforeach
+                                                                         </div>
+                                                                     @endif
 
-                                                        {{-- BLOQUE 5.3: Otros Documentos Rechazados --}}
-                                                        @if (count($rechazadosOtros) > 0)
-                                                            <h3
-                                                                class="cal-margin-top-25px cal-margin-bottom-10px cal-color-9c0300 cal-border-bottom-2px-solid-9c0300 cal-padding-bottom-5px">
-                                                                Documentos
-                                                                Rechazados
-                                                            </h3>
+                                                                     @if (count($rechazadosAyudas) > 0)
+                                                                         <h5 style="margin-top: 15px; margin-bottom: 10px; color: #991b1b; font-weight: 700; font-size: 0.95rem;">Ayudas Visuales Rechazadas</h5>
+                                                                         <div class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca" style="margin-bottom: 15px;">
+                                                                             @foreach ($rechazadosAyudas as $otroArchivo)
+                                                                                 <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                                     <div class="file-icon-wrapper cal-cursor-pointer">
+                                                                                         <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
+                                                                                         <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
+                                                                                     </div>
+                                                                                     <div class="file-name cal-cursor-pointer" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                         {{ basename($otroArchivo['nombre']) }}
+                                                                                     </div>
+                                                                                     <div class="file-actions cal-display-flex cal-gap-5px">
+                                                                                         <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                     </div>
+                                                                                 </div>
+                                                                             @endforeach
+                                                                         </div>
+                                                                     @endif
 
-                                                            <div
-                                                                class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca">
-                                                                @foreach ($rechazadosOtros as $otroArchivo)
-                                                                    @php
-                                                                        $canDelete = false;
-                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
-                                                                        $fileNameLower = strtolower(
-                                                                            $otroArchivo['nombre'],
-                                                                        );
-                                                                        if (
-                                                                            strpos($fileNameLower, 'f-ccl-ldm') !==
-                                                                            false ||
-                                                                            strpos($fileNameLower, 'scar') !== false
-                                                                        ) {
-                                                                            $fileOwner = 'calidad';
-                                                                        }
-                                                                        $userPerfil = Auth::user()->perfil;
-                                                                        if (
-                                                                            $userPerfil == 1 ||
-                                                                            $userPerfil == 2 ||
-                                                                            $userPerfil == 3
-                                                                        ) {
-                                                                            $canDelete = true;
-                                                                        } elseif (
-                                                                            $userPerfil == 5 &&
-                                                                            $fileOwner === 'almacen'
-                                                                        ) {
-                                                                            if (
-                                                                                !$targetReg->pre_orden_email_sent &&
-                                                                                !$targetReg->pre_orden_sent
-                                                                            ) {
-                                                                                $canDelete = true;
-                                                                            }
-                                                                        } elseif (
-                                                                            ($userPerfil == 4 || $userPerfil == 3) &&
-                                                                            $fileOwner === 'calidad'
-                                                                        ) {
-                                                                            $canDelete = true;
-                                                                        }
-                                                                    @endphp
-                                                                    <div class="dibujos-file-card card-otro"
-                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
-                                                                        <div class="file-icon-wrapper cal-cursor-pointer">
-                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                                class="file-icon icon-default" />
-                                                                            <img src="{{ asset('images/pdf-view.png') }}"
-                                                                                class="file-icon icon-hover" />
-                                                                        </div>
-                                                                        <div class="file-name cal-cursor-pointer"
-                                                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                            {{ basename($otroArchivo['nombre']) }}
-                                                                        </div>
-                                                                        <div class="file-actions cal-display-flex cal-gap-5px">
-                                                                            <button
-                                                                                class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
-                                                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                                Ver
-                                                                            </button>
-                                                                            @if ($canDelete)
-                                                                                <button
-                                                                                    class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">
-                                                                                    Eliminar
-                                                                                </button>
-                                                                            @endif
-                                                                        </div>
-                                                                    </div>
-                                                                @endforeach
-                                                            </div>
-                                                        @endif
+                                                                     @if (count($rechazadosOtros) > 0)
+                                                                         <h5 style="margin-top: 15px; margin-bottom: 10px; color: #991b1b; font-weight: 700; font-size: 0.95rem;">Formatos de Rechazo, SCAR y Evidencias</h5>
+                                                                         <div class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca">
+                                                                             @foreach ($rechazadosOtros as $otroArchivo)
+                                                                                 @php
+                                                                                     $canDelete = false;
+                                                                                     $userPerfil = Auth::user()->perfil;
+                                                                                     if (in_array($userPerfil, [1, 2, 3, 4, '1', '2', '3', '4'])) {
+                                                                                         $canDelete = true;
+                                                                                     }
+                                                                                 @endphp
+                                                                                 <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                                                                     <div class="file-icon-wrapper cal-cursor-pointer">
+                                                                                         <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
+                                                                                         <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
+                                                                                     </div>
+                                                                                     <div class="file-name cal-cursor-pointer" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                         {{ basename($otroArchivo['nombre']) }}
+                                                                                     </div>
+                                                                                     <div class="file-actions cal-display-flex cal-gap-5px">
+                                                                                         <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white" onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                         @if ($canDelete)
+                                                                                             <button class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                         @endif
+                                                                                     </div>
+                                                                                 </div>
+                                                                             @endforeach
+                                                                         </div>
+                                                                     @endif
+                                                                 </div>
+                                                             @endif
+                                                         </div>
+                                                         
 
                                                         {{-- ── ACCIONES DE CALIDAD / ESTADOS DE LIBERACION ── --}}
                                                         @if (in_array(Auth::user()->perfil, [1, 2, 3, 4, '1', '2', '3', '4']) && $estado === 'activa')
@@ -2643,7 +2319,7 @@
                                                                     </div>
                                                                 </div>
                                                                 <div class="lib-calidad-card-body">
-                                                                    @if (in_array($targetReg->calidad_revision_status, ['rechazado', 'calidad_rechazado']))
+                                                                    @if (in_array($targetReg->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'calidad_parcial', 'rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto']))
                                                                         <div
                                                                             class="lib-estado-badge lib-estado-rechazado cal-padding-12px-16px cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px">
                                                                             <img src="{{ asset('images/Rechazado.png') }}" alt=""
@@ -3168,7 +2844,7 @@
                                                                     </div>
                                                                 @endif
                                                             </div>
-                                                        @endif
+                                                         @endif
                                                         @if (in_array(Auth::user()->perfil, [1, 2, 3, 4, '1', '2', '3', '4']) && $isQualityFinalized)
                                                             @php
                                                                 $libStatusClean = str_replace(
@@ -3177,17 +2853,7 @@
                                                                     $targetReg->calidad_revision_status,
                                                                 );
                                                             @endphp
-                                                            @if (
-                                                                    in_array($targetReg->calidad_revision_status, [
-                                                                        'aprobado',
-                                                                        'calidad_aprobado',
-                                                                        'calidad_parcial',
-                                                                        'rechazado',
-                                                                        'calidad_rechazado',
-                                                                        'mixto',
-                                                                        'calidad_mixto',
-                                                                    ])
-                                                                )
+                                                            @if (in_array($targetReg->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'calidad_parcial', 'rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto']))
                                                                 @php
                                                                     $liberacionesAll = \App\Models\LiberacionModeloFundicion::where(
                                                                         'ot',
@@ -3234,12 +2900,9 @@
                                                                 @endphp
                                                             @endif
                                                         @endif
-
-                                                            </div>
-                                                        @endif
+                                                    @endif
                                                     </td>
                                                 </tr>
-                                            @endif
                                         @endforeach
                                     </tbody>
                                 </table>
