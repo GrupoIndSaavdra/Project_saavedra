@@ -149,7 +149,7 @@ class ClassController extends Controller
         $class = Clase::query()->find($idClass, ['*']);
         $workOrder = Orden_trabajo::query()->find($class->id_ot, ['*']);
 
-        if (!in_array(auth()->user()->perfil, [1, 3, 5]) && $request->input('from_almacen') != 1) {
+        if (!in_array(auth()->user()->perfil, [5]) && $request->input('from_almacen') != 1) {
             $class->pedido = $request->input('order');
             $class->piezas = $request->input('pieces');
             $class->fecha_inicio = $request->input('start_date');
@@ -271,12 +271,14 @@ class ClassController extends Controller
         //Asignar los procesos por los que pasara la clase
         switch ($class->nombre) {
             case "Bombillo":
+                $processNames = array("cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado");
+                break;
             case "Molde":
-                $processNames = array("cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado");
+                $processNames = array("cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado");
                 break;
             case "Fondo":
             case "Obturador":
-                $processNames = array("soldadura", "soldaduraPTA", "operacionEquipo"); //Asigno los procesos.
+                $processNames = array("operacionEquipo", "soldadura", "soldaduraPTA"); //Asigno los procesos.
                 break;
             case "Corona":
                 $processNames = array("cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado");
@@ -296,7 +298,7 @@ class ClassController extends Controller
         }
 
         $process->id_clase = $class->id;
-        if (!in_array(auth()->user()->perfil, [1, 3, 5])) {
+        if (!in_array(auth()->user()->perfil, [5])) {
             //Inicializar los campos de los procesos en 0
             $fields = [
                 'cepillado',
@@ -328,8 +330,8 @@ class ClassController extends Controller
                 $process->$field = 0;
             }
         }
-        if ($dataProcess !== null || in_array(auth()->user()->perfil, [1, 3, 5])) {
-            if (in_array(auth()->user()->perfil, [1, 3, 5])) {
+        if ($dataProcess !== null || in_array(auth()->user()->perfil, [5])) {
+            if (in_array(auth()->user()->perfil, [5])) {
                 //Asignar los procesos a la clase
                 $noProcess = 0;
                 $processFounded = Procesos::query()->where('id_clase', '=', $class->id, 'and')->first();
@@ -646,10 +648,10 @@ class ClassController extends Controller
 
         switch ($clase->nombre) {
             case "Bombillo":
-                $procesos = ["cepillado", "desbaste", "revLaterales", "primeraOpeSoldadura", "barrenoManiobra", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoBombillo", "barrenoProfundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                $procesos = ["cepillado", "desbaste", "revLaterales", "primeraOpeSoldadura", "barrenoManiobra", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoBombillo", "barrenoProfundidad", "cavidades", "copiado", "offset", "palomas", "rebajes", "grabado"];
                 break;
             case "Molde":
-                $procesos = ["cepillado", "desbaste", "revLaterales", "primeraOpeSoldadura", "barrenoManiobra", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoMolde", "barrenoProfundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                $procesos = ["cepillado", "desbaste", "revLaterales", "primeraOpeSoldadura", "barrenoManiobra", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoMolde", "barrenoProfundidad", "cavidades", "copiado", "offset", "palomas", "rebajes", "grabado"];
                 break;
             case "Fondo":
             case "Obturador":
