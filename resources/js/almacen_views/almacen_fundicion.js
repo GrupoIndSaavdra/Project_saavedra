@@ -8208,7 +8208,7 @@ window.almacenRevisarCambios = function (ot) {
         .then(res => res.json())
         .then(data => {
             if (data.success && data.has_pending) {
-                renderizarModalRevisarCambios(data.comparison, data.tipo_cambio);
+                renderizarModalRevisarCambios(data.comparison, data.tipo_cambio, data.es_total, data.affected_clases_count);
                 const modal = document.getElementById("modalRevisarCambios");
                 modal.classList.add("open");
                 document.body.classList.add("modal-open");
@@ -8232,9 +8232,14 @@ window.cerrarModalRevisarCambios = function () {
 window.almacenResolverCambios = function (action) {
     if (!currentPendingOt) return;
 
-    let msg = action === 'reiniciar'
-        ? "¿Estás seguro de REINICIAR el proceso? Se borrarán los documentos aprobados/rechazados de esta OT."
-        : "¿Estás seguro de MANTENER el proceso? Se aplicarán las actualizaciones de los dibujos.";
+    let msg = "";
+    if (action === 'reiniciar_completo') {
+        msg = "¿Estás seguro de reiniciar el proceso completo de toda la OT? Se borrarán los avances y documentos de todas las clases.";
+    } else if (action === 'reiniciar_parcial' || action === 'reiniciar') {
+        msg = "¿Estás seguro de reiniciar el proceso para la(s) clase(s) afectada(s)? Se borrarán únicamente los avances y documentos de esta(s) clase(s).";
+    } else {
+        msg = "¿Estás seguro de mantener el proceso? Se actualizarán los dibujos conservando el avance actual.";
+    }
 
     if (!confirm(msg)) return;
 
@@ -8262,8 +8267,9 @@ window.almacenResolverCambios = function (action) {
         });
 };
 
-function renderizarModalRevisarCambios(comparisonData, tipoCambio) {
+function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affectedCount) {
     const container = document.getElementById('revisar-cambios-container');
+    const btnReiniciar = document.getElementById('btn-resolver-reiniciar');
     const btnMantener = document.getElementById('btn-resolver-mantener');
 
     const affectedClasses = comparisonData.map(item => item.clase).join(', ');
@@ -8272,6 +8278,19 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio) {
     const pdfView = baseUrl.endsWith('/') ? baseUrl + 'images/pdf-view.png' : baseUrl + '/images/pdf-view.png';
 
     const isAdicion = tipoCambio === 'adicion';
+
+    if (btnReiniciar) {
+        if (esTotal) {
+            btnReiniciar.textContent = "Reiniciar Proceso Completo de la OT";
+            btnReiniciar.setAttribute("onclick", "almacenResolverCambios('reiniciar_completo')");
+        } else {
+            const numClases = affectedCount || comparisonData.length;
+            btnReiniciar.textContent = numClases === 1
+                ? "Reiniciar Proceso Completo para esta Clase"
+                : "Reiniciar Proceso Completo para Clases Afectadas";
+            btnReiniciar.setAttribute("onclick", "almacenResolverCambios('reiniciar_parcial')");
+        }
+    }
 
     if (btnMantener) {
         btnMantener.textContent = isAdicion ? "Solo Agregar Dibujos" : "Solo Reemplazar Archivos";

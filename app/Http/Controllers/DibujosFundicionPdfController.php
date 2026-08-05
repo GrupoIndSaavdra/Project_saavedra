@@ -812,7 +812,7 @@ class DibujosFundicionPdfController extends Controller
         $emailsStr = config('services.almacen.email', 'almacentec@grupoindsaavedra.com');
         $emails = array_filter(array_map('trim', explode(',', $emailsStr)));
 
-        Mail::to($emails)->send(new DibujoFundicionAlertMail($otName, $fileName, $clasesAEnviar));
+        Mail::to($emails)->send(new DibujoFundicionAlertMail($otName, $fileName, $clasesAEnviar, !$isFirstTime));
     }
 
     /**
@@ -823,6 +823,7 @@ class DibujosFundicionPdfController extends Controller
      */
     public static function copyToAlmacen(string $otName, bool $resetFlags = true): void
     {
+        $otName = self::normalizeOTName($otName);
         $instance = new self();
         $srcDir = $instance->resolveCaseInsensitivePath(self::BASE_DIR . '/' . $otName);
         $dstDir = self::ALMACEN_DIR . '/' . $otName;

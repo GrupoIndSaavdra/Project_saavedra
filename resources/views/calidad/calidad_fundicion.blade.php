@@ -539,6 +539,9 @@
                                     <tbody id="alm-tbody-{{ $estado }}">
                                         @foreach ($registrosEstado as $reg)
                                             @php
+                                                $pendingChanges = is_string($reg->pending_almacen_changes) ? json_decode($reg->pending_almacen_changes, true) : ($reg->pending_almacen_changes ?? []);
+                                                $hasPendingChanges = !empty($pendingChanges);
+
                                                 $liberacionesReg = \App\Models\LiberacionModeloFundicion::where(
                                                     'ot',
                                                     $reg->ot,
@@ -1365,6 +1368,30 @@
                                                                 }
                                                                 if (!$matchesActive) {
                                                                     continue;
+                                                            $foundClass = null;
+                                                            foreach ($knownClasses as $kc) {
+                                                                if (strpos($fileLower, $kc) !== false) {
+                                                                    $hasKnownClass = true;
+                                                                    $foundClass = $kc;
+                                                                    break;
+                                                                }
+                                                            }
+                                                            if ($hasKnownClass) {
+                                                                if (strpos($fileLower, 'rechazado') !== false && !in_array($foundClass, $clasesRechazadas)) {
+                                                                    continue;
+                                                                }
+                                                                if (strpos($fileLower, 'aprobado') !== false && !in_array($foundClass, $aprobados)) {
+                                                                    continue;
+                                                                }
+                                                                $matchesActive = false;
+                                                                foreach ($activeClassesForOt as $ac) {
+                                                                    if (strpos($fileLower, $ac) !== false) {
+                                                                        $matchesActive = true;
+                                                                        break;
+                                                                    }
+                                                                }
+                                                                if (!$matchesActive) {
+                                                                    continue;
                                                                 }
                                                             } else {
                                                                 if ($otName !== $reg->ot) {
@@ -1372,19 +1399,25 @@
                                                                 }
                                                             }
                                                             if (!in_array($base, $baseNames)) {
-                                                                $otrosArchivos[] = [
+                                                                $origin = strpos($fileLower, 'rechazado') !== false ? 'rechazado' : 'aprobado';
+                                                                $itemData = [
                                                                     'nombre' => $base,
                                                                     'url' => route('calidad.fundicion.serve', [
                                                                         'ot' => $otName,
                                                                         'archivo' => $base,
                                                                         'tipo' => 'liberacion',
-                                                                        'origin' => 'aprobado',
+                                                                        'origin' => $origin,
                                                                     ]),
                                                                     'tipo' => 'liberacion',
                                                                     'ot' => $otName,
-                                                                    'origin' => 'aprobado',
+                                                                    'origin' => $origin,
                                                                     'owner' => 'calidad',
                                                                 ];
+                                                                if ($origin === 'rechazado') {
+                                                                    $rechazadosOtros[] = $itemData;
+                                                                } else {
+                                                                    $otrosArchivos[] = $itemData;
+                                                                }
                                                                 $baseNames[] = $base;
                                                             }
                                                         }
@@ -1410,9 +1443,6 @@
                                                                 'fondo',
                                                             ];
                                                             $hasKnownClass = false;
-                                                            foreach ($knownClasses as $kc) {
-                                                                if (strpos($fileLower, $kc) !== false) {
-                                                                    $hasKnownClass = true;
                                                                     break;
                                                                 }
                                                             }
@@ -1688,12 +1718,50 @@
                                                 }
                                                 // Filtrar por clases activas en esta versión de la OT (desde la pre-orden de modelo)
                                                 // (Ya calculado al inicio en activeClassesForOt)
-                                                $aprobados = array_filter($aprobadosRaw, function ($clase) use ($activeClassesForOt, ) {
+                                                $aprobados = array_filter($aprobadosRaw, function ($clase) use ($activeClassesForOt) {
                                                     return in_array(strtolower($clase), $activeClassesForOt);
                                                 });
-                                                $rechazados = array_filter($rechazadosRaw, function ($clase) use ($activeClassesForOt, ) {
+                                                $rechazados = array_filter($rechazadosRaw, function ($clase) use ($activeClassesForOt) {
                                                     return in_array(strtolower($clase), $activeClassesForOt);
                                                 });
+                                                $aprobadosNorm = array_map('strtolower', $aprobados);
+                                                $clasesFabricacion = array_values(array_diff($activeClassesForOt, $aprobadosNorm));
+                                                
+                                                $dibujosCasting = array_values(array_filter($archivos, function($d) use ($aprobadosNorm) {
+                                                    $nameLow = strtolower($d['nombre']);
+                                                    foreach ($aprobadosNorm as $ap) {
+                                                        if ($ap !== '' && strpos($nameLow, $ap) !== false) return true;
+                                                    }
+                                                    return false;
+                                                }));
+
+                                                $dibujosModelo = array_values(array_filter($archivos, function($d) use ($clasesFabricacion) {
+                                                    $nameLow = strtolower($d['nombre']);
+                                                    foreach ($clasesFabricacion as $cf) {
+                                                        if ($cf !== '' && strpos($nameLow, $cf) !== false) return true;
+                                                    }
+                                                    return false;
+                                                }));
+
+                                                $ayudasCasting = array_values(array_filter($ayudasArchivos, function($a) use ($aprobadosNorm) {
+                                                    $nameLow = strtolower($a['nombre']);
+                                                    foreach ($aprobadosNorm as $ap) {
+                                                        if ($ap !== '' && strpos($nameLow, $ap) !== false) return true;
+                                                    }
+                                                    return false;
+                                                }));
+
+                                                $ayudasModelo = array_values(array_filter($ayudasArchivos, function($a) use ($clasesFabricacion) {
+                                                    $nameLow = strtolower($a['nombre']);
+                                                    foreach ($clasesFabricacion as $cf) {
+                                                        if ($cf !== '' && strpos($nameLow, $cf) !== false) return true;
+                                                    }
+                                                    return false;
+                                                }));
+                                                
+                                                $countDibujos = count($dibujosModelo);
+                                                $countAyudas = count($ayudasModelo);
+                                                $tieneFabricacion = count($clasesFabricacion) > 0;
                                             @endphp
 
                                             {{-- Fila principal --}}
@@ -1852,7 +1920,12 @@
                                                     <span class="badge-pdf-count">{{ $count }}</span>
                                                 </td>
                                                 <td class="d-text-center">
-                                                    @if ($hasFilesOrControl)
+                                                     @if ($hasPendingChanges)
+                                                         <button class="btn-toggle-files" style="background: linear-gradient(135deg, #f97316, #ea580c); color: white; border: 1px solid #c2410c;"
+                                                             onclick="almacenRevisarCambios('{{ $reg->ot }}')">
+                                                             Revisar Cambios
+                                                         </button>
+                                                     @elseif ($hasFilesOrControl)
                                                         <button class="btn-toggle-files"
                                                             data-target="files-{{ $estado }}-{{ $loop->index }}" data-ot="{{ $reg->ot }}"
                                                             id="toggle-btn-{{ $estado }}-{{ $loop->index }}" aria-expanded="false">
@@ -1870,129 +1943,82 @@
                                                 <tr class="alm-files-row" id="files-{{ $estado }}-{{ $loop->index }}">
                                                     <td colspan="6">
 
-                                                        {{-- BLOQUE 1: Dibujos solo visibles si la alerta fue enviada desde
-                                                        manage_documentation.js
-                                                        --}}
-                                                        @if ($countDibujos > 0)
-                                                            <h3
-                                                                class="cal-margin-top-15px cal-margin-bottom-10px cal-color-005194 cal-border-bottom-2px-solid-005194 cal-padding-bottom-5px">
-                                                                Dibujos de Fundición
-                                                            </h3>
+                                                        @if ($tieneFabricacion)
+                                                            {-- CONTENEDOR 1: FABRICACIÓN / RE-PROCESO DE MODELO --}
+                                                            <div class="alm-process-block" style="margin-bottom: 25px; padding: 20px; border-radius: 14px; background-color: #f0f9ff; border: 2px solid #0284c7; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);">
+                                                                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
+                                                                    <h3 style="margin: 0; color: #0284c7; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                                        <img src="{{ asset('images/almacen.png') }}" style="width: 24px; height: 24px;">
+                                                                        Etapa: Fabricación de Modelo ({{ implode(', ', array_map('ucfirst', $clasesFabricacion)) }})
+                                                                    </h3>
+                                                                    <span style="font-size: 0.8rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 6px; border: 1px solid #bae6fd;">
+                                                                        EN FABRICACIÓN / RE-PROCESO
+                                                                    </span>
+                                                                </div>
 
-                                                            <div
-                                                                class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0">
-                                                                @foreach ($archivos as $archivoInfo)
-                                                                    <div class="dibujos-file-card"
-                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                                        <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
-                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                                class="file-icon icon-default" />
-                                                                            <img src="{{ asset('images/pdf-view.png') }}"
-                                                                                class="file-icon icon-hover" />
-                                                                        </div>
-                                                                        <div class="file-name cal-cursor-pointer" title="Abrir PDF"
-                                                                            onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
-                                                                            {{ basename($archivoInfo['nombre']) }}
-                                                                        </div>
-                                                                        <div class="file-actions">
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver"
-                                                                                onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
-                                                                                Ver
-                                                                            </button>
-                                                                        </div>
+                                                                {{-- BLOQUE 1: Dibujos solo visibles si la alerta fue enviada desde manage_documentation.js --}}
+                                                                @if ($countDibujos > 0)
+                                                                    <h4 style="margin-top: 10px; margin-bottom: 10px; color: #005194; font-weight: 700;">Dibujos de Fundición</h4>
+                                                                    <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        @foreach ($dibujosModelo as $archivoInfo)
+                                                                            <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                                                <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
+                                                                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
+                                                                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
+                                                                                </div>
+                                                                                <div class="file-name cal-cursor-pointer" title="Abrir PDF" onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
+                                                                                    {{ basename($archivoInfo['nombre']) }}
+                                                                                </div>
+                                                                                <div class="file-actions">
+                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">Ver</button>
+                                                                                </div>
+                                                                            </div>
+                                                                        @endforeach
                                                                     </div>
-                                                                @endforeach
-                                                            </div>
-                                                        @elseif ($countDibujos > 0 && !$reg->alert_sent_at)
-                                                            {{-- Dibujos existentes pero alerta aún no enviada desde Ingeniería --}}
-                                                            <div
-                                                                class="cal-margin-top-15px cal-padding-14px-18px cal-background-rgba-0-81-148-0-06 cal-border-1-5px-dashed-005194 cal-border-radius-10px cal-color-005194 cal-font-size-0-93em">
-                                                                <strong>Dibujos
-                                                                    pendientes:</strong>
-                                                                Los dibujos estarán
-                                                                disponibles una vez
-                                                                que Ingeniería envíe
-                                                                la alerta oficial
-                                                                desde el sistema de
-                                                                gestión documental.
+                                                                @elseif ($countDibujos > 0 && !$reg->alert_sent_at)
+                                                                    {{-- Dibujos existentes pero alerta aún no enviada desde Ingeniería --}}
+                                                                    <div class="cal-margin-top-15px cal-padding-14px-18px cal-background-rgba-0-81-148-0-06 cal-border-1-5px-dashed-005194 cal-border-radius-10px cal-color-005194 cal-font-size-0-93em">
+                                                                        <strong>Dibujos pendientes:</strong> Los dibujos estarán disponibles una vez que Ingeniería envíe la alerta oficial desde el sistema de gestión documental.
+                                                                    </div>
+                                                                @endif
+
+                                                                @if ($countAyudas > 0)
+                                                                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #9c0300; font-weight: 700;">Ayudas Visuales de Fundición</h4>
+                                                                    <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        @foreach ($ayudasModelo as $ayudaArchivo)
+                                                                            <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                                                <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
+                                                                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
+                                                                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
+                                                                                </div>
+                                                                                <div class="file-name cal-cursor-pointer" title="Abrir PDF" onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
+                                                                                    {{ basename($ayudaArchivo['nombre']) }}
+                                                                                </div>
+                                                                                <div class="file-actions">
+                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">Ver</button>
+                                                                                </div>
+                                                                            </div>
+                                                                        @endforeach
+                                                                    </div>
+                                                                @elseif (!empty($reg->ayudas_config))
+                                                                    <div class="cal-margin-top-20px cal-padding-15px cal-background-fff5f5 cal-border-1px-solid-feb2b2 cal-border-radius-8px cal-color-9c0300">
+                                                                        <strong>Aviso:</strong> Se han vinculado {{ count($reg->ayudas_config) }} clases de ayudas visuales, pero los archivos aún no se han sincronizado con {{ $deptName }}. Por favor, <strong>Vuelve a Vincular</strong> las ayudas desde la vista de administración.
+                                                                    </div>
+                                                                @endif
                                                             </div>
                                                         @endif
-                                                        @if ($countAyudas > 0)
-                                                            <h3
-                                                                class="cal-margin-top-25px cal-margin-bottom-10px cal-color-9c0300 cal-border-bottom-2px-solid-9c0300 cal-padding-bottom-5px">
-                                                                Ayudas Visuales de
-                                                                Fundición
-                                                            </h3>
 
-                                                            <div
-                                                                class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0">
-                                                                @foreach ($ayudasArchivos as $ayudaArchivo)
-                                                                    <div class="dibujos-file-card card-ayuda"
-                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                                        <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
-                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
-                                                                                class="file-icon icon-default" />
-                                                                            <img src="{{ asset('images/pdf-view.png') }}"
-                                                                                class="file-icon icon-hover" />
-                                                                        </div>
-                                                                        <div class="file-name cal-cursor-pointer" title="Abrir PDF"
-                                                                            onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
-                                                                            {{ basename($ayudaArchivo['nombre']) }}
-                                                                        </div>
-                                                                        <div class="file-actions">
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color"
-                                                                                onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
-                                                                                Ver
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                @endforeach
-                                                            </div>
-                                                        @elseif (!empty($reg->ayudas_config))
-                                                            <div
-                                                                class="cal-margin-top-20px cal-padding-15px cal-background-fff5f5 cal-border-1px-solid-feb2b2 cal-border-radius-8px cal-color-9c0300">
-                                                                <strong>Aviso:</strong>
-                                                                Se han vinculado {{ count($reg->ayudas_config) }} clases
-                                                                de ayudas visuales,
-                                                                pero los archivos
-                                                                aún no se han
-                                                                sincronizado con {{ $deptName }}.
-                                                                Por favor,
-                                                                <strong>Vuelve a
-                                                                    Vincular</strong>
-                                                                las ayudas desde la
-                                                                vista de
-                                                                administración.
-                                                            </div>
-                                                        @endif
                                                         @php
                                                             foreach ($archivosRechazados as $rArchivo) {
                                                                 $nameLow = strtolower($rArchivo['nombre']);
                                                                 $ext = pathinfo($nameLow, PATHINFO_EXTENSION);
-                                                                $isImg = in_array($ext, [
-                                                                    'jpg',
-                                                                    'jpeg',
-                                                                    'png',
-                                                                    'gif',
-                                                                    'webp',
-                                                                ]);
+                                                                $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
                                                                 $rArchivo['ot'] = $rArchivo['ot'] ?? $reg->ot;
-                                                                $rArchivo['tipo'] =
-                                                                    $rArchivo['tipo'] ?? ($isImg ? 'imagen' : 'otro');
-                                                                if (
-                                                                    strpos($nameLow, 'ayudas_visuales') !== false ||
-                                                                    strpos($nameLow, 'ayudas-visuales') !== false ||
-                                                                    $isImg
-                                                                ) {
-                                                                    $rArchivo['tipo'] =
-                                                                        $rArchivo['tipo'] === 'otro'
-                                                                        ? 'ayuda'
-                                                                        : $rArchivo['tipo'];
+                                                                $rArchivo['tipo'] = $rArchivo['tipo'] ?? ($isImg ? 'imagen' : 'otro');
+                                                                if (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
+                                                                    $rArchivo['tipo'] = $rArchivo['tipo'] === 'otro' ? 'ayuda' : $rArchivo['tipo'];
                                                                     $rechazadosAyudas[] = $rArchivo;
-                                                                } elseif (
-                                                                    strpos($nameLow, 'dibujos') !== false ||
-                                                                    strpos($nameLow, 'dibujo') !== false
-                                                                ) {
+                                                                } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
                                                                     $rechazadosDibujos[] = $rArchivo;
                                                                 } else {
                                                                     $rechazadosOtros[] = $rArchivo;
@@ -2000,12 +2026,64 @@
                                                             }
                                                         @endphp
 
-                                                        {{-- BLOQUE 4: Renombrar sección a "Documentos Aprobados" --}}
-                                                        @if ($countAprobados > 0)
-                                                            <h3
-                                                                class="cal-margin-top-25px cal-margin-bottom-10px cal-color-155724 cal-border-bottom-2px-solid-155724 cal-padding-bottom-5px">
-                                                                Documentos Aprobados
-                                                            </h3>
+                                                        @if (count($dibujosCasting) > 0 || count($ayudasCasting) > 0 || $countAprobados > 0 || count($rechazadosDibujos) > 0 || count($rechazadosAyudas) > 0 || count($rechazadosOtros) > 0 || (in_array(Auth::user()->perfil, [1, 2, 3, 4, '1', '2', '3', '4']) && $estado === 'activa'))
+                                                            {-- CONTENEDOR 2: PROCESO DE CASTING / MODELO APROBADO --}
+                                                            <div class="alm-process-block" style="margin-top: 30px; margin-bottom: 25px; padding: 20px; border-radius: 14px; background-color: #f8fafc; border: 2px solid #64748b; box-shadow: 0 4px 14px rgba(100, 116, 139, 0.08);">
+                                                                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #64748b; padding-bottom: 10px; margin-bottom: 15px;">
+                                                                    <h3 style="margin: 0; color: #475569; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                                        <img src="{{ asset('images/Quality.png') }}" style="width: 24px; height: 24px;">
+                                                                        Etapa: Proceso de Casting / Modelo Aprobado
+                                                                    </h3>
+                                                                    <span style="font-size: 0.8rem; font-weight: 700; background: #f1f5f9; color: #475569; padding: 4px 12px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                                                                        MODELOS APROBADOS
+                                                                    </span>
+                                                                </div>
+
+                                                                {{-- BLOQUE 2: Dibujos Casting --}}
+                                                                @if (count($dibujosCasting) > 0)
+                                                                    <h4 style="margin-top: 10px; margin-bottom: 10px; color: #475569; font-weight: 700;">Dibujos de Fundición (Casting)</h4>
+                                                                    <div class="alm-pdf-grid" style="margin-bottom: 15px;">
+                                                                        @foreach ($dibujosCasting as $archivoInfo)
+                                                                            <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                                                <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
+                                                                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
+                                                                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
+                                                                                </div>
+                                                                                <div class="file-name cal-cursor-pointer" title="Abrir PDF" onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">
+                                                                                    {{ basename($archivoInfo['nombre']) }}
+                                                                                </div>
+                                                                                <div class="file-actions">
+                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="calidadVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'dibujo')">Ver</button>
+                                                                                </div>
+                                                                            </div>
+                                                                        @endforeach
+                                                                    </div>
+                                                                @endif
+
+                                                                {{-- BLOQUE 3: Ayudas Casting --}}
+                                                                @if (count($ayudasCasting) > 0)
+                                                                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #475569; font-weight: 700;">Ayudas Visuales (Casting)</h4>
+                                                                    <div class="alm-pdf-grid" style="margin-bottom: 15px;">
+                                                                        @foreach ($ayudasCasting as $ayudaArchivo)
+                                                                            <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                                                <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir PDF">
+                                                                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default" />
+                                                                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover" />
+                                                                                </div>
+                                                                                <div class="file-name cal-cursor-pointer" title="Abrir PDF" onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">
+                                                                                    {{ basename($ayudaArchivo['nombre']) }}
+                                                                                </div>
+                                                                                <div class="file-actions">
+                                                                                    <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="calidadVerPdf('{{ $ayudaArchivo['ot'] }}', '{{ $ayudaArchivo['nombre'] }}', '{{ $ayudaArchivo['tipo'] }}')">Ver</button>
+                                                                                </div>
+                                                                            </div>
+                                                                        @endforeach
+                                                                    </div>
+                                                                @endif
+
+                                                                {{-- BLOQUE 4: Renombrar sección a "Documentos Aprobados" --}}
+                                                                @if ($countAprobados > 0)
+                                                                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #155724; font-weight: 700;">Documentos Aprobados</h4>
 
                                                             <div
                                                                 class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0">
@@ -3156,6 +3234,9 @@
                                                                 @endphp
                                                             @endif
                                                         @endif
+
+                                                            </div>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                             @endif
@@ -3575,6 +3656,36 @@
 
     {{-- ── MODAL: PRE-ORDEN DE CASTING (Almacén) ────────────────────── --}}
     @include ('almacen.partials._modal_preorden_casting')
+
+    <div id="modalRevisarCambios" class="alm-modal">
+        <div class="alm-modal-content alm-max-width-800px">
+            <div class="alm-modal-header">
+                <div class="div-cerrar">
+                    <button type="button" class="btn-cerrar" onclick="cerrarModalRevisarCambios()">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}">
+                    </button>
+                </div>
+                <h3>Cambios Pendientes en Dibujos de Fundición</h3>
+                <p class="lib-modal-subtitle alm-color-bae6fd alm-font-size-0-9em alm-margin-top-4px alm-margin-bottom-0">
+                    Se registraron cambios en Dibujos de Fundición. ¿Deseas reiniciar el proceso desde el inicio (borrando estados de Calidad actuales) o solo cambiar los dibujos viejos por los nuevos manteniendo el progreso de la OT?
+                </p>
+            </div>
+            <div class="alm-modal-body">
+                <div id="revisar-cambios-container" class="alm-display-flex alm-flex-direction-column alm-gap-15px">
+                    <!-- Contenido dinámico -->
+                </div>
+                <div class="alm-margin-top-20px alm-display-flex alm-gap-15px alm-justify-content-center">
+                    <button type="button" id="btn-resolver-reiniciar" class="btn-save-preorden alm-background-color-b91c1c alm-box-shadow-0-4px-15px-rgba-220-38-38-0-3" onclick="almacenResolverCambios('reiniciar')">
+                        Reiniciar Proceso Completo
+                    </button>
+                    <button type="button" id="btn-resolver-mantener" class="btn-save-preorden alm-background-linear-gradient-135deg-0a8504-064e03 alm-box-shadow-0-4px-15px-rgba-10-133-4-0-35" onclick="almacenResolverCambios('mantener')">
+                        Solo Reemplazar Archivos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         window.almacenRoutes = {
             archivos: "{{ route('calidad.fundicion.archivos') }}",
@@ -3593,6 +3704,8 @@
             iniciarCasting: "{{ route('almacen.fundicion.iniciarCasting') }}",
             procesarRechazos: "{{ route('almacen.fundicion.procesarRechazos') }}",
             confirmarRecepcionRechazo: "{{ route('almacen.fundicion.confirmarRecepcionRechazo') }}",
+            pendingComparison: "{{ route('almacen.fundicion.pending_comparison') }}",
+            resolveChanges: "{{ route('almacen.fundicion.resolve_changes') }}"
         };
         window.almacenAppAssets = {
             liberar: "{{ asset('images/Liberar.png') }}",
@@ -3604,5 +3717,253 @@
             revisando: "{{ asset('images/Revisando.png') }}",
             espera: "{{ asset('images/Espera.png') }}"
         };
+
+        // ── REVISAR CAMBIOS PENDIENTES (Calidad) ──
+        let currentPendingOt = null;
+
+        window.almacenRevisarCambios = function (ot) {
+            currentPendingOt = ot;
+            const url = window.almacenRoutes.pendingComparison + "?ot=" + encodeURIComponent(ot);
+
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.has_pending) {
+                        renderizarModalRevisarCambios(data.comparison, data.tipo_cambio, data.es_total, data.affected_clases_count);
+                        const modal = document.getElementById("modalRevisarCambios");
+                        modal.classList.add("open");
+                        document.body.classList.add("modal-open");
+                    } else {
+                        if (typeof almacenToast === 'function') {
+                            almacenToast(data.message || "No hay cambios pendientes.", data.success ? "success" : "error");
+                        } else {
+                            alert(data.message || "No hay cambios pendientes.");
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    if (typeof almacenToast === 'function') {
+                        almacenToast("Error al obtener los cambios pendientes.", "error");
+                    } else {
+                        alert("Error al obtener los cambios pendientes.");
+                    }
+                });
+        };
+
+        window.cerrarModalRevisarCambios = function () {
+            const modal = document.getElementById("modalRevisarCambios");
+            modal.classList.remove("open");
+            document.body.classList.remove("modal-open");
+            currentPendingOt = null;
+        };
+
+        window.almacenResolverCambios = function (action) {
+            if (!currentPendingOt) return;
+
+            let msg = "";
+            if (action === 'reiniciar_completo') {
+                msg = "¿Estás seguro de reiniciar el proceso completo de toda la OT? Se borrarán los avances y documentos de todas las clases.";
+            } else if (action === 'reiniciar_parcial' || action === 'reiniciar') {
+                msg = "¿Estás seguro de reiniciar el proceso para la(s) clase(s) afectada(s)? Se borrarán únicamente los avances y documentos de esta(s) clase(s).";
+            } else {
+                msg = "¿Estás seguro de mantener el proceso? Se actualizarán los dibujos conservando el avance actual.";
+            }
+
+            if (!confirm(msg)) return;
+
+            fetch(window.almacenRoutes.resolveChanges, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
+                },
+                body: JSON.stringify({ ot: currentPendingOt, action: action })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        if (typeof almacenToast === 'function') {
+                            almacenToast(data.message, "success");
+                        } else {
+                            alert(data.message);
+                        }
+                        cerrarModalRevisarCambios();
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        if (typeof almacenToast === 'function') {
+                            almacenToast(data.message || "Error al resolver los cambios.", "error");
+                        } else {
+                            alert(data.message || "Error al resolver los cambios.");
+                        }
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    if (typeof almacenToast === 'function') {
+                        almacenToast("Error de conexión.", "error");
+                    } else {
+                        alert("Error de conexión.");
+                    }
+                });
+        };
+
+        function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affectedCount) {
+            const container = document.getElementById('revisar-cambios-container');
+            const btnReiniciar = document.getElementById('btn-resolver-reiniciar');
+            const btnMantener = document.getElementById('btn-resolver-mantener');
+
+            const affectedClasses = comparisonData.map(item => item.clase).join(', ');
+            const baseUrl = window.baseUrl || window.location.origin + "/";
+            const pdfViewShadow = baseUrl.endsWith('/') ? baseUrl + 'images/pdf-view-shadow.png' : baseUrl + '/images/pdf-view-shadow.png';
+            const pdfView = baseUrl.endsWith('/') ? baseUrl + 'images/pdf-view.png' : baseUrl + '/images/pdf-view.png';
+
+            const isAdicion = tipoCambio === 'adicion';
+
+            if (btnReiniciar) {
+                if (esTotal) {
+                    btnReiniciar.textContent = "Reiniciar Proceso Completo de la OT";
+                    btnReiniciar.setAttribute("onclick", "almacenResolverCambios('reiniciar_completo')");
+                } else {
+                    const numClases = affectedCount || comparisonData.length;
+                    btnReiniciar.textContent = numClases === 1
+                        ? "Reiniciar Proceso Completo para esta Clase"
+                        : "Reiniciar Proceso Completo para Clases Afectadas";
+                    btnReiniciar.setAttribute("onclick", "almacenResolverCambios('reiniciar_parcial')");
+                }
+            }
+
+            if (btnMantener) {
+                btnMantener.textContent = isAdicion ? "Solo Agregar Dibujos" : "Solo Reemplazar Archivos";
+            }
+
+            let alertHtml = isAdicion
+                ? `<strong>¡Atención!</strong> Se agregaron nuevos Dibujos de Fundición para <strong>${affectedClasses}</strong>. <br><br>¿Deseas regresar el proceso desde el inicio o solo agregamos los dibujos nuevos al proceso?`
+                : `<strong>¡Atención!</strong> Se registraron cambios en Dibujos de Fundición y estos afectan al proceso de <strong>${affectedClasses}</strong>. <br><br>¿Deseas regresar el proceso desde el inicio o solo cambiamos los dibujos viejos por los nuevos?`;
+
+            let html = `
+                <div class="alm-alert alm-alert-warning alm-margin-bottom-20px alm-padding-15px alm-border-radius-8px" style="background-color: #fffbeb; border-left: 4px solid #f59e0b; color: #b45309;">
+                    ${alertHtml}
+                </div>
+            `;
+
+            comparisonData.forEach(item => {
+                const itemIsAdicion = item.es_adicion || isAdicion;
+                const viejos = item.viejos || [];
+                const nuevos = item.nuevos || [];
+
+                if (itemIsAdicion) {
+                    const agregadosList = (item.agregados && item.agregados.length > 0) ? item.agregados : nuevos;
+                    html += `
+                    <div class="alm-background-ffffff alm-border-radius-14px alm-padding-20px alm-margin-bottom-20px" style="border: 2px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+                        <h4 class="alm-margin-top-0 alm-margin-bottom-15px alm-color-0f172a alm-font-size-1-15rem alm-border-bottom-2px-solid-0369a1 alm-padding-bottom-8px">
+                            Clase: <strong style="text-transform: capitalize; color: #0369a1;">${item.clase}</strong> <span style="font-size: 0.8em; color: #059669; font-weight: 700;">(Nuevo Dibujo Agregado)</span>
+                        </h4>
+                        <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
+                            <h5 class="alm-color-059669 alm-margin-0-0-10px-0" style="font-weight: 700;">Nuevos Dibujos Agregados</h5>
+                            ${agregadosList.map((n, index) => `
+                                <div class="dibujos-file-card card-dibujo" style="animation-delay: ${index * 0.05}s; border: 2px solid #10b981; background-color: #ecfdf5; border-left: 5px solid #10b981;">
+                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                        <img src="${pdfViewShadow}" class="file-icon icon-default">
+                                        <img src="${pdfView}" class="file-icon icon-hover">
+                                    </div>
+                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="window.open('${n.url}', '_blank')">
+                                        <div style="margin-bottom: 3px;">
+                                            <span style="font-size: 0.72em; font-weight: 700; background: #d1fae5; color: #047857; padding: 2px 8px; border-radius: 4px; border: 1px solid #a7f3d0;">NUEVO DIBUJO AGREGADO</span>
+                                        </div>
+                                        <strong>${n.nombre}</strong>
+                                    </div>
+                                    <div class="file-actions alm-flex-gap-5">
+                                        <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #059669; color: white;" onclick="window.open('${n.url}', '_blank')">Ver</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    `;
+                } else {
+                    const nuevosProcesados = nuevos.map((n, index) => {
+                        const exactMatch = viejos.some(v => v.nombre.toLowerCase() === n.nombre.toLowerCase());
+                        const posMatch = index < viejos.length;
+                        const isReemplazo = exactMatch || posMatch;
+                        return {
+                            ...n,
+                            isReemplazo: isReemplazo,
+                            theme: isReemplazo ? 'blue' : 'green'
+                        };
+                    });
+
+                    html += `
+                    <div class="alm-background-ffffff alm-border-radius-14px alm-padding-20px alm-margin-bottom-20px" style="border: 2px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+                        <h4 class="alm-margin-top-0 alm-margin-bottom-15px alm-color-0f172a alm-font-size-1-15rem alm-border-bottom-2px-solid-0369a1 alm-padding-bottom-8px">
+                            Clase: <strong style="text-transform: capitalize; color: #0369a1;">${item.clase}</strong>
+                        </h4>
+                        <div class="alm-display-flex alm-gap-20px">
+                            <!-- Viejos (En Almacén) -->
+                            <div class="alm-flex-1">
+                                <h5 class="alm-color-64748b alm-margin-0-0-10px-0" style="font-weight: 700;">Actuales (En Almacén)</h5>
+                                <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
+                                    ${viejos.length > 0 ? viejos.map((v, index) => `
+                                        <div class="dibujos-file-card card-dibujo" style="animation-delay: ${index * 0.05}s; border: 2px solid #0284c7; background-color: #f0f9ff; border-left: 5px solid #0284c7;">
+                                            <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                                <img src="${pdfViewShadow}" class="file-icon icon-default">
+                                                <img src="${pdfView}" class="file-icon icon-hover">
+                                            </div>
+                                            <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="window.open('${v.url}', '_blank')">
+                                                <div style="margin-bottom: 3px;">
+                                                    <span style="font-size: 0.72em; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; border: 1px solid #bae6fd;">DIBUJO EN ALMACÉN</span>
+                                                </div>
+                                                <strong>${v.nombre}</strong>
+                                            </div>
+                                            <div class="file-actions alm-flex-gap-5">
+                                                <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: #0284c7; color: white;" onclick="window.open('${v.url}', '_blank')">Ver</button>
+                                            </div>
+                                        </div>
+                                    `).join('') : '<span class="alm-text-sm-gray">Sin archivos</span>'}
+                                </div>
+                            </div>
+                            <!-- Nuevos (De Dibujos de Fundición) -->
+                            <div class="alm-flex-1">
+                                <h5 class="alm-color-0369a1 alm-margin-0-0-10px-0" style="font-weight: 700;">Nuevos (De Programación)</h5>
+                                <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
+                                    ${nuevosProcesados.length > 0 ? nuevosProcesados.map((n, index) => {
+                                        const isBlue = n.theme === 'blue';
+                                        const borderColor = isBlue ? '#0284c7' : '#10b981';
+                                        const bgColor = isBlue ? '#f0f9ff' : '#ecfdf5';
+                                        const badgeBg = isBlue ? '#e0f2fe' : '#d1fae5';
+                                        const badgeColor = isBlue ? '#0369a1' : '#047857';
+                                        const badgeBorder = isBlue ? '#bae6fd' : '#a7f3d0';
+                                        const badgeText = isBlue ? 'DIBUJO REEMPLAZADO' : 'NUEVO DIBUJO AGREGADO';
+                                        const btnColor = isBlue ? '#0284c7' : '#059669';
+                                        const textColor = isBlue ? '#0369a1' : '#047857';
+
+                                        return `
+                                        <div class="dibujos-file-card card-dibujo" style="animation-delay: ${index * 0.05}s; border: 2px solid ${borderColor}; background-color: ${bgColor}; border-left: 5px solid ${borderColor};">
+                                            <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                                <img src="${pdfViewShadow}" class="file-icon icon-default">
+                                                <img src="${pdfView}" class="file-icon icon-hover">
+                                            </div>
+                                            <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="window.open('${n.url}', '_blank')">
+                                                <div style="margin-bottom: 3px;">
+                                                    <span style="font-size: 0.72em; font-weight: 700; background: ${badgeBg}; color: ${badgeColor}; padding: 2px 8px; border-radius: 4px; border: 1px solid ${badgeBorder};">${badgeText}</span>
+                                                </div>
+                                                <strong style="color: ${textColor};">${n.nombre}</strong>
+                                            </div>
+                                            <div class="file-actions alm-flex-gap-5">
+                                                <button class="btn-dibujos btn-dibujos-sm btn-ver" style="background-color: ${btnColor}; color: white;" onclick="window.open('${n.url}', '_blank')">Ver</button>
+                                            </div>
+                                        </div>
+                                        `;
+                                    }).join('') : '<span class="alm-text-sm-gray">Sin archivos</span>'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                }
+            });
+
+            container.innerHTML = html;
+        }
     </script>
 @endsection

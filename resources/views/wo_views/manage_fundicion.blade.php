@@ -175,33 +175,12 @@
                                 <p class="d-text-subtle d-text-center d-w-100">Cargando archivos...</p>
                             </div>
                         </div>
-
-                        {{-- Panel de Ayudas Visuales Manuales (Solo para aquellas que no son automáticas) --}}
-                        {{-- Sección de Ayudas Manuales Eliminada por Requerimiento --}}
                     @endif
 
                     <div class="dibujos-table-section d-flex d-flex-column h-100" style="margin-bottom: 0;">
-                        @if($isReady)
-                            <div class="d-flex d-flex-column gap-0-5 mb-1">
-                                <div class="d-flex d-justify-between d-align-center flex-wrap gap-1">
-                                    <h2 class="m-0 p-0 border-none flex-1 min-w-250">Estructura Actual de Carpetas en el Servidor</h2>
-                                    <div class="position-relative min-w-240 max-w-360">
-                                        <select id="filtro-tabla-estructura"
-                                                class="custom-select">
-                                            <option value="">— Mostrar Todos —</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="d-flex d-align-center d-justify-start gap-0-8 flex-wrap">
-                                </div>
-                            </div>
-                        @else
-                            <div class="d-flex d-justify-between d-align-center gap-1 mb-1 flex-wrap">
-                                <h2 class="m-0 p-0 border-none">Estructura Actual de Carpetas en el Servidor</h2>
-
-                                <div class="d-flex d-align-center d-justify-center gap-0-8 flex-1 min-w-250">
-                                </div>
-
+                        <div class="d-flex d-flex-column gap-0-5 mb-1">
+                            <div class="d-flex d-justify-between d-align-center flex-wrap gap-1">
+                                <h2 class="m-0 p-0 border-none flex-1 min-w-250">Estructura Actual de Carpetas en el Servidor</h2>
                                 <div class="position-relative min-w-240 max-w-360">
                                     <select id="filtro-tabla-estructura"
                                             class="custom-select">
@@ -209,7 +188,9 @@
                                     </select>
                                 </div>
                             </div>
-                        @endif
+                            <div class="d-flex d-align-center d-justify-start gap-0-8 flex-wrap">
+                            </div>
+                        </div>
 
             @if(count($estructura) === 0)
                 <div class="dibujos-empty-state">
@@ -426,8 +407,8 @@
                                                 $hasPendingOrMod = $valEstados->contains(fn($st) => in_array($st, ['pendiente', 'modificada']));
                                                 $hasEnviadas = $valEstados->contains(fn($st) => $st === 'enviada');
                                                 $isBtnDisabled = $hasEnviadas && !$hasPendingOrMod;
-                                                $btnTitle = $isBtnDisabled ? 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)' : 'Enviar correo de alerta global';
-                                                $btnText = $isBtnDisabled ? 'Correo Enviado' : 'Enviar Correo';
+                                                $btnTitle = $isBtnDisabled ? 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)' : ($hasEnviadas ? 'Enviar correo de actualización de dibujos modificados/nuevos' : 'Enviar correo de alerta global');
+                                                $btnText = $isBtnDisabled ? 'Correo Enviado' : ($hasEnviadas ? 'Enviar Actualización' : 'Enviar Correo');
                                             @endphp
                                             <button class="btn-action-icon btn-alerta-fund @if($isBtnDisabled) btn-alerta-enviada btn-alerta-disabled @endif"
                                                 title="{{ $btnTitle }}"

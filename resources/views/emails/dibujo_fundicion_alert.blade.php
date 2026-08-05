@@ -69,11 +69,16 @@
 <body>
     <div class="container">
         <div class="message-content">
-            <p>Se suben dibujos de fundicion de la OT: <strong>{{ $otName }}</strong>, verificada y validada. Favor de
-                verificar en el Software en el apartado de <strong>Dibujos de Fundicion</strong>.</p>
-
-            @if (!empty($ayudas))
-                <p><strong>Ayudas Visuales vinculadas:</strong> {{ implode(', ', $ayudas) }}.</p>
+            @if (!empty($isUpdate))
+                <p>Se han subido <strong>actualizaciones y/o nuevos dibujos</strong> de fundición para la OT: <strong>{{ $otName }}</strong>. Favor de verificar los cambios en el Software en el apartado de <strong>Dibujos de Fundición</strong>.</p>
+                @if (!empty($ayudas))
+                    <p><strong>Clases afectadas / actualizadas:</strong> {{ implode(', ', $ayudas) }}.</p>
+                @endif
+            @else
+                <p>Se suben dibujos de fundición de la OT: <strong>{{ $otName }}</strong>, verificada y validada. Favor de verificar en el Software en el apartado de <strong>Dibujos de Fundición</strong>.</p>
+                @if (!empty($ayudas))
+                    <p><strong>Ayudas Visuales vinculadas:</strong> {{ implode(', ', $ayudas) }}.</p>
+                @endif
             @endif
 
             @if ($fileName)

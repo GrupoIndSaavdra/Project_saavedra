@@ -47,18 +47,37 @@ function updateDependentSelectors() {
             sel.value = val;
             return;
         }
-        let found = Array.from(sel.options).some(o => o.value === val || o.text === val);
+        let found = Array.from(sel.options).some(o => String(o.value) === String(val) || o.text.trim() === String(val).trim());
         if (!found) {
             const opt = document.createElement('option');
             opt.value = val;
             opt.text = val;
             sel.appendChild(opt);
         }
-        let matchingOpt = Array.from(sel.options).find(o => o.value === val || o.text === val);
+        let matchingOpt = Array.from(sel.options).find(o => String(o.value) === String(val) || o.text.trim() === String(val).trim());
         if (matchingOpt) sel.value = matchingOpt.value;
     }
 
     forceOption(otSel, 'ot_id');
+
+    if (otSel && otSel.value && clSel && window.todasLasOTs) {
+        const otMatch = window.todasLasOTs.find(o => String(o.id) === String(otSel.value));
+        if (otMatch) {
+            clSel.innerHTML = '<option value="">— Seleccionar Clase —</option>';
+            if (otMatch.clases) {
+                otMatch.clases.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.nombre;
+                    clSel.appendChild(opt);
+                });
+            }
+            const optP = document.createElement('option'); optP.value = 'Pistones'; optP.textContent = 'Pistones (Opcional)'; clSel.appendChild(optP);
+            const optG = document.createElement('option'); optG.value = 'Guías'; optG.textContent = 'Guías (Opcional)'; clSel.appendChild(optG);
+            clSel.disabled = false;
+        }
+    }
+
     forceOption(clSel, 'clase_id');
 
     if (clSel && otSel) clSel.disabled = !otSel.value;

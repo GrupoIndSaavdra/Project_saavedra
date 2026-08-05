@@ -516,73 +516,75 @@
                                                 // Filtrar clases activas basándose en las decisiones de Calidad
                                                 /** @var \App\Models\FundicionHistory $reg */
                                                 $isReproceso = preg_match('/_R\d+$/i', $reg->ot);
-                                                if ($isReproceso) {
-                                                    // Para reprocesos: usar TODAS las clases con decisión en la OT ACTUAL
-                                                    // (tanto aprobadas como rechazadas), para que los archivos de todas
-                                                    // las clases evaluadas aparezcan en el scan del filesystem.
-                                                    $classesInCurrentOtRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
-                                                        ->where('decision', '!=', 'pendiente')
-                                                        ->pluck('tipo_modelo')
-                                                        ->toArray();
-
-                                                    $parsedCurrent = [];
-                                                    foreach ($classesInCurrentOtRaw as $dc) {
-                                                        $parts = explode(',', strtolower($dc));
-                                                        foreach ($parts as $p) {
-                                                            $p = trim($p);
-                                                            if ($p !== '') $parsedCurrent[] = $p;
-                                                        }
-                                                    }
-
-                                                    if (!empty($parsedCurrent)) {
-                                                        // Usar las clases de la OT actual (aprobadas + rechazadas)
-                                                        $activeClassesForOt = array_unique($parsedCurrent);
-                                                    } else {
-                                                        // Fallback: si la OT actual aún no tiene decisiones, mostrar las
-                                                        // rechazadas de la OT anterior (las que se están re-procesando)
-                                                        $prevOt = preg_replace_callback('/_R(\d+)$/i', function($m) {
-                                                            $num = intval($m[1]) - 1;
-                                                            return $num > 0 ? '_R' . $num : '';
-                                                        }, $reg->ot);
-                                                        $rejectedPrevRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $prevOt)
-                                                            ->where('decision', '=', 'rechazar')
-                                                            ->pluck('tipo_modelo')
-                                                            ->toArray();
-
-                                                        $parsedPrev = [];
-                                                        foreach ($rejectedPrevRaw as $dc) {
-                                                            $parts = explode(',', strtolower($dc));
-                                                            foreach ($parts as $p) {
-                                                                $p = trim($p);
-                                                                if ($p !== '') $parsedPrev[] = $p;
-                                                            }
-                                                        }
-                                                        if (!empty($parsedPrev)) {
-                                                            $activeClassesForOt = array_unique($parsedPrev);
-                                                        }
-                                                    }
-                                                } else {
-                                                    /** @var \App\Models\FundicionHistory $reg */
-                                                    $hasLiberaciones = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)->exists();
-                                                    if ($hasLiberaciones) {
-                                                        $decidedClassesRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
+                                                if (empty($activeClassesForOt)) {
+                                                    if ($isReproceso) {
+                                                        // Para reprocesos: usar TODAS las clases con decisión en la OT ACTUAL
+                                                        // (tanto aprobadas como rechazadas), para que los archivos de todas
+                                                        // las clases evaluadas aparezcan en el scan del filesystem.
+                                                        $classesInCurrentOtRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
                                                             ->where('decision', '!=', 'pendiente')
                                                             ->pluck('tipo_modelo')
                                                             ->toArray();
 
-                                                        $parsedDecided = [];
-                                                        foreach ($decidedClassesRaw as $dc) {
+                                                        $parsedCurrent = [];
+                                                        foreach ($classesInCurrentOtRaw as $dc) {
                                                             $parts = explode(',', strtolower($dc));
                                                             foreach ($parts as $p) {
                                                                 $p = trim($p);
-                                                                if ($p !== '') $parsedDecided[] = $p;
+                                                                if ($p !== '') $parsedCurrent[] = $p;
                                                             }
                                                         }
 
-                                                        if (!empty($parsedDecided)) {
-                                                            $activeClassesForOt = array_unique($parsedDecided);
+                                                        if (!empty($parsedCurrent)) {
+                                                            // Usar las clases de la OT actual (aprobadas + rechazadas)
+                                                            $activeClassesForOt = array_unique($parsedCurrent);
+                                                        } else {
+                                                            // Fallback: si la OT actual aún no tiene decisiones, mostrar las
+                                                            // rechazadas de la OT anterior (las que se están re-procesando)
+                                                            $prevOt = preg_replace_callback('/_R(\d+)$/i', function($m) {
+                                                                $num = intval($m[1]) - 1;
+                                                                return $num > 0 ? '_R' . $num : '';
+                                                            }, $reg->ot);
+                                                            $rejectedPrevRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $prevOt)
+                                                                ->where('decision', '=', 'rechazar')
+                                                                ->pluck('tipo_modelo')
+                                                                ->toArray();
+
+                                                            $parsedPrev = [];
+                                                            foreach ($rejectedPrevRaw as $dc) {
+                                                                $parts = explode(',', strtolower($dc));
+                                                                foreach ($parts as $p) {
+                                                                    $p = trim($p);
+                                                                    if ($p !== '') $parsedPrev[] = $p;
+                                                                }
+                                                            }
+                                                            if (!empty($parsedPrev)) {
+                                                                $activeClassesForOt = array_unique($parsedPrev);
+                                                            }
                                                         }
-                                                        // Si está vacío (solo pendientes), conservamos el activeClassesForOt poblado previamente (fallback normal)
+                                                    } else {
+                                                        /** @var \App\Models\FundicionHistory $reg */
+                                                        $hasLiberaciones = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)->exists();
+                                                        if ($hasLiberaciones) {
+                                                            $decidedClassesRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
+                                                                ->where('decision', '!=', 'pendiente')
+                                                                ->pluck('tipo_modelo')
+                                                                ->toArray();
+
+                                                            $parsedDecided = [];
+                                                            foreach ($decidedClassesRaw as $dc) {
+                                                                $parts = explode(',', strtolower($dc));
+                                                                foreach ($parts as $p) {
+                                                                    $p = trim($p);
+                                                                    if ($p !== '') $parsedDecided[] = $p;
+                                                                }
+                                                            }
+
+                                                            if (!empty($parsedDecided)) {
+                                                                $activeClassesForOt = array_unique($parsedDecided);
+                                                            }
+                                                            // Si está vacío (solo pendientes), conservamos el activeClassesForOt poblado previamente (fallback normal)
+                                                        }
                                                     }
                                                 }
 
@@ -1198,7 +1200,15 @@
                                                     preg_match('/_R(\d+)$/', $libOt, $matches);
                                                     $suffixNum = isset($matches[1]) ? (int) $matches[1] : 0;
 
-                                                    if (!isset($latestLiberacionesByClass[$tipo]) || $suffixNum > $latestLiberacionesByClass[$tipo]['suffix']) {
+                                                    $shouldReplace = !isset($latestLiberacionesByClass[$tipo]);
+                                                    if (!$shouldReplace) {
+                                                        $existSuffix = $latestLiberacionesByClass[$tipo]['suffix'];
+                                                        $existId = $latestLiberacionesByClass[$tipo]['lib']->id;
+                                                        if ($suffixNum > $existSuffix || ($suffixNum === $existSuffix && $lib->id > $existId)) {
+                                                            $shouldReplace = true;
+                                                        }
+                                                    }
+                                                    if ($shouldReplace) {
                                                         $latestLiberacionesByClass[$tipo] = [
                                                             'lib' => $lib,
                                                             'suffix' => $suffixNum
@@ -1226,81 +1236,66 @@
                                                 $rechazados = array_values(array_filter($rechazadosRaw, function ($clase) use ($activeClassesForOt) {
                                                     return in_array(strtolower($clase), $activeClassesForOt);
                                                 }));
+                                                // Clasificar dibujos y ayudas por etapa (Fabricación de Modelo vs Casting)
+                                                 $aprobadosNorm = array_map('strtolower', $aprobados);
+                                                 $clasesFabricacion = array_values(array_diff($activeClassesForOt, $aprobadosNorm));
+                                                 $isMixedProcess = (count($aprobadosNorm) > 0 && count($clasesFabricacion) > 0);
 
-                                                $dibujosAprobados = [];
-                                                $dibujosRechazados = [];
-                                                $dibujosPendientes = [];
+                                                 $dibujosCasting = array_values(array_filter($archivos, function($d) use ($aprobadosNorm) {
+                                                     $nameLow = strtolower($d['nombre']);
+                                                     foreach ($aprobadosNorm as $ap) {
+                                                         if ($ap !== '' && strpos($nameLow, $ap) !== false) return true;
+                                                     }
+                                                     return false;
+                                                 }));
 
-                                                foreach ($archivos as $dibujo) {
-                                                    $found = false;
-                                                    $nameLower = strtolower($dibujo['nombre']);
-                                                    $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
-                                                    $foundClass = null;
-                                                    foreach ($knownClasses as $kc) {
-                                                        if (strpos($nameLower, $kc) !== false) {
-                                                            $foundClass = $kc;
-                                                            break;
-                                                        }
-                                                    }
-                                                    
-                                                    if ($foundClass) {
-                                                        if (in_array($foundClass, $aprobados)) {
-                                                            $dibujosAprobados[] = $dibujo;
-                                                            $found = true;
-                                                        } elseif (in_array($foundClass, $rechazados)) {
-                                                            $dibujosRechazados[] = $dibujo;
-                                                            $found = true;
-                                                        }
-                                                    }
-                                                    if (!$found) {
-                                                        $dibujosPendientes[] = $dibujo;
-                                                    }
-                                                }
+                                                 $dibujosModelo = array_values(array_filter($archivos, function($d) use ($clasesFabricacion) {
+                                                     $nameLow = strtolower($d['nombre']);
+                                                     foreach ($clasesFabricacion as $cf) {
+                                                         if ($cf !== '' && strpos($nameLow, $cf) !== false) return true;
+                                                     }
+                                                     return false;
+                                                 }));
 
-                                                $ayudasAprobados = [];
-                                                $ayudasRechazados = [];
-                                                $ayudasPendientes = [];
+                                                 $ayudasCasting = array_values(array_filter($ayudasArchivos, function($a) use ($aprobadosNorm) {
+                                                     $nameLow = strtolower($a['nombre']);
+                                                     foreach ($aprobadosNorm as $ap) {
+                                                         if ($ap !== '' && strpos($nameLow, $ap) !== false) return true;
+                                                     }
+                                                     return false;
+                                                 }));
 
-                                                foreach ($ayudasArchivos as $ayuda) {
-                                                    $found = false;
-                                                    $nameLower = strtolower($ayuda['nombre']);
-                                                    $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
-                                                    $foundClass = null;
-                                                    foreach ($knownClasses as $kc) {
-                                                        if (strpos($nameLower, $kc) !== false) {
-                                                            $foundClass = $kc;
-                                                            break;
-                                                        }
-                                                    }
-                                                    
-                                                    if ($foundClass) {
-                                                        if (in_array($foundClass, $aprobados)) {
-                                                            $ayudasAprobados[] = $ayuda;
-                                                            $found = true;
-                                                        } elseif (in_array($foundClass, $rechazados)) {
-                                                            $ayudasRechazados[] = $ayuda;
-                                                            $found = true;
-                                                        }
-                                                    }
-                                                    if (!$found) {
-                                                        $ayudasPendientes[] = $ayuda;
-                                                    }
-                                                }
+                                                 $ayudasModelo = array_values(array_filter($ayudasArchivos, function($a) use ($clasesFabricacion) {
+                                                     $nameLow = strtolower($a['nombre']);
+                                                     foreach ($clasesFabricacion as $cf) {
+                                                         if ($cf !== '' && strpos($nameLow, $cf) !== false) return true;
+                                                     }
+                                                     return false;
+                                                 }));
 
-                                                $otrosAprobados = $archivosAprobados;
-                                                $otrosRechazados = $archivosRechazados;
+                                                 // Clasificar rechazados
+                                                 $rechazadosAyudas = [];
+                                                 $rechazadosDibujos = [];
+                                                 $rechazadosOtros = [];
+                                                 foreach ($archivosRechazados as $rArchivo) {
+                                                     $nameLow = strtolower($rArchivo['nombre']);
+                                                     $ext     = pathinfo($nameLow, PATHINFO_EXTENSION);
+                                                     $isImg   = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
 
-                                                $countAprobados = count($otrosAprobados) + count($dibujosAprobados) + count($ayudasAprobados);
-                                                
-                                                // Combinar los rechazos que vienen del escaneo de clases con los de Documentos_Rechazados
-                                                $rechazadosDibujos = array_merge($rechazadosDibujos, $dibujosRechazados);
-                                                $rechazadosAyudas = array_merge($rechazadosAyudas, $ayudasRechazados);
-                                                
-                                                $countRechazados = count($archivosRechazados) + count($rechazadosDibujos) + count($rechazadosAyudas) + count($rechazadosOtros);
-                                                $countPendientes = count($dibujosPendientes) + count($ayudasPendientes);
+                                                     $rArchivo['ot']   = $rArchivo['ot'] ?? $reg->ot;
+                                                     $rArchivo['tipo'] = $rArchivo['tipo'] ?? ($isImg ? 'imagen' : 'otro');
 
-                                                $isReprocesoBadge = (bool) preg_match('/_R\d+$/i', $reg->ot);
-                                                $count = $countAprobados + $countPendientes + $countRechazados;
+                                                     if (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
+                                                         if ($rArchivo['tipo'] === 'otro') $rArchivo['tipo'] = 'ayuda';
+                                                         $rechazadosAyudas[] = $rArchivo;
+                                                     } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
+                                                         $rechazadosDibujos[] = $rArchivo;
+                                                     } else {
+                                                         $rechazadosOtros[] = $rArchivo;
+                                                     }
+                                                 }
+                                                 $isReprocesoBadge = (bool) preg_match('/_R\d+$/i', $reg->ot);
+                                                 $count = count($dibujosModelo) + count($ayudasModelo) + count($dibujosCasting) + count($ayudasCasting) + count($rechazadosDibujos) + count($rechazadosAyudas) + count($archivosAprobados) + count($rechazadosOtros);
 
                                                 // ── CONTROL DE VISIBILIDAD DE LA CARD DE ALMACÉN ──
                                                 // La card se muestra siempre que:
@@ -1537,27 +1532,37 @@
                                             @if ($hasFilesOrControl)
                                                 <tr class="alm-files-row" id="files-{{ $estado }}-{{ $loop->index }}">
                                                     <td colspan="6">
+                                                        @php
+                                                            $isCalidadAlerted = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'aprobado', 'rechazado', 'mixto', 'parcial', 'casting_aprobado']);
+                                                            $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado');
 
-                                                        @if ($countPendientes > 0)
-                                                            @if ($reg->alert_sent_at)
-                                                                @php
-                                                                    $pendientesGroups = [
-                                                                        ['titulo' => 'Dibujos de Fundición', 'archivos' => $dibujosPendientes, 'color' => '#005194'],
-                                                                        ['titulo' => 'Ayudas Visuales de Fundición', 'archivos' => $ayudasPendientes, 'color' => '#9c0300'],
-                                                                    ];
-                                                                @endphp
-                                                                @foreach ($pendientesGroups as $group)
-                                                                    @if (count($group['archivos']) > 0)
-                                                                        <h3 style="margin-top: 15px; margin-bottom: 10px; color: {{ $group['color'] }}; border-bottom: 2px solid {{ $group['color'] }}; padding-bottom: 5px;">
-                                                                            {{ $group['titulo'] }}
+                                                            $tieneFabricacion = (count($clasesFabricacion) > 0 || $showControlCard) && !$castingEmailSent;
+                                                            $tieneAprobados = count($aprobados) > 0 && $isCalidadAlerted;
+                                                            $tieneRechazados = count($rechazados) > 0 && $isCalidadAlerted;
+                                                        @endphp
+
+                                                        {{-- CONTENEDOR PRINCIPAL PROCESOS (CONTENEDOR 0) --}}
+                                                        <div class="alm-contenedor-principal-procesos" style="display: flex; flex-direction: column; gap: 25px; width: 100%; margin-top: 15px;">
+
+                                                            {{-- CONTENEDOR 1: FABRICACIÓN / RE-PROCESO DE MODELO --}}
+                                                            @if ($tieneFabricacion)
+                                                                <div class="alm-process-block" style="margin-bottom: 10px; padding: 20px; border-radius: 14px; background-color: #f0f9ff; border: 2px solid #0284c7; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);">
+                                                                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
+                                                                        <h3 style="margin: 0; color: #0284c7; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                                            <img src="{{ asset('images/almacen.png') }}" style="width: 24px; height: 24px;">
+                                                                            Etapa: Fabricación / Re-Proceso de Modelo {{ count($clasesFabricacion) > 0 ? '(' . implode(', ', array_map('ucfirst', $clasesFabricacion)) . ')' : '' }}
                                                                         </h3>
-                                                                        <div class="alm-pdf-grid alm-success-box">
-                                                                            @foreach ($group['archivos'] as $archivoInfo)
-                                                                                @php
-                                                                                    $tipoCls = $archivoInfo['tipo'] === 'ayuda' ? 'card-ayuda' : '';
-                                                                                    $btnCls = $archivoInfo['tipo'] === 'ayuda' ? 'btn-ayuda-color' : '';
-                                                                                @endphp
-                                                                                <div class="dibujos-file-card {{ $tipoCls }}" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                                        <span style="font-size: 0.8rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 6px; border: 1px solid #bae6fd;">
+                                                                            FABRICACIÓN / MODELO
+                                                                        </span>
+                                                                    </div>
+
+                                                                    {{-- Dibujos de Modelo --}}
+                                                                    @if (count($dibujosModelo) > 0)
+                                                                        <h4 style="margin-top: 10px; margin-bottom: 10px; color: #005194; font-weight: 700;">Dibujos de Fundición (Modelo)</h4>
+                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                            @foreach ($dibujosModelo as $archivoInfo)
+                                                                                <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                                                                         <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                                                         <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
@@ -1566,547 +1571,375 @@
                                                                                         {{ basename($archivoInfo['nombre']) }}
                                                                                     </div>
                                                                                     <div class="file-actions">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver {{ $btnCls }}" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">Ver</button>
+                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">Ver</button>
                                                                                     </div>
                                                                                 </div>
                                                                             @endforeach
                                                                         </div>
                                                                     @endif
-                                                                @endforeach
-                                                            @else
-                                                                <div class="alm-margin-top-15px alm-padding-14px-18px alm-background-rgba-0-81-148-0-06 alm-border-1-5px-dashed-005194 alm-border-radius-10px alm-color-005194 alm-font-size-0-93em">
-                                                                    <strong>Documentos pendientes:</strong> Los dibujos y ayudas estarán disponibles una vez que Ingeniería envíe la alerta oficial desde el sistema de gestión documental.
-                                                                </div>
-                                                            @endif
-                                                        @endif
 
-                                                        @php
-                                                            // $rechazadosDibujos y $rechazadosAyudas ya fueron poblados durante el
-                                                            // scan del filesystem (clases rechazadas detectadas por nombre de archivo).
-                                                            // Aquí solo AGREGAMOS los archivos de la carpeta Documentos_Rechazados
-                                                            // clasificándolos por nombre — igual que el patrón de Calidad.
-                                                            // NO sobreescribimos: usamos los arrays del scan como base.
-
-                                                            foreach ($archivosRechazados as $rArchivo) {
-                                                                $nameLow = strtolower($rArchivo['nombre']);
-                                                                $ext     = pathinfo($nameLow, PATHINFO_EXTENSION);
-                                                                $isImg   = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-
-                                                                $rArchivo['ot']   = $rArchivo['ot'] ?? $reg->ot;
-                                                                $rArchivo['tipo'] = $rArchivo['tipo'] ?? ($isImg ? 'imagen' : 'otro');
-
-                                                                if (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
-                                                                    if ($rArchivo['tipo'] === 'otro') $rArchivo['tipo'] = 'ayuda';
-                                                                    $rechazadosAyudas[] = $rArchivo;
-                                                                } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
-                                                                    $rechazadosDibujos[] = $rArchivo;
-                                                                } else {
-                                                                    $rechazadosOtros[] = $rArchivo;
-                                                                }
-                                                            }
-                                                        @endphp
-
-                                                        @if (count($rechazadosAyudas) > 0)
-                                                            <h3 class="alm-margin-top-25px alm-margin-bottom-10px alm-color-155724 alm-border-bottom-2px-solid-155724 alm-padding-bottom-5px">
-                                                                Ayudas Visuales de Fundición</h3>
-                                                            <div class="alm-pdf-grid alm-success-box">
-                                                                @foreach ($rechazadosAyudas as $otroArchivo)
-                                                                    @php
-                                                                        $canDelete = false;
-                                                                    @endphp
-                                                                    <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
-                                                                        <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                    {{-- Ayudas Visuales de Modelo --}}
+                                                                    @if (count($ayudasModelo) > 0)
+                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #9c0300; font-weight: 700;">Ayudas Visuales de Fundición (Modelo)</h4>
+                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                            @foreach ($ayudasModelo as $archivoInfo)
+                                                                                <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                                    </div>
+                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">
+                                                                                        {{ basename($archivoInfo['nombre']) }}
+                                                                                    </div>
+                                                                                    <div class="file-actions">
+                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">Ver</button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            @endforeach
                                                                         </div>
-                                                                        <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">
-                                                                            {{ basename($otroArchivo['nombre']) }}
-                                                                        </div>
-                                                                        <div class="file-actions alm-flex-gap-5">
-                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-155724 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">Ver</button>
-                                                                        </div>
-                                                                    </div>
-                                                                @endforeach
-                                                            </div>
-                                                        @endif
+                                                                    @endif
 
-                                                        {{-- BLOQUE 4: Renombrar sección a "Documentos Aprobados" --}}
-                                                        @if ($countAprobados > 0)
-                                                            <h3 class="alm-margin-top-25px alm-margin-bottom-10px alm-color-155724 alm-border-bottom-2px-solid-155724 alm-padding-bottom-5px">
-                                                                Documentos Aprobados</h3>
-                                                            <div class="alm-pdf-grid alm-success-box">
-                                                                @php
-                                                                    $archivosAprobados = array_merge($dibujosAprobados, $ayudasAprobados, $otrosAprobados);
-                                                                @endphp
-                                                                @foreach ($archivosAprobados as $otroArchivo)
-                                                                    @php
-                                                                        $canDelete = false;
-                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
-                                                                        $fileNameLower = strtolower($otroArchivo['nombre']);
-                                                                        if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
-                                                                            $fileOwner = 'calidad';
-                                                                        }
-                                                                        $userPerfil = Auth::user()->perfil;
-                                                                        
-                                                                        $alertSent = false;
-                                                                        if ($fileOwner === 'almacen') {
-                                                                            $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
-                                                                        } elseif ($fileOwner === 'calidad') {
-                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
-                                                                        }
-                                                                        
-                                                                        if (!$alertSent) {
-                                                                            if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
-                                                                                $canDelete = true;
-                                                                            } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
-                                                                                $canDelete = true;
-                                                                            } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
-                                                                                $canDelete = true;
+                                                                    {{-- Tarjeta de Control Almacén Modelo --}}
+                                                                    @if ($showControlCard)
+                                                                        @php
+                                                                            $esReproceso = (bool) preg_match('/_R\d+$/i', $targetReg->ot);
+                                                                            $previousOtForRechazo = $targetReg->ot;
+                                                                            if ($esReproceso) {
+                                                                                preg_match('/_R(\d+)$/i', $targetReg->ot, $matches);
+                                                                                $rNum = (int)($matches[1] ?? 1);
+                                                                                if ($rNum > 1) {
+                                                                                    $previousOtForRechazo = preg_replace('/_R\d+$/i', '_R' . ($rNum - 1), $targetReg->ot);
+                                                                                } else {
+                                                                                    $previousOtForRechazo = preg_replace('/_R\d+$/i', '', $targetReg->ot);
+                                                                                }
                                                                             }
-                                                                        }
-                                                                    @endphp
-                                                                    @if ($otroArchivo['tipo'] === 'imagen')
-                                                                        <div class="dibujos-file-card card-otro card-imagen" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0369a1;">
-                                                                            <div class="file-icon-wrapper alm-cursor-pointer" title="Ver imagen">
-                                                                                <img src="{{ $otroArchivo['url'] }}" class="file-icon-img-thumb alm-width-100pct alm-height-80px alm-object-fit-cover alm-border-radius-6px alm-border-1px-solid-bae6fd">
-                                                                            </div>
-                                                                            <div class="file-name alm-cursor-pointer" title="Ver imagen" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">
-                                                                                {{ basename($otroArchivo['nombre']) }}
-                                                                            </div>
-                                                                            <div class="file-actions alm-flex-gap-5">
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-0369a1 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'otro')">Ver</button>
-                                                                                @if ($canDelete)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                            $rechazadosClases = \App\Models\LiberacionModeloFundicion::where('ot', $previousOtForRechazo)
+                                                                                ->where('decision', 'rechazar')
+                                                                                ->pluck('tipo_modelo')
+                                                                                ->unique()
+                                                                                ->filter(fn($v) => !empty($v))
+                                                                                ->values()
+                                                                                ->toArray();
+
+                                                                            $otClasesActivas = $esReproceso
+                                                                                ? array_map('strtolower', $rechazadosClases)
+                                                                                : (is_array($reg->ayudas_config) ? array_map('strtolower', $reg->ayudas_config) : []);
+                                                                            $clasesProcesadas = [];
+
+                                                                            $preOrdenesEnviadas = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->where('is_sent', 1)->get();
+                                                                            foreach ($preOrdenesEnviadas as $po) {
+                                                                                $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
+                                                                                if (is_array($filas)) {
+                                                                                    foreach ($filas as $f) {
+                                                                                        if (!empty($f['clase'] ?? $f['clase_nombre'])) {
+                                                                                            $clasesProcesadas[] = strtolower($f['clase'] ?? $f['clase_nombre']);
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+
+                                                                            $liberacionesFisicas = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
+                                                                                ->where('tipo_origen', 'con_modelo')
+                                                                                ->whereNotNull('tipo_modelo')
+                                                                                ->where('tipo_modelo', '!=', '')
+                                                                                ->pluck('tipo_modelo')->toArray();
+                                                                            foreach ($liberacionesFisicas as $lf) {
+                                                                                if (!empty($lf)) {
+                                                                                    $clasesProcesadas[] = strtolower($lf);
+                                                                                }
+                                                                            }
+                                                                            $clasesProcesadas = array_filter(array_unique($clasesProcesadas), fn($v) => $v !== '');
+                                                                            $clasesProcesadas = array_values($clasesProcesadas);
+
+                                                                            $clasesActivasCubiertas = [];
+                                                                            $clasesActivasFaltantes = [];
+                                                                            foreach ($otClasesActivas as $clActiva) {
+                                                                                $cubierta = false;
+                                                                                foreach ($clasesProcesadas as $cp) {
+                                                                                    if ($cp === '' || $clActiva === '') continue;
+                                                                                    if (strpos($cp, strtolower($clActiva)) !== false || strpos(strtolower($clActiva), $cp) !== false) {
+                                                                                        $cubierta = true;
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                                if ($cubierta) {
+                                                                                    $clasesActivasCubiertas[] = $clActiva;
+                                                                                } else {
+                                                                                    $clasesActivasFaltantes[] = $clActiva;
+                                                                                }
+                                                                            }
+
+                                                                            $todasClasesProcesadas = count($otClasesActivas) > 0 && count($clasesActivasFaltantes) === 0;
+                                                                            $algunaClaseProcesada  = count($clasesActivasCubiertas) > 0;
+                                                                            $tienePreOrden = (bool)($targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent);
+
+                                                                            $controlDisabled = '';
+                                                                            $hideControlCard = (count($clasesFabricacion) === 0) ? 'display: none;' : '';
+                                                                            $hideTengoModelo = $esReproceso ? 'display: none;' : '';
+                                                                            $hideGenerarFormato = ($esReproceso || $tienePreOrden) ? 'display: none;' : '';
+                                                                            $hideReprocesoPreOrden = ($esReproceso && !$tienePreOrden) ? '' : 'display: none;';
+                                                                            $hideEditPreOrden = $tienePreOrden ? '' : 'display: none;';
+
+                                                                            $clasesFisicamenteConfirmadas = [];
+                                                                            $liberacionesFisicasObj = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
+                                                                                ->where('tipo_origen', 'con_modelo')
+                                                                                ->whereNotNull('tipo_modelo')
+                                                                                ->where('tipo_modelo', '!=', '')
+                                                                                ->get();
+                                                                            foreach ($liberacionesFisicasObj as $lib) {
+                                                                                $clasesArray = explode(',', $lib->tipo_modelo);
+                                                                                foreach ($clasesArray as $c) {
+                                                                                    $clasesFisicamenteConfirmadas[] = strtolower(trim($c));
+                                                                                }
+                                                                            }
+                                                                            $clasesFisicamenteConfirmadas = array_unique($clasesFisicamenteConfirmadas);
+
+                                                                            $clasesFaltantesFisico = [];
+                                                                            foreach ($otClasesActivas as $clActiva) {
+                                                                                $cubierta = false;
+                                                                                foreach ($clasesFisicamenteConfirmadas as $cp) {
+                                                                                    if ($cp === '' || $clActiva === '') continue;
+                                                                                    if (strpos($cp, strtolower($clActiva)) !== false || strpos(strtolower($clActiva), $cp) !== false) {
+                                                                                        $cubierta = true;
+                                                                                        break;
+                                                                                    }
+                                                                                }
+                                                                                if (!$cubierta) {
+                                                                                    $clasesFaltantesFisico[] = $clActiva;
+                                                                                }
+                                                                            }
+
+                                                                            $poPendienteEnvio = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->where('is_sent', 0)->orderBy('id', 'desc')->first();
+                                                                            $clasesParaEnvio = [];
+                                                                            if ($poPendienteEnvio) {
+                                                                                $filas = is_string($poPendienteEnvio->filas) ? json_decode($poPendienteEnvio->filas, true) : $poPendienteEnvio->filas;
+                                                                                if (is_array($filas)) {
+                                                                                    foreach ($filas as $f) {
+                                                                                        if (!empty($f['clase'] ?? $f['clase_nombre'])) {
+                                                                                            $clasesParaEnvio[] = strtolower($f['clase'] ?? $f['clase_nombre']);
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+
+                                                                            $clasesYaProcesadasJson     = json_encode(array_values($clasesActivasCubiertas));
+                                                                            $clasesActivasFaltantesJson = json_encode(array_values($clasesActivasFaltantes));
+                                                                            $todasClasesActivasJson     = json_encode(array_values($otClasesActivas));
+                                                                            $clasesActivasNoEnviadasJson = json_encode(array_values($clasesActivasFaltantes));
+                                                                            $clasesFaltantesFisicoJson = json_encode(array_values($clasesFaltantesFisico));
+                                                                            $clasesParaEnvioJson = json_encode(array_values(array_unique($clasesParaEnvio)));
+
+                                                                            $todasClasesEnviadas = $todasClasesProcesadas && !$poPendienteEnvio;
+                                                                            $isFullySubmitted = $todasClasesEnviadas;
+                                                                            $hideAllBtns = $isFullySubmitted ? 'display: none;' : '';
+                                                                            $hideSendEmail = ($tienePreOrden && $poPendienteEnvio) ? '' : 'display: none;';
+                                                                        @endphp
+
+                                                                        <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}" style="{{ $controlDisabled }} {{ $hideControlCard }}">
+                                                                            <div class="lib-calidad-card-header">
+                                                                                <img src="{{ $esReproceso ? asset('images/Reproceso.png') : asset('images/almacen.png') }}" alt="Almacén" class="alm-icon-lg">
+                                                                                <div class="alm-overflow-hidden alm-flex-1">
+                                                                                    <span class="lib-calidad-card-title">Control de Modelos &mdash; Almacén</span>
+                                                                                    <span class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                                </div>
+                                                                                @if (count($otClasesActivas) > 0)
+                                                                                    <div class="alm-flex-shrink-0 alm-display-flex alm-flex-direction-column alm-align-items-center alm-gap-2px">
+                                                                                        <span style="font-size:1.1em; font-weight:800; color:{{ $todasClasesProcesadas ? '#15803d' : ($algunaClaseProcesada ? '#0369a1' : '#ffffff') }};">
+                                                                                            {{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }}
+                                                                                        </span>
+                                                                                        <span class="alm-font-size-0-65em alm-font-weight-600 alm-color-rgba-255-255-255-0-75 alm-letter-spacing-0-5px alm-text-transform-uppercase">clases</span>
+                                                                                        @if ($todasClasesProcesadas)
+                                                                                            <img src="{{ asset('images/ready.png') }}" class="alm-width-18px alm-height-18px alm-margin-top-2px" alt="Listo">
+                                                                                        @endif
+                                                                                    </div>
                                                                                 @endif
                                                                             </div>
-                                                                        </div>
-                                                                    @else
-                                                                        <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
-                                                                            <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
-                                                                            </div>
-                                                                            <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                                {{ basename($otroArchivo['nombre']) }}
-                                                                            </div>
-                                                                            <div class="file-actions alm-flex-gap-5">
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-155724 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
-                                                                                @if ($canDelete)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
-                                                                                @endif
+                                                                            <div class="lib-calidad-card-body">
+                                                                                <div class="lib-calidad-action-row">
+                                                                                    <h4 class="lib-calidad-card-prompt">
+                                                                                        @if ($isFullySubmitted)
+                                                                                            <span class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                                <img src="{{ asset('images/ready.png') }}" class="alm-icon-md" alt="Listo">
+                                                                                                El proceso ahora le pertenece a Calidad. Por favor, espera instrucciones para las clases enviadas.
+                                                                                            </span>
+                                                                                        @elseif ($todasClasesProcesadas)
+                                                                                            <span class="alm-color-0369a1 alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                                <img src="{{ asset('images/ready.png') }}" class="alm-icon-md" alt="Listo">
+                                                                                                ¡Todas las clases procesadas! Falta enviar la alerta a Calidad.
+                                                                                            </span>
+                                                                                        @elseif ($algunaClaseProcesada)
+                                                                                            <span class="alm-color-0369a1 alm-font-weight-600">
+                                                                                                Proceso parcial ({{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }} clases enviadas). Puedes generar o enviar las pre-órdenes restantes.
+                                                                                            </span>
+                                                                                        @elseif ($targetReg->tiene_modelo)
+                                                                                            ¡Modelo recibido y procesado! Pendiente de que Calidad lo revise.
+                                                                                        @elseif ($targetReg->pre_orden_email_sent)
+                                                                                            Alerta enviada a Calidad. En espera de su revisión y nuevo veredicto de liberación.
+                                                                                        @elseif ($targetReg->pre_orden_sent)
+                                                                                            Pre-orden lista. Puedes seguir editando los datos o enviarla por correo.
+                                                                                        @elseif ($esReproceso)
+                                                                                            OT en re-proceso por rechazo de Calidad. Genera o edita la pre-orden de modelo para iniciar el nuevo ciclo de fabricación.
+                                                                                        @else
+                                                                                            ¿Ya cuentas con el modelo de esta OT o necesitas generar una pre-orden?
+                                                                                        @endif
+                                                                                    </h4>
+                                                                                    <div class="lib-calidad-card-btns" style="{{ $hideAllBtns }}">
+                                                                                        <button class="btn-modelo btn-modelo-si"
+                                                                                            onclick="abrirModalConfirmarModelo('{{ $targetReg->ot }}', '{{ md5($reg->ot) }}', {{ $clasesFaltantesFisicoJson }}, {{ $todasClasesActivasJson }})"
+                                                                                            title="Sí, cuento con el modelo de esta OT"
+                                                                                            style="{{ $hideTengoModelo }}">
+                                                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
+                                                                                            <span>Tengo el Modelo</span>
+                                                                                        </button>
+                                                                                        <button class="btn-modelo btn-modelo-no"
+                                                                                            onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
+                                                                                            title="No cuento con él, generar formato PDF"
+                                                                                            style="{{ $hideGenerarFormato }}">
+                                                                                            <img src="{{ asset('images/pdf.png') }}" alt="PDF">
+                                                                                            <span>No, generar formato</span>
+                                                                                        </button>
+                                                                                        <button class="btn-modelo btn-modelo-no"
+                                                                                            onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
+                                                                                            title="Generar / editar la pre-orden de fabricación de modelo"
+                                                                                            style="{{ $hideReprocesoPreOrden }}">
+                                                                                            <img src="{{ asset('images/pdf.png') }}" alt="Pre-Orden">
+                                                                                            <span>Pre-Orden Modelo</span>
+                                                                                        </button>
+                                                                                        <button class="btn-modelo btn-modelo-edit"
+                                                                                            onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
+                                                                                            title="Editar información de la preorden existente"
+                                                                                            style="{{ $hideEditPreOrden }}">
+                                                                                            <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
+                                                                                            <span>Editar Pre-orden</span>
+                                                                                        </button>
+                                                                                        <button class="btn-modelo btn-modelo-email"
+                                                                                            onclick="abrirModalEnviarPreOrden('{{ $targetReg->ot }}', 'modelo', {{ $clasesParaEnvioJson }})"
+                                                                                            title="{{ $esReproceso ? 'Enviar alerta a Calidad para iniciar revisión de re-proceso' : 'Enviar pre-orden por correo electrónico' }}"
+                                                                                            style="{{ $hideSendEmail }}">
+                                                                                            <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
+                                                                                            <span>{{ $esReproceso ? 'Enviar Alerta' : 'Enviar Correo' }}</span>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </div>
                                                                             </div>
                                                                         </div>
                                                                     @endif
-                                                                @endforeach
-                                                            </div>
-                                                        @endif
-
-
-
-
-
-
-
-
-                                                        @if (count($rechazadosDibujos) > 0 || count($rechazadosAyudas) > 0 || count($rechazadosOtros) > 0)
-                                                            @if (count($rechazadosDibujos) > 0)
-                                                                <h3 class="alm-margin-top-25px alm-margin-bottom-10px alm-color-9c0300 alm-border-bottom-2px-solid-9c0300 alm-padding-bottom-5px">
-                                                                    Dibujos Rechazados</h3>
-                                                                <div class="alm-pdf-grid alm-background-color-fef2f2 alm-padding-15px alm-border-radius-8px alm-border-1px-solid-fecaca">
-                                                                    @foreach ($rechazadosDibujos as $otroArchivo)
-                                                                        @php
-                                                                            $canDelete = false;
-                                                                        @endphp
-                                                                        <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
-                                                                            <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
-                                                                            </div>
-                                                                            <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'dibujo')">
-                                                                                {{ basename($otroArchivo['nombre']) }}
-                                                                            </div>
-                                                                            <div class="file-actions alm-flex-gap-5">
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-9c0300 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'dibujo')">Ver</button>
-                                                                            </div>
-                                                                        </div>
-                                                                    @endforeach
                                                                 </div>
                                                             @endif
 
-
-
-                                                            @if (count($rechazadosAyudas) > 0)
-                                                                <h3 class="alm-margin-top-25px alm-margin-bottom-10px alm-color-15803d alm-border-bottom-2px-solid-15803d alm-padding-bottom-5px">
-                                                                    Ayudas Visuales de Fundición</h3>
-                                                                <div class="alm-pdf-grid alm-success-box">
-                                                                    @foreach ($rechazadosAyudas as $otroArchivo)
-                                                                        @php
-                                                                            $canDelete = false;
-                                                                        @endphp
-                                                                        <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                                            <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
-                                                                            </div>
-                                                                            <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">
-                                                                                {{ basename($otroArchivo['nombre']) }}
-                                                                            </div>
-                                                                            <div class="file-actions alm-flex-gap-5">
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', 'ayuda')">Ver</button>
-                                                                            </div>
-                                                                        </div>
-                                                                    @endforeach
-                                                                </div>
-                                                            @endif
-
-
-
-                                                            @if (count($rechazadosOtros) > 0)
-                                                                <h3 class="alm-margin-top-25px alm-margin-bottom-10px alm-color-9c0300 alm-border-bottom-2px-solid-9c0300 alm-padding-bottom-5px">
-                                                                    Documentos Rechazados</h3>
-                                                                <div class="alm-pdf-grid alm-background-color-fef2f2 alm-padding-15px alm-border-radius-8px alm-border-1px-solid-fecaca">
-                                                                    @foreach ($rechazadosOtros as $otroArchivo)
-                                                                        @php
-                                                                            $canDelete = false;
-                                                                            $fileOwner = $otroArchivo['owner'] ?? '';
-                                                                            $userPerfil = Auth::user()->perfil;
-                                                                            $alertSent = false;
-                                                                            if ($fileOwner === 'almacen') {
-                                                                                $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
-                                                                            } elseif ($fileOwner === 'calidad') {
-                                                                                $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
-                                                                            }
-                                                                            if ($userPerfil == 1 || $userPerfil == 2) $canDelete = true;
-                                                                            elseif ($userPerfil == 5 && $fileOwner === 'almacen') $canDelete = true;
-                                                                            elseif ($userPerfil == 4 && $fileOwner === 'calidad') $canDelete = true;
-                                                                        @endphp
-                                                                        <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
-                                                                            <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
-                                                                            </div>
-                                                                            <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                                {{ basename($otroArchivo['nombre']) }}
-                                                                            </div>
-                                                                            <div class="file-actions alm-flex-gap-5">
-                                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-9c0300 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
-                                                                            @if($canDelete && !$alertSent)
-                                                                                <button class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')" title="Eliminar archivo">
-                                                                                    Eliminar
-                                                                                </button>
-                                                                            @endif
-                                                                            </div>
-                                                                        </div>
-                                                                    @endforeach
-                                                                </div>
-                                                            @endif
-                                                        @endif
-                                                        @if ($showControlCard)
-                                                                @php
-                                                                    $esReproceso = (bool) preg_match('/_R\d+$/i', $targetReg->ot);
-                                                                    // Para buscar liberaciones del reproceso, usar la OT anterior
-                                                                    $previousOtForRechazo = $targetReg->ot;
-                                                                    if ($esReproceso) {
-                                                                        preg_match('/_R(\d+)$/i', $targetReg->ot, $matches);
-                                                                        $rNum = (int)($matches[1] ?? 1);
-                                                                        if ($rNum > 1) {
-                                                                            $previousOtForRechazo = preg_replace('/_R\d+$/i', '_R' . ($rNum - 1), $targetReg->ot);
-                                                                        } else {
-                                                                            $previousOtForRechazo = preg_replace('/_R\d+$/i', '', $targetReg->ot);
-                                                                        }
-                                                                    }
-                                                                    $rechazadosClases = \App\Models\LiberacionModeloFundicion::where('ot', $previousOtForRechazo)
-                                                                        ->where('decision', 'rechazar')
-                                                                        ->pluck('tipo_modelo')
-                                                                        ->unique()
-                                                                        ->filter(fn($v) => !empty($v))
-                                                                        ->values()
-                                                                        ->toArray();
-
-                                                                    $otClasesActivas = $esReproceso
-                                                                        ? array_map('strtolower', $rechazadosClases)
-                                                                        : (is_array($reg->ayudas_config) ? array_map('strtolower', $reg->ayudas_config) : []);
-                                                                    $clasesProcesadas = [];
-
-                                                                    /** @var \App\Models\FundicionHistory $targetReg */
-                                                                    $preOrdenesEnviadas = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->where('is_sent', 1)->get();
-                                                                    foreach ($preOrdenesEnviadas as $po) {
-                                                                        $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
-                                                                        if (is_array($filas)) {
-                                                                            foreach ($filas as $f) {
-                                                                                if (!empty($f['clase'] ?? $f['clase_nombre'])) {
-                                                                                    $clasesProcesadas[] = strtolower($f['clase'] ?? $f['clase_nombre']);
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-
-                                                                    $liberacionesFisicas = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
-                                                                        ->where('tipo_origen', 'con_modelo')
-                                                                        ->whereNotNull('tipo_modelo')
-                                                                        ->where('tipo_modelo', '!=', '')
-                                                                        ->pluck('tipo_modelo')->toArray();
-                                                                    foreach ($liberacionesFisicas as $lf) {
-                                                                        if (!empty($lf)) {
-                                                                            $clasesProcesadas[] = strtolower($lf);
-                                                                        }
-                                                                    }
-                                                                    $clasesProcesadas = array_filter(array_unique($clasesProcesadas), fn($v) => $v !== '');
-                                                                    $clasesProcesadas = array_values($clasesProcesadas);
-
-                                                                    $clasesActivasCubiertas = [];
-                                                                    $clasesActivasFaltantes = [];
-                                                                    foreach ($otClasesActivas as $clActiva) {
-                                                                        $cubierta = false;
-                                                                        foreach ($clasesProcesadas as $cp) {
-                                                                            if ($cp === '' || $clActiva === '') continue;
-                                                                            if (strpos($cp, strtolower($clActiva)) !== false || strpos(strtolower($clActiva), $cp) !== false) {
-                                                                                $cubierta = true;
-                                                                                break;
-                                                                            }
-                                                                        }
-                                                                        if ($cubierta) {
-                                                                            $clasesActivasCubiertas[] = $clActiva;
-                                                                        } else {
-                                                                            $clasesActivasFaltantes[] = $clActiva;
-                                                                        }
-                                                                    }
-
-                                                                    $todasClasesProcesadas = count($otClasesActivas) > 0 && count($clasesActivasFaltantes) === 0;
-                                                                    $algunaClaseProcesada  = count($clasesActivasCubiertas) > 0;
-                                                                    $tienePreOrden = (bool)($targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent);
-
-                                                                    // Nunca deshabilitamos la tarjeta entera para que el usuario siempre pueda interactuar
-                                                                    $controlDisabled = '';
-                                                                    $hideControlCard = $hasVerdictosPendientes ? 'display: none;' : ''; // Siempre mostrar la tarjeta principal de controles
-                                                                    $hideTengoModelo = $esReproceso ? 'display: none;' : '';
-                                                                    $hideGenerarFormato = ($esReproceso || $tienePreOrden) ? 'display: none;' : '';
-                                                                    $hideReprocesoPreOrden = ($esReproceso && !$tienePreOrden) ? '' : 'display: none;';
-                                                                    $hideEditPreOrden = $tienePreOrden ? '' : 'display: none;';
-
-                                                                    $clasesFisicamenteConfirmadas = [];
-                                                                    $liberacionesFisicas = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
-                                                                        ->where('tipo_origen', 'con_modelo')
-                                                                        ->whereNotNull('tipo_modelo')
-                                                                        ->where('tipo_modelo', '!=', '')
-                                                                        ->get();
-                                                                    foreach ($liberacionesFisicas as $lib) {
-                                                                        $clasesArray = explode(',', $lib->tipo_modelo);
-                                                                        foreach ($clasesArray as $c) {
-                                                                            $clasesFisicamenteConfirmadas[] = strtolower(trim($c));
-                                                                        }
-                                                                    }
-                                                                    $clasesFisicamenteConfirmadas = array_unique($clasesFisicamenteConfirmadas);
-
-                                                                    $clasesFaltantesFisico = [];
-                                                                    foreach ($otClasesActivas as $clActiva) {
-                                                                        $cubierta = false;
-                                                                        foreach ($clasesFisicamenteConfirmadas as $cp) {
-                                                                            if ($cp === '' || $clActiva === '') continue;
-                                                                            if (strpos($cp, strtolower($clActiva)) !== false || strpos(strtolower($clActiva), $cp) !== false) {
-                                                                                $cubierta = true;
-                                                                                break;
-                                                                            }
-                                                                        }
-                                                                        if (!$cubierta) {
-                                                                            $clasesFaltantesFisico[] = $clActiva;
-                                                                        }
-                                                                    }
-
-                                                                    $poPendienteEnvio = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->where('is_sent', 0)->orderBy('id', 'desc')->first();
-                                                                    $clasesParaEnvio = [];
-                                                                    if ($poPendienteEnvio) {
-                                                                        $filas = is_string($poPendienteEnvio->filas) ? json_decode($poPendienteEnvio->filas, true) : $poPendienteEnvio->filas;
-                                                                        if (is_array($filas)) {
-                                                                            foreach ($filas as $f) {
-                                                                                if (!empty($f['clase'] ?? $f['clase_nombre'])) {
-                                                                                    $clasesParaEnvio[] = strtolower($f['clase'] ?? $f['clase_nombre']);
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-
-                                                                    $clasesYaProcesadasJson     = json_encode(array_values($clasesActivasCubiertas));
-                                                                    $clasesActivasFaltantesJson = json_encode(array_values($clasesActivasFaltantes));
-                                                                    $todasClasesActivasJson     = json_encode(array_values($otClasesActivas));
-                                                                    $clasesActivasNoEnviadasJson = json_encode(array_values($clasesActivasFaltantes));
-                                                                    $clasesFaltantesFisicoJson = json_encode(array_values($clasesFaltantesFisico));
-                                                                    $clasesParaEnvioJson = json_encode(array_values(array_unique($clasesParaEnvio)));
-
-                                                                    $todasClasesEnviadas = $todasClasesProcesadas && !$poPendienteEnvio;
-                                                                    $isFullySubmitted = $todasClasesEnviadas;
-                                                                    $hideAllBtns = $isFullySubmitted ? 'display: none;' : '';
-                                                                    $hideSendEmail = ($tienePreOrden && $poPendienteEnvio) ? '' : 'display: none;';
-                                                                @endphp
-                                                                <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}"
-                                                                    style="{{ $controlDisabled }} {{ $hideControlCard }}">
-                                                                    <div class="lib-calidad-card-header">
-                                                                        <img src="{{ $esReproceso ? asset('images/Reproceso.png') : asset('images/almacen.png') }}" alt="Almacén"
-                                                                            class="alm-icon-lg">
-                                                                        <div class="alm-overflow-hidden alm-flex-1">
-                                                                            <span class="lib-calidad-card-title">Control de Modelos &mdash;
-                                                                                Almacén</span>
-                                                                            <span
-                                                                                class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
-                                                                        </div>
-                                                                        @if (count($otClasesActivas) > 0)
-                                                                            <div class="alm-flex-shrink-0 alm-display-flex alm-flex-direction-column alm-align-items-center alm-gap-2px">
-                                                                                <span style="font-size:1.1em; font-weight:800; color:{{ $todasClasesProcesadas ? '#15803d' : ($algunaClaseProcesada ? '#0369a1' : '#ffffff') }};">
-                                                                                    {{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }}
-                                                                                </span>
-                                                                                <span class="alm-font-size-0-65em alm-font-weight-600 alm-color-rgba-255-255-255-0-75 alm-letter-spacing-0-5px alm-text-transform-uppercase">clases</span>
-                                                                                @if ($todasClasesProcesadas)
-                                                                                    <img src="{{ asset('images/ready.png') }}" class="alm-width-18px alm-height-18px alm-margin-top-2px" alt="Listo">
-                                                                                @endif
-                                                                            </div>
-                                                                        @endif
+                                                            {{-- CONTENEDOR 2: PROCESO DE CASTING / MODELOS APROBADOS --}}
+                                                            @if ($tieneAprobados)
+                                                                <div class="alm-process-block" style="margin-bottom: 10px; padding: 20px; border-radius: 14px; background-color: #f0fdf4; border: 2px solid #16a34a; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.08);">
+                                                                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #16a34a; padding-bottom: 10px; margin-bottom: 15px;">
+                                                                        <h3 style="margin: 0; color: #16a34a; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                                            <img src="{{ asset('images/Quality.png') }}" style="width: 24px; height: 24px;">
+                                                                            Etapa: Proceso de Casting / Modelos Aprobados ({{ implode(', ', array_map('ucfirst', $aprobados)) }})
+                                                                        </h3>
+                                                                        <span style="font-size: 0.8rem; font-weight: 700; background: #dcfce7; color: #15803d; padding: 4px 12px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                                                                            CASTING / APROBADOS
+                                                                        </span>
                                                                     </div>
-                                                                    <div class="lib-calidad-card-body">
-                                                                        <div class="lib-calidad-action-row">
-                                                                            <h4 class="lib-calidad-card-prompt">
-                                                                                @if ($isFullySubmitted)
-                                                                                    <span class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
-                                                                                        <img src="{{ asset('images/ready.png') }}" class="alm-icon-md" alt="Listo">
-                                                                                        El proceso ahora le pertenece a Calidad. Por favor, espera instrucciones para las clases enviadas.
-                                                                                    </span>
-                                                                                @elseif ($todasClasesProcesadas)
-                                                                                    <span class="alm-color-0369a1 alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
-                                                                                        <img src="{{ asset('images/ready.png') }}" class="alm-icon-md" alt="Listo">
-                                                                                        ¡Todas las clases procesadas! Falta enviar la alerta a Calidad.
-                                                                                    </span>
-                                                                                @elseif ($algunaClaseProcesada)
-                                                                                    <span class="alm-color-0369a1 alm-font-weight-600">
-                                                                                        Proceso parcial ({{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }} clases enviadas).
-                                                                                        Puedes generar o enviar las pre-órdenes restantes.
-                                                                                    </span>
-                                                                                @elseif ($targetReg->tiene_modelo)
-                                                                                    ¡Modelo recibido y procesado! Pendiente de que Calidad lo revise.
-                                                                                @elseif ($targetReg->pre_orden_email_sent)
-                                                                                    Alerta enviada a Calidad. En espera de su revisión y nuevo veredicto
-                                                                                    de liberación.
-                                                                                @elseif ($targetReg->pre_orden_sent)
-                                                                                    Pre-orden lista. Puedes seguir editando los datos o enviarla por correo.
-                                                                                @elseif ($esReproceso)
-                                                                                    OT en re-proceso por rechazo de Calidad. Genera o edita la pre-orden
-                                                                                    de modelo para iniciar el nuevo ciclo de fabricación.
-                                                                                @else
-                                                                                    ¿Ya cuentas con el modelo de esta OT o necesitas generar una
-                                                                                    pre-orden?
-                                                                                @endif
-                                                                            </h4>
-                                                                            <div class="lib-calidad-card-btns" style="{{ $hideAllBtns }}">
-                                                                                <button class="btn-modelo btn-modelo-si"
-                                                                                    onclick="abrirModalConfirmarModelo('{{ $targetReg->ot }}', '{{ md5($reg->ot) }}', {{ $clasesFaltantesFisicoJson }}, {{ $todasClasesActivasJson }})"
-                                                                                    title="Sí, cuento con el modelo de esta OT"
-                                                                                    style="{{ $hideTengoModelo }}">
-                                                                                    <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
-                                                                                    <span>Tengo el Modelo</span>
-                                                                                </button>
-                                                                                <button class="btn-modelo btn-modelo-no"
-                                                                                    onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
-                                                                                    title="No cuento con él, generar formato PDF"
-                                                                                    style="{{ $hideGenerarFormato }}">
-                                                                                    <img src="{{ asset('images/pdf.png') }}" alt="PDF">
-                                                                                    <span>No, generar formato</span>
-                                                                                </button>
-                                                                                <button class="btn-modelo btn-modelo-no"
-                                                                                    onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
-                                                                                    title="Generar / editar la pre-orden de fabricación de modelo"
-                                                                                    style="{{ $hideReprocesoPreOrden }}">
-                                                                                    <img src="{{ asset('images/pdf.png') }}" alt="Pre-Orden">
-                                                                                    <span>Pre-Orden Modelo</span>
-                                                                                </button>
-                                                                                <button class="btn-modelo btn-modelo-edit"
-                                                                                    onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
-                                                                                    title="Editar información de la preorden existente"
-                                                                                    style="{{ $hideEditPreOrden }}">
-                                                                                    <img src="{{ asset('images/editar-informacion.png') }}"
-                                                                                        alt="Editar">
-                                                                                    <span>Editar Pre-orden</span>
-                                                                                </button>
-                                                                                <button class="btn-modelo btn-modelo-email"
-                                                                                    onclick="abrirModalEnviarPreOrden('{{ $targetReg->ot }}', 'modelo', {{ $clasesParaEnvioJson }})"
-                                                                                    title="{{ $esReproceso ? 'Enviar alerta a Calidad para iniciar revisión de re-proceso' : 'Enviar pre-orden por correo electrónico' }}"
-                                                                                    style="{{ $hideSendEmail }}">
-                                                                                    <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
-                                                                                    <span>{{ $esReproceso ? 'Enviar Alerta' : 'Enviar Correo' }}</span>
-                                                                                </button>
-                                                                            </div>
+
+                                                                    {{-- Dibujos de Casting --}}
+                                                                    @if (count($dibujosCasting) > 0)
+                                                                        <h4 style="margin-top: 10px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Dibujos de Fundición (Casting)</h4>
+                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                            @foreach ($dibujosCasting as $archivoInfo)
+                                                                                <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #16a34a;">
+                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                                    </div>
+                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">
+                                                                                        {{ basename($archivoInfo['nombre']) }}
+                                                                                    </div>
+                                                                                    <div class="file-actions">
+                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">Ver</button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            @endforeach
                                                                         </div>
-                                                                    </div>
-                                                                </div>
-                                                                @endif
+                                                                    @endif
 
-                                                                @php                                                                    /** @var \App\Models\FundicionHistory $reg */
-                                                                    // Incluir todas las liberaciones donde Calidad ya emitió un veredicto (decisión != null),
-                                                                    // sin importar el estado interno. Así Almacén puede ver y procesar los aprobados/rechazados
-                                                                    // aunque su estado aún sea 'pendiente' de procesamiento por parte de Almacén.
-                                                                    $liberaciones = \App\Models\LiberacionModeloFundicion::where('ot', $reg->ot)
-                                                                        ->whereNotNull('decision')
-                                                                        ->where('decision', '!=', '')
-                                                                        ->get();
-                                                                    /** @var \Illuminate\Database\Eloquent\Collection<\App\Models\LiberacionModeloFundicion> $liberaciones */
-                                                                    $aprobados = $liberaciones->where('decision', 'aprobar')->pluck('tipo_modelo')->unique()->values()->toArray();
-                                                                    $rechazados = $liberaciones->where('decision', 'rechazar')->pluck('tipo_modelo')->unique()->values()->toArray();
-                                                                    
-                                                                    $isCalidadAlerted = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'aprobado', 'rechazado', 'mixto', 'parcial', 'casting_aprobado']);
-                                                                    $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado');
+                                                                    {{-- Ayudas Visuales de Casting --}}
+                                                                    @if (count($ayudasCasting) > 0)
+                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Ayudas Visuales (Casting)</h4>
+                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                            @foreach ($ayudasCasting as $archivoInfo)
+                                                                                <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                                    </div>
+                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">
+                                                                                        {{ basename($archivoInfo['nombre']) }}
+                                                                                    </div>
+                                                                                    <div class="file-actions">
+                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">Ver</button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    @endif
 
-                                                                    // Detectar si el último reproceso fue aprobado por Calidad.
-                                                                    // En ese caso la card de Rechazados asume el rol de la card de Aprobados
-                                                                    // para evitar mostrar dos cards en un caso que NO es mixto.
-                                                                    $reprocesoAprobadoPorCalidad = $latestReproceso
-                                                                        && in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'calidad_parcial']);
-                                                                @endphp
+                                                                    {{-- Documentos Aprobados --}}
+                                                                    @if (count($archivosAprobados) > 0)
+                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #155724; font-weight: 700;">Documentos Aprobados</h4>
+                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                            @foreach ($archivosAprobados as $otroArchivo)
+                                                                                @php
+                                                                                    $canDelete = false;
+                                                                                    $fileOwner = $otroArchivo['owner'] ?? '';
+                                                                                    $fileNameLower = strtolower($otroArchivo['nombre']);
+                                                                                    if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
+                                                                                        $fileOwner = 'calidad';
+                                                                                    }
+                                                                                    $userPerfil = Auth::user()->perfil;
+                                                                                    $alertSent = false;
+                                                                                    if ($fileOwner === 'almacen') {
+                                                                                        $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
+                                                                                    } elseif ($fileOwner === 'calidad') {
+                                                                                        $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
+                                                                                    }
+                                                                                    if (!$alertSent) {
+                                                                                        if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
+                                                                                            $canDelete = true;
+                                                                                        } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
+                                                                                            $canDelete = true;
+                                                                                        } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
+                                                                                            $canDelete = true;
+                                                                                        }
+                                                                                    }
+                                                                                @endphp
+                                                                                <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
+                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                                    </div>
+                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                        {{ basename($otroArchivo['nombre']) }}
+                                                                                    </div>
+                                                                                    <div class="file-actions alm-flex-gap-5">
+                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-155724 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                        @if ($canDelete)
+                                                                                            <button class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                        @endif
+                                                                                    </div>
+                                                                                </div>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    @endif
 
-                                                                @if (count($aprobados) > 0 && $isCalidadAlerted)
+                                                                    {{-- Control de Modelos — Almacén (Aprobados) --}}
                                                                     @php
-                                                                    /** @var \App\Models\FundicionHistory $reg */
-                                                                    $castingPre = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->where('pdf_filename', 'LIKE', '%Casting%')->first();
-                                                                    $hasCastingPre = (bool) $castingPre;
-
-                                                                    // Validar si todas las clases aprobadas tienen una pre-orden de casting enviada
-                                                                    $todosCastingProcesados = count($aprobados) > 0;
-                                                                    /** @var \Illuminate\Database\Eloquent\Collection<\App\Models\PreOrdenFundicion> $castingSent */
-                                                                    $castingSent = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->where('pdf_filename', 'LIKE', '%Casting%')->where('is_sent', true)->get();
-                                                                    $clasesCastingProcesadas = [];
-                                                                    foreach ($castingSent as $po) {
-                                                                        $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
-                                                                        if (is_array($filas)) {
-                                                                            foreach ($filas as $f) {
-                                                                                if (!empty($f['clase'] ?? $f['clase_nombre'])) {
-                                                                                    $clasesCastingProcesadas[] = strtolower($f['clase'] ?? $f['clase_nombre']);
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    foreach ($aprobados as $clActiva) {
-                                                                        $procesada = false;
-                                                                        foreach ($clasesCastingProcesadas as $cp) {
-                                                                            if (strpos($cp, strtolower($clActiva)) !== false || strpos(strtolower($clActiva), $cp) !== false) {
-                                                                                $procesada = true;
-                                                                                break;
-                                                                            }
-                                                                        }
-                                                                        if (!$procesada) {
-                                                                            $todosCastingProcesados = false;
-                                                                            break;
-                                                                        }
-                                                                    }
-
-                                                                    // $isCalidadAlerted se define arriba
-                                                                    $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado');
-                                                                    $aprobCardDisabled = '';
+                                                                        $castingPre = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->where('pdf_filename', 'LIKE', '%Casting%')->first();
+                                                                        $hasCastingPre = (bool) $castingPre;
                                                                     @endphp
-                                                                    <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}"
-                                                                        style="margin-top: 15px; {{ $aprobCardDisabled }}">
+                                                                    <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}" style="margin-top: 15px;">
                                                                         <div class="lib-calidad-card-header alm-background-linear-gradient-135deg-16a34a-15803d alm-border-bottom-2px-solid-rgba-22-163-74-0-5">
-                                                                            <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
-                                                                                class="alm-icon-lg">
+                                                                            <img src="{{ asset('images/almacen.png') }}" alt="Almacén" class="alm-icon-lg">
                                                                             <div class="alm-overflow-hidden">
-                                                                                <span class="lib-calidad-card-title alm-color-ffffff">Control de
-                                                                                    Modelos
-                                                                                    &mdash; Almacén (Aprobados)</span>
+                                                                                <span class="lib-calidad-card-title alm-color-ffffff">Control de Modelos &mdash; Almacén (Aprobados)</span>
                                                                                 <span class="lib-calidad-card-ot alm-color-d1fae5">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                             </div>
                                                                         </div>
@@ -2114,57 +1947,36 @@
                                                                             <div class="lib-calidad-action-row">
                                                                                 <h4 class="lib-calidad-card-prompt">
                                                                                     @if ($castingEmailSent)
-                                                                                        <span
-                                                                                            class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
-                                                                                            <img src="{{ asset('images/ready.png') }}"
-                                                                                                class="alm-icon-md"
-                                                                                                alt="Listo">
-                                                                                            Proceso de pre-orden finalizado correctamente. El correo ha sido
-                                                                                            enviado
-                                                                                            al proveedor. Favor de esperar nuevas instrucciones.
+                                                                                        <span class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                            <img src="{{ asset('images/ready.png') }}" class="alm-icon-md" alt="Listo">
+                                                                                            Proceso de pre-orden finalizado correctamente. El correo ha sido enviado al proveedor. Favor de esperar nuevas instrucciones.
                                                                                         </span>
                                                                                     @elseif ($hasCastingPre)
-                                                                                        Pre-orden de casting generada para los modelos:
-                                                                                        <strong>{{ implode(', ', $aprobados) }}</strong>. Puedes editar los
-                                                                                        datos o
-                                                                                        enviar la pre-orden por correo.
+                                                                                        Pre-orden de casting generada para los modelos: <strong>{{ implode(', ', $aprobados) }}</strong>. Puedes editar los datos o enviar la pre-orden por correo.
                                                                                     @elseif ($reg->casting_pdf_generated)
-                                                                                        Formatos LDM subidos. Procede a generar la Pre-Orden de Fabricación
-                                                                                        de
-                                                                                        Casting para los modelos:
-                                                                                        <strong>{{ implode(', ', $aprobados) }}</strong>.
+                                                                                        Formatos LDM subidos. Procede a generar la Pre-Orden de Fabricación de Casting para los modelos: <strong>{{ implode(', ', $aprobados) }}</strong>.
                                                                                     @else
-                                                                                        Modelos Aprobados por Calidad:
-                                                                                        <strong>{{ implode(', ', $aprobados) }}</strong>. Procede a subir
-                                                                                        los
-                                                                                        formatos F-CCL-LDM firmados para iniciar el casting.
+                                                                                        Modelos Aprobados por Calidad: <strong>{{ implode(', ', $aprobados) }}</strong>. Procede a subir los formatos F-CCL-LDM firmados para iniciar el casting.
                                                                                     @endif
                                                                                 </h4>
                                                                                 <div class="lib-calidad-card-btns">
                                                                                     @if ($castingEmailSent)
-                                                                                        {{-- Controles ocultos tras finalizar el proceso --}}
                                                                                     @elseif ($hasCastingPre)
-                                                                                        <button class="btn-modelo btn-modelo-si alm-bg-success-white"
-                                                                                            onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')">
-                                                                                            <img src="{{ asset('images/editar-informacion.png') }}"
-                                                                                                alt="Editar">
+                                                                                        <button class="btn-modelo btn-modelo-si alm-bg-success-white" onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')">
+                                                                                            <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
                                                                                             <span>Editar Pre-orden</span>
                                                                                         </button>
-                                                                                        <button class="btn-modelo btn-modelo-email alm-display-flex alm-background-color-033966 alm-color-white"
-                                                                                            onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'casting')">
+                                                                                        <button class="btn-modelo btn-modelo-email alm-display-flex alm-background-color-033966 alm-color-white" onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'casting')">
                                                                                             <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
                                                                                             <span>Enviar Correo</span>
                                                                                         </button>
                                                                                     @elseif ($reg->casting_pdf_generated)
-                                                                                        <button class="btn-modelo btn-modelo-si alm-bg-success-white"
-                                                                                            onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')">
-                                                                                            <img src="{{ asset('images/almacen.png') }}" alt="Preorden"
-                                                                                                class="alm-width-16px alm-height-16px alm-filter-brightness-0-invert-1">
+                                                                                        <button class="btn-modelo btn-modelo-si alm-bg-success-white" onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')">
+                                                                                            <img src="{{ asset('images/almacen.png') }}" alt="Preorden" class="alm-width-16px alm-height-16px alm-filter-brightness-0-invert-1">
                                                                                             <span>Preorden de Casting</span>
                                                                                         </button>
                                                                                     @else
-                                                                                        <button class="btn-modelo btn-modelo-si alm-bg-success-white"
-                                                                                            onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($aprobados) }}, [])">
+                                                                                        <button class="btn-modelo btn-modelo-si alm-bg-success-white" onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($aprobados) }}, [])">
                                                                                             <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
                                                                                             <span>Procesar Aceptados</span>
                                                                                         </button>
@@ -2173,50 +1985,99 @@
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                @endif
+                                                                </div>
+                                                            @endif
 
-                                                                {{-- Card 2: Rejected models --}}
-                                                                @if (count($rechazados) > 0 && $isCalidadAlerted)
+                                                            {{-- CONTENEDOR 3: MODELOS RECHAZADOS --}}
+                                                            @if ($tieneRechazados)
+                                                                <div class="alm-process-block" style="margin-bottom: 25px; padding: 20px; border-radius: 14px; background-color: #fef2f2; border: 2px solid #dc2626; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.08);">
+                                                                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #dc2626; padding-bottom: 10px; margin-bottom: 15px;">
+                                                                        <h3 style="margin: 0; color: #dc2626; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                                            <img src="{{ asset('images/Rechazado.png') }}" style="width: 24px; height: 24px;">
+                                                                            Etapa: Modelos Rechazados ({{ implode(', ', array_map('ucfirst', $rechazados)) }})
+                                                                        </h3>
+                                                                        <span style="font-size: 0.8rem; font-weight: 700; background: #fee2e2; color: #b91c1c; padding: 4px 12px; border-radius: 6px; border: 1px solid #fecaca;">
+                                                                            RECHAZADOS
+                                                                        </span>
+                                                                    </div>
+
+                                                                    {{-- Dibujos Rechazados --}}
+                                                                    @if (count($rechazadosDibujos) > 0)
+                                                                        <h4 style="margin-top: 10px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Dibujos Rechazados</h4>
+                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                            @foreach ($rechazadosDibujos as $otroArchivo)
+                                                                                <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
+                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                                    </div>
+                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                        {{ basename($otroArchivo['nombre']) }}
+                                                                                    </div>
+                                                                                    <div class="file-actions alm-flex-gap-5">
+                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    @endif
+
+                                                                    {{-- Ayudas Visuales Rechazadas --}}
+                                                                    @if (count($rechazadosAyudas) > 0)
+                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Ayudas Visuales Rechazadas</h4>
+                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                            @foreach ($rechazadosAyudas as $otroArchivo)
+                                                                                <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
+                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                                    </div>
+                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                        {{ basename($otroArchivo['nombre']) }}
+                                                                                    </div>
+                                                                                    <div class="file-actions alm-flex-gap-5">
+                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    @endif
+
+                                                                    {{-- Documentos de Rechazo / SCAR --}}
+                                                                    @if (count($rechazadosOtros) > 0)
+                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #721c24; font-weight: 700;">Documentos de Rechazo</h4>
+                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                            @foreach ($rechazadosOtros as $otroArchivo)
+                                                                                <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #721c24;">
+                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                                    </div>
+                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                        {{ basename($otroArchivo['nombre']) }}
+                                                                                    </div>
+                                                                                    <div class="file-actions alm-flex-gap-5">
+                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            @endforeach
+                                                                        </div>
+                                                                    @endif
+
+                                                                    {{-- Control de Modelos — Almacén (Rechazados) --}}
                                                                     @php
                                                                         $latestReproceso = null;
-                                                                        /** @var \App\Models\FundicionHistory $reg */
                                                                         if ($reg->rechazos_procesados) {
                                                                             $latestReproceso = \App\Models\FundicionHistory::where('ot', 'LIKE', $reg->ot . '_R%')
                                                                                 ->orderBy('id', 'desc')
                                                                                 ->first();
                                                                         }
-
-                                                                        $rechCardDisabled = '';
-                                                                        $ultimoRechazadoPorCalidad = false;
-                                                                        $reprocesoAprobadoPorCalidad = false;
-                                                                        $castingEmailSentReproceso = false;
-                                                                        if ($reg->rechazos_procesados) {
-                                                                            $castingEmailSentReproceso = $latestReproceso && ($latestReproceso->calidad_revision_status === 'casting_aprobado');
-                                                                            $ultimoRechazadoPorCalidad = $latestReproceso
-                                                                                && in_array($latestReproceso->calidad_revision_status, ['rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto'])
-                                                                                && !$latestReproceso->rechazos_procesados;
-                                                                            $reprocesoAprobadoPorCalidad = $latestReproceso
-                                                                                && in_array($latestReproceso->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'calidad_parcial']);
-                                                                            if ($castingEmailSentReproceso) {
-                                                                                $rechCardDisabled = '';
-                                                                            } elseif ($ultimoRechazadoPorCalidad || $reprocesoAprobadoPorCalidad) {
-
-                                                                                $rechCardDisabled = '';
-                                                                            } elseif (!$latestReproceso || $latestReproceso->pre_orden_email_sent || $latestReproceso->tiene_modelo) {
-                                                                                $rechCardDisabled = '';
-                                                                            }
-                                                                        }
                                                                     @endphp
-
-                                                                    <div class="lib-calidad-card" id="control-almacen-rechazados-{{ md5($reg->ot) }}"
-                                                                        style="margin-top: 15px; {{ $rechCardDisabled }}">
+                                                                    <div class="lib-calidad-card" id="control-almacen-rechazados-{{ md5($reg->ot) }}" style="margin-top: 15px;">
                                                                         <div class="lib-calidad-card-header alm-background-linear-gradient-135deg-dc2626-b91c1c alm-border-bottom-2px-solid-rgba-220-38-38-0-5">
-                                                                            <img src="{{ asset('images/Reproceso.png') }}" alt="Reproceso"
-                                                                                class="alm-icon-lg">
+                                                                            <img src="{{ asset('images/Reproceso.png') }}" alt="Reproceso" class="alm-icon-lg">
                                                                             <div class="alm-overflow-hidden">
-                                                                                <span class="lib-calidad-card-title alm-color-ffffff">Control de
-                                                                                    Modelos
-                                                                                    &mdash; Almacén (Rechazados)</span>
+                                                                                <span class="lib-calidad-card-title alm-color-ffffff">Control de Modelos &mdash; Almacén (Rechazados)</span>
                                                                                 <span class="lib-calidad-card-ot alm-color-fee2e2">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                             </div>
                                                                         </div>
@@ -2231,34 +2092,22 @@
                                                                                                         <img src="{{ asset('images/redireccionar.png') }}" class="alm-width-22px alm-height-22px alm-filter-invert-36-sepia-87-saturate-1514-hue-rotate-176deg-brightness-94-contrast-101pct" alt="Info">
                                                                                                     </span>
                                                                                                     <span class="alm-line-height-1-45">
-                                                                                                        El reproceso de la <strong class="alm-color-dc2626 alm-background-fee2e2 alm-padding-2px-6px alm-border-radius-4px alm-font-weight-800">{{ $reg->ot }}</strong> 
-                                                                                                        se está trabajando en la nueva OT <strong class="alm-color-15803d alm-background-dcfce7 alm-padding-2px-6px alm-border-radius-4px alm-font-weight-800">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $latestReproceso->ot) }}</strong>.<br>
+                                                                                                        El reproceso de la <strong class="alm-color-dc2626 alm-background-fee2e2 alm-padding-2px-6px alm-border-radius-4px alm-font-weight-800">{{ $reg->ot }}</strong> se está trabajando en la nueva OT <strong class="alm-color-15803d alm-background-dcfce7 alm-padding-2px-6px alm-border-radius-4px alm-font-weight-800">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $latestReproceso->ot) }}</strong>.<br>
                                                                                                         <span class="alm-font-size-0-9rem alm-color-64748b alm-font-weight-500">Presiona el botón para redirigirte a la nueva Orden de Trabajo.</span>
                                                                                                     </span>
                                                                                                 </span>
                                                                                             </div>
                                                                                         @else
-                                                                                            Formatos de rechazo y SCAR subidos para los modelos:
-                                                                                            <strong>{{ implode(', ', $rechazados) }}</strong>. Nueva pre-orden
-                                                                                            de modelo
-                                                                                            generada.
+                                                                                            Formatos de rechazo y SCAR subidos para los modelos: <strong>{{ implode(', ', $rechazados) }}</strong>. Nueva pre-orden de modelo generada.
                                                                                         @endif
                                                                                     @else
-                                                                                        Modelos Rechazados por Calidad:
-                                                                                        <strong>{{ implode(', ', $rechazados) }}</strong>. Procede a subir
-                                                                                        el
-                                                                                        Formato de Rechazo y el SCAR correspondiente.
+                                                                                        Modelos Rechazados por Calidad: <strong>{{ implode(', ', $rechazados) }}</strong>. Procede a subir el Formato de Rechazo y el SCAR correspondiente.
                                                                                     @endif
                                                                                 </h4>
                                                                                 <div class="lib-calidad-card-btns">
                                                                                     @if ($reg->rechazos_procesados)
                                                                                         @if ($latestReproceso)
-                                                                                            <button class="btn-modelo btn-modelo-si"
-                                                                                                onclick="const row = document.querySelector('tr[data-ot=\'{{ $latestReproceso->ot }}\']'); if(row) { row.scrollIntoView({behavior: 'smooth', block: 'center'}); row.animate([{ backgroundColor: '#86efac' }, { backgroundColor: 'transparent' }], { duration: 800, iterations: 3 }); } else { alert('La OT de reproceso se encuentra en otra página o filtro.'); }"
-                                                                                                class="alm-display-flex alm-background-linear-gradient-135deg-0284c7-0369a1 alm-color-white alm-padding-12px-35px alm-font-size-1-15em alm-align-items-center alm-justify-content-center alm-min-height-52px alm-border-radius-10px alm-gap-10px alm-box-shadow-0-4px-12px-rgba-2-132-199-0-35 alm-border-none alm-cursor-pointer alm-transition-transform-0-2s-ease-box-shadow-0-2s-ease"
-                                                                                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(2, 132, 199, 0.45)';"
-                                                                                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(2, 132, 199, 0.35)';"
-                                                                                                title="Ir a la OT de re-proceso">
+                                                                                            <button class="btn-modelo btn-modelo-si" onclick="const row = document.querySelector('tr[data-ot=\'{{ $latestReproceso->ot }}\']'); if(row) { row.scrollIntoView({behavior: 'smooth', block: 'center'}); row.animate([{ backgroundColor: '#86efac' }, { backgroundColor: 'transparent' }], { duration: 800, iterations: 3 }); } else { alert('La OT de reproceso se encuentra en otra página o filtro.'); }" class="alm-display-flex alm-background-linear-gradient-135deg-0284c7-0369a1 alm-color-white alm-padding-12px-35px alm-font-size-1-15em alm-align-items-center alm-justify-content-center alm-min-height-52px alm-border-radius-10px alm-gap-10px alm-box-shadow-0-4px-12px-rgba-2-132-199-0-35 alm-border-none alm-cursor-pointer alm-transition-transform-0-2s-ease-box-shadow-0-2s-ease" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(2, 132, 199, 0.45)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(2, 132, 199, 0.35)';" title="Ir a la OT de re-proceso">
                                                                                                 <img src="{{ asset('images/redireccionar.png') }}" alt="Ir" class="alm-width-24px alm-height-24px alm-filter-brightness-0-invert-1">
                                                                                                 <span class="alm-font-weight-700 alm-letter-spacing-0-5px">Ir a la Nueva OT</span>
                                                                                             </button>
@@ -2269,9 +2118,7 @@
                                                                                             </button>
                                                                                         @endif
                                                                                     @else
-                                                                                        <button class="btn-modelo btn-modelo-no"
-                                                                                            onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', [], {{ json_encode($rechazados) }})"
-                                                                                            class="alm-display-flex alm-background-color-b91c1c alm-color-white">
+                                                                                        <button class="btn-modelo btn-modelo-no" onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', [], {{ json_encode($rechazados) }})" class="alm-display-flex alm-background-color-b91c1c alm-color-white">
                                                                                             <img src="{{ asset('images/Rechazado.png') }}" alt="No">
                                                                                             <span>Procesar Rechazados</span>
                                                                                         </button>
@@ -2280,7 +2127,10 @@
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                @endif
+                                                                </div>
+                                                            @endif
+
+                                                        </div> {{-- FIN CONTENEDOR PRINCIPAL PROCESOS (CONTENEDOR 0) --}}
 
                                                     </td>
                                                 </tr>
@@ -2608,7 +2458,7 @@
                     <!-- Contenido dinámico -->
                 </div>
                 <div class="alm-margin-top-20px alm-display-flex alm-gap-15px alm-justify-content-center">
-                    <button type="button" class="btn-save-preorden alm-background-color-b91c1c alm-box-shadow-0-4px-15px-rgba-220-38-38-0-3" onclick="almacenResolverCambios('reiniciar')">
+                    <button type="button" id="btn-resolver-reiniciar" class="btn-save-preorden alm-background-color-b91c1c alm-box-shadow-0-4px-15px-rgba-220-38-38-0-3" onclick="almacenResolverCambios('reiniciar')">
                         Reiniciar Proceso Completo
                     </button>
                     <button type="button" id="btn-resolver-mantener" class="btn-save-preorden alm-background-linear-gradient-135deg-0a8504-064e03 alm-box-shadow-0-4px-15px-rgba-10-133-4-0-35" onclick="almacenResolverCambios('mantener')">
@@ -2653,29 +2503,7 @@
             espera: "{{ asset('images/Espera.png') }}",
         };
 
-        // DOM Rearrangement for Control Cards to match corresponding document sections
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.alm-files-row').forEach(row => {
-                const tbody = row.querySelector('td');
-                if (!tbody) return;
-                
-                const aprobadosCard = tbody.querySelector('[id^="control-almacen-aprobados-"]');
-                const mainCard = tbody.querySelector('[id^="control-modelo-"]');
-                
-                if (aprobadosCard) {
-                    // Find the Rechazados section title
-                    const h3Rechazados = Array.from(tbody.querySelectorAll('h3')).find(el => el.textContent.includes('Rechazados') || el.textContent.includes('Rechazadas'));
-                    
-                    if (h3Rechazados) {
-                        // Insert immediately before the Rechazados section
-                        tbody.insertBefore(aprobadosCard, h3Rechazados);
-                    } else if (mainCard) {
-                        // If no Rechazados section exists, insert before the main card (so it stays immediately below Aprobados grids)
-                        tbody.insertBefore(aprobadosCard, mainCard);
-                    }
-                }
-            });
-        });
+        // Contenedores organizados estáticamente por etapa
     </script>
 
 @endsection

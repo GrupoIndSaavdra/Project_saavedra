@@ -71,9 +71,7 @@ window.irACarpeta = function (p1, p2, isId = false) {
         if (p2 && p2 !== 'null') url.searchParams.set('clase_id', p2);
     }
 
-    window.history.pushState(null, '', url.toString());
-    updateDependentSelectors();
-    updateAdminUI();
+    window.location.href = url.toString();
 };
 
 function refreshPageDiscretely(p1 = null, p2 = null) {
@@ -120,19 +118,38 @@ function updateDependentSelectors() {
             sel.value = val;
             return;
         }
-        let found = Array.from(sel.options).some(o => o.value === val || o.text === val);
+        let found = Array.from(sel.options).some(o => String(o.value) === String(val) || o.text.trim() === String(val).trim());
         if (!found) {
             const opt = document.createElement('option');
             opt.value = val;
             opt.text = val;
             sel.appendChild(opt);
         }
-        let matchingOpt = Array.from(sel.options).find(o => o.value === val || o.text === val);
+        let matchingOpt = Array.from(sel.options).find(o => String(o.value) === String(val) || o.text.trim() === String(val).trim());
         if (matchingOpt) sel.value = matchingOpt.value;
     }
 
     if (module === 'dibujos' || module === 'fundicion') {
         forceOption(otSel, 'ot_id');
+
+        if (otSel && otSel.value && clSel && window.todasLasOTs) {
+            const otMatch = window.todasLasOTs.find(o => String(o.id) === String(otSel.value));
+            if (otMatch) {
+                clSel.innerHTML = '<option value="">— Seleccionar Clase —</option>';
+                if (otMatch.clases) {
+                    otMatch.clases.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.textContent = c.nombre;
+                        clSel.appendChild(opt);
+                    });
+                }
+                const optP = document.createElement('option'); optP.value = 'Pistones'; optP.textContent = 'Pistones (Opcional)'; clSel.appendChild(optP);
+                const optG = document.createElement('option'); optG.value = 'Guías'; optG.textContent = 'Guías (Opcional)'; clSel.appendChild(optG);
+                clSel.disabled = false;
+            }
+        }
+
         forceOption(clSel, 'clase_id');
     } else if (module === 'manuales' || module === 'ayudas') {
         forceOption(prSel, 'proceso_id');
@@ -196,6 +213,7 @@ function updateAdminUI() {
     }
 
     const panelFiles = document.getElementById('panel-archivos');
+    const panelsWrapper = document.querySelector('.panels-wrapper');
 
     // Contenedores de Alertas y Botones
     const alertReadyExists = document.getElementById('alert-ready-exists');
@@ -226,10 +244,15 @@ function updateAdminUI() {
         // Files panel
         if (panelFiles) {
             panelFiles.classList.add('active');
+            panelFiles.classList.remove('hidden');
             const h2Span = panelFiles.querySelector('h2 span');
             if (h2Span) h2Span.innerHTML = label;
             const bcrumb = panelFiles.querySelector('.dibujos-files-breadcrumb strong');
             if (bcrumb) bcrumb.innerHTML = label;
+        }
+        if (panelsWrapper) {
+            panelsWrapper.style.display = 'grid';
+            panelsWrapper.style.gridTemplateColumns = '1fr 1fr';
         }
 
         // Función case-insensitive para verificar existencia en el servidor Linux
@@ -292,7 +315,14 @@ function updateAdminUI() {
             setTimeout(window.initFundicionChecklists, 100);
         }
     } else {
-        if (panelFiles) panelFiles.classList.remove('active');
+        if (panelFiles) {
+            panelFiles.classList.remove('active');
+            panelFiles.classList.add('hidden');
+        }
+        if (panelsWrapper) {
+            panelsWrapper.style.display = 'flex';
+            panelsWrapper.style.gridTemplateColumns = '1fr';
+        }
         if (alertNotReady) { alertNotReady.removeAttribute('hidden'); alertNotReady.classList.toggle("hidden", false); }
         if (alertReadyExists) { alertReadyExists.removeAttribute('hidden'); alertReadyExists.classList.toggle("hidden", true); }
         if (alertReadyNotExists) { alertReadyNotExists.removeAttribute('hidden'); alertReadyNotExists.classList.toggle("hidden", true); }
@@ -1664,8 +1694,8 @@ function renderAlertasTable() {
             const isBtnDisabled = hasEnviadas && !hasPendingOrMod;
 
             const btnDisabledAttr = isBtnDisabled ? 'disabled style="pointer-events: none;"' : '';
-            const btnTitle = isBtnDisabled ? 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)' : 'Enviar correo de alerta global';
-            const btnText = isBtnDisabled ? 'Correo Enviado' : 'Enviar Correo';
+            const btnTitle = isBtnDisabled ? 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)' : (hasEnviadas ? 'Enviar correo de actualización de dibujos modificados/nuevos' : 'Enviar correo de alerta global');
+            const btnText = isBtnDisabled ? 'Correo Enviado' : (hasEnviadas ? 'Enviar Actualización' : 'Enviar Correo');
             const btnClassExtra = isBtnDisabled ? 'btn-alerta-enviada btn-alerta-disabled' : '';
             const btnOnClick = isBtnDisabled ? '' : `onclick="enviarAlertaFundicion(null, '${otName}', this)"`;
 

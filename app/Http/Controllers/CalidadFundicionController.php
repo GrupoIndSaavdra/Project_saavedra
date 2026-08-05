@@ -321,6 +321,31 @@ class CalidadFundicionController extends Controller
                 'prefix' => 'Documentos_Rechazados/'
             ];
 
+            // --- PREORDENES (NUEVA RUTA RAÍZ Y RUTAS LEGACY) -> ORIGIN = 'aprobado' PARA APARECER EN CONTENEDOR DE DOCUMENTOS APROBADOS ---
+            $preOrdenesCandidates = [
+                self::ALMACEN_DIR . '/' . $relFolder . '/preordenes',
+                self::CALIDAD_DIR . '/' . $relFolder . '/preordenes',
+                self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Aprobados/preordenes',
+                self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Aprobados/preordenes',
+                self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes',
+                self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes',
+                self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_aprobados',
+                self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_aprobados',
+                self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_aprobados',
+                self::CALIDAD_DIR . '/' . $relFolder . '/preordenes/documentos_aprobados',
+            ];
+
+            foreach ($preOrdenesCandidates as $poCandPath) {
+                $resolvedPoPath = $this->resolveCaseInsensitivePath($poCandPath);
+                if (!empty($resolvedPoPath)) {
+                    $dirsToScan[] = [
+                        'path' => $resolvedPoPath,
+                        'origin' => 'aprobado',
+                        'prefix' => 'preordenes/'
+                    ];
+                }
+            }
+
             if ($isAdmin) {
                 $dirsToScan[] = [
                     'path' => $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Aprobados'),
@@ -331,18 +356,6 @@ class CalidadFundicionController extends Controller
                     'path' => $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Rechazados'),
                     'origin' => 'rechazado',
                     'prefix' => 'Documentos_Rechazados/'
-                ];
-
-                // Legacy
-                $dirsToScan[] = [
-                    'path' => $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes'),
-                    'origin' => 'almacen',
-                    'prefix' => 'preordenes/'
-                ];
-                $dirsToScan[] = [
-                    'path' => $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes'),
-                    'origin' => 'calidad',
-                    'prefix' => 'preordenes/'
                 ];
             } elseif ($isQuality) {
                 $dirsToScan[] = [
@@ -355,33 +368,7 @@ class CalidadFundicionController extends Controller
                     'origin' => 'rechazado',
                     'prefix' => 'Documentos_Rechazados/'
                 ];
-
-                // Legacy
-                $dirsToScan[] = [
-                    'path' => $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes'),
-                    'origin' => 'calidad',
-                    'prefix' => 'preordenes/'
-                ];
-            } else {
-                // Legacy
-                $dirsToScan[] = [
-                    'path' => $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes'),
-                    'origin' => 'almacen',
-                    'prefix' => 'preordenes/'
-                ];
             }
-
-            // Legacy/Compatibilidad
-            $dirsToScan[] = [
-                'path' => $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_aprobados'),
-                'origin' => 'aprobado',
-                'prefix' => 'preordenes/documentos_aprobados/'
-            ];
-            $dirsToScan[] = [
-                'path' => $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_rechazados'),
-                'origin' => 'rechazado',
-                'prefix' => 'preordenes/documentos_rechazados/'
-            ];
 
             foreach ($dirsToScan as $scanInfo) {
                 $scanPath = $scanInfo['path'];
@@ -398,6 +385,10 @@ class CalidadFundicionController extends Controller
                             $dirNorm = str_replace('\\', '/', $scanPath);
                             $relName = ltrim(str_replace($dirNorm, '', $fNorm), '/');
                             $fileLower = strtolower($relName);
+
+                            if (str_contains($fileLower, 'pre-orden') || str_contains($fileLower, 'preorden')) {
+                                return true;
+                            }
 
                             $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                             $hasKnownClass = false;
