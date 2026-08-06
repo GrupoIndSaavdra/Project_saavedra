@@ -25,8 +25,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null      $user_nombre_calidad
  * @property \Carbon\Carbon|null $fecha_revision
  * @property string|null      $pdf_filename
- * @property \Carbon\Carbon   $created_at
- * @property \Carbon\Carbon   $updated_at
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
  */
 class LiberacionModeloFundicion extends Model
 {

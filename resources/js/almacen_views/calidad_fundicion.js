@@ -154,6 +154,25 @@ window.calidadVerPdf = function (ot, archivo, tipo = "dibujo") {
         }).catch((err) => console.error("Error actualizando flag visto", err));
     }
 };
+
+/**
+ * Abre un archivo usando una URL directa (para archivos en endpoints distintos,
+ * como ayudas globales en ayudas_fundicion.serve). Si no se pasa urlDirecta,
+ * delega a calidadVerPdf.
+ *
+ * @param {string} urlDirecta - URL directa al endpoint de descarga (puede ser '')
+ * @param {string} ot         - OT (usado si urlDirecta está vacía)
+ * @param {string} archivo    - Ruta relativa del archivo (usado si urlDirecta está vacía)
+ * @param {string} tipo       - Tipo de archivo (usado si urlDirecta está vacía)
+ */
+window.calidadAbrirArchivo = function (urlDirecta, ot, archivo, tipo = "ayuda") {
+    if (urlDirecta && urlDirecta !== "") {
+        window.open(urlDirecta, "_blank", "noopener,noreferrer");
+    } else {
+        window.calidadVerPdf(ot, archivo, tipo);
+    }
+};
+
 // ── TOAST NOTIFICACIONES ──────────────────────────────────────────────────────
 function mostrarToast(mensaje, esError = false) {
     const prev = document.querySelector(".alm-toast");

@@ -3560,6 +3560,26 @@ class AlmacenFundicionController extends Controller
         $comparison = [];
         $isOverallAddition = true;
 
+        $isPreorder = function (string $filePath) {
+            $lower = strtolower(basename($filePath));
+            $lowerPath = strtolower(str_replace('\\', '/', $filePath));
+            return str_contains($lower, 'pre-orden') ||
+                   str_contains($lower, 'preorden') ||
+                   str_contains($lowerPath, '/preordenes/');
+        };
+
+        $isAffectedDoc = function (string $filePath) {
+            $lower = strtolower(basename($filePath));
+            $lowerPath = strtolower(str_replace('\\', '/', $filePath));
+            return str_contains($lower, 'confirmacion') ||
+                   str_contains($lower, 'escaneado') ||
+                   str_contains($lower, 'f-ccl-ldm') ||
+                   str_contains($lower, 'scar') ||
+                   str_contains($lowerPath, '/ayudas_visuales/') ||
+                   str_contains($lowerPath, '/documentos_aprobados/') ||
+                   str_contains($lowerPath, '/documentos_rechazados/');
+        };
+
         // Para cada clase con cambios, listamos sus dibujos actuales en Almacén (Viejos) y en Ingeniería (Nuevos)
         foreach ($pending as $clase) {
             $claseComparison = [
@@ -3567,140 +3587,114 @@ class AlmacenFundicionController extends Controller
                 'viejos' => [],
                 'nuevos' => [],
                 'agregados' => [],
+                'afectados' => [],
                 'es_adicion' => false
             ];
 
-            $viejosMap = [];
-            // Viejos (Almacén)
-            // Escanear tanto la nueva estructura {Clase}/Dibujos como la estructura legacy {Clase}
-            $almacenCandidates = [
-                self::ALMACEN_DIR . '/' . $folderName . '/' . $clase . '/' . FundicionPaths::DIBUJOS,
-                self::ALMACEN_DIR . '/' . $folderName . '/' . $clase,
-            ];
-            foreach ($almacenCandidates as $cand) {
-                $resolvedCand = $this->resolveCaseInsensitivePath($cand);
-                if ($resolvedCand && Storage::disk('local')->exists($resolvedCand)) {
-                    $files = Storage::disk('local')->files($resolvedCand);
-                    foreach ($files as $f) {
-                        if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
-                            $filename = basename($f);
-                            // Excluir ayudas visuales u otras subcarpetas
-                            if (
-                                str_contains(strtolower($f), '/ayudas_visuales/') || 
-                                str_contains(strtolower($f), '/preordenes/') || 
-                                str_contains(strtolower($f), '/documentos_aprobados/') || 
-                                str_contains(strtolower($f), '/documentos_rechazados/')
-                            ) {
-                                continue;
-                            }
-                            $absPath = Storage::disk('local')->path($f);
-                            $size = file_exists($absPath) ? filesize($absPath) : 0;
-                            $md5 = file_exists($absPath) ? md5_file($absPath) : '';
-                            
-                            $item = [
-                                'nombre' => $filename,
-                                'url' => route('almacen.fundicion.serve', [
-                                    'ot' => $ot,
-                                    'archivo' => $clase . '/' . (strpos($cand, 'Dibujos') !== false ? FundicionPaths::DIBUJOS . '/' : '') . $filename,
-                                    'tipo' => 'dibujo'
-                                ])
-                            ];
-                            $viejosMap[$filename] = [
-                                'item' => $item,
-                                'size' => $size,
-                                'md5' => $md5
-                            ];
+            $viejosList = [];
+            $afectadosList = [];
+
+            // Escanear todos los archivos en la carpeta de la clase en Almacén
+            $claseAlmacenDir = self::ALMACEN_DIR . '/' . $folderName . '/' . $clase;
+            $resolvedClaseAlmacenDir = $this->resolveCaseInsensitivePath($claseAlmacenDir);
+            
+            if ($resolvedClaseAlmacenDir && Storage::disk('local')->exists($resolvedClaseAlmacenDir)) {
+                $allAlmacenFiles = Storage::disk('local')->allFiles($resolvedClaseAlmacenDir);
+                foreach ($allAlmacenFiles as $f) {
+                    if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
+                        // Excluir pre-órdenes de fundición de cualquier listado ya que no se eliminan al reiniciar
+                        if ($isPreorder($f)) {
+                            continue;
+                        }
+
+                        $filename = basename($f);
+                        
+                        // Determinar ruta relativa limpia
+                        $fNorm = str_replace('\\', '/', $f);
+                        $dirNorm = str_replace('\\', '/', $resolvedClaseAlmacenDir);
+                        $relSubPath = ltrim(substr($fNorm, strlen($dirNorm)), '/');
+                        
+                        $item = [
+                            'nombre' => $filename,
+                            'url' => route('almacen.fundicion.serve', [
+                                'ot' => $ot,
+                                'archivo' => $clase . '/' . $relSubPath,
+                                'tipo' => str_contains(strtolower($f), '/ayudas_visuales/') ? 'ayuda' : 'dibujo'
+                            ])
+                        ];
+
+                        if ($isAffectedDoc($f)) {
+                            // Documento de proceso afectado (Ayudas visuales, LDM, SCAR, confirmaciones)
+                            $afectadosList[] = $item;
+                        } else {
+                            // Dibujo real actualmente en Almacén
+                            $viejosList[] = $item;
                         }
                     }
                 }
             }
 
-            $nuevosMap = [];
+            $nuevosList = [];
             // Nuevos (Ingeniería)
             $ingenieriaDir = \App\Http\Controllers\DibujosFundicionPdfController::BASE_DIR . '/' . $folderName . '/' . $clase;
             $resolvedIng = $this->resolveCaseInsensitivePath($ingenieriaDir);
             if ($resolvedIng && Storage::disk('local')->exists($resolvedIng)) {
-                $files = Storage::disk('local')->files($resolvedIng);
+                $files = Storage::disk('local')->allFiles($resolvedIng);
                 foreach ($files as $f) {
                     if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
+                        if ($isPreorder($f) || $isAffectedDoc($f)) {
+                            continue;
+                        }
                         $filename = basename($f);
-                        $absPath = Storage::disk('local')->path($f);
-                        $size = file_exists($absPath) ? filesize($absPath) : 0;
-                        $md5 = file_exists($absPath) ? md5_file($absPath) : '';
+                        $fNorm = str_replace('\\', '/', $f);
+                        $dirNorm = str_replace('\\', '/', $resolvedIng);
+                        $relSubPath = ltrim(substr($fNorm, strlen($dirNorm)), '/');
+
                         $item = [
                             'nombre' => $filename,
-                            'url' => route('fundicion.serve', ['ot' => $ot, 'clase' => $clase, 'archivo' => $filename])
+                            'url' => route('fundicion.serve', ['ot' => $ot, 'clase' => $clase, 'archivo' => $relSubPath])
                         ];
-                        $nuevosMap[$filename] = [
-                            'item' => $item,
-                            'size' => $size,
-                            'md5' => $md5
-                        ];
+                        $nuevosList[] = $item;
                     }
                 }
             }
 
-            $viejosDiferentes = [];
-            $nuevosDiferentes = [];
-            $agregadosDiferentes = [];
+            // Deduplicar listas por nombre de archivo
+            $viejos = collect($viejosList)->unique('nombre')->values()->all();
+            $nuevos = collect($nuevosList)->unique('nombre')->values()->all();
+            $afectados = collect($afectadosList)->unique('nombre')->values()->all();
 
-            // 1. Identificar archivos en Nuevos que fueron modificados, reemplazados o agregados respecto a Viejos
-            foreach ($nuevosMap as $filename => $nData) {
-                if (isset($viejosMap[$filename])) {
-                    $vData = $viejosMap[$filename];
-                    // Si el tamaño o md5 difieren, la versión en Ingeniería fue modificada/reemplazada
-                    if ($nData['size'] !== $vData['size'] || $nData['md5'] !== $vData['md5']) {
-                        $viejosDiferentes[] = $vData['item'];
-                        $nuevosDiferentes[] = $nData['item'];
-                    }
+            $viejosNames = array_map(fn($v) => mb_strtolower($v['nombre'], 'UTF-8'), $viejos);
+            $nuevosNames = array_map(fn($n) => mb_strtolower($n['nombre'], 'UTF-8'), $nuevos);
+
+            $agregados = [];
+            foreach ($nuevos as $nItem) {
+                if (!in_array(mb_strtolower($nItem['nombre'], 'UTF-8'), $viejosNames, true)) {
+                    $agregados[] = $nItem;
+                }
+            }
+
+            $isAdicion = false;
+            if (!empty($nuevos)) {
+                if (empty($viejos)) {
+                    $isAdicion = true;
                 } else {
-                    // Archivo nuevo agregado en Ingeniería
-                    $nuevosDiferentes[] = $nData['item'];
-                    $agregadosDiferentes[] = $nData['item'];
-                }
-            }
-
-            // 2. Identificar archivos en Viejos que fueron eliminados en Nuevos
-            foreach ($viejosMap as $filename => $vData) {
-                if (!isset($nuevosMap[$filename])) {
-                    $alreadyAdded = false;
-                    foreach ($viejosDiferentes as $vd) {
-                        if ($vd['nombre'] === $vData['item']['nombre']) {
-                            $alreadyAdded = true;
-                            break;
-                        }
-                    }
-                    if (!$alreadyAdded) {
-                        $viejosDiferentes[] = $vData['item'];
+                    $missingInNuevos = array_diff($viejosNames, $nuevosNames);
+                    if (empty($missingInNuevos) && !empty($agregados)) {
+                        $isAdicion = true;
                     }
                 }
             }
 
-            // Fallback: si no dio diferencia individual pero sabemos que hubo cambios, mostrar todos
-            if (empty($viejosDiferentes) && empty($nuevosDiferentes)) {
-                foreach ($viejosMap as $vData) {
-                    $viejosDiferentes[] = $vData['item'];
-                }
-                foreach ($nuevosMap as $nData) {
-                    $nuevosDiferentes[] = $nData['item'];
-                    if (!isset($viejosMap[$nData['item']['nombre']])) {
-                        $agregadosDiferentes[] = $nData['item'];
-                    }
-                }
-            }
-
-            $claseComparison['viejos'] = $viejosDiferentes;
-            $claseComparison['nuevos'] = $nuevosDiferentes;
-            $claseComparison['agregados'] = $agregadosDiferentes;
-
-            $viejosNames = array_keys($viejosMap);
-            $nuevosNames = array_keys($nuevosMap);
-            $removed = array_diff($viejosNames, $nuevosNames);
-            if (!empty($claseComparison['agregados']) && empty($removed) && !empty($viejosNames)) {
-                $claseComparison['es_adicion'] = true;
-            } else {
+            if (!$isAdicion) {
                 $isOverallAddition = false;
             }
+
+            $claseComparison['viejos'] = $viejos;
+            $claseComparison['nuevos'] = $nuevos;
+            $claseComparison['agregados'] = $agregados;
+            $claseComparison['afectados'] = $afectados;
+            $claseComparison['es_adicion'] = $isAdicion;
 
             $comparison[] = $claseComparison;
         }
@@ -3834,50 +3828,6 @@ class AlmacenFundicionController extends Controller
                 }
             }
 
-            // 3. Revisión de PreOrdenes: eliminar la PreOrden SOLO si pertenece exclusivamente a las clases que se reinician.
-            // Si la PreOrden contiene clases activas no afectadas (ej. Bombillo sigue aprobado), SE CONSERVA.
-            $preOrdenes = PreOrdenFundicion::where('ot', '=', $ot, 'and')->get();
-            foreach ($preOrdenes as $po) {
-                $filas = is_array($po->filas) ? $po->filas : [];
-                $poClases = [];
-                foreach ($filas as $f) {
-                    $cName = $f['id_clase'] ?? $f['clase'] ?? $f['tipo_modelo'] ?? '';
-                    if ($cName !== '') {
-                        $poClases[] = $cName;
-                    }
-                }
-                $poClases = array_unique($poClases);
-
-                // Verificar si la PreOrden incluye alguna clase activa (no reseteada)
-                $hasActiveClasses = false;
-                foreach ($poClases as $pc) {
-                    foreach ($activeClasses as $ac) {
-                        if (strcasecmp($pc, $ac) === 0) {
-                            $hasActiveClasses = true;
-                            break 2;
-                        }
-                    }
-                }
-
-                // Si NO tiene clases activas y solo pertenece a las clases que se reinician -> Se elimina
-                if (!$hasActiveClasses) {
-                    if ($po->pdf_filename) {
-                        $possiblePaths = [
-                            self::ALMACEN_DIR . '/' . $ot . '/preordenes/' . $po->pdf_filename,
-                            self::ALMACEN_DIR . '/' . $ot . '/ayudas_visuales/preordenes/documentos_aprobados/' . $po->pdf_filename,
-                            self::ALMACEN_DIR . '/' . $ot . '/Documentos_Aprobados/preordenes/' . $po->pdf_filename,
-                            self::CALIDAD_DIR . '/' . $ot . '/preordenes/' . $po->pdf_filename,
-                        ];
-                        foreach ($possiblePaths as $pPath) {
-                            if (Storage::disk('local')->exists($pPath)) {
-                                Storage::disk('local')->delete($pPath);
-                            }
-                        }
-                    }
-                    $po->delete();
-                }
-            }
-
             // 4. Actualizar hashes de clases enviadas y limpiar cambios pendientes
             $history->pending_almacen_changes = null;
             $enviadas = is_array($history->clases_enviadas) ? $history->clases_enviadas : [];
@@ -3914,3 +3864,4 @@ class AlmacenFundicionController extends Controller
         ]);
     }
 }
+

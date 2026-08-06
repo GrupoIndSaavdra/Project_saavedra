@@ -200,18 +200,18 @@ class CalidadFundicionController extends Controller
         foreach ($allOtNames as $relatedOt) {
             $relFolder = $this->sanitizePath($this->normalizeOTName($relatedOt));
             
-            // Dibujos y Ayudas Visuales (no pre-ordenes) son cargados por Admin y compartidos.
-            $sharedDir = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder);
+            // Dibujos y Ayudas Visuales (no pre-ordenes) son cargados por Admin/Almacen y copiados a Calidad al alertar.
+            $sharedDir = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder);
             $sharedAyudasDir = $this->resolveCaseInsensitivePath($sharedDir . '/ayudas_visuales');
 
             if (!$soloPreorden) {
-                // 1a. Dibujos — nueva ruta: {Clase}/Dibujos/ (con fallback a raíz de clase en ALMACEN)
+                // 1a. Dibujos — nueva ruta: {Clase}/Dibujos/ (con fallback a raíz de clase en CALIDAD)
                 foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo'] as $claseDir) {
                     $claseNorm = strtolower($claseDir);
                     if (!in_array($claseNorm, $activeClasses)) continue;
 
-                    $newDibjPath    = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDir . '/' . FundicionPaths::DIBUJOS);
-                    $legacyDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDir);
+                    $newDibjPath    = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseDir . '/' . FundicionPaths::DIBUJOS);
+                    $legacyDibjPath = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseDir);
 
                     foreach ([$newDibjPath, $legacyDibjPath] as $scanDibjDir) {
                         if (!Storage::disk('local')->exists($scanDibjDir)) continue;
@@ -274,13 +274,13 @@ class CalidadFundicionController extends Controller
                     $dibujos = $dibujos->merge($relatedDibujos);
                 }
 
-                // 2a. Ayudas Visuales — nueva ruta: {Clase}/Ayudas_Visuales/ (con fallback legacy ALMACEN)
+                // 2a. Ayudas Visuales — nueva ruta: {Clase}/Ayudas_Visuales/ (con fallback legacy CALIDAD)
                 foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo'] as $claseDir) {
                     $claseNorm = strtolower($claseDir);
                     if (!in_array($claseNorm, $activeClasses)) continue;
 
-                    $newAyPath    = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDir . '/' . FundicionPaths::AYUDAS_VISUALES);
-                    $legacyAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/' . $claseDir);
+                    $newAyPath    = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseDir . '/' . FundicionPaths::AYUDAS_VISUALES);
+                    $legacyAyPath = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/' . $claseDir);
 
                     foreach ([$newAyPath, $legacyAyPath] as $scanAyDir) {
                         if (!Storage::disk('local')->exists($scanAyDir)) continue;
@@ -445,6 +445,19 @@ class CalidadFundicionController extends Controller
         $dibujos = $dibujos->unique('nombre')->values();
         $ayudas = $ayudas->unique('nombre')->values();
 
+        $historyLatest = FundicionHistory::where('ot', '=', $ot, 'and')->first() ?: FundicionHistory::where('ot', 'LIKE', $baseOt . '%', 'and')->orderBy('id', 'desc')->first();
+
+        $almacenSent = $historyLatest ? (bool) (
+            !empty($historyLatest->pre_orden_email_sent) ||
+            !empty($historyLatest->tiene_modelo) ||
+            PreOrdenFundicion::where('ot', '=', $ot, 'and')->where('is_sent', '=', true, 'and')->exists()
+        ) : false;
+
+        if ($isQuality && !$almacenSent) {
+            $dibujos = collect([]);
+            $ayudas = collect([]);
+        }
+
         if ($soloPreorden) {
             // Filtrar solo las pre-órdenes (PDFs que empiezan con 'Pre-Orden' o 'PreOrden')
             $ayudas = $generatedFiles->filter(function ($f) {
@@ -455,8 +468,6 @@ class CalidadFundicionController extends Controller
         } else {
             $allFiles = $dibujos->merge($ayudas)->merge($generatedFiles)->values();
         }
-
-        $historyLatest = FundicionHistory::where('ot', '=', $ot, 'and')->first() ?: FundicionHistory::where('ot', 'LIKE', $baseOt . '%', 'and')->orderBy('id', 'desc')->first();
         $preOrden = ($historyLatest && $historyLatest->ot) ? PreOrdenFundicion::where('ot', '=', $historyLatest->ot, 'and')->first() : null;
         $fechaEntrega = $preOrden && $preOrden->fecha_entrega 
             ? ($preOrden->fecha_entrega instanceof \DateTimeInterface 
@@ -535,7 +546,7 @@ class CalidadFundicionController extends Controller
             }
 
             if ($user->perfil == 4 || $user->perfil == 3) { // 4 = Calidad, 3 = Master
-                // Calidad/Master solo ve preordenes si pre_orden_email_sent es true
+                // Calidad/Master solo ve preordenes no aprobadas si pre_orden_email_sent es true
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isAllowedBeforeAlert = str_contains(strtolower($archivo), 'documentos_aprobados') || str_contains(strtolower($archivo), 'documentos_rechazados') || str_contains(strtolower($archivo), 'confirmacion') || str_contains($archivo, 'F-CCL-LDM') || str_contains($archivo, 'SCAR');
                 if ($isPreorden && !$isAllowedBeforeAlert && !$history->pre_orden_email_sent) {
@@ -558,16 +569,12 @@ class CalidadFundicionController extends Controller
                     str_starts_with(strtolower($archivo), 'molde/')
                 )) {
                     // Nueva estructura: ayudas_visuales vive en el root de la OT bajo la carpeta de la clase
-                    $baseDir = ($origin === 'calidad' || (($user->perfil == 4 || $user->perfil == 3) && empty($origin)))
-                        ? self::CALIDAD_DIR . '/' . $folderName
-                        : self::ALMACEN_DIR . '/' . $folderName;
-                } elseif ($origin === 'calidad' || (($user->perfil == 4 || $user->perfil == 3) && empty($origin))) {
-                    $baseDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales';
+                    $baseDir = self::CALIDAD_DIR . '/' . $folderName;
                 } else {
-                    $baseDir = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales';
+                    $baseDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales';
                 }
             } else {
-                $baseDir = self::ALMACEN_DIR . '/' . $folderName;
+                $baseDir = self::CALIDAD_DIR . '/' . $folderName;
             }
         }
 
@@ -754,14 +761,12 @@ class CalidadFundicionController extends Controller
             if ($tipo === 'ayuda' || $tipo === 'otro') {
                 // Archivos en Documentos_Aprobados / Documentos_Rechazados viven en el root de la OT
                 if ($origin === 'aprobado' || $origin === 'rechazado') {
-                    $baseDir = self::ALMACEN_DIR . '/' . $folderName;
-                } elseif ($origin === 'calidad' || (($user->perfil == 4 || $user->perfil == 3) && empty($origin))) {
-                    $baseDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales';
+                    $baseDir = self::CALIDAD_DIR . '/' . $folderName;
                 } else {
-                    $baseDir = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales';
+                    $baseDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales';
                 }
             } else {
-                $baseDir = self::ALMACEN_DIR . '/' . $folderName;
+                $baseDir = self::CALIDAD_DIR . '/' . $folderName;
             }
         }
 
@@ -1072,7 +1077,7 @@ class CalidadFundicionController extends Controller
 
         if (!$liberacion) {
             // Si existe un registro inicial (tipo_modelo = null), lo actualizamos.
-            $liberacionInicial = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->whereNull('tipo_modelo')->first();
+            $liberacionInicial = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->whereNull('tipo_modelo', 'and')->first();
             if ($liberacionInicial) {
                 $liberacionInicial->update(['tipo_modelo' => $tipo]);
                 $liberacion = $liberacionInicial;

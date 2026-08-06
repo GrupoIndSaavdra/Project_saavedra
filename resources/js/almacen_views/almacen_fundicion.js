@@ -158,6 +158,25 @@ window.almacenVerPdf = function (ot, archivo, tipo = "dibujo") {
         }).catch((err) => console.error("Error actualizando flag visto", err));
     }
 };
+
+/**
+ * Abre un archivo usando una URL directa (para archivos en endpoints distintos,
+ * como ayudas globales en ayudas_fundicion.serve). Si no se pasa urlDirecta,
+ * delega a almacenVerPdf.
+ *
+ * @param {string} urlDirecta - URL directa al endpoint de descarga (puede ser '')
+ * @param {string} ot         - OT (usado si urlDirecta está vacía)
+ * @param {string} archivo    - Ruta relativa del archivo (usado si urlDirecta está vacía)
+ * @param {string} tipo       - Tipo de archivo (usado si urlDirecta está vacía)
+ */
+window.almacenAbrirArchivo = function (urlDirecta, ot, archivo, tipo = "ayuda") {
+    if (urlDirecta && urlDirecta !== "") {
+        window.open(urlDirecta, "_blank", "noopener,noreferrer");
+    } else {
+        window.almacenVerPdf(ot, archivo, tipo);
+    }
+};
+
 // ── TOAST NOTIFICACIONES ──────────────────────────────────────────────────────
 function mostrarToast(mensaje, esError = false) {
     const prev = document.querySelector(".alm-toast");
@@ -6172,8 +6191,6 @@ window.handlePocTipoChange = function (pageNum, idx, selectEl) {
 };
 // ── DYNAMIC SINGLE MATERIAL LOGIC ──
 window.handlePocMaterialChange = function (pageNum, idx, selectEl) {
-    const pData = pocState["page" + pageNum];
-    const row = pData.filas[idx];
     if (selectEl.value === "Otro") {
         // Mostrar input personalizado
         const wrapper = selectEl.closest(".poc-material-wrapper");
@@ -6187,7 +6204,7 @@ window.handlePocMaterialChange = function (pageNum, idx, selectEl) {
         selectEl.classList.add("alm-display-none");
         return;
     }
-    row.material = selectEl.value;
+    savePocPageData(pageNum);
     loadPocPage(pageNum);
 };
 window.handlePocMaterialCustomInput = function (pageNum, idx, inputEl) {
@@ -6212,6 +6229,7 @@ function confirmPocMaterialCustom(pageNum, idx, inputEl) {
         if (selectEl) selectEl.classList.remove("alm-display-none");
         return;
     }
+    savePocPageData(pageNum);
     const pData = pocState["page" + pageNum];
     const row = pData.filas[idx];
     const materialesDisponibles = [
@@ -6238,6 +6256,7 @@ function confirmPocMaterialCustom(pageNum, idx, inputEl) {
     loadPocPage(pageNum);
 }
 window.eliminarMaterialGlobal = function (pageNum, mat) {
+    savePocPageData(pageNum);
     // 1. Quitar de la lista global de personalizados
     window.materialesCastingPersonalizados =
         window.materialesCastingPersonalizados.filter((m) => m !== mat);
@@ -8310,15 +8329,14 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
         const itemIsAdicion = item.es_adicion || isAdicion;
         const viejos = item.viejos || [];
         const nuevos = item.nuevos || [];
+        const afectados = item.afectados || [];
+
+        let subHtml = '';
 
         if (itemIsAdicion) {
             // CASO ADICIÓN: Mostrar solo la columna de Dibujos Nuevos Agregados
             const agregadosList = (item.agregados && item.agregados.length > 0) ? item.agregados : nuevos;
-            html += `
-            <div class="alm-background-ffffff alm-border-radius-14px alm-padding-20px alm-margin-bottom-20px" style="border: 2px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
-                <h4 class="alm-margin-top-0 alm-margin-bottom-15px alm-color-0f172a alm-font-size-1-15rem alm-border-bottom-2px-solid-0369a1 alm-padding-bottom-8px">
-                    Clase: <strong style="text-transform: capitalize; color: #0369a1;">${item.clase}</strong> <span style="font-size: 0.8em; color: #059669; font-weight: 700;">(Nuevo Dibujo Agregado)</span>
-                </h4>
+            subHtml += `
                 <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
                     <h5 class="alm-color-059669 alm-margin-0-0-10px-0" style="font-weight: 700;">Nuevos Dibujos Agregados</h5>
                     ${agregadosList.map((n, index) => `
@@ -8339,7 +8357,6 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                         </div>
                     `).join('')}
                 </div>
-            </div>
             `;
         } else {
             // CASO REEMPLAZO: Mostrar 2 columnas (Actuales en Almacén vs Nuevos de Dibujos de Fundición)
@@ -8354,11 +8371,7 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                 };
             });
 
-            html += `
-            <div class="alm-background-ffffff alm-border-radius-14px alm-padding-20px alm-margin-bottom-20px" style="border: 2px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
-                <h4 class="alm-margin-top-0 alm-margin-bottom-15px alm-color-0f172a alm-font-size-1-15rem alm-border-bottom-2px-solid-0369a1 alm-padding-bottom-8px">
-                    Clase: <strong style="text-transform: capitalize; color: #0369a1;">${item.clase}</strong>
-                </h4>
+            subHtml += `
                 <div class="alm-display-flex alm-gap-20px">
                     <!-- Viejos (En Almacén) -->
                     <div class="alm-flex-1">
@@ -8388,17 +8401,17 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                         <h5 class="alm-color-0369a1 alm-margin-0-0-10px-0" style="font-weight: 700;">Nuevos (De Programación)</h5>
                         <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
                             ${nuevosProcesados.length > 0 ? nuevosProcesados.map((n, index) => {
-                const isBlue = n.theme === 'blue';
-                const borderColor = isBlue ? '#0284c7' : '#10b981';
-                const bgColor = isBlue ? '#f0f9ff' : '#ecfdf5';
-                const badgeBg = isBlue ? '#e0f2fe' : '#d1fae5';
-                const badgeColor = isBlue ? '#0369a1' : '#047857';
-                const badgeBorder = isBlue ? '#bae6fd' : '#a7f3d0';
-                const badgeText = isBlue ? 'DIBUJO REEMPLAZADO' : 'NUEVO DIBUJO AGREGADO';
-                const btnColor = isBlue ? '#0284c7' : '#059669';
-                const textColor = isBlue ? '#0369a1' : '#047857';
+                                const isBlue = n.theme === 'blue';
+                                const borderColor = isBlue ? '#0284c7' : '#10b981';
+                                const bgColor = isBlue ? '#f0f9ff' : '#ecfdf5';
+                                const badgeBg = isBlue ? '#e0f2fe' : '#d1fae5';
+                                const badgeColor = isBlue ? '#0369a1' : '#047857';
+                                const badgeBorder = isBlue ? '#bae6fd' : '#a7f3d0';
+                                const badgeText = isBlue ? 'DIBUJO REEMPLAZADO' : 'NUEVO DIBUJO AGREGADO';
+                                const btnColor = isBlue ? '#0284c7' : '#059669';
+                                const textColor = isBlue ? '#0369a1' : '#047857';
 
-                return `
+                                return `
                                 <div class="dibujos-file-card card-dibujo" style="animation-delay: ${index * 0.05}s; border: 2px solid ${borderColor}; background-color: ${bgColor}; border-left: 5px solid ${borderColor};">
                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                         <img src="${pdfViewShadow}" class="file-icon icon-default">
@@ -8415,13 +8428,43 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                                     </div>
                                 </div>
                                 `;
-            }).join('') : '<span class="alm-text-sm-gray">Sin archivos</span>'}
+                            }).join('') : '<span class="alm-text-sm-gray">Sin archivos</span>'}
                         </div>
                     </div>
                 </div>
-            </div>
             `;
         }
+
+        // Agregar sección de documentos afectados por reiniciar la etapa
+        let afectadosHtml = '';
+        if (afectados.length > 0) {
+            afectadosHtml = `
+                <div class="alm-margin-top-15px" style="border-top: 1px dashed #cbd5e1; padding-top: 15px;">
+                    <h5 class="alm-color-b91c1c alm-margin-0-0-10px-0" style="font-weight: 700; font-size: 0.9em; display: flex; align-items: center; gap: 6px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #e11d48;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        Otros archivos de proceso afectados (se eliminarán si seleccionas Reiniciar Proceso):
+                    </h5>
+                    <div class="alm-display-flex alm-flex-direction-column alm-gap-6px">
+                        ${afectados.map((a, index) => `
+                            <div style="font-size: 0.85rem; padding: 6px 12px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 6px; color: #9f1239; display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-weight: 500;">${a.nombre}</span>
+                                <button type="button" class="btn-dibujos btn-dibujos-sm" style="background-color: #e11d48; color: white; padding: 2px 8px; font-size: 0.75rem;" onclick="window.open('${a.url}', '_blank')">Ver</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        html += `
+        <div class="alm-background-ffffff alm-border-radius-14px alm-padding-20px alm-margin-bottom-20px" style="border: 2px solid #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.06);">
+            <h4 class="alm-margin-top-0 alm-margin-bottom-15px alm-color-0f172a alm-font-size-1-15rem alm-border-bottom-2px-solid-0369a1 alm-padding-bottom-8px">
+                Clase: <strong style="text-transform: capitalize; color: #0369a1;">${item.clase}</strong>
+            </h4>
+            ${subHtml}
+            ${afectadosHtml}
+        </div>
+        `;
     });
 
     container.innerHTML = html;

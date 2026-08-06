@@ -651,8 +651,9 @@
                                                         }
                                                     }
                                                 }
-                                                // Filtrar clases activas basándose en las decisiones de Calidad
-                                                $isReproceso = preg_match('/_R\d+$/i', $reg->ot);
+                                                // Filtrar clases activas basándose en las decisiones de Calidad (solo si no se determinaron previamente)
+                                                if (empty($activeClassesForOt)) {
+                                                    $isReproceso = preg_match('/_R\d+$/i', $reg->ot);
                                                 if ($isReproceso) {
                                                     $classesInCurrentOtRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
                                                         ->where('decision', '!=', 'pendiente')
@@ -713,6 +714,7 @@
                                                             $activeClassesForOt = array_unique($parsedDecided);
                                                         }
                                                     }
+                                                }
                                                 }
 
                                                 if (empty($activeClassesForOt)) {
@@ -797,24 +799,8 @@
                                                             }
                                                         }
                                                         if ($hasKnownClass) {
-                                                            $matchesRejected = false;
-                                                            foreach ($rejectedClassesForOt as $rc) {
-                                                                if (strpos($fileLower, $rc) !== false) {
-                                                                    $matchesRejected = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if ($matchesRejected) {
-                                                                if (!in_array($base, $dibujoBaseNames)) {
-                                                                    $rechazadosDibujos[] = [
-                                                                        'nombre' => $archivo,
-                                                                        'ot' => $relRec->ot,
-                                                                        'tipo' => 'dibujo',
-                                                                    ];
-                                                                    $dibujoBaseNames[] = $base;
-                                                                }
-                                                                continue;
-                                                            }
+                                                            // Los dibujos SIEMPRE se muestran, incluso si la clase fue rechazada.
+                                                            // Son documentos de referencia, no se ocultan ni mueven a rechazados.
                                                             $matchesActive = false;
                                                             foreach ($activeClassesForOt as $ac) {
                                                                 if (strpos($fileLower, $ac) !== false) {
@@ -866,7 +852,7 @@
                                                                 if ($ext === 'pdf') {
                                                                     $base = basename($f);
                                                                     if (!in_array($base, $baseNames)) {
-                                                                        $ayudasArchivos[] = [
+                                                                        $ayudaData = [
                                                                             'nombre' => $classNameProper . '/' . $base,
                                                                             'url' => route('ayudas_fundicion.serve', [
                                                                                 'clase' => $classNameProper,
@@ -875,6 +861,11 @@
                                                                             'tipo' => 'ayuda',
                                                                             'ot' => $reg->ot,
                                                                         ];
+                                                                        
+                                                                        // Las ayudas globales SIEMPRE se muestran, sin importar si la clase fue rechazada.
+                                                                        // Son documentos de referencia permanentes.
+                                                                        $ayudasArchivos[] = $ayudaData;
+                                                                        
                                                                         $baseNames[] = $base;
                                                                     }
                                                                 }
@@ -996,6 +987,8 @@
                                                                     }
                                                                 }
                                                                 if ($hasKnownClass) {
+                                                                    // Los dibujos/ayudas de clases rechazadas SIEMPRE se muestran.
+                                                                    // Solo verificar que la clase pertenece a las activas de esta OT.
                                                                     $matchesActive = false;
                                                                     foreach ($activeClassesForOt as $ac) {
                                                                         if (strpos($fileLower, $ac) !== false) {
@@ -1098,35 +1091,21 @@
                                                                 }
                                                             }
                                                             if ($hasKnownClass) {
-                                                                $matchesRejected = false;
-                                                                foreach ($rejectedClassesForOt as $rc) {
-                                                                    if (strpos($fileLower, $rc) !== false) {
-                                                                        $matchesRejected = true;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                                if ($matchesRejected) {
-                                                                    if (!in_array($base, $baseNames)) {
-                                                                        $rechazadosOtros[] = [
-                                                                            'nombre' => $relativePath,
-                                                                            'url' => route('calidad.fundicion.serve', [
-                                                                                'ot' => $otName,
-                                                                                'archivo' => $relativePath,
-                                                                                'tipo' => 'otro',
-                                                                            ]),
-                                                                            'tipo' => 'otro',
-                                                                            'ot' => $otName,
-                                                                        ];
-                                                                        $baseNames[] = $base;
-                                                                        break;
-                                                                    }
-                                                                    continue;
-                                                                }
+                                                                // Ayudas de preordenes SIEMPRE se muestran (son documentos de referencia).
                                                                 $matchesActive = false;
                                                                 foreach ($activeClassesForOt as $ac) {
                                                                     if (strpos($fileLower, $ac) !== false) {
                                                                         $matchesActive = true;
                                                                         break;
+                                                                    }
+                                                                }
+                                                                if (!$matchesActive) {
+                                                                    // Si no coincide con activas, verificar con rechazadas (para que sigan visibles)
+                                                                    foreach ($rejectedClassesForOt as $rc) {
+                                                                        if (strpos($fileLower, $rc) !== false) {
+                                                                            $matchesActive = true;
+                                                                            break;
+                                                                        }
                                                                     }
                                                                 }
                                                                 if (!$matchesActive) {
@@ -1258,6 +1237,7 @@
                                                                     }
                                                                 }
                                                                 if (!empty($fileClasses)) {
+                                                                    // Verificar que la clase del archivo pertenece a esta OT (activas o rechazadas)
                                                                     $hasInactiveClass = false;
                                                                     foreach ($fileClasses as $fc) {
                                                                         if (!in_array($fc, $activeClassesForOt) && !in_array($fc, $rejectedClassesForOt)) {
@@ -1268,44 +1248,9 @@
                                                                     if ($hasInactiveClass) {
                                                                         continue;
                                                                     }
-
-                                                                    $matchesRejected = false;
-                                                                    foreach ($fileClasses as $fc) {
-                                                                        if (in_array($fc, $rejectedClassesForOt)) {
-                                                                            $matchesRejected = true;
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                    if ($matchesRejected) {
-                                                                        if (!in_array($base, $baseNames)) {
-                                                                            $relativePathWithPrefix = $prefix . $relativePath;
-                                                                            $rechazadosOtros[] = [
-                                                                                'nombre' => $relativePathWithPrefix,
-                                                                                'url' => route('calidad.fundicion.serve', [
-                                                                                    'ot' => $otName,
-                                                                                    'archivo' => $relativePathWithPrefix,
-                                                                                    'tipo' => 'otro',
-                                                                                    'origin' => 'rechazado',
-                                                                                ]),
-                                                                                'tipo' => 'otro',
-                                                                                'ot' => $otName,
-                                                                                'origin' => 'rechazado',
-                                                                                'owner' => $dirInfo['owner'],
-                                                                            ];
-                                                                            $baseNames[] = $base;
-                                                                        }
-                                                                        continue;
-                                                                    }
-                                                                    $matchesActive = false;
-                                                                    foreach ($fileClasses as $fc) {
-                                                                        if (in_array($fc, $activeClassesForOt)) {
-                                                                            $matchesActive = true;
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                    if (!$matchesActive) {
-                                                                        continue;
-                                                                    }
+                                                                    // NO clasificar por clase rechazada aquí: el $origin viene del directorio escaneado.
+                                                                    // Un ConfirmacionModelo en Documentos_Aprobados/ SIEMPRE es aprobado, aunque
+                                                                    // mencione una clase rechazada en su nombre.
                                                                 } else {
                                                                     if ($otName !== $reg->ot) {
                                                                         continue;
@@ -1856,7 +1801,7 @@
                                                          @php
                                                              $rechazadosDibujos = [];
                                                              $rechazadosAyudas = [];
-                                                             $rechazadosOtros = [];
+                                                             $rechazadosOtros = $rechazadosOtros ?? [];
                                                              foreach ($archivosRechazados as $rArchivo) {
                                                                  $nameLow = strtolower($rArchivo['nombre']);
                                                                  $ext = pathinfo($nameLow, PATHINFO_EXTENSION);

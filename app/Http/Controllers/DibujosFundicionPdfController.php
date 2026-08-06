@@ -858,21 +858,23 @@ class DibujosFundicionPdfController extends Controller
 
             $dstFilesRel = $dstFilesFull->map(fn($f) => str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f)))->toArray();
 
-            // Sincronizar: eliminar dibujos en Almacén que ya no existen en Ingeniería
-            foreach ($dstFilesRel as $dfRel) {
-                // Normalizar: si el destino tiene /Dibujos/ en la ruta, comparar sin él
-                $dfRelNorm = preg_replace('#/Dibujos/#', '/', $dfRel);
+            // Sincronizar: eliminar dibujos en Almacén que ya no existen en Ingeniería (solo al reiniciar)
+            if ($resetFlags) {
+                foreach ($dstFilesRel as $dfRel) {
+                    // Normalizar: si el destino tiene /Dibujos/ en la ruta, comparar sin él
+                    $dfRelNorm = preg_replace('#/Dibujos/#', '/', $dfRel);
 
-                // Si la clase tiene cambios pendientes, NO ELIMINAR sus archivos viejos en Almacen
-                $parts = explode('/', $dfRelNorm, 2);
-                $claseDel = count($parts) === 2 ? $parts[0] : '';
-                if (in_array($claseDel, $pendingChanges)) {
-                    continue;
-                }
+                    // Si la clase tiene cambios pendientes, NO ELIMINAR sus archivos viejos en Almacen
+                    $parts = explode('/', $dfRelNorm, 2);
+                    $claseDel = count($parts) === 2 ? $parts[0] : '';
+                    if (in_array($claseDel, $pendingChanges)) {
+                        continue;
+                    }
 
-                $srcFilesRelNorm = array_map(fn($r) => preg_replace('#/Dibujos/#', '/', $r), $srcFilesRel);
-                if (!in_array($dfRelNorm, $srcFilesRelNorm)) {
-                    Storage::disk('local')->delete($dstDir . '/' . $dfRel);
+                    $srcFilesRelNorm = array_map(fn($r) => preg_replace('#/Dibujos/#', '/', $r), $srcFilesRel);
+                    if (!in_array($dfRelNorm, $srcFilesRelNorm)) {
+                        Storage::disk('local')->delete($dstDir . '/' . $dfRel);
+                    }
                 }
             }
 

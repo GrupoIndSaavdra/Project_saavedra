@@ -148,7 +148,7 @@ class FundicionHistory extends Model
 
         $liberacionesFisicas = \App\Models\LiberacionModeloFundicion::where('ot', '=', $this->ot, 'and')
             ->where('tipo_origen', '=', 'con_modelo', 'and')
-            ->whereNotNull('tipo_modelo')
+            ->whereNotNull('tipo_modelo', 'and')
             ->where('tipo_modelo', '!=', '', 'and')
             ->pluck('tipo_modelo')->toArray();
         foreach ($liberacionesFisicas as $lf) {
