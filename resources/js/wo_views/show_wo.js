@@ -219,7 +219,7 @@ function createRowsForm(formInputs) {
 
             let col = document.createElement("div");
             col.className = "column full-width-column";
-            
+
 
             if (inputConfig.label != undefined) {
                 let label = document.createElement("label");
@@ -1275,6 +1275,8 @@ function createChemicalCompositionChips(attributesArray) {
     soldaduraWrapper.id = "welding-type-wrapper";
     soldaduraWrapper.hidden = false;
     soldaduraWrapper.classList.add("swo-sol-wrapper");
+    soldaduraWrapper.style.marginTop = "15px";
+    soldaduraWrapper.style.display = "flex";
 
     let soldaduraLabel = document.createElement("label");
     soldaduraLabel.textContent = "Tipo de Soldadura:";
@@ -1314,11 +1316,12 @@ function createChemicalCompositionChips(attributesArray) {
     soldaduraWrapper.appendChild(soldaduraSelect);
 
     otroInputRow.appendChild(otroInput);
-    otroInputRow.appendChild(soldaduraWrapper);
 
     otroContainer.appendChild(otroLabel);
     otroContainer.appendChild(otroInputRow);
+    
     wrapper.appendChild(otroContainer);
+    wrapper.appendChild(soldaduraWrapper);
 
     return wrapper;
 }
@@ -1397,10 +1400,10 @@ function normalizeChemicalInput(value) {
 
 /**
  * Muestra u oculta el selector de tipo de soldadura según la clase seleccionada.
- * Las clases que aplican son: Molde, Fondo, Bombillo, Obturador.
+ * Las clases que aplican son: Molde, Fondo, Bombillo, Obturador, Corona.
  */
 function toggleWeldingTypeVisibility(className) {
-    const weldingClasses = ["Molde", "Fondo", "Bombillo", "Obturador"];
+    const weldingClasses = ["Molde", "Fondo", "Bombillo", "Obturador", "Corona"];
     let wrapper = document.getElementById("welding-type-wrapper");
     if (!wrapper) return;
 
@@ -1424,7 +1427,7 @@ if (window.classesDataUrl && window.workOrder && window.workOrder.id) {
             const res = await fetch(`${window.classesDataUrl}/${window.workOrder.id}`);
             if (!res.ok) return;
             const data = await res.json();
-            
+
             if (data && Array.isArray(data) && window.classes) {
                 data.forEach(updatedClass => {
                     // Actualizar el array en memoria
@@ -1432,11 +1435,11 @@ if (window.classesDataUrl && window.workOrder && window.workOrder.id) {
                     if (classInMem) {
                         const currentPedido = parseInt(classInMem.pedido);
                         const currentPiezas = parseInt(classInMem.piezas);
-                        
+
                         if (currentPedido !== updatedClass.pedido || currentPiezas !== updatedClass.piezas) {
                             classInMem.pedido = updatedClass.pedido;
                             classInMem.piezas = updatedClass.piezas;
-                            
+
                             // Actualizar visualmente la tabla
                             const btn = document.querySelector(`.btnClass[value="${updatedClass.id}"]`);
                             if (btn) {
@@ -1445,7 +1448,7 @@ if (window.classesDataUrl && window.workOrder && window.workOrder.id) {
                                 if (tdPedido) tdPedido.textContent = updatedClass.pedido;
                                 if (tdPiezas) tdPiezas.textContent = updatedClass.piezas;
                             }
-                            
+
                             // Actualizar los inputs si esta clase es la que está abierta actualmente y NO estamos editando
                             const idClassInput = document.getElementById('idClass');
                             if (idClassInput && idClassInput.value == updatedClass.id) {
