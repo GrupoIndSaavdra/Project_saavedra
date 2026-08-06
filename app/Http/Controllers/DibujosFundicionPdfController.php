@@ -24,12 +24,13 @@ class DibujosFundicionPdfController extends Controller
     /**
      * Directorio legado para compatibilidad con archivos anteriores.
      */
-    private const OLD_BASE_DIR = 'FUNDICION_GIS';
+    public const OLD_BASE_DIR = 'FUNDICION_GIS';
 
     /**
      * NUNCA se escanea desde la vista admin y NUNCA se borra con deleteFolder.
      */
     private const ALMACEN_DIR = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION';
+    private const CALIDAD_DIR = 'DOCUMENTACION_GIS/CALIDAD_FUNDICION';
 
     // =========================================================================
     // VISTAS
@@ -821,7 +822,7 @@ class DibujosFundicionPdfController extends Controller
      *
      * @param string $otName
      */
-    public static function copyToAlmacen(string $otName, bool $resetFlags = true): void
+    public static function copyToAlmacen(string $otName, bool $resetFlags = true, ?array $onlyClasses = null): void
     {
         $otName = self::normalizeOTName($otName);
         $instance = new self();
@@ -867,6 +868,18 @@ class DibujosFundicionPdfController extends Controller
                     // Si la clase tiene cambios pendientes, NO ELIMINAR sus archivos viejos en Almacen
                     $parts = explode('/', $dfRelNorm, 2);
                     $claseDel = count($parts) === 2 ? $parts[0] : '';
+                    
+                    if (is_array($onlyClasses) && count($onlyClasses) > 0) {
+                        $claseMatch = false;
+                        foreach ($onlyClasses as $oc) {
+                            if (strtolower(trim($claseDel)) === strtolower(trim($oc))) {
+                                $claseMatch = true;
+                                break;
+                            }
+                        }
+                        if (!$claseMatch) continue;
+                    }
+
                     if (in_array($claseDel, $pendingChanges)) {
                         continue;
                     }
@@ -874,6 +887,8 @@ class DibujosFundicionPdfController extends Controller
                     $srcFilesRelNorm = array_map(fn($r) => preg_replace('#/Dibujos/#', '/', $r), $srcFilesRel);
                     if (!in_array($dfRelNorm, $srcFilesRelNorm)) {
                         Storage::disk('local')->delete($dstDir . '/' . $dfRel);
+                        $calidadDir = self::CALIDAD_DIR . '/' . $otName;
+                        Storage::disk('local')->delete($calidadDir . '/' . $dfRel);
                     }
                 }
             }
@@ -884,6 +899,18 @@ class DibujosFundicionPdfController extends Controller
                 $parts = explode('/', $sfRel, 2);
                 if (count($parts) === 2) {
                     [$clase, $archivo] = $parts;
+                    
+                    if (is_array($onlyClasses) && count($onlyClasses) > 0) {
+                        $claseMatch = false;
+                        foreach ($onlyClasses as $oc) {
+                            if (strtolower(trim($clase)) === strtolower(trim($oc))) {
+                                $claseMatch = true;
+                                break;
+                            }
+                        }
+                        if (!$claseMatch) continue;
+                    }
+
                     if (in_array($clase, $pendingChanges))
                         continue; // IGNORAR SI LA CLASE TIENE CAMBIOS PENDIENTES
                     // Nueva ruta: {Clase}/Dibujos/{archivo}
@@ -914,6 +941,17 @@ class DibujosFundicionPdfController extends Controller
             $oldBase = 'AYUDAS_GIS';
 
             foreach ($ayudasVinculadas as $clase) {
+                if (is_array($onlyClasses) && count($onlyClasses) > 0) {
+                    $claseMatch = false;
+                    foreach ($onlyClasses as $oc) {
+                        if (strtolower(trim($clase)) === strtolower(trim($oc))) {
+                            $claseMatch = true;
+                            break;
+                        }
+                    }
+                    if (!$claseMatch) continue;
+                }
+
                 if (in_array($clase, $pendingChanges))
                     continue; // IGNORAR SI LA CLASE TIENE CAMBIOS PENDIENTES
 
@@ -949,6 +987,9 @@ class DibujosFundicionPdfController extends Controller
                 foreach ($filesInDst as $fa) {
                     if (!isset($masterFiles[$fa])) {
                         Storage::disk('local')->delete($claseDstDir . '/' . $fa);
+                        $calidadDir = self::CALIDAD_DIR . '/' . $otName;
+                        $calidadAyudaDst = $calidadDir . '/' . $clase . '/' . FundicionPaths::AYUDAS_VISUALES . '/' . $fa;
+                        Storage::disk('local')->delete($calidadAyudaDst);
                     }
                 }
 

@@ -8360,10 +8360,20 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
             `;
         } else {
             // CASO REEMPLAZO: Mostrar 2 columnas (Actuales en Almacén vs Nuevos de Dibujos de Fundición)
+            let viejosAMostrar = [];
             const nuevosProcesados = nuevos.map((n, index) => {
                 const exactMatch = viejos.some(v => v.nombre.toLowerCase() === n.nombre.toLowerCase());
                 const posMatch = index < viejos.length;
                 const isReemplazo = exactMatch || posMatch;
+                
+                let matchedViejo = viejos.find(v => v.nombre.toLowerCase() === n.nombre.toLowerCase());
+                if (!matchedViejo && index < viejos.length) {
+                    matchedViejo = viejos[index];
+                }
+                if (matchedViejo && !viejosAMostrar.includes(matchedViejo)) {
+                    viejosAMostrar.push(matchedViejo);
+                }
+                
                 return {
                     ...n,
                     isReemplazo: isReemplazo,
@@ -8377,7 +8387,7 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                     <div class="alm-flex-1">
                         <h5 class="alm-color-64748b alm-margin-0-0-10px-0" style="font-weight: 700;">Actuales (En Almacén)</h5>
                         <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
-                            ${viejos.length > 0 ? viejos.map((v, index) => `
+                            ${viejosAMostrar.length > 0 ? viejosAMostrar.map((v, index) => `
                                 <div class="dibujos-file-card card-dibujo" style="animation-delay: ${index * 0.05}s; border: 2px solid #0284c7; background-color: #f0f9ff; border-left: 5px solid #0284c7;">
                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                         <img src="${pdfViewShadow}" class="file-icon icon-default">

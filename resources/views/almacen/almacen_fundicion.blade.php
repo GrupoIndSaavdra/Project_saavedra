@@ -636,7 +636,7 @@
                                                     foreach ($relArchivos as $archivo) {
                                                         $base = basename($archivo);
                                                         $fileLower = strtolower($archivo);
-                                                        if (strpos($fileLower, 'ayudas_visuales') !== false || strpos($fileLower, 'ayudas-visuales') !== false) {
+                                                        if (strpos($fileLower, 'ayudas_visuales') !== false || strpos($fileLower, 'ayudas-visuales') !== false || strpos($fileLower, 'preordenes') !== false) {
                                                             continue;
                                                         }
                                                         $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
@@ -677,8 +677,8 @@
 
                                                 $ayudasArchivos = [];
                                                 $otrosArchivos = [];
-                                                $baseNames = [];
-                                                $dibujoBaseNames = [];
+                                                $baseNames = $dibujoBaseNames;
+                                                $normBaseNames = array_map(function($b) { return strtolower(preg_replace('/[\s_]+/', '', $b)); }, $baseNames);
 
                                                 // --- NUEVO: Escanear ayudas visuales globales desde AYUDAS_FUNDICION ---
                                                 $ayudasGlobalesBase = 'DOCUMENTACION_GIS/AYUDAS_FUNDICION';
@@ -697,7 +697,8 @@
                                                                 $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
                                                                 if ($ext === 'pdf') {
                                                                     $base = basename($f);
-                                                                    if (!in_array($base, $baseNames)) {
+                                                                    $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                                                                    if (!in_array($normBase, $normBaseNames)) {
                                                                         $ayudaData = [
                                                                             'nombre' => $classNameProper . '/' . $base,
                                                                             'url' => route('ayudas_fundicion.serve', ['clase' => $classNameProper, 'archivo' => $base]),
@@ -710,6 +711,7 @@
                                                                         $ayudasArchivos[] = $ayudaData;
                                                                         
                                                                         $baseNames[] = $base;
+                                                                        $normBaseNames[] = $normBase;
                                                                     }
                                                                 }
                                                             }
@@ -803,8 +805,9 @@
                                                                     }
                                                                 }
 
+                                                                $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
                                                                 if (str_starts_with($relativePath, 'preordenes/')) {
-                                                                    if (!in_array($base, $baseNames)) {
+                                                                    if (!in_array($normBase, $normBaseNames)) {
                                                                         $otrosArchivos[] = [
                                                                             'nombre' => $relativePath,
                                                                             'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'otro']),
@@ -814,9 +817,10 @@
                                                                             'owner' => 'almacen',
                                                                         ];
                                                                         $baseNames[] = $base;
+                                                                        $normBaseNames[] = $normBase;
                                                                     }
                                                                 } elseif ($isPdf) {
-                                                                    if (!in_array($base, $baseNames)) {
+                                                                    if (!in_array($normBase, $normBaseNames)) {
                                                                         $ayudasArchivos[] = [
                                                                             'nombre' => $relativePath,
                                                                             'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePath, 'tipo' => 'ayuda']),
@@ -824,6 +828,7 @@
                                                                             'ot' => $otName,
                                                                         ];
                                                                         $baseNames[] = $base;
+                                                                        $normBaseNames[] = $normBase;
                                                                     }
                                                                 }
                                                             }
@@ -882,7 +887,8 @@
                                                                 }
                                                             }
 
-                                                            if (!in_array($base, $baseNames)) {
+                                                            $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                                                            if (!in_array($normBase, $normBaseNames)) {
                                                                 $origin = 'otro';
                                                                 if (strpos($relativePath, 'documentos_aprobados') !== false) {
                                                                     $origin = 'aprobado';
@@ -900,6 +906,7 @@
                                                                     'owner' => 'calidad',
                                                                 ];
                                                                 $baseNames[] = $base;
+                                                                $normBaseNames[] = $normBase;
                                                             }
                                                         }
                                                     }
@@ -977,7 +984,8 @@
                                                                     }
                                                                 }
 
-                                                                if (!in_array($base, $baseNames)) {
+                                                                $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                                                                if (!in_array($normBase, $normBaseNames)) {
                                                                     $relativePathWithPrefix = $prefix . $relativePath;
                                                                     $otrosArchivos[] = [
                                                                         'nombre' => $relativePathWithPrefix,
@@ -988,6 +996,7 @@
                                                                         'owner' => $dirInfo['owner'],
                                                                     ];
                                                                     $baseNames[] = $base;
+                                                                    $normBaseNames[] = $normBase;
                                                                 }
                                                             }
                                                         }
@@ -1026,7 +1035,8 @@
                                                                     continue;
                                                                 }
                                                             }
-                                                            if (!in_array($base, $baseNames)) {
+                                                            $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                                                            if (!in_array($normBase, $normBaseNames)) {
                                                                 $otrosArchivos[] = [
                                                                     'nombre' => $base,
                                                                     'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $base, 'tipo' => 'liberacion', 'origin' => 'aprobado']),
@@ -1036,6 +1046,7 @@
                                                                     'owner' => 'calidad',
                                                                 ];
                                                                 $baseNames[] = $base;
+                                                                $normBaseNames[] = $normBase;
                                                             }
                                                         }
 
@@ -1069,7 +1080,8 @@
                                                                     continue;
                                                                 }
                                                             }
-                                                            if (!in_array($base, $baseNames)) {
+                                                            $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                                                            if (!in_array($normBase, $normBaseNames)) {
                                                                 $rechazadosOtros[] = [
                                                                     'nombre' => $base,
                                                                     'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $base, 'tipo' => 'liberacion', 'origin' => 'rechazado']),
@@ -1079,6 +1091,7 @@
                                                                     'owner' => 'calidad',
                                                                 ];
                                                                 $baseNames[] = $base;
+                                                                $normBaseNames[] = $normBase;
                                                             }
                                                         }
                                                     }
@@ -1333,7 +1346,7 @@
                                                 $isCalidadAlerted = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado'])
                                                     || \App\Models\LiberacionModeloFundicion::where('ot', $reg->ot)->where('alerta_enviada', true)->exists();
 
-                                                $showControlCard = ($estado === 'activa' && !$isFinalized && !$isCalidadAlerted);
+                                                $showControlCard = ($estado === 'activa' && !$isFinalized && (!$isCalidadAlerted || count($clasesFabricacion) > 0));
                                                 $hasFilesOrControl = ($count > 0 || $showControlCard);
 
                                                 // DEBUG MARKER
@@ -1634,9 +1647,9 @@
                                                                     {{-- Dibujos de Modelo --}}
                                                                     @if (count($dibujosModelo) > 0)
                                                                         <h4 style="margin-top: 10px; margin-bottom: 10px; color: #005194; font-weight: 700;">Dibujos de Fundición (Modelo)</h4>
-                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        <div class="alm-pdf-grid" style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($dibujosModelo as $archivoInfo)
-                                                                                <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                                                <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                                                                         <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                                                         <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
@@ -1655,10 +1668,10 @@
                                                                     {{-- Ayudas Visuales de Modelo --}}
                                                                     @if (count($ayudasModelo) > 0)
                                                                         <h4 style="margin-top: 15px; margin-bottom: 10px; color: #9c0300; font-weight: 700;">Ayudas Visuales de Fundición (Modelo)</h4>
-                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        <div class="alm-pdf-grid" style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($ayudasModelo as $archivoInfo)
                                                                                 @php $ayudaUrl = $archivoInfo['url'] ?? ''; @endphp
-                                                                                <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                                                <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                                                                         <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
                                                                                         <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
@@ -1678,7 +1691,7 @@
 
                                                                     @if (count($almacenPreordenesFab) > 0)
                                                                         <h4 style="margin-top: 15px; margin-bottom: 10px; color: #0284c7; font-weight: 700;">Documentos / Pre-órdenes de Fabricación</h4>
-                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        <div class="alm-pdf-grid" style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($almacenPreordenesFab as $archivoInfo)
                                                                                 <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
@@ -1719,10 +1732,31 @@
                                                                                 ->values()
                                                                                 ->toArray();
 
-                                                                            $otClasesActivas = $esReproceso
-                                                                                ? array_map('strtolower', $rechazadosClases)
-                                                                                : (is_array($reg->ayudas_config) ? array_map('strtolower', $reg->ayudas_config) : []);
-                                                                            $clasesProcesadas = [];
+                                                                            // ── Reinicio parcial dentro de la misma OT (estado mixto) ────────────────────
+                                                                            // Cuando Calidad aprobó algunas clases y rechazó/reinició otras dentro de la
+                                                                            // misma OT (sin sufijo _R\d), las clases reiniciadas están en $clasesFabricacion.
+                                                                            // En este caso el control card debe activarse sobre esas clases específicas.
+                                                                            $esReinicioParcial = $isCalidadAlerted && count($clasesFabricacion) > 0 && !$esReproceso;
+
+                                                                            if ($esReinicioParcial) {
+                                                                                // Usar solo las clases pendientes de re-proceso como "activas" para el control
+                                                                                $otClasesActivas = $clasesFabricacion;
+                                                                            } elseif ($esReproceso) {
+                                                                                $otClasesActivas = array_map('strtolower', $rechazadosClases);
+                                                                            } else {
+                                                                                $otClasesActivas = is_array($reg->ayudas_config) ? array_map('strtolower', $reg->ayudas_config) : [];
+                                                                            }
+                                                                            // ────────────────────────────────────────────────────────────────────────────
+
+                                                                            $tienePreOrden = (bool)($targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent);
+
+                                                                            $controlDisabled = '';
+                                                                            $hideControlCard = (count($clasesFabricacion) === 0) ? 'display: none;' : '';
+                                                                            // En reinicio parcial: mostrar ambos botones (modelo + pre-orden) igual que el primer ciclo
+                                                                            $hideTengoModelo = ($esReproceso && !$esReinicioParcial) ? 'display: none;' : '';
+                                                                            $hideGenerarFormato = (($esReproceso && !$esReinicioParcial) || $tienePreOrden) ? 'display: none;' : '';
+                                                                            $hideReprocesoPreOrden = ($esReproceso && !$tienePreOrden && !$esReinicioParcial) ? '' : 'display: none;';
+                                                                            $hideEditPreOrden = $tienePreOrden ? '' : 'display: none;';
 
                                                                             $preOrdenesEnviadas = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->where('is_sent', 1)->get();
                                                                             foreach ($preOrdenesEnviadas as $po) {
@@ -1747,6 +1781,9 @@
                                                                                 }
                                                                             }
                                                                             $clasesProcesadas = array_filter(array_unique($clasesProcesadas), fn($v) => $v !== '');
+                                                                            // ── IMPORTANTE: Las clases reiniciadas ($clasesFabricacion) no deben contar como procesadas,
+                                                                            // aunque existan en pre-órdenes antiguas, porque necesitan un nuevo proceso.
+                                                                            $clasesProcesadas = array_diff($clasesProcesadas, array_map('strtolower', $clasesFabricacion));
                                                                             $clasesProcesadas = array_values($clasesProcesadas);
 
                                                                             $clasesActivasCubiertas = [];
@@ -1769,14 +1806,8 @@
 
                                                                             $todasClasesProcesadas = count($otClasesActivas) > 0 && count($clasesActivasFaltantes) === 0;
                                                                             $algunaClaseProcesada  = count($clasesActivasCubiertas) > 0;
-                                                                            $tienePreOrden = (bool)($targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent);
 
-                                                                            $controlDisabled = '';
-                                                                            $hideControlCard = (count($clasesFabricacion) === 0) ? 'display: none;' : '';
-                                                                            $hideTengoModelo = $esReproceso ? 'display: none;' : '';
-                                                                            $hideGenerarFormato = ($esReproceso || $tienePreOrden) ? 'display: none;' : '';
-                                                                            $hideReprocesoPreOrden = ($esReproceso && !$tienePreOrden) ? '' : 'display: none;';
-                                                                            $hideEditPreOrden = $tienePreOrden ? '' : 'display: none;';
+
 
                                                                             $clasesFisicamenteConfirmadas = [];
                                                                             $liberacionesFisicasObj = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
@@ -1835,7 +1866,7 @@
 
                                                                         <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}" style="{{ $controlDisabled }} {{ $hideControlCard }}">
                                                                             <div class="lib-calidad-card-header">
-                                                                                <img src="{{ $esReproceso ? asset('images/Reproceso.png') : asset('images/almacen.png') }}" alt="Almacén" class="alm-icon-lg">
+                                                                                <img src="{{ ($esReproceso || $esReinicioParcial) ? asset('images/Reproceso.png') : asset('images/almacen.png') }}" alt="Almacén" class="alm-icon-lg">
                                                                                 <div class="alm-overflow-hidden alm-flex-1">
                                                                                     <span class="lib-calidad-card-title">Control de Modelos &mdash; Almacén</span>
                                                                                     <span class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
@@ -1875,6 +1906,11 @@
                                                                                             Alerta enviada a Calidad. En espera de su revisión y nuevo veredicto de liberación.
                                                                                         @elseif ($targetReg->pre_orden_sent)
                                                                                             Pre-orden lista. Puedes seguir editando los datos o enviarla por correo.
+                                                                                        @elseif ($esReinicioParcial)
+                                                                                            <span class="alm-color-0284c7 alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                                <img src="{{ asset('images/Reproceso.png') }}" class="alm-icon-md" alt="Reinicio">
+                                                                                                Clase(s) reiniciadas: <strong>{{ implode(', ', array_map('ucfirst', $clasesFabricacion)) }}</strong>. Genera una nueva pre-orden o confirma que cuentas con el modelo para continuar.
+                                                                                            </span>
                                                                                         @elseif ($esReproceso)
                                                                                             OT en re-proceso por rechazo de Calidad. Genera o edita la pre-orden de modelo para iniciar el nuevo ciclo de fabricación.
                                                                                         @else
@@ -1951,7 +1987,7 @@
                                                                     {{-- Dibujos de Casting --}}
                                                                     @if (count($dibujosCasting) > 0)
                                                                         <h4 style="margin-top: 10px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Dibujos de Fundición (Casting)</h4>
-                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        <div class="alm-pdf-grid" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($dibujosCasting as $archivoInfo)
                                                                                 <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #16a34a;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
@@ -1972,7 +2008,7 @@
                                                                     {{-- Ayudas Visuales de Casting --}}
                                                                     @if (count($ayudasCasting) > 0)
                                                                         <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Ayudas Visuales (Casting)</h4>
-                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        <div class="alm-pdf-grid" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($ayudasCasting as $archivoInfo)
                                                                                 @php $ayudaUrl = $archivoInfo['url'] ?? ''; @endphp
                                                                                 <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
@@ -2013,7 +2049,7 @@
                                                                     @endphp
                                                                     @if (count($calidadAprobadosLdmCasting) > 0)
                                                                         <h4 style="margin-top: 15px; margin-bottom: 10px; color: #155724; font-weight: 700;">Documentos Aprobados</h4>
-                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        <div class="alm-pdf-grid" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($calidadAprobadosLdmCasting as $otroArchivo)
                                                                                 @php
                                                                                     $canDelete = false;
@@ -2061,7 +2097,7 @@
                                                                     {{-- Pre-órdenes de Modelo (Casting) - solo las de clases aprobadas --}}
                                                                     @if (count($almacenPreordenesCasting) > 0)
                                                                         <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Pre-órdenes de Casting</h4>
-                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        <div class="alm-pdf-grid" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($almacenPreordenesCasting as $archivoInfo)
                                                                                 <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #16a34a;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
@@ -2164,7 +2200,7 @@
                                                                     {{-- Dibujos Originales Rechazados --}}
                                                                     @if (count($dibujosRechazadosOrig) > 0)
                                                                         <h4 style="margin-top: 10px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Dibujos de Fundición (Rechazados)</h4>
-                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        <div class="alm-pdf-grid" style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($dibujosRechazadosOrig as $archivoInfo)
                                                                                 <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
@@ -2185,7 +2221,7 @@
                                                                     {{-- Ayudas Visuales Originales Rechazadas --}}
                                                                     @if (count($ayudasRechazadosOrig) > 0)
                                                                         <h4 style="margin-top: 15px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Ayudas Visuales (Rechazadas)</h4>
-                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        <div class="alm-pdf-grid" style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($ayudasRechazadosOrig as $archivoInfo)
                                                                                 @php $ayudaUrl = $archivoInfo['url'] ?? ''; @endphp
                                                                                 <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
@@ -2207,7 +2243,7 @@
                                                                     {{-- Dibujos Rechazados (Calidad) --}}
                                                                     @if (count($rechazadosDibujos) > 0)
                                                                         <h4 style="margin-top: 10px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Documentos Adjuntos de Calidad (Dibujos)</h4>
-                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        <div class="alm-pdf-grid" style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($rechazadosDibujos as $otroArchivo)
                                                                                 <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
@@ -2228,7 +2264,7 @@
                                                                     {{-- Ayudas Visuales Rechazadas (Calidad) --}}
                                                                     @if (count($rechazadosAyudas) > 0)
                                                                         <h4 style="margin-top: 15px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Documentos Adjuntos de Calidad (Ayudas Visuales)</h4>
-                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        <div class="alm-pdf-grid" style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($rechazadosAyudas as $otroArchivo)
                                                                                 <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
@@ -2249,7 +2285,7 @@
                                                                     {{-- Documentos de Rechazo / SCAR --}}
                                                                     @if (count($rechazadosOtros) > 0)
                                                                         <h4 style="margin-top: 15px; margin-bottom: 10px; color: #721c24; font-weight: 700;">Documentos de Rechazo</h4>
-                                                                        <div class="alm-pdf-grid alm-success-box" style="margin-bottom: 15px;">
+                                                                        <div class="alm-pdf-grid" style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($rechazadosOtros as $otroArchivo)
                                                                                 <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #721c24;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">

@@ -776,7 +776,8 @@
                                                         $fileLower = strtolower($archivo);
                                                         if (
                                                             strpos($fileLower, 'ayudas_visuales') !== false ||
-                                                            strpos($fileLower, 'ayudas-visuales') !== false
+                                                            strpos($fileLower, 'ayudas-visuales') !== false ||
+                                                            strpos($fileLower, 'preordenes') !== false
                                                         ) {
                                                             continue;
                                                         }
@@ -829,7 +830,8 @@
                                                 $countDibujos = count($archivos);
                                                 $ayudasArchivos = [];
                                                 $otrosArchivos = [];
-                                                $baseNames = [];
+                                                $baseNames = $dibujoBaseNames;
+                                                $normBaseNames = array_map(function($b) { return strtolower(preg_replace('/[\s_]+/', '', $b)); }, $baseNames);
                                                 // --- NUEVO: Escanear ayudas visuales globales desde AYUDAS_FUNDICION ---
                                                 $ayudasGlobalesBase = 'DOCUMENTACION_GIS/AYUDAS_FUNDICION';
                                                 foreach ($activeClassesForOt as $activeClass) {
@@ -851,7 +853,8 @@
                                                                 $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
                                                                 if ($ext === 'pdf') {
                                                                     $base = basename($f);
-                                                                    if (!in_array($base, $baseNames)) {
+                                                                    $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                                                                    if (!in_array($normBase, $normBaseNames)) {
                                                                         $ayudaData = [
                                                                             'nombre' => $classNameProper . '/' . $base,
                                                                             'url' => route('ayudas_fundicion.serve', [
@@ -867,6 +870,7 @@
                                                                         $ayudasArchivos[] = $ayudaData;
                                                                         
                                                                         $baseNames[] = $base;
+                                                                        $normBaseNames[] = $normBase;
                                                                     }
                                                                 }
                                                             }
@@ -1004,8 +1008,9 @@
                                                                         continue;
                                                                     }
                                                                 }
+                                                                $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
                                                                 if (str_starts_with($relativePath, 'preordenes/')) {
-                                                                    if (!in_array($base, $baseNames)) {
+                                                                    if (!in_array($normBase, $normBaseNames)) {
                                                                         $otrosArchivos[] = [
                                                                             'nombre' => $relativePath,
                                                                             'url' => route('calidad.fundicion.serve', [
@@ -1019,9 +1024,10 @@
                                                                             'owner' => 'almacen',
                                                                         ];
                                                                         $baseNames[] = $base;
+                                                                        $normBaseNames[] = $normBase;
                                                                     }
                                                                 } elseif ($isPdf) {
-                                                                    if (!in_array($base, $baseNames)) {
+                                                                    if (!in_array($normBase, $normBaseNames)) {
                                                                         $ayudasArchivos[] = [
                                                                             'nombre' => $relativePath,
                                                                             'url' => route('calidad.fundicion.serve', [
@@ -1033,6 +1039,7 @@
                                                                             'ot' => $otName,
                                                                         ];
                                                                         $baseNames[] = $base;
+                                                                        $normBaseNames[] = $normBase;
                                                                     }
                                                                 }
                                                             }
@@ -1116,7 +1123,8 @@
                                                                     continue;
                                                                 }
                                                             }
-                                                            if (!in_array($base, $baseNames)) {
+                                                            $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                                                            if (!in_array($normBase, $normBaseNames)) {
                                                                 $origin = 'otro';
                                                                 if (
                                                                     strpos($relativePath, 'documentos_aprobados') !==
@@ -1144,6 +1152,7 @@
                                                                     'owner' => 'calidad',
                                                                 ];
                                                                 $baseNames[] = $base;
+                                                                $normBaseNames[] = $normBase;
                                                             }
                                                         }
                                                     }
@@ -1256,7 +1265,8 @@
                                                                         continue;
                                                                     }
                                                                 }
-                                                                if (!in_array($base, $baseNames)) {
+                                                                $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                                                                if (!in_array($normBase, $normBaseNames)) {
                                                                     $relativePathWithPrefix = $prefix . $relativePath;
                                                                     $otrosArchivos[] = [
                                                                         'nombre' => $relativePathWithPrefix,
@@ -1272,6 +1282,7 @@
                                                                         'owner' => $dirInfo['owner'],
                                                                     ];
                                                                     $baseNames[] = $base;
+                                                                    $normBaseNames[] = $normBase;
                                                                 }
                                                             }
                                                         }
@@ -1285,7 +1296,8 @@
                                                         foreach (glob($ldmPattern) ?: [] as $f) {
                                                             $base = basename($f);
                                                             $fileLower = strtolower($base);
-                                                            if (!in_array($base, $baseNames)) {
+                                                            $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                                                            if (!in_array($normBase, $normBaseNames)) {
                                                                 $isRechazado = strpos($fileLower, 'rechazado') !== false;
                                                                 $origin = $isRechazado ? 'rechazado' : 'aprobado';
                                                                 $itemData = [
@@ -1307,6 +1319,7 @@
                                                                     $otrosArchivos[] = $itemData;
                                                                 }
                                                                 $baseNames[] = $base;
+                                                                $normBaseNames[] = $normBase;
                                                             }
                                                         }
                                                         // Buscar SCAR PDFs (digital y firmado)
@@ -1318,7 +1331,8 @@
                                                         );
                                                         foreach (array_unique($scarFiles) as $f) {
                                                             $base = basename($f);
-                                                            if (!in_array($base, $baseNames)) {
+                                                            $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                                                            if (!in_array($normBase, $normBaseNames)) {
                                                                 $itemData = [
                                                                     'nombre' => $base,
                                                                     'url' => route('calidad.fundicion.serve', [
@@ -1334,6 +1348,7 @@
                                                                 ];
                                                                 $rechazadosOtros[] = $itemData;
                                                                 $baseNames[] = $base;
+                                                                $normBaseNames[] = $normBase;
                                                             }
                                                         }
                                                     }
@@ -1634,7 +1649,7 @@
                                                             por el administrador.
                                                             Los PDFs de {{ $deptName }} se
                                                             conservan.
-                                                        </div>
+                                                        
                                                     @endif
                                                 </td>
                                                 <td class="d-text-center">
@@ -1943,8 +1958,7 @@
                                                                      @endif
                                                                  </div>
                                                              @endif
-
-                                                             {{-- SUB-CONTENEDOR 2 (VERDECITO): FORMATO DE LIBERACIÓN DE MODELO - APROBADOS --}}
+{{-- SUB-CONTENEDOR 2 (VERDECITO): FORMATO DE LIBERACIÓN DE MODELO - APROBADOS --}}
                                                              @if ($hasAprobadosGroup)
                                                                  <div class="cal-subcontainer-aprobados" style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #f0fdf4; border: 2px solid #22c55e; box-shadow: 0 3px 10px rgba(34, 197, 94, 0.08);">
                                                                      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bbf7d0; padding-bottom: 8px; margin-bottom: 15px;">
@@ -2068,7 +2082,8 @@
                                                                      @endif
                                                                  </div>
                                                              @endif
-                                                         </div>
+
+                                                                 
                                                          
 
                                                         {{-- ── ACCIONES DE CALIDAD / ESTADOS DE LIBERACION ── --}}
@@ -2269,17 +2284,13 @@
                                                                             class="lib-estado-badge lib-estado-rechazado cal-padding-12px-16px cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px">
                                                                             <img src="{{ asset('images/Rechazado.png') }}" alt=""
                                                                                 class="cal-width-18px cal-height-18px cal-object-fit-contain cal-flex-shrink-0" />
-                                                                            <span>Liberacion
-                                                                                rechazada
-                                                                                anteriormente.
-                                                                                Puedes
-                                                                                revisar
-                                                                                y
-                                                                                volver
-                                                                                a
-                                                                                emitir
-                                                                                un
-                                                                                veredicto.</span>
+                                                                            <span>
+                                                                                @if (in_array($targetReg->calidad_revision_status, ['mixto', 'calidad_mixto', 'calidad_parcial']))
+                                                                                    Liberacion anterior procesada (parcial/mixto). Puedes revisar las clases pendientes o reiniciadas y emitir su veredicto.
+                                                                                @else
+                                                                                    Liberacion rechazada anteriormente. Puedes revisar y volver a emitir un veredicto.
+                                                                                @endif
+                                                                            </span>
                                                                         </div>
                                                                     @elseif (is_null($targetReg->calidad_revision_status))
                                                                         <div
@@ -2607,9 +2618,8 @@
                                                                             },
                                                                         );
                                                                         $etapaFinalizada =
-                                                                            ((!empty($clasesActivas) &&
-                                                                                empty($clasesPendientesAlertar)) ||
-                                                                                $hasFinalStatus) &&
+                                                                            empty($clasesPendientesAlertar) &&
+                                                                            (!empty($clasesActivas) || $hasFinalStatus) &&
                                                                             !$hasRechazoBorrador &&
                                                                             !$hasAprobadoBorrador;
                                                                     @endphp
@@ -2845,6 +2855,12 @@
                                                                 @endphp
                                                             @endif
                                                         @endif
+
+
+
+                                                             
+                                                        </div>
+                                                        
                                                     @endif
                                                     </td>
                                                 </tr>
