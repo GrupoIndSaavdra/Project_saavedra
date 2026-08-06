@@ -27,32 +27,7 @@ window.changeDocSelector = function (paramName, value, toClear = []) {
     else url.searchParams.delete(paramName);
     toClear.forEach(p => url.searchParams.delete(p));
 
-    window.history.pushState(null, '', url.toString());
-
-    if (paramName === 'ot_id') {
-        const clSel = document.getElementById('clase-select');
-        if (clSel) {
-            clSel.innerHTML = '<option value="">— Seleccionar Clase —</option>';
-            if (value && window.todasLasOTs) {
-                const otMatch = window.todasLasOTs.find(o => String(o.id) === String(value));
-                if (otMatch && otMatch.clases) {
-                    otMatch.clases.forEach(c => {
-                        const opt = document.createElement('option');
-                        opt.value = c.id;
-                        opt.textContent = c.nombre;
-                        clSel.appendChild(opt);
-                    });
-                }
-                const optP = document.createElement('option'); optP.value = 'Pistones'; optP.textContent = 'Pistones (Opcional)'; clSel.appendChild(optP);
-                const optG = document.createElement('option'); optG.value = 'Guías'; optG.textContent = 'Guías (Opcional)'; clSel.appendChild(optG);
-                clSel.disabled = false;
-            } else {
-                clSel.disabled = true;
-            }
-        }
-    }
-
-    updateAdminUI();
+    window.location.href = url.toString();
 };
 
 window.irACarpeta = function (p1, p2, isId = false) {
@@ -310,6 +285,7 @@ function updateAdminUI() {
         }
 
         cargarArchivosEnPanel(p1, p2);
+        syncTableFiltersWithActiveOT();
 
         if (window.initFundicionChecklists) {
             setTimeout(window.initFundicionChecklists, 100);
@@ -1724,6 +1700,9 @@ function renderAlertasTable() {
         // Cargar conteos de totales para esta tabla
         loadTotalBadgeCounts();
     }
+    if (typeof initTableFilters === 'function') {
+        initTableFilters();
+    }
 }
 
 function loadTotalBadgeCounts() {
@@ -1762,15 +1741,24 @@ function poblarYFiltrarSelect(selectId, tableOrTbodySelector, defaultLabel) {
     });
 
     const aplicarFiltrado = () => {
-        const val = select.value.toLowerCase().trim();
+        const rawVal = select.value.trim();
+        const val = rawVal.toLowerCase();
+        const normalizedVal = typeof normalizeOTName === 'function' ? normalizeOTName(rawVal) : '';
         const currentRows = target.tagName === 'TBODY' ? target.querySelectorAll('tr') : target.querySelectorAll('tbody tr');
+        
         currentRows.forEach(row => {
             if (row.children.length === 1 && row.querySelector('td[colspan]')) return;
             if (!val) {
                 row.hidden = false;
+                row.style.display = '';
             } else {
-                const text = row.textContent.toLowerCase();
-                row.classList.toggle("hidden", !text.includes(val));
+                const firstTd = row.querySelector('td');
+                const text = (firstTd ? firstTd.textContent : row.textContent).toLowerCase();
+                const textNormalized = typeof normalizeOTName === 'function' ? normalizeOTName(firstTd ? firstTd.textContent : row.textContent) : '';
+                
+                const matches = text.includes(val) || (normalizedVal && textNormalized.includes(normalizedVal));
+                row.hidden = !matches;
+                row.style.display = matches ? '' : 'none';
             }
         });
     };
@@ -1783,7 +1771,32 @@ function poblarYFiltrarSelect(selectId, tableOrTbodySelector, defaultLabel) {
     }
 }
 
+function syncTableFiltersWithActiveOT() {
+    const otSel = document.getElementById('ot-select');
+    if (!otSel || !otSel.value || otSel.selectedIndex === -1) return;
+
+    const otText = otSel.options[otSel.selectedIndex].text.trim();
+    const normalizedSelected = typeof normalizeOTName === 'function' ? normalizeOTName(otText) : '';
+
+    ['filtro-tabla-estructura', 'filtro-tabla-alertas'].forEach(selectId => {
+        const sel = document.getElementById(selectId);
+        if (!sel) return;
+
+        let matchingOpt = Array.from(sel.options).find(opt => {
+            if (!opt.value) return false;
+            const optNorm = typeof normalizeOTName === 'function' ? normalizeOTName(opt.value) : '';
+            return (normalizedSelected && optNorm === normalizedSelected) || opt.text.trim().toLowerCase().includes(otText.toLowerCase());
+        });
+
+        if (matchingOpt && sel.value !== matchingOpt.value) {
+            sel.value = matchingOpt.value;
+            sel.dispatchEvent(new Event('change'));
+        }
+    });
+}
+
 function initTableFilters() {
     poblarYFiltrarSelect('filtro-tabla-estructura', '#tabla-estructura', '— Mostrar Todos —');
     poblarYFiltrarSelect('filtro-tabla-alertas', '#tabla-alertas-body', '— Mostrar Todas las OTs —');
+    syncTableFiltersWithActiveOT();
 }

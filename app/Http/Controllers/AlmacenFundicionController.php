@@ -1273,29 +1273,6 @@ class AlmacenFundicionController extends Controller
         }
 
         $attachments = [];
-        // ── Guardar archivos de recepción adjuntos (Bloque 2) ──────────────────
-        if ($request->hasFile('archivos')) {
-            $folderName = $this->sanitizePath($this->normalizeOTName($ot));
-            $destDir = self::ALMACEN_DIR . '/' . $folderName . '/Documentos_Aprobados/confirmacion_modelo';
-
-            if (!Storage::disk('local')->exists($destDir)) {
-                Storage::disk('local')->makeDirectory($destDir);
-            }
-
-            foreach ($request->file('archivos') as $file) {
-                $ext = $file->getClientOriginalExtension();
-                $safeName = preg_replace('/[^A-Za-z0-9_\-.]/', '_', pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
-                $stamp = date('d_m_Y_H_i_s');
-                $fileName = "ConfirmacionModelo{$clasesSuffix}_{$safeName}_{$stamp}.{$ext}";
-                Storage::disk('local')->put($destDir . '/' . $fileName, file_get_contents($file->getRealPath()));
-
-                $attachments[] = [
-                    'path' => storage_path('app/' . $destDir . '/' . $fileName),
-                    'name' => $fileName,
-                    'mime' => strtolower($ext) === 'pdf' ? 'application/pdf' : 'image/' . strtolower($ext)
-                ];
-            }
-        }
 
         // ── LIMPIEZA DE DOCUMENTOS PREVIOS AL REINICIAR CLASES ──────────────────
         $baseOt = preg_replace('/_R\d+$/i', '', $ot);
@@ -1428,6 +1405,31 @@ class AlmacenFundicionController extends Controller
 
             // Sincronizar snapshot en Almacén
             \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, false);
+        }
+
+        // ── Guardar archivos de recepción adjuntos (Bloque 2) ──────────────────
+        // NOTA: Se ejecuta DESPUÉS de la limpieza previa para evitar que copyToAlmacen los elimine
+        if ($request->hasFile('archivos')) {
+            $folderName = $this->sanitizePath($this->normalizeOTName($ot));
+            $destDir = self::ALMACEN_DIR . '/' . $folderName . '/Documentos_Aprobados/confirmacion_modelo';
+
+            if (!Storage::disk('local')->exists($destDir)) {
+                Storage::disk('local')->makeDirectory($destDir);
+            }
+
+            foreach ($request->file('archivos') as $file) {
+                $ext = $file->getClientOriginalExtension();
+                $safeName = preg_replace('/[^A-Za-z0-9_\-.]/', '_', pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
+                $stamp = date('d_m_Y_H_i_s');
+                $fileName = "ConfirmacionModelo{$clasesSuffix}_{$safeName}_{$stamp}.{$ext}";
+                Storage::disk('local')->put($destDir . '/' . $fileName, file_get_contents($file->getRealPath()));
+
+                $attachments[] = [
+                    'path' => storage_path('app/' . $destDir . '/' . $fileName),
+                    'name' => $fileName,
+                    'mime' => strtolower($ext) === 'pdf' ? 'application/pdf' : 'image/' . strtolower($ext)
+                ];
+            }
         }
 
         // Crear o actualizar el registro de liberacion indicando el origen
@@ -1685,7 +1687,9 @@ class AlmacenFundicionController extends Controller
                 Mail::send([], [], function ($message) use ($destCalidad, $asunto, $cuerpo, $calidadAttachments) {
                     $message->to($destCalidad)->subject($asunto)->html($cuerpo);
                     foreach ($calidadAttachments as $att) {
-                        $message->attach($att['path'], ['as' => $att['name'], 'mime' => $att['mime']]);
+                        if (!empty($att['path']) && file_exists($att['path'])) {
+                            $message->attach($att['path'], ['as' => $att['name'], 'mime' => $att['mime']]);
+                        }
                     }
                 });
             }
@@ -1694,7 +1698,9 @@ class AlmacenFundicionController extends Controller
                 Mail::send([], [], function ($message) use ($destProveedor, $asunto, $cuerpo, $attachments) {
                     $message->to($destProveedor)->subject($asunto)->html($cuerpo);
                     foreach ($attachments as $att) {
-                        $message->attach($att['path'], ['as' => $att['name'], 'mime' => $att['mime']]);
+                        if (!empty($att['path']) && file_exists($att['path'])) {
+                            $message->attach($att['path'], ['as' => $att['name'], 'mime' => $att['mime']]);
+                        }
                     }
                 });
             }
@@ -2919,10 +2925,12 @@ class AlmacenFundicionController extends Controller
                         ->html($cuerpo);
 
                     foreach ($attachments as $att) {
-                        $message->attach($att['path'], [
-                            'as' => $att['name'],
-                            'mime' => $att['mime']
-                        ]);
+                        if (!empty($att['path']) && file_exists($att['path'])) {
+                            $message->attach($att['path'], [
+                                'as' => $att['name'],
+                                'mime' => $att['mime']
+                            ]);
+                        }
                     }
                 });
             } else {
@@ -2941,10 +2949,12 @@ class AlmacenFundicionController extends Controller
                             ->html($cuerpo);
 
                         foreach ($attachments as $att) {
-                            $message->attach($att['path'], [
-                                'as' => $att['name'],
-                                'mime' => $att['mime']
-                            ]);
+                            if (!empty($att['path']) && file_exists($att['path'])) {
+                                $message->attach($att['path'], [
+                                    'as' => $att['name'],
+                                    'mime' => $att['mime']
+                                ]);
+                            }
                         }
                     });
                 }
@@ -2962,10 +2972,12 @@ class AlmacenFundicionController extends Controller
                             ->html($cuerpo);
 
                         foreach ($attachmentsFiltrados as $att) {
-                            $message->attach($att['path'], [
-                                'as' => $att['name'],
-                                'mime' => $att['mime']
-                            ]);
+                            if (!empty($att['path']) && file_exists($att['path'])) {
+                                $message->attach($att['path'], [
+                                    'as' => $att['name'],
+                                    'mime' => $att['mime']
+                                ]);
+                            }
                         }
                     });
                 }
