@@ -35,8 +35,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property bool             $accion_otro
  * @property string|null      $accion_otro_texto
  * @property string|null      $pdf_firmado_filename
- * @property \Carbon\Carbon   $created_at
- * @property \Carbon\Carbon   $updated_at
+ * @property \Carbon\Carbon|null $created_at
+ * @property \Carbon\Carbon|null $updated_at
  */
 class ScarModelo extends Model
 {

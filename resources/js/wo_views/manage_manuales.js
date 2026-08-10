@@ -44,14 +44,14 @@ function updateDependentSelectors() {
             sel.value = val;
             return;
         }
-        let found = Array.from(sel.options).some(o => o.value === val || o.text === val);
+        let found = Array.from(sel.options).some(o => String(o.value) === String(val) || o.text.trim() === String(val).trim());
         if (!found) {
             const opt = document.createElement('option');
             opt.value = val;
             opt.text = val;
             sel.appendChild(opt);
         }
-        let matchingOpt = Array.from(sel.options).find(o => o.value === val || o.text === val);
+        let matchingOpt = Array.from(sel.options).find(o => String(o.value) === String(val) || o.text.trim() === String(val).trim());
         if (matchingOpt) sel.value = matchingOpt.value;
     }
 

@@ -352,6 +352,11 @@
         };
         window.csrfToken = "{{ csrf_token() }}";
         window.estructura = @json($estructura);
+        window.todasLasOTs = {!! json_encode($todasLasOTs->map(fn($o) => [
+            'id' => $o->id, 
+            'moldura_nombre' => $o->moldura?->nombre,
+            'clases' => $o->clases->map(fn($c) => ['id' => $c->id, 'nombre' => $c->nombre])->values()
+        ])) !!};
 
         // Exportar active selection para cargar panel inicialmente
         @if($moduleType === 'dibujos')

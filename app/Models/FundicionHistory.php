@@ -38,6 +38,7 @@ class FundicionHistory extends Model
         'ot',
         'ayudas_config',
         'clases_enviadas',
+        'pending_almacen_changes',
         'status',
         'alert_sent_at',
         'almacen_archivos',
@@ -61,6 +62,7 @@ class FundicionHistory extends Model
         'almacen_archivos'               => 'array',
         'ayudas_config'                  => 'array',
         'clases_enviadas'                => 'array',
+        'pending_almacen_changes'        => 'array',
         'tiene_modelo'                   => 'boolean',
         'pre_orden_sent'                 => 'boolean',
         'pre_orden_email_sent'           => 'boolean',
@@ -146,7 +148,7 @@ class FundicionHistory extends Model
 
         $liberacionesFisicas = \App\Models\LiberacionModeloFundicion::where('ot', '=', $this->ot, 'and')
             ->where('tipo_origen', '=', 'con_modelo', 'and')
-            ->whereNotNull('tipo_modelo')
+            ->whereNotNull('tipo_modelo', 'and')
             ->where('tipo_modelo', '!=', '', 'and')
             ->pluck('tipo_modelo')->toArray();
         foreach ($liberacionesFisicas as $lf) {

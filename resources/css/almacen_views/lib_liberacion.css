@@ -895,7 +895,25 @@
     filter: none !important;
 }
 
-/* ââ Badges de estado adicionales âââ */
+.btn-calidad-iniciar {
+    background: var(--gis-blue) !important;
+    border: 2px solid #033966 !important;
+    color: #ffffff !important;
+}
+.btn-calidad-iniciar img {
+    filter: brightness(0) invert(1) !important;
+}
+.btn-calidad-iniciar:hover {
+    background: #e6f0fa !important;
+    color: var(--gis-blue) !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.25) !important;
+}
+.btn-calidad-iniciar:hover img {
+    filter: none !important;
+}
+
+/* ── Badges de estado adicionales ── */
 .badge-modelo-rechazado,
 .badge-modelo-guardado {
     display: inline-flex;
