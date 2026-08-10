@@ -626,6 +626,7 @@ function setupCascadingFilters() {
             } else {
                 selectEl.value = "Todos";
                 anySelectionChanged = true;
+                selectEl.dispatchEvent(new Event('change'));
             }
         }
 
@@ -921,7 +922,7 @@ function initializeSoldaduraFeature() {
  * Verificar si el proceso es Soldadura y mostrar/ocultar botón
  */
 function checkProcessAndShowButton(processValue) {
-    if (processValue === "Soldadura") {
+    if (processValue === "Soldadura" || processValue === "Soldadura PTA" || processValue === "soldaduraPTA" || processValue === "PTA") {
         showExtraInfoButton();
     } else {
         hideExtraInfoButton();
@@ -934,6 +935,9 @@ function checkProcessAndShowButton(processValue) {
  */
 function showExtraInfoButton() {
     if (extraInfoButton) return; // Ya existe
+
+    // Limpiar botones huérfanos que pudieran haber quedado en el DOM
+    document.querySelectorAll(".btn-extra-info-soldadura").forEach(btn => btn.remove());
 
     extraInfoButton = document.createElement("button");
     extraInfoButton.className = "btn-extra-info-soldadura";
@@ -952,6 +956,9 @@ function hideExtraInfoButton() {
         extraInfoButton.remove();
         extraInfoButton = null;
     }
+    
+    // Asegurar que se eliminen del DOM todos los botones con esa clase
+    document.querySelectorAll(".btn-extra-info-soldadura").forEach(btn => btn.remove());
 }
 
 
@@ -985,7 +992,14 @@ function getCurrentFiltersFromDOM() {
     };
 }
 
-function getSoldaduraExtraInfo() {
+function getSoldaduraExtraInfo(e) {
+    if (e) e.preventDefault();
+    if (extraInfoButton.disabled) return;
+    
+    extraInfoButton.disabled = true;
+    const originalText = extraInfoButton.textContent;
+    extraInfoButton.textContent = "Cargando...";
+
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
 
     // Leer los filtros activos del DOM en lugar de los selectedItems iniciales
@@ -1002,6 +1016,8 @@ function getSoldaduraExtraInfo() {
     })
         .then((response) => response.json())
         .then((data) => {
+            extraInfoButton.disabled = false;
+            extraInfoButton.textContent = originalText;
             if (data.success) {
                 showSoldaduraExtraInfoTable(data.pieces, liveFilters);
             } else {
@@ -1009,6 +1025,8 @@ function getSoldaduraExtraInfo() {
             }
         })
         .catch((error) => {
+            extraInfoButton.disabled = false;
+            extraInfoButton.textContent = originalText;
             console.error("Error:", error);
             alert("Error al obtener información de Soldadura.");
         });
@@ -1018,6 +1036,7 @@ function getSoldaduraExtraInfo() {
  * Mostrar tabla con información extra de Soldadura
  */
 function showSoldaduraExtraInfoTable(pieces, liveFilters) {
+    closeSoldaduraModal(); // Asegurar que no haya múltiples modales abiertos
     soldaduraModalOpen = true;
 
     // Crear div de opacidad
@@ -1029,21 +1048,24 @@ function showSoldaduraExtraInfoTable(pieces, liveFilters) {
     const modalContainer = document.createElement("div");
     modalContainer.className = "soldadura-info-modal";
 
+    // Detectar si es PTA
+    const isPTA = liveFilters.process && liveFilters.process.toLowerCase().includes('pta');
+
     // Título
     const title = document.createElement("h2");
-    title.textContent = "Información Extra - Soldadura";
+    title.textContent = isPTA ? "Información Extra - Soldadura PTA" : "Información Extra - Soldadura";
     title.className = "soldadura-modal-title";
     modalContainer.appendChild(title);
 
     // Subtítulo con total
     const subtitle = document.createElement("p");
-    subtitle.textContent = `Total de piezas en Soldadura: ${pieces.length}`;
+    subtitle.textContent = `Total de piezas en ${isPTA ? 'PTA' : 'Soldadura'}: ${pieces.length}`;
     subtitle.className = "soldadura-modal-subtitle";
     modalContainer.appendChild(subtitle);
 
     if (pieces.length === 0) {
         const noDataMsg = document.createElement("p");
-        noDataMsg.textContent = "No hay piezas en proceso de Soldadura actualmente.";
+        noDataMsg.textContent = `No hay piezas en proceso de ${isPTA ? 'PTA' : 'Soldadura'} actualmente.`;
         noDataMsg.className = "soldadura-no-data";
         modalContainer.appendChild(noDataMsg);
     } else {
@@ -1059,13 +1081,26 @@ function showSoldaduraExtraInfoTable(pieces, liveFilters) {
         const headerRow = document.createElement("tr");
         headerRow.className = "soldadura-modal-header-row";
 
-        const headers = [
+        const headers = isPTA ? [
+            "N° Juego",
+            "Operador",
+            "Clase",
+            "OT",
+            "Fecha",
+            "Hora",
+            "PRECAL. (°C)",
+            "Soldadura",
+            "Resultado",
+            "Defecto",
+            "Observaciones"
+        ] : [
             "N° Juego",
             "Operador",
             "Clase",
             "OT",
             "Peso por Pieza",
             "Tipo Soldadura",
+            "Soldadura",
             "Lote",
             "Fecha",
             "Hora",
@@ -1086,26 +1121,36 @@ function showSoldaduraExtraInfoTable(pieces, liveFilters) {
         pieces.forEach((piece, index) => {
             const tr = document.createElement("tr");
             tr.className = index % 2 === 0 ? "soldadura-row-even" : "soldadura-row-odd";
-
-            const fields = [
-                piece.n_juego,
-                piece.operador,
-                piece.clase,
-                piece.orden_trabajo,
-                piece.peso_pieza,
-                piece.tipo_soldadura,
-                piece.lote,
-                piece.fecha,
-                piece.hora,
-                piece.observaciones,
-            ];
-
-            fields.forEach((fieldValue) => {
+            
+            const renderCell = (val) => {
                 const td = document.createElement("td");
-                td.textContent = fieldValue;
+                td.textContent = val !== null && val !== undefined ? val : 'N/A';
                 td.className = "soldadura-modal-td";
                 tr.appendChild(td);
-            });
+            };
+
+            renderCell(piece.n_juego);
+            renderCell(piece.operador);
+            renderCell(piece.clase);
+            renderCell(piece.orden_trabajo);
+            
+            if (isPTA) {
+                renderCell(piece.fecha);
+                renderCell(piece.hora);
+                renderCell(piece.precalentamiento);
+                renderCell(piece.material_soldadura);
+                renderCell(piece.resultado);
+                renderCell(piece.defecto);
+                renderCell(piece.observaciones);
+            } else {
+                renderCell(piece.peso_pieza);
+                renderCell(piece.tipo_soldadura);
+                renderCell(piece.material_soldadura);
+                renderCell(piece.lote);
+                renderCell(piece.fecha);
+                renderCell(piece.hora);
+                renderCell(piece.observaciones);
+            }
 
             tbody.appendChild(tr);
         });
@@ -1156,9 +1201,10 @@ function showSoldaduraExtraInfoTable(pieces, liveFilters) {
  * Cerrar modal de Soldadura
  */
 function closeSoldaduraModal() {
-    const divOpacity = document.getElementById("div-opacity-soldadura-table");
-    if (divOpacity) {
+    let divOpacity = document.getElementById("div-opacity-soldadura-table");
+    while (divOpacity) {
         divOpacity.remove();
+        divOpacity = document.getElementById("div-opacity-soldadura-table");
     }
     soldaduraModalOpen = false;
 }

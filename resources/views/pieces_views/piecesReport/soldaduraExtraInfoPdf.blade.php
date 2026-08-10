@@ -23,7 +23,7 @@
                 <th>Clase</th>
                 <th>OT</th>
                 <th>Peso por Pieza</th>
-                <th>Tipo de Preparación (1 Y 2)</th>
+                <th>Tipo Soldadura</th>
                 <th>Soldadura</th>
                 <th>Lote</th>
                 <th>Fecha</th>

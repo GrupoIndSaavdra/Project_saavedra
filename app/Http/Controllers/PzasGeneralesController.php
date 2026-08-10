@@ -523,6 +523,11 @@ class PzasGeneralesController extends Controller
             return $m->id_ot . '_' . $m->id_clase . '_' . $m->proceso . '_' . $m->fecha;
         });
 
+        // ── FALLBACK: Metas por Operador si las fechas no coinciden ──
+        $metasPorOperador = collect($metasDB)->sortByDesc('fecha')->groupBy(function($m) {
+            return $m->id_ot . '_' . $m->id_clase . '_' . $m->proceso . '_' . $m->id_usuario;
+        });
+
         foreach ($arrayP as $item) {
             if (in_array($item->id_clase, $finishedClassIds)) {
                 continue;
@@ -643,6 +648,13 @@ class PzasGeneralesController extends Controller
                 $mMatchGroup = $metasCruzadas->get($metaKey, collect());
                 $mMatch = $mMatchGroup->first(); // Tomar primera coincidencia de la meta por turno/proceso
                 
+                // Si no coincide por fecha exacta (ej. pieza creada días después de la meta)
+                if (!$mMatch) {
+                    $metaOpKey = $item->id_ot . '_' . $item->id_clase . '_' . $item->proceso . '_' . $item->id_operador;
+                    $mMatchOpGroup = $metasPorOperador->get($metaOpKey, collect());
+                    $mMatch = $mMatchOpGroup->first(); // Tomar la más reciente de ese operador
+                }
+
                 if ($mMatch && $mMatch->h_inicio && $mMatch->h_termino) {
                     $array[$contador]['hora_inicio'] = $mMatch->h_inicio;
                     $array[$contador]['hora_termino'] = $mMatch->h_termino;
@@ -2147,7 +2159,74 @@ class PzasGeneralesController extends Controller
         // Seleccionar solo las columnas de soldadura_pza para evitar conflictos
         $query->select('soldadura_pza.*');
 
-        return $query->get();
+        return $query->get()->unique(function ($item) {
+            return $item->id_proceso . '_' . $item->n_juego;
+        });
+    }
+
+    /**
+     * Helper para aplicar filtros a Soldadura PTA
+     * @param array $filters
+     */
+    private function applySoldaduraPTAFilters($filters)
+    {
+        $query = SoldaduraPTA_pza::query();
+
+        // 1. Filtro por n_juego
+        if (isset($filters['n_juego']) && $filters['n_juego'] !== 'Todos' && $filters['n_juego'] !== '') {
+            $query->where('n_juego', $filters['n_juego']);
+        }
+
+        // 2. Filtro por fechas (dateFrom, dateTo)
+        if (isset($filters['dateFrom']) && $filters['dateFrom'] !== '' && $filters['dateFrom'] !== 'Todos') {
+            $query->where('soldaduraPTA_pza.created_at', '>=', $filters['dateFrom'] . " 00:00:00");
+        }
+        if (isset($filters['dateTo']) && $filters['dateTo'] !== '' && $filters['dateTo'] !== 'Todos') {
+            $query->where('soldaduraPTA_pza.created_at', '<=', $filters['dateTo'] . " 23:59:59");
+        }
+
+        // 3. Filtro por Operador o Maquina (requiere join con metas)
+        if (
+            (isset($filters['operator']) && $filters['operator'] !== 'Todos' && $filters['operator'] !== '') ||
+            (isset($filters['machine']) && $filters['machine'] !== 'Todos' && $filters['machine'] !== '')
+        ) {
+            $query->join('metas', 'soldaduraPTA_pza.id_meta', '=', 'metas.id', 'inner', false);
+
+            if (isset($filters['operator']) && $filters['operator'] !== 'Todos' && $filters['operator'] !== '') {
+                $matricula = is_array($filters['operator']) ? $filters['operator']['matricula'] : $filters['operator'];
+                $query->where('metas.id_usuario', $matricula);
+            }
+
+            if (isset($filters['machine']) && $filters['machine'] !== 'Todos' && $filters['machine'] !== '') {
+                $query->where('metas.maquina', $filters['machine']);
+            }
+        }
+
+        // 4. Filtro por OT o Clase (usando join con soldaduraPTA)
+        if (
+            (isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '') ||
+            (isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '')
+        ) {
+            $query->join('soldaduraPTA', 'soldaduraPTA_pza.id_proceso', '=', 'soldaduraPTA.id', 'inner', false);
+
+            if (isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '') {
+                $otId = strpos($filters['workOrder'], ' - ') !== false
+                    ? explode(' - ', $filters['workOrder'])[0]
+                    : $filters['workOrder'];
+                $query->where('soldaduraPTA.id_proceso', 'LIKE', '%_' . $otId);
+            }
+
+            if (isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '') {
+                $query->where('soldaduraPTA.id_proceso', 'LIKE', '%_' . $filters['class'] . '_%');
+            }
+        }
+
+        // Seleccionar solo las columnas de soldaduraPTA_pza para evitar conflictos
+        $query->select('soldaduraPTA_pza.*');
+
+        return $query->get()->unique(function ($item) {
+            return $item->id_proceso . '_' . $item->n_juego;
+        });
     }
 
     /**
@@ -2187,38 +2266,70 @@ class PzasGeneralesController extends Controller
             // Recibir filtros del cuerpo de la petición
             $filters = $request->all();
 
+            // Determinar si es PTA
+            $isPTA = false;
+            if (isset($filters['process'])) {
+                $processVal = strtolower($filters['process']);
+                if (str_contains($processVal, 'pta')) {
+                    $isPTA = true;
+                }
+            }
+
             // Obtener piezas filtradas
-            $soldaduraPieces = $this->applySoldaduraFilters($filters);
+            if ($isPTA) {
+                $soldaduraPieces = $this->applySoldaduraPTAFilters($filters);
+            } else {
+                $soldaduraPieces = $this->applySoldaduraFilters($filters);
+            }
 
             $piecesData = [];
 
-            foreach ($soldaduraPieces as $piece) {
-                // Obtener información del proceso
-                $proceso = Soldadura::query()->find($piece->id_proceso);
+            // ── OPTIMIZACIÓN N+1 ──
+            $procesosIds = $soldaduraPieces->pluck('id_proceso')->unique()->toArray();
+            $metasIds = $soldaduraPieces->pluck('id_meta')->unique()->toArray();
 
-                // Obtener la meta asociada para sacar el operador
-                $meta = Metas::query()->find($piece->id_meta);
+            if ($isPTA) {
+                $procesosMap = SoldaduraPTA::query()->whereIn('id', $procesosIds)->get()->keyBy('id');
+            } else {
+                $procesosMap = Soldadura::query()->whereIn('id', $procesosIds)->get()->keyBy('id');
+            }
+
+            $metasMap = Metas::query()->whereIn('id', $metasIds)->get()->keyBy('id');
+            $userIds = $metasMap->pluck('id_usuario')->unique()->toArray();
+            $usersMap = User::query()->whereIn('matricula', $userIds)->get()->keyBy('matricula');
+
+            foreach ($soldaduraPieces as $piece) {
+                $proceso = $procesosMap->get($piece->id_proceso);
+                $meta = $metasMap->get($piece->id_meta);
                 $operatorName = 'N/A';
 
                 if ($meta) {
-                    $operator = User::query()->where('matricula', $meta->id_usuario)->first();
+                    $operator = $usersMap->get($meta->id_usuario);
                     if ($operator) {
                         $operatorName = $operator->nombre . ' ' . $operator->a_paterno . ' ' . $operator->a_materno;
                     }
                 }
 
                 if ($proceso) {
-                    // Extraer información de la clase y OT del id_proceso
-                    // Formato: Soldadura_NombreClase_IdOT
                     $processIdParts = explode('_', $proceso->id_proceso);
-                    $className = isset($processIdParts[1]) ? $processIdParts[1] : 'N/A';
-                    $workOrderId = isset($processIdParts[2]) ? $processIdParts[2] : 'N/A';
+                    if ($isPTA) {
+                        // Soldadura_PTA_Bombillo_1002
+                        $className = isset($processIdParts[2]) ? $processIdParts[2] : 'N/A';
+                        $workOrderId = isset($processIdParts[3]) ? $processIdParts[3] : 'N/A';
+                    } else {
+                        // Soldadura_Bombillo_1002
+                        $className = isset($processIdParts[1]) ? $processIdParts[1] : 'N/A';
+                        $workOrderId = isset($processIdParts[2]) ? $processIdParts[2] : 'N/A';
+                    }
 
                     $piecesData[] = [
                         'n_juego' => $piece->n_juego ?? 'N/A',
                         'operador' => $operatorName,
                         'clase' => $className,
                         'orden_trabajo' => $workOrderId,
+                        'precalentamiento' => $piece->precalentamiento ?? 'N/A',
+                        'resultado' => $piece->resultado ?? 'N/A',
+                        'defecto' => $piece->defecto_pta ?? 'N/A',
                         'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
                         'tiempo_aplicacion' => $piece->tiempo_aplicacion ?? 'N/A',
                         'tipo_soldadura' => $piece->tipo_soldadura ?? 'N/A',
@@ -2254,16 +2365,36 @@ class PzasGeneralesController extends Controller
             // Recibir filtros del query string
             $filters = $request->all();
 
-            $soldaduraPieces = $this->applySoldaduraFilters($filters);
+            $isPTA = isset($filters['process']) && stripos($filters['process'], 'pta') !== false;
+
+            if ($isPTA) {
+                $soldaduraPieces = $this->applySoldaduraPTAFilters($filters);
+            } else {
+                $soldaduraPieces = $this->applySoldaduraFilters($filters);
+            }
             $piecesData = [];
 
+            // ── OPTIMIZACIÓN N+1 PARA PDF ──
+            $procesosIds = $soldaduraPieces->pluck('id_proceso')->unique()->toArray();
+            $metasIds = $soldaduraPieces->pluck('id_meta')->unique()->toArray();
+
+            if ($isPTA) {
+                $procesosMap = SoldaduraPTA::query()->whereIn('id', $procesosIds)->get()->keyBy('id');
+            } else {
+                $procesosMap = Soldadura::query()->whereIn('id', $procesosIds)->get()->keyBy('id');
+            }
+
+            $metasMap = Metas::query()->whereIn('id', $metasIds)->get()->keyBy('id');
+            $userIds = $metasMap->pluck('id_usuario')->unique()->toArray();
+            $usersMap = User::query()->whereIn('matricula', $userIds)->get()->keyBy('matricula');
+
             foreach ($soldaduraPieces as $piece) {
-                $proceso = Soldadura::query()->find($piece->id_proceso);
-                $meta = Metas::query()->find($piece->id_meta);
+                $proceso = $procesosMap->get($piece->id_proceso);
+                $meta = $metasMap->get($piece->id_meta);
                 $operatorName = 'N/A';
 
                 if ($meta) {
-                    $operator = User::query()->where('matricula', $meta->id_usuario)->first();
+                    $operator = $usersMap->get($meta->id_usuario);
                     if ($operator) {
                         $operatorName = $operator->nombre . ' ' . $operator->a_paterno . ' ' . $operator->a_materno;
                     }
@@ -2271,32 +2402,57 @@ class PzasGeneralesController extends Controller
 
                 if ($proceso) {
                     $processIdParts = explode('_', $proceso->id_proceso);
-                    $className = isset($processIdParts[1]) ? $processIdParts[1] : 'N/A';
-                    $workOrderId = isset($processIdParts[2]) ? $processIdParts[2] : 'N/A';
+                    if ($isPTA) {
+                        $className = isset($processIdParts[2]) ? $processIdParts[2] : 'N/A';
+                        $workOrderId = isset($processIdParts[3]) ? $processIdParts[3] : 'N/A';
+                    } else {
+                        $className = isset($processIdParts[1]) ? $processIdParts[1] : 'N/A';
+                        $workOrderId = isset($processIdParts[2]) ? $processIdParts[2] : 'N/A';
+                    }
 
-                    $piecesData[] = [
-                        'n_juego' => $piece->n_juego ?? 'N/A',
-                        'operador' => $operatorName,
-                        'clase' => $className,
-                        'orden_trabajo' => $workOrderId,
-                        'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
-                        'tipo_soldadura' => $piece->tipo_soldadura ?? 'N/A',
-                        'material_soldadura' => $piece->material_soldadura ?? 'N/A',
-                        'lote' => $piece->lote ?? 'N/A',
-                        'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',
-                        'hora' => $piece->created_at ? $piece->created_at->format('H:i') : 'N/A',
-                        'observaciones' => $piece->observaciones ?? '',
-                    ];
+                    if ($isPTA) {
+                        $piecesData[] = [
+                            'n_juego' => $piece->n_juego ?? 'N/A',
+                            'operador' => $operatorName,
+                            'clase' => $className,
+                            'orden_trabajo' => $workOrderId,
+                            'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',
+                            'hora' => $piece->created_at ? $piece->created_at->format('H:i') : 'N/A',
+                            'precalentamiento' => $piece->precalentamiento ?? 'N/A',
+                            'material_soldadura' => $piece->material_soldadura ?? 'N/A',
+                            'resultado' => $piece->resultado ?? 'N/A',
+                            'defecto' => $piece->defecto_pta ?? 'N/A',
+                            'observaciones' => $piece->observaciones ?? '',
+                        ];
+                    } else {
+                        $piecesData[] = [
+                            'n_juego' => $piece->n_juego ?? 'N/A',
+                            'operador' => $operatorName,
+                            'clase' => $className,
+                            'orden_trabajo' => $workOrderId,
+                            'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
+                            'tipo_soldadura' => $piece->tipo_soldadura ?? 'N/A',
+                            'material_soldadura' => $piece->material_soldadura ?? 'N/A',
+                            'lote' => $piece->lote ?? 'N/A',
+                            'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',
+                            'hora' => $piece->created_at ? $piece->created_at->format('H:i') : 'N/A',
+                            'observaciones' => $piece->observaciones ?? '',
+                        ];
+                    }
                 }
             }
 
             // Construir nombre de archivo dinámico basado en filtros
-            $filenameParts = ['Reporte_Soldadura'];
+            $filenameParts = $isPTA ? ['Reporte_PTA'] : ['Reporte_Soldadura'];
+            
+            $ordenTrabajo = 'Todas';
 
             // Agregar OT si está filtrado
             if (isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '') {
                 $otValue = $filters['workOrder'];
-                // Si tiene formato "123 - Descripción", extraer solo el número
+                $ordenTrabajo = $otValue; // Para mostrar en la vista
+                
+                // Si tiene formato "123 - Descripción", extraer solo el número para el nombre del archivo
                 if (strpos($otValue, ' - ') !== false) {
                     $otValue = explode(' - ', $otValue)[0];
                 }
@@ -2351,7 +2507,12 @@ class PzasGeneralesController extends Controller
             // Unir todas las partes con guiones bajos
             $filename = implode('_', $filenameParts) . '.pdf';
 
-            $pdf = Pdf::loadView('pieces_views.piecesReport.soldaduraExtraInfoPdf', compact('piecesData'));
+            if ($isPTA) {
+                $pdf = Pdf::loadView('pieces_views.piecesReport.soldaduraPTAExtraInfoPdf', compact('piecesData', 'ordenTrabajo'));
+            } else {
+                $pdf = Pdf::loadView('pieces_views.piecesReport.soldaduraExtraInfoPdf', compact('piecesData'));
+            }
+            
             return $pdf->download($filename);
 
         } catch (\Exception $e) {
